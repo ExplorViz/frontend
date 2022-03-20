@@ -156,20 +156,6 @@ export default class VisualizationController extends Controller {
       }
 
     }
-    // TODO this is taken form ar/vr and adjusted. Might have to be moved back into the ...-rendering render loop?
-    // At least the creation of the objects?
-    const landscapeToken = this.landscapeTokenService.token!.value;
-    this.debug('LandscapeToken:' + landscapeToken)
-    const timestamp = this.selectedTimestampRecords[0]?.timestamp
-      || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-      || new Date().getTime();
-    this.debug('Timestamp:' + timestamp)
-    this.timestampService.setTimestampLocally(
-      timestamp,
-      structureData,
-      dynamicData,
-    );
-    this.debug('Set timestamp locally done:' + timestamp)
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,

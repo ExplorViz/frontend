@@ -5,6 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import Configuration from 'explorviz-frontend/services/configuration';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
@@ -23,7 +24,6 @@ import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrApplicationRenderer, { AddApplicationArgs } from 'virtual-reality/services/vr-application-renderer';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
-import VrLandscapeRenderer from 'virtual-reality/services/vr-landscape-renderer';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
@@ -118,8 +118,8 @@ export default class VrRendering
   @service('vr-highlighting')
   private highlightingService!: VrHighlightingService;
 
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
@@ -299,7 +299,7 @@ export default class VrRendering
               0,
             ),
           )
-          .premultiply(this.vrLandscapeRenderer.landscapeObject3D.quaternion),
+          .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
       }),
     });
 
@@ -442,7 +442,7 @@ export default class VrRendering
   willDestroy() {
     // Reset rendering.
     this.vrApplicationRenderer.removeAllApplicationsLocally();
-    this.vrLandscapeRenderer.cleanUpLandscape();
+    this.landscapeRenderer.cleanUpLandscape();
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
 
     // Reset services.

@@ -2,6 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaborative-mode/services/local-user';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrMenuFactoryService from 'explorviz-frontend/services/vr-menu-factory';
 import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
@@ -15,7 +16,6 @@ import { isRoomCreatedResponse, RoomCreatedResponse } from '../utils/vr-payload/
 import { isRoomListRecord, RoomListRecord } from '../utils/vr-payload/receivable/room-list';
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import RemoteVrUserService from './remote-vr-users';
-import VrLandscapeRenderer from './vr-landscape-renderer';
 import VrRoomSerializer from './vr-room-serializer';
 import VrSceneService from './vr-scene';
 
@@ -37,8 +37,8 @@ export default class VrRoomService extends Service {
   @service('vr-application-renderer')
   private vrApplicationRenderer!: VrApplicationRenderer;
 
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
@@ -100,13 +100,13 @@ export default class VrRoomService extends Service {
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
 
     // Initialize landscape.
-    this.vrLandscapeRenderer.landscapeObject3D.position.fromArray(
+    this.landscapeRenderer.landscapeObject3D.position.fromArray(
       landscape.position,
     );
-    this.vrLandscapeRenderer.landscapeObject3D.quaternion.fromArray(
+    this.landscapeRenderer.landscapeObject3D.quaternion.fromArray(
       landscape.quaternion,
     );
-    this.vrLandscapeRenderer.landscapeObject3D.scale.fromArray(landscape.scale);
+    this.landscapeRenderer.landscapeObject3D.scale.fromArray(landscape.scale);
 
     // Initialize applications.
     const tasks: Promise<any>[] = [];

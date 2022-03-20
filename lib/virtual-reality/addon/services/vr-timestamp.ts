@@ -12,7 +12,6 @@ import DetachedMenuGroupService from 'virtual-reality/services/detached-menu-gro
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrApplicationRenderer from './vr-application-renderer';
-import VrLandscapeRenderer from './vr-landscape-renderer';
 
 export default class VrTimestampService extends Service {
   private debug = debugLogger('VrTimestampService');
@@ -34,9 +33,6 @@ export default class VrTimestampService extends Service {
 
   @service('vr-application-renderer')
   private vrApplicationRenderer!: VrApplicationRenderer;
-
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;

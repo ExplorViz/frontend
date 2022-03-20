@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrMenuFactoryService from 'explorviz-frontend/services/vr-menu-factory';
 import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
@@ -10,7 +11,6 @@ import {
   SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import RemoteVrUserService from './remote-vr-users';
-import VrLandscapeRenderer from './vr-landscape-renderer';
 import VrSceneService from './vr-scene';
 
 type RestoreOptions = {
@@ -27,8 +27,8 @@ export default class VrRoomSerializer extends Service {
   @service('vr-application-renderer')
   private vrApplicationRenderer!: VrApplicationRenderer;
 
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
@@ -94,13 +94,13 @@ export default class VrRoomSerializer extends Service {
     landscape,
   }: SerializedVrRoom) {
     // Initialize landscape.
-    this.vrLandscapeRenderer.landscapeObject3D.position.fromArray(
+    this.landscapeRenderer.landscapeObject3D.position.fromArray(
       landscape.position,
     );
-    this.vrLandscapeRenderer.landscapeObject3D.quaternion.fromArray(
+    this.landscapeRenderer.landscapeObject3D.quaternion.fromArray(
       landscape.quaternion,
     );
-    this.vrLandscapeRenderer.landscapeObject3D.scale.fromArray(landscape.scale);
+    this.landscapeRenderer.landscapeObject3D.scale.fromArray(landscape.scale);
 
     // Initialize applications.
     const tasks: Promise<any>[] = [];
@@ -154,7 +154,7 @@ export default class VrRoomSerializer extends Service {
 
   // ToDo: Add both global and local positions
   private serializeLandscape(): SerializedLandscape {
-    const { landscapeObject3D } = this.vrLandscapeRenderer;
+    const { landscapeObject3D } = this.landscapeRenderer;
     return {
       landscapeToken: landscapeObject3D.dataModel.landscapeToken,
       timestamp: this.timestampService.timestamp,

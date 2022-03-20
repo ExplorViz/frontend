@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
@@ -32,7 +33,6 @@ import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import RemoteVrUserService from './remote-vr-users';
 import SpectateUserService from './spectate-user';
-import VrLandscapeRenderer from './vr-landscape-renderer';
 import VrRoomService from './vr-room';
 import VrRoomSerializer from './vr-room-serializer';
 import VrSceneService from './vr-scene';
@@ -59,8 +59,8 @@ export default class VrMenuFactoryService extends Service {
   @service('vr-application-renderer')
   private vrApplicationRenderer!: VrApplicationRenderer;
 
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -239,7 +239,7 @@ export default class VrMenuFactoryService extends Service {
     return new ResetMenu({
       localUser: this.localUser,
       vrApplicationRenderer: this.vrApplicationRenderer,
-      vrLandscapeRenderer: this.vrLandscapeRenderer,
+      landscapeRenderer: this.landscapeRenderer,
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,
     });

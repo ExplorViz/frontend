@@ -1,4 +1,4 @@
-<div style="display:none" {{did-update this.onUpdated @landscapeData}}></div>
+<div style="display:none" {{did-update (perform this.onUpdated @landscapeData)}}></div>
 
 <div class="row h-100">
   <div
@@ -12,8 +12,8 @@
       <canvas
         class="main-content-majority {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
         {{interaction-modifier
-          raycastObjects=this.landscapeObject3D
-          camera=this.camera
+          raycastObjects=this.landscapeRenderer.landscapeObject3D
+          camera=this.localUser.camera
           hammerInteraction=this.hammerInteraction
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
@@ -23,8 +23,8 @@
           panning=this.handlePanning
         }}
         {{collaborative-modifier
-          raycastObject3D=this.landscapeObject3D
-          camera=this.camera
+          raycastObject3D=this.landscapeRenderer.landscapeObject3D
+          camera=this.localUser.camera
           onDoubleClick=this.doubleClickOnMesh
           mouseMove=this.mouseMoveOnMesh
           mouseStop=this.mouseStopOnMesh

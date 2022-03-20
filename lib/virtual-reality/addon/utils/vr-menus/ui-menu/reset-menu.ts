@@ -1,7 +1,7 @@
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
-import VrLandscapeRenderer from '../../../services/vr-landscape-renderer';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
@@ -10,7 +10,7 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 export type ResetMenuArgs = UiMenuArgs & {
   localUser: LocalVrUser;
   vrApplicationRenderer: VrApplicationRenderer;
-  vrLandscapeRenderer: VrLandscapeRenderer;
+  landscapeRenderer: LandscapeRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
@@ -19,21 +19,21 @@ export default class ResetMenu extends UiMenu {
 
   private vrApplicationRenderer: VrApplicationRenderer;
 
-  private vrLandscapeRenderer: VrLandscapeRenderer;
+  private landscapeRenderer: LandscapeRenderer;
 
   private detachedMenuGroups: DetachedMenuGroupsService;
 
   constructor({
     localUser,
     vrApplicationRenderer,
-    vrLandscapeRenderer,
+    landscapeRenderer,
     detachedMenuGroups,
     ...args
   }: ResetMenuArgs) {
     super(args);
     this.localUser = localUser;
     this.vrApplicationRenderer = vrApplicationRenderer;
-    this.vrLandscapeRenderer = vrLandscapeRenderer;
+    this.landscapeRenderer = landscapeRenderer;
     this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
@@ -108,6 +108,6 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetLandscape() {
-    this.vrLandscapeRenderer.centerLandscape();
+    this.landscapeRenderer.centerLandscape();
   }
 }

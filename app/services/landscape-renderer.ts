@@ -372,6 +372,15 @@ export default class LandscapeRenderer extends Service.extend({
     this.largestSide = undefined;
   }
 
+  resetBrowserView() {
+    if (!this.modelIdToPlaneLayout) { return; }
+
+    this.localUser.camera.position.set(0, 0, 0);
+    const landscapeRect = this.landscapeObject3D.getMinMaxRect(this.modelIdToPlaneLayout);
+
+    updateCameraZoom(landscapeRect, this.localUser.camera, this.webglrenderer);
+  }
+
   /**
    * Takes a map with plain JSON layout objects and creates PlaneLayout objects from it
    *

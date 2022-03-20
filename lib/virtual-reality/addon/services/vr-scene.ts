@@ -1,8 +1,8 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import Configuration from 'explorviz-frontend/services/configuration';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrApplicationRenderer from 'explorviz-frontend/services/vr-application-renderer';
-import VrLandscapeRenderer from 'explorviz-frontend/services/vr-landscape-renderer';
 import THREE from 'three';
 import {
   APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE,
@@ -19,8 +19,8 @@ export default class VrSceneService extends Service {
   @service('vr-application-renderer')
   private vrApplicationRenderer!: VrApplicationRenderer;
 
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   scene: THREE.Scene;
 
@@ -107,7 +107,7 @@ export default class VrSceneService extends Service {
     switch (entityType) {
       case NODE_ENTITY_TYPE:
       case APPLICATION_ENTITY_TYPE:
-        return this.vrLandscapeRenderer.landscapeObject3D.getMeshbyModelId(id);
+        return this.landscapeRenderer.landscapeObject3D.getMeshbyModelId(id);
 
       case COMPONENT_ENTITY_TYPE:
       case CLASS_ENTITY_TYPE:

@@ -101,15 +101,15 @@ export default class LocalUser extends Service.extend({
     if (!checkConnectionStatus || !this.isConnecting) {
       this.connectionStatus = 'connecting';
       this.currentRoomId = roomId;
-      // try {
-      const response = await this.roomService.joinLobby(this.currentRoomId);
-      // TODO this is not reachable here and should never be
-      this.webSocket.initSocket(response.ticketId);
-      // } catch (e: any) {
-      //   this.connectionStatus = 'offline';
-      //   this.currentRoomId = null;
-      //   AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
-      // }
+      try {
+        const response = await this.roomService.joinLobby(this.currentRoomId);
+        // TODO this is not reachable here and should never be
+        this.webSocket.initSocket(response.ticketId);
+      } catch (e: any) {
+        this.connectionStatus = 'offline';
+        this.currentRoomId = null;
+        AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
+      }
     }
   }
 }

@@ -36,14 +36,9 @@ import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
 import VrSceneService from 'virtual-reality/services/vr-scene';
-import VrLandscapeRenderer from 'virtual-reality/services/vr-landscape-renderer';
 import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
-import { SelfConnectedMessage } from 'virtual-reality/utils/vr-message/receivable/self_connected';
-import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import { UserDisconnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
 import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
 import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
@@ -60,7 +55,6 @@ import { updateHighlighting } from 'explorviz-frontend/utils/application-renderi
 import { perform } from 'ember-concurrency-ts';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
 import VrRoomSerializer from '../services/vr-room-serializer';
-import PingService from 'explorviz-frontend/services/ping-service';
 import LocalUser from 'collaborative-mode/services/local-user';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 
@@ -121,9 +115,6 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
-
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
 
   @service('vr-message-receiver')
   private receiver!: VrMessageReceiver;
@@ -249,6 +240,19 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
   private initServices() {
     this.debug('Initializing services...');
+    if (this.args.landscapeData) {
+      const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
+      const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
+        || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
+        || new Date().getTime();
+      this.timestampService.setTimestampLocally(
+        timestamp,
+        this.args.landscapeData.structureLandscapeData,
+        this.args.landscapeData.dynamicLandscapeData,
+      );
+    } else {
+      AlertifyHandler.showAlertifyWarning('No landscape found!');
+    }
 
     // Use given font for landscape and application rendering.
     this.assetRepo.font = this.args.font;
@@ -1258,7 +1262,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     if (applicationObj && isApplication) {
       remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
     } else {
-      remoteUser.addMousePing(this.vrLandscapeRenderer.landscapeObject3D,
+      remoteUser.addMousePing(this.landscapeRenderer.landscapeObject3D,
         new THREE.Vector3().fromArray(position));
     }
   }
@@ -1281,7 +1285,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
   }: InitialLandscapeMessage): Promise<void> {
     await this.roomSerializer.restoreRoom({ landscape, openApps, detachedMenus });
 
-    this.landscapeMarker.add(this.vrLandscapeRenderer.landscapeObject3D);
+    this.landscapeMarker.add(this.landscapeRenderer.landscapeObject3D);
     this.arSettings.updateLandscapeOpacity();
 
     this.vrApplicationRenderer.getOpenApplications().forEach((applicationObject3D) => {

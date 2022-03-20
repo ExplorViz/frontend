@@ -174,8 +174,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.render = this.render.bind(this);
     this.hammerInteraction = HammerInteraction.create();
     this.landscapeRenderer.font = this.font
-
-    // this.landscapeRenderer.landscapeObject3D.dataModel = this.args.landscapeData.structureLandscapeData // TODO remove reminder
   }
 
   @action
@@ -206,6 +204,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    * performance panel if it is activated in user settings
    */
   initThreeJs() {
+    this.initServices();
     this.initCamera();
     this.initRenderer();
     this.initLights();
@@ -223,21 +222,21 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   // // TODO this is new, was taken from ar-rendering
-  // initServices() {
-  //   if (this.args.landscapeData) {
-  //     const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
-  //     const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
-  //       || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-  //       || new Date().getTime();
-  //     this.timestampService.setTimestampLocally(
-  //       timestamp,
-  //       this.args.landscapeData.structureLandscapeData,
-  //       this.args.landscapeData.dynamicLandscapeData,
-  //     );
-  //   } else {
-  //     AlertifyHandler.showAlertifyWarning('No landscape found!');
-  //   }
-  // }
+  initServices() {
+    if (this.args.landscapeData) {
+      const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
+      const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
+        || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
+        || new Date().getTime();
+      this.timestampService.setTimestampLocally(
+        timestamp,
+        this.args.landscapeData.structureLandscapeData,
+        this.args.landscapeData.dynamicLandscapeData,
+      );
+    } else {
+      AlertifyHandler.showAlertifyWarning('No landscape found!');
+    }
+  }
 
   /**
    * Creates a PerspectiveCamera according to canvas size and sets its initial position
@@ -403,58 +402,25 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.localUser.camera.updateProjectionMatrix();
   }
 
-  /**
- * Inherit this function to update the scene with a new renderingModel. It
- * automatically removes every mesh from the scene and finally calls
- * the (overridden) "populateScene" function. Add your custom code
- * as shown in landscape-rendering.
- *
- * @method cleanAndUpdateScene
- */
-  @action
-  async cleanAndUpdateScene() {
-    // TODO this is never used
-    // await perform(this.populateScene);
-
-    this.debug('clean and populate landscape-rendering');
-  }
-
   // Listener-Callbacks. Override in extending components
   //
   // TODO this might belong to landscape-renderer
   @action
   resetView() {
-    if (this.landscapeRenderer.modelIdToPlaneLayout) {
-      this.localUser.camera.position.set(0, 0, 0);
-      const landscapeRect = this.landscapeRenderer.landscapeObject3D.getMinMaxRect(this.landscapeRenderer.modelIdToPlaneLayout);
+    this.landscapeRenderer.resetBrowserView()
+  }
 
-      updateCameraZoom(landscapeRect, this.localUser.camera, this.webglrenderer);
+  @task *
+    onUpdated() {
+    if (this.initDone) {
+      this.debug('onUpdated called')
+      const { structureLandscapeData, dynamicLandscapeData } = this.args.landscapeData;
+      // TODO ar/vr handle both landscapes and applications. Check if this is also possible in browser.
+      yield perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData);
     }
   }
 
-  @action
-  onUpdated() {
-    // if (this.initDone) {
-    //   this.debug('onUpdated called')
-    //   perform(this.loadNewLandscape);
-    // }
-  }
-
   // #endregion ACTIONS
-
-  // #region SCENE POPULATION
-
-  @task *
-    loadNewLandscape() {
-    this.debug('loadNewLandscape called')
-    this.landscapeRenderer.landscapeObject3D.dataModel = this.args.landscapeData.structureLandscapeData;
-
-    const { structureLandscapeData, dynamicLandscapeData } = this.args.landscapeData;
-    // TODO populateScene with landscape renderer
-    yield perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData);
-  }
-
-  // #endregion SCENE POPULATION
 
   // #region SCENE MANIPULATION
 
@@ -566,7 +532,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     if (mesh && (mesh.parent instanceof ApplicationObject3D || mesh.parent instanceof LandscapeObject3D)) {
       const parentObj = mesh.parent;
       const pingPosition = parentObj.worldToLocal(intersection.point);
-      taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+      if (this.localUser.mousePing) {
+        taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+      }
     }
 
     this.mouseStopOnMesh(mesh, mouseOnCanvas);
