@@ -378,6 +378,9 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
   }
 
   private configureScene() {
+    this.sceneService.addFloor();
+    this.sceneService.addLight();
+    this.sceneService.addSpotlight();
     this.sceneService.setSceneTransparent();
     this.sceneService.removeSkylight();
   }
@@ -683,7 +686,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     if (intersection && intersection.object.parent instanceof ApplicationObject3D
       && currentHeatmapAppId !== intersection.object.parent.id) {
       const applicationObject3D = intersection.object.parent;
-      perform(this.vrApplicationRenderer.calculateHeatmapTask, applicationObject3D, () => {
+      perform(this.applicationRenderer.calculateHeatmapTask, applicationObject3D, () => {
         this.applyHeatmap();
       });
     } else if (intersection && intersection.object.parent instanceof LandscapeObject3D) {

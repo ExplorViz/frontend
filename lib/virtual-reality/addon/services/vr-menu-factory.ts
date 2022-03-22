@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
@@ -57,7 +58,7 @@ export default class VrMenuFactoryService extends Service {
   private spectateUserService!: SpectateUserService;
 
   @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
@@ -238,7 +239,7 @@ export default class VrMenuFactoryService extends Service {
   buildResetMenu(): ResetMenu {
     return new ResetMenu({
       localUser: this.localUser,
-      vrApplicationRenderer: this.vrApplicationRenderer,
+      vrApplicationRenderer: this.applicationRenderer,
       landscapeRenderer: this.landscapeRenderer,
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,

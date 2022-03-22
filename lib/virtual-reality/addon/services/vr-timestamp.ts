@@ -32,7 +32,7 @@ export default class VrTimestampService extends Service {
   private reloadHandler!: ReloadHandler;
 
   @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  private applicationRenderer!: VrApplicationRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -99,7 +99,7 @@ export default class VrTimestampService extends Service {
     this.debug('SetTimestapLocallyStart:' + timestamp)
     await Promise.all([
       await perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData),
-      this.vrApplicationRenderer.updateLandscapeData(
+      this.applicationRenderer.updateLandscapeData(
         structureLandscapeData,
         dynamicLandscapeData,
       ),

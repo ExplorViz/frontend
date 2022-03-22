@@ -1,5 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrApplicationRenderer from 'explorviz-frontend/services/vr-application-renderer';
@@ -16,8 +17,8 @@ export default class VrSceneService extends Service {
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
@@ -25,6 +26,8 @@ export default class VrSceneService extends Service {
   scene: THREE.Scene;
 
   readonly floor: FloorMesh;
+
+  light: THREE.AmbientLight
 
   spotLight: THREE.SpotLight;
 
@@ -46,7 +49,7 @@ export default class VrSceneService extends Service {
     // this.scene.add(this.floor);
 
     // Initialize lights.
-    const light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
+    this.light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
     // this.scene.add(light);
 
     this.spotLight = new THREE.SpotLight(0xffffff, 0.5, 2000);
@@ -62,6 +65,14 @@ export default class VrSceneService extends Service {
     this.skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
     this.skyLight.castShadow = false;
     // this.addSkylight();
+  }
+
+  addFloor() {
+    this.scene.add(this.floor);
+  }
+
+  addLight() {
+    this.scene.add(this.light);
   }
 
   addSpotlight() {
@@ -122,7 +133,7 @@ export default class VrSceneService extends Service {
   }
 
   private getCommunicationMeshById(id: string) {
-    const openApplications = this.vrApplicationRenderer.getOpenApplications();
+    const openApplications = this.applicationRenderer.getOpenApplications();
     for (let i = 0; i < openApplications.length; i++) {
       const application = openApplications[i];
       const mesh = application.getCommMeshByModelId(id);
@@ -132,7 +143,7 @@ export default class VrSceneService extends Service {
   }
 
   private getBoxMeshByModelId(id: string) {
-    const openApplications = this.vrApplicationRenderer.getOpenApplications();
+    const openApplications = this.applicationRenderer.getOpenApplications();
 
     for (let i = 0; i < openApplications.length; i++) {
       const application = openApplications[i];

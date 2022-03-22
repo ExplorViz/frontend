@@ -3,7 +3,6 @@ import { action } from '@ember/object';
 import debugLogger from 'ember-debug-logger';
 import THREE from 'three';
 import { inject as service } from '@ember/service';
-import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import Configuration from 'explorviz-frontend/services/configuration';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -12,7 +11,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import { tracked } from '@glimmer/tracking';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
-import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import { restartableTask, task } from 'ember-concurrency-decorators';
@@ -47,6 +45,7 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LocalUser from 'collaborative-mode/services/local-user';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -90,6 +89,9 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer
 
   debug = debugLogger('ApplicationRendering');
 
@@ -466,7 +468,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.applicationObject3D.dataModel = this.args.landscapeData.application!;
     this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
     try {
-      yield perform(this.populateScene);
+      yield perform(this.applicationRenderer.addApplicationTask, this.applicationObject3D.dataModel);
 
       if (this.isFirstRendering) {
         // Display application nicely for first rendering
@@ -481,95 +483,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
   }
 
-  @restartableTask *
-    populateScene() {
-    try {
-      const workerPayload = {
-        structure: this.applicationObject3D.dataModel,
-        dynamic: this.applicationObject3D.traces,
-      };
-
-      const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
-
-      // Remember state of components
-      const { openComponentIds } = this.applicationObject3D;
-
-      // Converting plain JSON layout data due to worker limitations
-      const boxLayoutMap = ApplicationRendering.convertToBoxLayoutMap(layoutMap);
-      this.applicationObject3D.boxLayoutMap = boxLayoutMap;
-
-      // Clean up old application
-      this.cleanUpApplication();
-
-      // Add new meshes to application
-      EntityRendering.addFoundationAndChildrenToApplication(this.applicationObject3D,
-        this.configuration.applicationColors);
-
-      if (!this.applicationObject3D.globeMesh) {
-        // reposition
-        this.applicationObject3D.addGlobeToApplication();
-        this.applicationObject3D.initializeGlobeAnimation();
-      } else {
-        this.applicationObject3D.repositionGlobeToApplication();
-      }
-
-      // Restore old state of components
-      restoreComponentState(this.applicationObject3D, openComponentIds);
-      this.updateDrawableClassCommunications();
-      this.addCommunication();
-      this.addLabels();
-
-      this.scene.add(this.applicationObject3D);
-
-      if (this.heatmapConf.heatmapActive) {
-        perform(this.calculateHeatmapTask, this.applicationObject3D, () => {
-          this.applyHeatmap();
-          this.heatmapConf.triggerLatestHeatmapUpdate();
-        });
-      }
-    } catch (e) {
-      // console.log(e);
-    }
-  }
-
-  /**
-   * Iterates over all box meshes and calls respective functions to label them
-   */
-  addLabels() {
-    if (!this.font) { return; }
-
-    const {
-      clazzTextColor, componentTextColor, foundationTextColor,
-    } = this.configuration.applicationColors;
-
-    // Label all entities (excluding communication)
-    this.applicationObject3D.getBoxMeshes().forEach((mesh) => {
-      if (mesh instanceof ClazzMesh) {
-        Labeler.addClazzTextLabel(mesh, this.font, clazzTextColor);
-      } else if (mesh instanceof ComponentMesh) {
-        Labeler.addBoxTextLabel(mesh, this.font, componentTextColor);
-      } else if (mesh instanceof FoundationMesh) {
-        Labeler.addBoxTextLabel(mesh, this.font, foundationTextColor);
-      }
-    });
-  }
-
-  updateDrawableClassCommunications() {
-    const { structureLandscapeData, application } = this.args.landscapeData;
-    const drawableClassCommunications = computeDrawableClassCommunication(
-      structureLandscapeData,
-      this.applicationObject3D.traces,
-    );
-
-    const allClasses = new Set(getAllClassesInApplication(application!));
-
-    const communicationInApplication = drawableClassCommunications.filter(
-      (comm) => allClasses.has(comm.sourceClass) || allClasses.has(comm.targetClass),
-    );
-
-    this.drawableClassCommunications = communicationInApplication;
-  }
-
   // #endregion SCENE POPULATION
 
   // #region COLLABORATIVE
@@ -582,84 +495,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   // #region HEATMAP
 
-  @restartableTask *
-    calculateHeatmapTask(
-      applicationObject3D: ApplicationObject3D,
-      callback?: () => void,
-  ) {
-    try {
-      const workerPayload = {
-        structure: applicationObject3D.dataModel,
-        dynamic: applicationObject3D.traces,
-      };
 
-      const metrics: Metric[] = yield this.worker.postMessage('metrics-worker', workerPayload);
-
-      this.heatmapConf.applicationID = applicationObject3D.dataModel.id;
-      this.heatmapConf.latestClazzMetricScores = metrics;
-      this.heatmapConf.saveAndCalculateMetricScores(metrics);
-
-      this.heatmapConf.updateCurrentlyViewedMetric();
-
-      if (callback) callback();
-    } catch (e) {
-      this.debug(e);
-    }
-  }
-
-  applyHeatmap() {
-    if (!this.heatmapConf.latestClazzMetricScores
-      || !this.heatmapConf.latestClazzMetricScores.firstObject) {
-      AlertifyHandler.showAlertifyError('No metrics available.');
-      return;
-    }
-
-    // Selected first metric if none is selected yet
-    if (!this.heatmapConf.selectedMetric) {
-      this.heatmapConf.selectedMetric = this.heatmapConf.latestClazzMetricScores.firstObject;
-    }
-
-    const { selectedMetric } = this.heatmapConf;
-
-    this.applicationObject3D.setComponentMeshOpacity(0.1);
-    this.applicationObject3D.setCommunicationOpacity(0.1);
-
-    const foundationMesh = this.applicationObject3D
-      .getBoxMeshbyModelId(this.args.landscapeData.application!.id);
-
-    if (!(foundationMesh instanceof FoundationMesh)) {
-      return;
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = foundationMesh.width;
-    canvas.height = foundationMesh.depth;
-    const simpleHeatMap = simpleHeatmap(selectedMetric.max, canvas,
-      this.heatmapConf.getSimpleHeatGradient(),
-      this.heatmapConf.heatmapRadius, this.heatmapConf.blurRadius);
-
-    const foundationWorldPosition = new THREE.Vector3();
-
-    foundationMesh.getWorldPosition(foundationWorldPosition);
-
-    removeHeatmapHelperLines(this.applicationObject3D);
-
-    const boxMeshes = this.applicationObject3D.getBoxMeshes();
-
-    boxMeshes.forEach((boxMesh) => {
-      if (boxMesh instanceof ClazzMesh) {
-        this.heatmapClazzUpdate(boxMesh.dataModel, foundationMesh,
-          simpleHeatMap);
-      }
-    });
-
-    simpleHeatMap.draw(0.0);
-    applySimpleHeatOnFoundation(foundationMesh, canvas);
-
-    this.heatmapConf.currentApplication = this.applicationObject3D;
-    this.heatmapConf.applicationID = this.applicationObject3D.dataModel.id;
-    this.heatmapConf.heatmapActive = true;
-  }
 
   removeHeatmap() {
     this.applicationObject3D.setOpacity(1);
@@ -893,14 +729,10 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   @action
   addCommunication() {
-    this.communicationRendering.addCommunication(this.applicationObject3D,
-      this.drawableClassCommunications);
-    updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, 1);
-
-    if (this.heatmapConf.heatmapActive) {
-      this.applicationObject3D.setComponentMeshOpacity(0.1);
-      this.applicationObject3D.setCommunicationOpacity(0.1);
-    }
+    this.applicationRenderer.addCommunication(
+      this.applicationObject3D,
+      this.drawableClassCommunications
+    );
   }
 
   /**
@@ -1030,7 +862,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
 
     if (this.heatmapConf.heatmapActive) {
-      this.applyHeatmap();
+      this.applicationRenderer.applyHeatmap(this.applicationObject3D);
     }
   }
 
@@ -1041,7 +873,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.heatmapConf.setSelectedMetricForCurrentMode(metricName);
 
     if (this.heatmapConf.heatmapActive) {
-      this.applyHeatmap();
+      this.applicationRenderer.applyHeatmap();
     }
   }
 
@@ -1054,8 +886,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       this.removeHeatmap();
     } else {
       // TODO: Check whether new calculation of heatmap is necessary
-      perform(this.calculateHeatmapTask, this.applicationObject3D, () => {
-        this.applyHeatmap();
+      perform(this.applicationRenderer.calculateHeatmapTask, this.applicationObject3D, () => {
+        this.applicationRenderer.applyHeatmap();
       });
     }
   }

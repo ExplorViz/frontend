@@ -310,6 +310,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   triggerHeatmapMode() {
     if (this.applicationID) {
       if (this.latestClazzMetricScores !== null) {
+        // TODO ask this is not used?
         this.trigger('updatedHeatMapMode', this.selectedMode);
       }
     }
@@ -326,6 +327,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   triggerMetricUpdate() {
     if (this.applicationID) {
       if (this.latestClazzMetricScores !== null) {
+        // TODO ask this is not used?
         this.trigger('newSelectedMetric', this.selectedMetric);
       }
     }
