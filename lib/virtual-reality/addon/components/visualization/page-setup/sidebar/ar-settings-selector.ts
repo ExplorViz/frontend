@@ -4,7 +4,7 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Configuration from 'explorviz-frontend/services/configuration';
-import VrApplicationRenderer from 'explorviz-frontend/services/vr-application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface ArSettingsSelectorArgs {
   removeComponent(componentPath: string): void
@@ -19,8 +19,8 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
   @service('configuration')
   configuration!: Configuration;
 
-  @service('vr-application-renderer')
-  vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
 
   @tracked
   buttonSize: number;
@@ -60,13 +60,13 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
   @action
   updateCommunicationWidth(event: any) {
     this.configuration.commWidthMultiplier = Number.parseFloat(event.target.value);
-    this.vrApplicationRenderer.updateCommunication();
+    this.applicationRenderer.updateCommunication();
   }
 
   @action
   updateCommunicationHeight(event: any) {
     this.configuration.commCurveHeightMultiplier = Number.parseFloat(event.target.value);
-    this.vrApplicationRenderer.updateCommunication();
+    this.applicationRenderer.updateCommunication();
   }
 
   @action
@@ -84,7 +84,7 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
     const oldValue = this.configuration.commCurveHeightDependsOnDistance;
     this.configuration.commCurveHeightDependsOnDistance = !oldValue;
 
-    this.vrApplicationRenderer.updateCommunication();
+    this.applicationRenderer.updateCommunication();
   }
 
   @action
@@ -92,7 +92,7 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
     const oldValue = this.arSettings.renderCommunication;
     this.arSettings.renderCommunication = !oldValue;
 
-    this.vrApplicationRenderer.updateCommunication();
+    this.applicationRenderer.updateCommunication();
   }
 
   @action

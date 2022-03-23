@@ -385,6 +385,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     // Clean up all remaining meshes
     this.landscapeRenderer.landscapeObject3D.removeAllChildren();
     this.labeler.clearCache();
+    // this.sceneService.scene.remove(this.landscapeRenderer.landscapeObject3D)
   }
 
   // #endregion COMPONENT AND SCENE CLEAN-UP

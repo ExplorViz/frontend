@@ -11,7 +11,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import DetachedMenuGroupService from 'virtual-reality/services/detached-menu-groups';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrApplicationRenderer from './vr-application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export default class VrTimestampService extends Service {
   private debug = debugLogger('VrTimestampService');
@@ -31,8 +31,8 @@ export default class VrTimestampService extends Service {
   @service('reload-handler')
   private reloadHandler!: ReloadHandler;
 
-  @service('vr-application-renderer')
-  private applicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;

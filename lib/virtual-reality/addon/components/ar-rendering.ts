@@ -28,7 +28,7 @@ import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
@@ -125,8 +125,8 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
   @service('vr-timestamp')
   private timestampService!: VrTimestampService;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('vr-asset-repo')
   private assetRepo!: VrAssetRepository;
@@ -562,7 +562,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     this.landscapeRenderer.landscapeObject3D.position.set(0, 0, 0);
     this.landscapeRenderer.resetRotation();
 
-    this.vrApplicationRenderer.getOpenApplications().forEach((application) => {
+    this.applicationRenderer.getOpenApplications().forEach((application) => {
       application.position.set(0, 0, 0);
       application.setLargestSide(1.5);
       application.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
@@ -572,7 +572,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
   @action
   removeAllApplications() {
-    this.vrApplicationRenderer.removeAllApplications();
+    this.applicationRenderer.removeAllApplications();
   }
 
   @action
@@ -580,7 +580,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     const oldValue = this.arSettings.renderCommunication;
     this.arSettings.renderCommunication = !oldValue;
 
-    this.vrApplicationRenderer.updateCommunication();
+    this.applicationRenderer.updateCommunication();
   }
 
   @action
@@ -636,7 +636,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
     const applicationObject3D = intersection.object.parent;
 
-    this.vrApplicationRenderer.openAllComponents(applicationObject3D);
+    this.applicationRenderer.openAllComponents(applicationObject3D);
   }
 
   @action
@@ -882,7 +882,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
         ${applicationModel.name}</b> available.`;
 
       AlertifyHandler.showAlertifyWarning(message);
-    } else if (this.vrApplicationRenderer.isApplicationOpen(applicationModel.id)) {
+    } else if (this.applicationRenderer.isApplicationOpen(applicationModel.id)) {
       // ToDo: Add info about occupied marker
       AlertifyHandler.showAlertifyWarning('Application already opened.');
     } else {
@@ -898,7 +898,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
         }
       }
 
-      const applicationObject3D = await this.vrApplicationRenderer
+      const applicationObject3D = await this.applicationRenderer
         .addApplication(applicationModel, {});
 
       this.addLocalApplicationToMarker(applicationObject3D);
@@ -1012,7 +1012,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
       foundationMesh.setDefaultMaterial();
     }
 
-    const comms = this.vrApplicationRenderer.drawableClassCommunications
+    const comms = this.applicationRenderer.drawableClassCommunications
       .get(applicationObject3D.dataModel.id);
     if (comms) {
       updateHighlighting(applicationObject3D, comms, 1);
@@ -1093,7 +1093,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
         || Date.now() - self.lastOpenAllComponents < 20) return;
 
       if (appObject instanceof ComponentMesh) {
-        self.vrApplicationRenderer.toggleComponent(
+        self.applicationRenderer.toggleComponent(
           appObject,
           appObject.parent,
         );
@@ -1105,7 +1105,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
           if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
         });
       } else if (appObject instanceof FoundationMesh) {
-        self.vrApplicationRenderer.closeAllComponents(appObject.parent);
+        self.applicationRenderer.closeAllComponents(appObject.parent);
       }
 
       if (self.heatmapConf.heatmapActive) {
@@ -1195,7 +1195,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     // Reset services.
     this.localUser.reset();
     this.landscapeRenderer.resetService();
-    this.vrApplicationRenderer.removeAllApplicationsLocally();
+    this.applicationRenderer.removeAllApplicationsLocally();
     this.sceneService.addSkylight();
 
     // Remove event listers.
@@ -1239,7 +1239,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     this.remoteUsers.removeAllRemoteUsers();
 
     // Reset highlighting colors.
-    this.vrApplicationRenderer.getOpenApplications().forEach((application) => {
+    this.applicationRenderer.getOpenApplications().forEach((application) => {
       application.setHighlightingColor(
         this.configuration.applicationColors.highlightedEntityColor,
       );
@@ -1260,7 +1260,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
-    const applicationObj = this.vrApplicationRenderer.getApplicationById(modelId);
+    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
 
     if (applicationObj && isApplication) {
       remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
@@ -1291,7 +1291,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     this.landscapeMarker.add(this.landscapeRenderer.landscapeObject3D);
     this.arSettings.updateLandscapeOpacity();
 
-    this.vrApplicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
+    this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
       this.addApplicationToMarker(applicationObject3D);
     });
   }
@@ -1301,12 +1301,12 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
       id, position, quaternion, scale,
     },
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
-    const application = this.vrApplicationRenderer.getApplicationInCurrentLandscapeById(
+    const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
       id,
     );
     if (application) {
       const applicationObject3D = await
-        this.vrApplicationRenderer.addApplicationLocally(application, {
+        this.applicationRenderer.addApplicationLocally(application, {
           position: new THREE.Vector3(...position),
           quaternion: new THREE.Quaternion(...quaternion),
           scale: new THREE.Vector3(...scale),
@@ -1319,10 +1319,10 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
   onAppClosed({
     originalMessage: { appId },
   }: ForwardedMessage<AppClosedMessage>): void {
-    const application = this.vrApplicationRenderer.getApplicationById(appId);
+    const application = this.applicationRenderer.getApplicationById(appId);
     if (application) {
       AlertifyHandler.showAlertifyWarning(`Application '${application.dataModel.name}' closed.`);
-      this.vrApplicationRenderer.removeApplicationLocally(application);
+      this.applicationRenderer.removeApplicationLocally(application);
     }
   }
 
@@ -1333,7 +1333,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
       isFoundation, appId, isOpened, componentId,
     },
   }: ForwardedMessage<ComponentUpdateMessage>): void {
-    const applicationObject3D = this.vrApplicationRenderer.getApplicationById(
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
       appId,
     );
     if (!applicationObject3D) return;
@@ -1342,12 +1342,12 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
     if (isFoundation) {
       if (isOpened) {
-        this.vrApplicationRenderer.openAllComponentsLocally(applicationObject3D);
+        this.applicationRenderer.openAllComponentsLocally(applicationObject3D);
       } else {
-        this.vrApplicationRenderer.closeAllComponentsLocally(applicationObject3D);
+        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
       }
     } else if (componentMesh instanceof ComponentMesh) {
-      this.vrApplicationRenderer.toggleComponentLocally(
+      this.applicationRenderer.toggleComponentLocally(
         componentMesh,
         applicationObject3D,
       );
@@ -1360,7 +1360,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
       isHighlighted, appId, entityType, entityId,
     },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
-    const application = this.vrApplicationRenderer.getApplicationById(appId);
+    const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) return;
 
     const user = this.remoteUsers.lookupRemoteUserById(userId);

@@ -11,19 +11,17 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import { tracked } from '@glimmer/tracking';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
-import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
-import { restartableTask, task } from 'ember-concurrency-decorators';
+import { task } from 'ember-concurrency-decorators';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import {
   Class, isClass, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { perform, taskFor } from 'ember-concurrency-ts';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import {
@@ -36,16 +34,14 @@ import {
   moveCameraTo,
   openComponentMesh,
   openAllComponents,
-  restoreComponentState,
   toggleComponentMeshState,
 } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
-import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
+import { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import VrSceneService from 'virtual-reality/services/vr-scene';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -93,17 +89,15 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer
 
+  @service('vr-scene')
+  private sceneService!: VrSceneService;
+
   debug = debugLogger('ApplicationRendering');
 
   canvas!: HTMLCanvasElement;
 
-  scene!: THREE.Scene;
-
   @tracked
   hammerInteraction: HammerInteraction;
-
-  @tracked
-  camera!: THREE.PerspectiveCamera;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -123,10 +117,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   drawableClassCommunications: DrawableClassCommunication[] = [];
 
-  // Extended Object3D which manages application meshes
-  readonly applicationObject3D: ApplicationObject3D;
-
-  readonly communicationRendering: CommunicationRendering;
 
   get rightClickMenuItems() {
     const commButtonTitle = this.configuration.isCommRendered ? 'Hide Communication' : 'Add Communication';
@@ -141,6 +131,19 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       { title: pauseButtonTitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
     ];
+  }
+
+  get scene() {
+    return this.sceneService.scene
+  }
+
+  get camera() {
+    return this.localUser.camera
+  }
+
+  get applicationObject3D() {
+    // TODO might be undefined
+    return this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id)!;
   }
 
   @tracked
@@ -162,6 +165,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     return this.userSettings.applicationSettings;
   }
 
+
+
   // #endregion CLASS FIELDS AND GETTERS
 
   // #region COMPONENT AND SCENE INITIALIZATION
@@ -172,17 +177,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
     this.render = this.render.bind(this);
     this.hammerInteraction = HammerInteraction.create();
-
-    const { application, dynamicLandscapeData } = this.args.landscapeData;
-
-    this.applicationObject3D = new ApplicationObject3D(application!,
-      new Map(), dynamicLandscapeData);
-
-    this.communicationRendering = new CommunicationRendering(
-      this.configuration,
-      this.userSettings,
-      this.heatmapConf,
-    );
 
     this.hoveredObject = null;
   }
@@ -227,7 +221,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
    * performance panel if it is activated in user settings
    */
   initThreeJs() {
-    this.initScene();
+    this.initServices();
     this.initCamera();
     this.initRenderer();
     this.initLights();
@@ -239,13 +233,22 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
   }
 
-  /**
-   * Creates a scene, its background and adds a landscapeObject3D to it
-   */
-  initScene() {
-    this.scene = new THREE.Scene();
-    this.scene.background = this.configuration.applicationColors.backgroundColor;
-    this.debug('Scene created');
+  initServices() {
+    this.applicationRenderer.font = this.font;
+    // this.scene.
+    // if (this.args.landscapedata) {
+    //   const { landscapetoken } = this.args.landscapedata.structurelandscapedata;
+    //   const timestamp = this.args.selectedtimestamprecords[0]?.timestamp
+    //     || this.timestamprepo.getlatesttimestamp(landscapetoken)?.timestamp
+    //     || new date().gettime();
+    //   this.timestampservice.settimestamplocally(
+    //     timestamp,
+    //     this.args.landscapedata.structurelandscapedata,
+    //     this.args.landscapedata.dynamiclandscapedata,
+    //   );
+    // } else {
+    //   alertifyhandler.showalertifywarning('no landscape found!');
+    // }
   }
 
   /**
@@ -253,7 +256,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
    */
   initCamera() {
     const { width, height } = this.canvas;
-    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     this.camera.position.set(0, 0, 100);
     this.debug('Camera added');
   }
@@ -417,7 +420,9 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     if (mesh && (mesh.parent instanceof ApplicationObject3D)) {
       const parentObj = mesh.parent;
       const pingPosition = parentObj.worldToLocal(intersection.point);
-      taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+      if (this.localUser.mousePing) {
+        taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+      }
     }
 
     this.mouseStopOnMesh(mesh, mouseOnCanvas);
@@ -465,10 +470,14 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   @task *
     loadApplication() {
-    this.applicationObject3D.dataModel = this.args.landscapeData.application!;
-    this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
+    // this.applicationObject3D.dataModel = this.args.landscapeData.application!;
     try {
-      yield perform(this.applicationRenderer.addApplicationTask, this.applicationObject3D.dataModel);
+      // yield perform(this.applicationRenderer.addApplicationTask, this.applicationObject3D.dataModel);
+      yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
+      this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
+
+      const position = new THREE.Vector3(5, 5, 0);
+      this.applicationObject3D.position.copy(position)
 
       if (this.isFirstRendering) {
         // Display application nicely for first rendering
@@ -514,59 +523,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.heatmapConf.heatmapActive = false;
   }
 
-  heatmapClazzUpdate(clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {
-    // Calculate center point of the clazz floor. This is used for computing the corresponding
-    // face on the foundation box.
-    const clazzMesh = this.applicationObject3D.getBoxMeshbyModelId(clazz.id) as
-      ClazzMesh | undefined;
-
-    if (!clazzMesh || !this.heatmapConf.selectedMetric) {
-      return;
-    }
-
-    const heatmapValues = this.heatmapConf.selectedMetric.values;
-    const heatmapValue = heatmapValues.get(clazz.id);
-
-    if (!heatmapValue) return;
-
-    const raycaster = new THREE.Raycaster();
-    const { selectedMode } = this.heatmapConf;
-
-    const clazzPos = clazzMesh.position.clone();
-    const viewPos = computeHeatMapViewPos(foundationMesh, this.camera);
-
-    clazzPos.y -= clazzMesh.height / 2;
-
-    this.applicationObject3D.localToWorld(clazzPos);
-
-    // The vector from the viewPos to the clazz floor center point
-    const rayVector = clazzPos.clone().sub(viewPos);
-
-    // Following the ray vector from the floor center get the intersection with the foundation.
-    raycaster.set(clazzPos, rayVector.normalize());
-
-    const firstIntersection = raycaster.intersectObject(foundationMesh, false)[0];
-
-    const worldIntersectionPoint = firstIntersection.point.clone();
-    this.applicationObject3D.worldToLocal(worldIntersectionPoint);
-
-    if (this.heatmapConf.useHelperLines) {
-      addHeatmapHelperLine(this.applicationObject3D, clazzPos, worldIntersectionPoint);
-    }
-
-    // Compute color only for the first intersection point for consistency if one was found.
-    if (firstIntersection && firstIntersection.uv) {
-      const xPos = firstIntersection.uv.x * foundationMesh.width;
-      const zPos = (1 - firstIntersection.uv.y) * foundationMesh.depth;
-      if (selectedMode === 'aggregatedHeatmap') {
-        simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
-      } else {
-        simpleHeatMap.add([xPos, zPos,
-          heatmapValue + (this.heatmapConf.largestValue / 2)]);
-      }
-    }
-  }
-
   // #endregion HEATMAP
 
   // #region RENDERING LOOP
@@ -594,9 +550,11 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       this.threePerformance.stats.begin();
     }
 
-    this.applicationObject3D.animationMixer?.update(this.clock.getDelta());
+    if (this.applicationObject3D) {
+      this.applicationObject3D.animationMixer?.update(this.clock.getDelta());
+    }
 
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.localUser.camera);
 
     this.scaleSpheres();
     if (this.threePerformance) {
@@ -743,7 +701,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.configuration.isCommRendered = !this.configuration.isCommRendered;
 
     if (this.configuration.isCommRendered) {
-      this.communicationRendering.addCommunication(this.applicationObject3D,
+      this.applicationRenderer.appCommRendering.addCommunication(this.applicationObject3D,
         this.drawableClassCommunications);
     } else {
       this.applicationObject3D.removeAllCommunication();
@@ -873,7 +831,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.heatmapConf.setSelectedMetricForCurrentMode(metricName);
 
     if (this.heatmapConf.heatmapActive) {
-      this.applicationRenderer.applyHeatmap();
+      this.applicationRenderer.applyHeatmap(this.applicationObject3D);
     }
   }
 
@@ -887,7 +845,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     } else {
       // TODO: Check whether new calculation of heatmap is necessary
       perform(this.applicationRenderer.calculateHeatmapTask, this.applicationObject3D, () => {
-        this.applicationRenderer.applyHeatmap();
+        this.applicationRenderer.applyHeatmap(this.applicationObject3D);
       });
     }
   }

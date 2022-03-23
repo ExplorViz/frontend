@@ -398,7 +398,7 @@ export default class VisualizationController extends Controller {
     // this.landscapeMarker.add(this.vrLandscapeRenderer.landscapeObject3D);
     // this.arSettings.updateLandscapeOpacity();
 
-    // this.vrApplicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
+    // this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
     //   this.addApplicationToMarker(applicationObject3D);
     // });
   }

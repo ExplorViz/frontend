@@ -11,7 +11,7 @@ import * as Highlighting from 'explorviz-frontend/utils/application-rendering/hi
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { enqueueTask, restartableTask } from 'ember-concurrency-decorators';
@@ -36,6 +36,7 @@ import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import UserSettings from './user-settings';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+import debugLogger from 'ember-debug-logger';
 
 const APPLICATION_SCALAR = 0.01;
 
@@ -59,6 +60,9 @@ export type AddApplicationArgs = {
 export default class ApplicationRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
+
+  debug = debugLogger('ApplicationRendering');
+
   @service()
   private worker!: any;
 
@@ -191,6 +195,19 @@ export default class ApplicationRenderer extends Service.extend({
     return this.userSettings.applicationSettings.transparencyIntensity.value;
   }
 
+  async addApplication(
+    applicationModel: Application,
+    args: AddApplicationArgs = {},
+  ): Promise<ApplicationObject3D> {
+    const application = await this.addApplicationLocally(
+      applicationModel,
+      args,
+    );
+    this.sender.sendAppOpened(application);
+    return application;
+  }
+
+
   addApplicationLocally(
     applicationModel: Application,
     args: AddApplicationArgs = {},
@@ -201,6 +218,59 @@ export default class ApplicationRenderer extends Service.extend({
         resolve(application);
       });
     });
+  }
+
+  heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {
+    // Calculate center point of the clazz floor. This is used for computing the corresponding
+    // face on the foundation box.
+    const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id) as
+      ClazzMesh | undefined;
+
+    if (!clazzMesh || !this.heatmapConf.selectedMetric) {
+      return;
+    }
+
+    const heatmapValues = this.heatmapConf.selectedMetric.values;
+    const heatmapValue = heatmapValues.get(clazz.id);
+
+    if (!heatmapValue) return;
+
+    const raycaster = new THREE.Raycaster();
+    const { selectedMode } = this.heatmapConf;
+
+    const clazzPos = clazzMesh.position.clone();
+    const viewPos = computeHeatMapViewPos(foundationMesh, this.camera);
+
+    clazzPos.y -= clazzMesh.height / 2;
+
+    applicationObject3D.localToWorld(clazzPos);
+
+    // The vector from the viewPos to the clazz floor center point
+    const rayVector = clazzPos.clone().sub(viewPos);
+
+    // Following the ray vector from the floor center get the intersection with the foundation.
+    raycaster.set(clazzPos, rayVector.normalize());
+
+    const firstIntersection = raycaster.intersectObject(foundationMesh, false)[0];
+
+    const worldIntersectionPoint = firstIntersection.point.clone();
+    applicationObject3D.worldToLocal(worldIntersectionPoint);
+
+    if (this.heatmapConf.useHelperLines) {
+      addHeatmapHelperLine(applicationObject3D, clazzPos, worldIntersectionPoint);
+    }
+
+    // Compute color only for the first intersection point for consistency if one was found.
+    if (firstIntersection && firstIntersection.uv) {
+      const xPos = firstIntersection.uv.x * foundationMesh.width;
+      const zPos = (1 - firstIntersection.uv.y) * foundationMesh.depth;
+      if (selectedMode === 'aggregatedHeatmap') {
+        simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
+      } else {
+        simpleHeatMap.add([xPos, zPos,
+          heatmapValue + (this.heatmapConf.largestValue / 2)]);
+      }
+    }
   }
 
   private initializeApplication(
@@ -429,7 +499,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D, drawableClassCommunications: DrawableClassCommunication[]) {
-    this.communicationRendering.addCommunication(
+    this.appCommRendering.addCommunication(
       applicationObject3D,
       drawableClassCommunications
     );
@@ -486,7 +556,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     boxMeshes.forEach((boxMesh) => {
       if (boxMesh instanceof ClazzMesh) {
-        this.heatmapClazzUpdate(boxMesh.dataModel, foundationMesh,
+        this.heatmapClazzUpdate(applicationObject3D, boxMesh.dataModel, foundationMesh,
           simpleHeatMap);
       }
     });

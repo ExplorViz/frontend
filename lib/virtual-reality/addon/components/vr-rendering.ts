@@ -22,7 +22,7 @@ import DeltaTimeService from 'virtual-reality/services/delta-time';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import VrApplicationRenderer, { AddApplicationArgs } from 'virtual-reality/services/vr-application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
@@ -109,8 +109,8 @@ export default class VrRendering
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('vr-asset-repo')
   private assetRepo!: VrAssetRepository;
@@ -308,7 +308,7 @@ export default class VrRendering
       targetType: ComponentMesh,
       triggerDown: (event) => {
         if (event.target.parent instanceof ApplicationObject3D) {
-          this.vrApplicationRenderer.toggleComponent(
+          this.applicationRenderer.toggleComponent(
             event.target,
             event.target.parent,
           );
@@ -321,7 +321,7 @@ export default class VrRendering
       targetType: FoundationMesh,
       triggerDown: (event) => {
         if (event.target.parent instanceof ApplicationObject3D) {
-          this.vrApplicationRenderer.closeAllComponents(event.target.parent);
+          this.applicationRenderer.closeAllComponents(event.target.parent);
         }
       },
     });
@@ -441,7 +441,7 @@ export default class VrRendering
 
   willDestroy() {
     // Reset rendering.
-    this.vrApplicationRenderer.removeAllApplicationsLocally();
+    this.applicationRenderer.removeAllApplicationsLocally();
     this.landscapeRenderer.cleanUpLandscape();
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
 
@@ -619,7 +619,7 @@ export default class VrRendering
     this.remoteUsers.updateRemoteUsers(delta);
 
     // update applications' globe animation
-    this.vrApplicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
+    this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
   }
 
   /**
@@ -646,13 +646,13 @@ export default class VrRendering
     }
 
     if (
-      this.vrApplicationRenderer.isApplicationOpen(applicationModel.id)
+      this.applicationRenderer.isApplicationOpen(applicationModel.id)
     ) {
       this.showHint('Application already opened');
       return Promise.resolve(null);
     }
 
-    return this.vrApplicationRenderer.addApplication(applicationModel, args);
+    return this.applicationRenderer.addApplication(applicationModel, args);
   }
 
   // #endregion APPLICATION RENDERING
@@ -915,7 +915,7 @@ export default class VrRendering
     this.remoteUsers.removeAllRemoteUsers();
 
     // Reset highlighting colors.
-    this.vrApplicationRenderer.getOpenApplications().forEach((application) => {
+    this.applicationRenderer.getOpenApplications().forEach((application) => {
       application.setHighlightingColor(
         this.configuration.applicationColors.highlightedEntityColor,
       );
@@ -1100,11 +1100,11 @@ export default class VrRendering
       id, position, quaternion, scale,
     },
   }: ForwardedMessage<AppOpenedMessage>): void {
-    const application = this.vrApplicationRenderer.getApplicationInCurrentLandscapeById(
+    const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
       id,
     );
     if (application) {
-      this.vrApplicationRenderer.addApplicationLocally(application, {
+      this.applicationRenderer.addApplicationLocally(application, {
         position: new THREE.Vector3(...position),
         quaternion: new THREE.Quaternion(...quaternion),
         scale: new THREE.Vector3(...scale),
@@ -1115,8 +1115,8 @@ export default class VrRendering
   onAppClosed({
     originalMessage: { appId },
   }: ForwardedMessage<AppClosedMessage>): void {
-    const application = this.vrApplicationRenderer.getApplicationById(appId);
-    if (application) this.vrApplicationRenderer.removeApplicationLocally(application);
+    const application = this.applicationRenderer.getApplicationById(appId);
+    if (application) this.applicationRenderer.removeApplicationLocally(application);
   }
 
   onObjectMoved({
@@ -1139,7 +1139,7 @@ export default class VrRendering
   onComponentUpdate({
     originalMessage: { isFoundation, appId, componentId },
   }: ForwardedMessage<ComponentUpdateMessage>): void {
-    const applicationObject3D = this.vrApplicationRenderer.getApplicationById(
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
       appId,
     );
     if (!applicationObject3D) return;
@@ -1147,9 +1147,9 @@ export default class VrRendering
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
     if (isFoundation) {
-      this.vrApplicationRenderer.closeAllComponentsLocally(applicationObject3D);
+      this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
     } else if (componentMesh instanceof ComponentMesh) {
-      this.vrApplicationRenderer.toggleComponentLocally(
+      this.applicationRenderer.toggleComponentLocally(
         componentMesh,
         applicationObject3D,
       );
@@ -1162,7 +1162,7 @@ export default class VrRendering
       isHighlighted, appId, entityType, entityId,
     },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
-    const application = this.vrApplicationRenderer.getApplicationById(appId);
+    const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) return;
 
     const user = this.remoteUsers.lookupRemoteUserById(userId);

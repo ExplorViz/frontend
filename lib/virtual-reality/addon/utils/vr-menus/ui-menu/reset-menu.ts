@@ -2,7 +2,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
-import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
@@ -18,7 +17,7 @@ export type ResetMenuArgs = UiMenuArgs & {
 export default class ResetMenu extends UiMenu {
   private localUser: LocalVrUser;
 
-  private applicationRenderer: VrApplicationRenderer;
+  private applicationRenderer: ApplicationRenderer;
 
   private landscapeRenderer: LandscapeRenderer;
 
@@ -105,7 +104,7 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    this.vrApplicationRenderer.removeAllApplicationsLocally();
+    this.applicationRenderer.removeAllApplicationsLocally();
   }
 
   private resetLandscape() {

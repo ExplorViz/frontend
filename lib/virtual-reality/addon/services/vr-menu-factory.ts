@@ -4,7 +4,6 @@ import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
-import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
@@ -57,7 +56,7 @@ export default class VrMenuFactoryService extends Service {
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
 
-  @service('vr-application-renderer')
+  @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
   @service('landscape-renderer')
@@ -239,7 +238,7 @@ export default class VrMenuFactoryService extends Service {
   buildResetMenu(): ResetMenu {
     return new ResetMenu({
       localUser: this.localUser,
-      vrApplicationRenderer: this.applicationRenderer,
+      applicationRenderer: this.applicationRenderer,
       landscapeRenderer: this.landscapeRenderer,
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,

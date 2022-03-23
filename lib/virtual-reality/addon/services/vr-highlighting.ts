@@ -8,9 +8,9 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ArSettings from './ar-settings';
-import VrApplicationRenderer from './vr-application-renderer';
 import LocalVrUser from './local-vr-user';
 import VrMessageSender from './vr-message-sender';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -43,8 +43,8 @@ export default class VrHighlightingService extends Service {
   @service('local-vr-user')
   private localUser!: LocalVrUser;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -88,11 +88,11 @@ export default class VrHighlightingService extends Service {
   updateHighlightingLocally(application: ApplicationObject3D) {
     if (!this.arSettings.renderCommunication) return;
 
-    const drawableComm = this.vrApplicationRenderer.drawableClassCommunications.get(
+    const drawableComm = this.applicationRenderer.drawableClassCommunications.get(
       application.dataModel.id,
     );
     if (drawableComm) {
-      this.vrApplicationRenderer.appCommRendering.addCommunication(
+      this.applicationRenderer.appCommRendering.addCommunication(
         application,
         drawableComm,
       );
@@ -105,7 +105,7 @@ export default class VrHighlightingService extends Service {
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color,
   ) {
-    const drawableComm = this.vrApplicationRenderer.drawableClassCommunications.get(
+    const drawableComm = this.applicationRenderer.drawableClassCommunications.get(
       application.dataModel.id,
     );
     if (drawableComm) {
@@ -134,7 +134,7 @@ export default class VrHighlightingService extends Service {
     return mesh.dataModel.id;
   }
 
-  private* findMeshesByTypeAndId(
+  private * findMeshesByTypeAndId(
     application: ApplicationObject3D,
     entityType: string,
     entityId: string,

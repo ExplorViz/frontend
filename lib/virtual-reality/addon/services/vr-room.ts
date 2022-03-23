@@ -6,7 +6,7 @@ import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrMenuFactoryService from 'explorviz-frontend/services/vr-menu-factory';
 import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
-import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import { InitialRoomPayload } from 'virtual-reality/utils/vr-payload/sendable/initial-room';
@@ -34,8 +34,8 @@ export default class VrRoomService extends Service {
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
@@ -96,7 +96,7 @@ export default class VrRoomService extends Service {
     openApps,
     landscape,
   }: SerializedVrRoom) {
-    this.vrApplicationRenderer.removeAllApplicationsLocally();
+    this.applicationRenderer.removeAllApplicationsLocally();
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
 
     // Initialize landscape.
@@ -111,12 +111,12 @@ export default class VrRoomService extends Service {
     // Initialize applications.
     const tasks: Promise<any>[] = [];
     openApps.forEach((app) => {
-      const application = this.vrApplicationRenderer.getApplicationInCurrentLandscapeById(
+      const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
         app.id,
       );
       if (application) {
         tasks.push(
-          this.vrApplicationRenderer.addApplicationLocally(application, {
+          this.applicationRenderer.addApplicationLocally(application, {
             position: new THREE.Vector3(...app.position),
             quaternion: new THREE.Quaternion(...app.quaternion),
             scale: new THREE.Vector3(...app.scale),
