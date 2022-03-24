@@ -22,7 +22,7 @@ import DeltaTimeService from 'virtual-reality/services/delta-time';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
@@ -177,6 +177,16 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
+    this.sceneService.addFloor();
+    this.sceneService.addLight();
+    this.sceneService.addSpotlight();
+    this.remoteUsers.displayHmd = true;
+    this.landscapeRenderer.landscape_depth = 0.7
+    this.landscapeRenderer.z_depth = 0.2
+    this.landscapeRenderer.commLineMinSize = 0.004
+    this.landscapeRenderer.commLineScalar = 0.028
+    this.landscapeRenderer.z_offset = 0.7 / 2 + 0.25
+    this.landscapeRenderer.z_pos_application = 0.3
     this.initServices();
     this.initInteraction();
     this.initPrimaryInput();
@@ -241,6 +251,9 @@ export default class VrRendering
 
     // Use given font for landscape and application rendering.
     this.assetRepo.font = this.args.font;
+    this.applicationRenderer.font = this.assetRepo.font;
+    this.landscapeRenderer.arMode = true
+    this.applicationRenderer.arMode = true
 
     // Initialize timestamp and landscape data. If no timestamp is selected,
     // the latest timestamp is used. When there is no timestamp, we fall back
@@ -431,8 +444,8 @@ export default class VrRendering
   private async initWebSocket() {
     this.debug('Initializing websocket...');
 
-    this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
-    this.receiver.addMessageListener(this);
+    // this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
+    // this.receiver.addMessageListener(this);
   }
 
   // #endregion INITIALIZATION
@@ -450,7 +463,7 @@ export default class VrRendering
     this.spectateUserService.reset();
 
     // Remove event listers.
-    this.receiver.removeMessageListener(this);
+    // this.receiver.removeMessageListener(this);
     this.willDestroyController.abort();
   }
 

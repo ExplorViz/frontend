@@ -49,8 +49,7 @@ import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
-import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
-import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
+import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { perform } from 'ember-concurrency-ts';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
@@ -269,6 +268,7 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     this.landscapeRenderer.z_offset = 0.7 / 2 + 0.25
     this.landscapeRenderer.z_pos_application = 0.3
     this.landscapeRenderer.arMode = true
+    this.applicationRenderer.arMode = true
 
   }
 

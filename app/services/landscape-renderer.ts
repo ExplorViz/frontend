@@ -19,6 +19,7 @@ import updateCameraZoom from 'explorviz-frontend/utils/landscape-rendering/zoom-
 import LocalUser from 'collaborative-mode/services/local-user';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import THREE from 'three';
+import ArSettings from 'virtual-reality/services/ar-settings';
 
 interface SimplePlaneLayout {
   height: number;
@@ -42,6 +43,9 @@ export default class LandscapeRenderer extends Service.extend({
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('ar-settings')
+  arSettings!: ArSettings;
 
   @service('vr-scene')
   private sceneService!: VrSceneService;

@@ -146,7 +146,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   }
 
   get applicationObject3D() {
-    // TODO fix this initialization workaround.
+    // TODO fix this initialization workaround. Probably use application markers like in ar-rendering. This currently does
+    // not work too well with the interactions
     const applicationObject3D = this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id);
     if (!applicationObject3D) {
       const { application, dynamicLandscapeData } = this.args.landscapeData;
