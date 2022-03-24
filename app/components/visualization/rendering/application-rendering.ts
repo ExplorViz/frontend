@@ -42,6 +42,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import VrSceneService from 'virtual-reality/services/vr-scene';
+import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -79,6 +80,9 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
+
+  @service('heatmap-renderer')
+  heatmapRenderer!: HeatmapRenderer;
 
   @service()
   worker!: any;
@@ -142,9 +146,15 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   }
 
   get applicationObject3D() {
-    // TODO might be undefined
-    // this.debug('Application3D Object:' + this.args.landscapeData.application!.id)
-    return this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id)!;
+    // TODO fix this initialization workaround.
+    const applicationObject3D = this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id);
+    if (!applicationObject3D) {
+      const { application, dynamicLandscapeData } = this.args.landscapeData;
+      return new ApplicationObject3D(application!,
+        new Map(), dynamicLandscapeData);
+    }
+
+    return applicationObject3D;
   }
 
   @tracked
@@ -821,7 +831,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
 
     if (this.heatmapConf.heatmapActive) {
-      this.applicationRenderer.applyHeatmap(this.applicationObject3D);
+      this.heatmapRenderer.applyHeatmap(this.applicationObject3D);
     }
   }
 
@@ -832,7 +842,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.heatmapConf.setSelectedMetricForCurrentMode(metricName);
 
     if (this.heatmapConf.heatmapActive) {
-      this.applicationRenderer.applyHeatmap(this.applicationObject3D);
+      this.heatmapRenderer.applyHeatmap(this.applicationObject3D);
     }
   }
 
@@ -845,8 +855,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       this.removeHeatmap();
     } else {
       // TODO: Check whether new calculation of heatmap is necessary
-      perform(this.applicationRenderer.calculateHeatmapTask, this.applicationObject3D, () => {
-        this.applicationRenderer.applyHeatmap(this.applicationObject3D);
+      perform(this.heatmapRenderer.calculateHeatmapTask, this.applicationObject3D, () => {
+        this.heatmapRenderer.applyHeatmap(this.applicationObject3D);
       });
     }
   }

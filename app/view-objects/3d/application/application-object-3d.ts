@@ -91,7 +91,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     // Ensure fast access to application meshes by additionally storing them in maps
     if (object instanceof FoundationMesh) {
       this.modelIdToMesh.set(object.dataModel.id, object);
-    // Store communication separately to allow efficient iteration over meshes
+      // Store communication separately to allow efficient iteration over meshes
     } else if (object instanceof ComponentMesh || object instanceof ClazzMesh) {
       this.modelIdToMesh.set(object.dataModel.id, object);
     } else if (object instanceof ClazzCommunicationMesh) {
@@ -201,6 +201,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   getAllMeshes(): Set<BaseMesh> {
     return new Set([...this.getBoxMeshes(), ...this.getCommMeshes()]);
+  }
+
+  get foundationMesh() {
+    return this.getBoxMeshbyModelId(this.dataModel.id);
   }
 
   /**
