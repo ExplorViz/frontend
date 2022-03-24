@@ -22,7 +22,7 @@ import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { perform } from 'ember-concurrency-ts';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeHighlighting, updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import THREE from 'three';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -37,6 +37,8 @@ import UserSettings from './user-settings';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import debugLogger from 'ember-debug-logger';
+import LocalUser from 'collaborative-mode/services/local-user';
+import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 
 const APPLICATION_SCALAR = 0.01;
 
@@ -93,6 +95,9 @@ export default class ApplicationRenderer extends Service.extend({
   @service('vr-scene')
   private sceneService!: VrSceneService;
 
+  @service('local-user')
+  private localUser!: LocalUser;
+
   private structureLandscapeData!: StructureLandscapeData;
 
   private dynamicLandscapeData!: DynamicLandscapeData;
@@ -104,6 +109,10 @@ export default class ApplicationRenderer extends Service.extend({
   readonly appCommRendering: CommunicationRendering;
 
   arMode: boolean = false;
+
+  get camera() {
+    return this.localUser.camera
+  }
 
   readonly drawableClassCommunications: Map<
     string,
@@ -376,6 +385,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D: ApplicationObject3D,
       callback?: () => void,
   ) {
+    this.debug('Calculate heatmap' + applicationObject3D.id)
     try {
       const workerPayload = {
         structure: applicationObject3D.dataModel,
@@ -386,15 +396,25 @@ export default class ApplicationRenderer extends Service.extend({
 
       this.heatmapConf.applicationID = applicationObject3D.dataModel.id;
       this.heatmapConf.latestClazzMetricScores = metrics;
+
+      this.debug('Saveing metrics ' + metrics)
       this.heatmapConf.saveAndCalculateMetricScores(metrics);
 
       this.heatmapConf.updateCurrentlyViewedMetric();
 
       if (callback) callback();
+
+      this.debug('Calculated heatmap')
     } catch (e) {
       this.debug(e);
     }
   }
+
+  cleanUpApplication(applicationObject3D: ApplicationObject3D) {
+    applicationObject3D.removeAllEntities();
+    removeHighlighting(applicationObject3D);
+  }
+
 
   @enqueueTask
   * addApplicationTask(
@@ -402,7 +422,12 @@ export default class ApplicationRenderer extends Service.extend({
     callback?: (applicationObject3D: ApplicationObject3D) => void,
   ) {
     try {
-      if (this.isApplicationOpen(applicationModel.id)) return;
+      if (this.isApplicationOpen(applicationModel.id) && this.arMode) {
+        this.debug('Application is already opened')
+        return;
+      }
+
+
 
       const workerPayload = {
         structure: applicationModel,
@@ -411,22 +436,29 @@ export default class ApplicationRenderer extends Service.extend({
 
       // TODO his is from browser. We have reloads here, but not in AR
       // Remember state of components
-      // const { openComponentIds } = this.applicationObject3D;
 
       const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
 
       // Converting plain JSON layout data due to worker limitations
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
 
-      const applicationObject3D = new VrApplicationObject3D(
-        applicationModel,
-        boxLayoutMap,
-        this.dynamicLandscapeData,
-      );
 
-      // TODO his is from browser. We have reloads here, but not in AR
-      // Clean up old application
-      // this.cleanUpApplication();
+      var applicationObject3D = this.getApplicationById(applicationModel.id)
+      var openComponentIds = null;
+      if (applicationObject3D) {
+        openComponentIds = applicationObject3D.openComponentIds;
+        applicationObject3D.boxLayoutMap = boxLayoutMap;
+        this.cleanUpApplication(applicationObject3D);
+
+        this.debug('Updating application' + applicationObject3D.id)
+      } else {
+        applicationObject3D = new VrApplicationObject3D(
+          applicationModel,
+          boxLayoutMap,
+          this.dynamicLandscapeData,
+        );
+        this.debug('Adding application ' + applicationObject3D.id)
+      }
 
       // Add new meshes to application
       EntityRendering.addFoundationAndChildrenToApplication(
@@ -444,7 +476,9 @@ export default class ApplicationRenderer extends Service.extend({
 
       // TODO his is from browser. We have reloads here, but not in AR
       // Restore old state of components
-      // restoreComponentState(this.applicationObject3D, openComponentIds);
+      if (openComponentIds) {
+        restoreComponentState(applicationObject3D, openComponentIds);
+      }
 
       this.updateDrawableClassCommunications(
         this.structureLandscapeData,
@@ -456,6 +490,7 @@ export default class ApplicationRenderer extends Service.extend({
       )!;
 
       if (!this.arMode) {
+        this.debug('Add communication ')
         this.addCommunication(applicationObject3D, drawableComm)
       } else if (this.arSettings.renderCommunication) {
         this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
@@ -516,6 +551,8 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   applyHeatmap(applicationObject3D: ApplicationObject3D) {
+    this.debug('ApplyHeatmap ' + this.heatmapConf.latestClazzMetricScores)
+    this.debug('ApplyHeatmapFirst ' + this.heatmapConf.latestClazzMetricScores.firstObject)
     if (!this.heatmapConf.latestClazzMetricScores
       || !this.heatmapConf.latestClazzMetricScores.firstObject) {
       AlertifyHandler.showAlertifyError('No metrics available.');

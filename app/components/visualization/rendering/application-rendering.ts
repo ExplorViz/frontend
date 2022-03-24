@@ -143,6 +143,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   get applicationObject3D() {
     // TODO might be undefined
+    // this.debug('Application3D Object:' + this.args.landscapeData.application!.id)
     return this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id)!;
   }
 
@@ -474,7 +475,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     try {
       // yield perform(this.applicationRenderer.addApplicationTask, this.applicationObject3D.dataModel);
       yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
-      this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
+      // this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
 
       const position = new THREE.Vector3(5, 5, 0);
       this.applicationObject3D.position.copy(position)
@@ -488,7 +489,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
         this.isFirstRendering = false;
       }
     } catch (e) {
-      // console.log(e);
+      console.log(e);
     }
   }
 

@@ -111,7 +111,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   updateCurrentlyViewedMetric() {
     // Update currently viewed metric
+    this.debug('SelctedMetric:' + this.selectedMetric)
     if (this.selectedMetric) {
+      this.debug('SelctedMetric:' + this.selectedMetric.name)
       let updatedMetric;
 
       if (this.selectedMode === 'aggregatedHeatmap') {
@@ -308,6 +310,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   triggerHeatmapMode() {
+    this.debug('triggerHeadmapMode')
     if (this.applicationID) {
       if (this.latestClazzMetricScores !== null) {
         // TODO ask this is not used?
@@ -317,6 +320,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   triggerLatestHeatmapUpdate() {
+    this.debug('triggerHeadmapUpdate')
     if (this.applicationID) {
       if (this.latestClazzMetricScores !== null) {
         this.trigger('updatedClazzMetrics', this.latestClazzMetricScores);
@@ -325,6 +329,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   triggerMetricUpdate() {
+    this.debug('triggerMetricUpdate')
     if (this.applicationID) {
       if (this.latestClazzMetricScores !== null) {
         // TODO ask this is not used?
