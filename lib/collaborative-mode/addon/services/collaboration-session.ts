@@ -78,7 +78,8 @@ export default class CollaborationSession extends Service.extend({
     this.notifyPropertyChange('idToRemoteUser');
   }
 
-  updateRemoteUsers(delta: number) {
+  updateRemoteUsers() {
+    // updateRemoteUsers(delta: number) {
     // this.idToRemoteUser.forEach((remoteUser) => remoteUser.update(delta));
     // this.notifyPropertyChange('idToRemoteUser');
   }

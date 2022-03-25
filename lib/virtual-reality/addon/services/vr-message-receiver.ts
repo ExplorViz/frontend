@@ -1,26 +1,25 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import WebSocketService from 'virtual-reality/services/web-socket';
-import { isMousePingUpdateMessage, MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import { isPingUpdateMessage, PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import { isTimestampUpdateMessage, TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import { ForwardedMessage, isForwardedMessage, isForwardedMessageOf } from '../utils/vr-message/receivable/forwarded';
-import { InitialLandscapeMessage, isInitialLandscapeMessage } from '../utils/vr-message/receivable/landscape';
-import { isMenuDetachedForwardMessage, MenuDetachedForwardMessage } from '../utils/vr-message/receivable/menu-detached-forward';
-import { isResponseMessage, ResponseMessage } from '../utils/vr-message/receivable/response';
-import { isSelfConnectedMessage, SelfConnectedMessage } from '../utils/vr-message/receivable/self_connected';
-import { isUserConnectedMessage, UserConnectedMessage } from '../utils/vr-message/receivable/user_connected';
-import { isUserDisconnectedMessage, UserDisconnectedMessage } from '../utils/vr-message/receivable/user_disconnect';
-import { AppOpenedMessage, isAppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
-import { ComponentUpdateMessage, isComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
-import { HighlightingUpdateMessage, isHighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
-import { isObjectMovedMessage, ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
-import { AppClosedMessage, isAppClosedMessage } from '../utils/vr-message/sendable/request/app_closed';
-import { DetachedMenuClosedMessage, isDetachedMenuClosedMessage } from '../utils/vr-message/sendable/request/detached_menu_closed';
-import { isSpectatingUpdateMessage, SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
-import { isUserControllerConnectMessage, UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
-import { isUserControllerDisconnectMessage, UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
-import { isUserPositionsMessage, UserPositionsMessage } from '../utils/vr-message/sendable/user_positions';
+import { MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
+import { TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import { ForwardedMessage } from '../utils/vr-message/receivable/forwarded';
+import { InitialLandscapeMessage } from '../utils/vr-message/receivable/landscape';
+import { MenuDetachedForwardMessage } from '../utils/vr-message/receivable/menu-detached-forward';
+import { SelfConnectedMessage } from '../utils/vr-message/receivable/self_connected';
+import { UserConnectedMessage } from '../utils/vr-message/receivable/user_connected';
+import { UserDisconnectedMessage } from '../utils/vr-message/receivable/user_disconnect';
+import { AppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
+import { ComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
+import { HighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
+import { ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
+import { AppClosedMessage } from '../utils/vr-message/sendable/request/app_closed';
+import { DetachedMenuClosedMessage } from '../utils/vr-message/sendable/request/detached_menu_closed';
+import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
+import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
+import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
+import { UserPositionsMessage } from '../utils/vr-message/sendable/user_positions';
 import { Nonce } from '../utils/vr-message/util/nonce';
 
 type ResponseHandler<T> = (msg: T) => void;
@@ -76,10 +75,6 @@ export default class VrMessageReceiver extends Service {
     // this.webSocket.messageCallback = (msg) => this.onMessage(msg);
   }
 
-  private onResponseMessage(msg: ResponseMessage<any>) {
-    const handler = this.responseHandlers.get(msg.nonce);
-    if (handler) handler(msg.response);
-  }
 
   /**
    * Adds an event listener that is invoked when a response with the given

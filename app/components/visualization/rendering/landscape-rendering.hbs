@@ -50,12 +50,6 @@
       {{/if}}
 
       {{!-- popup(s) --}}
-      {{#if this.popupData}}
-        <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable={{false}}
-          @popupData={{this.popupData}}
-        />
-      {{/if}}
     </div>
   </div>
   {{#if @showDataSelection}}

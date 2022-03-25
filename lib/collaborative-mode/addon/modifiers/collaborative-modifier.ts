@@ -1,27 +1,27 @@
-import Modifier from 'ember-modifier';
-import { inject as service } from '@ember/service';
-import { action } from '@ember/object';
 import { assert } from '@ember/debug';
-import CollaborativeSettingsService from 'collaborative-mode/services/collaborative-settings-service';
+import { action } from '@ember/object';
+import { inject as service } from '@ember/service';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
-import {
-  Click, CollaborativeEvents, CursorPosition, Perspective,
-} from 'collaborative-mode/utils/collaborative-data';
-import THREE, { Vector3 } from 'three';
-import adjustForObjectRotation from 'explorviz-frontend/utils/collaborative-util';
-import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import CollaborativeSettingsService from 'collaborative-mode/services/collaborative-settings-service';
 import EventSettingsService from 'collaborative-mode/services/event-settings-service';
+import {
+  Click, CollaborativeEvents, CursorPosition, Perspective
+} from 'collaborative-mode/utils/collaborative-data';
+import { perform } from 'ember-concurrency-ts';
+import debugLogger from 'ember-debug-logger';
+import Modifier from 'ember-modifier';
+import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import adjustForObjectRotation from 'explorviz-frontend/utils/collaborative-util';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import THREE, { Vector3 } from 'three';
+import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
-import { HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import debugLogger from 'ember-debug-logger';
-import { perform } from 'ember-concurrency-ts';
 
 interface IModifierArgs {
   positional: [],

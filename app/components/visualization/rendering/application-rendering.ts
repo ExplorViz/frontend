@@ -1,53 +1,54 @@
-import GlimmerComponent from '@glimmer/component';
+import { getOwner } from '@ember/application';
 import { action } from '@ember/object';
-import debugLogger from 'ember-debug-logger';
-import THREE from 'three';
 import { inject as service } from '@ember/service';
-import Configuration from 'explorviz-frontend/services/configuration';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import GlimmerComponent from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import LocalUser from 'collaborative-mode/services/local-user';
 import { task } from 'ember-concurrency-decorators';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import {
-  Class, Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { perform, taskFor } from 'ember-concurrency-ts';
+import debugLogger from 'ember-debug-logger';
+import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import {
-  highlight, highlightModel, highlightTrace, removeHighlighting, updateHighlighting,
-} from 'explorviz-frontend/utils/application-rendering/highlighting';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Configuration from 'explorviz-frontend/services/configuration';
+import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import {
   applyDefaultApplicationLayout,
   closeAllComponents,
   closeComponentMesh,
   moveCameraTo,
-  openComponentMesh,
-  openAllComponents,
-  toggleComponentMeshState,
+
+  openAllComponents, openComponentMesh,
+
+  toggleComponentMeshState
 } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import {
+  highlight, highlightModel, highlightTrace, removeHighlighting, updateHighlighting
+} from 'explorviz-frontend/utils/application-rendering/highlighting';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
-import { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import LocalUser from 'collaborative-mode/services/local-user';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import VrSceneService from 'virtual-reality/services/vr-scene';
-import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import { getOwner } from '@ember/application';
+import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import {
+  Class, Package
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
-import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
+import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
+import THREE from 'three';
+import VrSceneService from 'virtual-reality/services/vr-scene';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -256,7 +257,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       });
     this.renderingLoop.start();
 
-    this.initVisualization();
+    // this.initVisualization();
   }
 
   initServices() {
@@ -638,6 +639,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
         this.addCommunication();
         this.applicationObject3D.resetRotation();
 
+
+        this.initVisualization();
         this.isFirstRendering = false;
       }
     } catch (e) {

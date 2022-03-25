@@ -1,36 +1,35 @@
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import GlimmerComponent from '@glimmer/component';
-import { action } from '@ember/object';
-import debugLogger from 'ember-debug-logger';
-import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
-import THREE from 'three';
-import Configuration from 'explorviz-frontend/services/configuration';
-
-import updateCameraZoom from 'explorviz-frontend/utils/landscape-rendering/zoom-calculator';
-import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
-import { task } from 'ember-concurrency-decorators';
 import { tracked } from '@glimmer/tracking';
-import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
-import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { perform, taskFor } from 'ember-concurrency-ts';
-import { ELK, ElkNode } from 'elkjs/lib/elk-api';
-import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import LocalUser from 'collaborative-mode/services/local-user';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import { ELK, ElkNode } from 'elkjs/lib/elk-api';
+import { task } from 'ember-concurrency-decorators';
+import { perform, taskFor } from 'ember-concurrency-ts';
+import debugLogger from 'ember-debug-logger';
+import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
+import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
+import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
+import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
+import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
+import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
+import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
+import THREE from 'three';
 import VrSceneService from 'virtual-reality/services/vr-scene';
+import VrTimestampService from 'virtual-reality/services/vr-timestamp';
+
 
 interface Args {
   readonly id: string;
@@ -520,6 +519,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @action
   handleMouseStop(intersection: THREE.Intersection | null, mouseOnCanvas: Position2D) {
+
+    this.debug(intersection)
     if (!intersection) return;
     const mesh = intersection.object;
 

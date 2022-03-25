@@ -1,62 +1,59 @@
-import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import debugLogger from 'ember-debug-logger';
-import THREE, { MathUtils } from 'three';
+import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import LocalUser from 'collaborative-mode/services/local-user';
+import { perform } from 'ember-concurrency-ts';
+import debugLogger from 'ember-debug-logger';
+import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
+import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import Interaction from 'explorviz-frontend/utils/interaction';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import {
-  Class, Package, Application, Node,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
-import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
-import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import DeltaTime from 'virtual-reality/services/delta-time';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import ArSettings from 'virtual-reality/services/ar-settings';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
-import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
-import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
-import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
-import VrSceneService from 'virtual-reality/services/vr-scene';
-import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
-import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
-import { ComponentUpdateMessage, COMPONENT_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/component_update';
-import { HighlightingUpdateMessage, HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
-import WebSocketService from 'virtual-reality/services/web-socket';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
+import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
+import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
+import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
 import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
-import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { perform } from 'ember-concurrency-ts';
+import THREE, { MathUtils } from 'three';
+import ArSettings from 'virtual-reality/services/ar-settings';
+import DeltaTime from 'virtual-reality/services/delta-time';
+import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
+import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
+import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import VrSceneService from 'virtual-reality/services/vr-scene';
+import VrTimestampService from 'virtual-reality/services/vr-timestamp';
+import WebSocketService from 'virtual-reality/services/web-socket';
+import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
+import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
+import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
+import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
+import { ComponentUpdateMessage, COMPONENT_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/component_update';
+import { HighlightingUpdateMessage, HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
+import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VrRoomSerializer from '../services/vr-room-serializer';
-import LocalUser from 'collaborative-mode/services/local-user';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
-import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -83,7 +80,7 @@ type PopupData = {
 
 declare const THREEx: any;
 
-export default class ArRendering extends Component<Args> implements VrMessageListener {
+export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
 
   @service('configuration')
@@ -115,9 +112,6 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
-
-  @service('vr-message-receiver')
-  private receiver!: VrMessageReceiver;
 
   @service('vr-scene')
   private sceneService!: VrSceneService;
@@ -667,10 +661,10 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     this.localColabUser.mousePing.ping({ parentObj: parentObj, position: pingPosition })
 
     // TODO is this
-    const color = this.localUser.color ? this.localUser.color
-      : this.configuration.applicationColors.highlightedEntityColor;
+    // const color = this.localUser.color ? this.localUser.color
+    //   : this.configuration.applicationColors.highlightedEntityColor;
 
-    this.pingService.addPing(parentObj, pingPosition, color);
+    // this.pingService.addPing(parentObj, pingPosition, color);
 
     if (this.localUser.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -1171,10 +1165,11 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
     const applicationObj = this.applicationRenderer.getApplicationById(modelId);
 
     if (applicationObj && isApplication) {
-      remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
+      this.debug('onMousePingUpdate' + position)
+      // remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
     } else {
-      remoteUser.addMousePing(this.landscapeRenderer.landscapeObject3D,
-        new THREE.Vector3().fromArray(position));
+      // remoteUser.addMousePing(this.landscapeRenderer.landscapeObject3D,
+      // new THREE.Vector3().fromArray(position));
     }
   }
 

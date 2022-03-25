@@ -1,5 +1,4 @@
 import RemoteUser from 'collaborative-mode/utils/remote-user';
-import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import THREE from 'three';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import NameTagSprite from '../view-objects/vr/name-tag-sprite';
@@ -25,8 +24,6 @@ export default class RemoteVrUser extends RemoteUser {
   controllers: (Controller | null)[];
 
   nameTag: NameTagSprite | null;
-
-  mousePing: { obj: THREE.Object3D, time: number } | undefined | null;
 
   private animationMixer: THREE.AnimationMixer;
 

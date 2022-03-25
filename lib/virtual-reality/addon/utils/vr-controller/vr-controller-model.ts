@@ -140,8 +140,9 @@ export default class VrControllerModel extends Object3D {
             if (typeof value === 'number' && minNode && maxNode) {
               minNode.quaternion.slerpQuaternions(
                 maxNode.quaternion,
-                value,
-              );
+                valueNode.quaternion,
+                value
+              )
 
               valueNode.position.lerpVectors(
                 minNode.position,

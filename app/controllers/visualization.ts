@@ -1,31 +1,29 @@
 import Controller from '@ember/controller';
 import {
   action,
-  set,
+  set
 } from '@ember/object';
 import { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborativeService from 'collaborative-mode/services/collaborative-service';
+import { CollaborativeEvents } from 'collaborative-mode/utils/collaborative-data';
+import ElkConstructor from 'elkjs/lib/elk-api';
+import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import CollaborativeService from 'collaborative-mode/services/collaborative-service';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
-import { tracked } from '@glimmer/tracking';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import debugLogger from 'ember-debug-logger';
-import { CollaborativeEvents } from 'collaborative-mode/utils/collaborative-data';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import ElkConstructor from 'elkjs/lib/elk-api';
 import THREE from 'three';
-import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import WebSocketService from 'virtual-reality/services/web-socket';
+import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -59,9 +57,6 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
-
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -365,7 +360,7 @@ export default class VisualizationController extends Controller {
     this.landscapeListener.initLandscapePolling();
     this.updateTimestampList();
     this.initWebSocket();
-    this.collaborationSession.updateRemoteUsers(2)
+    this.collaborationSession.updateRemoteUsers()
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.debug('initRendering done')
   }

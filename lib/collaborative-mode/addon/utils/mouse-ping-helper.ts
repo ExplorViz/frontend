@@ -1,6 +1,6 @@
-import { restartableTask, task } from 'ember-concurrency-decorators';
+import { restartableTask } from 'ember-concurrency-decorators';
 import LandscapeObject3D from "explorviz-frontend/view-objects/3d/landscape/landscape-object-3d";
-import { timeout, waitForEvent } from 'ember-concurrency';
+import { timeout } from 'ember-concurrency';
 import THREE from "three";
 
 export default class MousePing {
