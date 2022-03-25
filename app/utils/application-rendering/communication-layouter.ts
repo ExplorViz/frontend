@@ -4,7 +4,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ComponentMesh from '../../view-objects/3d/application/component-mesh';
 import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
 import CommunicationLayout from '../../view-objects/layout-models/communication-layout';
-import { DrawableClassCommunication } from '../landscape-rendering/class-communication-computer';
+import { DrawableClassCommunication } from './class-communication-computer';
 import { Application, Class, Package } from '../landscape-schemes/structure-data';
 
 // Communication Layouting //
@@ -185,7 +185,8 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
         const targetLayout = boxLayoutMap.get(targetEntity.id);
         if (targetLayout) {
           commLayout.endX = targetLayout.positionX + targetLayout.width / 2.0;
-          commLayout.endY = targetLayout.positionY + 0.05;
+          // commLayout.endY = targetLayout.positionY + 0.05;
+          commLayout.endY = targetLayout.positionY;
           commLayout.endZ = targetLayout.positionZ + targetLayout.depth / 2.0;
         }
       }

@@ -5,6 +5,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
+import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 
 /**
@@ -125,4 +126,39 @@ export function addFoundationAndChildrenToApplication(applicationObject3D: Appli
   children.forEach((child: Package) => {
     addComponentAndChildrenToScene(child, applicationObject3D, applicationColors);
   });
+}
+
+/**
+ * Creates a GlobeMesh and adds it to the given application object.
+ * Communication that come from the outside
+ *
+ * @param applicationObject3D Object which shall contain all application meshes
+ * @param applicationColors Object which defines the colors for different application entities
+ */
+export function addGlobeToApplication(appObject3D: ApplicationObject3D): AnimationMesh {
+  const geometry = new THREE.SphereGeometry(2.5, 15, 15);
+  const texture = new THREE.TextureLoader().load('images/earth-map.jpg');
+  const material = new THREE.MeshPhongMaterial({ map: texture });
+  const mesh = new AnimationMesh(geometry, material);
+  const applicationCenter = appObject3D.layout.center;
+
+  const centerPoint = new THREE.Vector3(-5, 0, -5);
+
+  centerPoint.sub(applicationCenter);
+
+  mesh.position.copy(centerPoint);
+  // mesh.rotateY(-2.45);
+
+  appObject3D.add(mesh);
+
+  return mesh;
+}
+
+export function repositionGlobeToApplication(appObject3D: ApplicationObject3D, globe: THREE.Mesh) {
+  const applicationCenter = appObject3D.layout.center;
+  const centerPoint = new THREE.Vector3(-5, 0, -5);
+
+  centerPoint.sub(applicationCenter);
+
+  globe.position.copy(centerPoint);
 }

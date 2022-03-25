@@ -28,6 +28,7 @@ interface InteractionModifierArgs {
     raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
     hammerInteraction: HammerInteraction,
     mouseEnter?(): void,
+    mouseLeave?(): void,
     mouseOut?(): void,
     mouseMove?(intersection: THREE.Intersection | null): void,
     mouseStop?(intersection: THREE.Intersection | null, mousePosition?: Position2D): void,
@@ -48,12 +49,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @service('collaborative-settings-service')
   collaborativeSettings!: CollaborativeSettingsService;
 
+  isMouseOnCanvas = false;
+
   didInstall() {
     // mouseout handler for disabling notifications
-    if (this.args.named.mouseOut) { this.canvas.addEventListener('mouseout', this.onMouseOut, false); }
+    this.canvas.addEventListener('mouseout', this.onMouseOut, false);
 
-    // mouseenter handler for disabling notifications
-    if (this.args.named.mouseEnter) { this.canvas.addEventListener('mouseenter', this.onMouseEnter, false); }
+    this.canvas.addEventListener('mouseenter', this.onMouseEnter, false);
 
     // zoom handler
     if (this.args.named.mouseWheel) { this.canvas.addEventListener('wheel', this.onMouseWheelStart, false); }
@@ -85,9 +87,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     if (this.args.named.singleClick) { this.hammerInteraction.hammerManager?.off('singletap'); }
 
-    if (this.args.named.mouseOut) { this.canvas.removeEventListener('mouseout', this.onMouseOut); }
+    this.canvas.removeEventListener('mouseout', this.onMouseOut);
 
-    if (this.args.named.mouseEnter) { this.canvas.removeEventListener('mouseenter', this.onMouseEnter); }
+    this.canvas.removeEventListener('mouseenter', this.onMouseEnter);
 
     if (this.args.named.mouseWheel) { this.canvas.removeEventListener('wheel', this.onMouseWheelStart); }
 
@@ -137,13 +139,18 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onMouseEnter() {
-    if (!this.args.named.mouseEnter || !this.collaborativeSettings.isInteractionAllowed) { return; }
+    if (!this.collaborativeSettings.isInteractionAllowed) { return; }
+
+    this.isMouseOnCanvas = true;
+
+    if (!this.args.named.mouseEnter) { return; }
 
     this.args.named.mouseEnter();
   }
 
   @action
   onMouseOut() {
+    this.isMouseOnCanvas = false;
     if (!this.args.named.mouseOut || !this.collaborativeSettings.isInteractionAllowed) { return; }
 
     this.args.named.mouseOut();
@@ -155,6 +162,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onMouseMove(evt: MouseEvent) {
+    this.isMouseOnCanvas = true;
+
     if (!this.args.named.mouseMove || !this.collaborativeSettings.isInteractionAllowed) { return; }
 
     // Extract mouse position
@@ -282,7 +291,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
             bubbles: true,
             cancelable: true,
           });
-          if (evt.target) evt.target.dispatchEvent(event);
+          if (evt.target && self.isMouseOnCanvas) evt.target.dispatchEvent(event);
         }, delay);
       });
     }(300));

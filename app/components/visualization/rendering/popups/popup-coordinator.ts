@@ -2,19 +2,22 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import { isDrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
 import {
   Application, Class, isApplication, isClass, isNode, isPackage, Node, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import Configuration from 'explorviz-frontend/services/configuration';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 interface IArgs {
   isMovable: boolean;
   popupData: {
     mouseX: number,
     mouseY: number,
-    entity: Node | Application | Package | Class
+    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
+    isPinned: boolean,
   };
+  removePopup(entityId: string): void;
+  pinPopup(entityId: string): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
@@ -74,10 +77,12 @@ export default class PopupCoordinator extends Component<IArgs> {
       newPositionY = containerDiv.clientHeight - popoverHeight;
     }
 
-    this.configuration.popupPosition = {
-      x: newPositionX,
-      y: newPositionY,
-    };
+    if (!this.args.popupData.isPinned) {
+      this.configuration.popupPosition = {
+        x: newPositionX,
+        y: newPositionY,
+      };
+    }
 
     this.element.style.top = `${newPositionY}px`;
     this.element.style.left = `${newPositionX}px`;
@@ -94,6 +99,10 @@ export default class PopupCoordinator extends Component<IArgs> {
   setPopupPosition(popoverDiv: HTMLDivElement) {
     this.element = popoverDiv;
     const { popupData } = this.args;
+
+    if (!popupData) {
+      return;
+    }
 
     // Sorrounding div for position calculations
     const containerDiv = popoverDiv.parentElement as HTMLElement;
@@ -140,6 +149,9 @@ export default class PopupCoordinator extends Component<IArgs> {
   }
 
   get entityType() {
+    if (!this.args.popupData) {
+      return '';
+    }
     if (isNode(this.args.popupData.entity)) {
       return 'node';
     }
@@ -152,7 +164,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (isPackage(this.args.popupData.entity)) {
       return 'package';
     }
-    if (isDrawableClassCommunication(this.args.popupData.entity)) {
+    if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'drawableClassCommunication';
     }
 

@@ -1,3 +1,4 @@
+import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
 export interface Method {
@@ -68,18 +69,23 @@ export function isMethod(x: any): x is Method {
 export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData,
 ) {
+  const entitiesForIdHashing: Set<Class | Package | Application | Node> = new Set();
+
   function createNodeId(node: Node) {
     const { hostName, ipAddress } = node;
     node.id = `${hostName}#${ipAddress}`;
+    entitiesForIdHashing.add(node);
   }
 
   function createApplicationId(app: Application) {
     const { hostName, ipAddress } = app.parent;
     app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+    entitiesForIdHashing.add(app);
   }
 
   function createPackageIds(component: Package, parentId: string) {
     component.id = `${parentId}.${component.name}`;
+    entitiesForIdHashing.add(component);
     component.subPackages.forEach((subComponent) => {
       createPackageIds(subComponent, component.id);
     });
@@ -89,6 +95,7 @@ export function preProcessAndEnhanceStructureLandscape(
     components.forEach((component) => {
       component.classes.forEach((clazz) => {
         clazz.id = `${component.id}.${clazz.name}`;
+        entitiesForIdHashing.add(clazz);
       });
       createClassIds(component.subPackages);
     });
@@ -112,6 +119,13 @@ export function preProcessAndEnhanceStructureLandscape(
     app.parent = parent;
   }
 
+  function hashEntityIds() {
+    entitiesForIdHashing.forEach((entity) => {
+      entity.id = sha256(entity.id).toString();
+    });
+  }
+
+  /* const a = performance.now(); */
   const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
     JSON.stringify(landscapeStructure),
   );
@@ -123,8 +137,8 @@ export function preProcessAndEnhanceStructureLandscape(
       app.packages.forEach((component) => {
         // create package ids in Java notation, e.g., 'net.explorviz.test'
         // and add parent relations for quicker access
+        createPackageIds(component, app.id);
         component.subPackages.forEach((subComponent) => {
-          createPackageIds(component, app.id);
           addParentToPackage(subComponent, component);
         });
         addParentToClazzes(component);
@@ -133,6 +147,8 @@ export function preProcessAndEnhanceStructureLandscape(
     });
     createNodeId(node);
   });
+
+  hashEntityIds();
 
   return enhancedlandscapeStructure;
 }

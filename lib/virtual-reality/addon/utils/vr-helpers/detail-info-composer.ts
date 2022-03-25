@@ -1,5 +1,5 @@
 import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getAncestorPackages, getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getSubPackagesOfPackage, getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -24,9 +24,32 @@ export type DetailedInfo = {
 
 function countComponentElements(component: Package) {
   const classCount = getClassesInPackage(component).length;
-  const packageCount = getAncestorPackages(component).length;
+  const packageCount = getSubPackagesOfPackage(component).length;
 
   return { classCount, packageCount };
+}
+
+function trimString(passedString: string | undefined, charLimit: number): string {
+  if (!passedString) {
+    return '';
+  }
+
+  if (passedString.length <= charLimit) {
+    return passedString;
+  }
+
+  if (charLimit < 5) {
+    return passedString.slice(1, charLimit);
+  }
+
+  const numberDots = 3;
+
+  const dividerPrefix = Math.round((charLimit - numberDots) / 2);
+  const dividerSuffix = Math.floor((charLimit - numberDots) / 2);
+
+  const prefix = passedString.slice(0, dividerPrefix);
+  const suffix = passedString.slice(-dividerSuffix);
+  return `${prefix}...${suffix}`;
 }
 
 // #endregion HELPER
@@ -34,10 +57,14 @@ function countComponentElements(component: Package) {
 // #region LANDSCAPE CONTENT COMPOSER
 
 function composeNodeContent(nodeMesh: NodeMesh) {
+  const nodeModel = nodeMesh.dataModel;
+
   const content: DetailedInfo = {
     title: nodeMesh.getDisplayName(),
     entries: [],
   };
+
+  content.entries.push({ key: '# Applications: ', value: trimString(`${nodeModel.applications.length}`, 40) });
 
   return content;
 }
@@ -45,10 +72,10 @@ function composeNodeContent(nodeMesh: NodeMesh) {
 function composeApplicationContent(applicationMesh: ApplicationMesh) {
   const application = applicationMesh.dataModel;
 
-  const content: DetailedInfo = { title: application.name, entries: [] };
+  const content: DetailedInfo = { title: trimString(application.name, 40), entries: [] };
 
-  content.entries.push({ key: 'Instance ID: ', value: application.id });
-  content.entries.push({ key: 'Language: ', value: application.language });
+  content.entries.push({ key: 'Instance ID: ', value: trimString(application.id, 40) });
+  content.entries.push({ key: 'Language: ', value: trimString(application.language, 40) });
 
   return content;
 }
@@ -61,7 +88,7 @@ function composeComponentContent(componentMesh: ComponentMesh) {
   const component = componentMesh.dataModel;
   const { packageCount, classCount } = countComponentElements(component);
 
-  const content: DetailedInfo = { title: component.name, entries: [] };
+  const content: DetailedInfo = { title: trimString(component.name, 40), entries: [] };
 
   content.entries.push({
     key: 'Contained Packages: ',
@@ -78,7 +105,27 @@ function composeComponentContent(componentMesh: ComponentMesh) {
 function composeClazzContent(clazzMesh: ClazzMesh) {
   const clazz = clazzMesh.dataModel;
 
-  const content: DetailedInfo = { title: clazz.name, entries: [] };
+  const content: DetailedInfo = { title: trimString(clazz.name, 40), entries: [] };
+
+  content.entries.push({
+    key: 'Instances:',
+    value: '0',
+  });
+
+  content.entries.push({
+    key: 'Inc. Requests:',
+    value: '0',
+  });
+
+  content.entries.push({
+    key: 'Out. Requests:',
+    value: '0',
+  });
+
+  content.entries.push({
+    key: 'Overall Requests:',
+    value: '0',
+  });
 
   return content;
 }
@@ -87,17 +134,75 @@ function composeDrawableClazzCommunicationContent(
   communicationMesh: ClazzCommunicationMesh,
 ) {
   const communication = communicationMesh.dataModel;
+  const applicationId = communication.application.id;
 
-  const commDirection = communication.bidirectional ? ' <-> ' : ' -> ';
-  const title = communication.sourceClass.name
-    + commDirection
-    + communication.targetClass.name;
+  const title = 'Communication Information';
 
   const content: DetailedInfo = { title, entries: [] };
 
-  content.entries.push({
-    key: 'Requests: ',
-    value: communication.totalRequests.toString(),
+  // # of aggregated requests
+  let aggregatedReqCount = 0;
+
+  communication.drawableClassCommus.forEach((drawableClassComm) => {
+    aggregatedReqCount += drawableClassComm.totalRequests;
+  });
+
+  if (communication.drawableClassCommus.length > 1) {
+    content.entries.push({
+      key: 'Aggregated request count:',
+      value: `${aggregatedReqCount} ( 100% )`,
+    });
+
+    // # of unique method calls
+    content.entries.push({
+      key: 'Number of unique methods:',
+      value: `${communication.drawableClassCommus.length}`,
+    });
+
+    content.entries.push({
+      key: '---',
+      value: '',
+    });
+  }
+
+  // add information for each unique method call
+  communication.drawableClassCommus.forEach((drawableCommu, index) => {
+    const commuHasExternalApp = applicationId !== drawableCommu.sourceApp?.id
+    || applicationId !== drawableCommu.targetApp?.id;
+
+    // Call hierarchy
+    content.entries.push({
+      key: 'Src / Tgt Class:',
+      value: `${trimString(drawableCommu.sourceClass.name, 20)} -> ${trimString(drawableCommu.targetClass.name, 20)}`,
+    });
+
+    if (commuHasExternalApp) {
+    // App hierarchy
+      content.entries.push({
+        key: 'Src / Tgt App:',
+        value: `${trimString(drawableCommu.sourceApp?.name, 20)} -> ${trimString(drawableCommu.targetApp?.name, 20)}`,
+      });
+    }
+
+    // Name of called operation
+    content.entries.push({
+      key: 'Called Op.:',
+      value: `${drawableCommu.operationName}`,
+    });
+
+    // Request count
+    content.entries.push({
+      key: 'Request count:',
+      value: `${drawableCommu.totalRequests} ( ${Math.round((drawableCommu.totalRequests / aggregatedReqCount) * 100)}% )`,
+    });
+
+    // Spacer
+    if (index < communication.drawableClassCommus.length) {
+      content.entries.push({
+        key: '---',
+        value: '',
+      });
+    }
   });
 
   return content;

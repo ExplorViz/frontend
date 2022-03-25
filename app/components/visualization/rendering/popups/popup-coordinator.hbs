@@ -4,6 +4,18 @@
   {{on "mousedown" this.dragMouseDown}}
   {{did-insert this.setPopupPosition}}
 >
+  <BsButton
+    @type="primary"
+    @onClick={{fn @pinPopup @popupData.entity.id}}
+  >
+    Pin
+  </BsButton>
+  <BsButton
+    @type="secondary"
+    @onClick={{fn @removePopup @popupData.entity.id}}
+  >
+    Close
+  </BsButton>
   {{!-- landscape popups --}}
   {{#if (eq this.entityType "node")}}
     <Visualization::Rendering::Popups::LandscapePopups::NodePopup
@@ -31,8 +43,9 @@
     <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
       @communication={{@popupData.entity}}
       @structureData={{@structureData}}
-      @application={{@application}}
       @showApplication={{@showApplication}}
+      @highlightModel={{@highlightModel}}
+      @openParents={{@openParents}}
     />
   {{/if}}
 </div>

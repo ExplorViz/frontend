@@ -1,5 +1,5 @@
 import THREE from 'three';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 
 export default class CommunicationLayout {
   model: DrawableClassCommunication;

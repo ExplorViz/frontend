@@ -63,7 +63,9 @@ module.exports = function initEnvironment(environment) {
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
       collaborationSocketPath: P_ENV.COLLABORATION_SOCKET_PATH,
     },
-
+    version: {
+      versionTag: P_ENV.VERSION_TAG,
+    },
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created

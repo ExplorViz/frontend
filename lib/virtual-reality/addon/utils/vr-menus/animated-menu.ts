@@ -2,15 +2,6 @@ import THREE from 'three';
 import BaseMenu, { BaseMenuArgs } from './base-menu';
 
 /**
- * An event that is fired by THREE.js's animation system when an animation
- * is done.
- */
-type AnimationFinishedEvent = {
-  type: 'finished';
-  action: THREE.AnimationAction;
-};
-
-/**
  * Base class for all menus that can be animated.
  */
 export default abstract class AnimatedMenu extends BaseMenu {
@@ -27,7 +18,7 @@ export default abstract class AnimatedMenu extends BaseMenu {
    */
   waitForAnimation(action: THREE.AnimationAction): Promise<null> {
     return new Promise((resolve) => {
-      const listener = (evt: AnimationFinishedEvent) => {
+      const listener = (evt: THREE.Event) => {
         if (evt.action === action) {
           this.animationMixer.removeEventListener('finished', listener);
           resolve(null);

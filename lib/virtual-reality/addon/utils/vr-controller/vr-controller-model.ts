@@ -7,7 +7,7 @@ import {
   Component, Constants as MotionControllerConstants, MotionController, VisualResponse,
 } from '@webxr-input-profiles/motion-controllers';
 import {
-  Material, Mesh, Object3D, Quaternion,
+  Material, Mesh, Object3D,
 } from 'three';
 
 export type VisualResponseNodes = {
@@ -138,8 +138,7 @@ export default class VrControllerModel extends Object3D {
             break;
           case MotionControllerConstants.VisualResponseProperty.TRANSFORM:
             if (typeof value === 'number' && minNode && maxNode) {
-              valueNode.quaternion.slerpQuaternions(
-                minNode.quaternion,
+              minNode.quaternion.slerpQuaternions(
                 maxNode.quaternion,
                 value,
               );

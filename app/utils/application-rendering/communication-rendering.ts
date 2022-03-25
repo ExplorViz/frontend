@@ -6,7 +6,8 @@ import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/c
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import { DrawableClassCommunication } from '../landscape-rendering/class-communication-computer';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import { DrawableClassCommunication } from './class-communication-computer';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -52,6 +53,11 @@ export default class CommunicationRendering {
     }
   }
 
+  // Update arrow indicators for drawable class communication
+  addBidirectionalArrow = (pipe: ClazzCommunicationMesh) => {
+    pipe.addBidirectionalArrow();
+  };
+
   /**
    * Computes communication and communication arrows and adds them to the
    * applicationObject3D
@@ -80,6 +86,8 @@ export default class CommunicationRendering {
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } = this.configuration.applicationColors;
 
+    const positionToClazzCommMesh = new Map<String, ClazzCommunicationMesh>();
+
     // Render all drawable communications
     drawableClassCommunications.forEach((drawableClazzComm) => {
       const commLayout = commLayoutMap.get(drawableClazzComm.id);
@@ -89,22 +97,65 @@ export default class CommunicationRendering {
         return;
       }
 
-      commLayout.lineThickness *= this.configuration.commWidthMultiplier;
+      const start = new Vector3();
+      start.subVectors(commLayout.startPoint, viewCenterPoint);
+      const startCoordsAsString = `${start.x}.${start.y}.${start.z}`;
 
-      // Add communication to application
-      const pipe = new ClazzCommunicationMesh(commLayout, drawableClazzComm,
-        communicationColor, highlightedEntityColor);
+      const end = new Vector3();
+      end.subVectors(commLayout.endPoint, viewCenterPoint);
+      const endCoordsAsString = `${end.x}.${end.y}.${end.z}`;
 
-      const curveHeight = this.computeCurveHeight(commLayout);
+      const combinedCoordsAsString = startCoordsAsString + endCoordsAsString;
+      const reversedCombinedCoordsAsString = endCoordsAsString + startCoordsAsString;
 
-      pipe.render(viewCenterPoint, curveHeight);
+      // Check if pipe already exists for another method call (same direction)
+      if (positionToClazzCommMesh.get(combinedCoordsAsString)) {
+        // exists, therefore update pipe with additional information
+        const existingClazzCommuDataModel = positionToClazzCommMesh
+          .get(combinedCoordsAsString)?.dataModel;
 
-      applicationObject3D.add(pipe);
+        if (existingClazzCommuDataModel) {
+          // update existing clazz commu data model
+          // existingClazzCommuDataModel.bidirectional = true;
+          existingClazzCommuDataModel.drawableClassCommus.push(drawableClazzComm);
+        }
+      } else if (positionToClazzCommMesh.get(reversedCombinedCoordsAsString)) {
+        // Check if pipe already exists for another method call (reverse direction)
+        const existingPipe = positionToClazzCommMesh
+          .get(reversedCombinedCoordsAsString);
+        const existingClazzCommuDataModel = existingPipe?.dataModel;
 
-      this.addArrows(pipe, curveHeight, viewCenterPoint);
+        if (existingPipe && existingClazzCommuDataModel) {
+          // update existing clazz commu data model
+          existingClazzCommuDataModel.bidirectional = true;
+          existingClazzCommuDataModel.drawableClassCommus.push(drawableClazzComm);
+          this.addBidirectionalArrow(existingPipe);
+        }
+      } else {
+        // does not exist, therefore create pipe
+        const clazzCommuMeshData = new ClazzCommuMeshDataModel(
+          application,
+          [drawableClazzComm],
+          false,
+          drawableClazzComm.id,
+        );
 
-      if (this.heatmapConf.heatmapActive) {
-        pipe.turnTransparent(0.1);
+        const pipe = new ClazzCommunicationMesh(commLayout, clazzCommuMeshData,
+          communicationColor, highlightedEntityColor);
+
+        const curveHeight = this.computeCurveHeight(commLayout);
+
+        pipe.render(viewCenterPoint, curveHeight);
+
+        applicationObject3D.add(pipe);
+
+        this.addArrows(pipe, curveHeight, viewCenterPoint);
+
+        positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
+
+        if (this.heatmapConf.heatmapActive) {
+          pipe.turnTransparent(0.1);
+        }
       }
     });
   }

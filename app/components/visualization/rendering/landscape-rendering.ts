@@ -491,13 +491,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection | null) {
-    if (!intersection) return;
-    const mesh = intersection.object;
-    this.mouseMoveOnMesh(mesh);
+    this.mouseMoveOnMesh(intersection?.object);
   }
 
   @action
-  mouseMoveOnMesh(mesh: THREE.Object3D) {
+  mouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
     const { value: enableHoverEffects } = this.landSettings.enableHoverEffects;
 
     // Update hover effect
@@ -519,10 +517,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleMouseOut() {
     this.popupData = null;
   }
-
-  /*   @action
-  handleMouseEnter() {
-  } */
 
   @action
   handleMouseStop(intersection: THREE.Intersection | null, mouseOnCanvas: Position2D) {

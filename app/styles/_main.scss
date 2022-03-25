@@ -164,8 +164,8 @@ svg.octicon {
     .spinner-center-#{$i} {
       @extend .spinner-border;
       position: absolute;
-      top: calc(50% - #{$i/2}rem);
-      left: calc(50% - #{$i/2}rem);
+      top: calc(50% - #{calc($i / 2)}rem);
+      left: calc(50% - #{calc($i / 2)}rem);
       width: #{$i}rem;
       height: #{$i}rem;
     }

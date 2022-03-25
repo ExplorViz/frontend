@@ -61,7 +61,7 @@ export default class UserSettings extends Service {
     const userApplicationSettingsJSON = localStorage.getItem('userApplicationSettings');
 
     if (userApplicationSettingsJSON === null) {
-      throw new Error('There are no landscape settings to restore');
+      throw new Error('There are no application settings to restore');
     }
 
     const parsedApplicationSettings = JSON.parse(userApplicationSettingsJSON);

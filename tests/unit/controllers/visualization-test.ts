@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 
-module('Unit | Controller | visualization', function (hooks) {
+module('Unit | Controller', function (hooks) {
   setupTest(hooks);
 
   // Replace this with your real tests.

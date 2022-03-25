@@ -2,10 +2,11 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import {
   Class, isClass, isPackage, Package, StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import { DrawableClassCommunication, isDrawableClassCommunication } from '../landscape-rendering/class-communication-computer';
+import { DrawableClassCommunication, isDrawableClassCommunication } from './class-communication-computer';
 import { getAllClassesInApplication } from '../application-helpers';
 import { getClassesInPackage } from '../package-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
@@ -77,14 +78,18 @@ export function highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMe
 
   // Reset highlighting
   removeHighlighting(applicationObject3D);
+  const model = mesh.dataModel instanceof ClazzCommuMeshDataModel
+    ? mesh.dataModel.drawableClassCommus.firstObject : mesh.dataModel;
 
-  applicationObject3D.turnOpaque(false);
-
-  const model = mesh.dataModel;
+  if (!model) {
+    return;
+  }
 
   // Highlight the entity itself
   mesh.highlight();
   applicationObject3D.highlightedEntity = mesh;
+
+  // Now proceed to make unhighlighted entities transparent
 
   // All clazzes in application
   const application = applicationObject3D.dataModel;

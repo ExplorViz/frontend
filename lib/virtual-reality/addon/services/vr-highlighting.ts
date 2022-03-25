@@ -59,7 +59,7 @@ export default class VrHighlightingService extends Service {
 
       const appId = application.dataModel.id;
       const entityType = this.getEntityType(object);
-      const entityId = this.getEntityId(object);
+      const entityId = object.dataModel.id;
       this.sender.sendHighlightingUpdate(
         appId,
         entityType,
@@ -120,20 +120,6 @@ export default class VrHighlightingService extends Service {
     return mesh.constructor.name;
   }
 
-  private getEntityId(mesh: HighlightableMesh): string {
-    if (mesh instanceof ClazzCommunicationMesh) {
-      // This is necessary, since drawable class communications are created on
-      // client side, thus their ids do not match, since they are uuids.
-      const classIds = [
-        mesh.dataModel.sourceClass.id,
-        mesh.dataModel.targetClass.id,
-      ];
-      return classIds.sort().join('###');
-    }
-
-    return mesh.dataModel.id;
-  }
-
   private * findMeshesByTypeAndId(
     application: ApplicationObject3D,
     entityType: string,
@@ -147,12 +133,8 @@ export default class VrHighlightingService extends Service {
     }
 
     if (entityType === 'ClazzCommunicationMesh') {
-      const classIds = new Set(entityId.split('###'));
       for (const mesh of application.getCommMeshes()) {
-        if (
-          classIds.has(mesh.dataModel.sourceClass.id)
-          && classIds.has(mesh.dataModel.targetClass.id)
-        ) {
+        if (mesh.dataModel.id === entityId) {
           yield mesh;
         }
       }

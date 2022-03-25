@@ -32,6 +32,9 @@ declare const config: {
     collaborationService: string,
     collaborationSocketPath: string,
   },
+  version: {
+    versionTag: P_ENV.VERSION_TAG,
+  },
   APP: any;
 };
 

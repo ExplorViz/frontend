@@ -1,55 +1,79 @@
 <h3 class="popover-header">
   <div class="text-center text-break font-weight-bold pl-1">
-    {{this.sourceClazz}}
-    {{#if this.isBidirectional}}
-      {{svg-jar "arrow-both-16" class="octicon align-middle"}}
-    {{else}}
-      {{svg-jar "arrow-right-16" class="octicon align-middle"}}
-    {{/if}}
-    {{this.targetClazz}}
+    Communication Information
   </div>
 </h3>
 <div class="popover-body">
   <table class="w-100">
     <tbody>
-      <tr>
-        <td class="text-nowrap align-top">{{svg-jar "comment-16" class="octicon align-middle mr-1"}}Name:</td>
-        <td class="text-right text-break pl-1">
-          {{this.operationName}}
-        </td>
-      </tr>
-      <tr>
-        <td class="text-nowrap align-top">{{svg-jar "code-16" class="octicon align-middle mr-1"}}Requests:</td>
-        <td class="text-right text-break pl-1">
-          {{this.requests}}
-        </td>
-      </tr>
-      {{#if this.sourceAppsContainApp}}
+      {{!-- Aggregated Information --}}
+      {{#if (gt @communication.drawableClassCommus.length 1)}}
+        {{!-- Aggregated request count --}}
+        <tr>
+          <td class="text-nowrap align-top">{{svg-jar "code-16" class="octicon align-middle mr-1"}}</td>
+          <td class="text-right text-break pl-1">
+            {{this.calculateAggregatedRequestCount}} ( 100% )
+          </td>
+        </tr>
+        {{!-- # of unique method calls --}}
+        <tr>
+          <td class="text-nowrap align-top">#</td>
+          <td class="text-right text-break pl-1">
+            {{@communication.drawableClassCommus.length}}
+          </td>
+        </tr>
         <hr>
-        {{#each @communication.sourceApplications as | sourceApp | }}
-          {{#if (not-eq sourceApp.id @application.id)}}
-            <tr>
-              <td class="text-nowrap align-top">{{svg-jar "package-dependencies-16" class="octicon align-middle mr-1"}}Source App Name:</td>
-              <td class="text-right text-break pl-1">
-                <button type="button" class="buttonToLink" {{on "click" (fn this.loadApplication sourceApp)}}>{{sourceApp.name}}</button>
-              </td>
-            </tr>
-          {{/if}}
-        {{/each}}
       {{/if}}
-      {{#if this.targetAppsContainApp}}
-        <hr>
-        {{#each @communication.targetApplications as | targetApp | }}
-          {{#if (not-eq targetApp.id @application.id)}}
-            <tr>
-              <td class="text-nowrap align-top">{{svg-jar "package-dependents-16" class="octicon align-middle mr-1"}}Target App Name:</td>
-              <td class="text-right text-break pl-1">
-                <button type="button" class="buttonToLink" {{on "click" (fn this.loadApplication targetApp)}}>{{targetApp.name}}</button>
-              </td>
-            </tr>
-          {{/if}}
-        {{/each}}
-      {{/if}}
+      {{#each @communication.drawableClassCommus as | drawableClassCommu  index |}}
+        {{!-- Relationship --}}
+        <tr>
+          <td class="text-nowrap align-top">{{svg-jar "arrow-switch-16" class="octicon align-middle mr-1"}}</td>
+          <td class="text-right text-break pl-1">
+            {{#if (eq drawableClassCommu.sourceApp.id this.application.id)}}
+              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.sourceClass)}}>
+                {{drawableClassCommu.sourceClass.name}}
+              </button>
+            {{else}}
+              {{drawableClassCommu.sourceClass.name}}
+            {{/if}}
+            {{#if (not (eq drawableClassCommu.sourceApp.id this.application.id))}}
+              (<button type="button" class="buttonToLink" {{on "click" (fn @showApplication drawableClassCommu.sourceApp.id)}}>
+                 {{drawableClassCommu.sourceApp.name}}
+               </button>)
+            {{/if}}
+            {{svg-jar "arrow-right-16" class="octicon align-middle"}}
+            {{#if (eq drawableClassCommu.targetApp.id this.application.id)}}
+              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.targetClass)}}>
+                {{drawableClassCommu.targetClass.name}}
+              </button>
+            {{else}}
+              {{drawableClassCommu.targetClass.name}}
+            {{/if}}
+            {{#if (not (eq drawableClassCommu.targetApp.id this.application.id))}}
+              (<button type="button" class="buttonToLink" {{on "click" (fn @showApplication drawableClassCommu.targetApp.id)}}>
+                 {{drawableClassCommu.targetApp.name}}
+               </button>)
+            {{/if}}
+          </td>
+        </tr>
+        {{!-- Name --}}
+        <tr>
+          <td class="text-nowrap align-top">{{svg-jar "comment-16" class="octicon align-middle mr-1"}}</td>
+          <td class="text-right text-break pl-1">
+            {{drawableClassCommu.operationName}}
+          </td>
+        </tr>
+        {{!-- Requests --}}
+        <tr>
+          <td class="text-nowrap align-top">{{svg-jar "code-16" class="octicon align-middle mr-1"}}</td>
+          <td class="text-right text-break pl-1">
+            {{drawableClassCommu.totalRequests}} ( {{round ( mult ( div drawableClassCommu.totalRequests this.calculateAggregatedRequestCount ) 100 ) }}% )
+          </td>
+        </tr>
+        {{#if (lt index (sub @communication.drawableClassCommus.length 1))}}
+          <hr>
+        {{/if}}
+      {{/each}}
     </tbody>
   </table>
 </div>

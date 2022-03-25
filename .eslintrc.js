@@ -9,6 +9,7 @@ module.exports = {
   plugins: [
     // 'ember',
     '@typescript-eslint',
+    'import',
   ],
   extends: [
     'airbnb-typescript/base',
@@ -23,6 +24,7 @@ module.exports = {
   },
   rules: {
     'linebreak-style': 'off',
+    'class-methods-use-this': 'off',
     'import/no-unresolved': 'off',
     'require-yield': 'off',
     'no-plusplus': 'off',
@@ -33,7 +35,6 @@ module.exports = {
     '@typescript-eslint/type-annotation-spacing': ['error'],
     'no-param-reassign': ['error', { props: false }],
     'func-names': ['error', 'always', { generators: 'never' }],
-    'class-methods-use-this': 'off',
   },
   overrides: [
     // node files

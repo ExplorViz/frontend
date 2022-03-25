@@ -12,6 +12,13 @@ stages:
   - deploy:images
   - deploy:retagging
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
 linting:
   stage: code-analysis
   tags:
@@ -27,10 +34,12 @@ test:
     - exec-docker
   script:
     - npm install
-    - ember test --launch chromium
+    - ember test
 
-build:
+.build:
   stage: build
+  variables:
+    VERSION_TAG: $CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   tags:
     - exec-docker
   script:
@@ -40,14 +49,28 @@ build:
     paths:
       - dist
 
+build-prod:
+  extends:
+    - .build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE != "schedule"'
+
+build-prod-noauth:
+  extends:
+    - .build
+  variables:
+    VERSION_TAG: $CI_COMMIT_BRANCH-noauth-$CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  before_script:
+    - export AUTH0_ENABLED=false
+
 .deploy-to-dockerhub:
   stage: deploy:images
   tags:
     - exec-docker
   variables:
     DOCKERHUB_TAG: "latest"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -60,30 +83,57 @@ deploy-dockerhub-master:
   extends:
     - .deploy-to-dockerhub
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "master"'
 
 deploy-dockerhub-dev:
   extends:
     - .deploy-to-dockerhub
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
       variables:
         DOCKERHUB_TAG: "dev"
-  script:
+  after_script:
     - echo "DOCKERHUB_TAG=dev" >> build.env
   artifacts:
     reports:
       dotenv: build.env
 
+deploy-dockerhub-dev-noauth:
+  stage: deploy:images
+  tags:
+    - exec-docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "dev"'
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${DOCKERHUB_USER}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth
+
 retag-dockerhub-image:
-  stage: deploy:retagging
+  stage: deploy:retagging    
   tags:
     - exec-docker
   rules:
-    - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"
+    - if: '$CI_PIPELINE_SOURCE != "schedule" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master") && $CI_PIPELINE_SOURCE == "push"'
   image:
     name: gcr.io/go-containerregistry/crane:debug
     entrypoint: [""]
   script:
     - crane auth login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD "index.docker.io"
     - crane cp $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+
+retag-dockerhub-image-noauth:
+  stage: deploy:retagging  
+  tags:
+    - exec-docker
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "schedule"'
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  script:
+    - crane auth login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD "index.docker.io"
+    - crane cp $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth-$CI_COMMIT_SHORT_SHA

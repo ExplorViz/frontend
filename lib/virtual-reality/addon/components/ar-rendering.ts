@@ -23,7 +23,6 @@ import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import DeltaTime from 'virtual-reality/services/delta-time';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/landscape-rendering/class-communication-computer';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
@@ -53,6 +52,7 @@ import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { perform } from 'ember-concurrency-ts';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import VrRoomSerializer from '../services/vr-room-serializer';
 import LocalUser from 'collaborative-mode/services/local-user';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
@@ -71,7 +71,7 @@ interface Args {
   closeDataSelection(): void;
 }
 
-type DataModel = Node | Application | Package | Class | DrawableClassCommunication;
+type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
 
 type PopupData = {
   id: number,

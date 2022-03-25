@@ -1,6 +1,20 @@
-import Service from '@ember/service';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
+import Service, { inject as service } from '@ember/service';
+import { enqueueTask, restartableTask } from 'ember-concurrency-decorators';
+import { perform } from 'ember-concurrency-ts';
+import debugLogger from 'ember-debug-logger';
+import ApplicationRendering from 'explorviz-frontend/components/visualization/rendering/application-rendering';
+import Configuration from 'explorviz-frontend/services/configuration';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import AppCommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
+import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
+import * as ApplicationLabeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -37,6 +51,11 @@ import debugLogger from 'ember-debug-logger';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import HeatmapRenderer from './heatmap-renderer';
+import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import ArSettings from './ar-settings';
+import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-message/receivable/response/object-closed';
+import VrAssetRepository from './vr-asset-repo';
+import VrHighlightingService, { HightlightComponentArgs } from './vr-highlighting';
 
 const APPLICATION_SCALAR = 0.01;
 
@@ -368,12 +387,8 @@ export default class ApplicationRenderer extends Service.extend({
         this.configuration.applicationColors,
       );
 
-      if (!applicationObject3D.globeMesh) {
-        // reposition
-        applicationObject3D.addGlobeToApplication();
-        applicationObject3D.initializeGlobeAnimation();
-      } else {
-        applicationObject3D.repositionGlobeToApplication();
+      if (applicationObject3D.globeMesh) {
+        EntityRendering.repositionGlobeToApplication(applicationObject3D, applicationObject3D.globeMesh);
       }
 
       if (openComponentIds) {

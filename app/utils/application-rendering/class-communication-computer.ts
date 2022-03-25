@@ -66,10 +66,10 @@ export default function computeDrawableClassCommunication(
     }
   });
 
-  const classIdsToAggregated = new Map<string, AggregatedClassCommunication>();
+  const aggregatedDrawableClassCommunications = new Map<string, DrawableClassCommunication>();
 
   totalClassCommunications.forEach(({ sourceClass, targetClass, operationName }) => {
-    const sourceAndTargetClassId = `${sourceClass.id}_${targetClass.id}`;
+    const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
     // get source app
     const sourceApp = getApplicationFromClass(landscapeStructureData, sourceClass);
@@ -77,81 +77,35 @@ export default function computeDrawableClassCommunication(
     // get target app
     const targetApp = getApplicationFromClass(landscapeStructureData, targetClass);
 
-    const aggregatedClassCommunication = classIdsToAggregated.get(sourceAndTargetClassId);
+    // Find all identical method calls based on their source
+    // and target app / class
+    // and aggregate identical method calls with exactly same source
+    // and target app / class within a single representative
+    const drawableClassCommunication = aggregatedDrawableClassCommunications
+      .get(sourceTargetClassMethodId);
 
-    if (!aggregatedClassCommunication) {
-      classIdsToAggregated.set(sourceAndTargetClassId, {
+    if (!drawableClassCommunication) {
+      aggregatedDrawableClassCommunications.set(sourceTargetClassMethodId, {
+        id: sourceTargetClassMethodId,
         totalRequests: 1,
         sourceClass,
         targetClass,
         operationName,
-        sourceApplications: [sourceApp],
-        targetApplications: [targetApp],
+        sourceApp,
+        targetApp,
       });
     } else {
-      aggregatedClassCommunication.totalRequests++;
-
-      const { sourceApplications } = aggregatedClassCommunication;
-
-      if (!sourceApplications.includes(sourceApp)) {
-        aggregatedClassCommunication.sourceApplications.push(sourceApp);
-      }
-
-      const { targetApplications } = aggregatedClassCommunication;
-
-      if (!targetApplications.includes(targetApp)) {
-        aggregatedClassCommunication.targetApplications.push(targetApp);
-      }
+      drawableClassCommunication.totalRequests++;
     }
   });
 
-  const sourceTargetClassIdToDrawable = new Map<string, DrawableClassCommunication>();
-
-  classIdsToAggregated.forEach(({
-    sourceClass, targetClass, totalRequests, operationName, sourceApplications, targetApplications,
-  }) => {
-    const targetSourceClassId = `${targetClass.id}_${sourceClass.id}`;
-
-    if (sourceClass === targetClass) {
-      sourceTargetClassIdToDrawable.set(targetSourceClassId, {
-        id: targetSourceClassId,
-        totalRequests,
-        sourceClass,
-        targetClass,
-        bidirectional: true,
-        operationName,
-        sourceApplications,
-        targetApplications,
-      });
-    } else {
-      const drawableClassCommunication = sourceTargetClassIdToDrawable.get(targetSourceClassId);
-
-      if (drawableClassCommunication) {
-        drawableClassCommunication.bidirectional = true;
-        drawableClassCommunication.totalRequests += totalRequests;
-      } else {
-        const sourceAndTargetClassId = `${sourceClass.id}_${targetClass.id}`;
-        sourceTargetClassIdToDrawable.set(sourceAndTargetClassId, {
-          id: sourceAndTargetClassId,
-          totalRequests,
-          sourceClass,
-          targetClass,
-          bidirectional: false,
-          operationName,
-          sourceApplications,
-          targetApplications,
-        });
-      }
-    }
-  });
-
-  const drawableClassCommunications = [...sourceTargetClassIdToDrawable.values()];
+  const drawableClassCommunications = [...aggregatedDrawableClassCommunications.values()];
 
   return drawableClassCommunications;
 }
 
 export function isDrawableClassCommunication(x: any): x is DrawableClassCommunication {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'bidirectional');
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests');
 }
 
 interface ClassCommunication {
@@ -160,22 +114,12 @@ interface ClassCommunication {
   operationName: string;
 }
 
-interface AggregatedClassCommunication {
-  totalRequests: number;
-  sourceClass: Class;
-  targetClass: Class;
-  operationName: string;
-  sourceApplications: (Application | undefined)[];
-  targetApplications: (Application | undefined)[];
-}
-
 export interface DrawableClassCommunication {
   id: string;
   totalRequests: number;
   sourceClass: Class;
   targetClass: Class;
-  bidirectional: boolean;
   operationName: string;
-  sourceApplications: (Application | undefined)[];
-  targetApplications: (Application | undefined)[];
+  sourceApp: Application | undefined;
+  targetApp: Application | undefined;
 }
