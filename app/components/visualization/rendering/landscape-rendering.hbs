@@ -14,7 +14,6 @@
         {{interaction-modifier
           raycastObjects=this.landscapeRenderer.landscapeObject3D
           camera=this.localUser.camera
-          hammerInteraction=this.hammerInteraction
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
           mouseWheel=this.handleMouseWheel
@@ -34,12 +33,6 @@
         }}
         {{did-insert this.canvasInserted}}
       >
-        {{#if this.hammerInteraction}}
-          <RightClickMenuHammer
-            @items={{this.rightClickMenuItems}}
-            @hammer={{this.hammerInteraction}}
-          />
-        {{/if}}
       </canvas>
       {{#if this.loadNewLandscape.isRunning}}
         <div

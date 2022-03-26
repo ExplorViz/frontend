@@ -14,7 +14,6 @@ import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
 import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
@@ -105,9 +104,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   webglrenderer!: THREE.WebGLRenderer;
 
-  @tracked
-  hammerInteraction: HammerInteraction;
-
   canvas!: HTMLCanvasElement;
 
   debug = debugLogger('LandscapeRendering');
@@ -171,7 +167,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.debug('Constructor called');
 
     this.render = this.render.bind(this);
-    this.hammerInteraction = HammerInteraction.create();
+
     this.landscapeRenderer.font = this.font
   }
 
@@ -180,7 +176,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.debug('Canvas inserted');
 
     this.canvas = canvas;
-    this.hammerInteraction.setupHammer(canvas);
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
@@ -438,16 +433,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   // #region MOUSE EVENT HANDLER
 
   @action
-  handleDoubleClick(intersection: THREE.Intersection | null) {
-
-    if (!intersection) return;
-    const mesh = intersection.object;
-
-    this.doubleClickOnMesh(mesh);
-  }
-
-  @action
-  doubleClickOnMesh(mesh: THREE.Object3D) {
+  handleDoubleClick(mesh: THREE.Object3D) {
     // Handle application
     if (mesh instanceof ApplicationMesh) {
       this.openApplicationIfExistend(mesh);

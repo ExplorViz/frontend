@@ -29,7 +29,6 @@ import * as EntityRendering from 'explorviz-frontend/utils/application-rendering
 import {
   highlight, highlightModel, highlightTrace, removeHighlighting, updateHighlighting
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
   Class, Package
@@ -107,9 +106,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   debug = debugLogger('ApplicationRendering');
 
   canvas!: HTMLCanvasElement;
-
-  @tracked
-  hammerInteraction: HammerInteraction;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -207,8 +203,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
 
-    this.hammerInteraction = HammerInteraction.create();
-
     this.hoveredObject = null;
   }
 
@@ -217,7 +211,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     this.debug('Canvas inserted');
 
     this.canvas = canvas;
-    this.hammerInteraction.setupHammer(canvas);
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
@@ -262,6 +255,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
 
   initServices() {
     this.applicationRenderer.font = this.font;
+    this.sceneService.addFloor();
     // this.scene.
     // if (this.args.landscapedata) {
     //   const { landscapetoken } = this.args.landscapedata.structurelandscapedata;
@@ -390,23 +384,22 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       this.renderingLoop.updatables.push(this.globeMesh);
     };
 
+    // const highlighting = () => {
+
+    //   this.globeMesh.tick = (delta: any) => animationMixer.update(delta);
+    //   this.renderingLoop.updatables.push()
+    // }
+
     applicationAnimation();
     addGlobe();
+    // highlighting();
   }
 
   // #endregion COMPONENT AND SCENE INITIALIZATION
 
   // #region MOUSE EVENT HANDLER
   @action
-  handleSingleClick(intersection: THREE.Intersection | null) {
-    if (!intersection) return;
-
-    const mesh = intersection.object;
-    this.singleClickOnMesh(mesh);
-  }
-
-  @action
-  singleClickOnMesh(mesh: THREE.Object3D) {
+  handleSingleClick(mesh: THREE.Object3D) {
     // User clicked on blank spot on the canvas
     if (mesh === undefined) {
       removeHighlighting(this.applicationObject3D);
@@ -419,18 +412,13 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
         this.applicationObject3D.setComponentMeshOpacity(0.1);
         this.applicationObject3D.setCommunicationOpacity(0.1);
       }
+    } else if (mesh instanceof FoundationMesh) {
+      this.renderingLoop.controls.target.copy(mesh.position)
     }
   }
 
   @action
-  handleDoubleClick(intersection: THREE.Intersection | null) {
-    if (!intersection) return;
-    const mesh = intersection.object;
-    this.doubleClickOnMesh(mesh);
-  }
-
-  @action
-  doubleClickOnMesh(mesh: THREE.Object3D) {
+  handleDoubleClick(mesh: THREE.Object3D) {
     // Toggle open state of clicked component
     if (mesh instanceof ComponentMesh) {
       toggleComponentMeshState(mesh, this.applicationObject3D);
@@ -633,11 +621,14 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       const position = new THREE.Vector3(5, 5, 0);
       this.applicationObject3D.position.copy(position)
 
+
       if (this.isFirstRendering) {
         // Display application nicely for first rendering
         applyDefaultApplicationLayout(this.applicationObject3D);
         this.addCommunication();
         this.applicationObject3D.resetRotation();
+        this.applicationObject3D.position
+        this.renderingLoop.controls.target = position;
 
 
         this.initVisualization();

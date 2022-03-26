@@ -40,7 +40,8 @@ export default class MousePing {
 
     sphere.position.copy(position);
 
-    parentObj.add(sphere);
+    // parentObj.add(sphere);
+    parentObj.attach(sphere);
 
     this.obj = sphere;
 

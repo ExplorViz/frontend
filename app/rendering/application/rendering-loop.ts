@@ -3,25 +3,40 @@ import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import EmberObject from '@ember/object';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+// import { MapControls } from './jsm/controls/OrbitControls.js';
+import debugLogger from 'ember-debug-logger';
 
 const clock = new Clock();
 
 export default class RenderingLoop extends EmberObject {
   threePerformance: THREEPerformance | undefined;
 
+  debug = debugLogger('RenderingLoop');
+
   @service('user-settings')
   userSettings!: UserSettings;
 
   camera!: THREE.Camera;
 
-  scene!: THREE.Scene ;
+  scene!: THREE.Scene;
 
   renderer!: THREE.WebGLRenderer;
+
+  controls!: MapControls;
 
   updatables: any[] = [];
 
   init() {
     super.init();
+    this.controls = new MapControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    this.controls.dampingFactor = 0.05;
+    this.controls.minDistance = 100;
+    this.controls.maxDistance = 500;
+    this.controls.maxPolarAngle = Math.PI / 2;
+    // this.controls.enablePan = false;
   }
 
   start() {
@@ -41,6 +56,10 @@ export default class RenderingLoop extends EmberObject {
       }
       // tell every animated object to tick forward one frame
       this.tick();
+
+      // orbital controls
+      this.controls.update();
+      // this.debug('Target:' + this.controls.target.x + '--' + this.controls.target.y + '--' + this.controls.target.z)
 
       // render a frame
       this.renderer.render(this.scene, this.camera);

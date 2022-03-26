@@ -67,15 +67,17 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
-  tick(_delta: number): void {}
+  tick(_delta: number): void { }
 
   /**
    * Resets this object's rotation to default
    * (x = 0.65, y = 0.80)
    */
   resetRotation() {
-    const ROTATION_X = 0.75;
-    const ROTATION_Y = 1.20;
+    // const ROTATION_X = 0.75;
+    const ROTATION_X = 0;
+    // const ROTATION_Y = 1.20;
+    const ROTATION_Y = 0;
 
     this.rotation.x = ROTATION_X;
     this.rotation.y = ROTATION_Y;

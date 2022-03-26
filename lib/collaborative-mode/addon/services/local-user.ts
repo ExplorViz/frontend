@@ -48,6 +48,7 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.defaultCamera.position.set(0, 1, 2);
     this.userGroup.add(this.defaultCamera);
+    this.mousePing = new MousePing(new THREE.Color('skyblue'));
   }
 
   get camera() {
