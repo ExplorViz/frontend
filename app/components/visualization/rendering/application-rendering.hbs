@@ -24,9 +24,8 @@
       <canvas
         class="main-content-majority {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
         {{interaction-modifier
-          raycastObjects=this.applicationObject3D
+          raycastObjects=this.applicationRenderer.raytraceables
           camera=this.camera
-          hammerInteraction=this.hammerInteraction
           doubleClick=this.handleDoubleClick
           singleClick=this.handleSingleClick
           mouseMove=this.handleMouseMove

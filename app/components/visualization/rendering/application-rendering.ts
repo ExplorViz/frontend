@@ -413,7 +413,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
         this.applicationObject3D.setCommunicationOpacity(0.1);
       }
     } else if (mesh instanceof FoundationMesh) {
-      this.renderingLoop.controls.target.copy(mesh.position)
+      const thePosition = new THREE.Vector3();
+      this.renderingLoop.controls.target.copy(mesh.localToWorld(thePosition));
     }
   }
 
@@ -447,12 +448,6 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
   }
 
-  @action
-  handleMouseMove(intersection: THREE.Intersection | null) {
-    this.runOrRestartMouseMovementTimer();
-    this.mouseMoveOnMesh(intersection?.object);
-  }
-
   runOrRestartMouseMovementTimer() {
     if (!this.mouseMovementActive) {
       this.mouseMovementActive = true;
@@ -472,7 +467,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
   }
 
   @action
-  mouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
+  handleMouseMove(mesh: THREE.Object3D | undefined) {
+    this.runOrRestartMouseMovementTimer();
     const { value: enableHoverEffects } = this.appSettings.enableHoverEffects;
 
     // Update hover effect
@@ -535,26 +531,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
     }
   }
 
-  /*   handleMouseEnter() {
-  } */
   @action
-  handleMouseStop(intersection: THREE.Intersection | null, mouseOnCanvas: Position2D) {
-    if (!intersection) return;
-    const mesh = intersection.object;
-
-    if (mesh && (mesh.parent instanceof ApplicationObject3D)) {
-      const parentObj = mesh.parent;
-      const pingPosition = parentObj.worldToLocal(intersection.point);
-      if (this.localUser.mousePing) {
-        taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
-      }
-    }
-
-    this.mouseStopOnMesh(mesh, mouseOnCanvas);
-  }
-
-  @action
-  mouseStopOnMesh(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
+  handleMouseStop(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
     // Show information as popup is mouse stopped on top of a mesh
     if ((mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
       || mesh instanceof ClazzCommunicationMesh)) {
@@ -618,8 +596,8 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
       yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
       // this.applicationObject3D.traces = this.args.landscapeData.dynamicLandscapeData;
 
-      const position = new THREE.Vector3(5, 5, 0);
-      this.applicationObject3D.position.copy(position)
+      // const position = new THREE.Vector3(5, 5, 0);
+      // this.applicationObject3D.position.copy(position)
 
 
       if (this.isFirstRendering) {
@@ -628,7 +606,7 @@ export default class ApplicationRendering extends GlimmerComponent<Args> {
         this.addCommunication();
         this.applicationObject3D.resetRotation();
         this.applicationObject3D.position
-        this.renderingLoop.controls.target = position;
+        // this.renderingLoop.controls.target = position;
 
 
         this.initVisualization();

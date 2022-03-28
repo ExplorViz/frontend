@@ -2,17 +2,15 @@ import Modifier from 'ember-modifier';
 import { action } from '@ember/object';
 import { assert } from '@ember/debug';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import THREE, { Object3D, Mesh } from 'three';
+import THREE, { Object3D, Vector2 } from 'three';
 import { inject as service } from '@ember/service';
 import CollaborativeService from 'explorviz-frontend/services/collaborative-service';
 import CollaborativeSettingsService from 'explorviz-frontend/services/collaborative-settings-service';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import debugLogger from 'ember-debug-logger';
-import { KeyEvent } from '@ember/test-helpers/dom/trigger-key-event';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { taskFor } from 'ember-concurrency-ts';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 
 export type Position2D = {
   x: number,
@@ -33,8 +31,8 @@ interface InteractionModifierArgs {
     mouseEnter?(): void,
     mouseLeave?(): void,
     mouseOut?(): void,
-    mouseMove?(intersection: THREE.Intersection | null): void,
-    mouseStop?(intersection: THREE.Intersection | null, mousePosition?: Position2D): void,
+    mouseMove?(intersection: THREE.Object3D | undefined): void,
+    mouseStop?(intersection: THREE.Object3D, mousePosition?: Vector2): void,
     singleClick?(intersection: THREE.Object3D): void,
     doubleClick?(intersection: THREE.Object3D): void,
     mousePing?(intersection: THREE.Object3D): void,
@@ -70,6 +68,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.canvas.addEventListener('pointerenter', this.onPointerEnter);
     this.canvas.addEventListener('pointerout', this.onPointerOut);
     this.canvas.addEventListener('pointermove', this.onPointerMove);
+
+    this.createPointerStopEvent();
     this.canvas.addEventListener('pointerstop', this.onPointerStop);
   }
 
@@ -91,7 +91,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get raycastObjects(): Object3D | Object3D[] {
-    return this.args.named.raycastObjects;
+    const raycastObjects = this.args.named.raycastObjects;
+    return raycastObjects instanceof Object3D
+      ? [raycastObjects] : raycastObjects;
   }
 
   get raycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
@@ -121,58 +123,34 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onPointerEnter() {
     this.isMouseOnCanvas = true;
 
-    if (!this.args.named.mouseEnter) { return; }
-
-    this.args.named.mouseEnter();
+    this.args.named.mouseEnter?.();
   }
 
   @action
   onPointerOut() {
     this.isMouseOnCanvas = false;
-    if (!this.args.named.mouseOut || !this.collaborativeSettings.isInteractionAllowed) { return; }
 
-    this.args.named.mouseOut();
-
-    if (this.collaborativeSettings.meeting) {
-      this.collaborativeService.sendMouseOut();
-    }
+    this.args.named.mouseOut?.();
   }
 
   @action
-  onPointerMove(evt: PointerEvent) {
+  onPointerMove(event: PointerEvent) {
     this.isMouseOnCanvas = true;
 
-    if (!this.args.named.mouseMove || !this.collaborativeSettings.isInteractionAllowed) { return; }
+    // TODO this could be moved into the rendering loop to reduce the frequency
+    const intersectedViewObj = this.raycast(event);
 
-    // Extract mouse position
-    const mouse: Position2D = InteractionModifierModifier.getMousePos(this.canvas, evt);
-
-    const intersectedViewObj = this.raycast(mouse);
-
-    this.args.named.mouseMove(intersectedViewObj);
-
-    if (this.raycastObjects instanceof Object3D && intersectedViewObj
-      && intersectedViewObj.object instanceof Mesh && this.collaborativeSettings.meeting) {
-      this.collaborativeService.sendMouseMove(intersectedViewObj.point,
-        this.raycastObjects.quaternion, intersectedViewObj.object);
-    }
+    this.args.named.mouseMove?.(intersectedViewObj?.object);
   }
 
   @action
-  onPointerStop(evt: CustomEvent<MouseStopEvent>) {
-    if (!this.args.named.mouseStop || !this.collaborativeSettings.isInteractionAllowed) { return; }
+  onPointerStop(customEvent: CustomEvent<MouseStopEvent>) {
+    const event = customEvent.detail.srcEvent;
 
-    // Extract mouse position
-    const mouse: Position2D = InteractionModifierModifier
-      .getMousePos(this.canvas, evt.detail.srcEvent);
-
-    const intersectedViewObj = this.raycast(mouse);
-    this.args.named.mouseStop(intersectedViewObj, mouse);
-
-    if (this.raycastObjects instanceof Object3D && intersectedViewObj
-      && intersectedViewObj.object instanceof Mesh && this.collaborativeSettings.meeting) {
-      this.collaborativeService.sendMouseStop(intersectedViewObj.point,
-        this.raycastObjects.quaternion, intersectedViewObj.object);
+    const intersectedViewObj = this.raycast(event);
+    if (intersectedViewObj) {
+      const mousePosition = new Vector2(event.clientX, event.clientY);
+      this.args.named.mouseStop?.(intersectedViewObj.object, mousePosition);
     }
   }
 
@@ -181,13 +159,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     if (event.detail === 1) {
       this.timer = setTimeout(() => {
-        this.debug('On single click');
-        const intersectedViewObj = this.raycastEvent(event);
-        this.debug('On single click' + intersectedViewObj);
+        const intersectedViewObj = this.raycast(event);
         if (intersectedViewObj) {
           if (event.altKey) {
             if (this.localUser.mousePing) {
-              this.debug('Pinging');
               taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
             }
           } else {
@@ -197,78 +172,40 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
       }, 200)
     }
-
-    // const intersectedViewObj = this.raycast(mouse);
-    // this.args.named.singleClick(intersectedViewObj);
-
-    // if (intersectedViewObj && intersectedViewObj.object instanceof Mesh
-    //   && this.collaborativeSettings.meeting) {
-    //   this.collaborativeService.sendSingleClick(intersectedViewObj.object);
-    // }
   }
 
   @action
   onDoubleClick(event: MouseEvent) {
     clearTimeout(this.timer);
-    this.debug('On double click');
-    const intersectedViewObj = this.raycastEvent(event);
-    this.debug('On double click' + intersectedViewObj);
+    const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
       this.args.named.doubleClick?.(intersectedViewObj.object);
     }
-    // if (intersectedViewObj && intersectedViewObj.object instanceof Mesh
-    //   && this.collaborativeSettings.meeting) {
-    //   this.collaborativeService.sendDoubleClick(intersectedViewObj.object);
-    // }
   }
 
-  sendPerspective() {
-    if (this.collaborativeSettings.meeting && this.raycastObjects instanceof Object3D) {
-      this.collaborativeService.sendPerspective({
-        position: this.camera.position.toArray(),
-        rotation: this.raycastObjects.rotation?.toArray().slice(0, 3),
-        requested: false,
-      });
-    }
-  }
-
-  raycastEvent(event: MouseEvent) {
+  raycast(event: MouseEvent) {
     const x = (event.clientX / window.innerWidth) * 2 - 1;
     const y = - (event.clientY / window.innerHeight) * 2 + 1;
-    return this.raycast(new THREE.Vector2(x, y));
-  }
-
-  raycast(origin: THREE.Vector2) {
-
-    // this.debug('Mouse' + origin.x + '-' + origin.y)
+    const origin = new Vector2(x, y)
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;
 
-    // this.debug('raycasting');
     const intersectedViewObj = this.raycaster.raycasting(origin, this.args.named.camera,
       possibleObjects, this.raycastFilter);
 
     return intersectedViewObj;
   }
 
-  calculatePositionInScene(mouseOnCanvas: Position2D) {
-    const x = (mouseOnCanvas.x / this.canvas.clientWidth) * 2 - 1;
-
-    const y = -(mouseOnCanvas.y / this.canvas.clientHeight) * 2 + 1;
-
-    return { x, y };
-  }
-
-  createMouseStopEvent() {
+  createPointerStopEvent() {
     const self = this;
 
     // Custom event for mousemovement end
     (function computeMouseMoveEvent(delay) {
       let timeout: NodeJS.Timeout;
-      self.canvas.addEventListener('mousemove', (evt: MouseEvent) => {
+      self.canvas.addEventListener('pointermove', (evt: MouseEvent) => {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
-          const event = new CustomEvent<MouseStopEvent>('mousestop', {
+          const event = new CustomEvent<MouseStopEvent>('pointerstop', {
             detail: {
               srcEvent: evt,
             },
@@ -279,21 +216,5 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         }, delay);
       });
     }(300));
-  }
-
-  static getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Position2D {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: evt.clientX - rect.left,
-      y: evt.clientY - rect.top,
-    };
-  }
-
-  static getTouchPos(canvas: HTMLCanvasElement, evt: TouchEvent): Position2D {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: evt.targetTouches[0].clientX - rect.left,
-      y: evt.targetTouches[0].clientY - rect.top,
-    };
   }
 }

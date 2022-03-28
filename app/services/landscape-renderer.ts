@@ -69,6 +69,7 @@ export default class LandscapeRenderer extends Service.extend({
   font!: THREE.Font;
 
   // Scalar with which the landscape is scaled (evenly in all dimensions)
+  // landscape_scalar = 3.5;
   landscape_scalar = 0.1;
 
   // Depth of boxes for landscape entities
@@ -220,6 +221,9 @@ export default class LandscapeRenderer extends Service.extend({
         this.resetRotation();
         this.centerLandscape();
       }
+
+      this.resetScale();
+      this.resetRotation();
       this.debug('Landscape loaded');
     } catch (e) {
       this.debug(e);

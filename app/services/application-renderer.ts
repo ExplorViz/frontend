@@ -3,6 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -22,7 +23,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import THREE, { Vector3 } from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrHighlightingService, { HightlightComponentArgs } from 'virtual-reality/services/vr-highlighting';
@@ -100,7 +101,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   private openApplications: Map<string, ApplicationObject3D>;
 
-  readonly applicationGroup: THREE.Group;
+  readonly applicationMarkers: THREE.Group[] = [];
 
   readonly appCommRendering: CommunicationRendering;
 
@@ -119,12 +120,23 @@ export default class ApplicationRenderer extends Service.extend({
     super(properties);
     this.openApplications = new Map();
 
-    this.applicationGroup = new THREE.Group();
-    this.sceneService.scene.add(this.applicationGroup);
+    const applicationMarkerNames = ['pattern-angular_1', 'pattern-angular_2', 'pattern-angular_3', 'pattern-angular_4', 'pattern-angular_5'];
+    for (let i = 0; i < applicationMarkerNames.length; i++) {
+      if (this.applicationMarkers.length <= i) {
+        const applicationMarker = new THREE.Group();
+        applicationMarker.position.set(i * 30, 5, 30);
+        this.sceneService.scene.add(applicationMarker);
+        this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
+      }
+    }
 
     this.appCommRendering = new CommunicationRendering(this.configuration,
       this.userSettings, this.heatmapConf);
     this.drawableClassCommunications = new Map();
+  }
+
+  get raytraceables() {
+    return this.applicationMarkers;
   }
 
   /**
@@ -333,7 +345,8 @@ export default class ApplicationRenderer extends Service.extend({
     callback?: (applicationObject3D: ApplicationObject3D) => void,
   ) {
     try {
-      if (this.isApplicationOpen(applicationModel.id) && this.arMode) {
+      const isOpen = this.isApplicationOpen(applicationModel.id)
+      if (isOpen && this.arMode) {
         this.debug('Application is already opened')
         return;
       }
@@ -405,7 +418,11 @@ export default class ApplicationRenderer extends Service.extend({
         this.addLabels(applicationObject3D, this.font!, true)
       }
 
-      this.applicationGroup.add(applicationObject3D);
+      // this.applicationGroup.add(applicationObject3D);
+      if (!isOpen) {
+        this.addApplicationToMarker(applicationObject3D);
+
+      }
       this.openApplications.set(
         applicationModel.id,
         applicationObject3D,
@@ -534,6 +551,24 @@ export default class ApplicationRenderer extends Service.extend({
         application.removeAllCommunication();
       }
     });
+  }
+
+  addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
+
+    applicationObject3D.setLargestSide(1.5);
+    const applicationModel = applicationObject3D.dataModel;
+    for (let i = 0; i < this.applicationMarkers.length; i++) {
+      if (this.applicationMarkers[i].children.length === 0) {
+        this.applicationMarkers[i].add(applicationObject3D);
+
+        const message = `Application '${applicationModel.name}' successfully opened <br>
+          on marker #${i + 1}.`;
+
+        AlertifyHandler.showAlertifySuccess(message);
+
+        break;
+      }
+    }
   }
 
 

@@ -237,8 +237,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   initCamera() {
     const { width, height } = this.canvas;
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    this.localUser.camera.position.set(0, 0, 0);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10);
+    this.localUser.camera.position.set(0, 3, 0);
     this.debug('Camera added');
   }
 
@@ -442,45 +442,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   @action
-  handlePanning(delta: { x: number, y: number }, button: 1 | 2 | 3) {
-    const LEFT_MOUSE_BUTTON = 1;
-
-    if (button === LEFT_MOUSE_BUTTON) {
-      // Move landscape further if camera is far away
-      const ZOOM_CORRECTION = (Math.abs(this.localUser.camera.position.z) / 4.0);
-
-      // Divide delta by 100 to achieve reasonable panning speeds
-      const xOffset = (delta.x / 100) * -ZOOM_CORRECTION;
-      const yOffset = (delta.y / 100) * ZOOM_CORRECTION;
-
-      // Adapt camera position (apply panning)
-      this.localUser.camera.position.x += xOffset;
-      this.localUser.camera.position.y += yOffset;
-    }
-  }
-
-  @action
-  handleMouseWheel(delta: number) {
-    // Hide (old) tooltip
-    this.popupData = null;
-
-    const scrollDelta = delta * 1.5;
-
-    const landscapeVisible = this.localUser.camera.position.z + scrollDelta > 0.2;
-
-    // Apply zoom, prevent to zoom behind 2D-Landscape (z-direction)
-    if (landscapeVisible) {
-      this.localUser.camera.position.z += scrollDelta;
-    }
-  }
-
-  @action
-  handleMouseMove(intersection: THREE.Intersection | null) {
-    this.mouseMoveOnMesh(intersection?.object);
-  }
-
-  @action
-  mouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
+  handleMouseMove(mesh: THREE.Object3D | undefined) {
     const { value: enableHoverEffects } = this.landSettings.enableHoverEffects;
 
     // Update hover effect
@@ -504,26 +466,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   @action
-  handleMouseStop(intersection: THREE.Intersection | null, mouseOnCanvas: Position2D) {
-
-    this.debug(intersection)
-    if (!intersection) return;
-    const mesh = intersection.object;
-
-
-    if (mesh && (mesh.parent instanceof ApplicationObject3D || mesh.parent instanceof LandscapeObject3D)) {
-      const parentObj = mesh.parent;
-      const pingPosition = parentObj.worldToLocal(intersection.point);
-      if (this.localUser.mousePing) {
-        taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
-      }
-    }
-
-    this.mouseStopOnMesh(mesh, mouseOnCanvas);
-  }
-
-  @action
-  mouseStopOnMesh(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
+  handleMouseStop(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
     if (mesh instanceof NodeMesh || mesh instanceof ApplicationMesh) {
       this.popupData = {
         mouseX: mouseOnCanvas.x,
