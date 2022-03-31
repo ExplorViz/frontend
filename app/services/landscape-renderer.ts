@@ -20,6 +20,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
+import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
 
 interface SimplePlaneLayout {
   height: number;
@@ -27,7 +28,7 @@ interface SimplePlaneLayout {
   positionX: number;
   positionY: number;
 }
-const LANDSCAPE_SCALAR = 0.1;
+const LANDSCAPE_SCALAR = 0.3;
 
 export default class LandscapeRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -77,9 +78,9 @@ export default class LandscapeRenderer extends Service.extend({
 
   z_depth = 0.02
 
-  commLineMinSize = 0.04
+  commLineMinSize = 0.02
 
-  commLineScalar = 0.28
+  commLineScalar = 0.08
 
   z_pos_application = 0.03
 
@@ -94,7 +95,7 @@ export default class LandscapeRenderer extends Service.extend({
 
     // Create landscape object. The actual landscape data is not available
     // until the VR rendering component is created.
-    this.landscapeObject3D = new LandscapeObject3D({
+    this.landscapeObject3D = new VrLandscapeObject3D({
       landscapeToken: '',
       nodes: [],
     });

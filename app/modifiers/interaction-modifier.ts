@@ -31,11 +31,11 @@ interface InteractionModifierArgs {
     mouseEnter?(): void,
     mouseLeave?(): void,
     mouseOut?(): void,
-    mouseMove?(intersection: THREE.Object3D | undefined): void,
-    mouseStop?(intersection: THREE.Object3D, mousePosition?: Vector2): void,
-    singleClick?(intersection: THREE.Object3D): void,
-    doubleClick?(intersection: THREE.Object3D): void,
-    mousePing?(intersection: THREE.Object3D): void,
+    mouseMove?(intersection: THREE.Intersection | null): void,
+    mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void,
+    singleClick?(intersection: THREE.Intersection): void,
+    doubleClick?(intersection: THREE.Intersection): void,
+    mousePing?(intersection: THREE.Intersection): void,
   }
 }
 
@@ -140,7 +140,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     // TODO this could be moved into the rendering loop to reduce the frequency
     const intersectedViewObj = this.raycast(event);
 
-    this.args.named.mouseMove?.(intersectedViewObj?.object);
+    this.args.named.mouseMove?.(intersectedViewObj);
   }
 
   @action
@@ -150,13 +150,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
       const mousePosition = new Vector2(event.clientX, event.clientY);
-      this.args.named.mouseStop?.(intersectedViewObj.object, mousePosition);
+      this.args.named.mouseStop?.(intersectedViewObj, mousePosition);
     }
   }
 
   @action
   onSingleClick(event: MouseEvent) {
-
     if (event.detail === 1) {
       this.timer = setTimeout(() => {
         const intersectedViewObj = this.raycast(event);
@@ -166,7 +165,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
               taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
             }
           } else {
-            this.args.named.singleClick?.(intersectedViewObj.object);
+            this.args.named.singleClick?.(intersectedViewObj);
           }
         }
 
@@ -179,13 +178,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     clearTimeout(this.timer);
     const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
-      this.args.named.doubleClick?.(intersectedViewObj.object);
+      this.args.named.doubleClick?.(intersectedViewObj);
     }
   }
 
   raycast(event: MouseEvent) {
-    const x = (event.clientX / window.innerWidth) * 2 - 1;
-    const y = - (event.clientY / window.innerHeight) * 2 + 1;
+    const x = (event.clientX / this.canvas.width) * 2 - 1;
+    const y = - (event.clientY / this.canvas.height) * 2 + 1;
     const origin = new Vector2(x, y)
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;

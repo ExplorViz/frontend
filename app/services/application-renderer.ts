@@ -1,8 +1,9 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { enqueueTask } from 'ember-concurrency-decorators';
-import { perform } from 'ember-concurrency-ts';
+import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
@@ -92,8 +93,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
-  @service('heatmap-renderer')
-  heatmapRenderer!: HeatmapRenderer;
+  // @service('heatmap-renderer')
+  // heatmapRenderer!: HeatmapRenderer;
 
   private structureLandscapeData!: StructureLandscapeData;
 
@@ -104,6 +105,8 @@ export default class ApplicationRenderer extends Service.extend({
   readonly applicationMarkers: THREE.Group[] = [];
 
   readonly appCommRendering: CommunicationRendering;
+
+  renderingLoop!: RenderingLoop;
 
   arMode: boolean = false;
 
@@ -124,7 +127,7 @@ export default class ApplicationRenderer extends Service.extend({
     for (let i = 0; i < applicationMarkerNames.length; i++) {
       if (this.applicationMarkers.length <= i) {
         const applicationMarker = new THREE.Group();
-        applicationMarker.position.set(i * 30, 5, 30);
+        applicationMarker.position.set(i * 1 - 1, 0.3, 2);
         this.sceneService.scene.add(applicationMarker);
         this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
       }
@@ -135,7 +138,8 @@ export default class ApplicationRenderer extends Service.extend({
     this.drawableClassCommunications = new Map();
   }
 
-  get raytraceables() {
+  get raycastObjects() {
+    this.debug('Gettings objects' + this.applicationMarkers.length);
     return this.applicationMarkers;
   }
 
@@ -348,7 +352,7 @@ export default class ApplicationRenderer extends Service.extend({
       const isOpen = this.isApplicationOpen(applicationModel.id)
       if (isOpen && this.arMode) {
         this.debug('Application is already opened')
-        return;
+        return null;
       }
 
       const workerPayload = {
@@ -403,23 +407,20 @@ export default class ApplicationRenderer extends Service.extend({
         this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
       }
 
-      if (this.arMode) {
-        this.addLabels(applicationObject3D, this.font!, false)
-        // Scale application to a reasonable size to work with it.
-        applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
+      this.addLabels(applicationObject3D, this.font!, !this.arMode)
+      // Scale application to a reasonable size to work with it.
+      applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
 
-        // Add close icon to application.
+      // Add close icon to application.
+
+      // this.applicationGroup.add(applicationObject3D);
+      if (!isOpen) {
         const closeIcon = new CloseIcon({
           textures: this.assetRepo.closeIconTextures,
           onClose: () => this.removeApplication(applicationObject3D),
         });
         closeIcon.addToObject(applicationObject3D);
-      } {
-        this.addLabels(applicationObject3D, this.font!, true)
-      }
-
-      // this.applicationGroup.add(applicationObject3D);
-      if (!isOpen) {
+        this.addGlobe(applicationObject3D);
         this.addApplicationToMarker(applicationObject3D);
 
       }
@@ -428,12 +429,17 @@ export default class ApplicationRenderer extends Service.extend({
         applicationObject3D,
       );
 
-      this.heatmapRenderer.renderIfActive(applicationObject3D);
+      // this.heatmapRenderer.renderIfActive(applicationObject3D);
+      this.heatmapConf.renderIfActive(applicationObject3D);
+      // taskFor(this.heatmapConf.calculateHeatmapTask).perform(applicationObject3D);
 
       if (callback) callback(applicationObject3D);
+
+      return applicationObject3D;
     } catch (e) {
       this.debug(e);
     }
+    return null;
   }
 
   @action
@@ -554,8 +560,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
-
-    applicationObject3D.setLargestSide(1.5);
+    // applicationObject3D.setLargestSide(1.5);
     const applicationModel = applicationObject3D.dataModel;
     for (let i = 0; i < this.applicationMarkers.length; i++) {
       if (this.applicationMarkers[i].children.length === 0) {
@@ -569,6 +574,37 @@ export default class ApplicationRenderer extends Service.extend({
         break;
       }
     }
+  }
+
+  cleanUpApplications() {
+    for (const applicationObject3D of this.getOpenApplications()) {
+      applicationObject3D.removeAllEntities();
+      removeHighlighting(applicationObject3D)
+    }
+  }
+
+  addGlobe(applicationObject3D: ApplicationObject3D) {
+    const addGlobe = () => {
+      // Add globe for communication that comes from the outside
+      const globeMesh = EntityRendering.addGlobeToApplication(applicationObject3D);
+
+      const period = 1000;
+      const times = [0, period];
+      const values = [0, 360];
+
+      const trackName = '.rotation[y]';
+      const track = new THREE.NumberKeyframeTrack(trackName, times, values);
+
+      const clip = new THREE.AnimationClip('default', period, [track]);
+
+      const animationMixer = new THREE.AnimationMixer(globeMesh);
+
+      const clipAction = animationMixer.clipAction(clip);
+      clipAction.play();
+      globeMesh.tick = (delta: any) => animationMixer.update(delta);
+      this.renderingLoop.updatables.push(globeMesh);
+    };
+    addGlobe();
   }
 
 

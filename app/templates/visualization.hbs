@@ -58,7 +58,6 @@
         </BsButton>
       </div>
     {{else}}
-      {{#if this.showLandscapeView}}
         {{#if this.isLandscapeExistentAndEmpty}}
           <div class="container-fluid mt-6">
             <div class="jumbotron">
@@ -110,32 +109,6 @@
             <div class="spinner-center-3" role="status"></div>
           </div>
         {{/if}}
-      {{else if this.showApplicationView}}
-        <Visualization::Rendering::ApplicationRendering
-          @landscapeData={{this.landscapeData}}
-          @addComponent={{this.addComponent}}
-          @font={{this.font}}
-          @components={{this.components}}
-          @removeComponent={{this.removeComponent}}
-          @openDataSelection={{this.openDataSelection}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @showDataSelection={{this.showDataSelection}}
-          @showApplication={{this.showApplication}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @selectedTimestampRecords={{this.selectedTimestampRecords}}
-        />
-        <div class="position-absolute mt-6 ml-3">
-          <BsButton
-            title="Back to Landscape"
-            @onClick={{this.openLandscapeView}}
-            @type="secondary"
-            @outline={{true}}
-          >
-            {{svg-jar "reply-16" class="octicon align-middle"}}
-          </BsButton>
-        </div>
-      {{/if}}
     {{/if}}
   {{/if}}
 </div>

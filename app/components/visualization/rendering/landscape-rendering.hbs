@@ -9,17 +9,28 @@
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
+      {{#if this.heatmapConf.heatmapActive}}
+        <HeatmapInfo
+          @triggerHeatmapVisualization={{this.heatmapConf.triggerHeatmapVisualization}}
+          @updateMetric={{this.heatmapConf.updateMetric}}
+        />
+      {{/if}}
+
       <canvas
         class="main-content-majority {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
         {{interaction-modifier
-          raycastObjects=this.landscapeRenderer.landscapeObject3D
+          raycastObjects=this.raytraceObjects
           camera=this.localUser.camera
+          singleClick=this.handleSingleClick
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
-          mouseWheel=this.handleMouseWheel
           mouseOut=this.handleMouseOut
           mouseStop=this.handleMouseStop
-          panning=this.handlePanning
+        }}
+        {{heatmap-renderer
+          camera=this.camera
+          scene=this.scene
+          applicationObject3D=this.selectedApplicationObject3D
         }}
         {{collaborative-modifier
           raycastObject3D=this.landscapeRenderer.landscapeObject3D
@@ -33,6 +44,9 @@
         }}
         {{did-insert this.canvasInserted}}
       >
+          <RightClickMenu
+            @items={{this.rightClickMenuItems}}
+          />
       </canvas>
       {{#if this.loadNewLandscape.isRunning}}
         <div
@@ -43,6 +57,19 @@
       {{/if}}
 
       {{!-- popup(s) --}}
+      {{#each this.popupData as |d|}}
+        <Visualization::Rendering::Popups::PopupCoordinator
+          @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
+          @popupData={{d}}
+          @pinPopup={{this.pinPopup}}
+          @removePopup={{this.removePopup}}
+          @structureData={{@landscapeData.structureLandscapeData}}
+          @showApplication={{@showApplication}}
+          @highlightModel={{this.highlightModel}}
+          @openParents={{this.openParents}}
+        />
+      {{/each}}
+
     </div>
   </div>
   {{#if @showDataSelection}}
@@ -76,6 +103,16 @@
                   <h5 class="text-center">Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{true}}
+                    @updateColors={{this.updateColors}}
+                    @removeComponent={{@removeComponent}}
+                  />
+                {{/if}}
+                {{#if (eq componentName "app-settings")}}
+                  <h5 class="text-center">Settings</h5>
+                  <Visualization::PageSetup::Sidebar::Settings
+                    @isLandscapeView={{false}}
+                    @updateHighlighting={{this.updateHighlighting}}
+                    @redrawCommunication={{this.addCommunication}}
                     @updateColors={{this.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />

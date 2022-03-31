@@ -9,5 +9,6 @@ export default class VisualizationPageSetupNavbarSettingsOpener extends Componen
   @action
   showSettings() {
     this.args.addComponent('settings');
+    this.args.addComponent('app-settings');
   }
 }

@@ -1,4 +1,5 @@
 import { action } from '@ember/object';
+import { getOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
@@ -9,7 +10,6 @@ import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -68,6 +68,7 @@ import VrRoomSerializer from '../services/vr-room-serializer';
 import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 
 interface Args {
   readonly id: string;
@@ -145,6 +146,8 @@ export default class VrRendering
   // #endregion SERVICES
 
   // #region CLASS FIELDS
+  //
+  private renderingLoop!: RenderingLoop;
 
   private canvas!: HTMLCanvasElement;
 
@@ -166,9 +169,6 @@ export default class VrRendering
 
   private mouseIntersection: THREE.Intersection | null = null;
 
-  @tracked
-  hammerInteraction: HammerInteraction = HammerInteraction.create();
-
   // #endregion CLASS FIELDS
 
   // #region INITIALIZATION
@@ -179,9 +179,9 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
-    this.sceneService.addFloor();
-    this.sceneService.addLight();
-    this.sceneService.addSpotlight();
+    // this.sceneService.addFloor();
+    // this.sceneService.addLight();
+    // this.sceneService.addSpotlight();
     this.remoteUsers.displayHmd = true;
     this.landscapeRenderer.landscape_depth = 0.7
     this.landscapeRenderer.z_depth = 0.2
@@ -281,7 +281,6 @@ export default class VrRendering
    */
   private initInteraction() {
     this.debug('Initializing interaction...');
-    this.hammerInteraction.setupHammer(this.canvas);
 
     // Add additional event listeners. Since TypeScript does not yet support
     // the signal option  of `addEventListener`, we have to listen for the
@@ -304,18 +303,21 @@ export default class VrRendering
     // When an application on the landscape is clicked, open the application.
     this.primaryInputManager.addInputHandler<ApplicationMesh>({
       targetType: ApplicationMesh,
-      triggerDown: (event) => this.addApplicationOrShowHint(event.target.dataModel, {
-        position: event.intersection.point,
-        quaternion: new THREE.Quaternion()
-          .setFromEuler(
-            new THREE.Euler(
-              90 * THREE.MathUtils.DEG2RAD,
-              90 * THREE.MathUtils.DEG2RAD,
-              0,
-            ),
-          )
-          .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
-      }),
+      triggerDown: (event) => {
+        this.debug('Primary down applicationmesh');
+        this.addApplicationOrShowHint(event.target.dataModel, {
+          position: event.intersection.point,
+          quaternion: new THREE.Quaternion()
+            .setFromEuler(
+              new THREE.Euler(
+                90 * THREE.MathUtils.DEG2RAD,
+                90 * THREE.MathUtils.DEG2RAD,
+                0,
+              ),
+            )
+            .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
+        })
+      },
     });
 
     // When a component of an application is clicked, open it.
@@ -492,7 +494,18 @@ export default class VrRendering
     this.resize(outerDiv);
 
     // Start main loop.
-    this.localUser.renderer.setAnimationLoop(() => this.tick());
+
+    this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
+      {
+        camera: this.localUser.camera,
+        scene: this.sceneService.scene,
+        renderer: this.localUser.renderer,
+      });
+
+    this.applicationRenderer.renderingLoop = this.renderingLoop;
+    this.renderingLoop.updatables.push(this);
+    this.renderingLoop.start();
+    // this.localUser.renderer.setAnimationLoop(() => this.tick());
   }
 
   /**
@@ -597,30 +610,9 @@ export default class VrRendering
   // #region MAIN LOOP
 
   /**
-   * Main loop that is called once per frame.
-   */
-  private tick() {
-    if (this.isDestroyed) {
-      return;
-    }
-
-    // Compute time since last tick.
-    this.deltaTimeService.update();
-    const delta = this.deltaTimeService.getDeltaTime();
-
-    this.update(delta);
-
-    this.render();
-
-    // Send position update to backend. This must happen after the scene has
-    // been rendered such that the camera position is not corrupted.
-    this.sendPoses();
-  }
-
-  /**
    * Updates menus, services and all objects in the scene.
    */
-  private update(delta: number) {
+  tick(delta: number) {
     // Update controllers and menus.
     this.localUser.updateControllers(delta);
     this.hintMenuQueue.updateMenu(delta);
@@ -632,19 +624,10 @@ export default class VrRendering
     this.spectateUserService.update();
     this.grabbedObjectService.sendObjectPositions();
     this.remoteUsers.updateRemoteUsers(delta);
+    // this.debug('Updating with tick');
 
     // update applications' globe animation
-    this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
-  }
-
-  /**
-   * Renders the scene.
-   */
-  private render() {
-    this.localUser.renderer.render(
-      this.sceneService.scene,
-      this.localUser.defaultCamera,
-    );
+    // this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
   }
 
   // #endregion MAIN LOOP

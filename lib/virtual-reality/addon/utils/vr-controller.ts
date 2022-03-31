@@ -1,3 +1,4 @@
+import debugLogger from 'ember-debug-logger';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
@@ -44,6 +45,10 @@ export type VRControllerCallbackFunctions = {
  * a VR controller and provides update and callback functionalities.
  */
 export default class VRController extends BaseMesh {
+
+
+  debug = debugLogger('VRController');
+
   gamepadIndex: ControllerId;
 
   gamepad: Gamepad | null = null;

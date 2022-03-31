@@ -1,3 +1,4 @@
+import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
@@ -6,6 +7,9 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
 import revertKey from '../utils/heatmap-generator';
+import { restartableTask } from 'ember-concurrency-decorators';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { perform } from 'ember-concurrency-ts';
 
 export type Metric = {
   name: string;
@@ -20,6 +24,9 @@ type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
 export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('landscape-listener')
   landscapeListener!: LandscapeListener;
+
+  @service()
+  private worker!: any;
 
   @tracked
   heatmapActive = false;
@@ -67,6 +74,11 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   debug = debugLogger();
 
+  @action
+  toggleHeatmap() {
+    this.heatmapActive = !this.heatmapActive;
+  }
+
   setSelectedMetricForCurrentMode(metricName: string) {
     let chosenMetric = null;
 
@@ -107,7 +119,41 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     }
     // console.log('selected metric', this.selectedMetric);
     this.triggerMetricUpdate();
+
   }
+
+  @restartableTask *
+    calculateHeatmapTask(
+      applicationObject3D: ApplicationObject3D,
+      callback?: () => void,
+  ) {
+    this.debug('Calculate heatmap' + applicationObject3D.id)
+    try {
+      const workerPayload = {
+        structure: applicationObject3D.dataModel,
+        dynamic: applicationObject3D.traces,
+      };
+
+      const metrics: Metric[] = yield this.worker.postMessage('metrics-worker', workerPayload);
+
+      this.applicationID = applicationObject3D.dataModel.id;
+      this.latestClazzMetricScores = metrics;
+
+      this.debug('Saving metrics ' + metrics)
+      this.saveAndCalculateMetricScores(metrics);
+
+      this.updateCurrentlyViewedMetric();
+
+      if (callback) callback();
+
+      this.debug('Calculated heatmap')
+      AlertifyHandler.showAlertifyMessage('Calculated heatmap')
+    } catch (e) {
+      AlertifyHandler.showAlertifyError('Error calculating heatmap')
+      this.debug(e);
+    }
+  }
+
 
   updateCurrentlyViewedMetric() {
     // Update currently viewed metric
@@ -140,7 +186,16 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
         this.selectedMetric = updatedMetric;
       }
     }
+    this.debug('Updated currently viewed metric');
   }
+
+  @action
+  updateMetric(metric: Metric) {
+    const metricName = metric.name;
+    this.setSelectedMetricForCurrentMode(metricName);
+    this.triggerMetricUpdate();
+  }
+
 
   saveAndCalculateMetricScores(newScores: Metric[]) {
     function roundToTwoDecimalPlaces(num: number): number {
@@ -287,7 +342,32 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       }
     });
     this.metricsArray.push(newScores);
+    this.debug('Pushed new metrics');
   }
+
+  renderIfActive(applicationObject3D: ApplicationObject3D) {
+    // TODO currently this is only called for one
+    if (this.currentApplication != applicationObject3D) {
+      this.aggregatedMetricScores.clear()
+      this.differenceMetricScores.clear()
+    }
+    this.currentApplication = applicationObject3D;
+    this.applicationID = applicationObject3D.dataModel.id;
+    // if (!this.heatmapActive) { return }
+    this.debug('Updating heatmap' + applicationObject3D.id);
+
+    perform(this.calculateHeatmapTask, applicationObject3D, () => {
+      // if (!this.arMode) {
+      // this.applyHeatmap(applicationObject3D);
+      // }
+      this.triggerLatestHeatmapUpdate();
+      if (!this.selectedMetric) {
+        this.selectedMetric = this.latestClazzMetricScores.firstObject;
+      }
+    });
+
+  }
+
 
   switchMode() {
     switch (this.selectedMode) {
@@ -340,6 +420,19 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   toggleLegend() {
     this.set('legendActive', !this.legendActive);
+  }
+
+  @action
+  triggerHeatmapVisualization() {
+    const metricName = this.selectedMetric?.name;
+
+    if (metricName) {
+      this.setSelectedMetricForCurrentMode(metricName);
+    }
+
+    // if (this.heatmapActive) {
+    //     this.applyHeatmap(this.applicationObject3D);
+    // }
   }
 
   /**
