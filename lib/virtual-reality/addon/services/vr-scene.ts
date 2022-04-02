@@ -1,12 +1,15 @@
+import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREE from 'three';
 import {
   APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE,
-  COMPONENT_ENTITY_TYPE, EntityType, NODE_ENTITY_TYPE,
+  COMPONENT_ENTITY_TYPE, EntityType, NODE_ENTITY_TYPE
 } from 'virtual-reality/utils/vr-message/util/entity_type';
 import FloorMesh from '../utils/view-objects/vr/floor-mesh';
 
@@ -88,6 +91,18 @@ export default class VrSceneService extends Service {
 
   removeSkylight() {
     this.scene.remove(this.skyLight);
+  }
+
+  @action
+  updateColors() {
+    this.scene.traverse((object3D) => {
+      if (object3D instanceof BaseMesh) {
+        object3D.updateColor();
+        // Special case because communication arrow is no base mesh
+      } else if (object3D instanceof CommunicationArrowMesh) {
+        object3D.updateColor(this.configuration.applicationColors.communicationArrowColor);
+      }
+    });
   }
 
   /**

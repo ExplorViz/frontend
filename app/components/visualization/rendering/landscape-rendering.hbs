@@ -39,7 +39,6 @@
           mouseMove=this.mouseMoveOnMesh
           mouseStop=this.mouseStopOnMesh
           mouseOut=this.handleMouseOut
-          setPerspective=this.setPerspective
           repositionSphere=this.repositionSphere
         }}
         {{did-insert this.canvasInserted}}
@@ -80,6 +79,12 @@
         >
           <div class="explorviz-visualization-navbar">
             <ul class="nav justify-content-center">
+              <Visualization::PageSetup::Navbar::TraceOverview
+                @addComponent={{@addComponent}}
+                @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
+                @visualizationPaused={{@visualizationPaused}}
+                @dynamicData={{@landscapeData.dynamicLandscapeData}}
+              />
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @addComponent={{@addComponent}}
               />
@@ -94,6 +99,18 @@
           {{#each @components as |componentName|}}
             <div class="card sidebar-card mt-3 border-radius-0">
               <div class="card-body d-flex flex-column">
+                {{#if (eq componentName "trace-selection")}}
+                  <h5 class="text-center">Trace Overview</h5>
+                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                    @highlightTrace={{this.highlightTrace}}
+                    @moveCameraTo={{this.moveCameraTo}}
+                    @removeComponent={{@removeComponent}}
+                    @removeHighlighting={{this.removeHighlighting}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @structureData={{@landscapeData.structureLandscapeData}}
+                    @application={{this.selectedApplicationObject3D.dataModel}}
+                  />
+                {{/if}}
                 {{#if (eq componentName "collaborative-settings")}}
                   <CollaborativeSettings
                     @removeComponent={{@removeComponent}}
@@ -103,7 +120,7 @@
                   <h5 class="text-center">Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{true}}
-                    @updateColors={{this.updateColors}}
+                    @updateColors={{this.sceneService.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
@@ -113,7 +130,7 @@
                     @isLandscapeView={{false}}
                     @updateHighlighting={{this.updateHighlighting}}
                     @redrawCommunication={{this.addCommunication}}
-                    @updateColors={{this.updateColors}}
+                    @updateColors={{this.sceneService.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}

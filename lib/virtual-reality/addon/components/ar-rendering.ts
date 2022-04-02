@@ -745,18 +745,6 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  updateColors() {
-    this.sceneService.scene.traverse((object3D) => {
-      if (object3D instanceof BaseMesh) {
-        object3D.updateColor();
-        // Special case because communication arrow is no base mesh
-      } else if (object3D instanceof CommunicationArrowMesh) {
-        object3D.updateColor(this.configuration.applicationColors.communicationArrowColor);
-      }
-    });
-  }
-
-  @action
   removeAllPopups() {
     this.lastPopupClear = Date.now();
     this.popupDataMap = new Map();

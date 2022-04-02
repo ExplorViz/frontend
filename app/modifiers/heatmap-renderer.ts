@@ -57,6 +57,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     heatmapConf!: HeatmapConfiguration;
 
     didUpdateArguments() {
+        this.debug('Arguments updated');
         // Avoid unwanted reflections in heatmap mode
         this.setSpotLightVisibilityInScene(this.active);
 

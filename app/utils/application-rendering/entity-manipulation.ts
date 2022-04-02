@@ -215,14 +215,7 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
   layoutPos: THREE.Vector3, applicationObject3D: ApplicationObject3D) {
   layoutPos.sub(centerPoint);
 
-  const appQuaternion = new THREE.Quaternion();
-
-  applicationObject3D.getWorldQuaternion(appQuaternion);
-  layoutPos.applyQuaternion(appQuaternion);
-
-  const appPosition = new THREE.Vector3();
-  applicationObject3D.getWorldPosition(appPosition);
-  layoutPos.sub(appPosition);
+  applicationObject3D.localToWorld(layoutPos);
 
   // Move camera on to given position
   camera.position.set(layoutPos.x, layoutPos.y, layoutPos.z);
@@ -237,7 +230,7 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
    * @param applicationObject3D Object which contains all application meshes
    */
 export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vector3,
-  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D) {
+  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D, cameraTarget: THREE.Vector3) {
   if (isSpan(model)) {
     const traceOfSpan = applicationObject3D.traces.find(
       (trace) => trace.traceId === model.traceId,
@@ -264,8 +257,7 @@ export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vecto
 
         const middleLayoutPos = sourceLayoutPos.add(directionVector.divideScalar(2));
         applyCameraPosition(applicationCenter, camera, middleLayoutPos, applicationObject3D);
-        // Apply zoom
-        camera.position.z += 50;
+        cameraTarget.copy(middleLayoutPos);
       }
     } else if (sourceClass || targetClass) {
       const existendClass = (sourceClass || targetClass)!;
@@ -279,8 +271,7 @@ export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vecto
 
         const middleLayoutPos = classLayoutPos.add(directionVector.divideScalar(2));
         applyCameraPosition(applicationCenter, camera, middleLayoutPos, applicationObject3D);
-        // Apply zoom
-        camera.position.z += 50;
+        cameraTarget.copy(middleLayoutPos);
       }
     }
   } else {
@@ -288,8 +279,7 @@ export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vecto
     if (clazzMesh instanceof ClazzMesh) {
       const layoutPos = new THREE.Vector3().copy(clazzMesh.layout.position);
       applyCameraPosition(applicationCenter, camera, layoutPos, applicationObject3D);
-      // Apply zoom
-      camera.position.z += 25;
+      cameraTarget.copy(clazzMesh.position);
     }
   }
 }

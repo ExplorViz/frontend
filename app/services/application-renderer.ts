@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { enqueueTask } from 'ember-concurrency-decorators';
-import { perform, taskFor } from 'ember-concurrency-ts';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -18,13 +18,14 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE, { Vector3 } from 'three';
+import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrHighlightingService, { HightlightComponentArgs } from 'virtual-reality/services/vr-highlighting';
@@ -35,7 +36,6 @@ import VrApplicationObject3D from 'virtual-reality/utils/view-objects/applicatio
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import Configuration from './configuration';
-import HeatmapRenderer from './heatmap-renderer';
 import UserSettings from './user-settings';
 
 const APPLICATION_SCALAR = 0.01;
@@ -110,6 +110,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   arMode: boolean = false;
 
+
+  get appSettings() {
+    return this.userSettings.applicationSettings;
+  }
 
   readonly drawableClassCommunications: Map<
     string,
@@ -396,16 +400,11 @@ export default class ApplicationRenderer extends Service.extend({
         applicationObject3D
       )
 
-      const drawableComm = this.drawableClassCommunications.get(
-        applicationObject3D.dataModel.id,
-      )!;
 
-      if (!this.arMode) {
-        this.debug('Add communication ')
-        this.addCommunication(applicationObject3D, drawableComm)
-      } else if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
-      }
+      this.debug('Add communication ')
+      this.addCommunication(applicationObject3D)
+      // this was used in AR
+      // this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
 
       this.addLabels(applicationObject3D, this.font!, !this.arMode)
       // Scale application to a reasonable size to work with it.
@@ -443,23 +442,65 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   @action
-  addCommunication(applicationObject3D: ApplicationObject3D, drawableClassCommunications: DrawableClassCommunication[]) {
-    this.appCommRendering.addCommunication(
-      applicationObject3D,
-      drawableClassCommunications
-    );
-    updateHighlighting(
-      applicationObject3D,
-      drawableClassCommunications,
-      1,
-    );
+  addCommunicationForAllApplications() {
+    this.getOpenApplications().forEach((applicationObject3D) => {
+      this.addCommunication(applicationObject3D);
+    })
+  }
 
-    if (this.heatmapConf.heatmapActive) {
-      applicationObject3D.setComponentMeshOpacity(0.1);
-      applicationObject3D.setCommunicationOpacity(0.1);
+  @action
+  removeCommunicationForAllApplications() {
+    this.getOpenApplications().forEach((applicationObject3D) => {
+      applicationObject3D.removeAllCommunication();
+
+      // Remove highlighting if highlighted communication is no longer visible
+      if (applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
+        removeHighlighting(applicationObject3D);
+      }
+    })
+  }
+
+  @action
+  addCommunication(applicationObject3D: ApplicationObject3D) {
+    const drawableClassCommunications = this.drawableClassCommunications.get(applicationObject3D.dataModel.id);
+    if (drawableClassCommunications) {
+      this.appCommRendering.addCommunication(
+        applicationObject3D,
+        drawableClassCommunications
+      );
+      updateHighlighting(
+        applicationObject3D,
+        drawableClassCommunications,
+        1,
+      );
+
+      if (this.heatmapConf.heatmapActive) {
+        applicationObject3D.setComponentMeshOpacity(0.1);
+        applicationObject3D.setCommunicationOpacity(0.1);
+      }
     }
   }
 
+
+  @action
+  updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
+    this.addCommunication(applicationObject3D);
+    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
+      const { value } = this.appSettings.transparencyIntensity;
+      this.updateHighlighting(applicationObject3D, value);
+    } else {
+      this.unhighlightAll();
+    }
+
+  }
+
+  @action
+  updateHighlighting(applicationObject3D: ApplicationObject3D, value: number) {
+    const drawableClassCommunications = this.drawableClassCommunications.get(applicationObject3D.dataModel.id);
+    if (drawableClassCommunications) {
+      updateHighlighting(applicationObject3D, drawableClassCommunications, value);
+    }
+  }
 
   getApplicationInCurrentLandscapeById(id: string): Application | undefined {
     return getApplicationInLandscapeById(this.structureLandscapeData, id);
@@ -525,6 +566,15 @@ export default class ApplicationRenderer extends Service.extend({
       true,
       true,
     );
+  }
+
+
+  openAllComponentsOfAllApplications() {
+    this.getOpenApplications().forEach((applicationObject3D) => {
+      EntityManipulation.openAllComponents(applicationObject3D);
+      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+    }
+    )
   }
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {

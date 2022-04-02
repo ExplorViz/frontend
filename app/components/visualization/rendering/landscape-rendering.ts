@@ -168,8 +168,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   clock = new THREE.Clock();
 
-  drawableClassCommunications: DrawableClassCommunication[] = [];
-
   renderingLoop!: RenderingLoop;
 
   applicationId: string = '1';
@@ -209,8 +207,18 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     ];
   }
 
+  get drawableClassCommunications() {
+
+    // if (this.selectedApplicationObject3D?.dataModel.id) {
+    // TODO null handling!
+    return this.applicationRenderer.drawableClassCommunications.get(this.selectedApplicationObject3D?.dataModel.id);
+    // }
+    // return null;
+  }
+
 
   spheres: Map<string, Array<THREE.Mesh>> = new Map();
+  // sphere!: THREE.Mesh;
 
   spheresIndex = 0;
 
@@ -344,7 +352,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   initCamera() {
     const { width, height } = this.canvas;
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    this.localUser.camera.aspect = width / height;
     this.localUser.camera.position.set(0, 3, 0);
     this.debug('Camera added');
   }
@@ -372,25 +380,18 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    * Creates a DirectionalLight and adds it to the scene
    */
   initLights() {
-    // const spotLight = new THREE.SpotLight(0xffffff, 0.5, 1000, 1.56, 0, 0);
-    const spotLight = new THREE.SpotLight(0xffffff, 0.5, 2000);
-    spotLight.position.set(-200, 100, 100);
-    spotLight.castShadow = true;
-
-    spotLight.angle = 0.3;
-    spotLight.penumbra = 0.2;
-    spotLight.decay = 2;
-    // spotLight.distance = 50;
-
-    this.scene.add(spotLight);
-
-    const light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
-    this.scene.add(light);
-    this.debug('Lights added');
+    this.sceneService.addSpotlight();
+    this.sceneService.addLight();
     this.debug('Lights added');
   }
 
   initVisualization(applicationObject3D: ApplicationObject3D) {
+
+    // const sphereGeometry = new THREE.SphereBufferGeometry(0.02, 32, 32);
+    // const color = new THREE.Color('skyblue');
+    // const sphereMaterial = new THREE.MeshBasicMaterial({ color });
+    // this.sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    // this.sceneService.scene.add(this.sphere);
     const applicationAnimation = () => {
       // applicationObject3D animation
       const period = 4000;
@@ -437,21 +438,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     applicationAnimation();
   }
-
-
   // #endregion COMPONENT AND SCENE INITIALIZATION
-
-  // #region COLLABORATIVE
-
-  @action
-  setPerspective(position: number[] /* , rotation: number[] */) {
-    this.localUser.camera.position.fromArray(position);
-  }
-
-  // #endregion COLLABORATIVE
-
+  //
   // #region RENDERING LOOP
-
 
   scaleSpheres() {
     this.spheres.forEach((sphereArray) => {
@@ -574,8 +563,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     // Open components such that complete trace is visible
     this.openAllComponents();
     const { value } = this.appSettings.transparencyIntensity;
-    highlightTrace(trace, traceStep, this.selectedApplicationObject3D,
-      this.drawableClassCommunications, this.args.landscapeData.structureLandscapeData, value);
+
+    // TODO improve, handle null
+    const drawableClassCommunications = this.applicationRenderer.drawableClassCommunications.get(this.selectedApplicationObject3D!.dataModel.id);
+    highlightTrace(trace, traceStep, this.selectedApplicationObject3D!,
+      drawableClassCommunications!, this.args.landscapeData.structureLandscapeData, value);
   }
 
   @action
@@ -607,24 +599,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       }
     }
   }
-
   // #endregion ACTIONS
-
-  // #region SCENE MANIPULATION
-
-  @action
-  updateColors() {
-    this.scene.traverse((object3D) => {
-      if (object3D instanceof BaseMesh) {
-        object3D.updateColor();
-        // Special case because communication arrow is no base mesh
-      } else if (object3D instanceof CommunicationArrowMesh) {
-        object3D.updateColor(this.configuration.applicationColors.communicationArrowColor);
-      }
-    });
-  }
-
-  // #endregion SCENE MANIPULATION
 
   // #region MOUSE EVENT HANDLER
   //
@@ -639,22 +614,28 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
     // User clicked on blank spot on the canvas
     if (mesh === undefined) {
+      this.debug('Remove highlighting');
       removeHighlighting(this.applicationObject3D);
     } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
       || mesh instanceof ClazzCommunicationMesh) {
-      const { value } = this.appSettings.transparencyIntensity;
-      highlight(mesh, this.applicationObject3D, this.drawableClassCommunications, value);
+      if (mesh.parent instanceof ApplicationObject3D) {
+        const applicationObject3D = mesh.parent;
+        const { value } = this.appSettings.transparencyIntensity;
+        const drawableClassCommunications = this.applicationRenderer.drawableClassCommunications.get(applicationObject3D.dataModel.id);
+        // TODO handle null
+        highlight(mesh, applicationObject3D, drawableClassCommunications!, value);
 
-      if (this.heatmapConf.heatmapActive) {
-        this.applicationObject3D.setComponentMeshOpacity(0.1);
-        this.applicationObject3D.setCommunicationOpacity(0.1);
+        if (this.heatmapConf.heatmapActive) {
+          applicationObject3D.setComponentMeshOpacity(0.1);
+          applicationObject3D.setCommunicationOpacity(0.1);
+        }
       }
     } else if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
-        const selectedApp = mesh.parent;
-        if (this.selectedApplicationObject3D != selectedApp) {
-          this.selectedApplicationObject3D = selectedApp;
-          this.heatmapConf.renderIfActive(selectedApp);
+        const applicationObject3D = mesh.parent;
+        if (this.selectedApplicationObject3D != applicationObject3D) {
+          this.selectedApplicationObject3D = applicationObject3D;
+          this.heatmapConf.renderIfActive(applicationObject3D);
         }
 
         this.debug('Selected Application: ' + mesh.parent?.id)
@@ -677,18 +658,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   runOrRestartMouseMovementTimer() {
-    if (!this.mouseMovementActive) {
-      this.mouseMovementActive = true;
-      // this.applicationObject3D.rotation.copy(this.oldRotationApplicationObject3D);
-    }
 
+    this.mouseMovementActive = true;
     clearTimeout(this.timer);
     this.timer = setTimeout(
       () => {
-        // this.oldRotationApplicationObject3D = new THREE.Euler()
-        //   .copy(this.applicationObject3D.rotation);
         this.mouseMovementActive = false;
-      }, 2500,
+      }, 25000,
     );
   }
 
@@ -706,33 +682,31 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       this.openApplicationIfExistend(mesh);
       // Handle nodeGroup
     } else if (mesh instanceof ComponentMesh) {
-      // Toggle open state of clicked component
-      toggleComponentMeshState(mesh, this.applicationObject3D);
-      this.addCommunication();
-      if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-        const { value } = this.appSettings.transparencyIntensity;
-        updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
-      } else {
-        this.unhighlightAll();
+      const applicationObject3D = mesh.parent;
+      if (applicationObject3D instanceof ApplicationObject3D) {
+        // Toggle open state of clicked component
+        toggleComponentMeshState(mesh, applicationObject3D);
+        this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
+        this.addOpacity(applicationObject3D);
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
-      closeAllComponents(this.applicationObject3D);
-      // Re-compute communication and highlighting
-      this.addCommunication();
-      if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-        const { value } = this.appSettings.transparencyIntensity;
-        updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
-      } else {
-        this.unhighlightAll();
+      const applicationObject3D = mesh.parent;
+      if (applicationObject3D instanceof ApplicationObject3D) {
+        closeAllComponents(applicationObject3D);
+        this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
+        this.addOpacity(applicationObject3D);
       }
-    }
-    if (this.heatmapConf.heatmapActive) {
-      this.applicationObject3D.setComponentMeshOpacity(0.1);
-      this.applicationObject3D.setCommunicationOpacity(0.1);
     }
   }
 
+  @action
+  addOpacity(applicationObject3D: ApplicationObject3D) {
+    if (this.heatmapConf.heatmapActive) {
+      applicationObject3D.setComponentMeshOpacity(0.1);
+      applicationObject3D.setCommunicationOpacity(0.1);
+    }
+  }
 
   @action
   handleMouseMove(intersection: THREE.Intersection) {
@@ -859,7 +833,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       if (applicationObject3D) {
         // Display application nicely for first rendering
         applyDefaultApplicationLayout(applicationObject3D);
-        this.addCommunication();
+        this.addCommunication(applicationObject3D);
         applicationObject3D.resetRotation();
 
         this.initVisualization(applicationObject3D);
@@ -910,14 +884,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         openComponentMesh(ancestorMesh, this.applicationObject3D);
       }
     });
-    this.addCommunication();
-
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      const { value } = this.appSettings.transparencyIntensity;
-      updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
-    } else {
-      this.unhighlightAll();
-    }
+    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.applicationObject3D);
   }
 
   /**
@@ -931,14 +898,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     if (mesh instanceof ComponentMesh) {
       closeComponentMesh(mesh, this.applicationObject3D);
     }
-    this.addCommunication();
-
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      const { value } = this.appSettings.transparencyIntensity;
-      updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
-    } else {
-      this.unhighlightAll();
-    }
+    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.applicationObject3D);
   }
 
   /**
@@ -946,29 +906,19 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   openAllComponents() {
-    openAllComponents(this.applicationObject3D);
-
-    this.addCommunication();
-
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      const { value } = this.appSettings.transparencyIntensity;
-      updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
-    } else {
-      this.unhighlightAll();
-    }
+    this.applicationRenderer.openAllComponentsOfAllApplications()
   }
 
   @action
   updateHighlighting() {
     const { value } = this.appSettings.transparencyIntensity;
-    updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, value);
+    this.applicationRenderer.updateHighlighting(this.applicationObject3D, value);
   }
 
   @action
-  addCommunication() {
+  addCommunication(applicationObject3D: ApplicationObject3D) {
     this.applicationRenderer.addCommunication(
-      this.applicationObject3D,
-      this.drawableClassCommunications
+      applicationObject3D,
     );
   }
 
@@ -980,15 +930,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.configuration.isCommRendered = !this.configuration.isCommRendered;
 
     if (this.configuration.isCommRendered) {
-      this.applicationRenderer.appCommRendering.addCommunication(this.applicationObject3D,
-        this.drawableClassCommunications);
+      this.applicationRenderer.addCommunicationForAllApplications();
     } else {
-      this.applicationObject3D.removeAllCommunication();
-
-      // Remove highlighting if highlighted communication is no longer visible
-      if (this.applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
-        removeHighlighting(this.applicationObject3D);
-      }
+      this.applicationRenderer.removeCommunicationForAllApplications();
     }
   }
 
@@ -999,6 +943,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   highlightModel(entity: Package | Class) {
+    this.debug('Highlight model');
     const { value } = this.appSettings.transparencyIntensity;
     highlightModel(entity, this.applicationObject3D, this.drawableClassCommunications, value);
   }
@@ -1020,7 +965,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   moveCameraTo(emberModel: Class | Span) {
     const applicationCenter = this.applicationObject3D.layout.center;
 
-    moveCameraTo(emberModel, applicationCenter, this.camera, this.applicationObject3D);
+    moveCameraTo(emberModel, applicationCenter, this.camera, this.applicationObject3D, this.renderingLoop.controls.target);
+
+    this.sphere.position.copy(this.camera.position);
   }
 
   /**
