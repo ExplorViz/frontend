@@ -567,8 +567,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       const { structureLandscapeData, dynamicLandscapeData } = this.args.landscapeData;
       // TODO ar/vr handle both landscapes and applications. Check if this is also possible in browser.
       yield perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData);
-      // yield this.applicationRenderer.updateLandscapeData(structureLandscapeData, dynamicLandscapeData, false);
+      yield this.applicationRenderer.updateLandscapeData(structureLandscapeData, dynamicLandscapeData, false);
       if (this.selectedApplicationObject3D) {
+
+        const newApplication = VisualizationController.getApplicationFromLandscapeById(
+          this.selectedApplicationObject3D.dataModel.id, structureLandscapeData,
+        );
+        this.selectedApplicationObject3D.dataModel = newApplication!;
         // yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
         yield perform(this.applicationRenderer.addApplicationTask, this.selectedApplicationObject3D.dataModel);
       }

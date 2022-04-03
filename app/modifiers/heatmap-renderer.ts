@@ -1,6 +1,7 @@
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -14,12 +15,9 @@ import THREE from 'three';
 interface Args {
     positional: [],
     named: {
-        active: boolean,
         camera: THREE.Camera,
         scene: THREE.Scene,
-        mode: string,
-        metric: Metric | null,
-        applicationObject3D: ApplicationObject3D
+        applicationObject3D: ApplicationObject3D | undefined | null;
     }
 }
 
@@ -51,10 +49,13 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     debug = debugLogger('HeatmapRendering');
 
-    lastApplicationObject3D?: ApplicationObject3D;
+    lastApplicationObject3D: ApplicationObject3D | undefined | null;
 
     @service('heatmap-configuration')
     heatmapConf!: HeatmapConfiguration;
+
+    @service('application-renderer')
+    applicationRenderer!: ApplicationRenderer
 
     didUpdateArguments() {
         this.debug('Arguments updated');
@@ -66,8 +67,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
             this.lastApplicationObject3D = undefined;
         }
 
-
-        if (this.heatmapConf.heatmapActive) {
+        if (this.heatmapConf.heatmapActive && this.applicationObject3D) {
             this.lastApplicationObject3D = this.applicationObject3D;
             this.applyHeatmap(this.applicationObject3D);
             // TODO: this cannot be triggered here due to the metric worker.
@@ -86,11 +86,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
         if (foundationMesh && foundationMesh instanceof FoundationMesh) {
             foundationMesh.setDefaultMaterial();
         }
-
-        // TODO fix!
-        // updateHighlighting(this.applicationObject3D, this.drawableClassCommunications, 1);
-
-        this.heatmapConf.currentApplication = null;
+        this.applicationRenderer.updateHighlighting(applicationObject3D, 1);
     }
 
     /**
@@ -144,8 +140,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
         const boxMeshes = applicationObject3D.getBoxMeshes();
 
-        // AlertifyHandler.showAlertifyMessage('Box Meshes: ' + boxMeshes.size)
-
         boxMeshes.forEach((boxMesh) => {
             if (boxMesh instanceof ClazzMesh) {
                 this.heatmapClazzUpdate(applicationObject3D, boxMesh.dataModel, foundationMesh,
@@ -156,11 +150,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
         simpleHeatMap.draw(0.0);
         applySimpleHeatOnFoundation(foundationMesh, canvas);
 
-        // this.heatmapConf.currentApplication = applicationObject3D;
-        // this.heatmapConf.applicationID = applicationObject3D.dataModel.id;
-        // this.heatmapConf.heatmapActive = true;
-
-        AlertifyHandler.showAlertifyMessage('Heatmap applied: ' + applicationObject3D.id)
+        // AlertifyHandler.showAlertifyMessage('Heatmap applied: ' + applicationObject3D.id)
     }
 
     private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {

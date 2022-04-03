@@ -134,9 +134,6 @@ export default class ArRendering extends Component<Args> {
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
 
-  @service('heatmap-renderer')
-  heatmapRenderer!: HeatmapRenderer;
-
   @service()
   worker!: any;
 
@@ -208,6 +205,14 @@ export default class ArRendering extends Component<Args> {
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
+  }
+
+  get camera() {
+    return this.localUser.defaultCamera;
+  }
+
+  get scene() {
+    return this.sceneService.scene;
   }
 
   // #region COMPONENT AND SCENE INITIALIZATION
@@ -591,9 +596,9 @@ export default class ArRendering extends Component<Args> {
   @action
   updateMetric(metric: Metric) {
     this.heatmapConf.set('selectedMetric', metric);
-    this.heatmapConf.triggerMetricUpdate();
+    // TODO check if its needed
+    // this.heatmapConf.triggerMetricUpdate();
 
-    this.applyHeatmap();
   }
 
   @action
@@ -675,21 +680,23 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
+  get selectedApplicationObject3D() {
+    return this.heatmapConf.currentApplication;
+  }
+
   @action
   async handleHeatmapToggle() {
-    const currentHeatmapAppId = this.heatmapConf.currentApplication?.id;
-    this.removeHeatmap();
-
     const intersection = this.interaction.raycastCanvasCenter();
-
-    if (intersection && intersection.object.parent instanceof ApplicationObject3D
-      && currentHeatmapAppId !== intersection.object.parent.id) {
+    if (intersection && intersection.object.parent instanceof ApplicationObject3D) {
       const applicationObject3D = intersection.object.parent;
-
+      if (this.heatmapConf.currentApplication == applicationObject3D && this.heatmapConf.heatmapActive) {
+        this.heatmapConf.heatmapActive = false;
+        this.heatmapConf.currentApplication = null;
+        return;
+      }
+      this.heatmapConf.heatmapActive = true;
       this.heatmapConf.currentApplication = applicationObject3D;
-      perform(this.heatmapRenderer.calculateHeatmapTask, applicationObject3D, () => {
-        this.applyHeatmap();
-      });
+      this.heatmapConf.renderIfActive(applicationObject3D);
     } else if (intersection && intersection.object.parent instanceof LandscapeObject3D) {
       AlertifyHandler.showAlertifyWarning('Heat Map only available for applications.');
     }
@@ -927,51 +934,6 @@ export default class ArRendering extends Component<Args> {
 
   // #endregion APPLICATION RENDERING
 
-  // #region HEATMAP
-
-  @action
-  applyHeatmap() {
-    try {
-      const applicationObject3D = this.heatmapConf.currentApplication;
-      if (applicationObject3D) {
-        this.heatmapRenderer.applyHeatmap(applicationObject3D)
-      }
-      this.sceneService.setAuxiliaryLightVisibility(false);
-
-    } catch (e) {
-      AlertifyHandler.showAlertifyError('Heatmap could not be applied')
-    }
-  }
-
-  removeHeatmap() {
-    const applicationObject3D = this.heatmapConf.currentApplication;
-    if (!applicationObject3D) return;
-
-    removeHeatmapHelperLines(applicationObject3D);
-
-    const foundationMesh = applicationObject3D
-      .getBoxMeshbyModelId(applicationObject3D.dataModel.id);
-
-    if (foundationMesh && foundationMesh instanceof FoundationMesh) {
-      foundationMesh.setDefaultMaterial();
-    }
-
-    const comms = this.applicationRenderer.drawableClassCommunications
-      .get(applicationObject3D.dataModel.id);
-    if (comms) {
-      updateHighlighting(applicationObject3D, comms, 1);
-    }
-
-    this.heatmapConf.heatmapActive = false;
-    this.heatmapConf.currentApplication = null;
-
-    applicationObject3D.setOpacity(this.arSettings.applicationOpacity);
-
-    this.sceneService.addSpotlight();
-  }
-
-  // #endregion HEATMAP
-
   // #region UTILS
 
   private handlePrimaryInputOn(intersection: THREE.Intersection) {
@@ -990,17 +952,12 @@ export default class ArRendering extends Component<Args> {
       } else if (appObject instanceof CloseIcon) {
         appObject.close().then((closedSuccessfully: boolean) => {
           if (appObject.parent === self.heatmapConf.currentApplication) {
-            self.removeHeatmap();
+            self.heatmapConf.currentApplication = null;
           }
           if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
         });
       } else if (appObject instanceof FoundationMesh) {
         self.applicationRenderer.closeAllComponents(appObject.parent);
-      }
-
-      if (self.heatmapConf.heatmapActive) {
-        appObject.parent.setComponentMeshOpacity(0.1);
-        appObject.parent.setCommunicationOpacity(0.1);
       }
     }
 
@@ -1019,11 +976,6 @@ export default class ArRendering extends Component<Args> {
         object.parent,
         object,
       );
-
-      if (this.heatmapConf.heatmapActive) {
-        object.parent.setComponentMeshOpacity(0.1);
-        object.parent.setCommunicationOpacity(0.1);
-      }
     }
   }
 

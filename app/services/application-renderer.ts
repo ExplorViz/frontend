@@ -188,14 +188,14 @@ export default class ApplicationRenderer extends Service.extend({
     structureLandscapeData: StructureLandscapeData,
     applicationObject3D: ApplicationObject3D,
   ) {
-    if (
-      this.drawableClassCommunications.has(
-        applicationObject3D.dataModel.id,
-      )
-    ) {
-      // this.drawableClassCommunications.delete(applicationObject3D.dataModel.id);
-      return;
-    }
+    // if (
+    //   this.drawableClassCommunications.has(
+    //     applicationObject3D.dataModel.id,
+    //   )
+    // ) {
+    this.drawableClassCommunications.delete(applicationObject3D.dataModel.id);
+    //   return;
+    // }
 
     const drawableClassCommunications = computeDrawableClassCommunication(
       structureLandscapeData,
@@ -379,6 +379,7 @@ export default class ApplicationRenderer extends Service.extend({
         boxLayoutMap,
         this.dynamicLandscapeData,
       );
+      applicationObject3D.traces = this.dynamicLandscapeData;
 
       const openComponentIds = applicationObject3D.openComponentIds;
       applicationObject3D.boxLayoutMap = boxLayoutMap;

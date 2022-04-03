@@ -31,6 +31,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @tracked
   heatmapActive = false;
 
+  @tracked
   currentApplication: ApplicationObject3D | undefined | null;
 
   // Switch for the legend
@@ -147,7 +148,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       if (callback) callback();
 
       this.debug('Calculated heatmap')
-      AlertifyHandler.showAlertifyMessage('Calculated heatmap')
+      // AlertifyHandler.showAlertifyMessage('Calculated heatmap')
     } catch (e) {
       AlertifyHandler.showAlertifyError('Error calculating heatmap')
       this.debug(e);
@@ -348,8 +349,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   renderIfActive(applicationObject3D: ApplicationObject3D) {
     // TODO currently this is only called for one
     if (this.currentApplication != applicationObject3D) {
-      this.aggregatedMetricScores.clear()
-      this.differenceMetricScores.clear()
+      this.aggregatedMetricScores.clear();
+      this.differenceMetricScores.clear();
     }
     this.currentApplication = applicationObject3D;
     this.applicationID = applicationObject3D.dataModel.id;
