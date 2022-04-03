@@ -207,16 +207,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     ];
   }
 
-  get drawableClassCommunications() {
-
-    // if (this.selectedApplicationObject3D?.dataModel.id) {
-    // TODO null handling!
-    return this.applicationRenderer.drawableClassCommunications.get(this.selectedApplicationObject3D?.dataModel.id);
-    // }
-    // return null;
-  }
-
-
   spheres: Map<string, Array<THREE.Mesh>> = new Map();
   // sphere!: THREE.Mesh;
 
@@ -228,22 +218,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   get raytraceObjects() {
     return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.raycastObjects]
-  }
-
-  get applicationObject3D() {// TODO fix this initialization workaround. Probably use application markers like in ar-rendering. This currently does
-    if (this.selectedApplicationObject3D) {
-      return this.selectedApplicationObject3D;
-    }
-    // not work too well with the interactions
-    const applicationObject3D = this.applicationRenderer.getApplicationById(this.applicationId);
-    // const applicationObject3D = this.applicationRenderer.getApplicationById(this.args.landscapeData.application!.id);
-    if (!applicationObject3D) {
-      const { application, dynamicLandscapeData } = this.args.landscapeData;
-      return new ApplicationObject3D(application!,
-        new Map(), dynamicLandscapeData);
-    }
-
-    return applicationObject3D;
   }
 
   get camera() {
@@ -572,18 +546,18 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @action
   removeHighlighting() {
-    removeHighlighting(this.applicationObject3D);
+    removeHighlighting(this.selectedApplicationObject3D);
   }
 
 
   // Listener-Callbacks. Override in extending components
   //
-  // TODO this might belong to landscape-renderer
+  // TODO this must probably be changed. Mixing landscape and application rendering implementation does not really make sense
   @action
   resetView() {
     this.landscapeRenderer.resetBrowserView()
     this.camera.position.set(0, 0, 100);
-    this.applicationObject3D.resetRotation();
+    // this.applicationObject3D.resetRotation();
   }
 
   @task *
@@ -593,8 +567,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       const { structureLandscapeData, dynamicLandscapeData } = this.args.landscapeData;
       // TODO ar/vr handle both landscapes and applications. Check if this is also possible in browser.
       yield perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData);
-
+      // yield this.applicationRenderer.updateLandscapeData(structureLandscapeData, dynamicLandscapeData, false);
       if (this.selectedApplicationObject3D) {
+        // yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
         yield perform(this.applicationRenderer.addApplicationTask, this.selectedApplicationObject3D.dataModel);
       }
     }
@@ -615,30 +590,14 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     // User clicked on blank spot on the canvas
     if (mesh === undefined) {
       this.debug('Remove highlighting');
-      removeHighlighting(this.applicationObject3D);
+      removeHighlighting(this.selectedApplicationObject3D);
     } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
       || mesh instanceof ClazzCommunicationMesh) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        const applicationObject3D = mesh.parent;
-        const { value } = this.appSettings.transparencyIntensity;
-        const drawableClassCommunications = this.applicationRenderer.drawableClassCommunications.get(applicationObject3D.dataModel.id);
-        // TODO handle null
-        highlight(mesh, applicationObject3D, drawableClassCommunications!, value);
-
-        if (this.heatmapConf.heatmapActive) {
-          applicationObject3D.setComponentMeshOpacity(0.1);
-          applicationObject3D.setCommunicationOpacity(0.1);
-        }
-      }
+      this.applicationRenderer.highlight(mesh);
+      // this.addOpacity(applicationObject3D);
     } else if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
-        const applicationObject3D = mesh.parent;
-        if (this.selectedApplicationObject3D != applicationObject3D) {
-          this.selectedApplicationObject3D = applicationObject3D;
-          this.heatmapConf.renderIfActive(applicationObject3D);
-        }
-
-        this.debug('Selected Application: ' + mesh.parent?.id)
+        this.selectActiveApplication(mesh.parent);
       }
       this.focusCameraOn(mesh);
     } else if (mesh instanceof NodeMesh) {
@@ -675,6 +634,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     }
   }
 
+  selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+    if (this.selectedApplicationObject3D != applicationObject3D) {
+      this.selectedApplicationObject3D = applicationObject3D;
+      this.heatmapConf.renderIfActive(applicationObject3D);
+    }
+  }
+
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     // Handle application
@@ -687,7 +653,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         // Toggle open state of clicked component
         toggleComponentMeshState(mesh, applicationObject3D);
         this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
-        this.addOpacity(applicationObject3D);
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
@@ -695,16 +660,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       if (applicationObject3D instanceof ApplicationObject3D) {
         closeAllComponents(applicationObject3D);
         this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
-        this.addOpacity(applicationObject3D);
       }
-    }
-  }
-
-  @action
-  addOpacity(applicationObject3D: ApplicationObject3D) {
-    if (this.heatmapConf.heatmapActive) {
-      applicationObject3D.setComponentMeshOpacity(0.1);
-      applicationObject3D.setCommunicationOpacity(0.1);
     }
   }
 
@@ -718,8 +674,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @action
   handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
-
-    // this.runOrRestartMouseMovementTimer();
     const { value: enableHoverEffects } = this.landSettings.enableHoverEffects;
 
     // Update hover effect
@@ -847,11 +801,52 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     }
   }
 
+  @action
   private focusCameraOn(mesh: THREE.Mesh) {
-    const meshPosition = mesh.getWorldPosition(new THREE.Vector3());
-    this.renderingLoop.controls.target.copy(meshPosition);
-    this.camera.position.x = meshPosition.x;
-    this.camera.position.z = meshPosition.z;
+    // const meshPosition = mesh.getWorldPosition(new THREE.Vector3());
+    // this.renderingLoop.controls.target.copy(meshPosition);
+    // this.camera.position.x = meshPosition.x;
+    // this.camera.position.z = meshPosition.z;
+    this.focusCameraOnn(mesh);
+  }
+
+  @action
+  private focusCameraOnn(selection: THREE.Mesh) {
+    const camera = this.camera;
+    const controls = this.renderingLoop.controls;
+    const fitOffset = 1.2;
+
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    const box = new THREE.Box3();
+    box.makeEmpty();
+    // for (const selectedObject of selection) {
+    box.expandByObject(selection);
+    // }
+
+    box.getSize(size);
+    box.getCenter(center);
+
+    const maxSize = Math.max(size.x, size.y, size.z);
+    const fitHeightDistance = maxSize / (2 * Math.atan(Math.PI * camera.fov / 360));
+    const fitWidthDistance = fitHeightDistance / camera.aspect;
+    const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
+
+    const direction = controls.target.clone()
+      .sub(camera.position)
+      .normalize()
+      .multiplyScalar(distance);
+
+    controls.maxDistance = distance * 10;
+    controls.target.copy(center);
+
+    camera.near = distance / 100;
+    camera.far = distance * 100;
+    camera.updateProjectionMatrix();
+
+    camera.position.copy(controls.target).sub(direction);
+
+    controls.update();
   }
 
 
@@ -879,12 +874,12 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     const ancestors = getAllAncestorComponents(entity);
     ancestors.forEach((anc) => {
-      const ancestorMesh = this.applicationObject3D.getBoxMeshbyModelId(anc.id);
+      const ancestorMesh = this.selectedApplicationObject3D.getBoxMeshbyModelId(anc.id);
       if (ancestorMesh instanceof ComponentMesh) {
-        openComponentMesh(ancestorMesh, this.applicationObject3D);
+        openComponentMesh(ancestorMesh, this.selectedApplicationObject3D);
       }
     });
-    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.applicationObject3D);
+    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.selectedApplicationObject3D);
   }
 
   /**
@@ -894,11 +889,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   closeComponent(component: Package) {
-    const mesh = this.applicationObject3D.getBoxMeshbyModelId(component.id);
+    const mesh = this.selectedApplicationObject3D.getBoxMeshbyModelId(component.id);
     if (mesh instanceof ComponentMesh) {
-      closeComponentMesh(mesh, this.applicationObject3D);
+      closeComponentMesh(mesh, this.selectedApplicationObject3D);
     }
-    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.applicationObject3D);
+    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.selectedApplicationObject3D);
   }
 
   /**
@@ -912,7 +907,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   updateHighlighting() {
     const { value } = this.appSettings.transparencyIntensity;
-    this.applicationRenderer.updateHighlighting(this.applicationObject3D, value);
+    this.applicationRenderer.updateHighlightingForAllApplications(value);
   }
 
   @action
@@ -945,16 +940,17 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   highlightModel(entity: Package | Class) {
     this.debug('Highlight model');
     const { value } = this.appSettings.transparencyIntensity;
-    highlightModel(entity, this.applicationObject3D, this.drawableClassCommunications, value);
+    highlightModel(entity, this.selectedApplicationObject3D, value);
   }
 
+  // TODO looks like this was used in application search, which is not referenced anymore
   /**
    * Removes all (possibly) existing highlighting.
    */
-  @action
-  unhighlightAll() {
-    removeHighlighting(this.applicationObject3D);
-  }
+  // @action
+  // unhighlightAll() {
+  //   removeHighlighting(this.applicationObject3D);
+  // }
 
   /**
    * Moves camera such that a specified clazz or clazz communication is in focus.
@@ -963,11 +959,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   moveCameraTo(emberModel: Class | Span) {
-    const applicationCenter = this.applicationObject3D.layout.center;
+    const applicationCenter = this.selectedApplicationObject3D.layout.center;
 
-    moveCameraTo(emberModel, applicationCenter, this.camera, this.applicationObject3D, this.renderingLoop.controls.target);
+    moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target);
 
-    this.sphere.position.copy(this.camera.position);
+    // this.sphere.position.copy(this.camera.position);
   }
 
   /**
@@ -979,8 +975,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   openApplicationIfExistend(applicationMesh: ApplicationMesh) {
-
-
     const application = applicationMesh.dataModel;
     // No data => show message
     if (application.packages.length === 0) {
@@ -1002,31 +996,4 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       // this.args.showApplication(application.id);
     }
   }
-
-  // #region ADDITIONAL HELPER FUNCTIONS
-
-
-  /**
-   * Takes a map with plain JSON layout objects and creates BoxLayout objects from it
-   *
-   * @param layoutedApplication Map containing plain JSON layout data
-   */
-  static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
-    const boxLayoutMap: Map<string, BoxLayout> = new Map();
-
-    layoutedApplication.forEach((value, key) => {
-      const boxLayout = new BoxLayout();
-      boxLayout.positionX = value.positionX;
-      boxLayout.positionY = value.positionY;
-      boxLayout.positionZ = value.positionZ;
-      boxLayout.width = value.width;
-      boxLayout.height = value.height;
-      boxLayout.depth = value.depth;
-      boxLayoutMap.set(key, boxLayout);
-    });
-
-    return boxLayoutMap;
-  }
-
-  // #endregion ADDITIONAL HELPER FUNCTIONS
 }

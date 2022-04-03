@@ -12,10 +12,10 @@ import * as EntityManipulation from 'explorviz-frontend/utils/application-render
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { removeHighlighting, updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { highlight, highlightModel, removeHighlighting, updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Package, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -193,6 +193,7 @@ export default class ApplicationRenderer extends Service.extend({
         applicationObject3D.dataModel.id,
       )
     ) {
+      // this.drawableClassCommunications.delete(applicationObject3D.dataModel.id);
       return;
     }
 
@@ -333,12 +334,15 @@ export default class ApplicationRenderer extends Service.extend({
   async updateLandscapeData(
     structureLandscapeData: StructureLandscapeData,
     dynamicLandscapeData: DynamicLandscapeData,
+    clear: boolean = true,
   ): Promise<void> {
     this.structureLandscapeData = structureLandscapeData;
     this.dynamicLandscapeData = dynamicLandscapeData;
 
-    this.removeAllApplicationsLocally();
-    this.drawableClassCommunications.clear();
+    if (clear) {
+      this.removeAllApplicationsLocally();
+      this.drawableClassCommunications.clear();
+    }
   }
 
 
@@ -495,10 +499,38 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   @action
+  updateHighlightingForAllApplications(value: number) {
+    this.getOpenApplications().forEach((applicationObject3D) => {
+      this.updateHighlighting(applicationObject3D, value);
+    })
+  }
+
+
+
+  @action
   updateHighlighting(applicationObject3D: ApplicationObject3D, value: number) {
     const drawableClassCommunications = this.drawableClassCommunications.get(applicationObject3D.dataModel.id);
     if (drawableClassCommunications) {
       updateHighlighting(applicationObject3D, drawableClassCommunications, value);
+    }
+  }
+
+  @action
+  highlightModel(entity: Package | Class, applicationObject3D: ApplicationObject3D, opacity: number) {
+    const drawableClassCommunications = this.drawableClassCommunications.get(applicationObject3D.dataModel.id);
+    if (drawableClassCommunications) {
+      highlightModel(entity, this.selectedApplicationObject3D, drawableClassCommunications, opacity);
+    }
+  }
+
+  @action
+  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh) {
+    const applicationObject3D = mesh.parent;
+    if (applicationObject3D instanceof ApplicationObject3D) {
+      const drawableClassCommunications = this.drawableClassCommunications.get(applicationObject3D.dataModel.id);
+      if (drawableClassCommunications) {
+        highlight(mesh, applicationObject3D, drawableClassCommunications!, this.opacity);
+      }
     }
   }
 
