@@ -5,7 +5,6 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 
 interface Args {
-  triggerHeatmapVisualization(): void;
   descriptions?: {
     aggregatedHeatmap: string,
     windowedHeatmap: string,
@@ -75,6 +74,5 @@ export default class HeatmapLegend extends Component<Args> {
   @action
   switchHeatMapMode() {
     this.heatmapConfiguration.switchMode();
-    this.args.triggerHeatmapVisualization();
   }
 }

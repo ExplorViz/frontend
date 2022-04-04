@@ -7,33 +7,22 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
 import THREE from 'three';
 
+interface NamedArgs {
+    camera: THREE.Camera,
+    scene: THREE.Scene,
+}
+
 interface Args {
     positional: [],
-    named: {
-        camera: THREE.Camera,
-        scene: THREE.Scene,
-        applicationObject3D: ApplicationObject3D | undefined | null;
-    }
+    named: NamedArgs,
 }
 
 export default class HeatmapRenderer extends Modifier<Args> {
-
-    get applicationObject3D() {
-        return this.args.named.applicationObject3D;
-    }
-
-    get camera() {
-        return this.args.named.camera;
-    }
-
-    get scene() {
-        return this.args.named.scene;
-    }
 
     get mode() {
         return this.heatmapConf.selectedMode;
@@ -47,6 +36,10 @@ export default class HeatmapRenderer extends Modifier<Args> {
         return this.heatmapConf.heatmapActive;
     }
 
+    scene!: THREE.Scene;
+
+    camera!: THREE.Camera;
+
     debug = debugLogger('HeatmapRendering');
 
     lastApplicationObject3D: ApplicationObject3D | undefined | null;
@@ -57,8 +50,15 @@ export default class HeatmapRenderer extends Modifier<Args> {
     @service('application-renderer')
     applicationRenderer!: ApplicationRenderer
 
-    didUpdateArguments() {
-        this.debug('Arguments updated');
+    get applicationObject3D() {
+        return this.heatmapConf.currentApplication;
+    }
+
+    modify(_element: any, [], { camera, scene }: NamedArgs) {
+        this.debug('Arguments updated' + this.applicationObject3D?.id);
+        this.scene = scene;
+        this.camera = camera;
+
         // Avoid unwanted reflections in heatmap mode
         this.setSpotLightVisibilityInScene(this.active);
 
@@ -70,10 +70,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
         if (this.heatmapConf.heatmapActive && this.applicationObject3D) {
             this.lastApplicationObject3D = this.applicationObject3D;
             this.applyHeatmap(this.applicationObject3D);
-            // TODO: this cannot be triggered here due to the metric worker.
-            // taskFor(this.calculateHeatmapTask).perform(this.applicationObject3D, () => {
-            //     // this.applyHeatmap(this.applicationObject3D);
-            // });
         }
     }
 
@@ -108,11 +104,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
             AlertifyHandler.showAlertifyError('No metrics available.');
             return;
         }
-
-        // Selected first metric if none is selected yet
-        // if (!this.heatmapConf.selectedMetric) {
-        //     this.heatmapConf.selectedMetric = this.heatmapConf.latestClazzMetricScores.firstObject;
-        // }
 
         const { selectedMetric } = this.heatmapConf;
 
@@ -149,8 +140,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
         simpleHeatMap.draw(0.0);
         applySimpleHeatOnFoundation(foundationMesh, canvas);
-
-        // AlertifyHandler.showAlertifyMessage('Heatmap applied: ' + applicationObject3D.id)
     }
 
     private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {

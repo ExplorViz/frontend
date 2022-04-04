@@ -433,9 +433,8 @@ export default class ApplicationRenderer extends Service.extend({
         applicationObject3D,
       );
 
-      // this.heatmapRenderer.renderIfActive(applicationObject3D);
+      // TODO this might not be the desired behavior if all applications are reloaded
       this.heatmapConf.renderIfActive(applicationObject3D);
-      // taskFor(this.heatmapConf.calculateHeatmapTask).perform(applicationObject3D);
 
       if (callback) callback(applicationObject3D);
 

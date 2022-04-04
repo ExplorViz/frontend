@@ -5,7 +5,6 @@ import { Metric } from 'heatmap/services/heatmap-configuration';
 interface HeatmapInfoArgs {
   metrics: Metric[];
   updateMetric(metric: Metric): void;
-  triggerHeatmapVisualization(): void;
   selectedMetric: Metric | null;
 }
 

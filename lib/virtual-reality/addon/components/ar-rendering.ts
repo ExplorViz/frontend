@@ -680,10 +680,6 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
-  get selectedApplicationObject3D() {
-    return this.heatmapConf.currentApplication;
-  }
-
   @action
   async handleHeatmapToggle() {
     const intersection = this.interaction.raycastCanvasCenter();
@@ -695,7 +691,6 @@ export default class ArRendering extends Component<Args> {
         return;
       }
       this.heatmapConf.heatmapActive = true;
-      this.heatmapConf.currentApplication = applicationObject3D;
       this.heatmapConf.renderIfActive(applicationObject3D);
     } else if (intersection && intersection.object.parent instanceof LandscapeObject3D) {
       AlertifyHandler.showAlertifyWarning('Heat Map only available for applications.');

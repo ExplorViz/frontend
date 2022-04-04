@@ -305,7 +305,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   // // TODO this is new, was taken from ar-rendering
   initServices() {
     this.applicationRenderer.font = this.font;
-    this.sceneService.addFloor();
+    // this.sceneService.addFloor();
     if (this.args.landscapeData) {
       const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
       const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
@@ -610,9 +610,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     } else if (mesh instanceof CloseIcon) {
       const self = this;
       mesh.close().then((closedSuccessfully: boolean) => {
-        // if (mesh.parent === self.heatmapConf.currentApplication) {
-        //   self.removeHeatmap();
-        // }
         if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
         if (self.selectedApplicationObject3D == mesh.parent) {
           self.selectedApplicationObject3D = undefined;
@@ -640,9 +637,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+    this.heatmapConf.renderIfActive(applicationObject3D);
     if (this.selectedApplicationObject3D != applicationObject3D) {
       this.selectedApplicationObject3D = applicationObject3D;
-      this.heatmapConf.renderIfActive(applicationObject3D);
     }
   }
 

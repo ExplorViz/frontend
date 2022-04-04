@@ -53,9 +53,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   windowSize: number = 9;
 
   @tracked
-  selectedMetric: Metric | null = null;
-
-  applicationID: string | null = null;
+  selectedMetric?: Metric;
 
   // Switches and models used by config
   @tracked
@@ -80,7 +78,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     this.heatmapActive = !this.heatmapActive;
   }
 
-  setSelectedMetricForCurrentMode(metricName: string) {
+  private setSelectedMetricForCurrentMode(metricName: string) {
     let chosenMetric = null;
 
     switch (this.selectedMode) {
@@ -118,15 +116,11 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       default:
         break;
     }
-    // console.log('selected metric', this.selectedMetric);
-    this.triggerMetricUpdate();
-
   }
 
   @restartableTask *
     calculateHeatmapTask(
       applicationObject3D: ApplicationObject3D,
-      callback?: () => void,
   ) {
     this.debug('Calculate heatmap' + applicationObject3D.id)
     try {
@@ -137,15 +131,11 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
       const metrics: Metric[] = yield this.worker.postMessage('metrics-worker', workerPayload);
 
-      this.applicationID = applicationObject3D.dataModel.id;
       this.latestClazzMetricScores = metrics;
 
-      this.debug('Saving metrics ' + metrics)
       this.saveAndCalculateMetricScores(metrics);
 
       this.updateCurrentlyViewedMetric();
-
-      if (callback) callback();
 
       this.debug('Calculated heatmap')
       // AlertifyHandler.showAlertifyMessage('Calculated heatmap')
@@ -156,11 +146,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
 
-  updateCurrentlyViewedMetric() {
+  private updateCurrentlyViewedMetric() {
     // Update currently viewed metric
-    this.debug('SelctedMetric:' + this.selectedMetric)
     if (this.selectedMetric) {
-      this.debug('SelctedMetric:' + this.selectedMetric.name)
       let updatedMetric;
 
       if (this.selectedMode === 'aggregatedHeatmap') {
@@ -186,6 +174,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       if (updatedMetric) {
         this.selectedMetric = updatedMetric;
       }
+    } else {
+      this.selectedMetric = this.latestClazzMetricScores.firstObject;
     }
     this.debug('Updated currently viewed metric');
   }
@@ -194,11 +184,10 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   updateMetric(metric: Metric) {
     const metricName = metric.name;
     this.setSelectedMetricForCurrentMode(metricName);
-    this.triggerMetricUpdate();
   }
 
 
-  saveAndCalculateMetricScores(newScores: Metric[]) {
+  private saveAndCalculateMetricScores(newScores: Metric[]) {
     function roundToTwoDecimalPlaces(num: number): number {
       return Math.round((num + Number.EPSILON) * 100) / 100;
     }
@@ -347,26 +336,15 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   renderIfActive(applicationObject3D: ApplicationObject3D) {
-    // TODO currently this is only called for one
     if (this.currentApplication != applicationObject3D) {
       this.aggregatedMetricScores.clear();
       this.differenceMetricScores.clear();
     }
     this.currentApplication = applicationObject3D;
-    this.applicationID = applicationObject3D.dataModel.id;
     // if (!this.heatmapActive) { return }
     this.debug('Updating heatmap' + applicationObject3D.id);
 
-    perform(this.calculateHeatmapTask, applicationObject3D, () => {
-      // if (!this.arMode) {
-      // this.applyHeatmap(applicationObject3D);
-      // }
-      this.triggerLatestHeatmapUpdate();
-      if (!this.selectedMetric) {
-        this.selectedMetric = this.latestClazzMetricScores.firstObject;
-      }
-    });
-
+    perform(this.calculateHeatmapTask, applicationObject3D);
   }
 
 
@@ -390,50 +368,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     }
   }
 
-  triggerHeatmapMode() {
-    this.debug('triggerHeadmapMode')
-    if (this.applicationID) {
-      if (this.latestClazzMetricScores !== null) {
-        // TODO ask this is not used?
-        this.trigger('updatedHeatMapMode', this.selectedMode);
-      }
-    }
-  }
-
-  triggerLatestHeatmapUpdate() {
-    this.debug('triggerHeadmapUpdate')
-    if (this.applicationID) {
-      if (this.latestClazzMetricScores !== null) {
-        this.trigger('updatedClazzMetrics', this.latestClazzMetricScores);
-      }
-    }
-  }
-
-  triggerMetricUpdate() {
-    this.debug('triggerMetricUpdate')
-    if (this.applicationID) {
-      if (this.latestClazzMetricScores !== null) {
-        // TODO ask this is not used?
-        this.trigger('newSelectedMetric', this.selectedMetric);
-      }
-    }
-  }
-
   toggleLegend() {
     this.set('legendActive', !this.legendActive);
-  }
-
-  @action
-  triggerHeatmapVisualization() {
-    const metricName = this.selectedMetric?.name;
-
-    if (metricName) {
-      this.setSelectedMetricForCurrentMode(metricName);
-    }
-
-    // if (this.heatmapActive) {
-    //     this.applyHeatmap(this.applicationObject3D);
-    // }
   }
 
   /**
@@ -456,7 +392,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   cleanup() {
     this.set('latestClazzMetricScores', null);
     this.set('selectedMetric', null);
-    this.set('applicationID', null);
     this.set('currentApplication', null);
     this.set('heatmapActive', false);
     this.set('largestValue', 0);

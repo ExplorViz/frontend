@@ -11,6 +11,8 @@ import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import debugLogger from 'ember-debug-logger';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { taskFor } from 'ember-concurrency-ts';
+import { registerDestructor } from '@ember/destroyable';
+
 
 export type Position2D = {
   x: number,
@@ -21,22 +23,35 @@ type MouseStopEvent = {
   srcEvent: MouseEvent
 };
 
+interface NamedArgs {
+  mousePositionX: number,
+  camera: THREE.Camera,
+  raycastObjects: Object3D | Object3D[],
+  raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
+  mouseEnter?(): void,
+  mouseLeave?(): void,
+  mouseOut?(): void,
+  mouseMove?(intersection: THREE.Intersection | null): void,
+  mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void,
+  singleClick?(intersection: THREE.Intersection): void,
+  doubleClick?(intersection: THREE.Intersection): void,
+  mousePing?(intersection: THREE.Intersection): void,
+}
+
 interface InteractionModifierArgs {
   positional: [],
-  named: {
-    mousePositionX: number,
-    camera: THREE.Camera,
-    raycastObjects: Object3D | Object3D[],
-    raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
-    mouseEnter?(): void,
-    mouseLeave?(): void,
-    mouseOut?(): void,
-    mouseMove?(intersection: THREE.Intersection | null): void,
-    mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void,
-    singleClick?(intersection: THREE.Intersection): void,
-    doubleClick?(intersection: THREE.Intersection): void,
-    mousePing?(intersection: THREE.Intersection): void,
-  }
+  named: NamedArgs,
+}
+
+function cleanup(instance: InteractionModifierModifier) {
+  let { canvas } = instance;
+
+  canvas.removeEventListener('click', instance.onSingleClick)
+  canvas.removeEventListener('dblclick', instance.onDoubleClick)
+  canvas.removeEventListener('pointerenter', instance.onPointerEnter);
+  canvas.removeEventListener('pointerout', instance.onPointerOut);
+  canvas.removeEventListener('pointermove', instance.onPointerMove);
+  canvas.removeEventListener('pointerstop', instance.onPointerStop);
 }
 
 export default class InteractionModifierModifier extends Modifier<InteractionModifierArgs> {
@@ -60,44 +75,44 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   timer!: NodeJS.Timeout;
 
-  didInstall() {
-    this.canvas.addEventListener('click', this.onSingleClick)
-    // should work most of the time. Even tried it on Chrome for Android and it worked
-    // https://caniuse.com/mdn-api_element_dblclick_event
-    this.canvas.addEventListener('dblclick', this.onDoubleClick)
-    this.canvas.addEventListener('pointerenter', this.onPointerEnter);
-    this.canvas.addEventListener('pointerout', this.onPointerOut);
-    this.canvas.addEventListener('pointermove', this.onPointerMove);
+  didSetup = false;
+  namedArgs!: NamedArgs;
 
-    this.createPointerStopEvent();
-    this.canvas.addEventListener('pointerstop', this.onPointerStop);
-  }
+  canvas!: HTMLCanvasElement;
 
-  willDestroy() {
-    this.canvas.removeEventListener('click', this.onSingleClick)
-    this.canvas.removeEventListener('dblclick', this.onDoubleClick)
-    this.canvas.removeEventListener('pointerenter', this.onPointerEnter);
-    this.canvas.removeEventListener('pointerout', this.onPointerOut);
-    this.canvas.removeEventListener('pointermove', this.onPointerMove);
-    this.canvas.removeEventListener('pointerstop', this.onPointerStop);
-  }
+  modify(element: any, [], args: NamedArgs) {
+    this.namedArgs = args;
 
-  get canvas(): HTMLCanvasElement {
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
-      this.element instanceof HTMLCanvasElement,
+      element instanceof HTMLCanvasElement,
     );
-    return this.element;
+    this.canvas = element;
+
+    if (!this.didSetup) {
+      this.canvas.addEventListener('click', this.onSingleClick)
+      // should work most of the time. Even tried it on Chrome for Android and it worked
+      // https://caniuse.com/mdn-api_element_dblclick_event
+      this.canvas.addEventListener('dblclick', this.onDoubleClick)
+      this.canvas.addEventListener('pointerenter', this.onPointerEnter);
+      this.canvas.addEventListener('pointerout', this.onPointerOut);
+      this.canvas.addEventListener('pointermove', this.onPointerMove);
+
+      this.createPointerStopEvent();
+      this.canvas.addEventListener('pointerstop', this.onPointerStop);
+
+      registerDestructor(this, cleanup)
+    }
   }
 
   get raycastObjects(): Object3D | Object3D[] {
-    const raycastObjects = this.args.named.raycastObjects;
+    const raycastObjects = this.namedArgs.raycastObjects;
     return raycastObjects instanceof Object3D
       ? [raycastObjects] : raycastObjects;
   }
 
   get raycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
-    const filter = this.args.named.raycastFilter;
+    const filter = this.namedArgs.raycastFilter;
 
     // Use default filter if no one is passed
     if (filter === undefined) {
@@ -111,7 +126,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    return this.args.named.camera;
+    return this.namedArgs.camera;
   }
 
   constructor(owner: any, args: InteractionModifierArgs) {
@@ -123,14 +138,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onPointerEnter() {
     this.isMouseOnCanvas = true;
 
-    this.args.named.mouseEnter?.();
+    this.namedArgs.mouseEnter?.();
   }
 
-  @action
-  onPointerOut() {
+  @action onPointerOut() {
     this.isMouseOnCanvas = false;
 
-    this.args.named.mouseOut?.();
+    this.namedArgs.mouseOut?.();
   }
 
   @action
@@ -140,7 +154,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     // TODO this could be moved into the rendering loop to reduce the frequency
     const intersectedViewObj = this.raycast(event);
 
-    this.args.named.mouseMove?.(intersectedViewObj);
+    this.namedArgs.mouseMove?.(intersectedViewObj);
   }
 
   @action
@@ -150,7 +164,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
       const mousePosition = new Vector2(event.clientX, event.clientY);
-      this.args.named.mouseStop?.(intersectedViewObj, mousePosition);
+      this.namedArgs.mouseStop?.(intersectedViewObj, mousePosition);
     }
   }
 
@@ -165,7 +179,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
               taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
             }
           } else {
-            this.args.named.singleClick?.(intersectedViewObj);
+            this.namedArgs.singleClick?.(intersectedViewObj);
           }
         }
 
@@ -178,7 +192,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     clearTimeout(this.timer);
     const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
-      this.args.named.doubleClick?.(intersectedViewObj);
+      this.namedArgs.doubleClick?.(intersectedViewObj);
     }
   }
 
@@ -189,7 +203,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;
 
-    const intersectedViewObj = this.raycaster.raycasting(origin, this.args.named.camera,
+    const intersectedViewObj = this.raycaster.raycasting(origin, this.namedArgs.camera,
       possibleObjects, this.raycastFilter);
 
     return intersectedViewObj;

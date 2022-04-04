@@ -11,7 +11,6 @@
     >
       {{#if this.heatmapConf.heatmapActive}}
         <HeatmapInfo
-          @triggerHeatmapVisualization={{this.heatmapConf.triggerHeatmapVisualization}}
           @updateMetric={{this.heatmapConf.updateMetric}}
         />
       {{/if}}
@@ -30,7 +29,6 @@
         {{heatmap-renderer
           camera=this.camera
           scene=this.scene
-          applicationObject3D=this.selectedApplicationObject3D
         }}
         {{collaborative-modifier
           raycastObject3D=this.landscapeRenderer.landscapeObject3D
