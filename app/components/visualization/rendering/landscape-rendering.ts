@@ -1,11 +1,10 @@
-import { action } from '@ember/object';
-
 import { getOwner } from '@ember/application';
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import GlimmerComponent from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { ELK, ElkNode } from 'elkjs/lib/elk-api';
+import { ELK } from 'elkjs/lib/elk-api';
 import { task } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
@@ -18,16 +17,12 @@ import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { applyDefaultApplicationLayout, closeAllComponents, closeComponentMesh, moveCameraTo, openAllComponents, openComponentMesh, toggleComponentMeshState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { highlight, highlightModel, highlightTrace, removeHighlighting, updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
+import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import { applyDefaultApplicationLayout, closeAllComponents, closeComponentMesh, moveCameraTo, openComponentMesh, toggleComponentMeshState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { highlightTrace, removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
-import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
-import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -38,16 +33,11 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
-import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
-import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
-import THREE from 'three';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import THREE, { Vector3 } from 'three';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-
 
 interface Args {
   readonly id: string;
@@ -63,44 +53,12 @@ interface Args {
   switchToVR(): void,
 }
 
-interface SimplePlaneLayout {
-  height: number;
-  width: number;
-  positionX: number;
-  positionY: number;
-}
-
 type PopupData = {
   mouseX: number,
   mouseY: number,
   entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
   isPinned: boolean,
 };
-
-type LayoutData = {
-  height: number,
-  width: number,
-  depth: number,
-  positionX: number,
-  positionY: number,
-  positionZ: number
-};
-
-export type Point = {
-  x: number,
-  y: number
-};
-
-export interface Layout1Return {
-  graph: ElkNode,
-  modelIdToPoints: Map<string, Point[]>,
-}
-
-export interface Layout3Return {
-  modelIdToLayout: Map<string, SimplePlaneLayout>,
-  modelIdToPoints: Map<string, Point[]>,
-}
-
 /**
 * Renderer for landscape visualization.
 *
@@ -146,27 +104,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   timer!: any;
 
-  // Incremented every time a frame is rendered
-  animationFrameId = 0;
-
   // Is set to false until first landscape is rendered
   initDone: boolean;
 
-  // Used to display performance and memory usage information
-  threePerformance: THREEPerformance | undefined;
-
-  // Maps models to a computed layout
-  modelIdToPlaneLayout: Map<string, PlaneLayout> | null = null;
-
   mouseMovementActive: boolean = true;
-
-  oldRotationApplicationObject3D!: THREE.Euler;
-
-  animationStartCoordinateApplicationObject3D: number = 0;
-
-  isAnimationApplicationObject3DDone: boolean = false;
-
-  clock = new THREE.Clock();
 
   renderingLoop!: RenderingLoop;
 
@@ -177,18 +118,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   isFirstRendering = true;
 
-  // // Extended Object3D which manages landscape meshes
-  // readonly landscapeObject3D: LandscapeObject3D;
-
-  // Provides functions to label landscape meshes
-  readonly labeler = new Labeler();
-
-  readonly imageLoader: ImageLoader = new ImageLoader();
-
   hoveredObject: BaseMesh | null = null;
 
   @tracked
   selectedApplicationObject3D?: ApplicationObject3D = undefined;
+
+  @tracked
+  mousePosition: Vector3 = new Vector3(0, 0, 0);
 
   get rightClickMenuItems() {
     const commButtonTitle = this.configuration.isCommRendered ? 'Hide Communication' : 'Add Communication';
@@ -206,11 +142,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
-
-  spheres: Map<string, Array<THREE.Mesh>> = new Map();
-  // sphere!: THREE.Mesh;
-
-  spheresIndex = 0;
 
   get scene() {
     return this.sceneService.scene
@@ -245,9 +176,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.initDone = false;
     this.debug('Constructor called');
 
-    // this.render = this.render.bind(this);
-
-    this.landscapeRenderer.font = this.font
+    this.landscapeRenderer.font = this.font;
+    this.applicationRenderer.font = this.font;
   }
 
   @action
@@ -280,6 +210,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.initCamera();
     this.initRenderer();
     this.initLights();
+
     this.initWebSocket()
 
     this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
@@ -290,6 +221,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       });
     this.applicationRenderer.renderingLoop = this.renderingLoop;
     this.renderingLoop.start();
+    addSpheres('skyblue', this.mousePosition, this.renderingLoop);
   }
 
   @service('vr-timestamp')
@@ -361,11 +293,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   initVisualization(applicationObject3D: ApplicationObject3D) {
 
-    // const sphereGeometry = new THREE.SphereBufferGeometry(0.02, 32, 32);
-    // const color = new THREE.Color('skyblue');
-    // const sphereMaterial = new THREE.MeshBasicMaterial({ color });
-    // this.sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    // this.sceneService.scene.add(this.sphere);
     const applicationAnimation = () => {
       // applicationObject3D animation
       const period = 4000;
@@ -413,47 +340,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     applicationAnimation();
   }
   // #endregion COMPONENT AND SCENE INITIALIZATION
-  //
-  // #region RENDERING LOOP
-
-  scaleSpheres() {
-    this.spheres.forEach((sphereArray) => {
-      for (let i = 0; i < sphereArray.length; i++) {
-        const sphere = sphereArray[i];
-        sphere.scale.multiplyScalar(0.98);
-        sphere.scale.clampScalar(0.01, 1);
-      }
-    });
-  }
-
-  @action
-  repositionSphere(vec: THREE.Vector3, user: string, color: string) {
-    let spheres = this.spheres.get(user);
-    if (!spheres) {
-      spheres = this.createSpheres(color);
-      this.spheres.set(user, spheres);
-    }
-
-    // TODO independent sphereIndex for each user?
-    spheres[this.spheresIndex].position.copy(vec);
-    spheres[this.spheresIndex].scale.set(1, 1, 1);
-    this.spheresIndex = (this.spheresIndex + 1) % spheres.length;
-  }
-
-  createSpheres(color: string): Array<THREE.Mesh> {
-    const spheres = [];
-    const sphereGeometry = new THREE.SphereBufferGeometry(0.08, 32, 32);
-    const sphereMaterial = new THREE.MeshBasicMaterial({ color });
-
-    for (let i = 0; i < 30; i++) {
-      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      this.sceneService.scene.add(sphere);
-      spheres.push(sphere);
-    }
-    return spheres;
-  }
-
-  // #endregion RENDERING LOOP
 
   // #region COMPONENT AND SCENE CLEAN-UP
 
@@ -478,7 +364,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.renderingLoop.stop();
 
     this.debug('Cleaned up application rendering');
-    cancelAnimationFrame(this.animationFrameId);
 
     // Clean up WebGL rendering context by forcing context loss
     const gl = this.canvas.getContext('webgl');
@@ -489,15 +374,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     if (!glExtension) return;
     glExtension.loseContext();
 
-    if (this.threePerformance) {
-      this.threePerformance.removePerformanceMeasurement();
-    }
-
     this.debug('cleanup landscape rendering');
 
     // Clean up all remaining meshes
     this.landscapeRenderer.landscapeObject3D.removeAllChildren();
-    this.labeler.clearCache();
 
     // this.sceneService.scene.remove(this.landscapeRenderer.landscapeObject3D)
   }
@@ -604,9 +484,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
-      this.focusCameraOn(mesh);
+      focusCameraOn(mesh, this.camera, this.renderingLoop.controls);
     } else if (mesh instanceof NodeMesh) {
-      this.focusCameraOn(mesh);
+      focusCameraOn(mesh, this.camera, this.renderingLoop.controls);
     } else if (mesh instanceof CloseIcon) {
       const self = this;
       mesh.close().then((closedSuccessfully: boolean) => {
@@ -670,6 +550,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleMouseMove(intersection: THREE.Intersection) {
     this.runOrRestartMouseMovementTimer();
     if (intersection) {
+
+      this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
     }
   }
@@ -796,60 +678,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         this.isFirstRendering = false;
         this.selectedApplicationObject3D = applicationObject3D;
 
-        this.focusCameraOn(applicationObject3D);
+        focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls);
       }
     } catch (e) {
       console.log(e);
     }
   }
 
-  @action
-  private focusCameraOn(mesh: THREE.Mesh) {
-    // const meshPosition = mesh.getWorldPosition(new THREE.Vector3());
-    // this.renderingLoop.controls.target.copy(meshPosition);
-    // this.camera.position.x = meshPosition.x;
-    // this.camera.position.z = meshPosition.z;
-    this.focusCameraOnn(mesh);
-  }
-
-  @action
-  private focusCameraOnn(selection: THREE.Mesh) {
-    const camera = this.camera;
-    const controls = this.renderingLoop.controls;
-    const fitOffset = 1.2;
-
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    const box = new THREE.Box3();
-    box.makeEmpty();
-    // for (const selectedObject of selection) {
-    box.expandByObject(selection);
-    // }
-
-    box.getSize(size);
-    box.getCenter(center);
-
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance = maxSize / (2 * Math.atan(Math.PI * camera.fov / 360));
-    const fitWidthDistance = fitHeightDistance / camera.aspect;
-    const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
-
-    const direction = controls.target.clone()
-      .sub(camera.position)
-      .normalize()
-      .multiplyScalar(distance);
-
-    controls.maxDistance = distance * 10;
-    controls.target.copy(center);
-
-    camera.near = distance / 100;
-    camera.far = distance * 100;
-    camera.updateProjectionMatrix();
-
-    camera.position.copy(controls.target).sub(direction);
-
-    controls.update();
-  }
 
 
   // #endregion MOUSE EVENT HANDLER
@@ -942,7 +777,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   highlightModel(entity: Package | Class) {
     this.debug('Highlight model');
     const { value } = this.appSettings.transparencyIntensity;
-    highlightModel(entity, this.selectedApplicationObject3D, value);
+    if (this.selectedApplicationObject3D) {
+      this.applicationRenderer.highlightModel(entity, this.selectedApplicationObject3D, value);
+    }
   }
 
   // TODO looks like this was used in application search, which is not referenced anymore

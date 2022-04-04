@@ -28,6 +28,21 @@ interface SimplePlaneLayout {
   positionX: number;
   positionY: number;
 }
+
+export type Point = {
+  x: number,
+  y: number
+};
+
+export interface Layout1Return {
+  graph: ElkNode,
+  modelIdToPoints: Map<string, Point[]>,
+}
+
+export interface Layout3Return {
+  modelIdToLayout: Map<string, SimplePlaneLayout>,
+  modelIdToPoints: Map<string, Point[]>,
+}
 const LANDSCAPE_SCALAR = 0.3;
 
 export default class LandscapeRenderer extends Service.extend({
