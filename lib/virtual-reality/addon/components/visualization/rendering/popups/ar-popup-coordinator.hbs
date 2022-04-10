@@ -26,6 +26,9 @@
     {{#if (eq this.entityType "drawableClassCommunication")}}
       <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
         @communication={{@popupData.entity}}
+        @showApplication={{@showApplication}}
+        @highlightModel={{this.doNothing}}
+        @openParents={{this.doNothing}}
       />
     {{/if}}
   </div>
