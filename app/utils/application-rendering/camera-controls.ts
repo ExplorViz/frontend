@@ -1,11 +1,11 @@
-import { Box3, Mesh, PerspectiveCamera, Vector3 } from "three";
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from "three";
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const size = new Vector3();
 const center = new Vector3();
 const box = new Box3();
 
-export function focusCameraOn(selection: Mesh, camera: PerspectiveCamera, controls: MapControls) {
+export function focusCameraOn(selection: Object3D, camera: PerspectiveCamera, controls: MapControls) {
     const fitOffset = 1.2;
 
     box.makeEmpty();

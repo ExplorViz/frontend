@@ -42,11 +42,12 @@ import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 interface Args {
   readonly id: string;
   readonly landscapeData: LandscapeData;
+  readonly openApplications: Map<string, Application>;
   readonly font: THREE.Font;
   readonly visualizationPaused: boolean;
   readonly elk: ELK;
   readonly selectedTimestampRecords: Timestamp[];
-  showApplication(applicationId: string): void;
+  showApplication(applicationId: string): Application | null;
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void,
@@ -121,7 +122,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   hoveredObject: BaseMesh | null = null;
 
   @tracked
-  selectedApplicationObject3D?: ApplicationObject3D = undefined;
+  selectedApplicationId: string = "";
+
+  get selectedApplicationObject3D() {
+    return this.applicationRenderer.getApplicationById(this.selectedApplicationId);
+  }
 
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
@@ -211,8 +216,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.initRenderer();
     this.initLights();
 
-    this.initWebSocket()
-
     this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
       {
         camera: this.camera,
@@ -230,27 +233,23 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
 
-  private async initWebSocket() {
-    this.debug('Initializing websocket...');
-  }
-
   // // TODO this is new, was taken from ar-rendering
   initServices() {
     this.applicationRenderer.font = this.font;
     // this.sceneService.addFloor();
-    if (this.args.landscapeData) {
-      const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
-      const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
-        || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-        || new Date().getTime();
-      this.timestampService.setTimestampLocally(
-        timestamp,
-        this.args.landscapeData.structureLandscapeData,
-        this.args.landscapeData.dynamicLandscapeData,
-      );
-    } else {
-      AlertifyHandler.showAlertifyWarning('No landscape found!');
-    }
+    // if (this.args.landscapeData) {
+    //   const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
+    //   const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
+    //     || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
+    //     || new Date().getTime();
+    //   this.timestampService.setTimestampLocally(
+    //     timestamp,
+    //     this.args.landscapeData.structureLandscapeData,
+    //     this.args.landscapeData.dynamicLandscapeData,
+    //   );
+    // } else {
+    //   AlertifyHandler.showAlertifyWarning('No landscape found!');
+    // }
   }
 
   /**
@@ -398,14 +397,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   /**
-   * Performs a run to re-populate the scene
-   */
-  @action
-  onLandscapeUpdated() {
-    // perform(this.loadApplication);
-  }
-
-  /**
    * Highlights a trace or specified trace step.
    * Opens all component meshes to make whole trace visible.
    *
@@ -440,24 +431,23 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     // this.applicationObject3D.resetRotation();
   }
 
-  @task *
-    onUpdated() {
-    if (this.initDone) {
-      this.debug('onUpdated called')
-      const { structureLandscapeData, dynamicLandscapeData } = this.args.landscapeData;
-      // TODO ar/vr handle both landscapes and applications. Check if this is also possible in browser.
-      yield perform(this.landscapeRenderer.populateLandscape, structureLandscapeData, dynamicLandscapeData);
-      yield this.applicationRenderer.updateLandscapeData(structureLandscapeData, dynamicLandscapeData, false);
-      if (this.selectedApplicationObject3D) {
+  @action
+  initializeNewApplication(applicationObject3D: ApplicationObject3D) {
+    applyDefaultApplicationLayout(applicationObject3D);
+    // this.addCommunication(applicationObject3D);
+    applicationObject3D.resetRotation();
 
-        const newApplication = VisualizationController.getApplicationFromLandscapeById(
-          this.selectedApplicationObject3D.dataModel.id, structureLandscapeData,
-        );
-        this.selectedApplicationObject3D.dataModel = newApplication!;
-        // yield perform(this.applicationRenderer.addApplicationTask, this.args.landscapeData.application!);
-        yield perform(this.applicationRenderer.addApplicationTask, this.selectedApplicationObject3D.dataModel);
-      }
-    }
+    this.initVisualization(applicationObject3D);
+    this.selectedApplicationId = applicationObject3D.dataModel.id;
+    // this.heatmapConf.renderIfActive(applicationObject3D);
+    this.heatmapConf.currentApplication = applicationObject3D;
+
+    const self = this;
+    // TODO check why timeout is necessary. Probably because the object is not yet rendered.
+    setTimeout(function () {
+      focusCameraOn(applicationObject3D.foundationMesh!, self.camera, self.renderingLoop.controls)
+    }, 100);
+
   }
   // #endregion ACTIONS
 
@@ -492,7 +482,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       mesh.close().then((closedSuccessfully: boolean) => {
         if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
         if (self.selectedApplicationObject3D == mesh.parent) {
-          self.selectedApplicationObject3D = undefined;
+          self.selectedApplicationId = "";
         }
       });
     }
@@ -517,9 +507,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
-    this.heatmapConf.renderIfActive(applicationObject3D);
     if (this.selectedApplicationObject3D != applicationObject3D) {
-      this.selectedApplicationObject3D = applicationObject3D;
+      this.selectedApplicationId = applicationObject3D.dataModel.id;
+      this.heatmapConf.setActiveApplication(applicationObject3D);
     }
   }
 
@@ -527,7 +517,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     // Handle application
     if (mesh instanceof ApplicationMesh) {
-      this.openApplicationIfExistend(mesh);
+
+      this.debug('ShowApplication clicked')
+      this.args.showApplication(mesh.dataModel.id);
       // Handle nodeGroup
     } else if (mesh instanceof ComponentMesh) {
       const applicationObject3D = mesh.parent;
@@ -663,30 +655,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     }
   }
 
-  @task *
-    loadApplication(application: Application) {
-    try {
-      const applicationObject3D = yield perform(this.applicationRenderer.addApplicationTask, application);
-
-      if (applicationObject3D) {
-        // Display application nicely for first rendering
-        applyDefaultApplicationLayout(applicationObject3D);
-        this.addCommunication(applicationObject3D);
-        applicationObject3D.resetRotation();
-
-        this.initVisualization(applicationObject3D);
-        this.isFirstRendering = false;
-        this.selectedApplicationObject3D = applicationObject3D;
-
-        focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls);
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-
-
   // #endregion MOUSE EVENT HANDLER
   /**
    * Opens all parents / components of a given component or clazz.
@@ -803,36 +771,5 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target);
 
     // this.sphere.position.copy(this.camera.position);
-  }
-
-  /**
-   * Takes an application mesh and tries to enter application-rendering
-   * with that application. Displays an errors message if application does
-   * not contain any data.
-   *
-   * @param applicationMesh Mesh of application which shall be opened
-   */
-  @action
-  openApplicationIfExistend(applicationMesh: ApplicationMesh) {
-    const application = applicationMesh.dataModel;
-    // No data => show message
-    if (application.packages.length === 0) {
-      const message = `Sorry, there is no information for application <b>
-        ${application.name}</b> available.`;
-
-      AlertifyHandler.showAlertifyMessage(message);
-    } else {
-      // data available => open application-rendering
-      AlertifyHandler.closeAlertifyMessages();
-
-      const app = VisualizationController.getApplicationFromLandscapeById(application.id,
-        this.args.landscapeData.structureLandscapeData)
-      if (app) {
-        this.applicationId = app.id
-        perform(this.loadApplication, app)
-      }
-
-      // this.args.showApplication(application.id);
-    }
   }
 }

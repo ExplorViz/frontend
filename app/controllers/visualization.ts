@@ -7,8 +7,8 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
-import { CollaborativeEvents } from 'collaborative-mode/utils/collaborative-data';
 import ElkConstructor from 'elkjs/lib/elk-api';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -28,20 +28,19 @@ import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
-  application?: Application;
 }
 
 export const earthTexture = new THREE.TextureLoader().load('images/earth-map.jpg');
 
 /**
- * TODO
- *
- * @class Visualization-Controller
- * @extends Ember.Controller
- *
- * @module explorviz
- * @submodule visualization
- */
+* TODO
+*
+* @class Visualization-Controller
+* @extends Ember.Controller
+*
+* @module explorviz
+* @submodule visualization
+*/
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
 
@@ -90,18 +89,18 @@ export default class VisualizationController extends Controller {
   @tracked
   timelineTimestamps: Timestamp[] = [];
 
+  // @tracked
+  // openApplications: string[] = [];
+
+  @tracked
+  openApplications: Map<string, Application> = new Map<string, Application>();
+
   @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
 
   debug = debugLogger();
-
-  get showLandscapeView() {
-    return (this.landscapeData !== null && this.landscapeData.application === undefined
-      && !this.showVR)
-      || this.landscapeData === null;
-  }
 
   get isLandscapeExistentAndEmpty() {
     return this.landscapeData !== null
@@ -111,10 +110,6 @@ export default class VisualizationController extends Controller {
   get allLandscapeDataExistsAndNotEmpty() {
     return this.landscapeData !== null
       && this.landscapeData.structureLandscapeData.nodes.length > 0;
-  }
-
-  get showApplicationView() {
-    return this.landscapeData !== null && this.landscapeData.application !== undefined;
   }
 
   @action
@@ -130,7 +125,7 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData')
     if (!this.visualizationPaused) {
       // TODO metrics scores are reset here.
-      this.heatmapConf.latestClazzMetricScores = [];
+      // this.heatmapConf.latestClazzMetricScores = [];
       this.updateLandscape(structureData, dynamicData);
     }
   }
@@ -138,24 +133,22 @@ export default class VisualizationController extends Controller {
   updateLandscape(structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData) {
     this.debug('updateLandscape')
-    let application;
     if (this.landscapeData !== null) {
-      application = this.landscapeData.application;
-      if (application !== undefined) {
+      for (const applicationId of this.openApplications.keys()) {
         const newApplication = VisualizationController.getApplicationFromLandscapeById(
-          application.id, structureData,
+          applicationId, structureData,
         );
-
         if (newApplication) {
-          application = newApplication;
+          this.openApplications.set(applicationId, newApplication);
+        } else {
+          this.openApplications.delete(applicationId);
         }
       }
-
     }
+
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
-      application,
     };
   }
 
@@ -174,40 +167,26 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  openLandscapeView() {
-    this.debug('openLandscapeView')
-    this.receiveOpenLandscapeView();
-    this.collaborativeService.send(CollaborativeEvents.OpenLandscapeView, {});
-  }
-
-  @action
-  receiveOpenLandscapeView() {
-
-    this.debug('receiveOpenLandscapeView')
-    this.closeDataSelection();
-    this.showAR = false;
-    this.showVR = false;
-    if (this.landscapeData !== null) {
-      this.landscapeData = {
-        ...this.landscapeData,
-        application: undefined,
-      };
-    }
-  }
-
-  @action
   showApplication(appId: string) {
-
     this.debug('showApplication')
+    AlertifyHandler.closeAlertifyMessages();
     this.closeDataSelection();
-    if (this.landscapeData !== null) {
-      this.landscapeData = {
-        ...this.landscapeData,
-        application: VisualizationController.getApplicationFromLandscapeById(appId,
-          this.landscapeData.structureLandscapeData),
-      };
-      this.collaborativeService.send(CollaborativeEvents.ApplicationOpened, { id: appId });
+    if (this.landscapeData === null) {
+      return;
     }
+    const application = VisualizationController.getApplicationFromLandscapeById(appId,
+      this.landscapeData.structureLandscapeData);
+    if (!application) {
+      return;
+    }
+    if (application.packages.length === 0) {
+      const message = `Sorry, there is no information for application <b>
+        ${application.name}</b> available.`;
+      AlertifyHandler.showAlertifyMessage(message);
+      return;
+    }
+    this.openApplications.set(appId, application);
+    this.openApplications = this.openApplications;
   }
 
   @action
@@ -398,6 +377,7 @@ export default class VisualizationController extends Controller {
     //   this.addApplicationToMarker(applicationObject3D);
     // });
   }
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

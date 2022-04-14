@@ -20,6 +20,7 @@
     <ArRendering
       @id="landscape1"
       @landscapeData={{this.landscapeData}}
+      @openApplications={{this.openApplications}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @font={{this.font}}
       @openLandscapeView={{this.openLandscapeView}}
@@ -35,6 +36,7 @@
       <VrRendering
         @id="landscape1"
         @landscapeData={{this.landscapeData}}
+        @openApplications={{this.openApplications}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @font={{this.font}}
         @components={{this.components}}
@@ -69,6 +71,7 @@
         {{else if this.allLandscapeDataExistsAndNotEmpty}}
           <Visualization::Rendering::LandscapeRendering
             @landscapeData={{this.landscapeData}}
+            @openApplications={{this.openApplications}}
             @font={{this.font}}
             @elk={{this.elk}}
             @components={{this.components}}

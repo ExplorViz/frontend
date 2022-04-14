@@ -1,4 +1,6 @@
 import { inject as service } from '@ember/service';
+import { task } from 'ember-concurrency-decorators';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -56,6 +58,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     modify(_element: any, [], { camera, scene }: NamedArgs) {
         this.debug('Arguments updated' + this.applicationObject3D?.id);
+        // this.debug('selected metric' + this.heatmapConf.selectedMetric?.name);
         this.scene = scene;
         this.camera = camera;
 
@@ -69,7 +72,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
         if (this.heatmapConf.heatmapActive && this.applicationObject3D) {
             this.lastApplicationObject3D = this.applicationObject3D;
-            this.applyHeatmap(this.applicationObject3D);
+            perform(this.applyHeatmap, this.applicationObject3D);
         }
     }
 
@@ -98,14 +101,16 @@ export default class HeatmapRenderer extends Modifier<Args> {
         });
     }
 
-    private applyHeatmap(applicationObject3D: ApplicationObject3D) {
+    @task *
+        applyHeatmap(applicationObject3D: ApplicationObject3D) {
+        this.debug('Applying heatmap' + applicationObject3D.id);
+        const selectedMetric = this.heatmapConf.selectedMetric;
         if (!this.heatmapConf.latestClazzMetricScores
-            || !this.heatmapConf.latestClazzMetricScores.firstObject) {
+            || !this.heatmapConf.latestClazzMetricScores.firstObject
+            || !selectedMetric) {
             AlertifyHandler.showAlertifyError('No metrics available.');
             return;
         }
-
-        const { selectedMetric } = this.heatmapConf;
 
         applicationObject3D.setComponentMeshOpacity(0.1);
         applicationObject3D.setCommunicationOpacity(0.1);
@@ -113,6 +118,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
         const foundationMesh = applicationObject3D.foundationMesh
 
         if (!(foundationMesh instanceof FoundationMesh)) {
+            this.debug('Did not fin');
             return;
         }
 
@@ -140,6 +146,8 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
         simpleHeatMap.draw(0.0);
         applySimpleHeatOnFoundation(foundationMesh, canvas);
+
+        this.debug('Applyied heatmap' + selectedMetric);
     }
 
     private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {

@@ -1,6 +1,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import { enqueueTask } from 'ember-concurrency-decorators';
+import { enqueueTask, task } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
@@ -40,7 +40,7 @@ import UserSettings from './user-settings';
 
 const APPLICATION_SCALAR = 0.01;
 
-type LayoutData = {
+export type LayoutData = {
   height: number;
   width: number;
   depth: number;
@@ -87,11 +87,12 @@ export default class ApplicationRenderer extends Service.extend({
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
+
   @service('vr-scene')
   private sceneService!: VrSceneService;
 
-  @service('heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   // @service('heatmap-renderer')
   // heatmapRenderer!: HeatmapRenderer;
@@ -145,6 +146,7 @@ export default class ApplicationRenderer extends Service.extend({
   get raycastObjects() {
     this.debug('Gettings objects' + this.applicationMarkers.length);
     return this.applicationMarkers;
+    // return this.openApplications;
   }
 
   /**
@@ -182,36 +184,6 @@ export default class ApplicationRenderer extends Service.extend({
         }
       }
     });
-  }
-
-  updateDrawableClassCommunications(
-    structureLandscapeData: StructureLandscapeData,
-    applicationObject3D: ApplicationObject3D,
-  ) {
-    // if (
-    //   this.drawableClassCommunications.has(
-    //     applicationObject3D.dataModel.id,
-    //   )
-    // ) {
-    this.drawableClassCommunications.delete(applicationObject3D.dataModel.id);
-    //   return;
-    // }
-
-    const drawableClassCommunications = computeDrawableClassCommunication(
-      structureLandscapeData,
-      applicationObject3D.traces,
-    );
-
-    const allClasses = new Set(getAllClassesInApplication(applicationObject3D.dataModel));
-
-    const communicationInApplication = drawableClassCommunications.filter(
-      (comm) => allClasses.has(comm.sourceClass) || allClasses.has(comm.targetClass),
-    );
-
-    this.drawableClassCommunications.set(
-      applicationObject3D.dataModel.id,
-      communicationInApplication,
-    );
   }
 
   get opacity() {
@@ -345,105 +317,111 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
+  @enqueueTask
+  * addApplicationTask(
+    applicationModel: Application,
+    traces: DynamicLandscapeData,
+    drawableClassCommunications: DrawableClassCommunication[],
+  ) {
+    // get existing applicationObject3D or create new one.
+    const applicationObject3D = yield perform(this.updateOrCreateApplication, applicationModel, traces);
+
+    // save state
+    const openComponentIds = applicationObject3D.openComponentIds;
+    this.cleanUpApplication(applicationObject3D);
+
+    // Add new meshes to application
+    EntityRendering.addFoundationAndChildrenToApplication(
+      applicationObject3D,
+      this.configuration.applicationColors,
+    );
+
+    if (applicationObject3D.globeMesh) {
+      EntityRendering.repositionGlobeToApplication(applicationObject3D, applicationObject3D.globeMesh);
+    }
+
+    if (openComponentIds) {
+      restoreComponentState(applicationObject3D, openComponentIds);
+    }
+
+    this.updateDrawableClassCommunications(
+      applicationObject3D,
+      drawableClassCommunications,
+    )
+
+    this.debug('Add communication ')
+    this.addCommunication(applicationObject3D)
+
+    this.addLabels(applicationObject3D, this.font!, !this.arMode)
+    // Scale application to a reasonable size to work with it.
+    applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
+
+    this.openApplications.set(
+      applicationModel.id,
+      applicationObject3D,
+    );
+    return applicationObject3D;
+  }
 
   cleanUpApplication(applicationObject3D: ApplicationObject3D) {
     applicationObject3D.removeAllEntities();
     removeHighlighting(applicationObject3D);
   }
 
-  @enqueueTask
-  * addApplicationTask(
-    applicationModel: Application,
-    callback?: (applicationObject3D: ApplicationObject3D) => void,
-  ) {
-    try {
-      const isOpen = this.isApplicationOpen(applicationModel.id)
-      if (isOpen && this.arMode) {
-        this.debug('Application is already opened')
-        return null;
-      }
+  @task *
+    updateOrCreateApplication(application: Application, traces: DynamicLandscapeData) {
+    const workerPayload = {
+      structure: application,
+      dynamic: traces,
+    };
 
-      const workerPayload = {
-        structure: applicationModel,
-        dynamic: this.dynamicLandscapeData,
-      };
+    // TODO this can probably be placed somewhere else, then it doesn't have to be a task
+    const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
+    // Converting plain JSON layout data due to worker limitations
+    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
+    const applicationObject3D = this.getApplicationById(application.id);
+    if (applicationObject3D) {
+      applicationObject3D.dataModel = application;
+      applicationObject3D.traces = traces;
 
-      const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
-
-      // Converting plain JSON layout data due to worker limitations
-      const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
-
-      // get existing applicationObject3D or create new one.
-      const applicationObject3D = this.getApplicationById(applicationModel.id) || new VrApplicationObject3D(
-        applicationModel,
-        boxLayoutMap,
-        this.dynamicLandscapeData,
-      );
-      applicationObject3D.traces = this.dynamicLandscapeData;
-
-      const openComponentIds = applicationObject3D.openComponentIds;
       applicationObject3D.boxLayoutMap = boxLayoutMap;
-      this.cleanUpApplication(applicationObject3D);
-
-
-      // Add new meshes to application
-      EntityRendering.addFoundationAndChildrenToApplication(
-        applicationObject3D,
-        this.configuration.applicationColors,
-      );
-
-      if (applicationObject3D.globeMesh) {
-        EntityRendering.repositionGlobeToApplication(applicationObject3D, applicationObject3D.globeMesh);
-      }
-
-      if (openComponentIds) {
-        restoreComponentState(applicationObject3D, openComponentIds);
-      }
-
-      this.updateDrawableClassCommunications(
-        this.structureLandscapeData,
-        applicationObject3D
-      )
-
-
-      this.debug('Add communication ')
-      this.addCommunication(applicationObject3D)
-      // this was used in AR
-      // this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
-
-      this.addLabels(applicationObject3D, this.font!, !this.arMode)
-      // Scale application to a reasonable size to work with it.
-      applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
-
-      // Add close icon to application.
-
-      // this.applicationGroup.add(applicationObject3D);
-      if (!isOpen) {
-        const closeIcon = new CloseIcon({
-          textures: this.assetRepo.closeIconTextures,
-          onClose: () => this.removeApplication(applicationObject3D),
-        });
-        closeIcon.addToObject(applicationObject3D);
-        this.addGlobe(applicationObject3D);
-        this.addApplicationToMarker(applicationObject3D);
-
-      }
-      this.openApplications.set(
-        applicationModel.id,
-        applicationObject3D,
-      );
-
-      // TODO this might not be the desired behavior if all applications are reloaded
-      this.heatmapConf.renderIfActive(applicationObject3D);
-
-      if (callback) callback(applicationObject3D);
-
       return applicationObject3D;
-    } catch (e) {
-      this.debug(e);
     }
-    return null;
+    return this.createApplication(application, boxLayoutMap, traces);
   }
+
+  createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: DynamicLandscapeData) {
+    const applicationObject3D = new VrApplicationObject3D(
+      application,
+      boxLayoutMap,
+      traces,
+    );
+
+    const closeIcon = new CloseIcon({
+      textures: this.assetRepo.closeIconTextures,
+      onClose: () => this.removeApplication(applicationObject3D),
+    });
+    closeIcon.addToObject(applicationObject3D);
+    this.addGlobe(applicationObject3D);
+    this.addApplicationToMarker(applicationObject3D);
+    return applicationObject3D;
+  }
+
+  updateDrawableClassCommunications(
+    applicationObject3D: ApplicationObject3D,
+    drawableClassCommunications: DrawableClassCommunication[]
+  ) {
+    const allClasses = new Set(getAllClassesInApplication(applicationObject3D.dataModel));
+
+    const communicationInApplication = drawableClassCommunications.filter(
+      (comm) => allClasses.has(comm.sourceClass) || allClasses.has(comm.targetClass),
+    );
+    this.drawableClassCommunications.set(
+      applicationObject3D.dataModel.id,
+      communicationInApplication,
+    );
+  }
+
 
   @action
   addCommunicationForAllApplications() {
@@ -641,22 +619,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
-    // applicationObject3D.setLargestSide(1.5);
-    const applicationModel = applicationObject3D.dataModel;
-    for (let i = 0; i < this.applicationMarkers.length; i++) {
-      if (this.applicationMarkers[i].children.length === 0) {
-        this.applicationMarkers[i].add(applicationObject3D);
-
-        const message = `Application '${applicationModel.name}' successfully opened <br>
-          on marker #${i + 1}.`;
-
-        AlertifyHandler.showAlertifySuccess(message);
-
-        break;
-      }
-    }
-  }
 
   cleanUpApplications() {
     for (const applicationObject3D of this.getOpenApplications()) {
@@ -689,6 +651,22 @@ export default class ApplicationRenderer extends Service.extend({
     addGlobe();
   }
 
+  addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
+    // applicationObject3D.setLargestSide(1.5);
+    const applicationModel = applicationObject3D.dataModel;
+    for (let i = 0; i < this.applicationMarkers.length; i++) {
+      if (this.applicationMarkers[i].children.length === 0) {
+        this.applicationMarkers[i].add(applicationObject3D);
+
+        const message = `Application '${applicationModel.name}' successfully opened <br>
+          on marker #${i + 1}.`;
+
+        AlertifyHandler.showAlertifySuccess(message);
+
+        break;
+      }
+    }
+  }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
     const boxLayoutMap: Map<string, BoxLayout> = new Map();

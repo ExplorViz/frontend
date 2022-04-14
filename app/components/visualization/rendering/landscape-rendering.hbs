@@ -1,5 +1,3 @@
-<div style="display:none" {{did-update (perform this.onUpdated @landscapeData)}}></div>
-
 <div class="row h-100">
   <div
     class="d-flex flex-column h-100 {{if @showDataSelection "col-8" "col-12"}}"
@@ -29,6 +27,11 @@
         {{heatmap-renderer
           camera=this.camera
           scene=this.scene
+        }}
+        {{landscape-data-watcher
+          initCallback=this.initializeNewApplication
+          openApplications=@openApplications
+          landscapeData=@landscapeData
         }}
         {{collaborative-modifier
           raycastObject3D=this.landscapeRenderer.landscapeObject3D
