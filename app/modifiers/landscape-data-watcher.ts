@@ -86,7 +86,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 this.dynamicLandscapeData,
                 drawableClassCommunications,
             );
-            perform(this.heatmapConf.calculateHeatmapTask, applicationObject3D);
+            perform(this.heatmapConf.calculateHeatmap, applicationObject3D);
             if (this.initCallback && !isOpen) this.initCallback(applicationObject3D);
         }
     }

@@ -66,11 +66,12 @@ export default class HeatmapRenderer extends Modifier<Args> {
         this.setSpotLightVisibilityInScene(this.active);
 
         if (this.lastApplicationObject3D && (this.lastApplicationObject3D != this.applicationObject3D || !this.heatmapConf.heatmapActive)) {
+            this.debug('Removing heatmap:' + this.lastApplicationObject3D.id)
             this.removeHeatmap(this.lastApplicationObject3D);
             this.lastApplicationObject3D = undefined;
         }
 
-        if (this.heatmapConf.heatmapActive && this.applicationObject3D) {
+        if (this.heatmapConf.heatmapActive && this.applicationObject3D && this.mode && this.metric) {
             this.lastApplicationObject3D = this.applicationObject3D;
             perform(this.applyHeatmap, this.applicationObject3D);
         }
@@ -103,7 +104,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     @task *
         applyHeatmap(applicationObject3D: ApplicationObject3D) {
-        this.debug('Applying heatmap' + applicationObject3D.id);
         const selectedMetric = this.heatmapConf.selectedMetric;
         if (!this.heatmapConf.latestClazzMetricScores
             || !this.heatmapConf.latestClazzMetricScores.firstObject
@@ -118,7 +118,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
         const foundationMesh = applicationObject3D.foundationMesh
 
         if (!(foundationMesh instanceof FoundationMesh)) {
-            this.debug('Did not fin');
             return;
         }
 
@@ -147,7 +146,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
         simpleHeatMap.draw(0.0);
         applySimpleHeatOnFoundation(foundationMesh, canvas);
 
-        this.debug('Applyied heatmap' + selectedMetric);
+        this.debug('Applied heatmap');
     }
 
     private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class, foundationMesh: FoundationMesh, simpleHeatMap: any) {

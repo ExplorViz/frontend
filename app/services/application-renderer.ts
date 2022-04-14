@@ -139,7 +139,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
 
     this.appCommRendering = new CommunicationRendering(this.configuration,
-      this.userSettings, this.heatmapConf);
+      this.userSettings);
     this.drawableClassCommunications = new Map();
   }
 
@@ -422,7 +422,6 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
-
   @action
   addCommunicationForAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
@@ -455,14 +454,8 @@ export default class ApplicationRenderer extends Service.extend({
         drawableClassCommunications,
         1,
       );
-
-      if (this.heatmapConf.heatmapActive) {
-        applicationObject3D.setComponentMeshOpacity(0.1);
-        applicationObject3D.setCommunicationOpacity(0.1);
-      }
     }
   }
-
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
@@ -473,7 +466,6 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.unhighlightAll();
     }
-
   }
 
   @action
@@ -482,8 +474,6 @@ export default class ApplicationRenderer extends Service.extend({
       this.updateHighlighting(applicationObject3D, value);
     })
   }
-
-
 
   @action
   updateHighlighting(applicationObject3D: ApplicationObject3D, value: number) {
@@ -578,7 +568,6 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
-
   openAllComponentsOfAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
       EntityManipulation.openAllComponents(applicationObject3D);
@@ -599,10 +588,6 @@ export default class ApplicationRenderer extends Service.extend({
     }
     this.highlightingService.updateHighlightingLocally(applicationObject3D);
 
-    if (this.heatmapConf.heatmapActive) {
-      applicationObject3D.setComponentMeshOpacity(0.1);
-      applicationObject3D.setCommunicationOpacity(0.1);
-    }
   }
 
   updateCommunication() {

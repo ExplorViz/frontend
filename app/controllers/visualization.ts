@@ -124,8 +124,6 @@ export default class VisualizationController extends Controller {
     dynamicData: DynamicLandscapeData) {
     this.debug('receiveNewLandscapeData')
     if (!this.visualizationPaused) {
-      // TODO metrics scores are reset here.
-      // this.heatmapConf.latestClazzMetricScores = [];
       this.updateLandscape(structureData, dynamicData);
     }
   }
