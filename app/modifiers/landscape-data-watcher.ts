@@ -44,6 +44,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     private openApplications: Map<string, Application> = new Map<string, Application>();
 
+    private lastOpenApplicationIds: string[] = [];
+
     @service('heatmap-configuration')
     heatmapConf!: HeatmapConfiguration;
 
@@ -89,5 +91,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             perform(this.heatmapConf.calculateHeatmap, applicationObject3D);
             if (this.initCallback && !isOpen) this.initCallback(applicationObject3D);
         }
+
+        for (const applicationId of this.lastOpenApplicationIds) {
+            if (!this.openApplications.has(applicationId)) {
+                this.applicationRenderer.removeApplicationLocally(applicationId);
+            }
+        }
+        this.lastOpenApplicationIds = [...this.openApplications.keys()];
     }
 }

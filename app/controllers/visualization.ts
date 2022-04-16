@@ -21,8 +21,10 @@ import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/la
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
+import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export interface LandscapeData {
@@ -57,6 +59,9 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
@@ -88,9 +93,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
-
-  // @tracked
-  // openApplications: string[] = [];
 
   @tracked
   openApplications: Map<string, Application> = new Map<string, Application>();
@@ -188,9 +190,36 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  closeApplication(appId: string) {
+    return new Promise((resolve) => {
+      // Ask backend to close the application.
+      const nonce = this.sender.sendAppClosed(appId);
+
+      // Remove the application only when the backend allowed the application to be closed.
+      this.webSocket.awaitResponse({
+        nonce,
+        responseType: isObjectClosedResponse,
+        onResponse: (response: ObjectClosedResponse) => {
+          if (response.isSuccess) this.closeApplicationLocally(appId);
+          resolve(response.isSuccess);
+        },
+        onOffline: () => {
+          this.closeApplicationLocally(appId);
+          resolve(true);
+        },
+      });
+    });
+  }
+
+  closeApplicationLocally(appId: string) {
+    this.openApplications.delete(appId);
+    this.openApplications = this.openApplications;
+  }
+
+  @action
   switchToAR() {
     if (!this.showVR) {
-      this.pauseVisualizationUpdating();
+      // this.pauseVisualizationUpdating();
       this.closeDataSelection();
       this.showAR = true;
     }

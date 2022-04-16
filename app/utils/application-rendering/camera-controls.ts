@@ -8,9 +8,7 @@ const box = new Box3();
 export function focusCameraOn(selection: Object3D, camera: PerspectiveCamera, controls: MapControls) {
     const fitOffset = 1.2;
 
-    box.makeEmpty();
-    box.expandByObject(selection);
-
+    box.setFromObject(selection);
     box.getSize(size);
     box.getCenter(center);
 

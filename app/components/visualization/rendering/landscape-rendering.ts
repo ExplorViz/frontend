@@ -5,16 +5,14 @@ import GlimmerComponent from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { ELK } from 'elkjs/lib/elk-api';
-import { task } from 'ember-concurrency-decorators';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
-import VisualizationController, { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/camera-controls';
@@ -36,7 +34,6 @@ import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
 import VrSceneService from 'virtual-reality/services/vr-scene';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface Args {
@@ -48,6 +45,7 @@ interface Args {
   readonly elk: ELK;
   readonly selectedTimestampRecords: Timestamp[];
   showApplication(applicationId: string): Application | null;
+  closeApplication(applicationId: string): () => Promise<boolean>;
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void,
@@ -227,29 +225,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     addSpheres('skyblue', this.mousePosition, this.renderingLoop);
   }
 
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
-
-  @service('repos/timestamp-repository')
-  private timestampRepo!: TimestampRepository;
-
-  // // TODO this is new, was taken from ar-rendering
   initServices() {
+    // TODO move font assignment. To asset repo maybe?
     this.applicationRenderer.font = this.font;
-    // this.sceneService.addFloor();
-    // if (this.args.landscapeData) {
-    //   const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
-    //   const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
-    //     || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-    //     || new Date().getTime();
-    //   this.timestampService.setTimestampLocally(
-    //     timestamp,
-    //     this.args.landscapeData.structureLandscapeData,
-    //     this.args.landscapeData.dynamicLandscapeData,
-    //   );
-    // } else {
-    //   AlertifyHandler.showAlertifyWarning('No landscape found!');
-    // }
+    this.applicationRenderer.closeApplication = this.args.closeApplication;
   }
 
   /**
@@ -420,7 +399,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     removeHighlighting(this.selectedApplicationObject3D);
   }
 
-
   // Listener-Callbacks. Override in extending components
   //
   // TODO this must probably be changed. Mixing landscape and application rendering implementation does not really make sense
@@ -442,11 +420,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     // this.heatmapConf.renderIfActive(applicationObject3D);
     this.heatmapConf.currentApplication = applicationObject3D;
 
-    const self = this;
-    // TODO check why timeout is necessary. Probably because the object is not yet rendered.
-    setTimeout(function () {
-      focusCameraOn(applicationObject3D.foundationMesh!, self.camera, self.renderingLoop.controls)
-    }, 100);
+    focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls)
 
   }
   // #endregion ACTIONS
@@ -517,9 +491,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     // Handle application
     if (mesh instanceof ApplicationMesh) {
-
-      this.debug('ShowApplication clicked')
-      this.args.showApplication(mesh.dataModel.id);
+      this.showApplication(mesh.dataModel.id);
       // Handle nodeGroup
     } else if (mesh instanceof ComponentMesh) {
       const applicationObject3D = mesh.parent;

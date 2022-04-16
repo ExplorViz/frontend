@@ -93,13 +93,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('vr-scene')
   private sceneService!: VrSceneService;
 
-
-  // @service('heatmap-renderer')
-  // heatmapRenderer!: HeatmapRenderer;
-
   private structureLandscapeData!: StructureLandscapeData;
-
-  private dynamicLandscapeData!: DynamicLandscapeData;
 
   private openApplications: Map<string, ApplicationObject3D>;
 
@@ -111,6 +105,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   arMode: boolean = false;
 
+  closeApplication?(applicationId: string): Promise<boolean>;
 
   get appSettings() {
     return this.userSettings.applicationSettings;
@@ -254,28 +249,9 @@ export default class ApplicationRenderer extends Service.extend({
 
   removeAllApplications() {
     this.getOpenApplications().forEach((application) => {
-      this.removeApplication(application);
-    });
-  }
-
-  removeApplication(application: ApplicationObject3D): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Ask backend to close the application.
-      const nonce = this.sender.sendAppClosed(application.dataModel.id);
-
-      // Remove the application only when the backend allowed the application to be closed.
-      this.webSocket.awaitResponse({
-        nonce,
-        responseType: isObjectClosedResponse,
-        onResponse: (response: ObjectClosedResponse) => {
-          if (response.isSuccess) this.removeApplicationLocally(application);
-          resolve(response.isSuccess);
-        },
-        onOffline: () => {
-          this.removeApplicationLocally(application);
-          resolve(true);
-        },
-      });
+      if (this.closeApplication) {
+        this.closeApplication(application.dataModel.id);
+      }
     });
   }
 
@@ -291,29 +267,17 @@ export default class ApplicationRenderer extends Service.extend({
     this.drawableClassCommunications.clear();
   }
 
-  removeApplicationLocally(application: ApplicationObject3D) {
-    this.openApplications.delete(application.dataModel.id);
-    application.parent?.remove(application);
-    application.children.forEach((child) => {
-      if (child instanceof BaseMesh) {
-        child.disposeRecursively();
-      }
-    });
-
-    this.drawableClassCommunications.delete(application.dataModel.id);
-  }
-
-  async updateLandscapeData(
-    structureLandscapeData: StructureLandscapeData,
-    dynamicLandscapeData: DynamicLandscapeData,
-    clear: boolean = true,
-  ): Promise<void> {
-    this.structureLandscapeData = structureLandscapeData;
-    this.dynamicLandscapeData = dynamicLandscapeData;
-
-    if (clear) {
-      this.removeAllApplicationsLocally();
-      this.drawableClassCommunications.clear();
+  removeApplicationLocally(applicationId: string) {
+    const application = this.getApplicationById(applicationId);
+    if (application) {
+      this.openApplications.delete(application.dataModel.id);
+      application.parent?.remove(application);
+      application.children.forEach((child) => {
+        if (child instanceof BaseMesh) {
+          child.disposeRecursively();
+        }
+      });
+      this.drawableClassCommunications.delete(application.dataModel.id);
     }
   }
 
@@ -323,6 +287,8 @@ export default class ApplicationRenderer extends Service.extend({
     traces: DynamicLandscapeData,
     drawableClassCommunications: DrawableClassCommunication[],
   ) {
+
+    const isOpen = this.isApplicationOpen(applicationModel.id);
     // get existing applicationObject3D or create new one.
     const applicationObject3D = yield perform(this.updateOrCreateApplication, applicationModel, traces);
 
@@ -353,8 +319,20 @@ export default class ApplicationRenderer extends Service.extend({
     this.addCommunication(applicationObject3D)
 
     this.addLabels(applicationObject3D, this.font!, !this.arMode)
+
     // Scale application to a reasonable size to work with it.
     applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
+
+    if (!isOpen) {
+      const closeIcon = new CloseIcon({
+        textures: this.assetRepo.closeIconTextures,
+        onClose: () => this.closeApplication!(applicationObject3D?.dataModel.id),
+      });
+
+      closeIcon.addToObject(applicationObject3D);
+      this.addGlobe(applicationObject3D);
+    }
+
 
     this.openApplications.set(
       applicationModel.id,
@@ -390,20 +368,14 @@ export default class ApplicationRenderer extends Service.extend({
     return this.createApplication(application, boxLayoutMap, traces);
   }
 
-  createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: DynamicLandscapeData) {
+  private createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: DynamicLandscapeData) {
     const applicationObject3D = new VrApplicationObject3D(
       application,
       boxLayoutMap,
       traces,
     );
-
-    const closeIcon = new CloseIcon({
-      textures: this.assetRepo.closeIconTextures,
-      onClose: () => this.removeApplication(applicationObject3D),
-    });
-    closeIcon.addToObject(applicationObject3D);
-    this.addGlobe(applicationObject3D);
     this.addApplicationToMarker(applicationObject3D);
+    this.debug('Application added to marker');
     return applicationObject3D;
   }
 

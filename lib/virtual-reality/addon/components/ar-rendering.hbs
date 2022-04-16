@@ -64,6 +64,11 @@
           camera=this.camera
           scene=this.scene
         }}
+        {{landscape-data-watcher
+          initCallback=this.initializeNewApplication
+          openApplications=@openApplications
+          landscapeData=@landscapeData
+        }}
       >
         {{#if this.hammerInteraction}}
           <RightClickMenuHammer

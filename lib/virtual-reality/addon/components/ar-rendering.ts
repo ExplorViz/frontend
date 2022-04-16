@@ -62,6 +62,7 @@ interface Args {
   readonly showDataSelection: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   openLandscapeView(): void
+  showApplication(applicationId: string): Application | null;
   addComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
@@ -401,7 +402,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   private getIntersectableObjects() {
-    return [this.landscapeRenderer.landscapeObject3D, ...this.applicationMarkers];
+    return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.applicationMarkers];
   }
 
   static raycastFilter(intersection: THREE.Intersection) {
@@ -433,22 +434,13 @@ export default class ArRendering extends Component<Args> {
 
     const applicationMarkerNames = ['pattern-angular_1', 'pattern-angular_2', 'pattern-angular_3', 'pattern-angular_4', 'pattern-angular_5'];
 
-    for (let i = 0; i < applicationMarkerNames.length; i++) {
-      let applicationMarker: THREE.Group;
-
-      if (this.applicationMarkers.length <= i) {
-        applicationMarker = new THREE.Group();
-        this.sceneService.scene.add(applicationMarker);
-        this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
-      } else {
-        applicationMarker = this.applicationMarkers[i];
-      }
-
+    let i = 0;
+    for (const applicationMarker of this.applicationRenderer.applicationMarkers) {
       // Init controls for camera
       // eslint-disable-next-line
       new THREEx.ArMarkerControls(this.arToolkitContext, applicationMarker, {
         type: 'pattern',
-        patternUrl: `ar_data/marker_patterns/${applicationMarkerNames[i]}.patt`,
+        patternUrl: `ar_data/marker_patterns/${applicationMarkerNames[i++]}.patt`,
       });
     }
   }
@@ -690,8 +682,8 @@ export default class ArRendering extends Component<Args> {
         this.heatmapConf.currentApplication = null;
         return;
       }
+      this.heatmapConf.setActiveApplication(applicationObject3D);
       this.heatmapConf.heatmapActive = true;
-      this.heatmapConf.renderIfActive(applicationObject3D);
     } else if (intersection && intersection.object.parent instanceof LandscapeObject3D) {
       AlertifyHandler.showAlertifyWarning('Heat Map only available for applications.');
     }
@@ -867,35 +859,6 @@ export default class ArRendering extends Component<Args> {
 
   // #region APLICATION RENDERING
 
-  async addApplication(applicationModel: Application) {
-    if (applicationModel.packages.length === 0) {
-      const message = `Sorry, there is no information for application <b>
-        ${applicationModel.name}</b> available.`;
-
-      AlertifyHandler.showAlertifyWarning(message);
-    } else if (this.applicationRenderer.isApplicationOpen(applicationModel.id)) {
-      // ToDo: Add info about occupied marker
-      AlertifyHandler.showAlertifyWarning('Application already opened.');
-    } else {
-      // data available => open application-rendering
-      AlertifyHandler.closeAlertifyMessages();
-
-      for (let i = 0; i < this.applicationMarkers.length; i++) {
-        if (this.applicationMarkers[i].children.length === 0) {
-          break;
-        } else if (i === (this.applicationMarkers.length - 1)) {
-          AlertifyHandler.showAlertifyWarning('All markers are occupied.');
-          return;
-        }
-      }
-
-      const applicationObject3D = await this.applicationRenderer
-        .addApplication(applicationModel, {});
-
-      this.addLocalApplicationToMarker(applicationObject3D);
-    }
-  }
-
   addLocalApplicationToMarker(applicationObject3D: ApplicationObject3D) {
     // Set default scale such that application approximately fits on the printed marker
     applicationObject3D.setLargestSide(1.5);
@@ -910,21 +873,14 @@ export default class ArRendering extends Component<Args> {
     if (!applicationObject3D.highlightedEntity) {
       applicationObject3D.setOpacity(this.arSettings.applicationOpacity);
     }
+  }
 
-    const applicationModel = applicationObject3D.dataModel;
+  @action
+  initializeNewApplication(applicationObject3D: ApplicationObject3D) {
+    applicationObject3D.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
+      90 * THREE.MathUtils.DEG2RAD);
 
-    for (let i = 0; i < this.applicationMarkers.length; i++) {
-      if (this.applicationMarkers[i].children.length === 0) {
-        this.applicationMarkers[i].add(applicationObject3D);
-
-        const message = `Application '${applicationModel.name}' successfully opened <br>
-          on marker #${i + 1}.`;
-
-        AlertifyHandler.showAlertifySuccess(message);
-
-        break;
-      }
-    }
+    this.heatmapConf.currentApplication = applicationObject3D;
   }
 
   // #endregion APPLICATION RENDERING
@@ -957,7 +913,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (object instanceof ApplicationMesh) {
-      this.addApplication(object.dataModel);
+      this.args.showApplication(object.dataModel.id);
       // Handle application hits
     } else if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);
