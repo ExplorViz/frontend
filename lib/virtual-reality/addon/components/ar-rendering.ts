@@ -243,19 +243,6 @@ export default class ArRendering extends Component<Args> {
 
   private initServices() {
     this.debug('Initializing services...');
-    if (this.args.landscapeData) {
-      const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
-      const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
-        || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-        || new Date().getTime();
-      this.timestampService.setTimestampLocally(
-        timestamp,
-        this.args.landscapeData.structureLandscapeData,
-        this.args.landscapeData.dynamicLandscapeData,
-      );
-    } else {
-      AlertifyHandler.showAlertifyWarning('No landscape found!');
-    }
 
     // Use given font for landscape and application rendering.
     this.assetRepo.font = this.args.font;
@@ -583,14 +570,6 @@ export default class ArRendering extends Component<Args> {
   updateRendererResolution(resolutionMultiplier: number) {
     this.rendererResolutionMultiplier = resolutionMultiplier;
     this.resize(this.outerDiv);
-  }
-
-  @action
-  updateMetric(metric: Metric) {
-    this.heatmapConf.set('selectedMetric', metric);
-    // TODO check if its needed
-    // this.heatmapConf.triggerMetricUpdate();
-
   }
 
   @action

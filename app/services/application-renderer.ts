@@ -284,13 +284,14 @@ export default class ApplicationRenderer extends Service.extend({
   @enqueueTask
   * addApplicationTask(
     applicationModel: Application,
+    layoutMap: Map<string, LayoutData>,
     traces: DynamicLandscapeData,
     drawableClassCommunications: DrawableClassCommunication[],
   ) {
 
     const isOpen = this.isApplicationOpen(applicationModel.id);
     // get existing applicationObject3D or create new one.
-    const applicationObject3D = yield perform(this.updateOrCreateApplication, applicationModel, traces);
+    const applicationObject3D = this.updateOrCreateApplication(applicationModel, traces, layoutMap);
 
     // save state
     const openComponentIds = applicationObject3D.openComponentIds;
@@ -315,7 +316,6 @@ export default class ApplicationRenderer extends Service.extend({
       drawableClassCommunications,
     )
 
-    this.debug('Add communication ')
     this.addCommunication(applicationObject3D)
 
     this.addLabels(applicationObject3D, this.font!, !this.arMode)
@@ -346,15 +346,7 @@ export default class ApplicationRenderer extends Service.extend({
     removeHighlighting(applicationObject3D);
   }
 
-  @task *
-    updateOrCreateApplication(application: Application, traces: DynamicLandscapeData) {
-    const workerPayload = {
-      structure: application,
-      dynamic: traces,
-    };
-
-    // TODO this can probably be placed somewhere else, then it doesn't have to be a task
-    const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
+  updateOrCreateApplication(application: Application, traces: DynamicLandscapeData, layoutMap: Map<string, LayoutData>) {
     // Converting plain JSON layout data due to worker limitations
     const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
     const applicationObject3D = this.getApplicationById(application.id);

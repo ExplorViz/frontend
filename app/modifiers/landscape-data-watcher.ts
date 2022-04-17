@@ -4,7 +4,7 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import computeDrawableClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
@@ -26,6 +26,9 @@ interface Args {
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     debug = debugLogger('ApplicationRendererModifier');
+
+    @service()
+    private worker!: any;
 
     @service('application-renderer')
     applicationRenderer!: ApplicationRenderer
@@ -79,12 +82,22 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             this.structureLandscapeData,
             this.dynamicLandscapeData,
         );
+
+        // render applications
         for (const application of this.openApplications.values()) {
             const isOpen = this.applicationRenderer.isApplicationOpen(application.id);
+
+            const workerPayload = {
+                structure: application,
+                dynamic: this.dynamicLandscapeData,
+            };
+
+            const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
 
             const applicationObject3D = yield perform(
                 this.applicationRenderer.addApplicationTask,
                 application,
+                layoutMap,
                 this.dynamicLandscapeData,
                 drawableClassCommunications,
             );
@@ -92,6 +105,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             if (this.initCallback && !isOpen) this.initCallback(applicationObject3D);
         }
 
+        // remove closed applications
         for (const applicationId of this.lastOpenApplicationIds) {
             if (!this.openApplications.has(applicationId)) {
                 this.applicationRenderer.removeApplicationLocally(applicationId);

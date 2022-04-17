@@ -8,8 +8,10 @@ interface Args {
   clazz: Class
 }
 
-type AllMetricScoresObject = { metricName: string,
-  snapshotVal: number | undefined, contAggVal: number | undefined, winVal: number | undefined };
+type AllMetricScoresObject = {
+  metricName: string,
+  snapshotVal: number | undefined, contAggVal: number | undefined, winVal: number | undefined
+};
 
 export default class ClazzPopup extends Component<Args> {
   @service('heatmap-configuration')
@@ -21,17 +23,18 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.latestClazzMetricScores')
   get allMetrics() {
-    const metrics = this.heatmapConf.latestClazzMetricScores;
+    const currenApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
     const allClassMetricScores: AllMetricScoresObject[] = [];
 
     // snapshot
-    if (metrics) {
+    if (currenApplicationHeatmapData) {
+      const metrics = currenApplicationHeatmapData.latestClazzMetricScores;
       metrics.forEach((metric) => {
-        const aggMetrics = this.heatmapConf.aggregatedMetricScores.get(metric.name);
+        const aggMetrics = currenApplicationHeatmapData.aggregatedMetricScores.get(metric.name);
 
         let winValToShow;
 
-        const winMetrics = this.heatmapConf.differenceMetricScores.get(metric.name);
+        const winMetrics = currenApplicationHeatmapData.differenceMetricScores.get(metric.name);
 
         if (winMetrics) {
           const newestWinMetricScores = winMetrics[winMetrics?.length - 1];
@@ -53,10 +56,11 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.latestClazzMetricScores')
   get metrics() {
-    const metrics = this.heatmapConf.latestClazzMetricScores;
+    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
       metrics.forEach((metric) => {
         classMetrics.push({ name: metric.name, value: metric.values.get(this.args.clazz.id) });
       });
@@ -66,10 +70,11 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.aggregatedMetricScores')
   get contAggregatedMetrics() {
-    const metrics = this.heatmapConf.aggregatedMetricScores;
+    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.aggregatedMetricScores;
       metrics.forEach((metric) => {
         classMetrics.push({ name: metric.name, value: metric.values.get(this.args.clazz.id) });
       });
@@ -79,10 +84,11 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.differenceMetricScores')
   get windowedMetrics() {
-    const metrics = this.heatmapConf.differenceMetricScores;
+    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.differenceMetricScores;
       metrics.forEach((metric) => {
         const newWindowedScores = metric.lastObject;
         if (newWindowedScores) {
