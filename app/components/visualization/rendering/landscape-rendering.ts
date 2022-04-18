@@ -45,7 +45,7 @@ interface Args {
   readonly elk: ELK;
   readonly selectedTimestampRecords: Timestamp[];
   showApplication(applicationId: string): string;
-  closeApplication(applicationId: string): () => Promise<boolean>;
+  closeApplication(applicationId: string): Promise<boolean>;
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void,

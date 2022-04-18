@@ -46,8 +46,9 @@ interface InteractionModifierArgs {
 function cleanup(instance: InteractionModifierModifier) {
   let { canvas } = instance;
 
-  canvas.removeEventListener('click', instance.onSingleClick)
-  canvas.removeEventListener('dblclick', instance.onDoubleClick)
+  canvas.removeEventListener('pointerdown', instance.onPointerDown)
+  canvas.removeEventListener('pointerup', instance.onPointerUp)
+  // canvas.removeEventListener('dblclick', instance.onDoubleClick)
   canvas.removeEventListener('pointerenter', instance.onPointerEnter);
   canvas.removeEventListener('pointerout', instance.onPointerOut);
   canvas.removeEventListener('pointermove', instance.onPointerMove);
@@ -75,6 +76,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   timer!: NodeJS.Timeout;
 
+  pointerDownCounter: number = 0;
+
   didSetup = false;
   namedArgs!: NamedArgs;
 
@@ -84,16 +87,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs = args;
 
     assert(
-      `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
+      `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
       element instanceof HTMLCanvasElement,
     );
     this.canvas = element;
 
     if (!this.didSetup) {
-      this.canvas.addEventListener('click', this.onSingleClick)
-      // should work most of the time. Even tried it on Chrome for Android and it worked
-      // https://caniuse.com/mdn-api_element_dblclick_event
-      this.canvas.addEventListener('dblclick', this.onDoubleClick)
+      this.canvas.addEventListener('pointerdown', this.onPointerDown)
+      this.canvas.addEventListener('pointerup', this.onPointerUp)
       this.canvas.addEventListener('pointerenter', this.onPointerEnter);
       this.canvas.addEventListener('pointerout', this.onPointerOut);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
@@ -150,6 +151,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @action
   onPointerMove(event: PointerEvent) {
     this.isMouseOnCanvas = true;
+    this.pointerDownCounter = 0;
+    // clearTimeout(this.timer);
 
     // TODO this could be moved into the rendering loop to reduce the frequency
     const intersectedViewObj = this.raycast(event);
@@ -169,21 +172,34 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  onSingleClick(event: MouseEvent) {
-    if (event.detail === 1) {
-      this.timer = setTimeout(() => {
-        const intersectedViewObj = this.raycast(event);
-        if (intersectedViewObj) {
-          if (event.altKey) {
-            if (this.localUser.mousePing) {
-              taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
-            }
-          } else {
-            this.namedArgs.singleClick?.(intersectedViewObj);
-          }
-        }
+  onPointerDown(event: MouseEvent) {
+    if (event.button == 0) {
+      this.pointerDownCounter += 1;
+    }
+  }
 
-      }, 200)
+  @action
+  onPointerUp(event: MouseEvent) {
+    if (event.button == 0) {
+      if (this.pointerDownCounter == 1) {
+        this.timer = setTimeout(() => {
+          this.pointerDownCounter = 0;
+          const intersectedViewObj = this.raycast(event);
+          if (intersectedViewObj) {
+            if (event.altKey) {
+              if (this.localUser.mousePing) {
+                taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
+              }
+            } else {
+              this.namedArgs.singleClick?.(intersectedViewObj);
+            }
+          }
+        }, 200)
+      }
+      if (this.pointerDownCounter > 1) {
+        this.pointerDownCounter = 0;
+        this.onDoubleClick(event);
+      }
     }
   }
 
@@ -197,16 +213,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   raycast(event: MouseEvent) {
-    const x = (event.clientX / this.canvas.width) * 2 - 1;
-    const y = - (event.clientY / this.canvas.height) * 2 + 1;
+    const x = (event.x / this.canvas.clientWidth) * 2 - 1;
+    const y = - (event.y / this.canvas.clientHeight) * 2 + 1;
     const origin = new Vector2(x, y)
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;
 
-    const intersectedViewObj = this.raycaster.raycasting(origin, this.namedArgs.camera,
+    return this.raycaster.raycasting(origin, this.namedArgs.camera,
       possibleObjects, this.raycastFilter);
-
-    return intersectedViewObj;
   }
 
   createPointerStopEvent() {
