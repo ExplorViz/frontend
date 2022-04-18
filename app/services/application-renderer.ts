@@ -200,7 +200,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   addApplicationLocally(
     applicationModel: Application,
-    args: AddApplicationArgs = {},
   ): Promise<ApplicationObject3D> {
     return new Promise((resolve) => {
       perform(this.addApplicationTask, applicationModel, (application) => {
@@ -216,7 +215,7 @@ export default class ApplicationRenderer extends Service.extend({
     args: AddApplicationArgs,
   ) {
     // Set initial position, rotation and scale.
-    if (args.position) application.position.copy(args.position);
+    if (args.position) application.parent.position.copy(args.position);
     if (args.quaternion) application.quaternion.copy(args.quaternion);
     if (args.scale) application.scale.copy(args.scale);
 
@@ -287,6 +286,7 @@ export default class ApplicationRenderer extends Service.extend({
     layoutMap: Map<string, LayoutData>,
     traces: DynamicLandscapeData,
     drawableClassCommunications: DrawableClassCommunication[],
+    args: AddApplicationArgs = {},
   ) {
 
     const isOpen = this.isApplicationOpen(applicationModel.id);
@@ -333,6 +333,7 @@ export default class ApplicationRenderer extends Service.extend({
       this.addGlobe(applicationObject3D);
     }
 
+    this.initializeApplication(applicationObject3D, args);
 
     this.openApplications.set(
       applicationModel.id,

@@ -3,35 +3,29 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import HeatmapRenderer from 'explorviz-frontend/services/heatmap-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import Interaction from 'explorviz-frontend/utils/interaction';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
-import { removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { MathUtils } from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import DeltaTime from 'virtual-reality/services/delta-time';
@@ -62,11 +56,13 @@ interface Args {
   readonly showDataSelection: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   openLandscapeView(): void
-  showApplication(applicationId: string): Application | null;
+  showApplication(applicationId: string): string;
   addComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
   closeDataSelection(): void;
+
+  applicationArgs: Map<string, AddApplicationArgs>,
 }
 
 type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
@@ -838,26 +834,14 @@ export default class ArRendering extends Component<Args> {
 
   // #region APLICATION RENDERING
 
-  addLocalApplicationToMarker(applicationObject3D: ApplicationObject3D) {
-    // Set default scale such that application approximately fits on the printed marker
-    applicationObject3D.setLargestSide(1.5);
-
-    this.addApplicationToMarker(applicationObject3D);
-  }
-
-  addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
-    applicationObject3D.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
-      90 * THREE.MathUtils.DEG2RAD);
-
-    if (!applicationObject3D.highlightedEntity) {
-      applicationObject3D.setOpacity(this.arSettings.applicationOpacity);
-    }
-  }
-
   @action
   initializeNewApplication(applicationObject3D: ApplicationObject3D) {
+
+    applicationObject3D.setLargestSide(1.5);
     applicationObject3D.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
       90 * THREE.MathUtils.DEG2RAD);
+
+    applicationObject3D.setOpacity(this.arSettings.applicationOpacity);
 
     this.heatmapConf.currentApplication = applicationObject3D;
   }
@@ -892,7 +876,8 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (object instanceof ApplicationMesh) {
-      this.args.showApplication(object.dataModel.id);
+      const message = this.args.showApplication(object.dataModel.id);
+      AlertifyHandler.showAlertifyMessage(message);
       // Handle application hits
     } else if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);

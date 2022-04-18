@@ -44,7 +44,7 @@ interface Args {
   readonly visualizationPaused: boolean;
   readonly elk: ELK;
   readonly selectedTimestampRecords: Timestamp[];
-  showApplication(applicationId: string): Application | null;
+  showApplication(applicationId: string): string;
   closeApplication(applicationId: string): () => Promise<boolean>;
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
@@ -561,7 +561,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   showApplication(appId: string) {
     this.removePopup(appId);
-    this.args.showApplication(appId);
+    const message = this.args.showApplication(appId);
+    AlertifyHandler.showAlertifyMessage(message);
   }
 
   @action

@@ -14,6 +14,12 @@
         doubleClick=this.handleDoubleClick
         mouseMove=this.handleMouseMove
       }}
+        {{landscape-data-watcher
+          initCallback=this.initializeNewApplication
+          openApplications=@openApplications
+          landscapeData=@landscapeData
+          applicationArgs=@applicationArgs
+        }}
     >
     </canvas>
     {{#if this.loadNewLandscape.isRunning}}

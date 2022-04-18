@@ -75,11 +75,24 @@ interface Args {
   readonly landscapeData: LandscapeData;
   readonly selectedTimestampRecords: Timestamp[];
   readonly font: THREE.Font;
+  showApplication(applicationId: string): string;
+  closeApplication(applicationId: string): () => Promise<boolean>;
+  applicationArgs: Map<string, AddApplicationArgs>,
 }
 
 const THUMBPAD_THRESHOLD = 0.5;
 const MOUSE_MOVE_SPEED = 3.0;
 const MOUSE_ROTATION_SPEED = Math.PI;
+
+const landscapeRendererSettings: LandscapeRendererSettings = {
+  landscapeScalar: 0.3,
+  landscapeDepth: 0.7,
+  z_depth: 0.2,
+  commLineMinSize: 0.004,
+  commLineScalar: 0.028,
+  z_offset: 0.7 / 2 + 0.25,
+  z_pos_application: 0.3,
+};
 
 export default class VrRendering
   extends Component<Args>
@@ -179,16 +192,11 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
-    // this.sceneService.addFloor();
+    this.sceneService.addFloor();
     // this.sceneService.addLight();
     // this.sceneService.addSpotlight();
     this.remoteUsers.displayHmd = true;
-    this.landscapeRenderer.landscape_depth = 0.7
-    this.landscapeRenderer.z_depth = 0.2
-    this.landscapeRenderer.commLineMinSize = 0.004
-    this.landscapeRenderer.commLineScalar = 0.028
-    this.landscapeRenderer.z_offset = 0.7 / 2 + 0.25
-    this.landscapeRenderer.z_pos_application = 0.3
+    this.landscapeRenderer.settings = landscapeRendererSettings;
     this.initServices();
     this.initInteraction();
     this.initPrimaryInput();
@@ -256,23 +264,6 @@ export default class VrRendering
     this.applicationRenderer.font = this.assetRepo.font;
     this.landscapeRenderer.arMode = true
     this.applicationRenderer.arMode = true
-
-    // Initialize timestamp and landscape data. If no timestamp is selected,
-    // the latest timestamp is used. When there is no timestamp, we fall back
-    // to the current time.
-    if (this.args.landscapeData) {
-      const { landscapeToken } = this.args.landscapeData.structureLandscapeData;
-      const timestamp = this.args.selectedTimestampRecords[0]?.timestamp
-        || this.timestampRepo.getLatestTimestamp(landscapeToken)?.timestamp
-        || new Date().getTime();
-      this.timestampService.setTimestampLocally(
-        timestamp,
-        this.args.landscapeData.structureLandscapeData,
-        this.args.landscapeData.dynamicLandscapeData,
-      );
-    } else {
-      this.debug('No landscape data found.');
-    }
   }
 
   /**
@@ -304,19 +295,22 @@ export default class VrRendering
     this.primaryInputManager.addInputHandler<ApplicationMesh>({
       targetType: ApplicationMesh,
       triggerDown: (event) => {
-        this.debug('Primary down applicationmesh');
-        this.addApplicationOrShowHint(event.target.dataModel, {
-          position: event.intersection.point,
-          quaternion: new THREE.Quaternion()
-            .setFromEuler(
-              new THREE.Euler(
-                90 * THREE.MathUtils.DEG2RAD,
-                90 * THREE.MathUtils.DEG2RAD,
-                0,
-              ),
-            )
-            .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
-        })
+        const message = this.args.showApplication(event.target.dataModel.id,
+          {
+            position: event.intersection.point,
+            quaternion: new THREE.Quaternion()
+              .setFromEuler(
+                new THREE.Euler(
+                  90 * THREE.MathUtils.DEG2RAD,
+                  90 * THREE.MathUtils.DEG2RAD,
+                  0,
+                ),
+              )
+              .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
+          });
+        if (message) {
+          this.showHint(message);
+        }
       },
     });
 

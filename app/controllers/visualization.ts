@@ -11,6 +11,7 @@ import ElkConstructor from 'elkjs/lib/elk-api';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
+import { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
@@ -98,6 +99,9 @@ export default class VisualizationController extends Controller {
   openApplications: Map<string, Application> = new Map<string, Application>();
 
   @tracked
+  applicationArgs: Map<string, AddApplicationArgs> = new Map<string, AddApplicationArgs>();
+
+  @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
@@ -167,7 +171,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  showApplication(appId: string) {
+  showApplication(appId: string, args: AddApplicationArgs = {}) {
     this.debug('showApplication')
     AlertifyHandler.closeAlertifyMessages();
     this.closeDataSelection();
@@ -180,13 +184,18 @@ export default class VisualizationController extends Controller {
       return;
     }
     if (application.packages.length === 0) {
-      const message = `Sorry, there is no information for application <b>
+      return `Sorry, there is no information for application <b>
         ${application.name}</b> available.`;
-      AlertifyHandler.showAlertifyMessage(message);
-      return;
     }
+    if (this.openApplications.has(appId)) {
+      return 'Application already opened';
+    }
+    this.applicationArgs.set(appId, args);
     this.openApplications.set(appId, application);
     this.openApplications = this.openApplications;
+    return;
+    // TODO this was handled by the application-renderer.
+    // this.sender.sendAppOpened(application);
   }
 
   @action
@@ -218,7 +227,7 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToAR() {
-    if (!this.showVR) {
+    if (!this.showAR) {
       // this.pauseVisualizationUpdating();
       this.closeDataSelection();
       this.showAR = true;

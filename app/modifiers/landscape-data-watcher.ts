@@ -4,7 +4,7 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import ApplicationRenderer, { LayoutData } from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, { AddApplicationArgs, LayoutData } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import computeDrawableClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
@@ -15,6 +15,7 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 interface NamedArgs {
     initCallback?(applicationObject3D: ApplicationObject3D): void,
     openApplications: Map<string, Application>,
+    applicationArgs: Map<string, AddApplicationArgs>,
     readonly landscapeData: LandscapeData,
 }
 
@@ -47,6 +48,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     private openApplications: Map<string, Application> = new Map<string, Application>();
 
+    private applicationArgs: Map<string, AddApplicationArgs> = new Map<string, AddApplicationArgs>();
+
     private lastOpenApplicationIds: string[] = [];
 
     @service('heatmap-configuration')
@@ -60,10 +63,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         return this.landscapeData.dynamicLandscapeData;
     }
 
-    modify(_element: any, [], { initCallback, openApplications, landscapeData }: NamedArgs) {
+    modify(_element: any, [], { initCallback, openApplications, landscapeData, applicationArgs }: NamedArgs) {
         this.landscapeData = landscapeData;
         this.initCallback = initCallback;
         this.openApplications = openApplications;
+        this.applicationArgs = applicationArgs;
 
         if (!this.didSetup) {
             this.didSetup = true;
@@ -92,6 +96,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 dynamic: this.dynamicLandscapeData,
             };
 
+            const args = this.applicationArgs.get(application.id);
+            this.applicationArgs.delete(application.id);
             const layoutMap: Map<string, LayoutData> = yield this.worker.postMessage('city-layouter', workerPayload);
 
             const applicationObject3D = yield perform(
@@ -100,6 +106,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 layoutMap,
                 this.dynamicLandscapeData,
                 drawableClassCommunications,
+                args,
             );
             perform(this.heatmapConf.calculateHeatmap, applicationObject3D);
             if (this.initCallback && !isOpen) this.initCallback(applicationObject3D);

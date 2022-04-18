@@ -32,6 +32,7 @@
       @openDataSelection={{this.openDataSelection}}
       @closeDataSelection={{this.closeDataSelection}}
       @showDataSelection={{this.showDataSelection}}
+      @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
     {{#if this.showVR}}
@@ -50,6 +51,7 @@
         @closeApplication={{this.closeApplication}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
+        @applicationArgs={{this.applicationArgs}}
       />
       <div class="position-absolute mt-6 ml-3">
         <BsButton
@@ -90,6 +92,7 @@
             @switchToAR={{this.switchToAR}}
             @switchToVR={{this.switchToVR}}
             @selectedTimestampRecords={{this.selectedTimestampRecords}}
+            @applicationArgs={{this.applicationArgs}}
           />
         {{else}}
           <div class="container-fluid mt-6">

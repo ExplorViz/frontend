@@ -43,6 +43,17 @@ export interface Layout3Return {
   modelIdToLayout: Map<string, SimplePlaneLayout>,
   modelIdToPoints: Map<string, Point[]>,
 }
+
+export interface LandscapeRendererSettings {
+  landscapeScalar: number,
+  landscapeDepth: number,
+  z_depth: number,
+  commLineMinSize: number,
+  commLineScalar: number,
+  z_offset: number,
+  z_pos_application: number
+}
+
 const LANDSCAPE_SCALAR = 0.3;
 
 export default class LandscapeRenderer extends Service.extend({
@@ -50,6 +61,18 @@ export default class LandscapeRenderer extends Service.extend({
 }) {
 
   private debug = debugLogger('LandscapeRenderer');
+
+  settings: LandscapeRendererSettings = {
+    // Scalar with which the landscape is scaled (evenly in all dimensions)
+    landscapeScalar: 0.1,
+    // Depth of boxes for landscape entities
+    landscapeDepth: 0.0,
+    z_depth: 0.02,
+    commLineMinSize: 0.02,
+    commLineScalar: 0.08,
+    z_offset: 0.025,
+    z_pos_application: 0.03,
+  };
 
   @service()
   private worker!: any;
@@ -84,20 +107,6 @@ export default class LandscapeRenderer extends Service.extend({
   // readonly font: THREE.Font;
   font!: THREE.Font;
 
-  // Scalar with which the landscape is scaled (evenly in all dimensions)
-  // landscape_scalar = 3.5;
-  landscape_scalar = 0.1;
-
-  // Depth of boxes for landscape entities
-  landscape_depth = 0.0;
-
-  z_depth = 0.02
-
-  commLineMinSize = 0.02
-
-  commLineScalar = 0.08
-
-  z_pos_application = 0.03
 
   arMode = false
 
