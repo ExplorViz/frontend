@@ -910,6 +910,17 @@ export default class ArRendering extends Component<Args> implements VrMessageLis
 
   // #region APLICATION RENDERING
 
+  @action
+  addApplicationById(applicationId: string) {
+    const application = this.vrApplicationRenderer.getApplicationInCurrentLandscapeById(
+      applicationId,
+    );
+
+    if (application) {
+      this.addApplication(application);
+    }
+  }
+
   async addApplication(applicationModel: Application) {
     if (applicationModel.packages.length === 0) {
       const message = `Sorry, there is no information for application <b>
