@@ -5,6 +5,7 @@ import GlimmerComponent from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { ELK } from 'elkjs/lib/elk-api';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -12,6 +13,7 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import { ApplicationData } from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -33,13 +35,14 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface Args {
   readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly openApplications: Map<string, Application>;
+  readonly openApplications: Map<string, ApplicationData>;
   readonly font: THREE.Font;
   readonly visualizationPaused: boolean;
   readonly elk: ELK;
@@ -228,7 +231,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   initServices() {
     // TODO move font assignment. To asset repo maybe?
     this.applicationRenderer.font = this.font;
-    this.applicationRenderer.closeApplication = this.args.closeApplication;
   }
 
   /**
@@ -320,6 +322,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   // #endregion COMPONENT AND SCENE INITIALIZATION
 
   // #region COMPONENT AND SCENE CLEAN-UP
+  //
+
+  @service('vr-room-serializer')
+  private roomSerializer!: VrRoomSerializer;
 
   /**
   * This overridden Ember Component lifecycle hook enables calling
@@ -328,6 +334,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   * @method willDestroy
   */
   willDestroy() {
+    this.roomSerializer.serializeRoom();
+
     super.willDestroy();
 
     this.renderingLoop.stop();
@@ -389,7 +397,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     const { value } = this.appSettings.transparencyIntensity;
 
     // TODO improve, handle null
-    const drawableClassCommunications = this.applicationRenderer.drawableClassCommunications.get(this.selectedApplicationObject3D!.dataModel.id);
+    const drawableClassCommunications = this.applicationRenderer.getDrawableClassCommunications(this.selectedApplicationObject3D!);
     highlightTrace(trace, traceStep, this.selectedApplicationObject3D!,
       drawableClassCommunications!, this.args.landscapeData.structureLandscapeData, value);
   }
@@ -485,6 +493,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       this.selectedApplicationId = applicationObject3D.dataModel.id;
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
+    this.heatmapConf.setActiveApplication(applicationObject3D);
   }
 
   @action
@@ -561,8 +570,12 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   showApplication(appId: string) {
     this.removePopup(appId);
-    const message = this.args.showApplication(appId);
-    AlertifyHandler.showAlertifyMessage(message);
+    perform(
+      this.applicationRenderer.openApplicationTask,
+      appId,
+      this.args.landscapeData.dynamicLandscapeData,
+      this.initializeNewApplication
+    )
   }
 
   @action

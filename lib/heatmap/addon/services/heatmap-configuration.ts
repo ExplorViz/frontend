@@ -5,6 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import debugLogger from 'ember-debug-logger';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import revertKey from '../utils/heatmap-generator';
@@ -18,23 +19,28 @@ export type Metric = {
   values: Map<string, number>
 };
 
-export type ApplicationHeatmapData = {
-  applicationId: string,
-  metrics: Metric[],
-  latestClazzMetricScores: Metric[],
-  metricsArray: [Metric[]],
-  differenceMetricScores: Map<string, Metric[]>,
-  aggregatedMetricScores: Map<string, Metric>,
+export class ApplicationHeatmapData {
+  // applicationId: string,
+  metrics: Metric[] = [];
+
+  // @tracked
+  latestClazzMetricScores: Metric[] = [];
+
+  metricsArray: [Metric[]] = [[]];
+  differenceMetricScores: Map<string, Metric[]> = new Map<string, Metric[]>();
+  aggregatedMetricScores: Map<string, Metric> = new Map<string, Metric>();
 }
 
 type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
+  // TODO remove
   @service('landscape-listener')
   landscapeListener!: LandscapeListener;
-
-  @service()
-  private worker!: any;
 
   @tracked
   heatmapActive = false;
@@ -50,14 +56,15 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   windowSize: number = 9;
 
-  applicationHeatmapData: Map<string, ApplicationHeatmapData> = new Map<string, ApplicationHeatmapData>();
-
-  @tracked
-  selectedMetric?: Metric;
-
   // Switches and models used by config
   @tracked
   selectedMode: HeatmapMode = 'aggregatedHeatmap';
+
+  @tracked
+  selectedMetricName: string = '';
+
+  @tracked
+  currentApplicationHeatmapData?: ApplicationHeatmapData;
 
   useHelperLines = true;
 
@@ -78,276 +85,70 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     this.heatmapActive = !this.heatmapActive;
   }
 
-  @tracked
-  latestClazzMetricScores: Metric[] = []
-
-  get currentApplicationHeatmapData() {
-    if (this.currentApplication) {
-      return this.applicationHeatmapData.get(this.currentApplication.dataModel.id);
-    }
-    return null;
+  get latestClazzMetricScores() {
+    return this.currentApplicationHeatmapData?.latestClazzMetricScores || [];
   }
 
   setActiveApplication(applicationObject3D: ApplicationObject3D) {
     this.currentApplication = applicationObject3D;
+    this.updateActiveApplication(applicationObject3D);
+  }
 
-    const currentApplicationHeatmapData = this.currentApplicationHeatmapData;
-    if (currentApplicationHeatmapData) {
-      this.latestClazzMetricScores = currentApplicationHeatmapData.latestClazzMetricScores;
-      this.updateCurrentlyViewedMetric();
+  updateActiveApplication(applicationObject3D: ApplicationObject3D) {
+    if (!this.currentApplication) {
+      this.currentApplication = applicationObject3D;
+    }
+    const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
+    if (applicationData) {
+      this.currentApplicationHeatmapData = applicationData.heatmapData;
     }
   }
 
-  private setSelectedMetricForCurrentMode(metricName: string) {
+  get selectedMetric() {
     let chosenMetric = null;
     const applicationHeatmapData = this.currentApplicationHeatmapData;
-    if (!applicationHeatmapData) {
+    const latestClazzMetricScores = this.currentApplicationHeatmapData?.latestClazzMetricScores;
+    if (!applicationHeatmapData || !latestClazzMetricScores) {
       AlertifyHandler.showAlertifyError('No heatmap found');
-      return;
+      return undefined;
     }
 
     switch (this.selectedMode) {
       case 'snapshotHeatmap':
         if (applicationHeatmapData.latestClazzMetricScores) {
           chosenMetric = applicationHeatmapData.latestClazzMetricScores
-            .find((metric) => metric.name === metricName);
+            .find((metric) => metric.name === this.selectedMetricName);
           if (chosenMetric) {
-            console.log('chose snapshot');
-            this.selectedMetric = chosenMetric;
+            return chosenMetric;
           }
         }
         break;
       case 'aggregatedHeatmap':
         if (applicationHeatmapData.aggregatedMetricScores) {
-          chosenMetric = applicationHeatmapData.aggregatedMetricScores.get(metricName);
+          chosenMetric = applicationHeatmapData.aggregatedMetricScores.get(this.selectedMetricName);
           if (chosenMetric) {
-            // console.log('chose aggregated');
-            this.selectedMetric = chosenMetric;
+            return chosenMetric;
           }
         }
         break;
       case 'windowedHeatmap':
         if (applicationHeatmapData.differenceMetricScores) {
-          chosenMetric = applicationHeatmapData.differenceMetricScores.get(metricName);
-          // console.log(this.differenceMetricScores);
-          // console.log('chosenMetric', chosenMetric);
+          chosenMetric = applicationHeatmapData.differenceMetricScores.get(this.selectedMetricName);
           if (chosenMetric && chosenMetric[chosenMetric.length - 1]) {
-            // console.log('chose windowed');
-            this.selectedMetric = chosenMetric[chosenMetric.length - 1];
-            // console.log(this.selectedMetric);
+            return chosenMetric[chosenMetric.length - 1];
           }
         }
         break;
       default:
         break;
     }
-  }
-
-  @enqueueTask *
-    calculateHeatmap(
-      applicationObject3D: ApplicationObject3D,
-  ) {
-    try {
-      const workerPayload = {
-        structure: applicationObject3D.dataModel,
-        dynamic: applicationObject3D.traces,
-      };
-
-      const metrics: Metric[] = yield this.worker.postMessage('metrics-worker', workerPayload);
-
-      const applicationHeatmaps = this.getApplicationHeatmapData(applicationObject3D);
-      applicationHeatmaps.latestClazzMetricScores = metrics;
-
-      this.saveAndCalculateMetricScores(applicationHeatmaps);
-
-      if (applicationObject3D == this.currentApplication) {
-        this.setActiveApplication(applicationObject3D);
-      }
-    } catch (e) {
-      AlertifyHandler.showAlertifyError('Error calculating heatmap')
-      this.debug(e);
-    }
-  }
-
-  private getApplicationHeatmapData(applicationObject3D: ApplicationObject3D) {
-    const applicationId = applicationObject3D.dataModel.id;
-    const applicationHeatmapData = this.applicationHeatmapData.get(applicationObject3D.dataModel.id);
-    if (!applicationHeatmapData) {
-      const newApplicationHeatmapData = {
-        applicationId: applicationObject3D.dataModel.id,
-        metrics: [] as Metric[],
-        metricsArray: [[]] as [Metric[]],
-        latestClazzMetricScores: [] as Metric[],
-        differenceMetricScores: new Map<string, Metric[]>(),
-        aggregatedMetricScores: new Map<string, Metric>(),
-      }
-      this.applicationHeatmapData.set(applicationId, newApplicationHeatmapData);
-      return newApplicationHeatmapData;
-    }
-    return applicationHeatmapData;
-  }
-
-  private updateCurrentlyViewedMetric() {
-    if (this.selectedMetric) {
-      this.setSelectedMetricForCurrentMode(this.selectedMetric.name);
-    } else {
-      this.selectedMetric = this.latestClazzMetricScores.firstObject;
-    }
+    return latestClazzMetricScores.firstObject;
   }
 
   @action
   updateMetric(metric: Metric) {
     const metricName = metric.name;
-    this.setSelectedMetricForCurrentMode(metricName);
-  }
-
-  private saveAndCalculateMetricScores(applicationHeatmap: ApplicationHeatmapData) {
-    const newScores = applicationHeatmap.latestClazzMetricScores;
-    function roundToTwoDecimalPlaces(num: number): number {
-      return Math.round((num + Number.EPSILON) * 100) / 100;
-    }
-
-    // calculate new aggregated (cont and windowed) metric scores
-    newScores.forEach((newMetricScore) => {
-      const metricName = newMetricScore.name;
-      if (Object.values(newMetricScore)) {
-        applicationHeatmap.metrics.push(newMetricScore);
-
-        const newWindowedMetricsMap = new Map<string, number>();
-
-        const oldScoresForMetricType = applicationHeatmap.metricsArray.slice(-this.windowSize);
-        const oldScoresForMetricTypeFlattened = oldScoresForMetricType.flat();
-
-        // console.log('all old Scores flattened', oldScoresForMetricTypeFlattened);
-
-        // update values
-        newMetricScore.values.forEach((value, key) => {
-          // calculate windowed scores
-
-          const oldScoresFilteredMetricType = oldScoresForMetricTypeFlattened
-            .filter((metric) => metric.name === metricName);
-
-          // console.log('oldScores', oldScoresFilteredMetricType);
-
-          if (oldScoresFilteredMetricType?.length > 0) {
-            let newMetricValue = 0;
-
-            oldScoresFilteredMetricType.forEach((oldMetricScore) => {
-              const oldValue = oldMetricScore.values.get(key);
-              // console.log('oldValue', key, oldValue);
-              if (oldValue) {
-                newMetricValue += oldValue;
-              }
-            });
-            newMetricValue += value;
-            newMetricValue /= (this.windowSize + 1);
-            newWindowedMetricsMap.set(key, roundToTwoDecimalPlaces(newMetricValue));
-            // console.log('set new Window', key, newMetricValue);
-          } else {
-            // console.log('init value');
-            newWindowedMetricsMap.set(key, value);
-          }
-
-          // calculate continuously aggregated scores
-
-          const oldMetricAggregated = applicationHeatmap.aggregatedMetricScores.get(metricName);
-          const oldMetricScores = oldMetricAggregated?.values;
-
-          // Init metrics (first run)
-          if (!oldMetricAggregated) {
-            // console.log('init agg Metric', newMetricScore.values);
-            applicationHeatmap.aggregatedMetricScores.set(metricName, newMetricScore);
-          } else if (oldMetricScores) {
-            // update metric scores (subsequent runs)
-            const oldScore = oldMetricScores.get(key);
-            if (oldScore) {
-              // console.log('udpate agg Metric', key, value + 0.5 * oldScore);
-              applicationHeatmap.aggregatedMetricScores.get(metricName)?.values.set(key,
-                roundToTwoDecimalPlaces(value + 0.5 * oldScore));
-            }
-          }
-        });
-
-        // Update min max for continuously aggregated metric scores
-
-        let newMinAgg: number = 0;
-        let newMaxAgg: number = 0;
-
-        if (applicationHeatmap.aggregatedMetricScores.get(metricName)) {
-          applicationHeatmap.aggregatedMetricScores.get(metricName)!.values.forEach((value) => {
-            if (newMinAgg) {
-              newMinAgg = value < newMinAgg ? value : newMinAgg;
-            } else {
-              newMinAgg = value;
-            }
-
-            if (newMaxAgg) {
-              newMaxAgg = value > newMaxAgg ? value : newMaxAgg;
-            } else {
-              newMaxAgg = value;
-            }
-          });
-
-          const newMetricScoreObject = {
-            name: metricName,
-            mode: 'aggregatedHeatmap',
-            description: newMetricScore.description,
-            min: roundToTwoDecimalPlaces(newMinAgg),
-            max: roundToTwoDecimalPlaces(newMaxAgg),
-            values: applicationHeatmap.aggregatedMetricScores.get(metricName)!.values,
-          };
-
-          applicationHeatmap.aggregatedMetricScores.set(metricName, newMetricScoreObject);
-
-          // this.aggregatedMetricScores.get(metricName)!.max = newMaxAgg;
-          // this.aggregatedMetricScores.get(metricName)!.min = newMinAgg;
-        }
-
-        // Finally, set new Metrics for windowed mode
-
-        if (newWindowedMetricsMap.size > 0) {
-          // console.log('new window map', newWindowedMetricsMap);
-
-          let newMin: any;
-          let newMax: any;
-
-          newWindowedMetricsMap.forEach((value) => {
-            if (newMin) {
-              newMin = value < newMin ? value : newMin;
-            } else {
-              newMin = value;
-            }
-
-            if (newMax) {
-              newMax = value > newMax ? value : newMax;
-            } else {
-              newMax = value;
-            }
-          });
-
-          // console.log('new window map objects', Object.values(newWindowedMetricsMap));
-
-          const newMetricScoreObject = {
-            name: metricName,
-            mode: 'aggregatedHeatmap',
-            description: newMetricScore.description,
-            min: roundToTwoDecimalPlaces(newMin),
-            max: roundToTwoDecimalPlaces(newMax),
-            values: newWindowedMetricsMap,
-          };
-          // console.log('new Metric Score', newMetricScoreObject);
-
-          if (applicationHeatmap.differenceMetricScores && applicationHeatmap.differenceMetricScores.get(metricName)) {
-            applicationHeatmap.differenceMetricScores.get(metricName)?.push(newMetricScoreObject);
-          } else {
-            applicationHeatmap.differenceMetricScores.set(metricName, [newMetricScoreObject]);
-          }
-          // console.log('new windowed metrics', this.differenceMetricScores);
-        }
-      }
-    });
-    applicationHeatmap.metricsArray.push(newScores);
-    this.debug('Pushed new metrics');
+    this.selectedMetricName = metricName;
   }
 
   switchMode() {
@@ -365,7 +166,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
         this.selectedMode = 'snapshotHeatmap';
         break;
     }
-    this.updateCurrentlyViewedMetric();
+    // this.updateCurrentlyViewedMetric();
   }
 
   toggleLegend() {
@@ -390,8 +191,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
    * Reset all class attribute values to null;
    */
   cleanup() {
-    this.applicationHeatmapData.clear();
-    this.set('selectedMetric', null);
     this.set('currentApplication', null);
     this.set('heatmapActive', false);
     this.set('largestValue', 0);

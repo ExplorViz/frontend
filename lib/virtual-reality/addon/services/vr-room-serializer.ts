@@ -39,6 +39,8 @@ export default class VrRoomSerializer extends Service {
   @service('vr-timestamp')
   private timestampService!: VrTimestampService;
 
+  serializedRoom?: SerializedVrRoom;
+
   /**
    * Runs the given action and tries to restore the previous state of the room
    * when it completes.
@@ -56,11 +58,12 @@ export default class VrRoomSerializer extends Service {
    * Creates a JSON object for the current state of the room.
    */
   serializeRoom(): SerializedVrRoom {
-    return {
+    this.serializedRoom = {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
     };
+    return this.serializedRoom
   }
 
   /**

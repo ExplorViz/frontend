@@ -20,15 +20,12 @@
     <ArRendering
       @id="landscape1"
       @landscapeData={{this.landscapeData}}
-      @openApplications={{this.openApplications}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @font={{this.font}}
       @openLandscapeView={{this.openLandscapeView}}
       @addComponent={{this.addComponent}}
       @components={{this.components}}
       @removeComponent={{this.removeComponent}}
-      @showApplication={{this.showApplication}}
-      @closeApplication={{this.closeApplication}}
       @openDataSelection={{this.openDataSelection}}
       @closeDataSelection={{this.closeDataSelection}}
       @showDataSelection={{this.showDataSelection}}
@@ -39,7 +36,6 @@
       <VrRendering
         @id="landscape1"
         @landscapeData={{this.landscapeData}}
-        @openApplications={{this.openApplications}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @font={{this.font}}
         @components={{this.components}}
@@ -47,8 +43,6 @@
         @openDataSelection={{this.openDataSelection}}
         @closeDataSelection={{this.closeDataSelection}}
         @showDataSelection={{this.showDataSelection}}
-        @showApplication={{this.showApplication}}
-        @closeApplication={{this.closeApplication}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
@@ -76,7 +70,6 @@
         {{else if this.allLandscapeDataExistsAndNotEmpty}}
           <Visualization::Rendering::LandscapeRendering
             @landscapeData={{this.landscapeData}}
-            @openApplications={{this.openApplications}}
             @font={{this.font}}
             @elk={{this.elk}}
             @components={{this.components}}
@@ -85,8 +78,6 @@
             @openDataSelection={{this.openDataSelection}}
             @showDataSelection={{this.showDataSelection}}
             @addComponent={{this.addComponent}}
-            @showApplication={{this.showApplication}}
-            @closeApplication={{this.closeApplication}}
             @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
             @visualizationPaused={{this.visualizationPaused}}
             @switchToAR={{this.switchToAR}}

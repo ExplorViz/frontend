@@ -3,6 +3,7 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
@@ -876,12 +877,20 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (object instanceof ApplicationMesh) {
-      const message = this.args.showApplication(object.dataModel.id);
-      AlertifyHandler.showAlertifyMessage(message);
+      this.showApplication(object.dataModel.id);
       // Handle application hits
     } else if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);
     }
+  }
+
+  private showApplication(appId: string) {
+    perform(
+      this.applicationRenderer.openApplicationTask,
+      appId,
+      this.args.landscapeData.dynamicLandscapeData,
+      this.initializeNewApplication
+    )
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {

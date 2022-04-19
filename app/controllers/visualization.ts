@@ -8,29 +8,28 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
 import ElkConstructor from 'elkjs/lib/elk-api';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
-import { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
+
 }
 
 export const earthTexture = new THREE.TextureLoader().load('images/earth-map.jpg');
@@ -56,6 +55,9 @@ export default class VisualizationController extends Controller {
   @service('landscape-token') landscapeTokenService!: LandscapeTokenService;
 
   @service('reload-handler') reloadHandler!: ReloadHandler;
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
@@ -96,12 +98,6 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
-  openApplications: Map<string, Application> = new Map<string, Application>();
-
-  @tracked
-  applicationArgs: Map<string, AddApplicationArgs> = new Map<string, AddApplicationArgs>();
-
-  @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
@@ -136,93 +132,10 @@ export default class VisualizationController extends Controller {
 
   updateLandscape(structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData) {
-    this.debug('updateLandscape')
-    if (this.landscapeData !== null) {
-      for (const applicationId of this.openApplications.keys()) {
-        const newApplication = VisualizationController.getApplicationFromLandscapeById(
-          applicationId, structureData,
-        );
-        if (newApplication) {
-          this.openApplications.set(applicationId, newApplication);
-        } else {
-          this.openApplications.delete(applicationId);
-        }
-      }
-    }
-
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
     };
-  }
-
-  static getApplicationFromLandscapeById(id: string,
-    structureData: StructureLandscapeData) {
-    let foundApplication: Application | undefined;
-    structureData.nodes.forEach((node) => {
-      node.applications.forEach((application) => {
-        if (application.id === id) {
-          foundApplication = application;
-        }
-      });
-    });
-
-    return foundApplication;
-  }
-
-  @action
-  showApplication(appId: string, args: AddApplicationArgs = {}) {
-    this.debug('showApplication')
-    AlertifyHandler.closeAlertifyMessages();
-    this.closeDataSelection();
-    if (this.landscapeData === null) {
-      return;
-    }
-    const application = VisualizationController.getApplicationFromLandscapeById(appId,
-      this.landscapeData.structureLandscapeData);
-    if (!application) {
-      return;
-    }
-    if (application.packages.length === 0) {
-      return `Sorry, there is no information for application <b>
-        ${application.name}</b> available.`;
-    }
-    if (this.openApplications.has(appId)) {
-      return 'Application already opened';
-    }
-    this.applicationArgs.set(appId, args);
-    this.openApplications.set(appId, application);
-    this.openApplications = this.openApplications;
-    return;
-    // TODO this was handled by the application-renderer.
-    // this.sender.sendAppOpened(application);
-  }
-
-  @action
-  closeApplication(appId: string) {
-    return new Promise((resolve) => {
-      // Ask backend to close the application.
-      const nonce = this.sender.sendAppClosed(appId);
-
-      // Remove the application only when the backend allowed the application to be closed.
-      this.webSocket.awaitResponse({
-        nonce,
-        responseType: isObjectClosedResponse,
-        onResponse: (response: ObjectClosedResponse) => {
-          if (response.isSuccess) this.closeApplicationLocally(appId);
-          resolve(response.isSuccess);
-        },
-        onOffline: () => {
-          this.closeApplicationLocally(appId);
-          resolve(true);
-        },
-      });
-    });
-  }
-
-  closeApplicationLocally(appId: string) {
-    this.openApplications.delete(appId);
-    this.openApplications = this.openApplications;
   }
 
   @action
@@ -237,7 +150,7 @@ export default class VisualizationController extends Controller {
   @action
   switchToVR() {
     if (!this.showVR) {
-      this.pauseVisualizationUpdating();
+      // this.pauseVisualizationUpdating();
       this.closeDataSelection();
       this.showVR = true;
     }

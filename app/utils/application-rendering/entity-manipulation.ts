@@ -232,6 +232,7 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
 export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vector3,
   camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D, cameraTarget: THREE.Vector3) {
   if (isSpan(model)) {
+    // TODO could this be not applicationObject3D.traces but the dynamicData?
     const traceOfSpan = applicationObject3D.traces.find(
       (trace) => trace.traceId === model.traceId,
     );

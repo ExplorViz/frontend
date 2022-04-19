@@ -9,7 +9,7 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
 import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
 import THREE from 'three';
@@ -73,7 +73,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
         if (this.heatmapConf.heatmapActive && this.applicationObject3D && this.mode && this.metric) {
             this.lastApplicationObject3D = this.applicationObject3D;
-            perform(this.applyHeatmap, this.applicationObject3D);
+            perform(this.applyHeatmap, this.applicationObject3D, this.metric);
         }
     }
 
@@ -103,11 +103,9 @@ export default class HeatmapRenderer extends Modifier<Args> {
     }
 
     @task *
-        applyHeatmap(applicationObject3D: ApplicationObject3D) {
-        const selectedMetric = this.heatmapConf.selectedMetric;
-        if (!this.heatmapConf.latestClazzMetricScores
-            || !this.heatmapConf.latestClazzMetricScores.firstObject
-            || !selectedMetric) {
+        applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric | undefined) {
+        // const selectedMetric = this.metric;
+        if (!selectedMetric) {
             AlertifyHandler.showAlertifyError('No metrics available.');
             return;
         }
