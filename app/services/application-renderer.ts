@@ -33,8 +33,10 @@ import WebSocketService from 'virtual-reality/services/web-socket';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import ApplicationRepository, { ApplicationData } from './repos/application-repository';
+import FontRepository from './repos/font-repository';
 import UserSettings from './user-settings';
 
 const APPLICATION_SCALAR = 0.01;
@@ -89,6 +91,9 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
+  @service('repos/font-repository')
+  fontRepo!: FontRepository;
+
   @service('web-socket')
   private webSocket!: WebSocketService;
 
@@ -108,8 +113,9 @@ export default class ApplicationRenderer extends Service.extend({
     return this.userSettings.applicationSettings;
   }
 
-  // TODO this has to be assigned
-  font?: THREE.Font;
+  get font() {
+    return this.fontRepo.font;
+  }
 
   constructor(properties?: object) {
     super(properties);
@@ -195,7 +201,7 @@ export default class ApplicationRenderer extends Service.extend({
         application,
         args.openComponents,
       );
-      this.addLabels(application, this.font!, false);
+      this.addLabels(application, this.font, false);
     }
 
     const applicationData = this.applicationRepo.getById(
@@ -278,6 +284,7 @@ export default class ApplicationRenderer extends Service.extend({
   * addApplicationTask(
     applicationData: ApplicationData,
     traces: DynamicLandscapeData,
+    addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
 
@@ -305,7 +312,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addCommunication(applicationObject3D)
 
-    this.addLabels(applicationObject3D, this.font!, !this.arMode)
+    this.addLabels(applicationObject3D, this.font, !this.arMode)
 
     // Scale application to a reasonable size to work with it.
     applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
@@ -318,8 +325,7 @@ export default class ApplicationRenderer extends Service.extend({
 
       closeIcon.addToObject(applicationObject3D);
       this.addGlobe(applicationObject3D);
-      const args = applicationData.addApplicationArgs;
-      this.initializeApplication(applicationObject3D, args);
+      this.initializeApplication(applicationObject3D, addApplicationArgs);
     }
 
     this.openApplications.set(
@@ -431,7 +437,8 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   @action
-  updateHighlightingForAllApplications(value: number) {
+  updateHighlightingForAllApplications() {
+    const { value } = this.appSettings.transparencyIntensity;
     this.getOpenApplications().forEach((applicationObject3D) => {
       this.updateHighlighting(applicationObject3D, value);
     })
@@ -506,7 +513,7 @@ export default class ApplicationRenderer extends Service.extend({
       componentMesh,
       applicationObject3D,
     );
-    this.addLabels(applicationObject3D, this.font!, false);
+    this.addLabels(applicationObject3D, this.font, false);
     this.highlightingService.updateHighlightingLocally(applicationObject3D);
   }
 
@@ -535,6 +542,7 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
+  @action
   openAllComponentsOfAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
       EntityManipulation.openAllComponents(applicationObject3D);
@@ -545,7 +553,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.openAllComponents(applicationObject3D);
-    this.addLabels(applicationObject3D, this.font!, false);
+    this.addLabels(applicationObject3D, this.font, false);
 
     const drawableComm = this.getDrawableClassCommunications(
       applicationObject3D,
@@ -570,7 +578,6 @@ export default class ApplicationRenderer extends Service.extend({
       }
     });
   }
-
 
   cleanUpApplications() {
     for (const applicationObject3D of this.getOpenApplications()) {
@@ -618,6 +625,47 @@ export default class ApplicationRenderer extends Service.extend({
 
         break;
       }
+    }
+  }
+
+  /**
+   * Toggles the visualization of communication lines.
+   */
+  @action
+  toggleCommunicationRendering() {
+    this.configuration.isCommRendered = !this.configuration.isCommRendered;
+    if (this.configuration.isCommRendered) {
+      this.addCommunicationForAllApplications();
+    } else {
+      this.removeCommunicationForAllApplications();
+    }
+  }
+
+  restore(room: SerializedVrRoom, dynamicData: DynamicLandscapeData) {
+    this.cleanUpApplications();
+    for (const app of room.openApps) {
+
+      const applicationData = this.applicationRepo.getById(app.id);
+      perform(
+        this.addApplicationTask,
+        applicationData,
+        dynamicData,
+        {
+          position: new THREE.Vector3(...app.position),
+          quaternion: new THREE.Quaternion(...app.quaternion),
+          scale: new THREE.Vector3(...app.scale),
+          openComponents: new Set(app.openComponents),
+          highlightedComponents: app.highlightedComponents.map(
+            (highlightedComponent) => ({
+              entityType: highlightedComponent.entityType,
+              entityId: highlightedComponent.entityId,
+              // color: this.remoteUsers.lookupRemoteUserById(
+              //     highlightedComponent.userId,
+              // )?.color,
+            }),
+          ),
+        }
+      )
     }
   }
 

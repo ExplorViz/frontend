@@ -1,26 +1,26 @@
 import Service, { inject as service } from '@ember/service';
-import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import LocalUser from 'collaborative-mode/services/local-user';
 import ElkConstructor, { ELK, ElkNode } from 'elkjs/lib/elk-api';
 import { restartableTask } from 'ember-concurrency-decorators';
-import { Layout1Return, Layout3Return } from 'explorviz-frontend/components/visualization/rendering/landscape-rendering';
-import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
-import * as CommunicationRendering from 'explorviz-frontend/utils/landscape-rendering/communication-rendering';
-import computeApplicationCommunication from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
-import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
-import Configuration from './configuration';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
 import debugLogger from 'ember-debug-logger';
+import { Layout1Return, Layout3Return } from 'explorviz-frontend/components/visualization/rendering/landscape-rendering';
+import computeApplicationCommunication from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
+import * as CommunicationRendering from 'explorviz-frontend/utils/landscape-rendering/communication-rendering';
+import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
 import updateCameraZoom from 'explorviz-frontend/utils/landscape-rendering/zoom-calculator';
-import LocalUser from 'collaborative-mode/services/local-user';
-import VrSceneService from 'virtual-reality/services/vr-scene';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Application, Node, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ImageLoader from 'explorviz-frontend/utils/three-image-loader';
+import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
+import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
+import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
+import VrSceneService from 'virtual-reality/services/vr-scene';
 import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
+import Configuration from './configuration';
+import FontRepository from './repos/font-repository';
 
 interface SimplePlaneLayout {
   height: number;
@@ -74,6 +74,9 @@ export default class LandscapeRenderer extends Service.extend({
     z_pos_application: 0.03,
   };
 
+  @service('repos/font-repository')
+  private fontRepo!: FontRepository;
+
   @service()
   private worker!: any;
 
@@ -103,10 +106,6 @@ export default class LandscapeRenderer extends Service.extend({
   readonly imageLoader: ImageLoader = new ImageLoader();
 
   webglrenderer!: THREE.WebGLRenderer;
-
-  // readonly font: THREE.Font;
-  font!: THREE.Font;
-
 
   arMode = false
 
@@ -286,15 +285,12 @@ export default class LandscapeRenderer extends Service.extend({
     // Label with own ip-address by default
     const labelText = nodeMesh.getDisplayName();
 
-    // if (this.assetRepo.font) {
     this.labeler.addNodeTextLabel(
       nodeMesh,
       labelText,
-      this.font,
-      // this.assetRepo.font, // TODO AR ONLY
+      this.fontRepo.font,
       this.configuration.landscapeColors.nodeTextColor
     );
-    // }
 
     // Add to scene
     this.landscapeObject3D.add(nodeMesh);
@@ -327,8 +323,7 @@ export default class LandscapeRenderer extends Service.extend({
     this.labeler.addApplicationTextLabel(
       applicationMesh,
       application.name,
-      this.font,
-      // this.assetRepo.font, // TODO AR ONLY
+      this.fontRepo.font,
       this.configuration.landscapeColors.applicationTextColor,
     );
     this.labeler.addApplicationLogo(applicationMesh, this.imageLoader);

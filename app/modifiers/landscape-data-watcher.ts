@@ -1,3 +1,4 @@
+import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import { all } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
@@ -12,8 +13,6 @@ import ApplicationRepository, { ApplicationData } from 'explorviz-frontend/servi
 import computeDrawableClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface NamedArgs {
@@ -23,6 +22,11 @@ interface NamedArgs {
 interface Args {
     positional: [],
     named: NamedArgs,
+}
+
+function cleanup(instance: LandscapeDataWatcherModifier) {
+    instance.debug('Clean')
+    instance.roomSerializer.serializeRoom();
 }
 
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
@@ -41,13 +45,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     @service('configuration')
     configuration!: Configuration;
 
-    @service('vr-room-serializer')
-    private roomSerializer!: VrRoomSerializer;
-
     @service()
     private worker!: any;
 
     private landscapeData!: LandscapeData;
+
+    @service('vr-room-serializer')
+    roomSerializer!: VrRoomSerializer;
+
+    didSetup = false;
 
     get structureLandscapeData() {
         return this.landscapeData.structureLandscapeData;
@@ -59,6 +65,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     modify(_element: any, [], { landscapeData }: NamedArgs) {
         this.landscapeData = landscapeData;
+
+        if (!this.didSetup) {
+            // this.debug('Restoring' + this.landscapeData.structureLandscapeData)
+            // if (this.roomSerializer.serializedRoom) {
+            //     this.debug('Restore')
+            //     this.applicationRenderer.restore(this.roomSerializer.serializedRoom, landscapeData.dynamicLandscapeData);
+            // }
+            // registerDestructor(this, cleanup);
+            this.didSetup = true;
+        }
 
         perform(this.handleUpdatedLandscapeData);
     }
@@ -107,31 +123,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 );
             } else {
                 this.applicationRenderer.removeApplicationLocally(applicationId);
-            }
-        }
-    }
-
-    getApplicationArgsFromSerializedData(applicationData: ApplicationData) {
-        const application = applicationData.application;
-        const room = this.roomSerializer.serializedRoom;
-        if (room) {
-            const app = room.openApps.find(i => i.id === application.id);
-            if (app) {
-                applicationData.addApplicationArgs = {
-                    position: new THREE.Vector3(...app.position),
-                    quaternion: new THREE.Quaternion(...app.quaternion),
-                    scale: new THREE.Vector3(...app.scale),
-                    openComponents: new Set(app.openComponents),
-                    highlightedComponents: app.highlightedComponents.map(
-                        (highlightedComponent) => ({
-                            entityType: highlightedComponent.entityType,
-                            entityId: highlightedComponent.entityId,
-                            // color: this.remoteUsers.lookupRemoteUserById(
-                            //     highlightedComponent.userId,
-                            // )?.color,
-                        }),
-                    ),
-                }
             }
         }
     }

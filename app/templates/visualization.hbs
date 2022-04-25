@@ -21,7 +21,6 @@
       @id="landscape1"
       @landscapeData={{this.landscapeData}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
-      @font={{this.font}}
       @openLandscapeView={{this.openLandscapeView}}
       @addComponent={{this.addComponent}}
       @components={{this.components}}
@@ -37,7 +36,6 @@
         @id="landscape1"
         @landscapeData={{this.landscapeData}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
-        @font={{this.font}}
         @components={{this.components}}
         @removeComponent={{this.removeComponent}}
         @openDataSelection={{this.openDataSelection}}
@@ -70,7 +68,6 @@
         {{else if this.allLandscapeDataExistsAndNotEmpty}}
           <Visualization::Rendering::LandscapeRendering
             @landscapeData={{this.landscapeData}}
-            @font={{this.font}}
             @elk={{this.elk}}
             @components={{this.components}}
             @removeComponent={{this.removeComponent}}

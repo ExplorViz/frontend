@@ -6,7 +6,7 @@ import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import Configuration from 'explorviz-frontend/services/configuration';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
@@ -69,14 +69,13 @@ import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import { perform } from 'ember-concurrency-ts';
 
 interface Args {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly selectedTimestampRecords: Timestamp[];
   readonly font: THREE.Font;
-  showApplication(applicationId: string): string;
-  closeApplication(applicationId: string): () => Promise<boolean>;
   applicationArgs: Map<string, AddApplicationArgs>,
 }
 
@@ -258,10 +257,7 @@ export default class VrRendering
 
   private initServices() {
     this.debug('Initializing services...');
-
     // Use given font for landscape and application rendering.
-    this.assetRepo.font = this.args.font;
-    this.applicationRenderer.font = this.assetRepo.font;
     this.landscapeRenderer.arMode = true
     this.applicationRenderer.arMode = true
   }
@@ -295,7 +291,9 @@ export default class VrRendering
     this.primaryInputManager.addInputHandler<ApplicationMesh>({
       targetType: ApplicationMesh,
       triggerDown: (event) => {
-        const message = this.args.showApplication(event.target.dataModel.id,
+        perform(this.applicationRenderer.openApplicationTask,
+          event.target.dataModel.id,
+          this.args.landscapeData.dynamicLandscapeData,
           {
             position: event.intersection.point,
             quaternion: new THREE.Quaternion()
@@ -308,9 +306,9 @@ export default class VrRendering
               )
               .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
           });
-        if (message) {
-          this.showHint(message);
-        }
+        // if (message) {
+        // this.showHint(message);
+        // }
       },
     });
 
@@ -500,6 +498,11 @@ export default class VrRendering
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
     // this.localUser.renderer.setAnimationLoop(() => this.tick());
+
+    if (this.roomSerializer.serializedRoom) {
+      this.debug('Restoring');
+      this.applicationRenderer.restore(this.roomSerializer.serializedRoom, this.args.landscapeData.dynamicLandscapeData);
+    }
   }
 
   /**

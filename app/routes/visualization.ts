@@ -6,6 +6,7 @@ import { inject as service } from '@ember/service';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
 import BaseRoute from './base-route';
+import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 
 /**
 * TODO
@@ -17,6 +18,9 @@ export default class VisualizationRoute extends BaseRoute {
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
 
+  @service('repos/font-repository')
+  fontRepo!: FontRepository;
+
   debug = debugLogger();
 
   async beforeModel() {
@@ -25,10 +29,13 @@ export default class VisualizationRoute extends BaseRoute {
       return Promise.resolve();
     }
     // load font for labels
-    const controller = this.controllerFor('visualization') as VisualizationController;
-    if (!controller.font) {
+    // const controller = this.controllerFor('visualization') as VisualizationController;
+    // TODO maybe not the best place here
+    if (!this.fontRepo.font) {
       const font = await this.loadFont();
-      controller.set('font', font);
+
+      this.fontRepo.font = font;
+      // controller.set('font', font);
     }
     // handle auth0 authorization
     return super.beforeModel();

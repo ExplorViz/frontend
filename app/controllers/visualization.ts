@@ -22,6 +22,7 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
@@ -65,13 +66,13 @@ export default class VisualizationController extends Controller {
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
+  @service('vr-room-serializer')
+  roomSerializer!: VrRoomSerializer;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
-
-  @tracked
-  font!: THREE.Font; // set by the route
 
   @tracked
   showDataSelection = false;
@@ -140,6 +141,7 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToAR() {
+    this.roomSerializer.serializeRoom();
     if (!this.showAR) {
       // this.pauseVisualizationUpdating();
       this.closeDataSelection();
@@ -149,6 +151,7 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToVR() {
+    this.roomSerializer.serializeRoom();
     if (!this.showVR) {
       // this.pauseVisualizationUpdating();
       this.closeDataSelection();

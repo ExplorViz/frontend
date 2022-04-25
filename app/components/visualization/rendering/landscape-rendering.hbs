@@ -101,15 +101,19 @@
               <div class="card-body d-flex flex-column">
                 {{#if (eq componentName "trace-selection")}}
                   <h5 class="text-center">Trace Overview</h5>
-                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                    @highlightTrace={{this.highlightTrace}}
-                    @moveCameraTo={{this.moveCameraTo}}
-                    @removeComponent={{@removeComponent}}
-                    @removeHighlighting={{this.removeHighlighting}}
-                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                    @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.dataModel}}
-                  />
+                  {{#if this.selectedApplicationObject3D}}
+                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                      @highlightTrace={{this.highlightTrace}}
+                      @moveCameraTo={{this.moveCameraTo}}
+                      @removeComponent={{@removeComponent}}
+                      @removeHighlighting={{this.removeHighlighting}}
+                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                      @structureData={{@landscapeData.structureLandscapeData}}
+                      @application={{this.selectedApplicationObject3D.dataModel}}
+                    />
+                  {{else}}
+                  Please select an application to use the trace overview.
+                  {{/if}}
                 {{/if}}
                 {{#if (eq componentName "collaborative-settings")}}
                   <CollaborativeSettings
@@ -128,8 +132,8 @@
                   <h5 class="text-center">Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{false}}
-                    @updateHighlighting={{this.updateHighlighting}}
-                    @redrawCommunication={{this.addCommunication}}
+                    @updateHighlighting={{this.applicationRenderer.updateHighlightingForAllApplications}}
+                    @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                     @updateColors={{this.sceneService.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />

@@ -18,7 +18,7 @@ import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repositor
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { applyDefaultApplicationLayout, closeAllComponents, closeComponentMesh, moveCameraTo, openComponentMesh, toggleComponentMeshState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { applyDefaultApplicationLayout, closeAllComponents, moveCameraTo, openComponentMesh, toggleComponentMeshState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { highlightTrace, removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
@@ -35,7 +35,6 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
@@ -43,12 +42,9 @@ interface Args {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly openApplications: Map<string, ApplicationData>;
-  readonly font: THREE.Font;
   readonly visualizationPaused: boolean;
   readonly elk: ELK;
   readonly selectedTimestampRecords: Timestamp[];
-  showApplication(applicationId: string): string;
-  closeApplication(applicationId: string): Promise<boolean>;
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void,
@@ -139,8 +135,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     return [
       { title: 'Reset View', action: this.resetView },
-      { title: 'Open All Components', action: this.openAllComponents },
-      { title: commButtonTitle, action: this.toggleCommunicationRendering },
+      { title: 'Open All Components', action: this.applicationRenderer.openAllComponentsOfAllApplications },
+      { title: commButtonTitle, action: this.applicationRenderer.toggleCommunicationRendering },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
@@ -161,10 +157,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     return this.localUser.camera
   }
 
-  get font() {
-    return this.args.font;
-  }
-
   get landSettings() {
     return this.userSettings.landscapeSettings;
   }
@@ -181,9 +173,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     super(owner, args);
     this.initDone = false;
     this.debug('Constructor called');
-
-    this.landscapeRenderer.font = this.font;
-    this.applicationRenderer.font = this.font;
   }
 
   @action
@@ -212,7 +201,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    * performance panel if it is activated in user settings
    */
   initThreeJs() {
-    this.initServices();
     this.initCamera();
     this.initRenderer();
     this.initLights();
@@ -226,11 +214,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.applicationRenderer.renderingLoop = this.renderingLoop;
     this.renderingLoop.start();
     addSpheres('skyblue', this.mousePosition, this.renderingLoop);
-  }
-
-  initServices() {
-    // TODO move font assignment. To asset repo maybe?
-    this.applicationRenderer.font = this.font;
   }
 
   /**
@@ -322,11 +305,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   // #endregion COMPONENT AND SCENE INITIALIZATION
 
   // #region COMPONENT AND SCENE CLEAN-UP
-  //
-
-  @service('vr-room-serializer')
-  private roomSerializer!: VrRoomSerializer;
-
   /**
   * This overridden Ember Component lifecycle hook enables calling
   * ExplorViz's custom cleanup code.
@@ -334,20 +312,19 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   * @method willDestroy
   */
   willDestroy() {
-    this.roomSerializer.serializeRoom();
-
     super.willDestroy();
 
     this.renderingLoop.stop();
 
-    this.applicationRenderer.cleanUpApplications();
+    // is not called before other e.g. vr-rendering is inserted:
+    // https://github.com/emberjs/ember.js/issues/18873
+    // this.applicationRenderer.cleanUpApplications();
     this.webglrenderer.dispose();
     this.webglrenderer.forceContextLoss();
 
     this.heatmapConf.cleanup();
-    this.configuration.isCommRendered = true;
-
     this.renderingLoop.stop();
+    this.configuration.isCommRendered = true;
 
     this.debug('Cleaned up application rendering');
 
@@ -364,8 +341,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     // Clean up all remaining meshes
     this.landscapeRenderer.landscapeObject3D.removeAllChildren();
-
-    // this.sceneService.scene.remove(this.landscapeRenderer.landscapeObject3D)
   }
 
   // #endregion COMPONENT AND SCENE CLEAN-UP
@@ -393,7 +368,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   highlightTrace(trace: Trace, traceStep: string) {
     // Open components such that complete trace is visible
-    this.openAllComponents();
+    this.applicationRenderer.openAllComponentsOfAllApplications();
     const { value } = this.appSettings.transparencyIntensity;
 
     // TODO improve, handle null
@@ -404,7 +379,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @action
   removeHighlighting() {
-    removeHighlighting(this.selectedApplicationObject3D);
+    if (this.selectedApplicationObject3D) {
+      removeHighlighting(this.selectedApplicationObject3D);
+    }
   }
 
   // Listener-Callbacks. Override in extending components
@@ -420,21 +397,17 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   initializeNewApplication(applicationObject3D: ApplicationObject3D) {
     applyDefaultApplicationLayout(applicationObject3D);
-    // this.addCommunication(applicationObject3D);
     applicationObject3D.resetRotation();
 
     this.initVisualization(applicationObject3D);
     this.selectedApplicationId = applicationObject3D.dataModel.id;
-    // this.heatmapConf.renderIfActive(applicationObject3D);
     this.heatmapConf.currentApplication = applicationObject3D;
 
     focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls)
-
   }
   // #endregion ACTIONS
 
   // #region MOUSE EVENT HANDLER
-  //
   @action
   handleSingleClick(intersection: THREE.Intersection) {
     if (intersection) {
@@ -446,8 +419,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
     // User clicked on blank spot on the canvas
     if (mesh === undefined) {
-      this.debug('Remove highlighting');
-      removeHighlighting(this.selectedApplicationObject3D);
+      this.removeHighlighting();
     } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
       || mesh instanceof ClazzCommunicationMesh) {
       this.applicationRenderer.highlight(mesh);
@@ -471,7 +443,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   runOrRestartMouseMovementTimer() {
-
     this.mouseMovementActive = true;
     clearTimeout(this.timer);
     this.timer = setTimeout(
@@ -650,6 +621,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   openParents(entity: Package | Class) {
+    if (!this.selectedApplicationObject3D) {
+      return;
+    }
+    const applicationObject3D = this.selectedApplicationObject3D;
     // eslint-disable-next-line @typescript-eslint/no-shadow
     function getAllAncestorComponents(entity: Package | Class): Package[] {
       // if (isClass(entity)) {
@@ -665,61 +640,12 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     const ancestors = getAllAncestorComponents(entity);
     ancestors.forEach((anc) => {
-      const ancestorMesh = this.selectedApplicationObject3D.getBoxMeshbyModelId(anc.id);
+      const ancestorMesh = applicationObject3D.getBoxMeshbyModelId(anc.id);
       if (ancestorMesh instanceof ComponentMesh) {
-        openComponentMesh(ancestorMesh, this.selectedApplicationObject3D);
+        openComponentMesh(ancestorMesh, applicationObject3D);
       }
     });
-    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.selectedApplicationObject3D);
-  }
-
-  /**
-   * Closes the corresponding component mesh to a given component
-   *
-   * @param component Data model of the component which shall be closed
-   */
-  @action
-  closeComponent(component: Package) {
-    const mesh = this.selectedApplicationObject3D.getBoxMeshbyModelId(component.id);
-    if (mesh instanceof ComponentMesh) {
-      closeComponentMesh(mesh, this.selectedApplicationObject3D);
-    }
-    this.applicationRenderer.updateApplicationObject3DAfterUpdate(this.selectedApplicationObject3D);
-  }
-
-  /**
-   * Opens all component meshes. Then adds communication and restores highlighting.
-   */
-  @action
-  openAllComponents() {
-    this.applicationRenderer.openAllComponentsOfAllApplications()
-  }
-
-  @action
-  updateHighlighting() {
-    const { value } = this.appSettings.transparencyIntensity;
-    this.applicationRenderer.updateHighlightingForAllApplications(value);
-  }
-
-  @action
-  addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.applicationRenderer.addCommunication(
-      applicationObject3D,
-    );
-  }
-
-  /**
-   * Toggles the visualization of communication lines.
-   */
-  @action
-  toggleCommunicationRendering() {
-    this.configuration.isCommRendered = !this.configuration.isCommRendered;
-
-    if (this.configuration.isCommRendered) {
-      this.applicationRenderer.addCommunicationForAllApplications();
-    } else {
-      this.applicationRenderer.removeCommunicationForAllApplications();
-    }
+    this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   /**
@@ -736,15 +662,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     }
   }
 
-  // TODO looks like this was used in application search, which is not referenced anymore
-  /**
-   * Removes all (possibly) existing highlighting.
-   */
-  // @action
-  // unhighlightAll() {
-  //   removeHighlighting(this.applicationObject3D);
-  // }
-
   /**
    * Moves camera such that a specified clazz or clazz communication is in focus.
    *
@@ -752,10 +669,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   moveCameraTo(emberModel: Class | Span) {
+    if (!this.selectedApplicationObject3D) {
+      return;
+    }
     const applicationCenter = this.selectedApplicationObject3D.layout.center;
-
     moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target);
-
-    // this.sphere.position.copy(this.camera.position);
   }
 }
