@@ -1,6 +1,6 @@
 import Object from '@ember/object';
 import Evented from '@ember/object/evented';
-import InteractionModifierModifier, { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import Hammer from 'hammerjs';
 
 /* eslint-disable no-bitwise */
@@ -154,7 +154,7 @@ export default class HammerInteraction extends Object.extend(Evented) {
         return;
       }
 
-      const mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+      const mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
 
       mouseDeltaX = mousePosition.x;
       mouseDeltaY = mousePosition.y;
@@ -174,7 +174,7 @@ export default class HammerInteraction extends Object.extend(Evented) {
         return;
       }
 
-      const mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+      const mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
 
       const delta = {
         x: mousePosition.x - mouseDeltaX,
@@ -201,7 +201,7 @@ export default class HammerInteraction extends Object.extend(Evented) {
         return;
       }
 
-      const mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+      const mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
 
       self.trigger('panningEnd', mousePosition);
     });
@@ -217,9 +217,9 @@ export default class HammerInteraction extends Object.extend(Evented) {
       let mousePosition: Position2D;
 
       if (window.TouchEvent && evt.srcEvent instanceof TouchEvent) {
-        mousePosition = InteractionModifierModifier.getTouchPos(canvas, evt.srcEvent);
+        mousePosition = HammerInteraction.getTouchPos(canvas, evt.srcEvent);
       } else {
-        mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+        mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
       }
 
       self.trigger('doubletap', mousePosition);
@@ -236,9 +236,9 @@ export default class HammerInteraction extends Object.extend(Evented) {
       let mousePosition: Position2D;
 
       if (window.TouchEvent && evt.srcEvent instanceof TouchEvent) {
-        mousePosition = InteractionModifierModifier.getTouchPos(canvas, evt.srcEvent);
+        mousePosition = HammerInteraction.getTouchPos(canvas, evt.srcEvent);
       } else {
-        mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+        mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
       }
 
       if (evt.button === 1) {
@@ -256,7 +256,7 @@ export default class HammerInteraction extends Object.extend(Evented) {
         return;
       }
 
-      const mousePosition = InteractionModifierModifier.getMousePos(canvas, evt.srcEvent);
+      const mousePosition = HammerInteraction.getMousePos(canvas, evt.srcEvent);
 
       self.trigger('press', mousePosition, evt.srcEvent);
     });
@@ -303,5 +303,21 @@ export default class HammerInteraction extends Object.extend(Evented) {
       lastRotation = 0;
       self.trigger('rotateend', evt);
     });
+  }
+
+  static getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent): Position2D {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top,
+    };
+  }
+
+  static getTouchPos(canvas: HTMLCanvasElement, evt: TouchEvent): Position2D {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.targetTouches[0].clientX - rect.left,
+      y: evt.targetTouches[0].clientY - rect.top,
+    };
   }
 }

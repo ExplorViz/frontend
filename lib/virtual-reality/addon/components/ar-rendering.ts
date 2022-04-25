@@ -10,7 +10,7 @@ import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/serv
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
 import Interaction from 'explorviz-frontend/utils/interaction';
@@ -31,7 +31,6 @@ import THREE, { MathUtils } from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import DeltaTime from 'virtual-reality/services/delta-time';
 import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrSceneService from 'virtual-reality/services/vr-scene';
@@ -108,9 +107,6 @@ export default class ArRendering extends Component<Args> {
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
 
-  @service('repos/timestamp-repository')
-  private timestampRepo!: TimestampRepository;
-
   @service('vr-scene')
   private sceneService!: VrSceneService;
 
@@ -119,9 +115,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('vr-asset-repo')
-  private assetRepo!: VrAssetRepository;
 
   @service('vr-room-serializer')
   private roomSerializer!: VrRoomSerializer;
@@ -242,8 +235,6 @@ export default class ArRendering extends Component<Args> {
     this.debug('Initializing services...');
 
     // Use given font for landscape and application rendering.
-    this.assetRepo.font = this.args.font;
-    this.applicationRenderer.font = this.assetRepo.font;
     this.remoteUsers.displayHmd = false;
     this.landscapeRenderer.landscape_depth = 0.7
     this.landscapeRenderer.z_depth = 0.2
@@ -358,7 +349,7 @@ export default class ArRendering extends Component<Args> {
   private initInteraction() {
     this.interaction = new Interaction(this.canvas, this.localUser.defaultCamera,
       this.localUser.renderer,
-      this.getIntersectableObjects(), {}, ArRendering.raycastFilter);
+      this.intersectableObjects, {}, ArRendering.raycastFilter);
 
     // Add key listener for room positioning
     window.onkeydown = (event: any) => {
@@ -385,7 +376,7 @@ export default class ArRendering extends Component<Args> {
     this.webSocket.on(HIGHLIGHTING_UPDATE_EVENT, this, this.onHighlightingUpdate);
   }
 
-  private getIntersectableObjects() {
+  get intersectableObjects() {
     return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.applicationMarkers];
   }
 
@@ -534,6 +525,7 @@ export default class ArRendering extends Component<Args> {
     if (this.arToolkitContext.arController !== null) {
       this.arToolkitSource.copyElementSizeTo(this.arToolkitContext.arController.canvas);
     }
+    this.camera.updateProjectionMatrix();
   }
 
   @action
@@ -895,11 +887,10 @@ export default class ArRendering extends Component<Args> {
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {
     const { object } = intersection;
-    if (object.parent instanceof ApplicationObject3D) {
-      this.highlightingService.highlightComponent(
-        object.parent,
-        object,
-      );
+
+    if (object instanceof ComponentMesh || object instanceof ClazzMesh
+      || object instanceof ClazzCommunicationMesh) {
+      this.applicationRenderer.highlight(object);
     }
   }
 

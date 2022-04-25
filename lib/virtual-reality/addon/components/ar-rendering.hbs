@@ -53,9 +53,8 @@
         class="main-content-majority position-absolute {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
         {{did-insert this.canvasInserted}}
         {{interaction-modifier
-          raycastObjects=this.interaction.raycastObjects
+          raycastObjects=this.intersectableObjects
           camera=this.localUser.defaultCamera
-          hammerInteraction=this.hammerInteraction
           doubleClick=this.handleDoubleClick
           singleClick=this.handleSingleClick
           mouseWheel=this.handleMouseWheel

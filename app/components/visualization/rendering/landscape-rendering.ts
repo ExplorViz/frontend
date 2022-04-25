@@ -402,8 +402,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.initVisualization(applicationObject3D);
     this.selectedApplicationId = applicationObject3D.dataModel.id;
     this.heatmapConf.currentApplication = applicationObject3D;
-
-    focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls)
+    focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls);
   }
   // #endregion ACTIONS
 
@@ -541,12 +540,17 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   showApplication(appId: string) {
     this.removePopup(appId);
-    perform(
-      this.applicationRenderer.openApplicationTask,
-      appId,
-      this.args.landscapeData.dynamicLandscapeData,
-      this.initializeNewApplication
-    )
+    const applicationObject3D = this.applicationRenderer.getApplicationById(appId)
+    if (applicationObject3D) {
+      focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls);
+    } else {
+      perform(
+        this.applicationRenderer.openApplicationTask,
+        appId,
+        this.args.landscapeData.dynamicLandscapeData,
+        this.initializeNewApplication
+      )
+    }
   }
 
   @action

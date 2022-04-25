@@ -12,6 +12,7 @@ import debugLogger from 'ember-debug-logger';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { taskFor } from 'ember-concurrency-ts';
 import { registerDestructor } from '@ember/destroyable';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 
 export type Position2D = {
@@ -103,6 +104,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.addEventListener('pointerstop', this.onPointerStop);
 
       registerDestructor(this, cleanup)
+      this.didSetup = true;
     }
   }
 
@@ -180,6 +182,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onPointerUp(event: MouseEvent) {
+    AlertifyHandler.showAlertifyMessage('onPointerUp' + event.x);
     if (event.button == 0) {
       if (this.pointerDownCounter == 1) {
         this.timer = setTimeout(() => {
@@ -213,11 +216,15 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   raycast(event: MouseEvent) {
-    const x = (event.x / this.canvas.clientWidth) * 2 - 1;
-    const y = - (event.y / this.canvas.clientHeight) * 2 + 1;
+    const width = this.canvas.clientWidth > window.innerWidth ? window.innerWidth : this.canvas.clientWidth;
+    const height = this.canvas.clientHeight > window.innerHeight ? window.innerHeight : this.canvas.clientHeight;
+    const x = (event.x / width) * 2 - 1;
+    const y = - (event.y / height) * 2 + 1;
+
     const origin = new Vector2(x, y)
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;
+
 
     return this.raycaster.raycasting(origin, this.namedArgs.camera,
       possibleObjects, this.raycastFilter);
