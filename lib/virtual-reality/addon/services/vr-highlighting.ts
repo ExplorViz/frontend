@@ -1,16 +1,15 @@
 /* eslint-disable no-restricted-syntax */
 import Service, { inject as service } from '@ember/service';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import ArSettings from './ar-settings';
 import LocalVrUser from './local-vr-user';
 import VrMessageSender from './vr-message-sender';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -31,8 +30,6 @@ function isHightlightableMesh(
 }
 
 export default class VrHighlightingService extends Service {
-  @service('ar-settings')
-  private arSettings!: ArSettings;
 
   @service('configuration')
   private configuration!: Configuration;
@@ -83,21 +80,6 @@ export default class VrHighlightingService extends Service {
       entityId,
     );
     for (const mesh of meshes) this.hightlightMesh(application, mesh, color);
-  }
-
-  updateHighlightingLocally(application: ApplicationObject3D) {
-    if (!this.arSettings.renderCommunication) return;
-
-    const drawableComm = this.applicationRenderer.drawableClassCommunications.get(
-      application.dataModel.id,
-    );
-    if (drawableComm) {
-      this.applicationRenderer.appCommRendering.addCommunication(
-        application,
-        drawableComm,
-      );
-      Highlighting.updateHighlighting(application, drawableComm, this.opacity);
-    }
   }
 
   private hightlightMesh(

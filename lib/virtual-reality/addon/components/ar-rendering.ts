@@ -1,3 +1,4 @@
+import { getOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
@@ -6,13 +7,14 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import HammerInteraction from 'explorviz-frontend/utils/hammer-interaction';
+import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import Interaction from 'explorviz-frontend/utils/interaction';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -27,7 +29,7 @@ import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/land
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE, { MathUtils } from 'three';
+import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import DeltaTime from 'virtual-reality/services/delta-time';
 import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
@@ -167,9 +169,6 @@ export default class ArRendering extends Component<Args> {
   lastOpenAllComponents = 0;
 
   @tracked
-  hammerInteraction: HammerInteraction;
-
-  @tracked
   showSettings = false;
 
   localPing: { obj: THREE.Object3D, time: number } | undefined | null;
@@ -192,8 +191,6 @@ export default class ArRendering extends Component<Args> {
 
     this.landscapeRenderer.setLargestSide(2);
 
-    this.hammerInteraction = HammerInteraction.create();
-
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
   }
@@ -207,6 +204,10 @@ export default class ArRendering extends Component<Args> {
   }
 
   // #region COMPONENT AND SCENE INITIALIZATION
+  //
+  renderingLoop!: RenderingLoop;
+
+  // webglrenderer!: THREE.WebGLRenderer;
 
   /**
      * Calls all three related init functions and adds the three
@@ -218,8 +219,18 @@ export default class ArRendering extends Component<Args> {
     this.initCamera();
     this.configureScene();
     this.initArJs();
+    this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
+      {
+        camera: this.camera,
+        scene: this.scene,
+        renderer: this.localUser.renderer,
+        mapControls: false,
+      });
+    this.applicationRenderer.renderingLoop = this.renderingLoop;
+    addSpheres('skyblue', this.mousePosition, this.renderingLoop);
+    this.renderingLoop.updatables.push(this);
+    this.renderingLoop.start();
     this.initCameraCrosshair();
-    this.initHammerJS();
     this.initInteraction();
     this.initWebSocket();
   }
@@ -269,63 +280,44 @@ export default class ArRendering extends Component<Args> {
     crosshairMesh.position.z = -0.1;
   }
 
-  private initHammerJS() {
-    this.hammerInteraction.setupHammer(this.canvas, 500);
+  handlePinching(intersection: THREE.Intersection, delta: number) {
+    const object = intersection.object?.parent;
+    if (object) {
+      object.scale.copy(object.scale.multiplyScalar(delta));
+    }
+  }
 
-    this.hammerInteraction.on('pinchstart', () => {
-      const intersection = this.interaction.raycastCanvasCenter();
-      const pinchObject = intersection?.object?.parent;
-
-      if (pinchObject instanceof LandscapeObject3D || pinchObject instanceof ApplicationObject3D) {
-        this.pinchedObj = pinchObject;
-      }
-    });
-
-    this.hammerInteraction.on('pinch', (deltaScaleInPercent: number) => {
-      if (!this.pinchedObj) return;
-
-      this.pinchedObj.scale.copy(this.pinchedObj.scale.multiplyScalar(1 + deltaScaleInPercent));
-    });
-
-    this.hammerInteraction.on('pinchend', () => {
-      this.pinchedObj = null;
-    });
-
-    this.hammerInteraction.on('rotatestart', () => {
-      const intersection = this.interaction.raycastCanvasCenter();
-      this.rotatedObj = intersection?.object?.parent;
-    });
-
-    this.hammerInteraction.on('rotate', (deltaRotation: number) => {
-      if (this.rotatedObj instanceof LandscapeObject3D) {
-        this.rotatedObj.rotation.z += deltaRotation * MathUtils.DEG2RAD;
+  handleRotating(intersection: THREE.Intersection, delta: number) {
+    const object = intersection.object?.parent;
+    if (object) {
+      // AlertifyHandler.showAlertifyMessage('Rotating' + delta);
+      // object.scale.copy(object.scale.multiplyScalar(delta));
+      if (object instanceof LandscapeObject3D) {
+        object.rotation.z += delta;
+        // object.rotation.z += delta * MathUtils.DEG2RAD;
       } else if (this.rotatedObj instanceof ApplicationObject3D) {
-        this.rotatedObj.rotation.y += deltaRotation * MathUtils.DEG2RAD;
+        object.rotation.y += delta;
+        // object.rotation.y += delta * MathUtils.DEG2RAD;
       }
-    });
+    }
+  }
 
-    this.hammerInteraction.on('rotateend', () => {
-      this.rotatedObj = null;
-    });
+  handlePanning(intersection: THREE.Intersection, x: number, y: number) {
+    const object = intersection.object?.parent;
+    if (object) {
 
-    this.hammerInteraction.on('panstart', () => {
-      const intersection = this.interaction.raycastCanvasCenter();
-      this.pannedObject = intersection?.object?.parent;
-    });
-
-    this.hammerInteraction.on('panning', (delta: { x: number, y: number }) => {
-      if (!(this.pannedObject instanceof LandscapeObject3D)
-        && !(this.pannedObject instanceof ApplicationObject3D)) {
+      if (!(object instanceof LandscapeObject3D)
+        && !(object instanceof ApplicationObject3D)) {
         return;
       }
 
-      const deltaVector = new THREE.Vector3(delta.x, 0, delta.y);
+      const deltaVector = new THREE.Vector3(x, 0, y);
       deltaVector.multiplyScalar(0.0025);
 
-      deltaVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.pannedObject.parent!.rotation.z);
+      deltaVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), object.parent!.rotation.z);
 
-      this.pannedObject.position.add(deltaVector);
-    });
+      object.position.add(deltaVector);
+    }
   }
 
   /**
@@ -347,9 +339,9 @@ export default class ArRendering extends Component<Args> {
    * passes them to a newly created Interaction object
    */
   private initInteraction() {
-    this.interaction = new Interaction(this.canvas, this.localUser.defaultCamera,
-      this.localUser.renderer,
-      this.intersectableObjects, {}, ArRendering.raycastFilter);
+    // this.interaction = new Interaction(this.canvas, this.localUser.defaultCamera,
+    //   this.localUser.renderer,
+    //   this.intersectableObjects, {}, ArRendering.raycastFilter);
 
     // Add key listener for room positioning
     window.onkeydown = (event: any) => {
@@ -488,10 +480,6 @@ export default class ArRendering extends Component<Args> {
     this.initRendering();
 
     this.resize(outerDiv);
-
-    // Initiate rendering
-    this.animate = this.animate.bind(this);
-    this.animate();
   }
 
   @action
@@ -718,14 +706,21 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleDoubleClick(intersection: THREE.Intersection | null) {
+    AlertifyHandler.showAlertifyMessage('Double clicking' + intersection?.object);
     if (!intersection) return;
 
     this.handlePrimaryInputOn(intersection);
   }
 
+  @tracked
+  mousePosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+
   @action
   handleSingleClick(intersection: THREE.Intersection | null) {
+    AlertifyHandler.showAlertifyMessage('Single clicking' + intersection?.object);
     if (!intersection) return;
+
+    this.mousePosition.copy(intersection.point);
 
     this.handleSecondaryInputOn(intersection);
   }
@@ -797,30 +792,28 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
-  render() {
-    this.localUser.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
+  // if (this.isDestroyed) {
+  //   return;
+  // }
 
-    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.sceneService.scene,
-      this.resize);
-  }
+  // requestAnimationFrame(this.animate);
+  // Update time dependent services
 
-  animate() {
-    if (this.isDestroyed) {
-      return;
-    }
-
-    requestAnimationFrame(this.animate);
-    // Update time dependent services
-
+  tick(delta: number) {
     if (this.webSocket.isWebSocketOpen()) {
       this.sendKeepAliveMessage();
     }
 
-    this.remoteUsers.updateRemoteUsers(this.deltaTimeService.getDeltaTime());
+    this.remoteUsers.updateRemoteUsers(delta);
 
     this.updateArToolkit();
 
-    this.render();
+    // this.render();
+
+    // this.localUser.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
+
+    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.sceneService.scene,
+      this.resize);
   }
 
   // #endregion RENDERING

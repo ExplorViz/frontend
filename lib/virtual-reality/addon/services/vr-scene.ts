@@ -1,5 +1,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -25,6 +26,7 @@ export default class VrSceneService extends Service {
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
 
+  @tracked
   scene: THREE.Scene;
 
   readonly floor: FloorMesh;
@@ -67,6 +69,11 @@ export default class VrSceneService extends Service {
     this.skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
     this.skyLight.castShadow = false;
     // this.addSkylight();
+  }
+
+  reset() {
+    this.scene = new THREE.Scene();
+    this.scene.background = this.configuration.landscapeColors.backgroundColor;
   }
 
   addFloor() {

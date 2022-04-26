@@ -24,11 +24,6 @@ interface Args {
     named: NamedArgs,
 }
 
-function cleanup(instance: LandscapeDataWatcherModifier) {
-    instance.debug('Clean')
-    instance.roomSerializer.serializeRoom();
-}
-
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     debug = debugLogger('ApplicationRendererModifier');
@@ -67,12 +62,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         this.landscapeData = landscapeData;
 
         if (!this.didSetup) {
-            // this.debug('Restoring' + this.landscapeData.structureLandscapeData)
-            // if (this.roomSerializer.serializedRoom) {
-            //     this.debug('Restore')
-            //     this.applicationRenderer.restore(this.roomSerializer.serializedRoom, landscapeData.dynamicLandscapeData);
-            // }
-            // registerDestructor(this, cleanup);
             this.didSetup = true;
         }
 

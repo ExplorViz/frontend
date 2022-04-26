@@ -279,6 +279,9 @@ export default class VrRendering
     });
   }
 
+  initializeNewApplication() {
+  }
+
   private initPrimaryInput() {
     // When any base mash is hovered, highlight it.
     this.primaryInputManager.addInputHandler({
@@ -294,6 +297,7 @@ export default class VrRendering
         perform(this.applicationRenderer.openApplicationTask,
           event.target.dataModel.id,
           this.args.landscapeData.dynamicLandscapeData,
+          this.initializeNewApplication,
           {
             position: event.intersection.point,
             quaternion: new THREE.Quaternion()

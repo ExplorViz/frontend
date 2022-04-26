@@ -172,6 +172,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
     this.initDone = false;
+    this.sceneService.reset();
     this.debug('Constructor called');
   }
 
@@ -201,9 +202,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    * performance panel if it is activated in user settings
    */
   initThreeJs() {
+    this.initScene();
     this.initCamera();
     this.initRenderer();
-    this.initLights();
 
     this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
       {
@@ -211,7 +212,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         scene: this.scene,
         renderer: this.webglrenderer,
       });
-    this.applicationRenderer.renderingLoop = this.renderingLoop;
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.renderingLoop.updatables);
     this.renderingLoop.start();
     addSpheres('skyblue', this.mousePosition, this.renderingLoop);
   }
@@ -248,7 +249,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   /**
    * Creates a DirectionalLight and adds it to the scene
    */
-  initLights() {
+  initScene() {
     this.sceneService.addSpotlight();
     this.sceneService.addLight();
     this.debug('Lights added');
@@ -410,6 +411,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   handleSingleClick(intersection: THREE.Intersection) {
     if (intersection) {
+      this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
     }
   }
@@ -476,15 +478,13 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
-        toggleComponentMeshState(mesh, applicationObject3D);
-        this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
+        this.applicationRenderer.toggleComponent(mesh, applicationObject3D);
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
-        closeAllComponents(applicationObject3D);
-        this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
+        this.applicationRenderer.closeAllComponents(applicationObject3D);
       }
     }
   }
@@ -629,6 +629,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       return;
     }
     const applicationObject3D = this.selectedApplicationObject3D;
+
+    // TODO after here it should probably be moved to the application renderer.
     // eslint-disable-next-line @typescript-eslint/no-shadow
     function getAllAncestorComponents(entity: Package | Class): Package[] {
       // if (isClass(entity)) {

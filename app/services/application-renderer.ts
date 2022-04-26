@@ -3,7 +3,6 @@ import Service, { inject as service } from '@ember/service';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
-import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -28,7 +27,6 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrHighlightingService, { HightlightComponentArgs } from 'virtual-reality/services/vr-highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
@@ -85,9 +83,6 @@ export default class ApplicationRenderer extends Service.extend({
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
-
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
@@ -105,7 +100,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   readonly appCommRendering: CommunicationRendering;
 
-  renderingLoop!: RenderingLoop;
+  updatables: any[] = [];
 
   arMode: boolean = false;
 
@@ -120,19 +115,24 @@ export default class ApplicationRenderer extends Service.extend({
   constructor(properties?: object) {
     super(properties);
     this.openApplications = new Map();
+    this.appCommRendering = new CommunicationRendering(this.configuration,
+      this.userSettings);
 
-    const applicationMarkerNames = ['pattern-angular_1', 'pattern-angular_2', 'pattern-angular_3', 'pattern-angular_4', 'pattern-angular_5'];
-    for (let i = 0; i < applicationMarkerNames.length; i++) {
+    for (let i = 0; i < 5; i++) {
       if (this.applicationMarkers.length <= i) {
         const applicationMarker = new THREE.Group();
         applicationMarker.position.set(i * 1 - 1, 0.1, 2);
-        this.sceneService.scene.add(applicationMarker);
         this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
       }
     }
+  }
 
-    this.appCommRendering = new CommunicationRendering(this.configuration,
-      this.userSettings);
+  resetAndAddToScene(scene: THREE.Scene, updateables: any[]) {
+    this.updateables = updateables;
+    this.openApplications.clear();
+    for (const applicationMarker of this.applicationMarkers) {
+      scene.add(applicationMarker);
+    }
   }
 
   get raycastObjects() {
@@ -183,43 +183,24 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   get opacity() {
-    return this.userSettings.applicationSettings.transparencyIntensity.value;
+    return this.arMode ? this.arSettings.applicationOpacity : this.userSettings.applicationSettings.transparencyIntensity.value;
   }
 
   private initializeApplication(
-    application: ApplicationObject3D,
+    applicationObject3D: ApplicationObject3D,
     args: AddApplicationArgs,
   ) {
-    // Set initial position, rotation and scale.
-    if (args.position) application.parent.position.copy(args.position);
-    if (args.quaternion) application.quaternion.copy(args.quaternion);
-    if (args.scale) application.scale.copy(args.scale);
-
-    // Expand initially open components.
-    if (args.openComponents) {
-      EntityManipulation.restoreComponentState(
-        application,
-        args.openComponents,
-      );
-      this.addLabels(application, this.font, false);
-    }
-
-    const applicationData = this.applicationRepo.getById(
-      application.dataModel.id,
-    );
-    // Draw communication lines.
-    if (applicationData && this.arSettings.renderCommunication) {
-      this.appCommRendering.addCommunication(application, applicationData.drawableClassCommunications);
-      Highlighting.updateHighlighting(application, applicationData.drawableClassCommunications, this.opacity);
-    }
-
-    // Hightlight components.
-    args.highlightedComponents?.forEach((highlightedComponent) => {
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        application,
-        highlightedComponent,
-      );
+    const closeIcon = new CloseIcon({
+      textures: this.assetRepo.closeIconTextures,
+      onClose: () => this.closeApplication(applicationObject3D?.dataModel.id),
     });
+    closeIcon.addToObject(applicationObject3D);
+
+    this.addGlobe(applicationObject3D);
+    // Set initial position, rotation and scale.
+    if (args.position) applicationObject3D.parent.position.copy(args.position);
+    if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
+    if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
 
   removeAllApplications() {
@@ -258,6 +239,7 @@ export default class ApplicationRenderer extends Service.extend({
     applicationId: string,
     traces: DynamicLandscapeData,
     initCallback?: (applicationObject3D: ApplicationObject3D) => void,
+    addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationData = this.applicationRepo.getById(applicationId);
     const application = applicationData?.application;
@@ -274,7 +256,7 @@ export default class ApplicationRenderer extends Service.extend({
       );
       return;
     }
-    const applicationObject3D = yield perform(this.addApplicationTask, applicationData, traces);
+    const applicationObject3D = yield perform(this.addApplicationTask, applicationData, traces, addApplicationArgs);
     if (initCallback && applicationObject3D) {
       initCallback(applicationObject3D);
     }
@@ -293,7 +275,7 @@ export default class ApplicationRenderer extends Service.extend({
     const applicationObject3D = this.updateOrCreateApplication(applicationModel, traces, applicationData.layoutData);
 
     // save state
-    const openComponentIds = applicationObject3D.openComponentIds;
+    const openComponentIds = addApplicationArgs.openComponents || applicationObject3D.openComponentIds;
     this.cleanUpApplication(applicationObject3D);
 
     // Add new meshes to application
@@ -312,19 +294,19 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addCommunication(applicationObject3D)
 
-    this.addLabels(applicationObject3D, this.font, !this.arMode)
+    this.addLabels(applicationObject3D, this.font, false)
 
     // Scale application to a reasonable size to work with it.
     applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
 
-    if (!isOpen) {
-      const closeIcon = new CloseIcon({
-        textures: this.assetRepo.closeIconTextures,
-        onClose: () => this.closeApplication(applicationObject3D?.dataModel.id),
-      });
+    addApplicationArgs.highlightedComponents?.forEach((highlightedComponent) => {
+      this.highlightingService.hightlightComponentLocallyByTypeAndId(
+        applicationObject3D,
+        highlightedComponent,
+      );
+    });
 
-      closeIcon.addToObject(applicationObject3D);
-      this.addGlobe(applicationObject3D);
+    if (!isOpen) {
       this.initializeApplication(applicationObject3D, addApplicationArgs);
     }
 
@@ -420,27 +402,25 @@ export default class ApplicationRenderer extends Service.extend({
       updateHighlighting(
         applicationObject3D,
         drawableClassCommunications,
-        1,
+        this.opacity,
       );
     }
   }
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    this.addCommunication(applicationObject3D);
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      const { value } = this.appSettings.transparencyIntensity;
-      this.updateHighlighting(applicationObject3D, value);
-    } else {
+    if (!this.arMode || this.arSettings.renderCommunication) {
+      this.addCommunication(applicationObject3D);
+    }
+    if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
       this.unhighlightAll();
     }
   }
 
   @action
   updateHighlightingForAllApplications() {
-    const { value } = this.appSettings.transparencyIntensity;
     this.getOpenApplications().forEach((applicationObject3D) => {
-      this.updateHighlighting(applicationObject3D, value);
+      this.updateHighlighting(applicationObject3D, this.opacity);
     })
   }
 
@@ -466,11 +446,14 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   @action
-  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh) {
+  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh, color?: THREE.Color) {
     const applicationObject3D = mesh.parent;
     if (applicationObject3D instanceof ApplicationObject3D) {
       const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
       if (drawableClassCommunications) {
+        applicationObject3D.setHighlightingColor(
+          color || this.configuration.applicationColors.highlightedEntityColor,
+        );
         highlight(mesh, applicationObject3D, drawableClassCommunications!, this.opacity);
       }
     }
@@ -514,7 +497,8 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D,
     );
     this.addLabels(applicationObject3D, this.font, false);
-    this.highlightingService.updateHighlightingLocally(applicationObject3D);
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+    // this.highlightingService.updateHighlightingLocally(applicationObject3D);
   }
 
   closeAllComponents(applicationObject3D: ApplicationObject3D) {
@@ -529,7 +513,8 @@ export default class ApplicationRenderer extends Service.extend({
 
   closeAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.closeAllComponents(applicationObject3D);
-    this.highlightingService.updateHighlightingLocally(applicationObject3D);
+
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   openAllComponents(applicationObject3D: ApplicationObject3D) {
@@ -545,8 +530,7 @@ export default class ApplicationRenderer extends Service.extend({
   @action
   openAllComponentsOfAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
-      EntityManipulation.openAllComponents(applicationObject3D);
-      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+      this.openAllComponents(applicationObject3D);
     }
     )
   }
@@ -555,14 +539,7 @@ export default class ApplicationRenderer extends Service.extend({
     EntityManipulation.openAllComponents(applicationObject3D);
     this.addLabels(applicationObject3D, this.font, false);
 
-    const drawableComm = this.getDrawableClassCommunications(
-      applicationObject3D,
-    )!;
-    if (this.arSettings.renderCommunication) {
-      this.appCommRendering.addCommunication(applicationObject3D, drawableComm);
-    }
-    this.highlightingService.updateHighlightingLocally(applicationObject3D);
-
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   updateCommunication() {
@@ -606,7 +583,7 @@ export default class ApplicationRenderer extends Service.extend({
       const clipAction = animationMixer.clipAction(clip);
       clipAction.play();
       globeMesh.tick = (delta: any) => animationMixer.update(delta);
-      this.renderingLoop.updatables.push(globeMesh);
+      this.updatables.push(globeMesh);
     };
     addGlobe();
   }
