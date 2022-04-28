@@ -71,13 +71,15 @@ export default class VrSceneService extends Service {
     // this.addSkylight();
   }
 
+  @action
   reset() {
-    this.scene.clear();
-    // this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene = new THREE.Scene();
+    this.scene.background = this.configuration.landscapeColors.backgroundColor;
   }
 
+  @action
   addFloor() {
-    this.scene.add(this.floor);
+    this.scene.add(new FloorMesh(FLOOR_SIZE, FLOOR_SIZE));
   }
 
   addLight() {

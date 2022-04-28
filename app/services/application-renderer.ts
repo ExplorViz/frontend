@@ -1,4 +1,5 @@
 import { action } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 import Service, { inject as service } from '@ember/service';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
@@ -8,10 +9,10 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { highlight, highlightModel, removeHighlighting, updateHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Application, Class, Package, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -103,9 +104,13 @@ export default class ApplicationRenderer extends Service.extend({
 
   readonly appCommRendering: CommunicationRendering;
 
+  @tracked
   updatables: any[] = [];
 
   arMode: boolean = false;
+
+  showMessage: (message: string) => void = (message => AlertifyHandler.showAlertifyMessage(message));
+  showSuccess: (message: string) => void = (message => AlertifyHandler.showAlertifySuccess(message));
 
   get appSettings() {
     return this.userSettings.applicationSettings;
@@ -131,10 +136,15 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   resetAndAddToScene(scene: THREE.Scene, updateables: any[]) {
-    this.updateables = updateables;
+    this.updatables = updateables;
     this.openApplications.clear();
     for (const applicationMarker of this.applicationMarkers) {
+      applicationMarker.clear();
       scene.add(applicationMarker);
+    }
+    if (this.roomSerializer.serializedRoom) {
+      this.debug('Restore previous application state');
+      this.restore(this.roomSerializer.serializedRoom);
     }
   }
 
@@ -197,7 +207,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addGlobe(applicationObject3D);
     // Set initial position, rotation and scale.
-    if (args.position) applicationObject3D.parent.position.copy(args.position);
+    if (args.position) applicationObject3D.parent?.position.copy(args.position);
     if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
     if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
@@ -236,26 +246,25 @@ export default class ApplicationRenderer extends Service.extend({
   @enqueueTask
   * openApplicationTask(
     applicationId: string,
-    traces: DynamicLandscapeData,
     initCallback?: (applicationObject3D: ApplicationObject3D) => void,
     addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationData = this.applicationRepo.getById(applicationId);
     const application = applicationData?.application;
     if (!applicationData || application?.packages.length === 0) {
-      AlertifyHandler.showAlertifyMessage(
+      this.showMessage(
         `Sorry, there is no information for application <b>
         ${application?.name}</b> available.`
       );
       return;
     }
     if (this.isApplicationOpen(applicationId)) {
-      AlertifyHandler.showAlertifyMessage(
+      this.showMessage(
         'Application already opened'
       );
       return;
     }
-    const applicationObject3D = yield perform(this.addApplicationTask, applicationData, traces, addApplicationArgs);
+    const applicationObject3D = yield perform(this.addApplicationTask, applicationData, addApplicationArgs);
     if (initCallback && applicationObject3D) {
       initCallback(applicationObject3D);
     }
@@ -269,13 +278,12 @@ export default class ApplicationRenderer extends Service.extend({
   @enqueueTask
   * addApplicationTask(
     applicationData: ApplicationData,
-    traces: DynamicLandscapeData,
     addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
     const isOpen = this.isApplicationOpen(applicationModel.id);
     // get existing applicationObject3D or create new one.
-    const applicationObject3D = this.updateOrCreateApplication(applicationModel, traces, applicationData.layoutData);
+    const applicationObject3D = this.updateOrCreateApplication(applicationModel, applicationData.layoutData);
 
     if (Object.keys(addApplicationArgs).length == 0 && isOpen) {
       addApplicationArgs = this.saveApplicationState(applicationObject3D);
@@ -351,25 +359,23 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  updateOrCreateApplication(application: Application, traces: DynamicLandscapeData, layoutMap: Map<string, LayoutData>) {
+  updateOrCreateApplication(application: Application, layoutMap: Map<string, LayoutData>) {
     // Converting plain JSON layout data due to worker limitations
     const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
     const applicationObject3D = this.getApplicationById(application.id);
     if (applicationObject3D) {
       applicationObject3D.dataModel = application;
-      applicationObject3D.traces = traces;
 
       applicationObject3D.boxLayoutMap = boxLayoutMap;
       return applicationObject3D;
     }
-    return this.createApplication(application, boxLayoutMap, traces);
+    return this.createApplication(application, boxLayoutMap);
   }
 
-  private createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: DynamicLandscapeData) {
+  private createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
     const applicationObject3D = new VrApplicationObject3D(
       application,
       boxLayoutMap,
-      traces,
     );
     this.addApplicationToMarker(applicationObject3D);
     this.debug('Application added to marker');
@@ -561,7 +567,7 @@ export default class ApplicationRenderer extends Service.extend({
         const message = `Application '${applicationModel.name}' successfully opened <br>
           on marker #${i + 1}.`;
 
-        AlertifyHandler.showAlertifySuccess(message);
+        this.showSuccess(message);
 
         break;
       }
@@ -581,7 +587,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  restore(room: SerializedVrRoom, dynamicData: DynamicLandscapeData) {
+  restore(room: SerializedVrRoom) {
     this.cleanUpApplications();
     for (const app of room.openApps) {
 
@@ -589,7 +595,6 @@ export default class ApplicationRenderer extends Service.extend({
       perform(
         this.addApplicationTask,
         applicationData,
-        dynamicData,
         serializedRoomToAddApplicationArgs(app),
       )
     }

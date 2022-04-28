@@ -3,7 +3,6 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import ElkConstructor, { ELK, ElkNode } from 'elkjs/lib/elk-api';
 import { restartableTask } from 'ember-concurrency-decorators';
 import debugLogger from 'ember-debug-logger';
-import { Layout1Return, Layout3Return } from 'explorviz-frontend/components/visualization/rendering/landscape-rendering';
 import computeApplicationCommunication from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
 import * as CommunicationRendering from 'explorviz-frontend/utils/landscape-rendering/communication-rendering';
 import Labeler from 'explorviz-frontend/utils/landscape-rendering/labeler';
@@ -17,7 +16,6 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
 import Configuration from './configuration';
 import FontRepository from './repos/font-repository';
@@ -54,7 +52,17 @@ export interface LandscapeRendererSettings {
   z_pos_application: number
 }
 
-const LANDSCAPE_SCALAR = 0.3;
+const DEFAULT_SETTINGS = {
+  // Scalar with which the landscape is scaled (evenly in all dimensions)
+  landscapeScalar: 0.3,
+  // Depth of boxes for landscape entities
+  landscapeDepth: 0.0,
+  z_depth: 0.02,
+  commLineMinSize: 0.008,
+  commLineScalar: 0.028,
+  z_offset: 0.025,
+  z_pos_application: 0.03,
+};
 
 export default class LandscapeRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -62,17 +70,7 @@ export default class LandscapeRenderer extends Service.extend({
 
   private debug = debugLogger('LandscapeRenderer');
 
-  settings: LandscapeRendererSettings = {
-    // Scalar with which the landscape is scaled (evenly in all dimensions)
-    landscapeScalar: 0.1,
-    // Depth of boxes for landscape entities
-    landscapeDepth: 0.0,
-    z_depth: 0.02,
-    commLineMinSize: 0.02,
-    commLineScalar: 0.08,
-    z_offset: 0.025,
-    z_pos_application: 0.03,
-  };
+  settings: LandscapeRendererSettings = DEFAULT_SETTINGS;
 
   @service('repos/font-repository')
   private fontRepo!: FontRepository;
@@ -89,10 +87,7 @@ export default class LandscapeRenderer extends Service.extend({
   @service('ar-settings')
   arSettings!: ArSettings;
 
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
-
-  readonly landscapeObject3D!: LandscapeObject3D; // TODO should be read only?
+  readonly landscapeObject3D!: LandscapeObject3D;
 
   largestSide: number | undefined;
 
@@ -123,7 +118,7 @@ export default class LandscapeRenderer extends Service.extend({
       nodes: [],
     });
     this.debug('Adding landscapeObject3D to scene' + this.landscapeObject3D.id);
-    this.sceneService.scene.add(this.landscapeObject3D);
+    // this.sceneService.scene.add(this.landscapeObject3D);
     this.debug('Added landscapeObject3D to scene');
   }
 
@@ -225,7 +220,7 @@ export default class LandscapeRenderer extends Service.extend({
         applicationCommunications,
         modelIdToPointsComplete,
         color,
-        this.z_offset,
+        this.settings.z_offset,
         //
       );
 
@@ -233,22 +228,30 @@ export default class LandscapeRenderer extends Service.extend({
         tiles,
         this.landscapeObject3D,
         centerPoint,
-        this.commLineMinSize, // DONE AR ONLY
-        this.commLineScalar, // DONE AR ONLY
+        this.settings.commLineMinSize, // DONE AR ONLY
+        this.settings.commLineScalar, // DONE AR ONLY
       );
 
 
       if (this.arMode) {
         this.landscapeObject3D.setOpacity(this.arSettings.landscapeOpacity);
-        this.centerLandscape();
+        if (this.largestSide) {
+          this.landscapeObject3D.setLargestSide(this.largestSide);
+        }
       }
 
-      this.resetScale();
-      this.resetRotation();
       this.debug('Landscape loaded');
     } catch (e) {
       this.debug(e);
     }
+  }
+
+  resetAndAddToScene(scene: THREE.Scene, settings: LandscapeRendererSettings = DEFAULT_SETTINGS) {
+    this.cleanUpLandscape();
+    this.settings = settings;
+    this.resetRotation();
+    this.resetScale();
+    scene.add(this.landscapeObject3D);
   }
 
   /**
@@ -272,8 +275,8 @@ export default class LandscapeRenderer extends Service.extend({
       node,
       this.configuration.landscapeColors.nodeColor,
       this.configuration.applicationColors.highlightedEntityColor,
-      this.landscape_depth, // DONE AR ONLY
-      this.z_depth// 0.2, // DONE AR ONLY
+      this.settings.landscapeDepth, // DONE AR ONLY
+      this.settings.z_depth// 0.2, // DONE AR ONLY
     );
 
     // Create and add label + icon
@@ -311,8 +314,8 @@ export default class LandscapeRenderer extends Service.extend({
       application,
       this.configuration.landscapeColors.applicationColor,
       this.configuration.applicationColors.highlightedEntityColor,
-      this.landscape_depth,
-      this.z_pos_application,
+      this.settings.landscapeDepth,
+      this.settings.z_pos_application,
     );
     applicationMesh.setToDefaultPosition(centerPoint);
 
@@ -334,55 +337,11 @@ export default class LandscapeRenderer extends Service.extend({
     this.landscapeObject3D.setLargestSide(largestSide);
   }
 
-  centerLandscape() {
-    this.resetRotation();
-
-    if (this.largestSide) {
-      this.landscapeObject3D.setLargestSide(this.largestSide);
-    } else {
-      this.resetScale();
-      this.resetPosition();
-    }
-  }
-
-  private resetPosition() {
-    // Compute bounding box of the floor.
-    const bboxFloor = new THREE.Box3().setFromObject(this.sceneService.floor);
-
-    // Calculate center of the floor.
-    const centerFloor = new THREE.Vector3();
-    bboxFloor.getCenter(centerFloor);
-
-    const bboxLandscape = new THREE.Box3().setFromObject(
-      this.landscapeObject3D,
-    );
-
-    // Calculate center of the landscape.
-    const centerLandscape = new THREE.Vector3();
-    bboxLandscape.getCenter(centerLandscape);
-
-    // Set new position of landscape
-    this.landscapeObject3D.position.x += centerFloor.x - centerLandscape.x;
-    this.landscapeObject3D.position.z += centerFloor.z - centerLandscape.z;
-
-    // Check distance between floor and landscape
-    if (bboxLandscape.min.y > bboxFloor.max.y) {
-      this.landscapeObject3D.position.y
-        += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-    }
-
-    // Check if landscape is underneath the floor
-    if (bboxLandscape.min.y < bboxFloor.min.y) {
-      this.landscapeObject3D.position.y
-        += bboxFloor.max.y - bboxLandscape.min.y + 0.001;
-    }
-  }
-
   private resetScale() {
     this.landscapeObject3D.scale.set(
-      LANDSCAPE_SCALAR,
-      LANDSCAPE_SCALAR,
-      LANDSCAPE_SCALAR,
+      this.settings.landscapeScalar,
+      this.settings.landscapeScalar,
+      this.settings.landscapeScalar,
     );
   }
 

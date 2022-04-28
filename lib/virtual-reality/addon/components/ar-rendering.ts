@@ -10,13 +10,15 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import Interaction from 'explorviz-frontend/utils/interaction';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { light, spotlight } from 'explorviz-frontend/utils/lights';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -35,7 +37,6 @@ import DeltaTime from 'virtual-reality/services/delta-time';
 import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
 import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
@@ -50,7 +51,6 @@ import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality
 import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
 import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VrRoomSerializer from '../services/vr-room-serializer';
-import Raycaster, { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -76,6 +76,16 @@ type PopupData = {
   posY: number,
   isPinned: boolean,
   entity: DataModel
+};
+
+const landscapeRendererSettings: LandscapeRendererSettings = {
+  landscapeScalar: 0.3,
+  landscapeDepth: 0.7,
+  z_depth: 0.2,
+  commLineMinSize: 0.004,
+  commLineScalar: 0.028,
+  z_offset: 0.7 / 2 + 0.25,
+  z_pos_application: 0.3,
 };
 
 declare const THREEx: any;
@@ -109,9 +119,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
-
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
 
   @service('vr-timestamp')
   private timestampService!: VrTimestampService;
@@ -174,6 +181,11 @@ export default class ArRendering extends Component<Args> {
 
   localPing: { obj: THREE.Object3D, time: number } | undefined | null;
 
+  @tracked
+  scene: THREE.Scene;
+
+  updatables: any[] = [];
+
   private raycaster: Raycaster = new Raycaster();
 
   get rightClickMenuItems() {
@@ -193,6 +205,15 @@ export default class ArRendering extends Component<Args> {
     this.debug('Constructor called');
 
     this.landscapeRenderer.setLargestSide(2);
+    this.scene = new THREE.Scene();
+    this.scene.add(this.landscapeRenderer.landscapeObject3D);
+    this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
+    this.applicationRenderer.showMessage = (message => AlertifyHandler.showAlertifyMessage(message));
+    this.applicationRenderer.showSuccess = (message => AlertifyHandler.showAlertifySuccess(message));
+    this.scene.add(light());
+    this.scene.add(spotlight());
+    this.scene.background = null;
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -200,10 +221,6 @@ export default class ArRendering extends Component<Args> {
 
   get camera() {
     return this.localUser.defaultCamera;
-  }
-
-  get scene() {
-    return this.sceneService.scene;
   }
 
   // #region COMPONENT AND SCENE INITIALIZATION
@@ -227,10 +244,10 @@ export default class ArRendering extends Component<Args> {
         camera: this.camera,
         scene: this.scene,
         renderer: this.localUser.renderer,
+        updatables: this.updatables,
         mapControls: false,
       });
-    this.applicationRenderer.renderingLoop = this.renderingLoop;
-    addSpheres('skyblue', this.mousePosition, this.renderingLoop);
+    addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
     this.initCameraCrosshair();
@@ -250,15 +267,8 @@ export default class ArRendering extends Component<Args> {
 
     // Use given font for landscape and application rendering.
     this.remoteUsers.displayHmd = false;
-    this.landscapeRenderer.landscape_depth = 0.7
-    this.landscapeRenderer.z_depth = 0.2
-    this.landscapeRenderer.commLineMinSize = 0.004
-    this.landscapeRenderer.commLineScalar = 0.028
-    this.landscapeRenderer.z_offset = 0.7 / 2 + 0.25
-    this.landscapeRenderer.z_pos_application = 0.3
     this.landscapeRenderer.arMode = true
     this.applicationRenderer.arMode = true
-
   }
 
   /**
@@ -267,7 +277,7 @@ export default class ArRendering extends Component<Args> {
   private initCamera() {
     // Set camera properties
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
-    this.sceneService.scene.add(this.localUser.defaultCamera);
+    this.scene.add(this.localUser.defaultCamera);
 
     this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.outerDiv,
       this.arSettings);
@@ -353,11 +363,6 @@ export default class ArRendering extends Component<Args> {
   }
 
   private configureScene() {
-    this.sceneService.addFloor();
-    this.sceneService.addLight();
-    this.sceneService.addSpotlight();
-    this.sceneService.setSceneTransparent();
-    this.sceneService.removeSkylight();
   }
 
   private async initWebSocket() {
@@ -393,7 +398,7 @@ export default class ArRendering extends Component<Args> {
     /// /////////////////////////////////////////////////////////
 
     this.landscapeMarker.add(this.landscapeRenderer.landscapeObject3D);
-    this.sceneService.scene.add(this.landscapeMarker);
+    this.scene.add(this.landscapeMarker);
 
     // Init controls for camera
     // eslint-disable-next-line
@@ -821,7 +826,7 @@ export default class ArRendering extends Component<Args> {
 
     // this.localUser.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
 
-    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.sceneService.scene,
+    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.scene,
       this.resize);
   }
 
@@ -882,7 +887,6 @@ export default class ArRendering extends Component<Args> {
     perform(
       this.applicationRenderer.openApplicationTask,
       appId,
-      this.args.landscapeData.dynamicLandscapeData,
       this.initializeNewApplication
     )
   }
@@ -951,11 +955,17 @@ export default class ArRendering extends Component<Args> {
   }
 
   willDestroy() {
+    super.willDestroy();
+
+    this.debug('cleanup ar rendering');
+
+    this.renderingLoop.stop();
     // Reset services.
     this.localUser.reset();
     // this.landscapeRenderer.resetService();
     // this.applicationRenderer.removeAllApplicationsLocally();
     // this.sceneService.addSkylight();
+    this.debug('cleanup destorying controller');
 
     // Remove event listers.
     this.willDestroyController.abort();

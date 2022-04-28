@@ -6,7 +6,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import {
   Class, Package,
 } from '../landscape-schemes/structure-data';
-import { isSpan, Span } from '../landscape-schemes/dynamic-data';
+import { DynamicLandscapeData, isSpan, Span } from '../landscape-schemes/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import { removeHighlighting } from './highlighting';
 
@@ -230,10 +230,9 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
    * @param applicationObject3D Object which contains all application meshes
    */
 export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vector3,
-  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D, cameraTarget: THREE.Vector3) {
+  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D, cameraTarget: THREE.Vector3, dynamicData: DynamicLandscapeData) {
   if (isSpan(model)) {
-    // TODO could this be not applicationObject3D.traces but the dynamicData?
-    const traceOfSpan = applicationObject3D.traces.find(
+    const traceOfSpan = dynamicData.find(
       (trace) => trace.traceId === model.traceId,
     );
 

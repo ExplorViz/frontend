@@ -107,7 +107,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 perform(
                     this.applicationRenderer.addApplicationTask,
                     applicationData,
-                    this.dynamicLandscapeData,
                 );
             } else {
                 this.applicationRenderer.removeApplicationLocally(applicationId);

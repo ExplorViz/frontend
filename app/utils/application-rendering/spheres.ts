@@ -1,10 +1,9 @@
-import RenderingLoop from "explorviz-frontend/rendering/application/rendering-loop";
 import THREE from "three";
 
-export function addSpheres(color: string, position: THREE.Vector3, renderingLoop: RenderingLoop) {
+export function addSpheres(color: string, position: THREE.Vector3, scene: THREE.Scene, updatables: any[]) {
     const spheres = new Spheres(color, position);
-    renderingLoop.scene.add(...spheres.spheres);
-    renderingLoop.updatables.push(spheres);
+    scene.add(...spheres.spheres);
+    updatables.push(spheres);
 }
 
 export default class Spheres {

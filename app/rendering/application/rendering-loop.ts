@@ -28,7 +28,7 @@ export default class RenderingLoop extends EmberObject {
 
   mapControls: boolean = true;
 
-  updatables: any[] = [];
+  updatables!: any[];
 
   init() {
     super.init();

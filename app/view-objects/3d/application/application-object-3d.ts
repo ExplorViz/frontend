@@ -25,8 +25,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   boxLayoutMap: Map<string, BoxLayout>;
 
-  traces: Trace[];
-
   /**
    * Map to store all box shaped meshes (i.e., Clazz, Component, Foundation)
    */
@@ -49,12 +47,11 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: BaseMesh | Trace | null = null;
 
-  constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: Trace[]) {
+  constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
     this.dataModel = application;
     this.boxLayoutMap = boxLayoutMap;
-    this.traces = traces;
   }
 
   get layout() {

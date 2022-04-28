@@ -1,15 +1,17 @@
-import { action } from '@ember/object';
 import { getOwner } from '@ember/application';
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import { tracked } from '@glimmer/tracking';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -18,14 +20,11 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import DeltaTimeService from 'virtual-reality/services/delta-time';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
-import VrMessageReceiver, { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
+import { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
@@ -68,8 +67,6 @@ import VrRoomSerializer from '../services/vr-room-serializer';
 import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
-import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import { perform } from 'ember-concurrency-ts';
 
 interface Args {
   readonly id: string;
@@ -101,9 +98,6 @@ export default class VrRendering
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('delta-time')
-  private deltaTimeService!: DeltaTimeService;
-
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
@@ -116,17 +110,11 @@ export default class VrRendering
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
 
-  @service('repos/timestamp-repository')
-  private timestampRepo!: TimestampRepository;
-
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('vr-asset-repo')
-  private assetRepo!: VrAssetRepository;
 
   @service('vr-highlighting')
   private highlightingService!: VrHighlightingService;
@@ -136,9 +124,6 @@ export default class VrRendering
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
-
-  @service('vr-message-receiver')
-  private receiver!: VrMessageReceiver;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -181,6 +166,8 @@ export default class VrRendering
 
   private mouseIntersection: THREE.Intersection | null = null;
 
+  updatables: any[] = [];
+
   // #endregion CLASS FIELDS
 
   // #region INITIALIZATION
@@ -192,8 +179,8 @@ export default class VrRendering
     this.initHUD();
     this.initRenderer();
     this.sceneService.addFloor();
-    // this.sceneService.addLight();
-    // this.sceneService.addSpotlight();
+    this.sceneService.addLight();
+    this.sceneService.addSpotlight();
     this.remoteUsers.displayHmd = true;
     this.landscapeRenderer.settings = landscapeRendererSettings;
     this.initServices();
@@ -258,8 +245,10 @@ export default class VrRendering
   private initServices() {
     this.debug('Initializing services...');
     // Use given font for landscape and application rendering.
-    this.landscapeRenderer.arMode = true
-    this.applicationRenderer.arMode = true
+    this.landscapeRenderer.arMode = true;
+    this.applicationRenderer.arMode = true;
+    this.applicationRenderer.showMessage = (message => this.showHint(message));
+    this.applicationRenderer.showSuccess = (message => this.showHint(message));
   }
 
   /**
@@ -279,7 +268,12 @@ export default class VrRendering
     });
   }
 
-  initializeNewApplication() {
+  @action
+  initializeNewApplication(applicationObject3D: ApplicationObject3D) {
+
+    // if (message) {
+    // this.showHint(message);
+    // }
   }
 
   private initPrimaryInput() {
@@ -296,7 +290,6 @@ export default class VrRendering
       triggerDown: (event) => {
         perform(this.applicationRenderer.openApplicationTask,
           event.target.dataModel.id,
-          this.args.landscapeData.dynamicLandscapeData,
           this.initializeNewApplication,
           {
             position: event.intersection.point,
@@ -310,9 +303,6 @@ export default class VrRendering
               )
               .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
           });
-        // if (message) {
-        // this.showHint(message);
-        // }
       },
     });
 
@@ -453,6 +443,9 @@ export default class VrRendering
   // #region DESTRUCTION
 
   willDestroy() {
+    super.willDestroy();
+
+    this.renderingLoop.stop();
     // Reset rendering.
     this.applicationRenderer.removeAllApplicationsLocally();
     this.landscapeRenderer.cleanUpLandscape();
@@ -496,17 +489,17 @@ export default class VrRendering
         camera: this.localUser.camera,
         scene: this.sceneService.scene,
         renderer: this.localUser.renderer,
+        updatables: this.updatables,
       });
-
-    this.applicationRenderer.renderingLoop = this.renderingLoop;
+    this.landscapeRenderer.resetAndAddToScene(this.sceneService.scene);
+    this.applicationRenderer.resetAndAddToScene(this.sceneService.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
-    // this.localUser.renderer.setAnimationLoop(() => this.tick());
 
-    if (this.roomSerializer.serializedRoom) {
-      this.debug('Restoring');
-      this.applicationRenderer.restore(this.roomSerializer.serializedRoom, this.args.landscapeData.dynamicLandscapeData);
-    }
+    // if (this.roomSerializer.serializedRoom) {
+    //   this.debug('Restore previous application state');
+    //   this.applicationRenderer.restore(this.roomSerializer.serializedRoom);
+    // }
   }
 
   /**

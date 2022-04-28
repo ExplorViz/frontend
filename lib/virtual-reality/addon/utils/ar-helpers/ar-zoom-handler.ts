@@ -2,6 +2,7 @@ import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 export default class ArZoomHandler {
   @service('ar-settings')

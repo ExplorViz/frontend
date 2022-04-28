@@ -160,7 +160,7 @@ export default class VrHighlightingService extends Service {
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color,
   ) {
-    const drawableComm = this.applicationRenderer.getDrawableClassCommunications(
+    const drawableComm = this.getDrawableClassCommunications(
       application
     );
     if (drawableComm) {

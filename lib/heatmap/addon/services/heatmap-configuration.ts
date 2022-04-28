@@ -99,7 +99,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       this.currentApplication = applicationObject3D;
     }
     const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
-    if (applicationData) {
+    if (applicationData && this.currentApplication == applicationObject3D) {
       this.currentApplicationHeatmapData = applicationData.heatmapData;
     }
   }

@@ -18,11 +18,12 @@ import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repositor
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { applyDefaultApplicationLayout, closeAllComponents, moveCameraTo, openComponentMesh, toggleComponentMeshState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { highlightTrace, removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { applyDefaultApplicationLayout, moveCameraTo, openComponentMesh } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { light, spotlight } from 'explorviz-frontend/utils/lights';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -36,7 +37,6 @@ import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
 import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface Args {
@@ -82,9 +82,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
-
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
 
@@ -125,6 +122,11 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @tracked
   selectedApplicationId: string = "";
 
+  @tracked
+  scene: THREE.Scene;
+
+  updatables: any[] = [];
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(this.selectedApplicationId);
   }
@@ -147,10 +149,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       { title: 'Enter AR', action: this.args.switchToAR },
       { title: 'Enter VR', action: this.args.switchToVR },
     ];
-  }
-
-  get scene() {
-    return this.sceneService.scene
   }
 
   get raytraceObjects() {
@@ -176,8 +174,16 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
     this.initDone = false;
-    this.sceneService.reset();
     this.debug('Constructor called');
+    this.scene = new THREE.Scene();
+    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.add(light());
+    this.scene.add(spotlight());
+    this.landscapeRenderer.resetAndAddToScene(this.scene);
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
+    this.applicationRenderer.showMessage = (message => AlertifyHandler.showAlertifyMessage(message));
+    this.applicationRenderer.showSuccess = (message => AlertifyHandler.showAlertifySuccess(message));
+    this.debug('Lights and objetcs added called');
   }
 
   @action
@@ -195,6 +201,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   async outerDivInserted(outerDiv: HTMLElement) {
     this.debug('Outer Div inserted');
 
+    // scene cleanup
     this.initThreeJs();
 
     this.resize(outerDiv);
@@ -215,10 +222,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         camera: this.camera,
         scene: this.scene,
         renderer: this.webglrenderer,
+        updatables: this.updatables,
       });
-    this.applicationRenderer.resetAndAddToScene(this.scene, this.renderingLoop.updatables);
     this.renderingLoop.start();
-    addSpheres('skyblue', this.mousePosition, this.renderingLoop);
+    addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
   }
 
   /**
@@ -254,8 +261,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    * Creates a DirectionalLight and adds it to the scene
    */
   initScene() {
-    this.sceneService.addSpotlight();
-    this.sceneService.addLight();
     this.debug('Lights added');
   }
 
@@ -302,7 +307,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
           isAnimationApplicationObject3DDone = false;
         }
       };
-      this.renderingLoop.updatables.push(applicationObject3D);
+      this.updatables.push(applicationObject3D);
     };
 
     applicationAnimation();
@@ -549,7 +554,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       perform(
         this.applicationRenderer.openApplicationTask,
         appId,
-        this.args.landscapeData.dynamicLandscapeData,
         this.initializeNewApplication
       )
     }
@@ -679,6 +683,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       return;
     }
     const applicationCenter = this.selectedApplicationObject3D.layout.center;
-    moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target);
+    moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target, this.args.landscapeData.dynamicLandscapeData);
   }
 }
