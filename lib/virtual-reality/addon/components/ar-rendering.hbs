@@ -73,12 +73,9 @@
           landscapeData=@landscapeData
         }}
       >
-        {{#if this.hammerInteraction}}
-          <RightClickMenuHammer
-            @items={{this.rightClickMenuItems}}
-            @hammer={{this.hammerInteraction}}
-          />
-        {{/if}}
+        <RightClickMenu
+          @items={{this.rightClickMenuItems}}
+        />
       </canvas>
 
       <div class="ar-left-button-container">

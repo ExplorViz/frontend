@@ -137,6 +137,7 @@ export default class LandscapeRenderer extends Service.extend({
     structureLandscapeData: StructureLandscapeData,
     dynamicLandscapeData: DynamicLandscapeData,
   ): any {
+    // this.sceneService.scene.add(this.landscapeObject3D);
     this.debug('populate landscape-rendering');
 
     // Update landscape model.
@@ -239,10 +240,6 @@ export default class LandscapeRenderer extends Service.extend({
 
       if (this.arMode) {
         this.landscapeObject3D.setOpacity(this.arSettings.landscapeOpacity);
-
-        // Reset position of landscape.
-        this.resetScale();
-        this.resetRotation();
         this.centerLandscape();
       }
 

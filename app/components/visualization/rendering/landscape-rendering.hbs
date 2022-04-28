@@ -132,7 +132,7 @@
                   <h5 class="text-center">Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{false}}
-                    @updateHighlighting={{this.applicationRenderer.updateHighlightingForAllApplications}}
+                    @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
                     @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                     @updateColors={{this.sceneService.updateColors}}
                     @removeComponent={{@removeComponent}}

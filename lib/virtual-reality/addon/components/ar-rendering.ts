@@ -50,6 +50,7 @@ import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality
 import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
 import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VrRoomSerializer from '../services/vr-room-serializer';
+import Raycaster, { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -173,6 +174,8 @@ export default class ArRendering extends Component<Args> {
 
   localPing: { obj: THREE.Object3D, time: number } | undefined | null;
 
+  private raycaster: Raycaster = new Raycaster();
+
   get rightClickMenuItems() {
     return [
       { title: 'Leave AR View', action: this.args.openLandscapeView },
@@ -295,7 +298,7 @@ export default class ArRendering extends Component<Args> {
       if (object instanceof LandscapeObject3D) {
         object.rotation.z += delta;
         // object.rotation.z += delta * MathUtils.DEG2RAD;
-      } else if (this.rotatedObj instanceof ApplicationObject3D) {
+      } else if (object instanceof ApplicationObject3D) {
         object.rotation.y += delta;
         // object.rotation.y += delta * MathUtils.DEG2RAD;
       }
@@ -551,7 +554,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePrimaryCrosshairInteraction() {
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
@@ -560,7 +563,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleSecondaryCrosshairInteraction() {
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (intersection) {
       this.handleSecondaryInputOn(intersection);
@@ -580,7 +583,7 @@ export default class ArRendering extends Component<Args> {
   async handleOpenAllComponents() {
     this.lastOpenAllComponents = Date.now();
 
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (!(intersection?.object.parent instanceof ApplicationObject3D)) {
       return;
@@ -601,7 +604,7 @@ export default class ArRendering extends Component<Args> {
       return;
     }
 
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (!(intersection?.object.parent instanceof ApplicationObject3D)
       && !(intersection?.object.parent instanceof LandscapeObject3D)) {
@@ -630,7 +633,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   async handleHeatmapToggle() {
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
     if (intersection && intersection.object.parent instanceof ApplicationObject3D) {
       const applicationObject3D = intersection.object.parent;
       if (this.heatmapConf.currentApplication == applicationObject3D && this.heatmapConf.heatmapActive) {
@@ -650,7 +653,7 @@ export default class ArRendering extends Component<Args> {
     // Do not add popup if user long pressed popup button to remove all popups
     if (Date.now() - this.lastPopupClear < 10) return;
 
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (!intersection) {
       this.removeUnpinnedPopups();
@@ -706,7 +709,6 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleDoubleClick(intersection: THREE.Intersection | null) {
-    AlertifyHandler.showAlertifyMessage('Double clicking' + intersection?.object);
     if (!intersection) return;
 
     this.handlePrimaryInputOn(intersection);
@@ -717,7 +719,6 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection | null) {
-    AlertifyHandler.showAlertifyMessage('Single clicking' + intersection?.object);
     if (!intersection) return;
 
     this.mousePosition.copy(intersection.point);
@@ -727,7 +728,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleMouseWheel(delta: number) {
-    const intersection = this.interaction.raycastCanvasCenter();
+    const intersection = this.raycastCenter();
 
     if (intersection && (
       intersection.object.parent instanceof ApplicationObject3D
@@ -737,6 +738,14 @@ export default class ArRendering extends Component<Args> {
       // Scale hit object with respect to scroll direction and scroll distance
       object.scale.copy(object.scale.multiplyScalar(1 - (delta / 25)));
     }
+  }
+
+
+  private raycastCenter() {
+    const possibleObjects = this.intersectableObjects;
+    return this.raycaster.raycasting({ x: 0, y: 0 }, this.camera,
+      possibleObjects);
+
   }
 
   handleKeyboard(event: any) {
@@ -883,7 +892,7 @@ export default class ArRendering extends Component<Args> {
 
     if (object instanceof ComponentMesh || object instanceof ClazzMesh
       || object instanceof ClazzCommunicationMesh) {
-      this.applicationRenderer.highlight(object);
+      this.highlightingService.highlight(object);
     }
   }
 
@@ -944,9 +953,9 @@ export default class ArRendering extends Component<Args> {
   willDestroy() {
     // Reset services.
     this.localUser.reset();
-    this.landscapeRenderer.resetService();
-    this.applicationRenderer.removeAllApplicationsLocally();
-    this.sceneService.addSkylight();
+    // this.landscapeRenderer.resetService();
+    // this.applicationRenderer.removeAllApplicationsLocally();
+    // this.sceneService.addSkylight();
 
     // Remove event listers.
     this.willDestroyController.abort();

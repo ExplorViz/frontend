@@ -12,7 +12,7 @@ export type SerializedDetachedMenu = {
   scale: Scale;
 };
 
-type SerializedHighlightedComponent = {
+export type SerializedHighlightedComponent = {
   userId: string;
   appId: string;
   entityType: string;

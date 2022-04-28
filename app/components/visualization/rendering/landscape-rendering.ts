@@ -35,6 +35,7 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
+import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import VrSceneService from 'virtual-reality/services/vr-scene';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
@@ -92,6 +93,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer
+
+  @service('vr-highlighting')
+  highlightingService!: VrHighlightingService;
 
   webglrenderer!: THREE.WebGLRenderer;
 
@@ -368,14 +372,12 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   highlightTrace(trace: Trace, traceStep: string) {
-    // Open components such that complete trace is visible
-    this.applicationRenderer.openAllComponentsOfAllApplications();
-    const { value } = this.appSettings.transparencyIntensity;
-
-    // TODO improve, handle null
-    const drawableClassCommunications = this.applicationRenderer.getDrawableClassCommunications(this.selectedApplicationObject3D!);
-    highlightTrace(trace, traceStep, this.selectedApplicationObject3D!,
-      drawableClassCommunications!, this.args.landscapeData.structureLandscapeData, value);
+    if (this.selectedApplicationObject3D) {
+      this.highlightingService.highlightTrace(
+        trace, traceStep,
+        this.selectedApplicationObject3D,
+        this.args.landscapeData.structureLandscapeData);
+    }
   }
 
   @action
@@ -423,7 +425,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       this.removeHighlighting();
     } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
       || mesh instanceof ClazzCommunicationMesh) {
-      this.applicationRenderer.highlight(mesh);
+      this.highlightingService.highlight(mesh);
       // this.addOpacity(applicationObject3D);
     } else if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
@@ -661,10 +663,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   @action
   highlightModel(entity: Package | Class) {
-    this.debug('Highlight model');
-    const { value } = this.appSettings.transparencyIntensity;
     if (this.selectedApplicationObject3D) {
-      this.applicationRenderer.highlightModel(entity, this.selectedApplicationObject3D, value);
+      this.highlightingService.highlightModel(entity, this.selectedApplicationObject3D);
     }
   }
 

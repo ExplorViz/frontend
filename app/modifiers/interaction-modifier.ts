@@ -121,13 +121,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   get raycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
     const filter = this.namedArgs.raycastFilter;
-
-    // Use default filter if no one is passed
-    if (filter === undefined) {
-      return (intersection: THREE.Intersection) => !(intersection.object instanceof LabelMesh
-        || intersection.object instanceof LogoMesh);
-      // Use no filter if null is passed explicitly
-    } if (filter === null) {
+    if (filter === null) {
       return undefined;
     }
     return filter;

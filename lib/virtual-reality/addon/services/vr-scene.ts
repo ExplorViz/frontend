@@ -72,8 +72,8 @@ export default class VrSceneService extends Service {
   }
 
   reset() {
-    this.scene = new THREE.Scene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.clear();
+    // this.scene.background = this.configuration.landscapeColors.backgroundColor;
   }
 
   addFloor() {

@@ -1,4 +1,3 @@
-import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import { all } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';

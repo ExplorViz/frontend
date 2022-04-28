@@ -160,6 +160,14 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  openLandscapeView() {
+    this.roomSerializer.serializeRoom();
+    this.closeDataSelection();
+    this.showAR = false;
+    this.showVR = false;
+  }
+
+  @action
   resetView() {
     this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
   }

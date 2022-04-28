@@ -2,13 +2,17 @@ import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import VrMenuFactoryService from 'explorviz-frontend/services/vr-menu-factory';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
-  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
+  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import RemoteVrUserService from './remote-vr-users';
 import VrSceneService from './vr-scene';
@@ -16,6 +20,7 @@ import VrSceneService from './vr-scene';
 type RestoreOptions = {
   restoreLandscapeData: boolean;
 };
+
 
 export default class VrRoomSerializer extends Service {
   @service('detached-menu-groups')
@@ -175,16 +180,37 @@ export default class VrRoomSerializer extends Service {
   private serializeOpenApplications(): SerialzedApp[] {
     return this.applicationRenderer
       .getOpenApplications()
-      .map((application) => ({
-        id: application.dataModel.id,
-        position: application.position.toArray(),
-        quaternion: application
-          .quaternion
-          .toArray(),
-        scale: application.scale.toArray(),
-        openComponents: Array.from(application.openComponentIds),
-        highlightedComponents: [],
-      }));
+      .map((application) => this.serializeApplication(application));
+  }
+
+  serializeApplication(application: ApplicationObject3D) {
+    return {
+      id: application.dataModel.id,
+      position: application.position.toArray(),
+      quaternion: application
+        .quaternion
+        .toArray(),
+      scale: application.scale.toArray(),
+      openComponents: Array.from(application.openComponentIds),
+      highlightedComponents: this.serializeHighlightedComponent(application),
+    }
+  }
+
+  private serializeHighlightedComponent(application: ApplicationObject3D) {
+    const highlightedEntity = application.highlightedEntity;
+    if (highlightedEntity && (
+      highlightedEntity instanceof ComponentMesh
+      || highlightedEntity instanceof ClazzMesh
+      || highlightedEntity instanceof ClazzCommunicationMesh)) {
+      return [{
+        appId: application.dataModel.id,
+        userId: '1',
+        entityType: highlightedEntity.constructor.name,
+        entityId: highlightedEntity.dataModel.id,
+        isHighlighted: true,
+      }]
+    }
+    return [];
   }
 
   private serializeDetachedMenus(): SerializedDetachedMenu[] {

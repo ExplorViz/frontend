@@ -86,7 +86,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
         if (foundationMesh && foundationMesh instanceof FoundationMesh) {
             foundationMesh.setDefaultMaterial();
         }
-        this.applicationRenderer.updateHighlighting(applicationObject3D, 1);
     }
 
     /**
