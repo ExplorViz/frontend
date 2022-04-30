@@ -72,6 +72,10 @@
           applicationArgs=@applicationArgs
           landscapeData=@landscapeData
         }}
+        {{collaborative-modifier
+          raycastObject3D=this.intersectableObjects
+          camera=this.localUser.defaultCamera
+        }}
       >
         <RightClickMenu
           @items={{this.rightClickMenuItems}}

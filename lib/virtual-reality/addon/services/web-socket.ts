@@ -22,6 +22,8 @@ export default class WebSocketService extends Service.extend(Evented) {
 
   private responseHandlers = new Map<Nonce, ResponseHandler<any>>();
 
+  socketCloseCallback: ((event: any) => void) | null = null;
+
   private getSocketUrl(ticketId: string) {
     const collaborationServiceSocket = collaborationService.replace(/^http(s?):\/\//i, 'ws$1://');
     return collaborationServiceSocket + collaborationSocketPath + ticketId;
@@ -47,9 +49,9 @@ export default class WebSocketService extends Service.extend(Evented) {
     }
 
     // Invoke external event listener for close event.
-    // if (this.socketCloseCallback) {
-    //   this.socketCloseCallback(event);
-    // }
+    if (this.socketCloseCallback) {
+      this.socketCloseCallback(event);
+    }
 
     // Remove internal event listeners.
     this.currentSocket.off('message', this.messageHandler);

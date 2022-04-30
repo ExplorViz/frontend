@@ -1,18 +1,17 @@
-import Modifier from 'ember-modifier';
-import { action } from '@ember/object';
 import { assert } from '@ember/debug';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
-import THREE, { Object3D, Vector2 } from 'three';
+import { registerDestructor } from '@ember/destroyable';
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import CollaborativeService from 'explorviz-frontend/services/collaborative-service';
-import CollaborativeSettingsService from 'explorviz-frontend/services/collaborative-settings-service';
-import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
-import debugLogger from 'ember-debug-logger';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { taskFor } from 'ember-concurrency-ts';
-import { registerDestructor } from '@ember/destroyable';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import debugLogger from 'ember-debug-logger';
+import Modifier from 'ember-modifier';
+import CollaborativeService from 'explorviz-frontend/services/collaborative-service';
+import CollaborativeSettingsService from 'explorviz-frontend/services/collaborative-settings-service';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import THREE, { Object3D, Vector2 } from 'three';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 
 export type Position2D = {
@@ -176,6 +175,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
+
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
+
   @action
   onClickEventsingleClickUp(event: MouseEvent) {
     if (event.button == 0 && this.pointers.length == 1) {
@@ -186,7 +189,23 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
           if (intersectedViewObj) {
             if (event.altKey) {
               if (this.localUser.mousePing) {
-                taskFor(this.localUser.mousePing.ping).perform({ parentObj: intersectedViewObj.object, position: intersectedViewObj.point })
+
+                const parentObj = intersectedViewObj.object.parent;
+                const pingPosition = intersectedViewObj.point;
+                if (parentObj) {
+
+                  parentObj.worldToLocal(pingPosition);
+                  taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+
+                  if (this.localUser.isOnline) {
+                    if (parentObj instanceof ApplicationObject3D) {
+                      // AlertifyHandler.showAlertifyMessage('OBJ:' + pingPosition.toArray())
+                      this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
+                    } else {
+                      this.sender.sendMousePingUpdate('landscape', false, pingPosition);
+                    }
+                  }
+                }
               }
             } else {
               this.namedArgs.singleClick?.(intersectedViewObj);

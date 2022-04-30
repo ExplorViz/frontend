@@ -1,33 +1,21 @@
 import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
-import VrMenuFactoryService from 'explorviz-frontend/services/vr-menu-factory';
+import TimestampService from 'explorviz-frontend/services/timestamp';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
-import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
   SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
-import RemoteVrUserService from './remote-vr-users';
-import VrSceneService from './vr-scene';
-
-type RestoreOptions = {
-  restoreLandscapeData: boolean;
-};
-
 
 export default class VrRoomSerializer extends Service {
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
-
-  @service('remote-vr-users')
-  private remoteUsers!: RemoteVrUserService;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -35,29 +23,10 @@ export default class VrRoomSerializer extends Service {
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
 
-  @service('vr-menu-factory')
-  private menuFactory!: VrMenuFactoryService;
-
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
-
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
+  @service('timestamp')
+  private timestampService!: TimestampService;
 
   serializedRoom?: SerializedVrRoom;
-
-  /**
-   * Runs the given action and tries to restore the previous state of the room
-   * when it completes.
-   */
-  async preserveRoom(
-    action: () => Promise<void>,
-    restoreOptions?: RestoreOptions,
-  ) {
-    const room = this.serializeRoom();
-    await action();
-    this.restoreRoom(room, restoreOptions);
-  }
 
   /**
    * Creates a JSON object for the current state of the room.
@@ -69,95 +38,6 @@ export default class VrRoomSerializer extends Service {
       detachedMenus: this.serializeDetachedMenus(),
     };
     return this.serializedRoom
-  }
-
-  /**
-   * Restores a previously serialized room.
-   */
-  async restoreRoom(
-    room: SerializedVrRoom,
-    options: RestoreOptions = {
-      restoreLandscapeData: true,
-    },
-  ) {
-    // Reset room.
-    this.applicationRenderer.removeAllApplicationsLocally();
-    this.detachedMenuGroups.removeAllDetachedMenusLocally();
-
-    // Optionally restore landscape data.
-    if (options.restoreLandscapeData) {
-      await this.timestampService.updateLandscapeTokenLocally(
-        room.landscape.landscapeToken,
-        room.landscape.timestamp,
-      );
-    }
-
-    // Restore landscape, apps and meus.
-    await this.restoreRoomWithoutTimestamp(room);
-  }
-
-  private async restoreRoomWithoutTimestamp({
-    detachedMenus,
-    openApps,
-    landscape,
-  }: SerializedVrRoom) {
-    // Initialize landscape.
-    this.landscapeRenderer.landscapeObject3D.position.fromArray(
-      landscape.position,
-    );
-    this.landscapeRenderer.landscapeObject3D.quaternion.fromArray(
-      landscape.quaternion,
-    );
-    this.landscapeRenderer.landscapeObject3D.scale.fromArray(landscape.scale);
-
-    // Initialize applications.
-    const tasks: Promise<any>[] = [];
-    openApps.forEach((app) => {
-      const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
-        app.id,
-      );
-      if (application) {
-        tasks.push(
-          this.applicationRenderer.addApplicationLocally(application, {
-            position: new THREE.Vector3(...app.position),
-            quaternion: new THREE.Quaternion(...app.quaternion),
-            scale: new THREE.Vector3(...app.scale),
-            openComponents: new Set(app.openComponents),
-            highlightedComponents: app.highlightedComponents.map(
-              (highlightedComponent) => ({
-                entityType: highlightedComponent.entityType,
-                entityId: highlightedComponent.entityId,
-                color: this.remoteUsers.lookupRemoteUserById(
-                  highlightedComponent.userId,
-                )?.color,
-              }),
-            ),
-          }),
-        );
-      }
-    });
-
-    // Wait for applications to be opened before opening the menus. Otherwise
-    // the entities do not exist.
-    await Promise.all(tasks);
-
-    // Initialize detached menus.
-    detachedMenus.forEach((detachedMenu) => {
-      const object = this.sceneService.findMeshByModelId(
-        detachedMenu.entityType,
-        detachedMenu.entityId,
-      );
-      if (isEntityMesh(object)) {
-        const menu = this.menuFactory.buildInfoMenu(object);
-        menu.position.fromArray(detachedMenu.position);
-        menu.quaternion.fromArray(detachedMenu.quaternion);
-        menu.scale.fromArray(detachedMenu.scale);
-        this.detachedMenuGroups.addDetachedMenuLocally(
-          menu,
-          detachedMenu.objectId,
-        );
-      }
-    });
   }
 
   // ToDo: Add both global and local positions

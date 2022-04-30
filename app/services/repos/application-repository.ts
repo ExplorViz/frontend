@@ -2,7 +2,7 @@ import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { ApplicationHeatmapData, Metric } from 'heatmap/services/heatmap-configuration';
+import { ApplicationHeatmapData } from 'heatmap/services/heatmap-configuration';
 import { AddApplicationArgs, LayoutData } from '../application-renderer';
 
 export default class ApplicationRepository extends Service.extend({

@@ -70,11 +70,6 @@ export default class RenderingLoop extends EmberObject {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
-
-      // TODO taken form vr-rendering
-      // Send position update to backend. This must happen after the scene has
-      // been rendered such that the camera position is not corrupted.
-      // this.sendPoses();
     });
   }
 

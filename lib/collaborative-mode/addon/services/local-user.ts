@@ -49,6 +49,7 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera.position.set(0, 1, 2);
     this.userGroup.add(this.defaultCamera);
     this.mousePing = new MousePing(new THREE.Color('skyblue'));
+    AlertifyHandler.showAlertifyMessage('LocalUserInited')
   }
 
   get camera() {
@@ -112,6 +113,15 @@ export default class LocalUser extends Service.extend({
         AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
       }
     }
+  }
+
+  /**
+   * Switch to offline mode, close socket connection
+   */
+  disconnect() {
+    this.connectionStatus = 'offline';
+    this.currentRoomId = null;
+    this.webSocket.closeSocket();
   }
 }
 

@@ -5,9 +5,8 @@ import VrRoomService from 'virtual-reality/services/vr-room';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
-import LocalUser from 'collaborative-mode/services/local-user';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 interface XrCollaborationArgs {
   removeComponent(componentPath: string): void
@@ -20,9 +19,9 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   @service('vr-room')
   roomService!: VrRoomService;
 
-  @service('vr-timestamp')
+  @service('timestamp')
   // @ts-ignore since it is used in template
-  private timestampService!: VrTimestampService;
+  private timestampService!: TimestampService;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;

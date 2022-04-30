@@ -1,16 +1,20 @@
 import { assert } from '@ember/debug';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
 import CollaborativeSettingsService from 'collaborative-mode/services/collaborative-settings-service';
 import EventSettingsService from 'collaborative-mode/services/event-settings-service';
 import {
   Click, CollaborativeEvents, CursorPosition, Perspective
 } from 'collaborative-mode/utils/collaborative-data';
-import { perform } from 'ember-concurrency-ts';
+import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import adjustForObjectRotation from 'explorviz-frontend/utils/collaborative-util';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -21,6 +25,8 @@ import THREE, { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
+import { ComponentUpdateMessage, COMPONENT_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/component_update';
+import { HighlightingUpdateMessage, HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
 import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
 
 interface IModifierArgs {
@@ -48,6 +54,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.collaborativeService.on(CollaborativeEvents.Perspective, this.receivePerspective);
     this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
+    this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
+    this.webSocket.on(HIGHLIGHTING_UPDATE_EVENT, this, this.onHighlightingUpdate);
     // this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     // this.webSocket.on(APP_CLOSED_EVENT, this, this.onAppClosed);
     // this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
@@ -63,6 +71,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.collaborativeService.off(CollaborativeEvents.Perspective, this.receivePerspective);
     this.webSocket.off(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.off(APP_OPENED_EVENT, this, this.onAppOpened);
+    this.webSocket.off(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
+    this.webSocket.off(HIGHLIGHTING_UPDATE_EVENT, this, this.onHighlightingUpdate);
   }
 
   debug = debugLogger('CollaborativeModifier');
@@ -76,8 +86,14 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('collaborative-service')
   collaborativeService!: CollaborativeService;
 
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
+
   @service('event-settings-service')
   eventSettings!: EventSettingsService;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
 
   get canvas(): HTMLCanvasElement {
     assert(
@@ -109,10 +125,67 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       id, position, quaternion, scale,
     },
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
-    if (!this.args.named.onDoubleClick) { return; }
-    const application = this.getApplicationMeshById(id);
-    if (application) {
-      this.args.named.onDoubleClick(application);
+    perform(this.applicationRenderer.openApplicationTask,
+      id, {
+      position: new THREE.Vector3(...position),
+      quaternion: new THREE.Quaternion(...quaternion),
+      scale: new THREE.Vector3(...scale),
+    },
+      false)
+  }
+
+  onComponentUpdate({
+    originalMessage: {
+      isFoundation, appId, isOpened, componentId,
+    },
+  }: ForwardedMessage<ComponentUpdateMessage>): void {
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
+      appId,
+    );
+    if (!applicationObject3D) return;
+
+    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+
+    if (isFoundation) {
+      if (isOpened) {
+        this.applicationRenderer.openAllComponentsLocally(applicationObject3D);
+      } else {
+        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
+      }
+    } else if (componentMesh instanceof ComponentMesh) {
+      this.applicationRenderer.toggleComponentLocally(
+        componentMesh,
+        applicationObject3D,
+      );
+    }
+  }
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
+
+  onHighlightingUpdate({
+    userId,
+    originalMessage: {
+      isHighlighted, appId, entityType, entityId,
+    },
+  }: ForwardedMessage<HighlightingUpdateMessage>): void {
+    const application = this.applicationRenderer.getApplicationById(appId);
+    if (!application) return;
+
+    const user = this.collaborationSession.lookupRemoteUserById(userId);
+    if (!user) return;
+
+    if (isHighlighted) {
+      this.highlightingService.hightlightComponentLocallyByTypeAndId(
+        application,
+        {
+          entityType,
+          entityId,
+          color: user.color,
+        },
+      );
+    } else {
+      this.highlightingService.removeHighlightingLocally(application);
     }
   }
 
@@ -127,22 +200,23 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onMousePingUpdate({
     userId,
-    originalMessage: { modelId, isApplication, position },
+    originalMessage: { modelId, position },
   }: ForwardedMessage<MousePingUpdateMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
-    const applicationObj = this.getApplicationMeshById(modelId);
-    this.debug('Got mouse ping update - app: ' + applicationObj);
+    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
 
-    if (isApplication && applicationObj) {
-      perform(remoteUser.mou)
-      remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
+    const point = new THREE.Vector3().fromArray(position);
+    if (applicationObj) {
+      taskFor(remoteUser.mousePing.ping).perform({ parentObj: applicationObj, position: point });
     } else {
-      remoteUser.addMousePing(this.raycastObject3D,
-        new THREE.Vector3().fromArray(position));
+      taskFor(remoteUser.mousePing.ping).perform({ parentObj: this.landscapeRenderer.landscapeObject3D, position: point });
     }
   }
+
+  @service('landscape-renderer')
+  private landscapeRenderer!: LandscapeRenderer;
 
   @action
   receiveMouseMove(mouse: CursorPosition) {

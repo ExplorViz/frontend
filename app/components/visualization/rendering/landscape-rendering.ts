@@ -12,15 +12,16 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import { ApplicationData } from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { applyDefaultApplicationLayout, moveCameraTo, openComponentMesh } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { light, spotlight } from 'explorviz-frontend/utils/lights';
@@ -36,7 +37,6 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
-import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface Args {
@@ -73,8 +73,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service()
-  worker!: any;
+  @service('toast-message')
+  toastMessage!: ToastMessage;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -91,8 +91,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer
 
-  @service('vr-highlighting')
-  highlightingService!: VrHighlightingService;
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
   webglrenderer!: THREE.WebGLRenderer;
 
@@ -180,9 +180,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.scene.add(light());
     this.scene.add(spotlight());
     this.landscapeRenderer.resetAndAddToScene(this.scene);
-    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
-    this.applicationRenderer.showMessage = (message => AlertifyHandler.showAlertifyMessage(message));
-    this.applicationRenderer.showSuccess = (message => AlertifyHandler.showAlertifySuccess(message));
+    this.applicationRenderer.resetAndAddToScene('browser', this.scene, this.updatables);
+    // reset to default
+    this.toastMessage.init();
+    this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
     this.debug('Lights and objetcs added called');
   }
 
@@ -225,7 +226,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
         updatables: this.updatables,
       });
     this.renderingLoop.start();
-    addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
+    // addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
   }
 
   /**
@@ -430,8 +431,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       this.removeHighlighting();
     } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
       || mesh instanceof ClazzCommunicationMesh) {
-      this.highlightingService.highlight(mesh);
-      // this.addOpacity(applicationObject3D);
+      if (mesh.parent instanceof ApplicationObject3D) {
+        this.highlightingService.highlightComponent(mesh!.parent, mesh);
+      }
     } else if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
@@ -554,7 +556,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       perform(
         this.applicationRenderer.openApplicationTask,
         appId,
-        this.initializeNewApplication
       )
     }
   }

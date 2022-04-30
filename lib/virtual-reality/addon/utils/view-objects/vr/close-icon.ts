@@ -20,7 +20,7 @@ export default class CloseIcon extends BaseMesh implements IntersectableObject {
   constructor({
     onClose,
     textures,
-    radius = 0.075,
+    radius = 4,
     segments = 32,
   }: {
     onClose: () => Promise<boolean>;

@@ -2,7 +2,6 @@ import { action } from '@ember/object';
 import Evented from '@ember/object/evented';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import { enqueueTask } from 'ember-concurrency-decorators';
 import debugLogger from 'ember-debug-logger';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';

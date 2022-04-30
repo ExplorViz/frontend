@@ -1,17 +1,15 @@
 import { action } from '@ember/object';
-import { tracked } from '@glimmer/tracking';
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -25,7 +23,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
-import VrHighlightingService, { HightlightComponentArgs } from 'virtual-reality/services/vr-highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
@@ -34,8 +31,10 @@ import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import { SerializedVrRoom, SerialzedApp } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
+import HighlightingService, { HightlightComponentArgs } from './highlighting-service';
 import ApplicationRepository, { ApplicationData } from './repos/application-repository';
 import FontRepository from './repos/font-repository';
+import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 
 const APPLICATION_SCALAR = 0.01;
@@ -57,11 +56,15 @@ export type AddApplicationArgs = {
   highlightedComponents?: HightlightComponentArgs[];
 };
 
+export type ApplicationRendererMode = 'browser' | 'ar' | 'vr';
+
 export default class ApplicationRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
 
   debug = debugLogger('ApplicationRendering');
+
+  private mode: ApplicationRendererMode = 'browser';
 
   @service('configuration')
   configuration!: Configuration;
@@ -75,8 +78,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('vr-asset-repo')
   private assetRepo!: VrAssetRepository;
 
-  @service('vr-highlighting')
-  private highlightingService!: VrHighlightingService;
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -96,6 +99,9 @@ export default class ApplicationRenderer extends Service.extend({
   @service('vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
+  @service('toast-message')
+  toastMessage!: ToastMessage;
+
   private structureLandscapeData!: StructureLandscapeData;
 
   private openApplications: Map<string, ApplicationObject3D>;
@@ -107,10 +113,7 @@ export default class ApplicationRenderer extends Service.extend({
   @tracked
   updatables: any[] = [];
 
-  arMode: boolean = false;
-
-  showMessage: (message: string) => void = (message => AlertifyHandler.showAlertifyMessage(message));
-  showSuccess: (message: string) => void = (message => AlertifyHandler.showAlertifySuccess(message));
+  initCallback?: (applicationObject3D: ApplicationObject3D) => void;
 
   get appSettings() {
     return this.userSettings.applicationSettings;
@@ -129,22 +132,20 @@ export default class ApplicationRenderer extends Service.extend({
     for (let i = 0; i < 5; i++) {
       if (this.applicationMarkers.length <= i) {
         const applicationMarker = new THREE.Group();
-        applicationMarker.position.set(i * 1 - 1, 0.1, 2);
         this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
       }
     }
   }
 
-  resetAndAddToScene(scene: THREE.Scene, updateables: any[]) {
+  resetAndAddToScene(mode: ApplicationRendererMode, scene: THREE.Scene, updateables: any[]) {
+    this.mode = mode;
     this.updatables = updateables;
     this.openApplications.clear();
+    let i = 0;
     for (const applicationMarker of this.applicationMarkers) {
+      applicationMarker.position.set(i++ * 1 - 1, 0.1, 2);
       applicationMarker.clear();
       scene.add(applicationMarker);
-    }
-    if (this.roomSerializer.serializedRoom) {
-      this.debug('Restore previous application state');
-      this.restore(this.roomSerializer.serializedRoom);
     }
   }
 
@@ -207,7 +208,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addGlobe(applicationObject3D);
     // Set initial position, rotation and scale.
-    if (args.position) applicationObject3D.parent?.position.copy(args.position);
+    if (this.mode == 'vr' && args.position) applicationObject3D.parent?.position.copy(args.position);
     if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
     if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
@@ -246,27 +247,30 @@ export default class ApplicationRenderer extends Service.extend({
   @enqueueTask
   * openApplicationTask(
     applicationId: string,
-    initCallback?: (applicationObject3D: ApplicationObject3D) => void,
     addApplicationArgs: AddApplicationArgs = {},
+    send: boolean = true,
   ) {
     const applicationData = this.applicationRepo.getById(applicationId);
     const application = applicationData?.application;
     if (!applicationData || application?.packages.length === 0) {
-      this.showMessage(
+      this.toastMessage.info(
         `Sorry, there is no information for application <b>
         ${application?.name}</b> available.`
       );
       return;
     }
     if (this.isApplicationOpen(applicationId)) {
-      this.showMessage(
+      this.toastMessage.info(
         'Application already opened'
       );
       return;
     }
-    const applicationObject3D = yield perform(this.addApplicationTask, applicationData, addApplicationArgs);
-    if (initCallback && applicationObject3D) {
-      initCallback(applicationObject3D);
+    const applicationObject3D = (yield perform(this.addApplicationTask, applicationData, addApplicationArgs)) as ApplicationObject3D;
+    if (this.initCallback && applicationObject3D) {
+      this.initCallback(applicationObject3D);
+    }
+    if (send) {
+      this.sender.sendAppOpened(applicationObject3D);
     }
   }
 
@@ -415,7 +419,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    if (!this.arMode || this.arSettings.renderCommunication) {
+    if (this.mode != 'ar' || this.arSettings.renderCommunication) {
       this.addCommunication(applicationObject3D);
     }
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
@@ -567,7 +571,7 @@ export default class ApplicationRenderer extends Service.extend({
         const message = `Application '${applicationModel.name}' successfully opened <br>
           on marker #${i + 1}.`;
 
-        this.showSuccess(message);
+        this.toastMessage.success(message);
 
         break;
       }
@@ -592,11 +596,13 @@ export default class ApplicationRenderer extends Service.extend({
     for (const app of room.openApps) {
 
       const applicationData = this.applicationRepo.getById(app.id);
-      perform(
-        this.addApplicationTask,
-        applicationData,
-        serializedRoomToAddApplicationArgs(app),
-      )
+      if (applicationData) {
+        perform(
+          this.addApplicationTask,
+          applicationData,
+          serializedRoomToAddApplicationArgs(app),
+        )
+      }
     }
   }
 

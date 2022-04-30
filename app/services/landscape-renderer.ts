@@ -17,6 +17,7 @@ import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-lay
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
+import { SerializedLandscape } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import FontRepository from './repos/font-repository';
 
@@ -363,6 +364,12 @@ export default class LandscapeRenderer extends Service.extend({
     const landscapeRect = this.landscapeObject3D.getMinMaxRect(this.modelIdToPlaneLayout);
 
     updateCameraZoom(landscapeRect, this.localUser.camera, this.webglrenderer);
+  }
+
+  restore(landscape: SerializedLandscape) {
+    this.landscapeObject3D.position.fromArray(landscape.position);
+    this.landscapeObject3D.quaternion.fromArray(landscape.quaternion);
+    this.landscapeObject3D.scale.fromArray(landscape.scale);
   }
 
   /**

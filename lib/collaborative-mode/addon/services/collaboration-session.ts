@@ -1,12 +1,12 @@
 import Service, { inject as service } from '@ember/service';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastMessage from 'explorviz-frontend/services/toast-message';
 import THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { SelfConnectedMessage, SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
 import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
-import { UserDisconnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
+import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 
@@ -15,6 +15,9 @@ export default class CollaborationSession extends Service.extend({
 }) {
 
   debug = debugLogger("CollaborationSession");
+
+  @service('toast-message')
+  toastMessage!: ToastMessage;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -35,11 +38,14 @@ export default class CollaborationSession extends Service.extend({
     this.debug('Initializing collaboration session');
     this.webSocket.on(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
+    this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
+    this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
   }
 
   willDestroy() {
     this.webSocket.off(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.off(USER_CONNECTED_EVENT, this, this.onUserConnected);
+    this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -59,9 +65,10 @@ export default class CollaborationSession extends Service.extend({
 
   private removeRemoteUser(remoteUser: RemoteUser) {
     // Stop spectating removed user.
-    if (this.spectateUserService.spectatedUser?.userId === remoteUser.userId) {
-      this.spectateUserService.deactivate();
-    }
+    // TODO spectate
+    // if (this.spectateUserService.spectatedUser?.userId === remoteUser.userId) {
+    //   this.spectateUserService.deactivate();
+    // }
 
     // Remove user's 3d-objects.
     remoteUser.removeAllObjects3D();
@@ -120,6 +127,9 @@ export default class CollaborationSession extends Service.extend({
       name: self.name,
       color: new THREE.Color(...self.color),
     });
+
+    // TODO handle VR user
+    // this.sendInitialControllerConnectState();
   }
 
   onUserConnected(
@@ -136,7 +146,7 @@ export default class CollaborationSession extends Service.extend({
     })
     this.addRemoteUser(remoteUser)
 
-    AlertifyHandler.showAlertifySuccess(`User ${remoteUser.userName} connected.`);
+    this.toastMessage.success(`User ${remoteUser.userName} connected.`);
   }
   /**
    * Removes the user that disconnected and informs our user about it.
@@ -147,23 +157,23 @@ export default class CollaborationSession extends Service.extend({
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
-      AlertifyHandler.showAlertifyError(`User ${removedUser.userName} disconnected.`);
+      this.toastMessage.error(`User ${removedUser.userName} disconnected.`);
     }
   }
 
   onSelfDisconnected(event?: any) {
     if (this.localUser.isConnecting) {
-      AlertifyHandler.showAlertifyMessage('Collaboration backend service not responding');
+      this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
       switch (event.code) {
         case 1000: // Normal Closure
-          AlertifyHandler.showAlertifyMessage('Successfully disconnected');
+          this.toastMessage.info('Successfully disconnected');
           break;
         case 1006: // Abnormal closure
-          AlertifyHandler.showAlertifyMessage('Collaboration backend service closed abnormally');
+          this.toastMessage.error('Collaboration backend service closed abnormally');
           break;
         default:
-          AlertifyHandler.showAlertifyMessage('Unexpected disconnect');
+          this.toastMessage.error('Unexpected disconnect');
       }
     }
 
@@ -177,8 +187,7 @@ export default class CollaborationSession extends Service.extend({
     //   );
     // });
 
-    // TODO implement
-    // this.localUser.disconnect();
+    this.localUser.disconnect();
   }
 
 }

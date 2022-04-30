@@ -1,11 +1,11 @@
 import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import TimestampService from 'explorviz-frontend/services/timestamp';
 import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import DisableInputMenu from 'virtual-reality/utils/vr-menus/ui-less-menu/disable-input-menu';
@@ -34,7 +34,6 @@ import DetachedMenuGroupsService from './detached-menu-groups';
 import RemoteVrUserService from './remote-vr-users';
 import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
-import VrRoomSerializer from './vr-room-serializer';
 import VrSceneService from './vr-scene';
 
 export default class VrMenuFactoryService extends Service {
@@ -65,17 +64,14 @@ export default class VrMenuFactoryService extends Service {
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
-  @service('vr-room-serializer')
-  private roomSerializer!: VrRoomSerializer;
-
   @service('vr-room')
   private roomService!: VrRoomService;
 
   @service('vr-scene')
   private sceneService!: VrSceneService;
 
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
+  @service('timestamp')
+  private timestampService!: TimestampService;
 
   buildMainMenu(): MainMenu {
     return new MainMenu({ menuFactory: this });
@@ -152,7 +148,6 @@ export default class VrMenuFactoryService extends Service {
 
   buildTimeMenu(): TimeMenu {
     return new TimeMenu({
-      roomSerializer: this.roomSerializer,
       timestampService: this.timestampService,
       menuFactory: this,
     });

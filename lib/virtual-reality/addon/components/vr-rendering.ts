@@ -8,10 +8,12 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import ToastMessage from 'explorviz-frontend/services/toast-message';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -27,7 +29,6 @@ import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrSceneService from 'virtual-reality/services/vr-scene';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
@@ -44,27 +45,19 @@ import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
 import MenuGroup from 'virtual-reality/utils/vr-menus/menu-group';
 import MenuQueue from 'virtual-reality/utils/vr-menus/menu-queue';
 import HintMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/hint-menu';
-import { ForwardedMessage, FORWARDED_EVENT } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { InitialLandscapeMessage } from 'virtual-reality/utils/vr-message/receivable/landscape';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
-import { SelfConnectedMessage } from 'virtual-reality/utils/vr-message/receivable/self_connected';
-import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
+import { UserConnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_connected';
 import { UserDisconnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import { AppOpenedMessage } from 'virtual-reality/utils/vr-message/sendable/app_opened';
-import { ComponentUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/component_update';
-import { HighlightingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
 import { ObjectMovedMessage } from 'virtual-reality/utils/vr-message/sendable/object_moved';
 import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import { AppClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { SpectatingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
-import { TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import { UserPositionsMessage } from 'virtual-reality/utils/vr-message/sendable/user_positions';
 import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
-import VrHighlightingService from '../services/vr-highlighting';
 import VrRoomSerializer from '../services/vr-room-serializer';
-import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
+import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
 
@@ -91,12 +84,11 @@ const landscapeRendererSettings: LandscapeRendererSettings = {
 };
 
 export default class VrRendering
-  extends Component<Args>
-  implements VrMessageListener {
+  extends Component<Args> {
   // #region SERVICES
 
-  @service('configuration')
-  private configuration!: Configuration;
+  @service('toast-message')
+  toastMessage!: ToastMessage;
 
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
@@ -116,8 +108,8 @@ export default class VrRendering
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('vr-highlighting')
-  private highlightingService!: VrHighlightingService;
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
@@ -128,17 +120,8 @@ export default class VrRendering
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
-  @service('vr-room-serializer')
-  private roomSerializer!: VrRoomSerializer;
-
   @service('vr-scene')
   private sceneService!: VrSceneService;
-
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
 
   // #endregion SERVICES
 
@@ -169,6 +152,14 @@ export default class VrRendering
   updatables: any[] = [];
 
   // #endregion CLASS FIELDS
+  //
+  constructor(owner: any, args: Args) {
+    super(owner, args);
+
+    this.toastMessage.info = (message => this.showHint(message));
+    this.toastMessage.success = (message => this.showHint(message));
+    this.toastMessage.error = (message => this.showHint(message));
+  }
 
   // #region INITIALIZATION
 
@@ -246,9 +237,6 @@ export default class VrRendering
     this.debug('Initializing services...');
     // Use given font for landscape and application rendering.
     this.landscapeRenderer.arMode = true;
-    this.applicationRenderer.arMode = true;
-    this.applicationRenderer.showMessage = (message => this.showHint(message));
-    this.applicationRenderer.showSuccess = (message => this.showHint(message));
   }
 
   /**
@@ -268,14 +256,6 @@ export default class VrRendering
     });
   }
 
-  @action
-  initializeNewApplication(applicationObject3D: ApplicationObject3D) {
-
-    // if (message) {
-    // this.showHint(message);
-    // }
-  }
-
   private initPrimaryInput() {
     // When any base mash is hovered, highlight it.
     this.primaryInputManager.addInputHandler({
@@ -290,7 +270,6 @@ export default class VrRendering
       triggerDown: (event) => {
         perform(this.applicationRenderer.openApplicationTask,
           event.target.dataModel.id,
-          this.initializeNewApplication,
           {
             position: event.intersection.point,
             quaternion: new THREE.Quaternion()
@@ -492,7 +471,7 @@ export default class VrRendering
         updatables: this.updatables,
       });
     this.landscapeRenderer.resetAndAddToScene(this.sceneService.scene);
-    this.applicationRenderer.resetAndAddToScene(this.sceneService.scene, this.updatables);
+    this.applicationRenderer.resetAndAddToScene('vr', this.sceneService.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
 
@@ -916,6 +895,7 @@ export default class VrRendering
     );
   }
 
+  // TODO this has to be executed
   private sendInitialControllerConnectState() {
     this.sender.sendControllerConnect(this.localUser.controller1);
     this.sender.sendControllerConnect(this.localUser.controller2);
@@ -925,77 +905,7 @@ export default class VrRendering
 
   // #region HANDLING MESSAGES
 
-  private onSelfDisconnected(event?: any) {
-    if (this.localUser.isConnecting) {
-      this.showHint('VR service not responding');
-    } else if (event) {
-      switch (event.code) {
-        case 1000: // Normal Closure
-          this.showHint('Successfully disconnected');
-          break;
-        case 1006: // Abnormal closure
-          this.showHint('VR service closed abnormally');
-          break;
-        default:
-          this.showHint('Unexpected disconnect');
-      }
-    }
-
-    // Remove remote users.
-    this.remoteUsers.removeAllRemoteUsers();
-
-    // Reset highlighting colors.
-    this.applicationRenderer.getOpenApplications().forEach((application) => {
-      application.setHighlightingColor(
-        this.configuration.applicationColors.highlightedEntityColor,
-      );
-    });
-
-    this.localUser.disconnect();
-  }
-
-  /**
-   * After succesfully connecting to the backend, create and spawn other users.
-   */
-  onSelfConnected({ self, users }: SelfConnectedMessage): void {
-    // Create User model for all users and add them to the users map by
-    // simulating the event of a user connecting.
-    for (let i = 0; i < users.length; i++) {
-      const userData = users[i];
-      this.onUserConnected(
-        {
-          event: USER_CONNECTED_EVENT,
-          id: userData.id,
-          name: userData.name,
-          color: userData.color,
-          position: userData.position,
-          quaternion: userData.quaternion,
-        },
-        false,
-      );
-      userData.controllers.forEach((controller) => {
-        this.onUserControllerConnect({
-          event: FORWARDED_EVENT,
-          userId: userData.id,
-          originalMessage: {
-            event: USER_CONTROLLER_CONNECT_EVENT,
-            controller,
-          },
-        });
-      });
-    }
-
-    // Initialize local user.
-    this.localUser.connected({
-      id: self.id,
-      name: self.name,
-      color: new THREE.Color(...self.color),
-    });
-
-    // Send controllers.
-    this.sendInitialControllerConnectState();
-  }
-
+  // TODO handle VR users
   onUserConnected(
     {
       id, name, color, position, quaternion,
@@ -1009,7 +919,7 @@ export default class VrRendering
       state: 'online',
       localUser: this.localUser,
     });
-    this.remoteUsers.addRemoteUser({ remoteUser, initialPose: { position, quaternion } });
+    this.remoteUsers.addRemoteUser(remoteUser, { position, quaternion });
 
     if (showConnectMessage) {
       this.messageMenuQueue.enqueueMenu(
@@ -1052,17 +962,6 @@ export default class VrRendering
   }
 
   onMousePingUpdate() { }
-
-  onTimestampUpdate({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): void {
-    this.roomSerializer.preserveRoom(
-      () => this.timestampService.updateTimestampLocally(timestamp),
-      {
-        restoreLandscapeData: false,
-      },
-    );
-  }
 
   onUserControllerConnect({
     userId,
@@ -1117,38 +1016,6 @@ export default class VrRendering
     }
   }
 
-  async onInitialLandscape({
-    landscape,
-    openApps,
-    detachedMenus,
-  }: InitialLandscapeMessage): Promise<void> {
-    this.roomSerializer.restoreRoom({ landscape, openApps, detachedMenus });
-  }
-
-  onAppOpened({
-    originalMessage: {
-      id, position, quaternion, scale,
-    },
-  }: ForwardedMessage<AppOpenedMessage>): void {
-    const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
-      id,
-    );
-    if (application) {
-      this.applicationRenderer.addApplicationLocally(application, {
-        position: new THREE.Vector3(...position),
-        quaternion: new THREE.Quaternion(...quaternion),
-        scale: new THREE.Vector3(...scale),
-      });
-    }
-  }
-
-  onAppClosed({
-    originalMessage: { appId },
-  }: ForwardedMessage<AppClosedMessage>): void {
-    const application = this.applicationRenderer.getApplicationById(appId);
-    if (application) this.applicationRenderer.removeApplicationLocally(application);
-  }
-
   onObjectMoved({
     originalMessage: {
       objectId, position, quaternion, scale,
@@ -1164,52 +1031,6 @@ export default class VrRendering
     movedObject.position.fromArray(position);
     movedObject.quaternion.fromArray(quaternion);
     movedObject.scale.fromArray(scale);
-  }
-
-  onComponentUpdate({
-    originalMessage: { isFoundation, appId, componentId },
-  }: ForwardedMessage<ComponentUpdateMessage>): void {
-    const applicationObject3D = this.applicationRenderer.getApplicationById(
-      appId,
-    );
-    if (!applicationObject3D) return;
-
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
-
-    if (isFoundation) {
-      this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
-    } else if (componentMesh instanceof ComponentMesh) {
-      this.applicationRenderer.toggleComponentLocally(
-        componentMesh,
-        applicationObject3D,
-      );
-    }
-  }
-
-  onHighlightingUpdate({
-    userId,
-    originalMessage: {
-      isHighlighted, appId, entityType, entityId,
-    },
-  }: ForwardedMessage<HighlightingUpdateMessage>): void {
-    const application = this.applicationRenderer.getApplicationById(appId);
-    if (!application) return;
-
-    const user = this.remoteUsers.lookupRemoteUserById(userId);
-    if (!user) return;
-
-    if (isHighlighted) {
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        application,
-        {
-          entityType,
-          entityId,
-          color: user.color,
-        },
-      );
-    } else {
-      this.highlightingService.removeHighlightingLocally(application);
-    }
   }
 
   /**

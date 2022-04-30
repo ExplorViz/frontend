@@ -83,6 +83,7 @@ export default class VisualizationRoute extends BaseRoute {
   resetController(controller: VisualizationController, isExiting: boolean /* , transition: any */) {
     if (isExiting) {
       controller.send('resetLandscapeListenerPolling');
+      controller.willDestroy();
     }
   }
 }

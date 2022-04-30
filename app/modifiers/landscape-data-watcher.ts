@@ -86,7 +86,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
                 };
                 const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
                 const heatmapMetrics = this.worker.postMessage('metrics-worker', workerPayload);
-                const results = yield all([cityLayout, heatmapMetrics]);
+                const results = (yield all([cityLayout, heatmapMetrics])) as any[];
                 let applicationData = this.applicationRepo.getById(application.id);
                 if (applicationData) {
                     applicationData.updateApplication(application, results[0]);
@@ -99,17 +99,41 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             }
         }
 
+        const serializedRoom = this.roomSerializer.serializedRoom;
         perform(this.landscapeRenderer.populateLandscape, this.structureLandscapeData, this.dynamicLandscapeData);
-
-        for (const applicationId of this.applicationRenderer.openApplicationIds) {
-            const applicationData = this.applicationRepo.getById(applicationId);
-            if (applicationData) {
-                perform(
-                    this.applicationRenderer.addApplicationTask,
-                    applicationData,
-                );
-            } else {
-                this.applicationRenderer.removeApplicationLocally(applicationId);
+        if (serializedRoom) {
+            this.landscapeRenderer.restore(serializedRoom.landscape)
+            this.applicationRenderer.restore(serializedRoom);
+            this.roomSerializer.serializedRoom = undefined;
+            // TODO restore detached menus
+            // Initialize detached menus.
+            // detachedMenus.forEach((detachedMenu) => {
+            //   const object = this.sceneService.findMeshByModelId(
+            //     detachedMenu.entityType,
+            //     detachedMenu.entityId,
+            //   );
+            //   if (isEntityMesh(object)) {
+            //     const menu = this.menuFactory.buildInfoMenu(object);
+            //     menu.position.fromArray(detachedMenu.position);
+            //     menu.quaternion.fromArray(detachedMenu.quaternion);
+            //     menu.scale.fromArray(detachedMenu.scale);
+            //     this.detachedMenuGroups.addDetachedMenuLocally(
+            //       menu,
+            //       detachedMenu.objectId,
+            //     );
+            //   }
+            // });
+        } else {
+            for (const applicationId of this.applicationRenderer.openApplicationIds) {
+                const applicationData = this.applicationRepo.getById(applicationId);
+                if (applicationData) {
+                    perform(
+                        this.applicationRenderer.addApplicationTask,
+                        applicationData,
+                    );
+                } else {
+                    this.applicationRenderer.removeApplicationLocally(applicationId);
+                }
             }
         }
     }

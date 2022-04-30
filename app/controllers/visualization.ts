@@ -7,6 +7,7 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
+import LocalUser from 'collaborative-mode/services/local-user';
 import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
@@ -15,17 +16,17 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -63,11 +64,11 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
-
   @service('vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
+
+  @service('timestamp')
+  timestampService!: TimestampService;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -128,6 +129,9 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData')
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
+      if (this.timelineTimestamps.lastObject) {
+        this.timestampService.timestamp = this.timelineTimestamps.lastObject?.timestamp;
+      }
     }
   }
 
@@ -237,18 +241,12 @@ export default class VisualizationController extends Controller {
       if (timestampRecordArray) {
         set(this, 'selectedTimestampRecords', timestampRecordArray);
       }
+      this.timestampService.timestamp = timestamp;
     } catch (e) {
       this.debug('Landscape couldn\'t be requested!', e);
       AlertifyHandler.showAlertifyMessage('Landscape couldn\'t be requested!');
       this.resumeVisualizationUpdating();
     }
-  }
-
-  async restoreRoom(
-    room: SerializedVrRoom) {
-    this.debug('restoreRoom')
-
-    this.updateTimestamp(room.landscape.timestamp)
   }
 
   @action
@@ -301,16 +299,21 @@ export default class VisualizationController extends Controller {
     this.initWebSocket();
     this.collaborationSession.updateRemoteUsers()
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.debug('initRendering done')
   }
 
   willDestroy() {
+    this.localUser.disconnect();
     this.resetLandscapeListenerPolling();
     this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
   }
 
-  @service('local-vr-user')
-  localUser!: LocalVrUser;
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -327,17 +330,16 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
   }: InitialLandscapeMessage): Promise<void> {
-    // await this.roomSerializer.restoreRoom({ landscape, openApps, detachedMenus });
-    await this.restoreRoom({ landscape, openApps, detachedMenus })
-
-    // this.landscapeMarker.add(this.vrLandscapeRenderer.landscapeObject3D);
-    // this.arSettings.updateLandscapeOpacity();
-
-    // this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
-    //   this.addApplicationToMarker(applicationObject3D);
-    // });
+    AlertifyHandler.showAlertifyMessage('On Initial Landscape')
+    this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
+    this.updateTimestamp(landscape.timestamp)
   }
 
+  async onTimestampUpdate({
+    originalMessage: { timestamp },
+  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
+    this.updateTimestamp(timestamp)
+  }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

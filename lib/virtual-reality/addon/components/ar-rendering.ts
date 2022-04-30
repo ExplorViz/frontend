@@ -4,18 +4,19 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform } from 'ember-concurrency-ts';
+import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
-import Interaction from 'explorviz-frontend/utils/interaction';
 import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { light, spotlight } from 'explorviz-frontend/utils/lights';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
@@ -35,22 +36,11 @@ import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import DeltaTime from 'virtual-reality/services/delta-time';
 import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
-import VrHighlightingService from 'virtual-reality/services/vr-highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import { AppOpenedMessage, APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
-import { ComponentUpdateMessage, COMPONENT_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/component_update';
-import { HighlightingUpdateMessage, HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
-import { MousePingUpdateMessage, MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import { AppClosedMessage, APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
-import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import VrRoomSerializer from '../services/vr-room-serializer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -78,7 +68,7 @@ type PopupData = {
   entity: DataModel
 };
 
-const landscapeRendererSettings: LandscapeRendererSettings = {
+export const landscapeRendererSettings: LandscapeRendererSettings = {
   landscapeScalar: 0.3,
   landscapeDepth: 0.7,
   z_depth: 0.2,
@@ -92,6 +82,9 @@ declare const THREEx: any;
 
 export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
+
+  @service('toast-message')
+  toastMessage!: ToastMessage;
 
   @service('configuration')
   configuration!: Configuration;
@@ -108,8 +101,8 @@ export default class ArRendering extends Component<Args> {
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
-  @service('vr-highlighting')
-  private highlightingService!: VrHighlightingService;
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('ar-settings')
   arSettings!: ArSettings;
@@ -120,14 +113,8 @@ export default class ArRendering extends Component<Args> {
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
 
-  @service('vr-timestamp')
-  private timestampService!: VrTimestampService;
-
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('vr-room-serializer')
-  private roomSerializer!: VrRoomSerializer;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -139,10 +126,6 @@ export default class ArRendering extends Component<Args> {
   worker!: any;
 
   debug = debugLogger('ArRendering');
-
-  @tracked
-  // Used to register (mouse) events
-  interaction!: Interaction;
 
   outerDiv!: HTMLElement;
 
@@ -208,9 +191,8 @@ export default class ArRendering extends Component<Args> {
     this.scene = new THREE.Scene();
     this.scene.add(this.landscapeRenderer.landscapeObject3D);
     this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
-    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
-    this.applicationRenderer.showMessage = (message => AlertifyHandler.showAlertifyMessage(message));
-    this.applicationRenderer.showSuccess = (message => AlertifyHandler.showAlertifySuccess(message));
+    this.applicationRenderer.resetAndAddToScene('ar', this.scene, this.updatables);
+    this.toastMessage.init();
     this.scene.add(light());
     this.scene.add(spotlight());
     this.scene.background = null;
@@ -252,7 +234,6 @@ export default class ArRendering extends Component<Args> {
     this.renderingLoop.start();
     this.initCameraCrosshair();
     this.initInteraction();
-    this.initWebSocket();
   }
 
   updateArToolkit() {
@@ -268,7 +249,6 @@ export default class ArRendering extends Component<Args> {
     // Use given font for landscape and application rendering.
     this.remoteUsers.displayHmd = false;
     this.landscapeRenderer.arMode = true
-    this.applicationRenderer.arMode = true
   }
 
   /**
@@ -352,10 +332,6 @@ export default class ArRendering extends Component<Args> {
    * passes them to a newly created Interaction object
    */
   private initInteraction() {
-    // this.interaction = new Interaction(this.canvas, this.localUser.defaultCamera,
-    //   this.localUser.renderer,
-    //   this.intersectableObjects, {}, ArRendering.raycastFilter);
-
     // Add key listener for room positioning
     window.onkeydown = (event: any) => {
       this.handleKeyboard(event);
@@ -365,16 +341,6 @@ export default class ArRendering extends Component<Args> {
   private configureScene() {
   }
 
-  private async initWebSocket() {
-    this.debug('Initializing websocket...');
-    this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
-    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
-    this.webSocket.on(APP_CLOSED_EVENT, this, this.onAppClosed);
-    this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
-    this.webSocket.on(HIGHLIGHTING_UPDATE_EVENT, this, this.onHighlightingUpdate);
-  }
 
   get intersectableObjects() {
     return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.applicationMarkers];
@@ -521,7 +487,7 @@ export default class ArRendering extends Component<Args> {
     if (this.arToolkitContext.arController !== null) {
       this.arToolkitSource.copyElementSizeTo(this.arToolkitContext.arController.canvas);
     }
-    this.camera.updateProjectionMatrix();
+    // this.camera.updateProjectionMatrix();
   }
 
   @action
@@ -601,12 +567,12 @@ export default class ArRendering extends Component<Args> {
 
   @action
   async handlePing() {
-    if (!this.localUser.isOnline) {
+    if (!this.localColabUser.isOnline) {
       AlertifyHandler.showAlertifyWarning('Offline. <br> Join session with users to ping.');
       return;
-    } if (Array.from(this.remoteUsers.getAllRemoteUsers()).length === 0) {
-      AlertifyHandler.showAlertifyWarning('You are alone in this room. <br> Wait for other users.');
-      return;
+      // } if (Array.from(this.remoteUsers.getAllRemoteUsers()).length === 0) {
+      //   AlertifyHandler.showAlertifyWarning('You are alone in this room. <br> Wait for other users.');
+      //   return;
     }
 
     const intersection = this.raycastCenter();
@@ -617,17 +583,12 @@ export default class ArRendering extends Component<Args> {
     }
 
     const parentObj = intersection.object.parent;
-    const pingPosition = parentObj.worldToLocal(intersection.point);
+    const pingPosition = intersection.point;
+    parentObj.worldToLocal(pingPosition);
 
-    this.localColabUser.mousePing.ping({ parentObj: parentObj, position: pingPosition })
+    taskFor(this.localColabUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
 
-    // TODO is this
-    // const color = this.localUser.color ? this.localUser.color
-    //   : this.configuration.applicationColors.highlightedEntityColor;
-
-    // this.pingService.addPing(parentObj, pingPosition, color);
-
-    if (this.localUser.isOnline) {
+    if (this.localColabUser.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
       } else {
@@ -796,29 +757,22 @@ export default class ArRendering extends Component<Args> {
   /**
    * Sends a message if a given interval (in seconds) has passed to keep websocket alive
    */
-  private sendKeepAliveMessage(interval = 1) {
-    if (this.deltaTimeService.getCurrentDeltaTime() > interval) {
-      this.deltaTimeService.update();
-
+  private sendKeepAliveMessage(delta: number, interval = 1) {
+    if (delta > interval) {
       // Send camera pose as dummy message
       const cameraPose = VrPoses.getCameraPose(this.localUser.defaultCamera);
       this.sender.sendPoseUpdate(cameraPose);
     }
   }
 
-  // if (this.isDestroyed) {
-  //   return;
-  // }
-
-  // requestAnimationFrame(this.animate);
-  // Update time dependent services
-
   tick(delta: number) {
     if (this.webSocket.isWebSocketOpen()) {
-      this.sendKeepAliveMessage();
+      this.sendKeepAliveMessage(delta);
     }
 
     this.remoteUsers.updateRemoteUsers(delta);
+    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.scene,
+      this.resize);
 
     this.updateArToolkit();
 
@@ -826,8 +780,6 @@ export default class ArRendering extends Component<Args> {
 
     // this.localUser.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
 
-    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.scene,
-      this.resize);
   }
 
   // #endregion RENDERING
@@ -887,7 +839,6 @@ export default class ArRendering extends Component<Args> {
     perform(
       this.applicationRenderer.openApplicationTask,
       appId,
-      this.initializeNewApplication
     )
   }
 
@@ -973,188 +924,8 @@ export default class ArRendering extends Component<Args> {
     // Reset AR and position of alerts
     ArRendering.cleanUpAr();
 
-    this.webSocket.off(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
-    this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.off(APP_OPENED_EVENT, this, this.onAppOpened);
-    this.webSocket.off(APP_CLOSED_EVENT, this, this.onAppClosed);
-    this.webSocket.off(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
-    this.webSocket.off(HIGHLIGHTING_UPDATE_EVENT, this, this.onHighlightingUpdate);
-
     AlertifyHandler.setAlertifyPosition('bottom-right');
   }
 
   // #endregion UTILS
-
-  // #region HANDLING MESSAGES
-
-  onSelfDisconnected(event?: any) {
-    if (this.localUser.isConnecting) {
-      AlertifyHandler.showAlertifyMessage('AR backend service not responding');
-    } else if (event) {
-      switch (event.code) {
-        case 1000: // Normal Closure
-          AlertifyHandler.showAlertifyMessage('Successfully disconnected');
-          break;
-        case 1006: // Abnormal closure
-          AlertifyHandler.showAlertifyMessage('AR backend service closed abnormally');
-          break;
-        default:
-          AlertifyHandler.showAlertifyMessage('Unexpected disconnect');
-      }
-    }
-
-    // Remove remote users.
-    this.remoteUsers.removeAllRemoteUsers();
-
-    // Reset highlighting colors.
-    this.applicationRenderer.getOpenApplications().forEach((application) => {
-      application.setHighlightingColor(
-        this.configuration.applicationColors.highlightedEntityColor,
-      );
-    });
-
-    this.localUser.disconnect();
-  }
-
-  /**
-   * Updates whether the given user is pinging with the specified controller or not.
-   */
-  onPingUpdate() { }
-
-  onMousePingUpdate({
-    userId,
-    originalMessage: { modelId, isApplication, position },
-  }: ForwardedMessage<MousePingUpdateMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
-    if (!remoteUser) return;
-
-    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
-
-    if (applicationObj && isApplication) {
-      this.debug('onMousePingUpdate' + position)
-      // remoteUser.addMousePing(applicationObj, new THREE.Vector3().fromArray(position));
-    } else {
-      // remoteUser.addMousePing(this.landscapeRenderer.landscapeObject3D,
-      // new THREE.Vector3().fromArray(position));
-    }
-  }
-
-  onTimestampUpdate({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): void {
-    this.roomSerializer.preserveRoom(
-      () => this.timestampService.updateTimestampLocally(timestamp),
-      {
-        restoreLandscapeData: false,
-      },
-    );
-  }
-
-  async onInitialLandscape({
-    landscape,
-    openApps,
-    detachedMenus,
-  }: InitialLandscapeMessage): Promise<void> {
-    await this.roomSerializer.restoreRoom({ landscape, openApps, detachedMenus });
-
-    this.landscapeMarker.add(this.landscapeRenderer.landscapeObject3D);
-    this.arSettings.updateLandscapeOpacity();
-
-    this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
-      this.addApplicationToMarker(applicationObject3D);
-    });
-  }
-
-  async onAppOpened({
-    originalMessage: {
-      id, position, quaternion, scale,
-    },
-  }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
-    const application = this.applicationRenderer.getApplicationInCurrentLandscapeById(
-      id,
-    );
-    if (application) {
-      const applicationObject3D = await
-        this.applicationRenderer.addApplicationLocally(application, {
-          position: new THREE.Vector3(...position),
-          quaternion: new THREE.Quaternion(...quaternion),
-          scale: new THREE.Vector3(...scale),
-        });
-
-      this.addApplicationToMarker(applicationObject3D);
-    }
-  }
-
-  onAppClosed({
-    originalMessage: { appId },
-  }: ForwardedMessage<AppClosedMessage>): void {
-    const application = this.applicationRenderer.getApplicationById(appId);
-    if (application) {
-      AlertifyHandler.showAlertifyWarning(`Application '${application.dataModel.name}' closed.`);
-      this.applicationRenderer.removeApplicationLocally(application);
-    }
-  }
-
-  onObjectMoved(): void { }
-
-  onComponentUpdate({
-    originalMessage: {
-      isFoundation, appId, isOpened, componentId,
-    },
-  }: ForwardedMessage<ComponentUpdateMessage>): void {
-    const applicationObject3D = this.applicationRenderer.getApplicationById(
-      appId,
-    );
-    if (!applicationObject3D) return;
-
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
-
-    if (isFoundation) {
-      if (isOpened) {
-        this.applicationRenderer.openAllComponentsLocally(applicationObject3D);
-      } else {
-        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
-      }
-    } else if (componentMesh instanceof ComponentMesh) {
-      this.applicationRenderer.toggleComponentLocally(
-        componentMesh,
-        applicationObject3D,
-      );
-    }
-  }
-
-  onHighlightingUpdate({
-    userId,
-    originalMessage: {
-      isHighlighted, appId, entityType, entityId,
-    },
-  }: ForwardedMessage<HighlightingUpdateMessage>): void {
-    const application = this.applicationRenderer.getApplicationById(appId);
-    if (!application) return;
-
-    const user = this.remoteUsers.lookupRemoteUserById(userId);
-    if (!user) return;
-
-    if (isHighlighted) {
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        application,
-        {
-          entityType,
-          entityId,
-          color: user.color,
-        },
-      );
-    } else {
-      this.highlightingService.removeHighlightingLocally(application);
-    }
-  }
-
-  onSpectatingUpdate() { }
-
-  onMenuDetached() { }
-
-  onDetachedMenuClosed() { }
-
-  // #endregion HANDLING MESSAGES
 }

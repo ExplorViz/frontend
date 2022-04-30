@@ -1,7 +1,7 @@
-import { restartableTask } from 'ember-concurrency-decorators';
-import LandscapeObject3D from "explorviz-frontend/view-objects/3d/landscape/landscape-object-3d";
 import { timeout } from 'ember-concurrency';
+import { restartableTask } from 'ember-concurrency-decorators';
 import THREE from "three";
+import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
 
 export default class MousePing {
   obj: THREE.Object3D | null;
@@ -28,10 +28,10 @@ export default class MousePing {
     }
 
     // Default for applications
-    let size = 2;
+    let size = 0.05;
 
-    if (parentObj instanceof LandscapeObject3D) {
-      size = 0.2;
+    if (parentObj.parent instanceof VrLandscapeObject3D) {
+      size = 0.05;
     }
 
     const geometry = new THREE.SphereGeometry(size, 32, 32);
@@ -39,8 +39,7 @@ export default class MousePing {
     const sphere = new THREE.Mesh(geometry, material);
 
     sphere.position.copy(position);
-
-    // parentObj.add(sphere);
+    parentObj.localToWorld(sphere.position);
     parentObj.attach(sphere);
 
     this.obj = sphere;

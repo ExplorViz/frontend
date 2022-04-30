@@ -20,6 +20,11 @@
           landscapeData=@landscapeData
           applicationArgs=@applicationArgs
         }}
+
+        {{collaborative-modifier
+          raycastObject3D=this.sceneService.scene
+          camera=this.localUser.defaultCamera
+        }}
     >
     </canvas>
     {{#if this.loadNewLandscape.isRunning}}
