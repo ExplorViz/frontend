@@ -1,41 +1,21 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import THREE from 'three';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { computed } from '@ember/object';
+import THREE from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
-
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import SpectateUserService from './spectate-user';
-import VrRoomService from './vr-room';
 import VrSceneService from './vr-scene';
-import WebSocketService from './web-socket';
-
-export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
 export default class LocalVrUser extends Service {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
-
-  @service('vr-room')
-  private roomService!: VrRoomService;
-
   @service('vr-scene')
   private sceneService!: VrSceneService;
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
 
   userId!: string;
 
   @tracked
   userName?: string;
-
-  @tracked
-  color: THREE.Color | undefined;
 
   @tracked
   renderer!: THREE.WebGLRenderer;
@@ -51,48 +31,17 @@ export default class LocalVrUser extends Service {
 
   panoramaSphere: THREE.Object3D | undefined;
 
-  @tracked
-  connectionStatus: ConnectionStatus = 'offline';
-
-  @tracked
-  currentRoomId: string | null = null;
-
-  @computed('color', 'connectionStatus')
-  get highlightingColorStyle() {
-    let hexColor = '';
-    if (this.isOnline && this.color) {
-      hexColor = this.color.getHexString();
-    } else {
-      hexColor = this.configuration.applicationColors.highlightedEntityColor.getHexString();
-    }
-
-    return `color:#${hexColor}`;
-  }
-
   get camera() {
-    if (this.renderer.xr.isPresenting) {
+    if (this.renderer?.xr.isPresenting) {
       return this.renderer.xr.getCamera(this.defaultCamera);
     }
     return this.defaultCamera;
-  }
-
-  get isOnline() {
-    return this.connectionStatus === 'online';
-  }
-
-  get isConnecting() {
-    return this.connectionStatus === 'connecting';
-  }
-
-  get isSpectating() {
-    return this.spectateUserService.isActive;
   }
 
   init() {
     super.init();
 
     this.userId = 'unknown';
-    this.connectionStatus = 'offline';
 
     this.userGroup = new THREE.Group();
     this.sceneService.scene.add(this.userGroup);
@@ -221,9 +170,7 @@ export default class LocalVrUser extends Service {
 
   reset() {
     this.resetPositionAndRotation();
-    this.disconnect();
     this.userId = 'unknown';
-    this.color = undefined;
 
     this.resetController(this.controller1);
     this.controller1 = undefined;
@@ -241,63 +188,6 @@ export default class LocalVrUser extends Service {
       controller.gripSpace?.remove(child);
     });
     controller.removeTeleportArea();
-  }
-
-  async hostRoom() {
-    if (!this.isConnecting) {
-      this.connectionStatus = 'connecting';
-      try {
-        const response = await this.roomService.createRoom();
-        this.joinRoom(response.roomId, { checkConnectionStatus: false });
-      } catch (e: any) {
-        this.connectionStatus = 'offline';
-        AlertifyHandler.showAlertifyError('Cannot reach VR-Service.');
-      }
-    }
-  }
-
-  async joinRoom(roomId: string, {
-    checkConnectionStatus = true,
-  }: { checkConnectionStatus?: boolean } = {}) {
-    if (!checkConnectionStatus || !this.isConnecting) {
-      this.connectionStatus = 'connecting';
-      this.currentRoomId = roomId;
-      try {
-        const response = await this.roomService.joinLobby(this.currentRoomId);
-        this.webSocket.initSocket(response.ticketId);
-      } catch (e: any) {
-        this.connectionStatus = 'offline';
-        this.currentRoomId = null;
-        AlertifyHandler.showAlertifyError('Cannot reach VR-Service.');
-      }
-    }
-  }
-
-  connected({
-    id,
-    name,
-    color,
-  }: {
-    id: string;
-    name: string;
-    color: THREE.Color;
-  }) {
-    this.connectionStatus = 'online';
-    this.userId = id;
-    this.userName = name;
-
-    this.color = color;
-    if (this.controller1) this.controller1.updateControllerColor(color);
-    if (this.controller2) this.controller2.updateControllerColor(color);
-  }
-
-  /**
-   * Switch to offline mode, close socket connection
-   */
-  disconnect() {
-    this.connectionStatus = 'offline';
-    this.currentRoomId = null;
-    this.webSocket.closeSocket();
   }
 }
 

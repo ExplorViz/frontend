@@ -449,6 +449,26 @@ export default class ApplicationRenderer extends Service.extend({
     return this.openApplications.has(id);
   }
 
+  getCommunicationMeshById(id: string) {
+    const openApplications = this.getOpenApplications();
+    for (let i = 0; i < openApplications.length; i++) {
+      const application = openApplications[i];
+      const mesh = application.getCommMeshByModelId(id);
+      if (mesh) return mesh;
+    }
+    return null;
+  }
+
+  getBoxMeshByModelId(id: string) {
+    const openApplications = this.getOpenApplications();
+    for (let i = 0; i < openApplications.length; i++) {
+      const application = openApplications[i];
+      const mesh = application.getBoxMeshbyModelId(id);
+      if (mesh) return mesh;
+    }
+    return null;
+  }
+
   toggleComponent(
     componentMesh: ComponentMesh,
     applicationObject3D: ApplicationObject3D,
@@ -640,6 +660,8 @@ function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
       }),
     ),
   }
+
+
 
 }
 

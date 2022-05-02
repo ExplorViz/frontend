@@ -38,9 +38,9 @@ export default class OnlineMenu extends ConnectionBaseMenu {
   }
 
   private initMenu() {
-    const users = Array.from(this.remoteUsers.getAllRemoteUsers());
+    const users = Array.from(this.collaborationSession.getAllRemoteUsers());
     const title = new TitleItem({
-      text: `Room ${this.localUser.currentRoomId}`,
+      text: `Room ${this.collaborationSession.currentRoomId}`,
       position: { x: 256, y: 20 },
     });
     this.items.push(title);
@@ -54,7 +54,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
       buttonColor: '#aaaaaa',
       textColor: '#ffffff',
       hoverColor: '#dc3b00',
-      onTriggerDown: () => this.localUser.disconnect(),
+      onTriggerDown: () => this.collaborationSession.disconnect(),
     });
     this.items.push(this.disconnectButton);
 
@@ -96,7 +96,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
 
     if (
       !this.arrayEquals(
-        Array.from(this.remoteUsers.getAllRemoteUserIds()),
+        Array.from(this.collaborationSession.getAllRemoteUserIds()),
         Array.from(this.remoteUserButtons.keys()),
       )
     ) {
@@ -117,7 +117,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
         this.redrawMenu();
       },
       onButtonUp: () => {
-        this.localUser.disconnect();
+        this.collaborationSession.disconnect();
         this.menuGroup?.replaceMenu(this.menuFactory.buildConnectionMenu());
       },
     });

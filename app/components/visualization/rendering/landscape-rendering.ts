@@ -12,6 +12,7 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import { ApplicationData } from 'explorviz-frontend/services/repos/application-repository';
@@ -93,6 +94,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('entity-manipulation')
+  // @ts-ignore since it is used in template
+  private entityManipulation!: EntityManipulation;
 
   webglrenderer!: THREE.WebGLRenderer;
 
@@ -685,5 +690,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     }
     const applicationCenter = this.selectedApplicationObject3D.layout.center;
     moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target, this.args.landscapeData.dynamicLandscapeData);
+  }
+
+  @action
+  updateColors() {
+    this.entityManipulation.updateColors(this.scene);
   }
 }

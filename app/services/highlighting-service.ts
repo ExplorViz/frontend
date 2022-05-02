@@ -1,5 +1,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -52,7 +53,7 @@ export default class HighlightingService extends Service.extend({
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('local-vr-user')
+  @service('local-user')
   private localUser!: LocalUser;
 
   @service('application-renderer')
@@ -64,8 +65,22 @@ export default class HighlightingService extends Service.extend({
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
 
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
+
   get opacity() {
     return this.userSettings.applicationSettings.transparencyIntensity.value;
+  }
+
+  get highlightingColorStyle() {
+    let hexColor = '';
+    if (this.collaborationSession.isOnline && this.localUser.color) {
+      hexColor = this.localUser.color.getHexString();
+    } else {
+      hexColor = this.configuration.applicationColors.highlightedEntityColor.getHexString();
+    }
+
+    return `color:#${hexColor}`;
   }
 
   private getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {

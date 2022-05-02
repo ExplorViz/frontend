@@ -88,9 +88,6 @@
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @addComponent={{@addComponent}}
               />
-              <CollaborativeSettingsOpener
-                @addComponent={{@addComponent}}
-              />
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
@@ -115,16 +112,11 @@
                   Please select an application to use the trace overview.
                   {{/if}}
                 {{/if}}
-                {{#if (eq componentName "collaborative-settings")}}
-                  <CollaborativeSettings
-                    @removeComponent={{@removeComponent}}
-                  />
-                {{/if}}
                 {{#if (eq componentName "settings")}}
                   <h5 class="text-center">Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{true}}
-                    @updateColors={{this.sceneService.updateColors}}
+                    @updateColors={{this.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
@@ -134,7 +126,7 @@
                     @isLandscapeView={{false}}
                     @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
                     @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                    @updateColors={{this.sceneService.updateColors}}
+                    @updateColors={{this.updateColors}}
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}

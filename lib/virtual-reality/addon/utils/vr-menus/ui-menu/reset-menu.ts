@@ -1,21 +1,22 @@
+import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 export type ResetMenuArgs = UiMenuArgs & {
-  localUser: LocalVrUser;
+  localUser: LocalUser;
+  online: boolean,
   applicationRenderer: ApplicationRenderer;
   landscapeRenderer: LandscapeRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
-  private localUser: LocalVrUser;
+  private localUser: LocalUser;
 
   private applicationRenderer: ApplicationRenderer;
 
@@ -25,6 +26,7 @@ export default class ResetMenu extends UiMenu {
 
   constructor({
     localUser,
+    online,
     applicationRenderer,
     landscapeRenderer,
     detachedMenuGroups,
@@ -42,7 +44,7 @@ export default class ResetMenu extends UiMenu {
     });
     this.items.push(textItem);
 
-    if (localUser.connectionStatus !== 'online') {
+    if (online) {
       const question = new TextItem({
         text: 'Reset state and position?',
         color: '#ffffff',

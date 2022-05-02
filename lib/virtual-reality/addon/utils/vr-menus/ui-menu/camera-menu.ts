@@ -1,4 +1,4 @@
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
+import LocalUser from 'collaborative-mode/services/local-user';
 import VRController from '../../vr-controller';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from '../../vr-controller/vr-controller-thumbpad-binding';
@@ -14,11 +14,11 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 const MAX_TRANSLATE_SPEED = 0.02;
 
 export type CameraMenuArgs = UiMenuArgs & {
-  localUser: LocalVrUser;
+  localUser: LocalUser;
 };
 
 export default class CameraMenu extends UiMenu {
-  private localUser: LocalVrUser;
+  private localUser: LocalUser;
 
   private resetButton: TextbuttonItem;
 

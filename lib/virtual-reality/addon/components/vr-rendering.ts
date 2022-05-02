@@ -7,7 +7,6 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
@@ -23,13 +22,12 @@ import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/applic
 import THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
+import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
-import { VrMessageListener } from 'virtual-reality/services/vr-message-receiver';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrSceneService from 'virtual-reality/services/vr-scene';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
@@ -56,7 +54,6 @@ import { SpectatingUpdateMessage } from 'virtual-reality/utils/vr-message/sendab
 import { UserPositionsMessage } from 'virtual-reality/utils/vr-message/sendable/user_positions';
 import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
-import VrRoomSerializer from '../services/vr-room-serializer';
 import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
@@ -149,6 +146,8 @@ export default class VrRendering
 
   private mouseIntersection: THREE.Intersection | null = null;
 
+  private renderer!: THREE.WebGLRenderer;
+
   updatables: any[] = [];
 
   // #endregion CLASS FIELDS
@@ -159,6 +158,8 @@ export default class VrRendering
     this.toastMessage.info = (message => this.showHint(message));
     this.toastMessage.success = (message => this.showHint(message));
     this.toastMessage.error = (message => this.showHint(message));
+
+    this.menuFactory.scene = this.sceneService.scene;
   }
 
   // #region INITIALIZATION
@@ -169,9 +170,6 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
-    this.sceneService.addFloor();
-    this.sceneService.addLight();
-    this.sceneService.addSpotlight();
     this.remoteUsers.displayHmd = true;
     this.landscapeRenderer.settings = landscapeRendererSettings;
     this.initServices();
@@ -219,13 +217,14 @@ export default class VrRendering
     this.debug('Initializing renderer...');
 
     const { width, height } = this.canvas;
-    this.localUser.renderer = new THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
     });
-    this.localUser.renderer.setPixelRatio(window.devicePixelRatio);
-    this.localUser.renderer.setSize(width, height);
-    this.localUser.renderer.xr.enabled = true;
+    this.menuFactory.renderer = this.renderer;
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(width, height);
+    this.renderer.xr.enabled = true;
 
     const polyfill = new WebXRPolyfill();
     if (polyfill) {
@@ -382,8 +381,8 @@ export default class VrRendering
         this.makeControllerBindings(),
         menuGroup.controllerBindings,
       ),
-      gripSpace: this.localUser.renderer.xr.getControllerGrip(gamepadIndex),
-      raySpace: this.localUser.renderer.xr.getController(gamepadIndex),
+      gripSpace: this.renderer.xr.getControllerGrip(gamepadIndex),
+      raySpace: this.renderer.xr.getController(gamepadIndex),
       color: new THREE.Color('red'),
       menuGroup,
     });
@@ -453,6 +452,10 @@ export default class VrRendering
     };
   }
 
+  get camera() {
+    return this.localUser.defaultCamera;
+  }
+
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
     this.debug('Outer Div inserted');
@@ -462,24 +465,19 @@ export default class VrRendering
     this.resize(outerDiv);
 
     // Start main loop.
-
     this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
       {
-        camera: this.localUser.camera,
+        camera: this.camera,
         scene: this.sceneService.scene,
-        renderer: this.localUser.renderer,
+        renderer: this.renderer,
         updatables: this.updatables,
       });
     this.landscapeRenderer.resetAndAddToScene(this.sceneService.scene);
     this.applicationRenderer.resetAndAddToScene('vr', this.sceneService.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
-
-    // if (this.roomSerializer.serializedRoom) {
-    //   this.debug('Restore previous application state');
-    //   this.applicationRenderer.restore(this.roomSerializer.serializedRoom);
-    // }
   }
+
 
   /**
    * Call this whenever the canvas is resized. Updated properties of camera
@@ -491,7 +489,9 @@ export default class VrRendering
   resize(outerDiv: HTMLElement) {
     const width = outerDiv.clientWidth;
     const height = outerDiv.clientHeight;
-    this.localUser.updateCameraAspectRatio(width, height);
+    this.renderer.setSize(width, height);
+    this.localUser.defaultCamera.aspect = width / height;
+    this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
   @action
@@ -884,7 +884,7 @@ export default class VrRendering
 
   private sendPoses() {
     const poses = VrPoses.getPoses(
-      this.localUser.camera,
+      this.camera,
       this.localUser.controller1,
       this.localUser.controller2,
     );
@@ -995,27 +995,6 @@ export default class VrRendering
     remoteUser.removeController(controllerId);
   }
 
-  /**
-   * Removes the user that disconnected and informs our user about it.
-   *
-   * @param {JSON} data - Contains the id of the user that disconnected.
-   */
-  onUserDisconnect({ id }: UserDisconnectedMessage) {
-    // Remove user and show disconnect notification.
-    // TODO this should be triggered by event, the session handles most of the disconnect
-    const removedUser = this.remoteUsers.removeRemoteUserById(id);
-    if (removedUser) {
-      this.messageMenuQueue.enqueueMenu(
-        this.menuFactory.buildMessageBoxMenu({
-          title: 'User disconnected',
-          text: removedUser.userName,
-          color: `#${removedUser.color.getHexString()}`,
-          time: 3.0,
-        }),
-      );
-    }
-  }
-
   onObjectMoved({
     originalMessage: {
       objectId, position, quaternion, scale,
@@ -1072,6 +1051,9 @@ export default class VrRendering
     }
   }
 
+  @service('detached-menu-renderer')
+  private detachedMenuRenderer!: DetachedMenuRenderer;
+
   onMenuDetached({
     objectId,
     entityType,
@@ -1080,14 +1062,15 @@ export default class VrRendering
     quaternion,
     scale,
   }: MenuDetachedForwardMessage) {
-    const object = this.sceneService.findMeshByModelId(entityType, detachId);
-    if (isEntityMesh(object)) {
-      const menu = this.menuFactory.buildInfoMenu(object);
-      menu.position.fromArray(position);
-      menu.quaternion.fromArray(quaternion);
-      menu.scale.fromArray(scale);
-      this.detachedMenuGroups.addDetachedMenuLocally(menu, objectId);
-    }
+    this.detachedMenuRenderer.restoreMenu({
+      objectId,
+      entityType,
+      // TODO align the naming with SerializedDetachedMenu
+      entityId: detachId,
+      position,
+      quaternion,
+      scale,
+    });
   }
 
   onDetachedMenuClosed({

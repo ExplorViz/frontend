@@ -1,10 +1,11 @@
 import Service, { inject as service } from '@ember/service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
@@ -34,7 +35,6 @@ import DetachedMenuGroupsService from './detached-menu-groups';
 import RemoteVrUserService from './remote-vr-users';
 import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
-import VrSceneService from './vr-scene';
 
 export default class VrMenuFactoryService extends Service {
   @service('delta-time')
@@ -46,8 +46,11 @@ export default class VrMenuFactoryService extends Service {
   @service('grabbed-object')
   private grabbedObjectService!: GrabbedObjectService;
 
-  @service('local-vr-user')
-  private localUser!: LocalVrUser;
+  @service('local-user')
+  private localUser!: LocalUser;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   @service('remote-vr-users')
   private remoteUsers!: RemoteVrUserService;
@@ -67,11 +70,13 @@ export default class VrMenuFactoryService extends Service {
   @service('vr-room')
   private roomService!: VrRoomService;
 
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
-
   @service('timestamp')
   private timestampService!: TimestampService;
+
+  // TODO the factory should no be a singleton, but instantiated on each rendering.
+  scene!: THREE.Scene;
+
+  renderer!: THREE.WebGLRenderer;
 
   buildMainMenu(): MainMenu {
     return new MainMenu({ menuFactory: this });
@@ -105,7 +110,7 @@ export default class VrMenuFactoryService extends Service {
   // #region CONNECTION MENUS
 
   buildConnectionMenu(): ConnectionBaseMenu {
-    switch (this.localUser.connectionStatus) {
+    switch (this.collaborationSession.connectionStatus) {
       case 'connecting':
         return this.buildConnectingMenu();
       case 'online':
@@ -117,6 +122,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildOfflineMenu(): OfflineMenu {
     return new OfflineMenu({
+      collaborationSession: this.collaborationSession,
       localUser: this.localUser,
       menuFactory: this,
     });
@@ -124,6 +130,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildConnectingMenu(): ConnectingMenu {
     return new ConnectingMenu({
+      collaborationSession: this.collaborationSession,
       localUser: this.localUser,
       menuFactory: this,
     });
@@ -131,6 +138,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildOnlineMenu(): OnlineMenu {
     return new OnlineMenu({
+      collaborationSession: this.collaborationSession,
       localUser: this.localUser,
       remoteUsers: this.remoteUsers,
       spectateUserService: this.spectateUserService,
@@ -140,6 +148,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildJoinMenu(): JoinMenu {
     return new JoinMenu({
+      collaborationSession: this.collaborationSession,
       localUser: this.localUser,
       roomService: this.roomService,
       menuFactory: this,
@@ -168,8 +177,8 @@ export default class VrMenuFactoryService extends Service {
 
   buildZoomMenu(): ZoomMenu {
     return new ZoomMenu({
-      renderer: this.localUser.renderer,
-      scene: this.sceneService.scene,
+      renderer: this.renderer,
+      scene: this.scene,
       headsetCamera: this.localUser.defaultCamera,
       menuFactory: this,
     });
@@ -177,7 +186,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildPingMenu(): PingMenu {
     return new PingMenu({
-      scene: this.sceneService.scene,
+      scene: this.scene,
       sender: this.sender,
       menuFactory: this,
     });
@@ -233,6 +242,7 @@ export default class VrMenuFactoryService extends Service {
   buildResetMenu(): ResetMenu {
     return new ResetMenu({
       localUser: this.localUser,
+      online: this.collaborationSession.connectionStatus !== 'online',
       applicationRenderer: this.applicationRenderer,
       landscapeRenderer: this.landscapeRenderer,
       menuFactory: this,

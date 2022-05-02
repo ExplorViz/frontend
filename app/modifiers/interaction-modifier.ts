@@ -2,6 +2,7 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
@@ -68,6 +69,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('collaborative-service')
   collaborativeService!: CollaborativeService;
+
+  @service('collaboration-session')
+  collaborativeSession!: CollaborationSession;
 
   @service('collaborative-settings-service')
   collaborativeSettings!: CollaborativeSettingsService;
@@ -197,7 +201,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
                   parentObj.worldToLocal(pingPosition);
                   taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
 
-                  if (this.localUser.isOnline) {
+                  if (this.collaborativeSession.isOnline) {
                     if (parentObj instanceof ApplicationObject3D) {
                       // AlertifyHandler.showAlertifyMessage('OBJ:' + pingPosition.toArray())
                       this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);

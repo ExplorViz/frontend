@@ -1,17 +1,8 @@
-import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREE from 'three';
-import {
-  APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE,
-  COMPONENT_ENTITY_TYPE, EntityType, NODE_ENTITY_TYPE
-} from 'virtual-reality/utils/vr-message/util/entity_type';
 import FloorMesh from '../utils/view-objects/vr/floor-mesh';
 
 const FLOOR_SIZE = 1000;
@@ -20,22 +11,8 @@ export default class VrSceneService extends Service {
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
-
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
-
   @tracked
   scene: THREE.Scene;
-
-  readonly floor: FloorMesh;
-
-  light: THREE.AmbientLight
-
-  spotLight: THREE.SpotLight;
-
-  skyLight: THREE.SpotLight;
 
   private debug = debugLogger('LandscapeRenderer');
 
@@ -49,131 +26,25 @@ export default class VrSceneService extends Service {
     this.debug('Scene initialized')
 
     // Initilize floor.
-    this.floor = new FloorMesh(FLOOR_SIZE, FLOOR_SIZE);
-    // this.scene.add(this.floor);
+    const floor = new FloorMesh(FLOOR_SIZE, FLOOR_SIZE);
+    this.scene.add(floor);
 
     // Initialize lights.
-    this.light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
-    // this.scene.add(light);
+    const light = new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
+    this.scene.add(light);
 
-    this.spotLight = new THREE.SpotLight(0xffffff, 0.5, 2000);
-    this.spotLight.position.set(-200, 100, 100);
-    this.spotLight.castShadow = true;
-    this.spotLight.angle = 0.3;
-    this.spotLight.penumbra = 0.2;
-    this.spotLight.decay = 2;
-
-    // this.addSpotlight();
+    const spotLight = new THREE.SpotLight(0xffffff, 0.5, 2000);
+    spotLight.position.set(-200, 100, 100);
+    spotLight.castShadow = true;
+    spotLight.angle = 0.3;
+    spotLight.penumbra = 0.2;
+    spotLight.decay = 2;
+    this.scene.add(spotLight);
 
     // Add a light that illuminates the sky box if the user dragged in a backgound image.
-    this.skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
-    this.skyLight.castShadow = false;
-    // this.addSkylight();
-  }
-
-  @action
-  reset() {
-    this.scene = new THREE.Scene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
-  }
-
-  @action
-  addFloor() {
-    this.scene.add(new FloorMesh(FLOOR_SIZE, FLOOR_SIZE));
-  }
-
-  addLight() {
-    this.scene.add(this.light);
-  }
-
-  addSpotlight() {
-    this.scene.add(this.spotLight);
-  }
-
-  removeSpotlight() {
-    this.scene.remove(this.spotLight);
-  }
-
-  addSkylight() {
-    this.scene.add(this.skyLight);
-  }
-
-  removeSkylight() {
-    this.scene.remove(this.skyLight);
-  }
-
-  @action
-  updateColors() {
-    this.scene.traverse((object3D) => {
-      if (object3D instanceof BaseMesh) {
-        object3D.updateColor();
-        // Special case because communication arrow is no base mesh
-      } else if (object3D instanceof CommunicationArrowMesh) {
-        object3D.updateColor(this.configuration.applicationColors.communicationArrowColor);
-      }
-    });
-  }
-
-  /**
-   * Handles the visibility of all lights other than the ambient light.
-   * This includes spotlights which might cause reflections.
-   */
-  setAuxiliaryLightVisibility(visible: boolean) {
-    if (visible) {
-      this.addSkylight();
-      this.addSpotlight();
-    } else {
-      this.removeSkylight();
-      this.removeSpotlight();
-    }
-  }
-
-  /**
-   * Removes the floor and sets a transparent background.
-   * Landscape and application models are unaffected.
-   */
-  setSceneTransparent() {
-    this.scene.remove(this.floor);
-    this.scene.background = null;
-  }
-
-  findMeshByModelId(entityType: EntityType, id: string) {
-    switch (entityType) {
-      case NODE_ENTITY_TYPE:
-      case APPLICATION_ENTITY_TYPE:
-        return this.landscapeRenderer.landscapeObject3D.getMeshbyModelId(id);
-
-      case COMPONENT_ENTITY_TYPE:
-      case CLASS_ENTITY_TYPE:
-        return this.getBoxMeshByModelId(id);
-
-      case CLASS_COMMUNICATION_ENTITY_TYPE:
-        return this.getCommunicationMeshById(id);
-
-      default:
-        return null;
-    }
-  }
-
-  private getCommunicationMeshById(id: string) {
-    const openApplications = this.applicationRenderer.getOpenApplications();
-    for (let i = 0; i < openApplications.length; i++) {
-      const application = openApplications[i];
-      const mesh = application.getCommMeshByModelId(id);
-      if (mesh) return mesh;
-    }
-    return null;
-  }
-
-  private getBoxMeshByModelId(id: string) {
-    const openApplications = this.applicationRenderer.getOpenApplications();
-
-    for (let i = 0; i < openApplications.length; i++) {
-      const application = openApplications[i];
-      const mesh = application.getBoxMeshbyModelId(id);
-      if (mesh) return mesh;
-    }
-    return null;
+    const skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
+    skyLight.castShadow = false;
+    this.scene.add(skyLight);
   }
 }
 

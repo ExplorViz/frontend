@@ -3,6 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
@@ -10,6 +11,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
@@ -89,6 +91,9 @@ export default class ArRendering extends Component<Args> {
   @service('configuration')
   configuration!: Configuration;
 
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
+
   @service('local-vr-user')
   localUser!: LocalVrUser;
 
@@ -121,6 +126,9 @@ export default class ArRendering extends Component<Args> {
 
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
+
+  @service('entity-manipulation')
+  private entityManipulation!: EntityManipulation;
 
   @service()
   worker!: any;
@@ -166,6 +174,8 @@ export default class ArRendering extends Component<Args> {
 
   @tracked
   scene: THREE.Scene;
+
+  private renderer!: THREE.WebGLRenderer;
 
   updatables: any[] = [];
 
@@ -225,7 +235,7 @@ export default class ArRendering extends Component<Args> {
       {
         camera: this.camera,
         scene: this.scene,
-        renderer: this.localUser.renderer,
+        renderer: this.renderer,
         updatables: this.updatables,
         mapControls: false,
       });
@@ -317,14 +327,14 @@ export default class ArRendering extends Component<Args> {
   * Initiates a WebGLRenderer
   */
   private initRenderer() {
-    this.localUser.renderer = new THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
       canvas: this.canvas,
     });
 
-    this.localUser.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
-    this.localUser.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
+    this.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+    this.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
   }
 
   /**
@@ -475,14 +485,14 @@ export default class ArRendering extends Component<Args> {
      */
   @action
   resize(outerDiv: HTMLElement) {
-    this.localUser.renderer.setSize(
+    this.renderer.setSize(
       outerDiv.clientWidth * this.rendererResolutionMultiplier,
       outerDiv.clientHeight * this.rendererResolutionMultiplier,
     );
     if (!this.arToolkitContext) return;
 
     this.arToolkitSource.onResizeElement();
-    this.arToolkitSource.copyElementSizeTo(this.localUser.renderer.domElement);
+    this.arToolkitSource.copyElementSizeTo(this.renderer.domElement);
 
     if (this.arToolkitContext.arController !== null) {
       this.arToolkitSource.copyElementSizeTo(this.arToolkitContext.arController.canvas);
@@ -567,7 +577,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   async handlePing() {
-    if (!this.localColabUser.isOnline) {
+    if (!this.collaborationSession.isOnline) {
       AlertifyHandler.showAlertifyWarning('Offline. <br> Join session with users to ping.');
       return;
       // } if (Array.from(this.remoteUsers.getAllRemoteUsers()).length === 0) {
@@ -588,7 +598,7 @@ export default class ArRendering extends Component<Args> {
 
     taskFor(this.localColabUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
 
-    if (this.localColabUser.isOnline) {
+    if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
       } else {
@@ -771,14 +781,14 @@ export default class ArRendering extends Component<Args> {
     }
 
     this.remoteUsers.updateRemoteUsers(delta);
-    this.arZoomHandler?.renderZoomCamera(this.localUser.renderer, this.scene,
+    this.arZoomHandler?.renderZoomCamera(this.renderer, this.scene,
       this.resize);
 
     this.updateArToolkit();
 
     // this.render();
 
-    // this.localUser.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
+    // this.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
 
   }
 
@@ -925,6 +935,11 @@ export default class ArRendering extends Component<Args> {
     ArRendering.cleanUpAr();
 
     AlertifyHandler.setAlertifyPosition('bottom-right');
+  }
+
+  @action
+  updateColors() {
+    this.entityManipulation.updateColors(this.scene);
   }
 
   // #endregion UTILS

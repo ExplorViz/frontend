@@ -55,14 +55,14 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
 
   @action
   hostRoom() {
-    this.localUser.hostRoom();
+    this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');
   }
 
   @action
   leaveSession() {
     AlertifyHandler.showAlertifyWarning('Disconnected from Room');
-    this.localUser.disconnect();
+    this.collaborationSession.disconnect();
   }
 
   @action
@@ -77,6 +77,6 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   @action
   joinRoom(room: RoomListRecord) {
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
-    this.localUser.joinRoom(room.roomId);
+    this.collaborationSession.joinRoom(room.roomId);
   }
 }

@@ -18,7 +18,7 @@ export default class ConnectingMenu extends ConnectionBaseMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.localUser.disconnect(),
+      onTriggerDown: () => this.collaborationSession.disconnect(),
     });
     this.items.push(cancelButton);
     this.thumbpadTargets.push(cancelButton);

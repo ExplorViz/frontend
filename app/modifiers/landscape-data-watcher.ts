@@ -12,6 +12,7 @@ import ApplicationRepository, { ApplicationData } from 'explorviz-frontend/servi
 import computeDrawableClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface NamedArgs {
@@ -35,6 +36,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     @service('landscape-renderer')
     private landscapeRenderer!: LandscapeRenderer;
+
+    @service('detached-menu-renderer')
+    detachedMenuRenderer!: DetachedMenuRenderer;
 
     @service('configuration')
     configuration!: Configuration;
@@ -104,25 +108,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         if (serializedRoom) {
             this.landscapeRenderer.restore(serializedRoom.landscape)
             this.applicationRenderer.restore(serializedRoom);
+            // TODO is it necessary to wait?
+            this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
             this.roomSerializer.serializedRoom = undefined;
-            // TODO restore detached menus
-            // Initialize detached menus.
-            // detachedMenus.forEach((detachedMenu) => {
-            //   const object = this.sceneService.findMeshByModelId(
-            //     detachedMenu.entityType,
-            //     detachedMenu.entityId,
-            //   );
-            //   if (isEntityMesh(object)) {
-            //     const menu = this.menuFactory.buildInfoMenu(object);
-            //     menu.position.fromArray(detachedMenu.position);
-            //     menu.quaternion.fromArray(detachedMenu.quaternion);
-            //     menu.scale.fromArray(detachedMenu.scale);
-            //     this.detachedMenuGroups.addDetachedMenuLocally(
-            //       menu,
-            //       detachedMenu.objectId,
-            //     );
-            //   }
-            // });
         } else {
             for (const applicationId of this.applicationRenderer.openApplicationIds) {
                 const applicationData = this.applicationRepo.getById(applicationId);

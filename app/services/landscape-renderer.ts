@@ -118,9 +118,6 @@ export default class LandscapeRenderer extends Service.extend({
       landscapeToken: '',
       nodes: [],
     });
-    this.debug('Adding landscapeObject3D to scene' + this.landscapeObject3D.id);
-    // this.sceneService.scene.add(this.landscapeObject3D);
-    this.debug('Added landscapeObject3D to scene');
   }
 
   cleanUpLandscape() {
@@ -133,7 +130,6 @@ export default class LandscapeRenderer extends Service.extend({
     structureLandscapeData: StructureLandscapeData,
     dynamicLandscapeData: DynamicLandscapeData,
   ): any {
-    // this.sceneService.scene.add(this.landscapeObject3D);
     this.debug('populate landscape-rendering');
 
     // Update landscape model.

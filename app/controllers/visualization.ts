@@ -7,7 +7,6 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import CollaborativeService from 'collaborative-mode/services/collaborative-service';
-import LocalUser from 'collaborative-mode/services/local-user';
 import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
@@ -305,22 +304,18 @@ export default class VisualizationController extends Controller {
   }
 
   willDestroy() {
-    this.localUser.disconnect();
+    this.collaborationSession.disconnect();
     this.resetLandscapeListenerPolling();
     this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
   }
 
-  @service('local-user')
-  localUser!: LocalUser;
-
   @service('web-socket')
   private webSocket!: WebSocketService;
 
   private async initWebSocket() {
     this.debug('Initializing websocket...');
-
   }
 
   // collaboration start

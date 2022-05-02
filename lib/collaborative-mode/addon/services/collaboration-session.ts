@@ -1,14 +1,20 @@
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import THREE from 'three';
+import VrRoomService from 'virtual-reality/services/vr-room';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { SelfConnectedMessage, SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
 import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
 import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+
+export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
 export default class CollaborationSession extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -22,15 +28,27 @@ export default class CollaborationSession extends Service.extend({
   @service('web-socket')
   private webSocket!: WebSocketService;
 
+  @service('vr-room')
+  private roomService!: VrRoomService;
+
   @service('local-user')
   private localUser!: LocalUser;
 
   @service('user-factory')
   private userFactory!: UserFactory;
 
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
+
   private idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group(); // TODO AR ONLY
+
+  @tracked
+  connectionStatus: ConnectionStatus = 'offline';
+
+  @tracked
+  currentRoomId: string | null = null;
 
   init() {
     super.init();
@@ -121,6 +139,7 @@ export default class CollaborationSession extends Service.extend({
       this.addRemoteUser(remoteUser);
     }
 
+    this.connectionStatus = 'online';
     // Initialize local user.
     this.localUser.connected({
       id: self.id,
@@ -162,7 +181,7 @@ export default class CollaborationSession extends Service.extend({
   }
 
   onSelfDisconnected(event?: any) {
-    if (this.localUser.isConnecting) {
+    if (this.isConnecting) {
       this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
       switch (event.code) {
@@ -180,15 +199,64 @@ export default class CollaborationSession extends Service.extend({
     // Remove remote users.
     this.removeAllRemoteUsers();
 
-    // // Reset highlighting colors.
-    // this.webglrenderer.getOpenApplications().forEach((application) => {
-    //   application.setHighlightingColor(
-    //     this.configuration.applicationColors.highlightedEntityColor,
-    //   );
-    // });
+    this.highlightingService.updateHighlightingForAllApplications();
 
-    this.localUser.disconnect();
+    this.disconnect();
   }
+
+  get isOnline() {
+    return this.connectionStatus === 'online';
+  }
+
+  get isConnecting() {
+    return this.connectionStatus === 'connecting';
+  }
+
+  async hostRoom() {
+    if (!this.isConnecting) {
+      this.connectionStatus = 'connecting';
+      try {
+        const response = await this.roomService.createRoom();
+        this.joinRoom(response.roomId, { checkConnectionStatus: false });
+      } catch (e: any) {
+        this.connectionStatus = 'offline';
+        AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
+      }
+    }
+  }
+
+  async joinRoom(roomId: string, {
+    checkConnectionStatus = true,
+  }: { checkConnectionStatus?: boolean } = {}) {
+    if (!checkConnectionStatus || !this.isConnecting) {
+      this.connectionStatus = 'connecting';
+      this.currentRoomId = roomId;
+      try {
+        const response = await this.roomService.joinLobby(this.currentRoomId);
+        // TODO this is not reachable here and should never be
+        this.webSocket.initSocket(response.ticketId);
+      } catch (e: any) {
+        this.connectionStatus = 'offline';
+        this.currentRoomId = null;
+        AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
+      }
+    }
+  }
+
+  /**
+   * Switch to offline mode, close socket connection
+   */
+  disconnect() {
+    this.connectionStatus = 'offline';
+    this.currentRoomId = null;
+    this.webSocket.closeSocket();
+  }
+
+
+
+
+
+
 
 }
 

@@ -8,14 +8,14 @@
 <div>
   <label class="bold">Status: </label>
 
-  <label>{{this.localUser.connectionStatus}}</label>
+  <label>{{this.collaborationSession.connectionStatus}}</label>
 </div>
 
-{{#if (eq this.localUser.connectionStatus "online")}}
+{{#if (eq this.collaborationSession.connectionStatus "online")}}
   <div>
     <label class="bold">Current Room: </label>
 
-    <label>{{this.localUser.currentRoomId}}</label>
+    <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
   <label class="bold">Users</label>
@@ -30,7 +30,7 @@
 
 {{/if}}
 
-{{#if (eq this.localUser.connectionStatus "offline")}}
+{{#if (eq this.collaborationSession.connectionStatus "offline")}}
   <div class="flex-space-between">
     <label class="bold">Rooms</label>
 
@@ -76,7 +76,7 @@
   {{/if}}
 {{/if}}
 
-{{#if (eq this.localUser.connectionStatus "online")}}
+{{#if (eq this.collaborationSession.connectionStatus "online")}}
   <BsButton
   title="Disconnect from Room"
   {{on "click" this.leaveSession}}
