@@ -1,6 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
+import RemoteUser from 'collaborative-mode/utils/remote-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
@@ -24,7 +25,6 @@ import MessageBoxMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/message-b
 import ResetMenu from 'virtual-reality/utils/vr-menus/ui-menu/reset-menu';
 import TimeMenu from 'virtual-reality/utils/vr-menus/ui-menu/time-menu';
 import ToolMenu from 'virtual-reality/utils/vr-menus/ui-menu/tool-menu';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import ConnectingMenu from '../utils/vr-menus/ui-menu/connection/connecting-menu';
 import OfflineMenu from '../utils/vr-menus/ui-menu/connection/offline-menu';
 import OnlineMenu from '../utils/vr-menus/ui-menu/connection/online-menu';
@@ -32,7 +32,6 @@ import MainMenu from '../utils/vr-menus/ui-menu/main-menu';
 import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
-import RemoteVrUserService from './remote-vr-users';
 import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
 
@@ -51,9 +50,6 @@ export default class VrMenuFactoryService extends Service {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('remote-vr-users')
-  private remoteUsers!: RemoteVrUserService;
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
@@ -140,7 +136,6 @@ export default class VrMenuFactoryService extends Service {
     return new OnlineMenu({
       collaborationSession: this.collaborationSession,
       localUser: this.localUser,
-      remoteUsers: this.remoteUsers,
       spectateUserService: this.spectateUserService,
       menuFactory: this,
     });
@@ -162,7 +157,7 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildSpectateMenu(remoteUser: RemoteVrUser): SpectateMenu {
+  buildSpectateMenu(remoteUser: RemoteUser): SpectateMenu {
     return new SpectateMenu({
       menuFactory: this,
       localUser: this.localUser,

@@ -7,6 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
+import SpectateUserService from 'virtual-reality/services/spectate-user';
 
 interface XrCollaborationArgs {
   removeComponent(componentPath: string): void
@@ -26,6 +27,9 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  @service('spectate-user')
+  private spectateUserService!: SpectateUserService;
+
   @tracked
   rooms: RoomListRecord[] = [];
 
@@ -36,7 +40,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
       users.push({ name: this.localUser.userName, style: `color:#${this.localUser.color.getHexString()}` });
     }
     const remoteUsers = Array.from(this.collaborationSession.getAllRemoteUsers()).map(
-      (user) => ({ name: user.userName, style: `color:#${user.color.getHexString()}` }),
+      (user) => ({ name: user.userName, style: `color:#${user.color.getHexString()}`, id: user.userId }),
     );
 
     return users.concat(remoteUsers);
@@ -78,5 +82,15 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   joinRoom(room: RoomListRecord) {
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
+  }
+
+  @action
+  spectate(id: string) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
+    AlertifyHandler.showAlertifyMessage('Activating spectate for user ' + id)
+    if (remoteUser) {
+      AlertifyHandler.showAlertifyMessage('Activatinggg spectate for user ' + id)
+      this.spectateUserService.activate(remoteUser)
+    }
   }
 }

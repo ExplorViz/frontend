@@ -1,6 +1,6 @@
+import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import THREE from 'three';
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
 import NameTagSprite from '../view-objects/vr/name-tag-sprite';
 import PingMesh from '../view-objects/vr/ping-mesh';
 import RayMesh from '../view-objects/vr/ray-mesh';
@@ -27,7 +27,7 @@ export default class RemoteVrUser extends RemoteUser {
 
   private animationMixer: THREE.AnimationMixer;
 
-  private localUser: LocalVrUser;
+  private localUser: LocalUser;
 
   constructor({
     userName,
@@ -40,7 +40,7 @@ export default class RemoteVrUser extends RemoteUser {
     userId: string;
     color: THREE.Color;
     state: string;
-    localUser: LocalVrUser;
+    localUser: LocalUser;
   }) {
     super({
       userName,

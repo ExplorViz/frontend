@@ -14,7 +14,6 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
-import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -94,11 +93,8 @@ export default class ArRendering extends Component<Args> {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('local-vr-user')
-  localUser!: LocalVrUser;
-
   @service('local-user')
-  localColabUser!: LocalUser;
+  localUser!: LocalUser;
 
   @service('delta-time')
   deltaTimeService!: DeltaTime;
@@ -114,9 +110,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
-
-  @service('remote-vr-users')
-  private remoteUsers!: RemoteVrUserService;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -257,7 +250,7 @@ export default class ArRendering extends Component<Args> {
     this.debug('Initializing services...');
 
     // Use given font for landscape and application rendering.
-    this.remoteUsers.displayHmd = false;
+    // this.remoteUsers.displayHmd = false;
     this.landscapeRenderer.arMode = true
   }
 
@@ -596,7 +589,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    taskFor(this.localColabUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+    taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
 
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -780,7 +773,7 @@ export default class ArRendering extends Component<Args> {
       this.sendKeepAliveMessage(delta);
     }
 
-    this.remoteUsers.updateRemoteUsers(delta);
+    // this.remoteUsers.updateRemoteUsers(delta);
     this.arZoomHandler?.renderZoomCamera(this.renderer, this.scene,
       this.resize);
 
@@ -921,8 +914,6 @@ export default class ArRendering extends Component<Args> {
     this.debug('cleanup ar rendering');
 
     this.renderingLoop.stop();
-    // Reset services.
-    this.localUser.reset();
     // this.landscapeRenderer.resetService();
     // this.applicationRenderer.removeAllApplicationsLocally();
     // this.sceneService.addSkylight();

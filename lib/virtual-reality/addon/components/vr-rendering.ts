@@ -2,6 +2,8 @@ import { getOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
@@ -9,10 +11,9 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
-import LocalVrUser from 'explorviz-frontend/services/local-vr-user';
-import RemoteVrUserService from 'explorviz-frontend/services/remote-vr-users';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
+import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -28,6 +29,7 @@ import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrSceneService from 'virtual-reality/services/vr-scene';
+import WebSocketService from 'virtual-reality/services/web-socket';
 import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
@@ -38,24 +40,19 @@ import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-co
 import VRControllerThumbpadBinding, { VRControllerThumbpadVerticalDirection } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import VrInputManager from 'virtual-reality/utils/vr-controller/vr-input-manager';
 import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
 import MenuGroup from 'virtual-reality/utils/vr-menus/menu-group';
 import MenuQueue from 'virtual-reality/utils/vr-menus/menu-queue';
 import HintMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/hint-menu';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
-import { UserConnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_connected';
-import { UserDisconnectedMessage } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import { ObjectMovedMessage } from 'virtual-reality/utils/vr-message/sendable/object_moved';
 import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
-import { SpectatingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
-import { UserPositionsMessage } from 'virtual-reality/utils/vr-message/sendable/user_positions';
 import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
-import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
-import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
+import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
+import { UserControllerDisconnectMessage, USER_CONTROLLER_DISCONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from '../utils/vr-message/util/controller_id';
 
 interface Args {
@@ -93,11 +90,8 @@ export default class VrRendering
   @service('grabbed-object')
   private grabbedObjectService!: GrabbedObjectService;
 
-  @service('local-vr-user')
-  private localUser!: LocalVrUser;
-
-  @service('remote-vr-users')
-  private remoteUsers!: RemoteVrUserService;
+  @service('local-user')
+  private localUser!: LocalUser;
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
@@ -119,6 +113,9 @@ export default class VrRendering
 
   @service('vr-scene')
   private sceneService!: VrSceneService;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   // #endregion SERVICES
 
@@ -156,10 +153,12 @@ export default class VrRendering
     super(owner, args);
 
     this.toastMessage.info = (message => this.showHint(message));
+    this.toastMessage.message = (message => this.showMessage(message));
     this.toastMessage.success = (message => this.showHint(message));
     this.toastMessage.error = (message => this.showHint(message));
 
     this.menuFactory.scene = this.sceneService.scene;
+    this.sceneService.scene.add(this.localUser.userGroup);
   }
 
   // #region INITIALIZATION
@@ -170,7 +169,7 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
-    this.remoteUsers.displayHmd = true;
+    // this.remoteUsers.displayHmd = true;
     this.landscapeRenderer.settings = landscapeRendererSettings;
     this.initServices();
     this.initInteraction();
@@ -225,6 +224,7 @@ export default class VrRendering
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(width, height);
     this.renderer.xr.enabled = true;
+    this.localUser.xr = this.renderer.xr;
 
     const polyfill = new WebXRPolyfill();
     if (polyfill) {
@@ -412,6 +412,8 @@ export default class VrRendering
   private async initWebSocket() {
     this.debug('Initializing websocket...');
 
+    this.webSocket.on(USER_CONTROLLER_CONNECT_EVENT, this, this.onControllerConnected);
+    this.webSocket.on(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onControllerDisconnected);
     // this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
     // this.receiver.addMessageListener(this);
   }
@@ -423,6 +425,10 @@ export default class VrRendering
   willDestroy() {
     super.willDestroy();
 
+    this.localUser.xr = undefined;
+
+    this.webSocket.off(USER_CONTROLLER_CONNECT_EVENT, this, this.onControllerConnected);
+    this.webSocket.off(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onControllerDisconnected);
     this.renderingLoop.stop();
     // Reset rendering.
     this.applicationRenderer.removeAllApplicationsLocally();
@@ -474,6 +480,7 @@ export default class VrRendering
       });
     this.landscapeRenderer.resetAndAddToScene(this.sceneService.scene);
     this.applicationRenderer.resetAndAddToScene('vr', this.sceneService.scene, this.updatables);
+    this.sceneService.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
   }
@@ -594,14 +601,22 @@ export default class VrRendering
     this.detachedMenuGroups.updateDetachedMenus(delta);
 
     // Update services.
-    this.spectateUserService.update();
+    this.spectateUserService.tick();
     this.grabbedObjectService.sendObjectPositions();
-    this.remoteUsers.updateRemoteUsers(delta);
+
+    this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
+      if (remoteUser instanceof RemoteVrUser) {
+        remoteUser.update(delta);
+      }
+    })
     // this.debug('Updating with tick');
 
     // update applications' globe animation
     // this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
   }
+
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
 
   // #endregion MAIN LOOP
 
@@ -647,6 +662,12 @@ export default class VrRendering
     }
   }
 
+  private showMessage(message: MessageArgs) {
+    this.messageMenuQueue.enqueueMenu(
+      this.menuFactory.buildMessageBoxMenu(message),
+    );
+  }
+
   private openToolMenu(controller: VRController) {
     controller.menuGroup.openMenu(this.menuFactory.buildToolMenu());
   }
@@ -658,7 +679,7 @@ export default class VrRendering
   // #endregion MENUS
 
   // #region INTERACTION
-
+  // executed on enter VR
   private async onControllerConnected(controller: VRController) {
     // Set visibilty and rays accordingly
     if (this.spectateUserService.isActive) controller.setToSpectatingAppearance();
@@ -880,73 +901,20 @@ export default class VrRendering
 
   // #endregion INTERACTION
 
-  // #region SENDING MESSAGES
-
-  private sendPoses() {
-    const poses = VrPoses.getPoses(
-      this.camera,
-      this.localUser.controller1,
-      this.localUser.controller2,
-    );
-    this.sender.sendPoseUpdate(
-      poses.camera,
-      poses.controller1,
-      poses.controller2,
-    );
-  }
-
-  // TODO this has to be executed
-  private sendInitialControllerConnectState() {
-    this.sender.sendControllerConnect(this.localUser.controller1);
-    this.sender.sendControllerConnect(this.localUser.controller2);
-  }
-
-  // #endregion SENDING MESSAGES
-
   // #region HANDLING MESSAGES
 
-  // TODO handle VR users
-  onUserConnected(
-    {
-      id, name, color, position, quaternion,
-    }: UserConnectedMessage,
-    showConnectMessage = true,
-  ): void {
-    const remoteUser = new RemoteVrUser({
-      userName: name,
-      userId: id,
-      color: new THREE.Color(...color),
-      state: 'online',
-      localUser: this.localUser,
-    });
-    this.remoteUsers.addRemoteUser(remoteUser, { position, quaternion });
+  // TODO this was the user connected message
+  // if (showConnectMessage) {
+  //   this.messageMenuQueue.enqueueMenu(
+  //     this.menuFactory.buildMessageBoxMenu({
+  //       title: 'User connected',
+  //       text: remoteUser.userName,
+  //       color: `#${remoteUser.color.getHexString()}`,
+  //       time: 3.0,
+  //     }),
+  //   );
+  // }
 
-    if (showConnectMessage) {
-      this.messageMenuQueue.enqueueMenu(
-        this.menuFactory.buildMessageBoxMenu({
-          title: 'User connected',
-          text: remoteUser.userName,
-          color: `#${remoteUser.color.getHexString()}`,
-          time: 3.0,
-        }),
-      );
-    }
-  }
-
-  /**
-   * Updates the specified user's camera and controller positions.
-   */
-  onUserPositions({
-    userId,
-    originalMessage: { camera, controller1, controller2 },
-  }: ForwardedMessage<UserPositionsMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
-    if (!remoteUser) return;
-
-    if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
-    if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
-    if (camera) remoteUser.updateCamera(camera);
-  }
 
   /**
    * Updates whether the given user is pinging with the specified controller or not.
@@ -955,7 +923,7 @@ export default class VrRendering
     userId,
     originalMessage: { controllerId, isPinging },
   }: ForwardedMessage<PingUpdateMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
     remoteUser.togglePing(controllerId, isPinging);
@@ -975,7 +943,7 @@ export default class VrRendering
       },
     },
   }: ForwardedMessage<UserControllerConnectMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
     remoteUser.initController(controllerId, assetUrl, {
@@ -989,7 +957,7 @@ export default class VrRendering
     userId,
     originalMessage: { controllerId },
   }: ForwardedMessage<UserControllerDisconnectMessage>): void {
-    const remoteUser = this.remoteUsers.lookupRemoteUserById(userId);
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
     remoteUser.removeController(controllerId);
@@ -1010,45 +978,6 @@ export default class VrRendering
     movedObject.position.fromArray(position);
     movedObject.quaternion.fromArray(quaternion);
     movedObject.scale.fromArray(scale);
-  }
-
-  /**
-   * Updates the state of given user to spectating or connected.
-   * Hides them if spectating.
-   *
-   * @param {string} userId - The user's id.
-   * @param {boolean} isSpectating - True, if the user is now spectating, else false.
-   */
-  onSpectatingUpdate({
-    userId,
-    originalMessage: { isSpectating },
-  }: ForwardedMessage<SpectatingUpdateMessage>): void {
-    const remoteUser = this.remoteUsers.setRemoteUserSpectatingById(
-      userId,
-      isSpectating,
-    );
-    if (!remoteUser) return;
-
-    const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
-    if (isSpectating) {
-      this.messageMenuQueue.enqueueMenu(
-        this.menuFactory.buildMessageBoxMenu({
-          title: remoteUser.userName,
-          text: ' is now spectating',
-          color: remoteUserHexColor,
-          time: 3.0,
-        }),
-      );
-    } else {
-      this.messageMenuQueue.enqueueMenu(
-        this.menuFactory.buildMessageBoxMenu({
-          title: remoteUser.userName,
-          text: ' stopped spectating',
-          color: remoteUserHexColor,
-          time: 3.0,
-        }),
-      );
-    }
   }
 
   @service('detached-menu-renderer')

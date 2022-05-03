@@ -38,6 +38,7 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import PlaneMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
+import SpectateUserService from 'virtual-reality/services/spectate-user';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface Args {
@@ -98,6 +99,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @service('entity-manipulation')
   // @ts-ignore since it is used in template
   private entityManipulation!: EntityManipulation;
+
+  @service('spectate-user')
+  private spectateUserService!: SpectateUserService;
 
   webglrenderer!: THREE.WebGLRenderer;
 
@@ -161,7 +165,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   get camera() {
-    return this.localUser.camera
+    return this.localUser.defaultCamera;
   }
 
   get landSettings() {
@@ -239,8 +243,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
    */
   initCamera() {
     const { width, height } = this.canvas;
-    this.localUser.camera.aspect = width / height;
-    this.localUser.camera.position.set(0, 3, 0);
+    this.localUser.defaultCamera.aspect = width / height;
+    this.localUser.defaultCamera.position.set(0, 3, 0);
     this.debug('Camera added');
   }
 
@@ -258,8 +262,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.webglrenderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.webglrenderer.setPixelRatio(window.devicePixelRatio);
     this.webglrenderer.setSize(width, height);
+
     this.localUser.renderer = this.webglrenderer
     this.landscapeRenderer.webglrenderer = this.webglrenderer
+    this.updatables.push(this.spectateUserService);
     this.debug('Renderer set up');
   }
 
@@ -370,8 +376,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
     // Update renderer and camera according to canvas size
     this.webglrenderer.setSize(width, height);
-    this.localUser.camera.aspect = width / height;
-    this.localUser.camera.updateProjectionMatrix();
+    this.localUser.defaultCamera.aspect = width / height;
+    this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
   /**

@@ -188,7 +188,7 @@ export default class LandscapeRenderer extends Service.extend({
 
       // Update camera zoom accordingly
       if (!this.arMode) {
-        updateCameraZoom(landscapeRect, this.localUser.camera, this.webglrenderer);
+        updateCameraZoom(landscapeRect, this.localUser.defaultCamera, this.webglrenderer);
       }
 
       // Draw boxes for nodes
@@ -359,7 +359,7 @@ export default class LandscapeRenderer extends Service.extend({
     this.localUser.camera.position.set(0, 0, 0);
     const landscapeRect = this.landscapeObject3D.getMinMaxRect(this.modelIdToPlaneLayout);
 
-    updateCameraZoom(landscapeRect, this.localUser.camera, this.webglrenderer);
+    updateCameraZoom(landscapeRect, this.localUser.defaultCamera, this.webglrenderer);
   }
 
   restore(landscape: SerializedLandscape) {

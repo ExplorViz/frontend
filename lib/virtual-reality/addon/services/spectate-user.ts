@@ -1,17 +1,21 @@
 import Service, { inject as service } from '@ember/service';
+import LocalUser from 'collaborative-mode/services/local-user';
+import RemoteUser from 'collaborative-mode/utils/remote-user';
+import debugLogger from 'ember-debug-logger';
 import THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
-import LocalVrUser from './local-vr-user';
 
 export default class SpectateUserService extends Service {
-  @service('local-vr-user')
-  private localUser!: LocalVrUser;
+
+  debug = debugLogger('spectateUserService');
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
-  spectatedUser: RemoteVrUser | null = null;
+  spectatedUser: RemoteUser | null = null;
 
   private startPosition: THREE.Vector3 = new THREE.Vector3();
 
@@ -22,12 +26,17 @@ export default class SpectateUserService extends Service {
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
-  update() {
+  tick() {
     if (this.spectatedUser && this.spectatedUser.camera) {
-      this.localUser.teleportToPosition(
-        this.spectatedUser.camera.model.position,
-        { adaptCameraHeight: true },
-      );
+      // this.spectatedUser.camera.model.position.copy(this.localUser.camera.position);
+      this.localUser.camera.position.copy(this.spectatedUser.camera.model.position);
+      this.localUser.camera.quaternion.copy(this.spectatedUser.camera.model.quaternion);
+
+      // TODO check why this was necessary
+      // this.localUser.teleportToPosition(
+      //   this.spectatedUser.camera.model.position,
+      //   { adaptCameraHeight: true },
+      // );
     }
   }
 
@@ -35,7 +44,7 @@ export default class SpectateUserService extends Service {
    * Switches our user into spectator mode
    * @param {number} userId The id of the user to be spectated
    */
-  activate(remoteUser: RemoteVrUser | null) {
+  activate(remoteUser: RemoteUser | null) {
     if (!remoteUser) return;
 
     this.startPosition.copy(this.localUser.getCameraWorldPosition());
@@ -48,7 +57,8 @@ export default class SpectateUserService extends Service {
       this.localUser.controller2.setToSpectatingAppearance();
     }
 
-    remoteUser.setHmdVisible(false);
+
+    // remoteUser.setHmdVisible(false);
     this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId);
   }
 
@@ -68,7 +78,7 @@ export default class SpectateUserService extends Service {
     this.localUser.teleportToPosition(this.startPosition, {
       adaptCameraHeight: true,
     });
-    this.spectatedUser.setHmdVisible(true);
+    // this.spectatedUser.setHmdVisible(true);
     this.spectatedUser = null;
 
     this.sender.sendSpectatingUpdate(this.isActive, null);

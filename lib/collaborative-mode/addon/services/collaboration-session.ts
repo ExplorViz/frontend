@@ -1,16 +1,27 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
+import { timeout } from 'ember-concurrency';
+import { restartableTask } from 'ember-concurrency-decorators';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import THREE from 'three';
+import SpectateUserService from 'virtual-reality/services/spectate-user';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomService from 'virtual-reality/services/vr-room';
 import WebSocketService from 'virtual-reality/services/web-socket';
+import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { SelfConnectedMessage, SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
 import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
 import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
+import { SpectatingUpdateMessage, SPECTATING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
+import { UserPositionsMessage, USER_POSITIONS_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_positions';
+import { CONTROLLER_1_ID, CONTROLLER_2_ID } from 'virtual-reality/utils/vr-message/util/controller_id';
+import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 
@@ -40,7 +51,13 @@ export default class CollaborationSession extends Service.extend({
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  private idToRemoteUser: Map<string, RemoteUser> = new Map();
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
+
+  @service('spectate-user')
+  private spectateUserService!: SpectateUserService;
+
+  idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group(); // TODO AR ONLY
 
@@ -57,6 +74,8 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
+    this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
+    this.webSocket.on(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
     this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
   }
 
@@ -64,6 +83,8 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.off(USER_CONNECTED_EVENT, this, this.onUserConnected);
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
+    this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
+    this.webSocket.off(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -146,9 +167,11 @@ export default class CollaborationSession extends Service.extend({
       name: self.name,
       color: new THREE.Color(...self.color),
     });
+    perform(this.sendPose);
 
     // TODO handle VR user
-    // this.sendInitialControllerConnectState();
+    this.sender.sendControllerConnect(this.localUser.controller1);
+    this.sender.sendControllerConnect(this.localUser.controller2);
   }
 
   onUserConnected(
@@ -165,7 +188,12 @@ export default class CollaborationSession extends Service.extend({
     })
     this.addRemoteUser(remoteUser)
 
-    this.toastMessage.success(`User ${remoteUser.userName} connected.`);
+    this.toastMessage.success({
+      title: 'User connected',
+      text: remoteUser.userName,
+      color: `#${remoteUser.color.getHexString()}`,
+      time: 3.0,
+    });
   }
   /**
    * Removes the user that disconnected and informs our user about it.
@@ -176,7 +204,12 @@ export default class CollaborationSession extends Service.extend({
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
-      this.toastMessage.error(`User ${removedUser.userName} disconnected.`);
+      this.toastMessage.message({
+        title: 'User disconnected',
+        text: removedUser.userName,
+        color: `#${removedUser.color.getHexString()}`,
+        time: 3.0,
+      });
     }
   }
 
@@ -252,11 +285,99 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.closeSocket();
   }
 
+  @restartableTask *
+    sendPose() {
+    while (this.isOnline) {
+      const poses = VrPoses.getPoses(
+        this.localUser.camera,
+        this.localUser.controller1,
+        this.localUser.controller2,
+      );
+      this.sender.sendPoseUpdate(
+        poses.camera,
+        poses.controller1,
+        poses.controller2,
+      );
+      yield timeout(15);
+    }
+  }
 
+  /**
+   * Updates the specified user's camera and controller positions.
+   */
+  onUserPositions({
+    userId,
+    originalMessage: { camera, controller1, controller2 },
+  }: ForwardedMessage<UserPositionsMessage>): void {
+    const remoteUser = this.lookupRemoteUserById(userId);
+    if (!remoteUser) return;
 
+    if (remoteUser instanceof RemoteVrUser) {
+      if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
+      if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
+    }
+    if (camera) remoteUser.updateCamera(camera);
+  }
 
+  /**
+   * Updates the state of given user to spectating or connected.
+   * Hides them if spectating.
+   *
+   * @param {string} userId - The user's id.
+   * @param {boolean} isSpectating - True, if the user is now spectating, else false.
+   */
+  onSpectatingUpdate({
+    userId,
+    originalMessage: { isSpectating },
+  }: ForwardedMessage<SpectatingUpdateMessage>): void {
+    // TODO spectating
+    const remoteUser = this.setRemoteUserSpectatingById(
+      userId,
+      isSpectating,
+    );
+    if (!remoteUser) return;
 
+    const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
+    if (isSpectating) {
+      this.toastMessage.message({
+        title: remoteUser.userName,
+        text: ' is now spectating',
+        color: remoteUserHexColor,
+        time: 3.0,
+      });
+    } else {
+      this.toastMessage.message({
+        title: remoteUser.userName,
+        text: ' stopped spectating',
+        color: remoteUserHexColor,
+        time: 3.0,
+      });
+    }
+  }
 
+  setRemoteUserSpectatingById(
+    userId: string,
+    isSpectating: boolean,
+  ): RemoteUser | undefined {
+    const remoteUser = this.idToRemoteUser.get(userId);
+    if (remoteUser) this.setRemoteUserSpectating(remoteUser, isSpectating);
+    return remoteUser;
+  }
+
+  setRemoteUserSpectating(remoteUser: RemoteUser, isSpectating: boolean) {
+    remoteUser.state = isSpectating ? 'spectating' : 'online';
+    if (remoteUser instanceof RemoteVrUser) {
+      remoteUser.setVisible(!isSpectating);
+    }
+
+    // If we spectated the remote user before, stop spectating.
+    if (
+      isSpectating
+      && this.spectateUserService.spectatedUser?.userId === remoteUser.userId
+    ) {
+      this.spectateUserService.deactivate();
+    }
+  }
 
 }
 
