@@ -660,9 +660,6 @@ function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
       }),
     ),
   }
-
-
-
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

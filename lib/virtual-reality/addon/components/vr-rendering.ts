@@ -13,8 +13,6 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
@@ -46,9 +44,11 @@ import MenuQueue from 'virtual-reality/utils/vr-menus/menu-queue';
 import HintMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/hint-menu';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
-import { ObjectMovedMessage } from 'virtual-reality/utils/vr-message/sendable/object_moved';
-import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+import { ObjectMovedMessage, OBJECT_MOVED_EVENT } from 'virtual-reality/utils/vr-message/sendable/object_moved';
+import { PingUpdateMessage, PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/ping_update';
+import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
+import { OBJECT_GRABBED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/object_grabbed';
 import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
 import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
@@ -116,6 +116,12 @@ export default class VrRendering
 
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('detached-menu-renderer')
+  private detachedMenuRenderer!: DetachedMenuRenderer;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   // #endregion SERVICES
 
@@ -411,11 +417,12 @@ export default class VrRendering
 
   private async initWebSocket() {
     this.debug('Initializing websocket...');
-
-    this.webSocket.on(USER_CONTROLLER_CONNECT_EVENT, this, this.onControllerConnected);
-    this.webSocket.on(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onControllerDisconnected);
-    // this.webSocket.socketCloseCallback = () => this.onSelfDisconnected();
-    // this.receiver.addMessageListener(this);
+    this.webSocket.on(USER_CONTROLLER_CONNECT_EVENT, this, this.onUserControllerConnect);
+    this.webSocket.on(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onUserControllerDisconnect);
+    this.webSocket.on(PING_UPDATE_EVENT, this, this.onPingUpdate);
+    this.webSocket.on(OBJECT_MOVED_EVENT, this, this.onObjectMoved);
+    this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
+    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onDetachedMenuClosed);
   }
 
   // #endregion INITIALIZATION
@@ -427,8 +434,13 @@ export default class VrRendering
 
     this.localUser.xr = undefined;
 
-    this.webSocket.off(USER_CONTROLLER_CONNECT_EVENT, this, this.onControllerConnected);
-    this.webSocket.off(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onControllerDisconnected);
+    this.webSocket.off(USER_CONTROLLER_CONNECT_EVENT, this, this.onUserControllerConnect);
+    this.webSocket.off(USER_CONTROLLER_DISCONNECT_EVENT, this, this.onUserControllerDisconnect);
+    this.webSocket.off(PING_UPDATE_EVENT, this, this.onPingUpdate);
+    this.webSocket.off(OBJECT_MOVED_EVENT, this, this.onObjectMoved);
+    this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
+    this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onDetachedMenuClosed);
+
     this.renderingLoop.stop();
     // Reset rendering.
     this.applicationRenderer.removeAllApplicationsLocally();
@@ -437,7 +449,6 @@ export default class VrRendering
 
     // Reset services.
     this.localUser.reset();
-    this.spectateUserService.reset();
 
     // Remove event listers.
     // this.receiver.removeMessageListener(this);
@@ -615,33 +626,7 @@ export default class VrRendering
     // this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
   }
 
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
-
   // #endregion MAIN LOOP
-
-  // #region APPLICATION RENDERING
-
-  private async addApplicationOrShowHint(
-    applicationModel: Application,
-    args: AddApplicationArgs,
-  ): Promise<ApplicationObject3D | null> {
-    if (applicationModel.packages.length === 0) {
-      this.showHint('No data available');
-      return Promise.resolve(null);
-    }
-
-    if (
-      this.applicationRenderer.isApplicationOpen(applicationModel.id)
-    ) {
-      this.showHint('Application already opened');
-      return Promise.resolve(null);
-    }
-
-    return this.applicationRenderer.addApplication(applicationModel, args);
-  }
-
-  // #endregion APPLICATION RENDERING
 
   // #region MENUS
 
@@ -903,19 +888,6 @@ export default class VrRendering
 
   // #region HANDLING MESSAGES
 
-  // TODO this was the user connected message
-  // if (showConnectMessage) {
-  //   this.messageMenuQueue.enqueueMenu(
-  //     this.menuFactory.buildMessageBoxMenu({
-  //       title: 'User connected',
-  //       text: remoteUser.userName,
-  //       color: `#${remoteUser.color.getHexString()}`,
-  //       time: 3.0,
-  //     }),
-  //   );
-  // }
-
-
   /**
    * Updates whether the given user is pinging with the specified controller or not.
    */
@@ -924,12 +896,11 @@ export default class VrRendering
     originalMessage: { controllerId, isPinging },
   }: ForwardedMessage<PingUpdateMessage>): void {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
-    if (!remoteUser) return;
 
-    remoteUser.togglePing(controllerId, isPinging);
+    if (remoteUser instanceof RemoteVrUser) {
+      remoteUser.togglePing(controllerId, isPinging);
+    }
   }
-
-  onMousePingUpdate() { }
 
   onUserControllerConnect({
     userId,
@@ -946,11 +917,13 @@ export default class VrRendering
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
-    remoteUser.initController(controllerId, assetUrl, {
-      position,
-      quaternion,
-      intersection,
-    });
+    if (remoteUser instanceof RemoteVrUser) {
+      remoteUser.initController(controllerId, assetUrl, {
+        position,
+        quaternion,
+        intersection,
+      });
+    }
   }
 
   onUserControllerDisconnect({
@@ -958,9 +931,10 @@ export default class VrRendering
     originalMessage: { controllerId },
   }: ForwardedMessage<UserControllerDisconnectMessage>): void {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
-    if (!remoteUser) return;
 
-    remoteUser.removeController(controllerId);
+    if (remoteUser instanceof RemoteVrUser) {
+      remoteUser.removeController(controllerId);
+    }
   }
 
   onObjectMoved({
@@ -979,9 +953,6 @@ export default class VrRendering
     movedObject.quaternion.fromArray(quaternion);
     movedObject.scale.fromArray(scale);
   }
-
-  @service('detached-menu-renderer')
-  private detachedMenuRenderer!: DetachedMenuRenderer;
 
   onMenuDetached({
     objectId,

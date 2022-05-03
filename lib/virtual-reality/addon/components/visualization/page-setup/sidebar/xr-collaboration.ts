@@ -37,7 +37,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   get users() {
     const users = [];
     if (this.localUser.color) {
-      users.push({ name: this.localUser.userName, style: `color:#${this.localUser.color.getHexString()}` });
+      users.push({ name: this.localUser.userName + ' (you)', style: `color:#${this.localUser.color.getHexString()}` });
     }
     const remoteUsers = Array.from(this.collaborationSession.getAllRemoteUsers()).map(
       (user) => ({ name: user.userName, style: `color:#${user.color.getHexString()}`, id: user.userId }),
@@ -87,10 +87,10 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   @action
   spectate(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
-    AlertifyHandler.showAlertifyMessage('Activating spectate for user ' + id)
     if (remoteUser) {
-      AlertifyHandler.showAlertifyMessage('Activatinggg spectate for user ' + id)
-      this.spectateUserService.activate(remoteUser)
+      this.spectateUserService.activate(remoteUser);
+    } else {
+      this.spectateUserService.deactivate();
     }
   }
 }

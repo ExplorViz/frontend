@@ -296,7 +296,6 @@ export default class VisualizationController extends Controller {
     this.landscapeListener.initLandscapePolling();
     this.updateTimestampList();
     this.initWebSocket();
-    this.collaborationSession.updateRemoteUsers()
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);

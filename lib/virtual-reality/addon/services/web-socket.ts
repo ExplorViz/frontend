@@ -10,6 +10,8 @@ type ResponseHandler<T> = (msg: T) => void;
 
 const { collaborationService, collaborationSocketPath } = ENV.backendAddresses;
 
+export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
+
 export default class WebSocketService extends Service.extend(Evented) {
   @service()
   private websockets!: any;
@@ -21,8 +23,6 @@ export default class WebSocketService extends Service.extend(Evented) {
   private currentSocketUrl: string | null = null;
 
   private responseHandlers = new Map<Nonce, ResponseHandler<any>>();
-
-  socketCloseCallback: ((event: any) => void) | null = null;
 
   private getSocketUrl(ticketId: string) {
     const collaborationServiceSocket = collaborationService.replace(/^http(s?):\/\//i, 'ws$1://');
@@ -49,9 +49,7 @@ export default class WebSocketService extends Service.extend(Evented) {
     }
 
     // Invoke external event listener for close event.
-    if (this.socketCloseCallback) {
-      this.socketCloseCallback(event);
-    }
+    this.trigger(SELF_DISCONNECTED_EVENT, event);
 
     // Remove internal event listeners.
     this.currentSocket.off('message', this.messageHandler);
