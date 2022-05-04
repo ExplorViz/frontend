@@ -3,11 +3,11 @@ import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
 
-module('Integration | Modifier | application-rendering', function(hooks) {
+module('Integration | Modifier | application-rendering', function (hooks) {
   setupRenderingTest(hooks);
 
   // Replace this with your real tests.
-  test('it renders', async function(assert) {
+  test('it renders', async function (assert) {
     await render(hbs`<div {{application-rendering}}></div>`);
 
     assert.ok(true);

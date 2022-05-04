@@ -1,8 +1,9 @@
-import { ApplicationHeatmapData, Metric } from "heatmap/services/heatmap-configuration";
+import { ApplicationHeatmapData, Metric } from 'heatmap/services/heatmap-configuration';
 
 const windowSize = 9;
 
-export default function calculateHeatmap(applicationHeatmap: ApplicationHeatmapData, newScores: Metric[]) {
+export default function calculateHeatmap(applicationHeatmap: ApplicationHeatmapData,
+  newScores: Metric[]) {
   applicationHeatmap.latestClazzMetricScores = newScores;
   function roundToTwoDecimalPlaces(num: number): number {
     return Math.round((num + Number.EPSILON) * 100) / 100;
@@ -138,7 +139,7 @@ export default function calculateHeatmap(applicationHeatmap: ApplicationHeatmapD
         };
         // console.log('new Metric Score', newMetricScoreObject);
 
-        if (applicationHeatmap.differenceMetricScores && applicationHeatmap.differenceMetricScores.get(metricName)) {
+        if (applicationHeatmap.differenceMetricScores?.get(metricName)) {
           applicationHeatmap.differenceMetricScores.get(metricName)?.push(newMetricScoreObject);
         } else {
           applicationHeatmap.differenceMetricScores.set(metricName, [newMetricScoreObject]);

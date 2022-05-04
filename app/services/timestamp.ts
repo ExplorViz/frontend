@@ -9,7 +9,7 @@ export default class TimestampService extends Service.extend(Evented) {
 
   // TODO not the best solution, should be handled differently
   updateTimestamp(timestamp: number) {
-    this.trigger(TIMESTAMP_UPDATE_EVENT, { originalMessage: { timestamp } })
+    this.trigger(TIMESTAMP_UPDATE_EVENT, { originalMessage: { timestamp } });
   }
 }
 

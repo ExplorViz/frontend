@@ -56,7 +56,7 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.latestClazzMetricScores')
   get metrics() {
-    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
+    const { currentApplicationHeatmapData } = this.heatmapConf;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
     if (currentApplicationHeatmapData) {
@@ -70,7 +70,7 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.aggregatedMetricScores')
   get contAggregatedMetrics() {
-    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
+    const { currentApplicationHeatmapData } = this.heatmapConf;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
     if (currentApplicationHeatmapData) {
@@ -84,7 +84,7 @@ export default class ClazzPopup extends Component<Args> {
 
   @computed('heatmapConf.differenceMetricScores')
   get windowedMetrics() {
-    const currentApplicationHeatmapData = this.heatmapConf.currentApplicationHeatmapData;
+    const { currentApplicationHeatmapData } = this.heatmapConf;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
     if (currentApplicationHeatmapData) {

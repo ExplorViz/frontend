@@ -99,7 +99,9 @@ export function closeComponentMesh(mesh: ComponentMesh, applicationObject3D: App
    *
    * @param applicationObject3D Application object which contains the components
    */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
+export function closeAllComponents(
+  applicationObject3D: ApplicationObject3D,
+) {
   const application = applicationObject3D.dataModel;
 
   // Close each component

@@ -1,10 +1,12 @@
 import Service from '@ember/service';
-import { APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE, COMPONENT_ENTITY_TYPE, EntityType, NODE_ENTITY_TYPE } from 'virtual-reality/utils/vr-message/util/entity_type';
+import {
+  APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE,
+  COMPONENT_ENTITY_TYPE, EntityType, NODE_ENTITY_TYPE,
+} from 'virtual-reality/utils/vr-message/util/entity_type';
 
 export default class MeshService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   // TODO can probably be moved to the application renderer once the landscape view is gone
   findMeshByModelId(entityType: EntityType, id: string) {
     switch (entityType) {

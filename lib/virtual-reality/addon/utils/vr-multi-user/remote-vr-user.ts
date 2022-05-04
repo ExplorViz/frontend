@@ -20,7 +20,6 @@ type Controller = {
 };
 
 export default class RemoteVrUser extends RemoteUser {
-
   controllers: (Controller | null)[];
 
   nameTag: NameTagSprite | null;
@@ -167,7 +166,6 @@ export default class RemoteVrUser extends RemoteUser {
       }
     });
   }
-
 
   /**
    * Updates the controller1 model's position and rotation.

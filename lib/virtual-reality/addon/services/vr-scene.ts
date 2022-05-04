@@ -20,10 +20,10 @@ export default class VrSceneService extends Service {
     super(properties);
 
     // Initialize sceene.
-    this.debug('Scene initializing')
+    this.debug('Scene initializing');
     this.scene = new THREE.Scene();
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
-    this.debug('Scene initialized')
+    this.debug('Scene initialized');
 
     // Initilize floor.
     const floor = new FloorMesh(FLOOR_SIZE, FLOOR_SIZE);

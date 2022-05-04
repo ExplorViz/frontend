@@ -1,7 +1,7 @@
 import Controller from '@ember/controller';
 import {
   action,
-  set
+  set,
 } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
@@ -117,7 +117,7 @@ export default class VisualizationController extends Controller {
 
   @action
   updateTimestampList() {
-    this.debug('updateTimestampList')
+    this.debug('updateTimestampList');
     const currentToken = this.landscapeTokenService.token!.value;
     this.timelineTimestamps = this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
@@ -125,7 +125,7 @@ export default class VisualizationController extends Controller {
   @action
   receiveNewLandscapeData(structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData) {
-    this.debug('receiveNewLandscapeData')
+    this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
       if (this.timelineTimestamps.lastObject) {
@@ -184,20 +184,20 @@ export default class VisualizationController extends Controller {
 
   @action
   closeDataSelection() {
-    this.debug('closeDataSelection')
+    this.debug('closeDataSelection');
     this.showDataSelection = false;
     this.components = [];
   }
 
   @action
   openDataSelection() {
-    this.debug('openDataSelection')
+    this.debug('openDataSelection');
     this.showDataSelection = true;
   }
 
   @action
   addComponent(component: string) {
-    this.debug('addComponent')
+    this.debug('addComponent');
     if (this.components.includes(component)) {
       // remove it and readd it in the code below,
       // so it again appears on top inside the sidebar
@@ -227,14 +227,14 @@ export default class VisualizationController extends Controller {
       && timestampRecordArray[0] === this.selectedTimestampRecords[0]) {
       return;
     }
-    this.updateTimestamp(timestampRecordArray[0].timestamp, timestampRecordArray)
+    this.updateTimestamp(timestampRecordArray[0].timestamp, timestampRecordArray);
   }
 
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     this.pauseVisualizationUpdating();
     try {
       const [structureData, dynamicData] = await
-        this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+      this.reloadHandler.loadLandscapeByTimestamp(timestamp);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
@@ -286,7 +286,7 @@ export default class VisualizationController extends Controller {
   }
 
   initRendering() {
-    this.debug('initRendering')
+    this.debug('initRendering');
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
@@ -299,7 +299,7 @@ export default class VisualizationController extends Controller {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.debug('initRendering done')
+    this.debug('initRendering done');
   }
 
   willDestroy() {
@@ -324,15 +324,15 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
   }: InitialLandscapeMessage): Promise<void> {
-    AlertifyHandler.showAlertifyMessage('On Initial Landscape')
+    AlertifyHandler.showAlertifyMessage('On Initial Landscape');
     this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
-    this.updateTimestamp(landscape.timestamp)
+    this.updateTimestamp(landscape.timestamp);
   }
 
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.updateTimestamp(timestamp)
+    this.updateTimestamp(timestamp);
   }
 }
 

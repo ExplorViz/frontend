@@ -10,7 +10,7 @@ import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
-  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp
+  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class VrRoomSerializer extends Service {
@@ -37,7 +37,7 @@ export default class VrRoomSerializer extends Service {
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
     };
-    return this.serializedRoom
+    return this.serializedRoom;
   }
 
   // ToDo: Add both global and local positions
@@ -73,11 +73,11 @@ export default class VrRoomSerializer extends Service {
       scale: application.scale.toArray(),
       openComponents: Array.from(application.openComponentIds),
       highlightedComponents: this.serializeHighlightedComponent(application),
-    }
+    };
   }
 
   private serializeHighlightedComponent(application: ApplicationObject3D) {
-    const highlightedEntity = application.highlightedEntity;
+    const { highlightedEntity } = application;
     if (highlightedEntity && (
       highlightedEntity instanceof ComponentMesh
       || highlightedEntity instanceof ClazzMesh
@@ -88,7 +88,7 @@ export default class VrRoomSerializer extends Service {
         entityType: highlightedEntity.constructor.name,
         entityId: highlightedEntity.dataModel.id,
         isHighlighted: true,
-      }]
+      }];
     }
     return [];
   }

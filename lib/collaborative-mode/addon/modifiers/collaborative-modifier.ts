@@ -6,7 +6,7 @@ import CollaborativeService from 'collaborative-mode/services/collaborative-serv
 import CollaborativeSettingsService from 'collaborative-mode/services/collaborative-settings-service';
 import EventSettingsService from 'collaborative-mode/services/event-settings-service';
 import {
-  Click, CollaborativeEvents, CursorPosition, Perspective
+  Click, CollaborativeEvents, CursorPosition, Perspective,
 } from 'collaborative-mode/utils/collaborative-data';
 import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
@@ -127,11 +127,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
     perform(this.applicationRenderer.openApplicationTask,
       id, {
-      position: new THREE.Vector3(...position),
-      quaternion: new THREE.Quaternion(...quaternion),
-      scale: new THREE.Vector3(...scale),
-    },
-      false)
+        position: new THREE.Vector3(...position),
+        quaternion: new THREE.Quaternion(...quaternion),
+        scale: new THREE.Vector3(...scale),
+      },
+      false);
   }
 
   onComponentUpdate({
@@ -211,7 +211,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     if (applicationObj) {
       taskFor(remoteUser.mousePing.ping).perform({ parentObj: applicationObj, position: point });
     } else {
-      taskFor(remoteUser.mousePing.ping).perform({ parentObj: this.landscapeRenderer.landscapeObject3D, position: point });
+      taskFor(remoteUser.mousePing.ping).perform({
+        parentObj: this.landscapeRenderer.landscapeObject3D, position: point,
+      });
     }
   }
 

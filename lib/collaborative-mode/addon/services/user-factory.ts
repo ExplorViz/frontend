@@ -19,7 +19,9 @@ export default class UserFactory extends Service.extend({
   // TODO set to true if it is a real VR user
   displayHmd = true;
 
-  createUser({ userName, userId, color, position, quaternion }: {
+  createUser({
+    userName, userId, color, position, quaternion,
+  }: {
     userName: string;
     userId: string;
     color: Color;
@@ -28,18 +30,18 @@ export default class UserFactory extends Service.extend({
   }): RemoteUser {
     if (this.displayHmd) {
       const remoteUser = new RemoteVrUser({
-        userName: userName,
-        userId: userId,
+        userName,
+        userId,
         color: new THREE.Color(...color),
         state: 'online',
         localUser: this.localUser,
       });
       this.hmdService.headsetModel.then((hmd) => remoteUser.initCamera(hmd.clone(true), { position, quaternion }));
-      return remoteUser
-    } else { }
+      return remoteUser;
+    }
     return new RemoteUser({
-      userName: userName,
-      userId: userId,
+      userName,
+      userId,
       color: new THREE.Color(...color),
       state: 'online',
     });

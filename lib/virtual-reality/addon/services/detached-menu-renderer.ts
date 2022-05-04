@@ -20,7 +20,7 @@ export default class DetachedMenuRenderer extends Service.extend({
   restore(detachedMenus: SerializedDetachedMenu[]) {
     // Initialize detached menus.
     detachedMenus.forEach((detachedMenu) => {
-      this.restoreMenu(detachedMenu)
+      this.restoreMenu(detachedMenu);
     });
   }
 

@@ -65,7 +65,6 @@ export default class CloseIcon extends BaseMesh implements IntersectableObject {
     object.rotation.set(0, 0, 0);
     object.updateMatrixWorld();
 
-
     // Get size of the object.
     const boundingBox = new THREE.Box3().setFromObject(object);
     const width = boundingBox.max.x - boundingBox.min.x;

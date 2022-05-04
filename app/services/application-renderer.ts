@@ -58,10 +58,27 @@ export type AddApplicationArgs = {
 
 export type ApplicationRendererMode = 'browser' | 'ar' | 'vr';
 
+function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
+  return {
+    position: new THREE.Vector3(...app.position),
+    quaternion: new THREE.Quaternion(...app.quaternion),
+    scale: new THREE.Vector3(...app.scale),
+    openComponents: new Set(app.openComponents),
+    highlightedComponents: app.highlightedComponents.map(
+      (highlightedComponent) => ({
+        entityType: highlightedComponent.entityType,
+        entityId: highlightedComponent.entityId,
+        // color: this.remoteUsers.lookupRemoteUserById(
+        //     highlightedComponent.userId,
+        // )?.color,
+      }),
+    ),
+  };
+}
+
 export default class ApplicationRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   debug = debugLogger('ApplicationRendering');
 
   private mode: ApplicationRendererMode = 'browser';
@@ -150,7 +167,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   get raycastObjects() {
-    this.debug('Gettings objects' + this.applicationMarkers.length);
+    this.debug(`Gettings objects${this.applicationMarkers.length}`);
     return this.applicationMarkers;
     // return this.openApplications;
   }
@@ -208,7 +225,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addGlobe(applicationObject3D);
     // Set initial position, rotation and scale.
-    if (this.mode == 'vr' && args.position) applicationObject3D.parent?.position.copy(args.position);
+    if (this.mode === 'vr' && args.position) applicationObject3D.parent?.position.copy(args.position);
     if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
     if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
@@ -244,8 +261,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  @enqueueTask
-  * openApplicationTask(
+  @enqueueTask* openApplicationTask(
     applicationId: string,
     addApplicationArgs: AddApplicationArgs = {},
     send: boolean = true,
@@ -255,17 +271,18 @@ export default class ApplicationRenderer extends Service.extend({
     if (!applicationData || application?.packages.length === 0) {
       this.toastMessage.info(
         `Sorry, there is no information for application <b>
-        ${application?.name}</b> available.`
+        ${application?.name}</b> available.`,
       );
       return;
     }
     if (this.isApplicationOpen(applicationId)) {
       this.toastMessage.info(
-        'Application already opened'
+        'Application already opened',
       );
       return;
     }
-    const applicationObject3D = (yield perform(this.addApplicationTask, applicationData, addApplicationArgs)) as ApplicationObject3D;
+    const applicationObject3D = (yield perform(this.addApplicationTask,
+      applicationData, addApplicationArgs)) as ApplicationObject3D;
     if (this.initCallback && applicationObject3D) {
       this.initCallback(applicationObject3D);
     }
@@ -279,17 +296,18 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @enqueueTask
-  * addApplicationTask(
+  @enqueueTask* addApplicationTask(
     applicationData: ApplicationData,
     addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
     const isOpen = this.isApplicationOpen(applicationModel.id);
     // get existing applicationObject3D or create new one.
-    const applicationObject3D = this.updateOrCreateApplication(applicationModel, applicationData.layoutData);
+    const applicationObject3D = this.updateOrCreateApplication(
+      applicationModel, applicationData.layoutData,
+    );
 
-    if (Object.keys(addApplicationArgs).length == 0 && isOpen) {
+    if (Object.keys(addApplicationArgs).length === 0 && isOpen) {
       addApplicationArgs = this.saveApplicationState(applicationObject3D);
     }
 
@@ -302,7 +320,9 @@ export default class ApplicationRenderer extends Service.extend({
     );
 
     if (applicationObject3D.globeMesh) {
-      EntityRendering.repositionGlobeToApplication(applicationObject3D, applicationObject3D.globeMesh);
+      EntityRendering.repositionGlobeToApplication(
+        applicationObject3D, applicationObject3D.globeMesh,
+      );
     }
 
     // Restore state of components highlighting
@@ -311,9 +331,9 @@ export default class ApplicationRenderer extends Service.extend({
       restoreComponentState(applicationObject3D, openComponentIds);
     }
 
-    this.addCommunication(applicationObject3D)
+    this.addCommunication(applicationObject3D);
 
-    this.addLabels(applicationObject3D, this.font, false)
+    this.addLabels(applicationObject3D, this.font, false);
 
     addApplicationArgs.highlightedComponents?.forEach((highlightedComponent) => {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(
@@ -390,7 +410,7 @@ export default class ApplicationRenderer extends Service.extend({
   addCommunicationForAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
       this.addCommunication(applicationObject3D);
-    })
+    });
   }
 
   @action
@@ -402,7 +422,7 @@ export default class ApplicationRenderer extends Service.extend({
       if (applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
         removeHighlighting(applicationObject3D);
       }
-    })
+    });
   }
 
   @action
@@ -412,14 +432,14 @@ export default class ApplicationRenderer extends Service.extend({
     if (drawableClassCommunications) {
       this.appCommRendering.addCommunication(
         applicationObject3D,
-        drawableClassCommunications
+        drawableClassCommunications,
       );
     }
   }
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    if (this.mode != 'ar' || this.arSettings.renderCommunication) {
+    if (this.mode !== 'ar' || this.arSettings.renderCommunication) {
       this.addCommunication(applicationObject3D);
     }
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
@@ -524,8 +544,7 @@ export default class ApplicationRenderer extends Service.extend({
   openAllComponentsOfAllApplications() {
     this.getOpenApplications().forEach((applicationObject3D) => {
       this.openAllComponents(applicationObject3D);
-    }
-    )
+    });
   }
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
@@ -614,14 +633,13 @@ export default class ApplicationRenderer extends Service.extend({
   restore(room: SerializedVrRoom) {
     this.cleanUpApplications();
     for (const app of room.openApps) {
-
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
         perform(
           this.addApplicationTask,
           applicationData,
           serializedRoomToAddApplicationArgs(app),
-        )
+        );
       }
     }
   }
@@ -641,24 +659,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     return boxLayoutMap;
-  }
-}
-
-function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
-  return {
-    position: new THREE.Vector3(...app.position),
-    quaternion: new THREE.Quaternion(...app.quaternion),
-    scale: new THREE.Vector3(...app.scale),
-    openComponents: new Set(app.openComponents),
-    highlightedComponents: app.highlightedComponents.map(
-      (highlightedComponent) => ({
-        entityType: highlightedComponent.entityType,
-        entityId: highlightedComponent.entityId,
-        // color: this.remoteUsers.lookupRemoteUserById(
-        //     highlightedComponent.userId,
-        // )?.color,
-      }),
-    ),
   }
 }
 

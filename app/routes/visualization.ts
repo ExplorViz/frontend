@@ -5,8 +5,8 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
-import BaseRoute from './base-route';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+import BaseRoute from './base-route';
 
 /**
 * TODO

@@ -45,8 +45,6 @@ export type VRControllerCallbackFunctions = {
  * a VR controller and provides update and callback functionalities.
  */
 export default class VRController extends BaseMesh {
-
-
   debug = debugLogger('VRController');
 
   gamepadIndex: ControllerId;

@@ -9,7 +9,6 @@ interface PingButtonArgs {
 }
 
 export default class PingButton extends Component<PingButtonArgs> {
-
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 

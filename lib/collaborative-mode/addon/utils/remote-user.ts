@@ -7,7 +7,6 @@ type Camera = {
 };
 
 export default class RemoteUser extends THREE.Object3D {
-
   userName: string;
 
   userId: string;
@@ -38,7 +37,7 @@ export default class RemoteUser extends THREE.Object3D {
     this.state = state;
 
     this.camera = null;
-    this.mousePing = new MousePing(color)
+    this.mousePing = new MousePing(color);
   }
 
   initCamera(obj: THREE.Object3D, initialPose: Pose) {

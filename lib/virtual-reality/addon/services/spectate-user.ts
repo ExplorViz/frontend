@@ -14,7 +14,6 @@ import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 
 export default class SpectateUserService extends Service {
-
   debug = debugLogger('spectateUserService');
 
   @service('local-user')
@@ -38,6 +37,7 @@ export default class SpectateUserService extends Service {
 
   // use this for VR?
   private startPosition: THREE.Vector3 = new THREE.Vector3();
+
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
   init() {

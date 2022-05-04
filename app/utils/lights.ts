@@ -1,4 +1,4 @@
-import THREE from "three";
+import THREE from 'three';
 
 export function light(): THREE.AmbientLight {
   return new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));

@@ -3,7 +3,6 @@ import Service from '@ember/service';
 export default class FontRepository extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   font!: THREE.Font;
 }
 

@@ -34,7 +34,7 @@ export default class RenderingLoop extends EmberObject {
     super.init();
     if (this.mapControls) {
       this.controls = new MapControls(this.camera, this.renderer.domElement);
-      this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+      this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.05;
       this.controls.minDistance = 0.5;
       this.controls.maxDistance = 30;

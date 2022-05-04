@@ -68,7 +68,6 @@ const DEFAULT_SETTINGS = {
 export default class LandscapeRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   private debug = debugLogger('LandscapeRenderer');
 
   settings: LandscapeRendererSettings = DEFAULT_SETTINGS;
@@ -103,7 +102,7 @@ export default class LandscapeRenderer extends Service.extend({
 
   webglrenderer!: THREE.WebGLRenderer;
 
-  arMode = false
+  arMode = false;
 
   constructor(properties?: object) {
     super(properties);
@@ -125,8 +124,7 @@ export default class LandscapeRenderer extends Service.extend({
     this.landscapeObject3D.resetMeshReferences();
   }
 
-  @restartableTask
-  * populateLandscape(
+  @restartableTask* populateLandscape(
     structureLandscapeData: StructureLandscapeData,
     dynamicLandscapeData: DynamicLandscapeData,
   ): any {
@@ -172,7 +170,7 @@ export default class LandscapeRenderer extends Service.extend({
 
       const modelIdToPlaneLayout = new Map<string, PlaneLayout>();
 
-      this.modelIdToPlaneLayout = modelIdToPlaneLayout
+      this.modelIdToPlaneLayout = modelIdToPlaneLayout;
 
       // Convert the simple to a PlaneLayout map
       LandscapeRenderer.convertToPlaneLayoutMap(
@@ -229,7 +227,6 @@ export default class LandscapeRenderer extends Service.extend({
         this.settings.commLineScalar, // DONE AR ONLY
       );
 
-
       if (this.arMode) {
         this.landscapeObject3D.setOpacity(this.arSettings.landscapeOpacity);
         if (this.largestSide) {
@@ -262,7 +259,7 @@ export default class LandscapeRenderer extends Service.extend({
   renderNode(
     node: Node,
     layout: PlaneLayout | undefined,
-    centerPoint: THREE.Vector2
+    centerPoint: THREE.Vector2,
   ) {
     if (!layout) { return; }
 
@@ -273,7 +270,7 @@ export default class LandscapeRenderer extends Service.extend({
       this.configuration.landscapeColors.nodeColor,
       this.configuration.applicationColors.highlightedEntityColor,
       this.settings.landscapeDepth, // DONE AR ONLY
-      this.settings.z_depth// 0.2, // DONE AR ONLY
+      this.settings.z_depth, // 0.2, // DONE AR ONLY
     );
 
     // Create and add label + icon
@@ -286,7 +283,7 @@ export default class LandscapeRenderer extends Service.extend({
       nodeMesh,
       labelText,
       this.fontRepo.font,
-      this.configuration.landscapeColors.nodeTextColor
+      this.configuration.landscapeColors.nodeTextColor,
     );
 
     // Add to scene

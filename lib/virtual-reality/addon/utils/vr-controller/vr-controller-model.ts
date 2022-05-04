@@ -141,8 +141,8 @@ export default class VrControllerModel extends Object3D {
               minNode.quaternion.slerpQuaternions(
                 maxNode.quaternion,
                 valueNode.quaternion,
-                value
-              )
+                value,
+              );
 
               valueNode.position.lerpVectors(
                 minNode.position,

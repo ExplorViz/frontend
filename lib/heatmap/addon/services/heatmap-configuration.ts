@@ -26,14 +26,15 @@ export class ApplicationHeatmapData {
   latestClazzMetricScores: Metric[] = [];
 
   metricsArray: [Metric[]] = [[]];
+
   differenceMetricScores: Map<string, Metric[]> = new Map<string, Metric[]>();
+
   aggregatedMetricScores: Map<string, Metric> = new Map<string, Metric>();
 }
 
 type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
-
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
@@ -98,7 +99,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       this.currentApplication = applicationObject3D;
     }
     const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
-    if (applicationData && this.currentApplication == applicationObject3D) {
+    if (applicationData && this.currentApplication === applicationObject3D) {
       this.currentApplicationHeatmapData = applicationData.heatmapData;
     }
   }

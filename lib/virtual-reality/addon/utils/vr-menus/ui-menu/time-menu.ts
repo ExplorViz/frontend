@@ -56,12 +56,12 @@ export default class TimeMenu extends UiMenu {
       height: 60,
       onTriggerPressed: (value) => {
         this.setDateBackBy(value * TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError('Reduced time' + this.date.toTimeString())
+        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
         this.redrawMenu();
       },
       onTriggerDown: () => {
         this.setDateBackBy(TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError('Reduced time' + this.date.toTimeString())
+        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
         this.redrawMenu();
       },
     });

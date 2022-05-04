@@ -20,12 +20,10 @@ import UserFactory from './user-factory';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
-
 export default class CollaborationSession extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
-  debug = debugLogger("CollaborationSession");
+  debug = debugLogger('CollaborationSession');
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -121,16 +119,16 @@ export default class CollaborationSession extends Service.extend({
    * After succesfully connecting to the backend, create and spawn other users.
    */
   onSelfConnected({ self, users }: SelfConnectedMessage): void {
-    this.debug('Self connected stuff' + self.name);
+    this.debug(`Self connected stuff${self.name}`);
     // Create User model for all users and add them to the users map by
     // simulating the event of a user connecting.
-    for (var userData of users) {
+    for (const userData of users) {
       const remoteUser = this.userFactory.createUser({
         userName: userData.name,
         userId: userData.id,
         color: userData.color,
         position: userData.position,
-        quaternion: userData.quaternion
+        quaternion: userData.quaternion,
       });
       this.addRemoteUser(remoteUser);
     }
@@ -147,16 +145,16 @@ export default class CollaborationSession extends Service.extend({
   onUserConnected(
     {
       id, name, color, position, quaternion,
-    }: UserConnectedMessage
+    }: UserConnectedMessage,
   ): void {
     const remoteUser = this.userFactory.createUser({
       userName: name,
       userId: id,
-      color: color,
-      position: position,
-      quaternion: quaternion
-    })
-    this.addRemoteUser(remoteUser)
+      color,
+      position,
+      quaternion,
+    });
+    this.addRemoteUser(remoteUser);
 
     this.toastMessage.success({
       title: 'User connected',
@@ -273,8 +271,6 @@ export default class CollaborationSession extends Service.extend({
     }
     if (camera) remoteUser.updateCamera(camera);
   }
-
-
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

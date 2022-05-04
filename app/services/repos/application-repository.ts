@@ -8,7 +8,6 @@ import { AddApplicationArgs, LayoutData } from '../application-renderer';
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   @tracked
   applications: Map<string, ApplicationData> = new Map<string, ApplicationData>();
 
@@ -37,7 +36,6 @@ export default class ApplicationRepository extends Service.extend({
 }
 
 export class ApplicationData {
-
   application: Application;
 
   layoutData: Map<string, LayoutData>;
@@ -53,7 +51,7 @@ export class ApplicationData {
 
   constructor(application: Application, layoutData: Map<string, LayoutData>) {
     this.application = application;
-    this.addApplicationArgs = {}
+    this.addApplicationArgs = {};
     this.layoutData = layoutData;
     this.heatmapData = new ApplicationHeatmapData();
     this.drawableClassCommunications = [];

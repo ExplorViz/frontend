@@ -4,7 +4,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { taskFor } from 'ember-concurrency-ts';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import CollaborativeService from 'explorviz-frontend/services/collaborative-service';
@@ -13,7 +13,6 @@ import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import THREE, { Object3D, Vector2 } from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-
 
 export type Position2D = {
   x: number,
@@ -49,10 +48,10 @@ interface InteractionModifierArgs {
 }
 
 function cleanup(instance: InteractionModifierModifier) {
-  let { canvas } = instance;
+  const { canvas } = instance;
 
-  canvas.removeEventListener('pointerdown', instance.onPointerDown)
-  canvas.removeEventListener('pointerup', instance.onPointerUp)
+  canvas.removeEventListener('pointerdown', instance.onPointerDown);
+  canvas.removeEventListener('pointerup', instance.onPointerUp);
   // canvas.removeEventListener('dblclick', instance.onDoubleClick)
   canvas.removeEventListener('pointerenter', instance.onPointerEnter);
   canvas.removeEventListener('pointerout', instance.onPointerOut);
@@ -88,11 +87,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   pointerDownCounter: number = 0;
 
   didSetup = false;
+
   namedArgs!: NamedArgs;
 
   canvas!: HTMLCanvasElement;
 
-  modify(element: any, [], args: NamedArgs) {
+  modify(element: any, _positionalArgs: any[], args: NamedArgs) {
     this.namedArgs = args;
 
     assert(
@@ -102,8 +102,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.canvas = element;
 
     if (!this.didSetup) {
-      this.canvas.addEventListener('pointerdown', this.onPointerDown)
-      this.canvas.addEventListener('pointerup', this.onPointerUp)
+      this.canvas.addEventListener('pointerdown', this.onPointerDown);
+      this.canvas.addEventListener('pointerup', this.onPointerUp);
       this.canvas.addEventListener('pointerenter', this.onPointerEnter);
       this.canvas.addEventListener('pointerout', this.onPointerOut);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
@@ -111,13 +111,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.createPointerStopEvent();
       this.canvas.addEventListener('pointerstop', this.onPointerStop);
 
-      registerDestructor(this, cleanup)
+      registerDestructor(this, cleanup);
       this.didSetup = true;
     }
   }
 
   get raycastObjects(): Object3D | Object3D[] {
-    const raycastObjects = this.namedArgs.raycastObjects;
+    const { raycastObjects } = this.namedArgs;
     return raycastObjects instanceof Object3D
       ? [raycastObjects] : raycastObjects;
   }
@@ -157,9 +157,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.isMouseOnCanvas = true;
     this.pointerDownCounter = 0;
 
-    if (event.pointerType === 'touch' && this.pointers.length == 2) {
+    if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.onTouchMove(event);
-    } else if (this.pointers.length == 1) {
+    } else if (this.pointers.length === 1) {
       this.handleMouseMovePan(event);
     } else {
       const intersectedViewObj = this.raycast(event);
@@ -179,27 +179,24 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
-
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
   @action
   onClickEventsingleClickUp(event: MouseEvent) {
-    if (event.button == 0 && this.pointers.length == 1) {
-      if (this.pointerDownCounter == 1) {
+    if (event.button === 0 && this.pointers.length === 1) {
+      if (this.pointerDownCounter === 1) {
         this.timer = setTimeout(() => {
           this.pointerDownCounter = 0;
           const intersectedViewObj = this.raycast(event);
           if (intersectedViewObj) {
             if (event.altKey) {
               if (this.localUser.mousePing) {
-
                 const parentObj = intersectedViewObj.object.parent;
                 const pingPosition = intersectedViewObj.point;
                 if (parentObj) {
-
                   parentObj.worldToLocal(pingPosition);
-                  taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+                  perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
 
                   if (this.collaborativeSession.isOnline) {
                     if (parentObj instanceof ApplicationObject3D) {
@@ -215,7 +212,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
               this.namedArgs.singleClick?.(intersectedViewObj);
             }
           }
-        }, 300)
+        }, 300);
       }
 
       if (this.pointerDownCounter > 1) {
@@ -240,12 +237,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     const x = ((event.x - rect.left) / width) * 2 - 1;
-    const y = - ((event.y - rect.top) / height) * 2 + 1;
+    const y = -((event.y - rect.top) / height) * 2 + 1;
 
-    const origin = new Vector2(x, y)
+    const origin = new Vector2(x, y);
     const possibleObjects = this.raycastObjects instanceof Object3D
       ? [this.raycastObjects] : this.raycastObjects;
-
 
     return this.raycaster.raycasting(origin, this.namedArgs.camera,
       possibleObjects, this.raycastFilter);
@@ -278,19 +274,25 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   rotateStart = 0;
 
   panStart = new Vector2();
+
   panEnd = new Vector2();
+
   panDelta = new Vector2();
 
   pinchStart = new Vector2();
+
   pinchEnd = new Vector2();
+
   pinchDelta = new Vector2();
 
   pointerPositions: Map<number, Vector2> = new Map<number, Vector2>();
 
-  state: State = 'none'
+  state: State = 'none';
 
   rotateSpeed = 2.0;
+
   pinchSpeed = 1.0;
+
   panSpeed = 1.0;
 
   selectedObject: THREE.Intersection | null = null;
@@ -303,10 +305,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.setPointerCapture(event.pointerId);
     }
     this.pointers.push(event);
-    if (event.pointerType === 'touch' && this.selectedObject && this.pointers.length == 2) {
-      this.handlePinchStart()
-      this.handleRotateStart()
-    } else if (event.button == 0 && this.pointers.length == 1) {
+    if (event.pointerType === 'touch' && this.selectedObject && this.pointers.length === 2) {
+      this.handlePinchStart();
+      this.handleRotateStart();
+    } else if (event.button === 0 && this.pointers.length === 1) {
       this.pointerDownCounter += 1;
       this.handlePanStart(event);
     }
@@ -352,7 +354,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   onTouchMove(event: PointerEvent) {
-    if (this.selectedObject && this.pointers.length == 2) {
+    if (this.selectedObject && this.pointers.length === 2) {
       this.trackPointer(event);
       this.handleTouchMovePinch(event);
       this.handleTouchMoveRotate();
@@ -378,7 +380,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   handleTouchMoveRotate() {
-    if (this.pointers.length == 2) {
+    if (this.pointers.length === 2) {
       // use pointers always in the same order
       const pointer0 = this.pointerPositions.get(this.pointers[0].pointerId);
       const pointer1 = this.pointerPositions.get(this.pointers[1].pointerId);
@@ -389,7 +391,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       const dy = pointer0.y - pointer1.y;
 
       const rotateEnd = Math.atan2(dy, dx);
-      var angleChange = (this.rotateStart - rotateEnd) * this.rotateSpeed;
+      const angleChange = (this.rotateStart - rotateEnd) * this.rotateSpeed;
 
       this.namedArgs.rotate?.(this.selectedObject, angleChange);
 
@@ -398,7 +400,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   getSecondPointerPosition(event: PointerEvent) {
-    const pointer = (event.pointerId === this.pointers[0].pointerId) ? this.pointers[1] : this.pointers[0];
+    const pointer = (event.pointerId === this.pointers[0].pointerId)
+      ? this.pointers[1] : this.pointers[0];
 
     return this.pointerPositions.get(pointer.pointerId);
   }
@@ -419,7 +422,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.pointerPositions.delete(event.pointerId);
 
     for (let i = 0; i < this.pointers.length; i++) {
-      if (this.pointers[i].pointerId == event.pointerId) {
+      if (this.pointers[i].pointerId === event.pointerId) {
         this.pointers.splice(i, 1);
         return;
       }

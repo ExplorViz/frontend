@@ -60,14 +60,14 @@ export default class WebSocketService extends Service.extend(Evented) {
 
   private messageHandler(event: any) {
     const message = JSON.parse(event.data);
-    this.debug("Got a message" + message.event)
-    if (message.event == FORWARDED_EVENT) {
-      this.trigger(message.originalMessage.event, message)
-    } else if (message.event == RESPONSE_EVENT) {
+    this.debug(`Got a message${message.event}`);
+    if (message.event === FORWARDED_EVENT) {
+      this.trigger(message.originalMessage.event, message);
+    } else if (message.event === RESPONSE_EVENT) {
       const handler = this.responseHandlers.get(message.nonce);
       if (handler) handler(message.response);
     } else {
-      this.trigger(message.event, message)
+      this.trigger(message.event, message);
     }
   }
 

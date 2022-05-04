@@ -24,7 +24,9 @@ import { focusCameraOn } from 'explorviz-frontend/utils/application-rendering/ca
 import { applyDefaultApplicationLayout, moveCameraTo, openComponentMesh } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application, Class, Node, Package,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { light, spotlight } from 'explorviz-frontend/utils/lights';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -91,7 +93,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   heatmapConf!: HeatmapConfiguration;
 
   @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer
+  applicationRenderer!: ApplicationRenderer;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
@@ -129,7 +131,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   hoveredObject: BaseMesh | null = null;
 
   @tracked
-  selectedApplicationId: string = "";
+  selectedApplicationId: string = '';
 
   @tracked
   scene: THREE.Scene;
@@ -161,7 +163,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   get raytraceObjects() {
-    return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.raycastObjects]
+    return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.raycastObjects];
   }
 
   get camera() {
@@ -263,8 +265,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     this.webglrenderer.setPixelRatio(window.devicePixelRatio);
     this.webglrenderer.setSize(width, height);
 
-    this.localUser.renderer = this.webglrenderer
-    this.landscapeRenderer.webglrenderer = this.webglrenderer
+    this.localUser.renderer = this.webglrenderer;
+    this.landscapeRenderer.webglrenderer = this.webglrenderer;
     this.updatables.push(this.spectateUserService);
     this.debug('Renderer set up');
   }
@@ -277,15 +279,14 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   initVisualization(applicationObject3D: ApplicationObject3D) {
-
     const applicationAnimation = () => {
       // applicationObject3D animation
       const period = 4000;
       const times = [0, period];
-      let animationStartCoordinateApplicationObject3D = 0
+      let animationStartCoordinateApplicationObject3D = 0;
       let values = [animationStartCoordinateApplicationObject3D, 360];
 
-      let trackName = '.rotation[y]';
+      const trackName = '.rotation[y]';
 
       let track = new THREE.NumberKeyframeTrack(trackName, times, values);
 
@@ -393,7 +394,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       this.highlightingService.highlightTrace(
         trace, traceStep,
         this.selectedApplicationObject3D,
-        this.args.landscapeData.structureLandscapeData);
+        this.args.landscapeData.structureLandscapeData,
+      );
     }
   }
 
@@ -409,7 +411,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   // TODO this must probably be changed. Mixing landscape and application rendering implementation does not really make sense
   @action
   resetView() {
-    this.landscapeRenderer.resetBrowserView()
+    this.landscapeRenderer.resetBrowserView();
     this.camera.position.set(0, 0, 100);
     // this.applicationObject3D.resetRotation();
   }
@@ -456,8 +458,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       const self = this;
       mesh.close().then((closedSuccessfully: boolean) => {
         if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
-        if (self.selectedApplicationObject3D == mesh.parent) {
-          self.selectedApplicationId = "";
+        if (self.selectedApplicationObject3D === mesh.parent) {
+          self.selectedApplicationId = '';
         }
       });
     }
@@ -481,7 +483,7 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (this.selectedApplicationObject3D != applicationObject3D) {
+    if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.dataModel.id;
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
@@ -513,7 +515,6 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   handleMouseMove(intersection: THREE.Intersection) {
     this.runOrRestartMouseMovementTimer();
     if (intersection) {
-
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
     }
@@ -544,7 +545,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     if (mesh === undefined && this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
-    } else if (mesh instanceof BaseMesh && enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
+    } else if (mesh instanceof BaseMesh
+      && enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
       if (this.hoveredObject) { this.hoveredObject.resetHoverEffect(); }
 
       this.hoveredObject = mesh;
@@ -560,14 +562,14 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   showApplication(appId: string) {
     this.removePopup(appId);
-    const applicationObject3D = this.applicationRenderer.getApplicationById(appId)
+    const applicationObject3D = this.applicationRenderer.getApplicationById(appId);
     if (applicationObject3D) {
       focusCameraOn(applicationObject3D, this.camera, this.renderingLoop.controls);
     } else {
       perform(
         this.applicationRenderer.openApplicationTask,
         appId,
-      )
+      );
     }
   }
 
@@ -607,7 +609,8 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
   @action
   handleMouseStopOnMesh(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
     // Show information as popup is mouse stopped on top of a mesh
-    if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
+    if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
+      || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
       || mesh instanceof ClazzCommunicationMesh)) {
       const newPopup = {
         mouseX: mouseOnCanvas.x,
@@ -695,7 +698,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
       return;
     }
     const applicationCenter = this.selectedApplicationObject3D.layout.center;
-    moveCameraTo(emberModel, applicationCenter, this.camera, this.selectedApplicationObject3D, this.renderingLoop.controls.target, this.args.landscapeData.dynamicLandscapeData);
+    moveCameraTo(emberModel, applicationCenter, this.camera,
+      this.selectedApplicationObject3D, this.renderingLoop.controls.target,
+      this.args.landscapeData.dynamicLandscapeData);
   }
 
   @action

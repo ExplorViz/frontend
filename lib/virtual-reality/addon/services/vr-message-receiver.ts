@@ -75,7 +75,6 @@ export default class VrMessageReceiver extends Service {
     // this.webSocket.messageCallback = (msg) => this.onMessage(msg);
   }
 
-
   /**
    * Adds an event listener that is invoked when a response with the given
    * identifier is received.

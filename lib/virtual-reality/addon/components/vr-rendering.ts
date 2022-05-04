@@ -48,7 +48,6 @@ import { ObjectMovedMessage, OBJECT_MOVED_EVENT } from 'virtual-reality/utils/vr
 import { PingUpdateMessage, PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/ping_update';
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import { OBJECT_GRABBED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/object_grabbed';
 import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
 import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
@@ -158,10 +157,10 @@ export default class VrRendering
   constructor(owner: any, args: Args) {
     super(owner, args);
 
-    this.toastMessage.info = (message => this.showHint(message));
-    this.toastMessage.message = (message => this.showMessage(message));
-    this.toastMessage.success = (message => this.showHint(message));
-    this.toastMessage.error = (message => this.showHint(message));
+    this.toastMessage.info = ((message) => this.showHint(message));
+    this.toastMessage.message = ((message) => this.showMessage(message));
+    this.toastMessage.success = ((message) => this.showHint(message));
+    this.toastMessage.error = ((message) => this.showHint(message));
 
     this.menuFactory.scene = this.sceneService.scene;
     this.sceneService.scene.add(this.localUser.userGroup);
@@ -496,7 +495,6 @@ export default class VrRendering
     this.renderingLoop.start();
   }
 
-
   /**
    * Call this whenever the canvas is resized. Updated properties of camera
    * and renderer.
@@ -619,7 +617,7 @@ export default class VrRendering
       if (remoteUser instanceof RemoteVrUser) {
         remoteUser.update(delta);
       }
-    })
+    });
     // this.debug('Updating with tick');
 
     // update applications' globe animation

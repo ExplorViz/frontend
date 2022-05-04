@@ -8,7 +8,6 @@ import VRController from 'virtual-reality/utils/vr-controller';
 export default class LocalUser extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-
   @service('configuration')
   configuration!: Configuration;
 
@@ -73,7 +72,7 @@ export default class LocalUser extends Service.extend({
     this.userName = name;
 
     this.color = color;
-    this.mousePing = new MousePing(color)
+    this.mousePing = new MousePing(color);
   }
 
   // VR Capabilities

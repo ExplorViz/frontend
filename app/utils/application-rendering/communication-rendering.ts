@@ -15,7 +15,7 @@ export default class CommunicationRendering {
   userSettings: UserSettings;
 
   constructor(configuration: Configuration,
-    userSettings: UserSettings,) {
+    userSettings: UserSettings) {
     this.configuration = configuration;
     this.userSettings = userSettings;
   }

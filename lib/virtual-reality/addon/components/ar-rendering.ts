@@ -18,7 +18,9 @@ import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repositor
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
-import { Application, Class, Node, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application, Class, Node, Package,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { light, spotlight } from 'explorviz-frontend/utils/lights';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -36,7 +38,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import DeltaTime from 'virtual-reality/services/delta-time';
-import RemoteVrUserService from 'virtual-reality/services/remote-vr-users';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
@@ -251,7 +252,7 @@ export default class ArRendering extends Component<Args> {
 
     // Use given font for landscape and application rendering.
     // this.remoteUsers.displayHmd = false;
-    this.landscapeRenderer.arMode = true
+    this.landscapeRenderer.arMode = true;
   }
 
   /**
@@ -301,7 +302,6 @@ export default class ArRendering extends Component<Args> {
   handlePanning(intersection: THREE.Intersection, x: number, y: number) {
     const object = intersection.object?.parent;
     if (object) {
-
       if (!(object instanceof LandscapeObject3D)
         && !(object instanceof ApplicationObject3D)) {
         return;
@@ -344,9 +344,9 @@ export default class ArRendering extends Component<Args> {
   private configureScene() {
   }
 
-
   get intersectableObjects() {
-    return [this.landscapeRenderer.landscapeObject3D, ...this.applicationRenderer.applicationMarkers];
+    return [this.landscapeRenderer.landscapeObject3D,
+      ...this.applicationRenderer.applicationMarkers];
   }
 
   static raycastFilter(intersection: THREE.Intersection) {
@@ -573,9 +573,6 @@ export default class ArRendering extends Component<Args> {
     if (!this.collaborationSession.isOnline) {
       AlertifyHandler.showAlertifyWarning('Offline. <br> Join session with users to ping.');
       return;
-      // } if (Array.from(this.remoteUsers.getAllRemoteUsers()).length === 0) {
-      //   AlertifyHandler.showAlertifyWarning('You are alone in this room. <br> Wait for other users.');
-      //   return;
     }
 
     const intersection = this.raycastCenter();
@@ -589,7 +586,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    taskFor(this.localUser.mousePing.ping).perform({ parentObj: parentObj, position: pingPosition })
+    taskFor(this.localUser.mousePing.ping).perform({ parentObj, position: pingPosition });
 
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -605,7 +602,8 @@ export default class ArRendering extends Component<Args> {
     const intersection = this.raycastCenter();
     if (intersection && intersection.object.parent instanceof ApplicationObject3D) {
       const applicationObject3D = intersection.object.parent;
-      if (this.heatmapConf.currentApplication == applicationObject3D && this.heatmapConf.heatmapActive) {
+      if (this.heatmapConf.currentApplication === applicationObject3D
+        && this.heatmapConf.heatmapActive) {
         this.heatmapConf.heatmapActive = false;
         this.heatmapConf.currentApplication = null;
         return;
@@ -709,12 +707,10 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
-
   private raycastCenter() {
     const possibleObjects = this.intersectableObjects;
     return this.raycaster.raycasting({ x: 0, y: 0 }, this.camera,
       possibleObjects);
-
   }
 
   handleKeyboard(event: any) {
@@ -782,7 +778,6 @@ export default class ArRendering extends Component<Args> {
     // this.render();
 
     // this.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
-
   }
 
   // #endregion RENDERING
@@ -791,7 +786,6 @@ export default class ArRendering extends Component<Args> {
 
   @action
   initializeNewApplication(applicationObject3D: ApplicationObject3D) {
-
     applicationObject3D.setLargestSide(1.5);
     applicationObject3D.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
       90 * THREE.MathUtils.DEG2RAD);
@@ -842,7 +836,7 @@ export default class ArRendering extends Component<Args> {
     perform(
       this.applicationRenderer.openApplicationTask,
       appId,
-    )
+    );
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {

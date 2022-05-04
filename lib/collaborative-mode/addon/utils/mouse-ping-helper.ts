@@ -1,10 +1,11 @@
 import { timeout } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
-import THREE from "three";
+import THREE from 'three';
 import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
 
 export default class MousePing {
   obj: THREE.Object3D | null;
+
   color: THREE.Color;
 
   constructor(color: THREE.Color) {
@@ -20,8 +21,7 @@ export default class MousePing {
   // }
 
   @restartableTask
-  public * ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
-
+  public* ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
     if (this.obj) {
       this.obj.parent?.remove(this.obj);
       this.obj = null;
@@ -44,7 +44,7 @@ export default class MousePing {
 
     this.obj = sphere;
 
-    yield timeout(2000)
+    yield timeout(2000);
 
     this.obj.parent?.remove(this.obj);
     this.obj = null;

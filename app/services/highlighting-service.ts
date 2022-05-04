@@ -33,13 +33,15 @@ export function isHighlightableMesh(
   );
 }
 
-export function serializeHighlightedComponent(applicationObject3D: ApplicationObject3D, object: any) {
+export function serializeHighlightedComponent(
+  applicationObject3D: ApplicationObject3D, object: any,
+) {
   if (isHighlightableMesh(object)) {
     return {
       appId: applicationObject3D.dataModel.id,
       entityType: object.constructor.name,
       entityId: object.dataModel.id,
-    }
+    };
   }
   return null;
 }
@@ -92,7 +94,7 @@ export default class HighlightingService extends Service.extend({
   updateHighlightingForAllApplications() {
     this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
       this.updateHighlighting(applicationObject3D, this.opacity);
-    })
+    });
   }
 
   private updateHighlighting(applicationObject3D: ApplicationObject3D, value: number) {
@@ -106,7 +108,8 @@ export default class HighlightingService extends Service.extend({
   highlightModel(entity: Package | Class, applicationObject3D: ApplicationObject3D) {
     const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
     if (drawableClassCommunications) {
-      Highlighting.highlightModel(entity, applicationObject3D, drawableClassCommunications, this.opacity);
+      Highlighting.highlightModel(entity, applicationObject3D,
+        drawableClassCommunications, this.opacity);
     }
   }
 
@@ -119,13 +122,15 @@ export default class HighlightingService extends Service.extend({
         applicationObject3D.setHighlightingColor(
           color || this.configuration.applicationColors.highlightedEntityColor,
         );
-        Highlighting.highlight(mesh, applicationObject3D, drawableClassCommunications!, this.opacity);
+        Highlighting.highlight(mesh, applicationObject3D,
+          drawableClassCommunications!, this.opacity);
       }
     }
   }
 
   @action
-  highlightTrace(trace: Trace, traceStep: string, applicationObject3D: ApplicationObject3D, structureData: StructureLandscapeData) {
+  highlightTrace(trace: Trace, traceStep: string,
+    applicationObject3D: ApplicationObject3D, structureData: StructureLandscapeData) {
     const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
 
     this.applicationRenderer.openAllComponents(applicationObject3D);
@@ -173,7 +178,7 @@ export default class HighlightingService extends Service.extend({
     color?: THREE.Color,
   ) {
     const drawableComm = this.getDrawableClassCommunications(
-      application
+      application,
     );
     if (drawableComm) {
       application.setHighlightingColor(
@@ -187,7 +192,7 @@ export default class HighlightingService extends Service.extend({
     return mesh.constructor.name;
   }
 
-  private * findMeshesByTypeAndId(
+  private* findMeshesByTypeAndId(
     application: ApplicationObject3D,
     entityType: string,
     entityId: string,

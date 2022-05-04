@@ -12,16 +12,19 @@ export default class ToastMessage extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
   info!: (message: string) => void;
+
   message!: (message: MessageArgs) => void;
+
   success!: (message: string) => void;
+
   error!: (message: string) => void;
 
   init() {
     super.init();
-    this.info = (message => AlertifyHandler.showAlertifyMessage(message));
-    this.message = (message => AlertifyHandler.showAlertifyMessageWithDuration(message.title + ": " + message.text, message.time));
-    this.success = (message => AlertifyHandler.showAlertifySuccess(message));
-    this.error = (message => AlertifyHandler.showAlertifyError(message));
+    this.info = ((message) => AlertifyHandler.showAlertifyMessage(message));
+    this.message = ((message) => AlertifyHandler.showAlertifyMessageWithDuration(`${message.title}: ${message.text}`, message.time));
+    this.success = ((message) => AlertifyHandler.showAlertifySuccess(message));
+    this.error = ((message) => AlertifyHandler.showAlertifyError(message));
   }
 }
 
