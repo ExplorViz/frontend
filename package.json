@@ -14,7 +14,7 @@
     "build": "ember build",
     "start": "ember server",
     "lint": "eslint --ext js,ts --max-warnings=0 . && ember-template-lint app/ lib/",
-    "lint:eslint": "eslint --ext js,ts --max-warnings=0 --fix .",
+    "lint:eslint": "eslint --ext js,ts --max-warnings=0 .",
     "lint:template": "ember-template-lint app/ lib/",
     "test": "ember test"
   },

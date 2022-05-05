@@ -372,7 +372,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     this.pinchEnd.set(0, distance);
 
-    this.pinchDelta.set(0, Math.pow(this.pinchEnd.y / this.pinchStart.y, this.pinchSpeed));
+    this.pinchDelta.set(0, (this.pinchEnd.y / this.pinchStart.y) ** this.pinchSpeed);
 
     this.namedArgs.pinch?.(this.selectedObject, this.pinchDelta.y);
 

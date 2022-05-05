@@ -34,33 +34,39 @@ export default class LandscapeListener extends Service.extend(Evented) {
     }
 
     this.timer = setIntervalImmediately(async () => {
-      try {
-        // request landscape data that is 60 seconds old
-        // that way we can be sure, all traces are available
-        const endTime = Date.now() - (60 * 1000);
-        const [strucDataProm, dynamicDataProm] = await this.requestData(endTime, intervalInSeconds);
-
-        let structureData = null;
-        if (strucDataProm.status === 'fulfilled') {
-          structureData = strucDataProm.value;
-
-          this.set('latestStructureData', preProcessAndEnhanceStructureLandscape(structureData));
-        }
-
-        if (dynamicDataProm.status === 'fulfilled') {
-          this.set('latestDynamicData', dynamicDataProm.value);
-        } else {
-          this.set('latestDynamicData', []);
-        }
-
-        this.updateTimestampRepoAndTimeline(endTime,
-          LandscapeListener.computeTotalRequests(this.latestDynamicData!));
-
-        this.trigger('newLandscapeData', this.latestStructureData, this.latestDynamicData);
-      } catch (e) {
-        // landscape data could not be requested, try again?
-      }
+      const endTime = Date.now() - (60 * 1000);
+      this.pollData(endTime, intervalInSeconds);
     }, intervalInSeconds * 1000);
+  }
+
+
+  async pollData(endTime: number, intervalInSeconds: number = 10) {
+    try {
+      // request landscape data that is 60 seconds old
+      // that way we can be sure, all traces are available
+      const [strucDataProm, dynamicDataProm] = await this.requestData(endTime, intervalInSeconds);
+
+      let structureData = null;
+      if (strucDataProm.status === 'fulfilled') {
+        structureData = strucDataProm.value;
+
+        this.set('latestStructureData', preProcessAndEnhanceStructureLandscape(structureData));
+      }
+
+      if (dynamicDataProm.status === 'fulfilled') {
+        this.set('latestDynamicData', dynamicDataProm.value);
+      } else {
+        this.set('latestDynamicData', []);
+      }
+
+      this.updateTimestampRepoAndTimeline(endTime,
+        LandscapeListener.computeTotalRequests(this.latestDynamicData!));
+
+      this.trigger('newLandscapeData', this.latestStructureData, this.latestDynamicData);
+    } catch (e) {
+      // landscape data could not be requested, try again?
+    }
+
   }
 
   async requestData(endTime: number, intervalInSeconds: number) {

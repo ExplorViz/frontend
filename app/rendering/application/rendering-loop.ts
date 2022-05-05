@@ -35,7 +35,7 @@ export default class RenderingLoop extends EmberObject {
     if (this.mapControls) {
       this.controls = new MapControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.05;
+      this.controls.dampingFactor = 0.3;
       this.controls.minDistance = 0.5;
       this.controls.maxDistance = 30;
       this.controls.maxPolarAngle = Math.PI / 2;

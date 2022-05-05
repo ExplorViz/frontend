@@ -379,14 +379,14 @@ export default class ArRendering extends Component<Args> {
     const applicationMarkerNames = ['pattern-angular_1', 'pattern-angular_2', 'pattern-angular_3', 'pattern-angular_4', 'pattern-angular_5'];
 
     let i = 0;
-    for (const applicationMarker of this.applicationRenderer.applicationMarkers) {
+    this.applicationRenderer.applicationMarkers.forEach((applicationMarker) => {
       // Init controls for camera
       // eslint-disable-next-line
       new THREEx.ArMarkerControls(this.arToolkitContext, applicationMarker, {
         type: 'pattern',
         patternUrl: `ar_data/marker_patterns/${applicationMarkerNames[i++]}.patt`,
       });
-    }
+    });
   }
 
   private initArJsCamera(width = 640, height = 480, isSpectating = false) {

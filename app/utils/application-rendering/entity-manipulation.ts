@@ -232,7 +232,8 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
    * @param applicationObject3D Object which contains all application meshes
    */
 export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vector3,
-  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D, cameraTarget: THREE.Vector3, dynamicData: DynamicLandscapeData) {
+  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D,
+  cameraTarget: THREE.Vector3, dynamicData: DynamicLandscapeData) {
   if (isSpan(model)) {
     const traceOfSpan = dynamicData.find(
       (trace) => trace.traceId === model.traceId,

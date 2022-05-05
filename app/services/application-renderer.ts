@@ -4,6 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
+import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -32,7 +33,7 @@ import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/ut
 import { SerializedVrRoom, SerialzedApp } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import HighlightingService, { HightlightComponentArgs } from './highlighting-service';
-import ApplicationRepository, { ApplicationData } from './repos/application-repository';
+import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
@@ -159,11 +160,11 @@ export default class ApplicationRenderer extends Service.extend({
     this.updatables = updateables;
     this.openApplications.clear();
     let i = 0;
-    for (const applicationMarker of this.applicationMarkers) {
+    this.applicationMarkers.forEach((applicationMarker) => {
       applicationMarker.position.set(i++ * 1 - 1, 0.1, 2);
       applicationMarker.clear();
       scene.add(applicationMarker);
-    }
+    });
   }
 
   get raycastObjects() {
@@ -173,7 +174,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   get openApplicationIds() {
-    return this.openApplications.keys();
+    return Array.from(this.openApplications.keys());
   }
 
   /**
@@ -307,9 +308,8 @@ export default class ApplicationRenderer extends Service.extend({
       applicationModel, applicationData.layoutData,
     );
 
-    if (Object.keys(addApplicationArgs).length === 0 && isOpen) {
-      addApplicationArgs = this.saveApplicationState(applicationObject3D);
-    }
+    const applicationState = Object.keys(addApplicationArgs).length === 0 && isOpen
+      ? this.saveApplicationState(applicationObject3D) : addApplicationArgs;
 
     this.cleanUpApplication(applicationObject3D);
 
@@ -326,7 +326,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
 
     // Restore state of components highlighting
-    const openComponentIds = addApplicationArgs.openComponents;
+    const openComponentIds = applicationState.openComponents;
     if (openComponentIds) {
       restoreComponentState(applicationObject3D, openComponentIds);
     }
@@ -335,7 +335,7 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addLabels(applicationObject3D, this.font, false);
 
-    addApplicationArgs.highlightedComponents?.forEach((highlightedComponent) => {
+    applicationState.highlightedComponents?.forEach((highlightedComponent) => {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(
         applicationObject3D,
         highlightedComponent,
@@ -343,7 +343,7 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     if (!isOpen) {
-      this.initializeApplication(applicationObject3D, addApplicationArgs);
+      this.initializeApplication(applicationObject3D, applicationState);
       applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
     }
 
@@ -569,11 +569,11 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   cleanUpApplications() {
-    for (const applicationObject3D of this.getOpenApplications()) {
+    this.getOpenApplications().forEach((applicationObject3D) => {
       applicationObject3D.removeAllEntities();
       removeHighlighting(applicationObject3D);
       this.removeApplicationLocally(applicationObject3D.dataModel.id);
-    }
+    });
   }
 
   addGlobe(applicationObject3D: ApplicationObject3D) {
@@ -632,7 +632,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   restore(room: SerializedVrRoom) {
     this.cleanUpApplications();
-    for (const app of room.openApps) {
+    room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
         perform(
@@ -641,7 +641,7 @@ export default class ApplicationRenderer extends Service.extend({
           serializedRoomToAddApplicationArgs(app),
         );
       }
-    }
+    });
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

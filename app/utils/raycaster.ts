@@ -2,6 +2,11 @@ import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import THREE from 'three';
 
+function defaultRaycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
+  return (intersection: THREE.Intersection) => !(intersection.object instanceof LabelMesh
+    || intersection.object instanceof LogoMesh);
+}
+
 export default class Raycaster extends THREE.Raycaster {
   /**
    * Calculate objects which intersect the ray - given by coordinates and camera
@@ -47,9 +52,4 @@ export default class Raycaster extends THREE.Raycaster {
     // Return null to indicate that no object was found
     return null;
   }
-}
-
-function defaultRaycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
-  return (intersection: THREE.Intersection) => !(intersection.object instanceof LabelMesh
-    || intersection.object instanceof LogoMesh);
 }

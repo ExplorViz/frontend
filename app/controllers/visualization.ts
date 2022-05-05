@@ -25,12 +25,12 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
+import { TimestampUpdateTimerMessage, TIMESTAMP_UPDATE_TIMER_EVENT } from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
 import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
-
 }
 
 export const earthTexture = new THREE.TextureLoader().load('images/earth-map.jpg');
@@ -146,7 +146,6 @@ export default class VisualizationController extends Controller {
   switchToAR() {
     this.roomSerializer.serializeRoom();
     if (!this.showAR) {
-      // this.pauseVisualizationUpdating();
       this.closeDataSelection();
       this.showAR = true;
     }
@@ -156,7 +155,6 @@ export default class VisualizationController extends Controller {
   switchToVR() {
     this.roomSerializer.serializeRoom();
     if (!this.showVR) {
-      // this.pauseVisualizationUpdating();
       this.closeDataSelection();
       this.showVR = true;
     }
@@ -227,14 +225,14 @@ export default class VisualizationController extends Controller {
       && timestampRecordArray[0] === this.selectedTimestampRecords[0]) {
       return;
     }
+    this.pauseVisualizationUpdating();
     this.updateTimestamp(timestampRecordArray[0].timestamp, timestampRecordArray);
   }
 
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
-    this.pauseVisualizationUpdating();
     try {
       const [structureData, dynamicData] = await
-      this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+        this.reloadHandler.loadLandscapeByTimestamp(timestamp);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
@@ -298,6 +296,7 @@ export default class VisualizationController extends Controller {
     this.initWebSocket();
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
     this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.debug('initRendering done');
   }
@@ -307,6 +306,7 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
     this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
   }
 
@@ -324,14 +324,21 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
   }: InitialLandscapeMessage): Promise<void> {
-    AlertifyHandler.showAlertifyMessage('On Initial Landscape');
     this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
     this.updateTimestamp(landscape.timestamp);
+    // disable polling. It is now triggerd by the websocket.
+    this.resetLandscapeListenerPolling();
   }
 
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
+    this.updateTimestamp(timestamp);
+  }
+
+  async onTimestampUpdateTimer(
+    { timestamp }: TimestampUpdateTimerMessage): Promise<void> {
+    this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
   }
 }

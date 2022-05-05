@@ -7,7 +7,7 @@ const size = new Vector3();
 const center = new Vector3();
 const box = new Box3();
 
-export function focusCameraOn(selection: Object3D, camera: PerspectiveCamera,
+export default function focusCameraOn(selection: Object3D, camera: PerspectiveCamera,
   controls: MapControls) {
   const fitOffset = 1.2;
 

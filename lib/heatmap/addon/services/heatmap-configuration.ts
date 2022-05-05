@@ -3,7 +3,6 @@ import Evented from '@ember/object/evented';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -18,29 +17,19 @@ export type Metric = {
   values: Map<string, number>
 };
 
-export class ApplicationHeatmapData {
-  // applicationId: string,
-  metrics: Metric[] = [];
-
-  // @tracked
-  latestClazzMetricScores: Metric[] = [];
-
-  metricsArray: [Metric[]] = [[]];
-
-  differenceMetricScores: Map<string, Metric[]> = new Map<string, Metric[]>();
-
-  aggregatedMetricScores: Map<string, Metric> = new Map<string, Metric>();
+export interface ApplicationHeatmapData {
+  metrics: Metric[];
+  latestClazzMetricScores: Metric[];
+  metricsArray: [Metric[]];
+  differenceMetricScores: Map<string, Metric[]>;
+  aggregatedMetricScores: Map<string, Metric>;
 }
 
-type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
+export type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
-
-  // TODO remove
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
 
   @tracked
   heatmapActive = false;
@@ -51,7 +40,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   // Switch for the legend
   legendActive = true;
 
-  // TODO what to do with this?
+  // TODO this is never assigned another value, but used in calculation. What is it supposed to do?
   largestValue = 0;
 
   windowSize: number = 9;
@@ -83,6 +72,17 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @action
   toggleHeatmap() {
     this.heatmapActive = !this.heatmapActive;
+  }
+
+  @action
+  deactivate() {
+    this.heatmapActive = false;
+    this.currentApplication = null;
+  }
+
+  @action
+  activate() {
+    this.heatmapActive = true;
   }
 
   get latestClazzMetricScores() {
@@ -166,7 +166,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
         this.selectedMode = 'snapshotHeatmap';
         break;
     }
-    // this.updateCurrentlyViewedMetric();
   }
 
   toggleLegend() {

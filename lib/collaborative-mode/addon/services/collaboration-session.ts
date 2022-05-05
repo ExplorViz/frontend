@@ -3,6 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import THREE from 'three';
@@ -33,6 +34,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('vr-room')
   private roomService!: VrRoomService;
+
+  @service('landscape-listener')
+  private landscapeListener!: LandscapeListener;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -122,7 +126,7 @@ export default class CollaborationSession extends Service.extend({
     this.debug(`Self connected stuff${self.name}`);
     // Create User model for all users and add them to the users map by
     // simulating the event of a user connecting.
-    for (const userData of users) {
+    users.forEach((userData) => {
       const remoteUser = this.userFactory.createUser({
         userName: userData.name,
         userId: userData.id,
@@ -131,7 +135,7 @@ export default class CollaborationSession extends Service.extend({
         quaternion: userData.quaternion,
       });
       this.addRemoteUser(remoteUser);
-    }
+    });
 
     this.connectionStatus = 'online';
     // Initialize local user.
@@ -156,7 +160,7 @@ export default class CollaborationSession extends Service.extend({
     });
     this.addRemoteUser(remoteUser);
 
-    this.toastMessage.success({
+    this.toastMessage.message({
       title: 'User connected',
       text: remoteUser.userName,
       color: `#${remoteUser.color.getHexString()}`,
@@ -200,6 +204,8 @@ export default class CollaborationSession extends Service.extend({
 
     // Remove remote users.
     this.removeAllRemoteUsers();
+
+    this.landscapeListener.initLandscapePolling();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlightingForAllApplications();

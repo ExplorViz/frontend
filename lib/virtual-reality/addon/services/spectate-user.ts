@@ -7,6 +7,7 @@ import ToastMessage from 'explorviz-frontend/services/toast-message';
 import THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
+import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import { SpectatingUpdateMessage, SPECTATING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
@@ -72,6 +73,8 @@ export default class SpectateUserService extends Service {
     return this.spectatedUser !== null;
   }
 
+  lastPose?: VrPose;
+
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
@@ -92,11 +95,14 @@ export default class SpectateUserService extends Service {
         this.localUser.controller1,
         this.localUser.controller2,
       );
-      this.sender.sendPoseUpdate(
-        poses.camera,
-        poses.controller1,
-        poses.controller2,
-      );
+      if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
+        this.sender.sendPoseUpdate(
+          poses.camera,
+          poses.controller1,
+          poses.controller2,
+        );
+      }
+      this.lastPose = poses;
     }
   }
 
