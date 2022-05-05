@@ -59,55 +59,55 @@
         </BsButton>
       </div>
     {{else}}
-        {{#if this.isLandscapeExistentAndEmpty}}
-          <div class="container-fluid mt-6">
-            <div class="jumbotron">
-              <h2>Empty Landscape received!</h2>
-              <p>A new landscape will be fetched every 10 seconds.</p>
-            </div>
-            <div class="spinner-center-3" role="status"></div>
+      {{#if this.isLandscapeExistentAndEmpty}}
+        <div class="container-fluid mt-6">
+          <div class="jumbotron">
+            <h2>Empty Landscape received!</h2>
+            <p>A new landscape will be fetched every 10 seconds.</p>
           </div>
-        {{else if this.allLandscapeDataExistsAndNotEmpty}}
-          <Visualization::Rendering::LandscapeRendering
-            @landscapeData={{this.landscapeData}}
-            @components={{this.components}}
-            @removeComponent={{this.removeComponent}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @openDataSelection={{this.openDataSelection}}
-            @showDataSelection={{this.showDataSelection}}
-            @addComponent={{this.addComponent}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @switchToAR={{this.switchToAR}}
-            @switchToVR={{this.switchToVR}}
-            @selectedTimestampRecords={{this.selectedTimestampRecords}}
-            @applicationArgs={{this.applicationArgs}}
-          />
-        {{else}}
-          <div class="container-fluid mt-6">
-            <div class="jumbotron">
-              <h2>No Landscape found!</h2>
-              <p>A new landscape will be fetched every 10 seconds.</p>
-              <BsButton
-                @onClick={{this.switchToAR}}
-                @type="secondary"
-                @outline={{true}}
-                title="Enter AR"
-              >
-                Enter AR
-              </BsButton>
-              <BsButton
-                @onClick={{this.switchToVR}}
-                @type="secondary"
-                @outline={{true}}
-                title="Enter VR"
-              >
-                Enter VR
-              </BsButton>
-            </div>
-            <div class="spinner-center-3" role="status"></div>
+          <div class="spinner-center-3" role="status"></div>
+        </div>
+      {{else if this.allLandscapeDataExistsAndNotEmpty}}
+        <Visualization::Rendering::LandscapeRendering
+          @landscapeData={{this.landscapeData}}
+          @components={{this.components}}
+          @removeComponent={{this.removeComponent}}
+          @closeDataSelection={{this.closeDataSelection}}
+          @openDataSelection={{this.openDataSelection}}
+          @showDataSelection={{this.showDataSelection}}
+          @addComponent={{this.addComponent}}
+          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+          @visualizationPaused={{this.visualizationPaused}}
+          @switchToAR={{this.switchToAR}}
+          @switchToVR={{this.switchToVR}}
+          @selectedTimestampRecords={{this.selectedTimestampRecords}}
+          @applicationArgs={{this.applicationArgs}}
+        />
+      {{else}}
+        <div class="container-fluid mt-6">
+          <div class="jumbotron">
+            <h2>No Landscape found!</h2>
+            <p>A new landscape will be fetched every 10 seconds.</p>
+            <BsButton
+              @onClick={{this.switchToAR}}
+              @type="secondary"
+              @outline={{true}}
+              title="Enter AR"
+            >
+              Enter AR
+            </BsButton>
+            <BsButton
+              @onClick={{this.switchToVR}}
+              @type="secondary"
+              @outline={{true}}
+              title="Enter VR"
+            >
+              Enter VR
+            </BsButton>
           </div>
-        {{/if}}
+          <div class="spinner-center-3" role="status"></div>
+        </div>
+      {{/if}}
     {{/if}}
   {{/if}}
 </div>

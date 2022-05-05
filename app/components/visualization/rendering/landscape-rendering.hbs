@@ -36,17 +36,12 @@
         {{collaborative-modifier
           raycastObject3D=this.raytraceObjects
           camera=this.localUser.camera
-          onDoubleClick=this.doubleClickOnMesh
-          mouseMove=this.mouseMoveOnMesh
-          mouseStop=this.mouseStopOnMesh
-          mouseOut=this.handleMouseOut
-          repositionSphere=this.repositionSphere
         }}
         {{did-insert this.canvasInserted}}
       >
-          <RightClickMenu
-            @items={{this.rightClickMenuItems}}
-          />
+        <RightClickMenu
+          @items={{this.rightClickMenuItems}}
+        />
       </canvas>
       {{#if this.loadNewLandscape.isRunning}}
         <div
@@ -110,7 +105,7 @@
                       @application={{this.selectedApplicationObject3D.dataModel}}
                     />
                   {{else}}
-                  Please select an application to use the trace overview.
+                    Please select an application to use the trace overview.
                   {{/if}}
                 {{/if}}
                 {{#if (eq componentName "settings")}}
