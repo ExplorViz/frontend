@@ -15,6 +15,7 @@
 
       <canvas
         class="main-content-majority {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
+        {{sync-state}}
         {{interaction-modifier
           raycastObjects=this.raytraceObjects
           camera=this.localUser.camera

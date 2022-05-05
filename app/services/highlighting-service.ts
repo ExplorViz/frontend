@@ -169,6 +169,8 @@ export default class HighlightingService extends Service.extend({
       entityType,
       entityId,
     );
+
+    // eslint-disable-next-line no-restricted-syntax
     for (const mesh of meshes) this.hightlightMesh(application, mesh, color);
   }
 
@@ -205,6 +207,7 @@ export default class HighlightingService extends Service.extend({
     }
 
     if (entityType === 'ClazzCommunicationMesh') {
+      // eslint-disable-next-line no-restricted-syntax
       for (const mesh of application.getCommMeshes()) {
         if (mesh.dataModel.id === entityId) {
           yield mesh;

@@ -9,8 +9,6 @@ export default class HmdService extends Service.extend({
 }) {
   headsetModel!: Promise<THREE.Group>;
 
-  displayHmd = true;
-
   init() {
     super.init();
 

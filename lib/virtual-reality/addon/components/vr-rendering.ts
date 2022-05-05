@@ -2,6 +2,7 @@ import { getOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
@@ -9,10 +10,12 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
+import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
+import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
+import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
@@ -26,7 +29,6 @@ import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrSceneService from 'virtual-reality/services/vr-scene';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
@@ -48,7 +50,6 @@ import { ObjectMovedMessage, OBJECT_MOVED_EVENT } from 'virtual-reality/utils/vr
 import { PingUpdateMessage, PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/ping_update';
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebXRPolyfill from 'webxr-polyfill';
 import { UserControllerConnectMessage, USER_CONTROLLER_CONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage, USER_CONTROLLER_DISCONNECT_EVENT } from '../utils/vr-message/sendable/user_controller_disconnect';
@@ -66,22 +67,15 @@ const THUMBPAD_THRESHOLD = 0.5;
 const MOUSE_MOVE_SPEED = 3.0;
 const MOUSE_ROTATION_SPEED = Math.PI;
 
-const landscapeRendererSettings: LandscapeRendererSettings = {
-  landscapeScalar: 0.3,
-  landscapeDepth: 0.7,
-  z_depth: 0.2,
-  commLineMinSize: 0.004,
-  commLineScalar: 0.028,
-  z_offset: 0.7 / 2 + 0.25,
-  z_pos_application: 0.3,
-};
-
 export default class VrRendering
   extends Component<Args> {
   // #region SERVICES
 
+  @service('configuration')
+  private configuration!: Configuration;
+
   @service('toast-message')
-  toastMessage!: ToastMessage;
+  private toastMessage!: ToastMessage;
 
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
@@ -109,9 +103,6 @@ export default class VrRendering
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
-
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -152,6 +143,9 @@ export default class VrRendering
 
   updatables: any[] = [];
 
+  @tracked
+  scene: THREE.Scene;
+
   // #endregion CLASS FIELDS
   //
   constructor(owner: any, args: Args) {
@@ -162,8 +156,14 @@ export default class VrRendering
     this.toastMessage.success = ((message) => this.showHint(message));
     this.toastMessage.error = ((message) => this.showHint(message));
 
-    this.menuFactory.scene = this.sceneService.scene;
-    this.sceneService.scene.add(this.localUser.userGroup);
+    this.scene = vrScene();
+
+    this.menuFactory.scene = this.scene;
+    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.landscapeRenderer.resetAndAddToScene(this.scene);
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
+    this.scene.add(this.detachedMenuGroups.container);
+    this.scene.add(this.localUser.userGroup);
   }
 
   // #region INITIALIZATION
@@ -174,9 +174,6 @@ export default class VrRendering
   private initRendering() {
     this.initHUD();
     this.initRenderer();
-    // this.remoteUsers.displayHmd = true;
-    this.landscapeRenderer.settings = landscapeRendererSettings;
-    this.initServices();
     this.initInteraction();
     this.initPrimaryInput();
     this.initSecondaryInput();
@@ -235,12 +232,6 @@ export default class VrRendering
     if (polyfill) {
       this.debug('Polyfill enabled');
     }
-  }
-
-  private initServices() {
-    this.debug('Initializing services...');
-    // Use given font for landscape and application rendering.
-    this.landscapeRenderer.arMode = true;
   }
 
   /**
@@ -381,7 +372,7 @@ export default class VrRendering
     // Initialize controller.
     const controller = new VRController({
       gamepadIndex,
-      scene: this.sceneService.scene,
+      scene: this.scene,
       bindings: new VRControllerBindingsList(
         this.makeControllerBindings(),
         menuGroup.controllerBindings,
@@ -442,8 +433,6 @@ export default class VrRendering
 
     this.renderingLoop.stop();
     // Reset rendering.
-    this.applicationRenderer.removeAllApplicationsLocally();
-    this.landscapeRenderer.cleanUpLandscape();
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
 
     // Reset services.
@@ -484,13 +473,11 @@ export default class VrRendering
     this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
       {
         camera: this.camera,
-        scene: this.sceneService.scene,
+        scene: this.scene,
         renderer: this.renderer,
         updatables: this.updatables,
       });
-    this.landscapeRenderer.resetAndAddToScene(this.sceneService.scene);
-    this.applicationRenderer.resetAndAddToScene('vr', this.sceneService.scene, this.updatables);
-    this.sceneService.scene.add(this.collaborationSession.remoteUserGroup);
+    this.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
   }
@@ -554,7 +541,7 @@ export default class VrRendering
             const gltfLoader = new GLTFLoader(loadingManager);
             gltfLoader.load(file.name, (gltf) => {
               const object = new GrabbableObjectWrapper(gltf.scene);
-              this.sceneService.scene.add(object);
+              this.scene.add(object);
               resolve(null);
             });
           }),
@@ -614,14 +601,8 @@ export default class VrRendering
     this.grabbedObjectService.sendObjectPositions();
 
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
-      if (remoteUser instanceof RemoteVrUser) {
-        remoteUser.update(delta);
-      }
+      remoteUser.update(delta);
     });
-    // this.debug('Updating with tick');
-
-    // update applications' globe animation
-    // this.applicationRenderer.updateAllApplicationGlobes(this.deltaTimeService.getDeltaTime());
   }
 
   // #endregion MAIN LOOP
@@ -895,7 +876,7 @@ export default class VrRendering
   }: ForwardedMessage<PingUpdateMessage>): void {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
 
-    if (remoteUser instanceof RemoteVrUser) {
+    if (remoteUser) {
       remoteUser.togglePing(controllerId, isPinging);
     }
   }
@@ -915,13 +896,11 @@ export default class VrRendering
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
-    if (remoteUser instanceof RemoteVrUser) {
-      remoteUser.initController(controllerId, assetUrl, {
-        position,
-        quaternion,
-        intersection,
-      });
-    }
+    remoteUser.initController(controllerId, assetUrl, {
+      position,
+      quaternion,
+      intersection,
+    });
   }
 
   onUserControllerDisconnect({
@@ -930,7 +909,7 @@ export default class VrRendering
   }: ForwardedMessage<UserControllerDisconnectMessage>): void {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
 
-    if (remoteUser instanceof RemoteVrUser) {
+    if (remoteUser) {
       remoteUser.removeController(controllerId);
     }
   }
@@ -941,7 +920,7 @@ export default class VrRendering
     },
   }: ForwardedMessage<ObjectMovedMessage>): void {
     // Find moved object in the scene.
-    const movedObject = findGrabbableObject(this.sceneService.scene, objectId);
+    const movedObject = findGrabbableObject(this.scene, objectId);
     if (!movedObject) {
       this.debug('Could not find moved object', objectId);
       return;

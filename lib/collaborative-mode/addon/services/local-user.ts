@@ -5,6 +5,8 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import THREE, { WebXRManager } from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 
+export type VisualizationMode = 'browser' | 'ar' | 'vr';
+
 export default class LocalUser extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
@@ -21,6 +23,9 @@ export default class LocalUser extends Service.extend({
 
   @tracked
   defaultCamera!: THREE.PerspectiveCamera;
+
+  @tracked
+  visualizationMode: VisualizationMode = 'browser';
 
   mousePing!: MousePing;
 
@@ -42,7 +47,6 @@ export default class LocalUser extends Service.extend({
     this.userId = 'unknown';
 
     this.userGroup = new THREE.Group();
-    // this.sceneService.scene.add(this.userGroup);
 
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.

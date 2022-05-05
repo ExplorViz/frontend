@@ -7,8 +7,6 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import CollaborativeService from 'explorviz-frontend/services/collaborative-service';
-import CollaborativeSettingsService from 'explorviz-frontend/services/collaborative-settings-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import THREE, { Object3D, Vector2 } from 'three';
@@ -52,7 +50,6 @@ function cleanup(instance: InteractionModifierModifier) {
 
   canvas.removeEventListener('pointerdown', instance.onPointerDown);
   canvas.removeEventListener('pointerup', instance.onPointerUp);
-  // canvas.removeEventListener('dblclick', instance.onDoubleClick)
   canvas.removeEventListener('pointerenter', instance.onPointerEnter);
   canvas.removeEventListener('pointerout', instance.onPointerOut);
   canvas.removeEventListener('pointercancel', instance.onPointerCancel);
@@ -66,14 +63,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   debug = debugLogger('InteractionModifier');
 
-  @service('collaborative-service')
-  collaborativeService!: CollaborativeService;
-
   @service('collaboration-session')
   collaborativeSession!: CollaborationSession;
-
-  @service('collaborative-settings-service')
-  collaborativeSettings!: CollaborativeSettingsService;
 
   @service('local-user')
   private localUser!: LocalUser;

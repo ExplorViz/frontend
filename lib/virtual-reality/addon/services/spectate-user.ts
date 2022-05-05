@@ -11,7 +11,6 @@ import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import { SpectatingUpdateMessage, SPECTATING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 
 export default class SpectateUserService extends Service {
@@ -37,7 +36,7 @@ export default class SpectateUserService extends Service {
   private spectatingUsers: Set<string> = new Set<string>();
 
   // use this for VR?
-  private startPosition: THREE.Vector3 = new THREE.Vector3();
+  // private startPosition: THREE.Vector3 = new THREE.Vector3();
 
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
@@ -202,9 +201,7 @@ export default class SpectateUserService extends Service {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
       remoteUser.state = isSpectating ? 'spectating' : 'online';
-      if (remoteUser instanceof RemoteVrUser) {
-        remoteUser.setVisible(!isSpectating);
-      }
+      remoteUser.setVisible(!isSpectating);
 
       // If we spectated the remote user before, stop spectating.
       if (

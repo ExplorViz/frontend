@@ -15,7 +15,9 @@
   this.updateTimestampList
 }}
 
-<div id="vizspace">
+<div id="vizspace"
+  {{sync-state}}
+>
   {{#if this.showAR}}
     <ArRendering
       @id="landscape1"

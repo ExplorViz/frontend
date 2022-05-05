@@ -5,7 +5,6 @@ import HmdService from 'virtual-reality/services/hmd-service';
 import { Color } from 'virtual-reality/utils/vr-message/util/color';
 import { Position } from 'virtual-reality/utils/vr-message/util/position';
 import { Quaternion } from 'virtual-reality/utils/vr-message/util/quaternion';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import LocalUser from './local-user';
 
 export default class UserFactory extends Service.extend({
@@ -16,9 +15,6 @@ export default class UserFactory extends Service.extend({
   @service('local-user')
   localUser!: LocalUser;
 
-  // TODO set to true if it is a real VR user
-  displayHmd = true;
-
   createUser({
     userName, userId, color, position, quaternion,
   }: {
@@ -28,23 +24,18 @@ export default class UserFactory extends Service.extend({
     position: Position;
     quaternion: Quaternion
   }): RemoteUser {
-    if (this.displayHmd) {
-      const remoteUser = new RemoteVrUser({
-        userName,
-        userId,
-        color: new THREE.Color(...color),
-        state: 'online',
-        localUser: this.localUser,
-      });
-      this.hmdService.headsetModel.then((hmd) => remoteUser.initCamera(hmd.clone(true), { position, quaternion }));
-      return remoteUser;
-    }
-    return new RemoteUser({
+    const remoteUser = new RemoteUser({
       userName,
       userId,
       color: new THREE.Color(...color),
       state: 'online',
+      localUser: this.localUser,
     });
+    this.hmdService.headsetModel.then((hmd) => remoteUser.initCamera(
+      hmd.clone(true),
+      { position, quaternion },
+    ));
+    return remoteUser;
   }
 }
 

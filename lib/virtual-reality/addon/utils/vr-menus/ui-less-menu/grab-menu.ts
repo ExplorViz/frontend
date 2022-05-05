@@ -1,5 +1,4 @@
 import THREE from 'three';
-import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import VRController from 'virtual-reality/utils/vr-controller';
@@ -8,7 +7,6 @@ import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-
 import BaseMenu, { BaseMenuArgs } from '../base-menu';
 
 export type GrabMenuArgs = BaseMenuArgs & {
-  deltaTimeService: DeltaTimeService;
   grabbedObject: GrabbableObject;
   grabbedObjectService: GrabbedObjectService;
 };
@@ -22,12 +20,9 @@ export default class GrabMenu extends BaseMenu {
 
   private grabbedObjectService: GrabbedObjectService;
 
-  private deltaTimeService: DeltaTimeService;
-
   constructor({
     grabbedObject,
     grabbedObjectService,
-    deltaTimeService,
     ...args
   }: GrabMenuArgs) {
     super(args);
@@ -35,7 +30,6 @@ export default class GrabMenu extends BaseMenu {
     this.grabbedObjectParent = null;
     this.allowedToGrab = false;
     this.grabbedObjectService = grabbedObjectService;
-    this.deltaTimeService = deltaTimeService;
   }
 
   /**
@@ -168,7 +162,7 @@ export default class GrabMenu extends BaseMenu {
           ) {
             // Adapt distance for moving according to trigger value.
             direction.normalize();
-            const length = yAxis * this.deltaTimeService.getDeltaTime();
+            const length = yAxis * 0.016;
 
             this.grabbedObject.translateOnAxis(direction, length);
             this.collideWithFloor();

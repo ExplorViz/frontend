@@ -25,7 +25,7 @@ import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-
 import {
   Application, Class, Node, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { light, spotlight } from 'explorviz-frontend/utils/lights';
+import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -182,12 +182,10 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
     super(owner, args);
     this.initDone = false;
     this.debug('Constructor called');
-    this.scene = new THREE.Scene();
+    this.scene = defaultScene();
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
-    this.scene.add(light());
-    this.scene.add(spotlight());
     this.landscapeRenderer.resetAndAddToScene(this.scene);
-    this.applicationRenderer.resetAndAddToScene('browser', this.scene, this.updatables);
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     // reset to default
     this.toastMessage.init();
     this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
@@ -404,12 +402,9 @@ export default class LandscapeRendering extends GlimmerComponent<Args> {
 
   // Listener-Callbacks. Override in extending components
   //
-  // TODO this must probably be changed. Mixing landscape and application rendering implementation does not really make sense
   @action
   resetView() {
     this.landscapeRenderer.resetBrowserView();
-    this.camera.position.set(0, 0, 100);
-    // this.applicationObject3D.resetRotation();
   }
 
   @action

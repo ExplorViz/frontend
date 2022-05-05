@@ -6,7 +6,7 @@ import {
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import CollaborativeService from 'collaborative-mode/services/collaborative-service';
+import LocalUser, { VisualizationMode } from 'collaborative-mode/services/local-user';
 import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
@@ -47,8 +47,6 @@ export const earthTexture = new THREE.TextureLoader().load('images/earth-map.jpg
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
 
-  @service('collaborative-service') collaborativeService!: CollaborativeService;
-
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
@@ -69,6 +67,9 @@ export default class VisualizationController extends Controller {
   @service('timestamp')
   timestampService!: TimestampService;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
@@ -79,12 +80,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   components: string[] = [];
-
-  @tracked
-  showAR: boolean = false;
-
-  @tracked
-  showVR: boolean = false;
 
   @tracked
   showTimeline: boolean = true;
@@ -144,28 +139,31 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToAR() {
-    this.roomSerializer.serializeRoom();
-    if (!this.showAR) {
-      this.closeDataSelection();
-      this.showAR = true;
-    }
+    this.switchToMode('ar');
   }
 
   @action
   switchToVR() {
-    this.roomSerializer.serializeRoom();
-    if (!this.showVR) {
-      this.closeDataSelection();
-      this.showVR = true;
-    }
+    this.switchToMode('vr');
   }
 
   @action
   openLandscapeView() {
+    this.switchToMode('browser');
+  }
+
+  get showAR() {
+    return this.localUser.visualizationMode === 'ar';
+  }
+
+  get showVR() {
+    return this.localUser.visualizationMode === 'vr';
+  }
+
+  private switchToMode(mode: VisualizationMode) {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
-    this.showAR = false;
-    this.showVR = false;
+    this.localUser.visualizationMode = mode;
   }
 
   @action
@@ -232,7 +230,7 @@ export default class VisualizationController extends Controller {
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     try {
       const [structureData, dynamicData] = await
-        this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+      this.reloadHandler.loadLandscapeByTimestamp(timestamp);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
@@ -288,8 +286,6 @@ export default class VisualizationController extends Controller {
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
-    this.showAR = false;
-    this.showVR = false;
     this.closeDataSelection();
     this.landscapeListener.initLandscapePolling();
     this.updateTimestampList();
@@ -337,7 +333,8 @@ export default class VisualizationController extends Controller {
   }
 
   async onTimestampUpdateTimer(
-    { timestamp }: TimestampUpdateTimerMessage): Promise<void> {
+    { timestamp }: TimestampUpdateTimerMessage,
+  ): Promise<void> {
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
   }

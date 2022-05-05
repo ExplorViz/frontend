@@ -8,7 +8,6 @@ import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-messag
 import VrAssetRepository from './vr-asset-repo';
 import VrMessageReceiver from './vr-message-receiver';
 import VrMessageSender from './vr-message-sender';
-import VrSceneService from './vr-scene';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('vr-asset-repo')
@@ -19,9 +18,6 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
-
-  @service('vr-scene')
-  private sceneService!: VrSceneService;
 
   private detachedMenuGroups: Set<DetachedMenuGroup>;
 
@@ -36,7 +32,6 @@ export default class DetachedMenuGroupsService extends Service {
     this.detachedMenuGroupsById = new Map();
 
     this.container = new THREE.Group();
-    this.sceneService.scene.add(this.container);
   }
 
   /**

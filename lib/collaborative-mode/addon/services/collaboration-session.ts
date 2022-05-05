@@ -15,7 +15,6 @@ import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/util
 import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
 import { UserPositionsMessage, USER_POSITIONS_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_positions';
 import { CONTROLLER_1_ID, CONTROLLER_2_ID } from 'virtual-reality/utils/vr-message/util/controller_id';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 
@@ -242,7 +241,6 @@ export default class CollaborationSession extends Service.extend({
       this.currentRoomId = roomId;
       try {
         const response = await this.roomService.joinLobby(this.currentRoomId);
-        // TODO this is not reachable here and should never be
         this.webSocket.initSocket(response.ticketId);
       } catch (e: any) {
         this.connectionStatus = 'offline';
@@ -271,10 +269,8 @@ export default class CollaborationSession extends Service.extend({
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
-    if (remoteUser instanceof RemoteVrUser) {
-      if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
-      if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
-    }
+    if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
+    if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
   }
 }

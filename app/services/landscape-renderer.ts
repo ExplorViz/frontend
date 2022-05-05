@@ -102,8 +102,6 @@ export default class LandscapeRenderer extends Service.extend({
 
   webglrenderer!: THREE.WebGLRenderer;
 
-  arMode = false;
-
   constructor(properties?: object) {
     super(properties);
 
@@ -185,7 +183,7 @@ export default class LandscapeRenderer extends Service.extend({
       const centerPoint = landscapeRect.center;
 
       // Update camera zoom accordingly
-      if (!this.arMode) {
+      if (this.localUser.visualizationMode !== 'ar') {
         updateCameraZoom(landscapeRect, this.localUser.defaultCamera, this.webglrenderer);
       }
 
@@ -227,7 +225,7 @@ export default class LandscapeRenderer extends Service.extend({
         this.settings.commLineScalar, // DONE AR ONLY
       );
 
-      if (this.arMode) {
+      if (this.localUser.visualizationMode === 'ar') {
         this.landscapeObject3D.setOpacity(this.arSettings.landscapeOpacity);
         if (this.largestSide) {
           this.landscapeObject3D.setLargestSide(this.largestSide);

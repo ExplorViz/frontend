@@ -1,6 +1,7 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
+import LocalUser from 'collaborative-mode/services/local-user';
 import { enqueueTask } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
@@ -57,8 +58,6 @@ export type AddApplicationArgs = {
   highlightedComponents?: HightlightComponentArgs[];
 };
 
-export type ApplicationRendererMode = 'browser' | 'ar' | 'vr';
-
 function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
   return {
     position: new THREE.Vector3(...app.position),
@@ -82,7 +81,8 @@ export default class ApplicationRenderer extends Service.extend({
 }) {
   debug = debugLogger('ApplicationRendering');
 
-  private mode: ApplicationRendererMode = 'browser';
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service('configuration')
   configuration!: Configuration;
@@ -155,22 +155,20 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  resetAndAddToScene(mode: ApplicationRendererMode, scene: THREE.Scene, updateables: any[]) {
-    this.mode = mode;
+  resetAndAddToScene(scene: THREE.Scene, updateables: any[]) {
+    this.initCallback = undefined;
     this.updatables = updateables;
     this.openApplications.clear();
     let i = 0;
     this.applicationMarkers.forEach((applicationMarker) => {
-      applicationMarker.position.set(i++ * 1 - 1, 0.1, 2);
+      applicationMarker.position.set(i++ * 1 - 1, 0, 2);
       applicationMarker.clear();
       scene.add(applicationMarker);
     });
   }
 
   get raycastObjects() {
-    this.debug(`Gettings objects${this.applicationMarkers.length}`);
     return this.applicationMarkers;
-    // return this.openApplications;
   }
 
   get openApplicationIds() {
@@ -226,7 +224,9 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addGlobe(applicationObject3D);
     // Set initial position, rotation and scale.
-    if (this.mode === 'vr' && args.position) applicationObject3D.parent?.position.copy(args.position);
+    if (this.localUser.visualizationMode === 'vr' && args.position) {
+      applicationObject3D.parent?.position.copy(args.position);
+    }
     if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
     if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
@@ -439,7 +439,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    if (this.mode !== 'ar' || this.arSettings.renderCommunication) {
+    if (this.localUser.visualizationMode !== 'ar' || this.arSettings.renderCommunication) {
       this.addCommunication(applicationObject3D);
     }
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
@@ -607,8 +607,11 @@ export default class ApplicationRenderer extends Service.extend({
       if (this.applicationMarkers[i].children.length === 0) {
         this.applicationMarkers[i].add(applicationObject3D);
 
-        const message = `Application '${applicationModel.name}' successfully opened <br>
+        let message = `Application '${applicationModel.name}' successfully opened`;
+        if (this.localUser.visualizationMode === 'ar') {
+          message += ` <br>
           on marker #${i + 1}.`;
+        }
 
         this.toastMessage.success(message);
 

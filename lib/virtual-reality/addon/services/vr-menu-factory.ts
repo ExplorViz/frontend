@@ -5,7 +5,6 @@ import RemoteUser from 'collaborative-mode/utils/remote-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import DeltaTimeService from 'virtual-reality/services/delta-time';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
@@ -36,9 +35,6 @@ import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
 
 export default class VrMenuFactoryService extends Service {
-  @service('delta-time')
-  private deltaTimeService!: DeltaTimeService;
-
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
@@ -195,7 +191,6 @@ export default class VrMenuFactoryService extends Service {
     return new GrabMenu({
       grabbedObject,
       grabbedObjectService: this.grabbedObjectService,
-      deltaTimeService: this.deltaTimeService,
       menuFactory: this,
     });
   }

@@ -39,7 +39,6 @@ export default class LandscapeListener extends Service.extend(Evented) {
     }, intervalInSeconds * 1000);
   }
 
-
   async pollData(endTime: number, intervalInSeconds: number = 10) {
     try {
       // request landscape data that is 60 seconds old
@@ -66,7 +65,6 @@ export default class LandscapeListener extends Service.extend(Evented) {
     } catch (e) {
       // landscape data could not be requested, try again?
     }
-
   }
 
   async requestData(endTime: number, intervalInSeconds: number) {

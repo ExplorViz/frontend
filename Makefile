@@ -1,11 +1,4 @@
-##
-# Project Title
-#
-# @file
-# @version 0.1
-
-hostname=maba-desktop
-
+hostname=localhost
 export AUTH0_ENABLED=false
 # export USER_SERV_URL=https://localhost:8484
 export LANDSCAPE_SERV_URL=https://$(hostname):8082
@@ -30,4 +23,3 @@ demo-supplier-up:
 demo-supplier-down:
 	docker-compose down -v
 
-# end

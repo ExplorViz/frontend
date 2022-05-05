@@ -15,7 +15,6 @@ export default class Spheres {
 
     for (let i = 0; i < 30; i++) {
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      // this.sceneService.scene.add(sphere);
       spheres.push(sphere);
     }
     this.spheres = spheres;

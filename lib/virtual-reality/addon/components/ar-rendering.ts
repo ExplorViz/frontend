@@ -9,8 +9,7 @@ import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
@@ -21,8 +20,8 @@ import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spher
 import {
   Application, Class, Node, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { light, spotlight } from 'explorviz-frontend/utils/lights';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
+import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -37,27 +36,20 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import DeltaTime from 'virtual-reality/services/delta-time';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  readonly font: THREE.Font;
   readonly components: string[];
   readonly showDataSelection: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   openLandscapeView(): void
-  showApplication(applicationId: string): string;
   addComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
   closeDataSelection(): void;
-
-  applicationArgs: Map<string, AddApplicationArgs>,
 }
 
 type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
@@ -86,28 +78,22 @@ export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
 
   @service('toast-message')
-  toastMessage!: ToastMessage;
-
-  @service('configuration')
-  configuration!: Configuration;
+  private toastMessage!: ToastMessage;
 
   @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
+  private collaborationSession!: CollaborationSession;
 
   @service('local-user')
-  localUser!: LocalUser;
-
-  @service('delta-time')
-  deltaTimeService!: DeltaTime;
+  private localUser!: LocalUser;
 
   @service('heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
+  private heatmapConf!: HeatmapConfiguration;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
   @service('ar-settings')
-  arSettings!: ArSettings;
+  private arSettings!: ArSettings;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -115,17 +101,11 @@ export default class ArRendering extends Component<Args> {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('web-socket')
-  private webSocket!: WebSocketService;
-
   @service('landscape-renderer')
   private landscapeRenderer!: LandscapeRenderer;
 
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
-
-  @service()
-  worker!: any;
 
   debug = debugLogger('ArRendering');
 
@@ -145,12 +125,6 @@ export default class ArRendering extends Component<Args> {
   applicationMarkers: THREE.Group[] = [];
 
   private willDestroyController: AbortController = new AbortController();
-
-  pinchedObj: THREE.Object3D | ApplicationObject3D | null = null;
-
-  rotatedObj: THREE.Object3D | null | undefined;
-
-  pannedObject: THREE.Object3D | null | undefined;
 
   rendererResolutionMultiplier = 2;
 
@@ -192,14 +166,13 @@ export default class ArRendering extends Component<Args> {
     this.debug('Constructor called');
 
     this.landscapeRenderer.setLargestSide(2);
-    this.scene = new THREE.Scene();
+    this.scene = defaultScene();
+    this.scene.background = null;
     this.scene.add(this.landscapeRenderer.landscapeObject3D);
     this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
-    this.applicationRenderer.resetAndAddToScene('ar', this.scene, this.updatables);
+    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
+    this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
     this.toastMessage.init();
-    this.scene.add(light());
-    this.scene.add(spotlight());
-    this.scene.background = null;
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -220,7 +193,6 @@ export default class ArRendering extends Component<Args> {
      * performance panel if it is activated in user settings
      */
   private initRendering() {
-    this.initServices();
     this.initRenderer();
     this.initCamera();
     this.configureScene();
@@ -238,21 +210,6 @@ export default class ArRendering extends Component<Args> {
     this.renderingLoop.start();
     this.initCameraCrosshair();
     this.initInteraction();
-  }
-
-  updateArToolkit() {
-    // update artoolkit on every frame
-    if (this.arToolkitSource.ready !== false) {
-      this.arToolkitContext.update(this.arToolkitSource.domElement);
-    }
-  }
-
-  private initServices() {
-    this.debug('Initializing services...');
-
-    // Use given font for landscape and application rendering.
-    // this.remoteUsers.displayHmd = false;
-    this.landscapeRenderer.arMode = true;
   }
 
   /**
@@ -280,21 +237,17 @@ export default class ArRendering extends Component<Args> {
   handlePinching(intersection: THREE.Intersection, delta: number) {
     const object = intersection.object?.parent;
     if (object) {
-      object.scale.copy(object.scale.multiplyScalar(delta));
+      object.scale.multiplyScalar(delta);
     }
   }
 
   handleRotating(intersection: THREE.Intersection, delta: number) {
     const object = intersection.object?.parent;
     if (object) {
-      // AlertifyHandler.showAlertifyMessage('Rotating' + delta);
-      // object.scale.copy(object.scale.multiplyScalar(delta));
       if (object instanceof LandscapeObject3D) {
         object.rotation.z += delta;
-        // object.rotation.z += delta * MathUtils.DEG2RAD;
       } else if (object instanceof ApplicationObject3D) {
         object.rotation.y += delta;
-        // object.rotation.y += delta * MathUtils.DEG2RAD;
       }
     }
   }
@@ -686,6 +639,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection | null) {
+    AlertifyHandler.showAlertifyMessage(`Pos${this.landscapeRenderer.landscapeObject3D?.parent?.position.z}`);
     if (!intersection) return;
 
     this.mousePosition.copy(intersection.point);
@@ -753,31 +707,15 @@ export default class ArRendering extends Component<Args> {
 
   // #region RENDERING
 
-  /**
-   * Sends a message if a given interval (in seconds) has passed to keep websocket alive
-   */
-  private sendKeepAliveMessage(delta: number, interval = 1) {
-    if (delta > interval) {
-      // Send camera pose as dummy message
-      const cameraPose = VrPoses.getCameraPose(this.localUser.defaultCamera);
-      this.sender.sendPoseUpdate(cameraPose);
+  tick() {
+    // update artoolkit on every frame
+    if (this.arToolkitSource.ready !== false) {
+      this.arToolkitContext.update(this.arToolkitSource.domElement);
     }
-  }
-
-  tick(delta: number) {
-    if (this.webSocket.isWebSocketOpen()) {
-      this.sendKeepAliveMessage(delta);
-    }
-
     // this.remoteUsers.updateRemoteUsers(delta);
+
     this.arZoomHandler?.renderZoomCamera(this.renderer, this.scene,
       this.resize);
-
-    this.updateArToolkit();
-
-    // this.render();
-
-    // this.renderer.render(this.sceneService.scene, this.localUser.defaultCamera);
   }
 
   // #endregion RENDERING
@@ -908,9 +846,6 @@ export default class ArRendering extends Component<Args> {
     this.debug('cleanup ar rendering');
 
     this.renderingLoop.stop();
-    // this.landscapeRenderer.resetService();
-    // this.applicationRenderer.removeAllApplicationsLocally();
-    // this.sceneService.addSkylight();
     this.debug('cleanup destorying controller');
 
     // Remove event listers.
