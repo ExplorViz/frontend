@@ -36,3 +36,17 @@ export default function focusCameraOn(selection: Object3D, camera: PerspectiveCa
 
   controls.update();
 }
+
+export function getDistance(selection: Object3D, camera: PerspectiveCamera) {
+  const fitOffset = 1.2;
+
+  box.setFromObject(selection);
+  box.getSize(size);
+  box.getCenter(center);
+
+  const maxSize = Math.max(size.x, size.y, size.z);
+  const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
+  return distance;
+}

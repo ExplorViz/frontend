@@ -78,6 +78,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     this.rotation.x = ROTATION_X;
     this.rotation.y = ROTATION_Y;
+    this.rotation.z = 90 * THREE.MathUtils.DEG2RAD;
   }
 
   /**

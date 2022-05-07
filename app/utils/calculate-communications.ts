@@ -8,7 +8,7 @@ export default function calculateCommunications(
 ) {
   const allClasses = new Set(getAllClassesInApplication(application));
   const communicationInApplication = drawableClassCommunications.filter(
-    (comm) => allClasses.has(comm.sourceClass) || allClasses.has(comm.targetClass),
+    (comm) => allClasses.has(comm.sourceClass) && allClasses.has(comm.targetClass),
   );
   return communicationInApplication;
 }

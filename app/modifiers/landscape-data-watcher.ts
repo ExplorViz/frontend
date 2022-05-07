@@ -1,3 +1,4 @@
+import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
 import { all } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
@@ -7,17 +8,18 @@ import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import computeApplicationCommunication from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData,
+  readonly graph: ForceGraph3DInstance,
 }
 
 interface Args {
@@ -34,9 +36,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
-
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
@@ -47,6 +46,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   private worker!: any;
 
   private landscapeData!: LandscapeData;
+
+  private graph!: ForceGraph3DInstance;
 
   @service('vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
@@ -61,8 +62,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData }: NamedArgs) {
+  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: NamedArgs) {
     this.landscapeData = landscapeData;
+    this.graph = graph;
 
     if (!this.didSetup) {
       this.didSetup = true;
@@ -71,8 +73,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     perform(this.handleUpdatedLandscapeData);
   }
 
-  @restartableTask*
-  handleUpdatedLandscapeData() {
+  @restartableTask *
+    handleUpdatedLandscapeData() {
     yield Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
@@ -82,6 +84,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
+
+    // const { nodes, links } = this.graph.graphData();
+    const gdata = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
@@ -99,6 +104,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           applicationData.updateApplication(application, results[0]);
         } else {
           applicationData = new ApplicationData(application, results[0]);
+          gdata.nodes.push({ id: applicationData.application.id, data: applicationData });
         }
         applicationData.drawableClassCommunications = calculateCommunications(
           applicationData.application, drawableClassCommunications,
@@ -108,29 +114,47 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
-    const { serializedRoom } = this.roomSerializer;
-    perform(this.landscapeRenderer.populateLandscape,
-      this.structureLandscapeData, this.dynamicLandscapeData);
-    if (serializedRoom) {
-      this.landscapeRenderer.restore(serializedRoom.landscape);
-      this.applicationRenderer.restore(serializedRoom);
-      // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
-      this.roomSerializer.serializedRoom = undefined;
-    } else {
-      const openApplicationsIds = this.applicationRenderer.openApplicationIds;
-      for (let i = 0; i < openApplicationsIds.length; ++i) {
-        const applicationId = openApplicationsIds[i];
-        const applicationData = this.applicationRepo.getById(applicationId);
-        if (applicationData) {
-          perform(
-            this.applicationRenderer.addApplicationTask,
-            applicationData,
-          );
-        } else {
-          this.applicationRenderer.removeApplicationLocally(applicationId);
-        }
-      }
-    }
+    const applicationCommunications = computeApplicationCommunication(
+      this.structureLandscapeData,
+      this.dynamicLandscapeData,
+    );
+
+    this.applicationRepo.communications = applicationCommunications;
+    const interAppCommunications = drawableClassCommunications.filter(x => x.sourceApp !== x.targetApp)
+
+
+    const gData = {
+      // nodes: Array.from(this.applicationRepo.applications, ([name, value]) => ({ id: value.application.id, data: value })),
+      nodes: gdata.nodes,
+      links: interAppCommunications.map(i => ({ source: i.sourceApp.id, target: i.targetApp.id, value: i.totalRequests, communicationData: i })),
+    };
+    this.graph.graphData(gData);
+    // this.graph.d3ReheatSimulation();
+
+
+    //   const { serializedRoom } = this.roomSerializer;
+    //   // perform(this.landscapeRenderer.populateLandscape,
+    //   //   this.structureLandscapeData, this.dynamicLandscapeData);
+    //   if (serializedRoom) {
+    //     this.landscapeRenderer.restore(serializedRoom.landscape);
+    //     this.applicationRenderer.restore(serializedRoom);
+    //     // TODO is it necessary to wait?
+    //     this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+    //     this.roomSerializer.serializedRoom = undefined;
+    //   } else {
+    //     const openApplicationsIds = this.applicationRenderer.openApplicationIds;
+    //     for (let i = 0; i < openApplicationsIds.length; ++i) {
+    //       const applicationId = openApplicationsIds[i];
+    //       const applicationData = this.applicationRepo.getById(applicationId);
+    //       if (applicationData) {
+    //         // perform(
+    //         //   this.applicationRenderer.addApplicationTask,
+    //         //   applicationData,
+    //         // );
+    //       } else {
+    //         this.applicationRenderer.removeApplicationLocally(applicationId);
+    //       }
+    //     }
+    //   }
   }
 }

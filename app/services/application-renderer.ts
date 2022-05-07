@@ -39,7 +39,7 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 
-const APPLICATION_SCALAR = 0.01;
+const APPLICATION_SCALAR = 1;
 
 export type LayoutData = {
   height: number;
@@ -216,13 +216,13 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     args: AddApplicationArgs,
   ) {
-    const closeIcon = new CloseIcon({
-      textures: this.assetRepo.closeIconTextures,
-      onClose: () => this.closeApplication(applicationObject3D?.dataModel.id),
-    });
-    closeIcon.addToObject(applicationObject3D);
+    // const closeIcon = new CloseIcon({
+    //   textures: this.assetRepo.closeIconTextures,
+    //   onClose: () => this.closeApplication(applicationObject3D?.dataModel.id),
+    // });
+    // closeIcon.addToObject(applicationObject3D);
 
-    this.addGlobe(applicationObject3D);
+    // this.addGlobe(applicationObject3D);
     // Set initial position, rotation and scale.
     if (this.localUser.visualizationMode === 'vr' && args.position) {
       applicationObject3D.parent?.position.copy(args.position);
@@ -262,7 +262,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  @enqueueTask* openApplicationTask(
+  @enqueueTask * openApplicationTask(
     applicationId: string,
     addApplicationArgs: AddApplicationArgs = {},
     send: boolean = true,
@@ -297,7 +297,16 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @enqueueTask* addApplicationTask(
+  @action
+  addApplication(id: string) {
+    const app = this.applicationRepo.getById(id);
+    if (app) {
+      return this.addApplicationData(app);
+    }
+    return null;
+  }
+
+  addApplicationData(
     applicationData: ApplicationData,
     addApplicationArgs: AddApplicationArgs = {},
   ) {
@@ -352,6 +361,11 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D,
     );
     this.heatmapConf.updateActiveApplication(applicationObject3D);
+
+    applicationObject3D.resetRotation();
+    // applicationObject3D.rotation.x = 90;
+    // applicationObject3D.rotation.z = 90;
+    // applicationObject3D.rotation.y = 90;
 
     return applicationObject3D;
   }

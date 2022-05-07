@@ -62,7 +62,7 @@
           <div class="spinner-center-3" role="status"></div>
         </div>
       {{else if this.allLandscapeDataExistsAndNotEmpty}}
-        <Visualization::Rendering::LandscapeRendering
+        <Visualization::Rendering::BrowserRendering
           @landscapeData={{this.landscapeData}}
           @components={{this.components}}
           @removeComponent={{this.removeComponent}}
