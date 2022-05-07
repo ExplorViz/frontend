@@ -70,6 +70,9 @@ export default class VisualizationController extends Controller {
   @service('local-user')
   localUser!: LocalUser;
 
+  @service('web-socket')
+  private webSocket!: WebSocketService;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
@@ -108,6 +111,15 @@ export default class VisualizationController extends Controller {
   get allLandscapeDataExistsAndNotEmpty() {
     return this.landscapeData !== null
       && this.landscapeData.structureLandscapeData.nodes.length > 0;
+  }
+
+  constructor() {
+    super(...arguments);
+
+    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
+    this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
   }
 
   @action
@@ -290,10 +302,6 @@ export default class VisualizationController extends Controller {
     this.landscapeListener.initLandscapePolling();
     this.updateTimestampList();
     this.initWebSocket();
-    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
-    this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.debug('initRendering done');
   }
 
@@ -305,9 +313,6 @@ export default class VisualizationController extends Controller {
     this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
     this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
   }
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
 
   private async initWebSocket() {
     this.debug('Initializing websocket...');

@@ -95,7 +95,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
        * @param isVisible Determines whether a spotlight is visible or not
        */
   private setSpotLightVisibilityInScene(isVisible = true) {
-    this.scene.children.forEach((child) => {
+    this.scene?.children.forEach((child) => {
       if (child instanceof THREE.SpotLight) {
         child.visible = isVisible;
       }
