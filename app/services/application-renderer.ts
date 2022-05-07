@@ -159,9 +159,10 @@ export default class ApplicationRenderer extends Service.extend({
     this.initCallback = undefined;
     this.updatables = updateables;
     this.openApplications.clear();
-    let i = 0;
+    // let i = 0;
     this.applicationMarkers.forEach((applicationMarker) => {
-      applicationMarker.position.set(i++ * 1 - 1, 0, 2);
+      // applicationMarker.position.set(i++ * 1 - 1, 0, 2);
+      applicationMarker.position.set(0, 0, 0);
       applicationMarker.clear();
       scene.add(applicationMarker);
     });
@@ -262,7 +263,7 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  @enqueueTask* openApplicationTask(
+  @enqueueTask * openApplicationTask(
     applicationId: string,
     addApplicationArgs: AddApplicationArgs = {},
     send: boolean = true,
@@ -297,7 +298,7 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @enqueueTask* addApplicationTask(
+  @enqueueTask * addApplicationTask(
     applicationData: ApplicationData,
     addApplicationArgs: AddApplicationArgs = {},
   ) {

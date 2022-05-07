@@ -122,7 +122,7 @@ export default class LandscapeRenderer extends Service.extend({
     this.landscapeObject3D.resetMeshReferences();
   }
 
-  @restartableTask* populateLandscape(
+  @restartableTask * populateLandscape(
     structureLandscapeData: StructureLandscapeData,
     dynamicLandscapeData: DynamicLandscapeData,
   ): any {
@@ -227,9 +227,9 @@ export default class LandscapeRenderer extends Service.extend({
 
       if (this.localUser.visualizationMode === 'ar') {
         this.landscapeObject3D.setOpacity(this.arSettings.landscapeOpacity);
-        if (this.largestSide) {
-          this.landscapeObject3D.setLargestSide(this.largestSide);
-        }
+        // if (this.largestSide) {
+        //   this.landscapeObject3D.setLargestSide(this.largestSide);
+        // }
       }
 
       this.debug('Landscape loaded');
@@ -243,6 +243,8 @@ export default class LandscapeRenderer extends Service.extend({
     this.settings = settings;
     this.resetRotation();
     this.resetScale();
+
+    // this.landscapeObject3D.setLargestSide(2);
     scene.add(this.landscapeObject3D);
   }
 
@@ -329,7 +331,7 @@ export default class LandscapeRenderer extends Service.extend({
     this.landscapeObject3D.setLargestSide(largestSide);
   }
 
-  private resetScale() {
+  resetScale() {
     this.landscapeObject3D.scale.set(
       this.settings.landscapeScalar,
       this.settings.landscapeScalar,

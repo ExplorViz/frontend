@@ -1,4 +1,4 @@
-import { Clock } from 'three';
+import THREE, { Clock } from 'three';
 import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
@@ -30,6 +30,7 @@ export default class RenderingLoop extends EmberObject {
 
   updatables!: any[];
 
+
   init() {
     super.init();
     if (this.mapControls) {
@@ -39,12 +40,11 @@ export default class RenderingLoop extends EmberObject {
       this.controls.minDistance = 0.5;
       this.controls.maxDistance = 30;
       this.controls.maxPolarAngle = Math.PI / 2;
-      // this.controls.enablePan = false;
     }
   }
 
   start() {
-    this.renderer.setAnimationLoop(() => {
+    this.renderer.setAnimationLoop((_timestamp, frame) => {
       const { value: showFpsCounter } = this.userSettings.applicationSettings.showFpsCounter;
 
       if (showFpsCounter && !this.threePerformance) {
@@ -59,7 +59,7 @@ export default class RenderingLoop extends EmberObject {
         this.threePerformance.stats.begin();
       }
       // tell every animated object to tick forward one frame
-      this.tick();
+      this.tick(frame);
 
       // orbital controls
 
@@ -80,10 +80,10 @@ export default class RenderingLoop extends EmberObject {
     }
   }
 
-  tick() {
+  tick(frame?: THREE.XRFrame) {
     const delta = clock.getDelta();
     for (let i = 0; i < this.updatables.length; i++) {
-      this.updatables[i].tick(delta);
+      this.updatables[i].tick(delta, frame);
     }
   }
 }
