@@ -34,7 +34,7 @@ import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/land
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import THREE, { ShadowMapType } from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
@@ -299,7 +299,7 @@ export default class ArRendering extends Component<Args> {
 
   get intersectableObjects() {
     return [this.landscapeRenderer.landscapeObject3D,
-      ...this.applicationRenderer.applicationMarkers];
+    ...this.applicationRenderer.applicationMarkers];
   }
 
   static raycastFilter(intersection: THREE.Intersection) {
@@ -721,6 +721,10 @@ export default class ArRendering extends Component<Args> {
   // #endregion RENDERING
 
   // #region APLICATION RENDERING
+  @action
+  addApplicationById(applicationId: string) {
+    this.showApplication(applicationId);
+  }
 
   @action
   initializeNewApplication(applicationObject3D: ApplicationObject3D) {
