@@ -721,6 +721,10 @@ export default class ArRendering extends Component<Args> {
   // #endregion RENDERING
 
   // #region APLICATION RENDERING
+  @action
+  addApplicationById(applicationId: string) {
+    this.showApplication(applicationId);
+  }
 
   @action
   initializeNewApplication(applicationObject3D: ApplicationObject3D) {

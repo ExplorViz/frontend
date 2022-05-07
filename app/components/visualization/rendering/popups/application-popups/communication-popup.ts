@@ -1,14 +1,12 @@
 import GlimmerComponent from '@glimmer/component';
 import {
-  StructureLandscapeData,
   Class, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { action } from '@ember/object';
 
 interface Args {
-  communication: ClazzCommuMeshDataModel
-  structureData: StructureLandscapeData
+  communication: ClazzCommuMeshDataModel;
   showApplication(applicationId: string): void;
   highlightModel(entity: Package | Class): void;
   openParents(entity: Class | Package): void;
