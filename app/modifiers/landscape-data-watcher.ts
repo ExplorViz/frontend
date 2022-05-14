@@ -104,7 +104,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           applicationData.updateApplication(application, results[0]);
         } else {
           applicationData = new ApplicationData(application, results[0]);
-          gdata.nodes.push({ id: applicationData.application.id, data: applicationData });
+          gdata.nodes.push({ id: applicationData.application.id, data: applicationData, fy: 0, y: 0 });
         }
         applicationData.drawableClassCommunications = calculateCommunications(
           applicationData.application, drawableClassCommunications,
@@ -114,21 +114,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
-    const applicationCommunications = computeApplicationCommunication(
-      this.structureLandscapeData,
-      this.dynamicLandscapeData,
-    );
-
-    this.applicationRepo.communications = applicationCommunications;
     const interAppCommunications = drawableClassCommunications.filter(x => x.sourceApp !== x.targetApp)
 
-
     const gData = {
-      // nodes: Array.from(this.applicationRepo.applications, ([name, value]) => ({ id: value.application.id, data: value })),
       nodes: gdata.nodes,
-      links: interAppCommunications.map(i => ({ source: i.sourceApp.id, target: i.targetApp.id, value: i.totalRequests, communicationData: i })),
+      links: interAppCommunications.map(communication => ({
+        source: communication.sourceApp?.id,
+        target: communication.targetApp?.id,
+        value: communication.totalRequests, // used for particles
+        communicationData: communication
+      })),
     };
+
     this.graph.graphData(gData);
+
     // this.graph.d3ReheatSimulation();
 
 

@@ -1,7 +1,7 @@
 import {
-  Box3, Object3D, PerspectiveCamera, Vector3,
+  Box3, MOUSE, Object3D, PerspectiveCamera, Vector3,
 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls, OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const size = new Vector3();
 const center = new Vector3();
@@ -49,4 +49,16 @@ export function getDistance(selection: Object3D, camera: PerspectiveCamera) {
   const fitWidthDistance = fitHeightDistance / camera.aspect;
   const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
   return distance;
+}
+
+export function configureControls(controls: OrbitControls) {
+  controls.mouseButtons.LEFT = MOUSE.PAN;
+  controls.mouseButtons.RIGHT = MOUSE.ROTATE;
+
+  controls.screenSpacePanning = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.3;
+  controls.minDistance = 1;
+  controls.maxDistance = 900;
+  controls.maxPolarAngle = Math.PI / 2;
 }

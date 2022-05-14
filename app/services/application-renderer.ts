@@ -363,7 +363,9 @@ export default class ApplicationRenderer extends Service.extend({
     this.heatmapConf.updateActiveApplication(applicationObject3D);
 
     applicationObject3D.resetRotation();
-    // applicationObject3D.rotation.x = 90;
+
+    applicationObject3D.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
+    // applicationObject3D.position.y = 0
     // applicationObject3D.rotation.z = 90;
     // applicationObject3D.rotation.y = 90;
 

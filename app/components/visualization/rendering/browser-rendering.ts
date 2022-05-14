@@ -3,18 +3,21 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
+// @ts-ignore
 import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { getDistance } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import { configureControls, getDistance } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { linkPositionUpdate } from 'explorviz-frontend/utils/link-helper';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { MOUSE, Object3D } from 'three';
+// import { Stats } from 'fs';
+import { AmbientLight, DirectionalLight, PerspectiveCamera } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
+import Stats from 'three/examples/jsm/libs/stats.module';
 
 interface BrowserRenderingArgs { }
 
@@ -28,12 +31,21 @@ interface GraphNode {
     __threeObj: ApplicationObject3D,
 }
 
-type Coords = { x: number; y: number; z: number; }
+export interface GraphLink {
+    source: GraphNode,
+    target: GraphNode,
+    value: number,
+    communicationData: DrawableClassCommunication,
+    __curve: any,
+}
+
 
 // type LinkObject = object & {
 //     source?: string | number | NodeObject;
 //     target?: string | number | NodeObject;
 // };
+//
+const PARTICLE_SPEED_MULTIPLIER = 0.001;
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
@@ -50,45 +62,75 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     graph!: ForceGraph3DInstance;
 
     get camera() {
-        return this.graph.camera();
+        return this.graph.camera() as PerspectiveCamera;
     }
 
     get renderer() {
         return this.graph.renderer();
     }
 
+    get controls() {
+        return this.graph.controls() as OrbitControls;
+    }
+
+    get scene() {
+        return this.graph.scene();
+    }
+
+    selectedId: string | null = null;
+
     debug = debugLogger('BrowserRendering');
 
     @action
     resize(outerDiv: HTMLElement) {
-        const width = Number(outerDiv.clientWidth);
-        const height = Number(outerDiv.clientHeight);
-
-        // Update renderer and camera according to canvas size
-        this.renderer.setSize(width, height);
-        this.camera.aspect = width / height;
-        // this.camera.updateProjectionMatrix();
+        this.graph.width(outerDiv.clientWidth)
+        this.graph.height(outerDiv.clientHeight)
     }
 
+    particleSpeed(link: GraphLink) {
+        return Math.sqrt(link.value) * PARTICLE_SPEED_MULTIPLIER;
+    }
+
+    initDone: boolean = false;
+
+    @action
+    initScene() {
+        this.initDone = true;
+        // tune lights
+        setTimeout(() => {
+            this.scene?.children?.forEach((object) => {
+                if (object.isAmbientLight) {
+                    const light: AmbientLight = object;
+                    light.intensity = 1;
+                    light.color.setRGB(0.65, 0.65, 0.65);
+                }
+                if (object.isDirectionalLight) {
+                    const light: DirectionalLight = object;
+                    light.intensity = 0.3;
+                }
+            })
+        }, 20)
+        // adjust camera
+        setTimeout(() => {
+            this.graph.zoomToFit(800);
+        }, 1500)
+    }
 
     // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
     @action
     async outerDivInserted(outerDiv: HTMLElement) {
-        // Object3D.DefaultUp.set(0, 0, 1);
-        const initData = {
-            nodes: [],
-            links: []
-        };
+        let didSetup = false;
 
-        // Object3D.DefaultUp.set(0, 0, 1);
-        let i = 0
+        const stats = new Stats();
 
         const graph = ForceGraph3D({ controlType: 'orbit' })
             (outerDiv)
-            .nodeThreeObject(({ id, data }) => this.applicationRenderer.addApplicationData(data))
-            .graphData(initData)
-            .numDimensions(2)
-            .warmupTicks(300)
+            .nodeThreeObject(({ id, data, fy }) => this.applicationRenderer.addApplicationData(data))
+            .numDimensions(3)
+            .dagMode('lr')
+            // .dagMode('radialin')
+            .dagLevelDistance(100)
+            .warmupTicks(400)
             .enableNodeDrag(false)
             .backgroundColor('#' + this.configuration.landscapeColors.backgroundColor.getHexString())
             .linkDirectionalArrowLength(5.5)
@@ -105,54 +147,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             .linkDirectionalParticles("value")
             .linkDirectionalParticleWidth(1.5)
             // .linkDirectionalParticleSpeed(link => link.value * 0.0004)
-            .linkDirectionalParticleSpeed(link => Math.sqrt(link.value) * 0.001)
-            .linkPositionUpdate((line: Object3D, coords: { start: Coords, end: Coords }, link: any) => {
-                const drawableClassCommunication: DrawableClassCommunication = link.communicationData;
-
-                // source
-                const sourceApp = link.source.__threeObj
-                const sourceMesh = sourceApp.getBoxMeshbyModelId(drawableClassCommunication.sourceClass.id);
-                const start = sourceMesh.position.clone();
-                sourceApp.localToWorld(start);
-                line.position.x = start.x;
-                line.position.y = start.y;
-                line.position.z = start.z;
-
-                // target
-                const targetApp = link.target.__threeObj
-                const targetMesh = targetApp.getBoxMeshbyModelId(drawableClassCommunication.targetClass.id);
-                const end = targetMesh.position.clone();
-                targetApp.localToWorld(end);
-
-                // workaround to move particles and arrow
-                link.__curve.v0.copy(start);
-                link.__curve.v1.copy(start);
-                link.__curve.v2.copy(end);
-
-                // distance
-                const distance = start.distanceTo(end);
-                line.scale.z = distance;
-                line.lookAt(end);
-
-                return true;
-            })
-            // .linkDirectionalParticles((x, y) => {
-            //     const xx = x
-            //     return x
-            // })
+            .linkDirectionalParticleSpeed(this.particleSpeed)
+            .linkPositionUpdate(linkPositionUpdate)
             .onNodeClick((node: GraphNode, event: PointerEvent) => {
                 this.applicationRenderer.openAllComponentsOfAllApplications();
                 // Aim at node from outside it
                 const distance = getDistance(node.__threeObj, graph.camera());
-                node.z = 0; // only 2 dimensions
-                node.__threeObj.position.z = 100
+                this.selectedId = node.id;
+                // TODO fix label render order, as they are currently slighly transparent
+                node.__threeObj.setOpacity(0.99)
+                node.__threeObj.traverse(child => child.renderOrder = 1)
 
                 const newPos = node.x || node.y
-                    ? { x: node.x, y: node.y - 10, z: distance + 10 }
+                    ? { x: node.x, y: distance + 30, z: node.z + 10 }
                     : { x: 0, y: 0, z: distance }; // special case if node is in (0,0,0)
 
                 // graph.zoomToFit(1500, 10, (xx) => xx.id === node.id);
-
 
                 graph.cameraPosition(
                     newPos, // new position
@@ -160,19 +170,49 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
                     900  // ms transition duration
                 );
             })
-            .onEngineTick(() => {
+            .onBackgroundClick((event: PointerEvent) => {
+                if (this.selectedId) {
+                    const node = graph.graphData().nodes.findBy('id', this.selectedId);
+                    node!.__threeObj.setOpacity(1)
+                    // node!.__threeObj.children.forEach(child => child.renderOrder = 0)
+                    node!.__threeObj.traverse(child => child.renderOrder = 0)
+                    this.selectedId = null;
+                }
             })
-            .dagMode('lr')
-            .dagLevelDistance(100)
-
+            .onEngineTick(() => {
+                if (!didSetup) {
+                    this.initScene();
+                    didSetup = true;
+                }
+                // workaroud because DAG mode overwrites the fy value of the graph node data
+                graph.graphData().nodes.forEach((node) => {
+                    if (node.id === this.selectedId) {
+                        node.fy = 20;
+                    } else {
+                        node.fy = 0;
+                    }
+                })
+                stats.update();
+            })
+            // .cooldownTicks(1)
+            // .onEngineStop(this.initScene)
             // force
             .d3Force('collision', d3.forceCollide(node => {
                 return node.__threeObj.foundationMesh.width / 2 + 3
             }))
             .d3VelocityDecay(0.8);
-        graph.d3Force('collision').iterations(1)
+
+        // forces
+        graph.d3Force('collision')!.iterations(1)
         // graph.d3Force('link').distance(30);
-        // graph.d3Force('charge').strength(-300)
+        graph.d3Force('charge')!.strength(-70)
+        // graph.renderer().tick
+
+        outerDiv.appendChild(stats.dom);
+
+        // stats.tick = () => {
+        //     stats.update()
+        // };
 
         // add custom object
         // const planeGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
@@ -182,9 +222,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // mesh.rotation.set(0.5 * Math.PI, 0, 0);
         // graph.scene().add(mesh);
 
-        const controls = graph.controls() as OrbitControls;
-        controls.mouseButtons.LEFT = MOUSE.PAN;
-        controls.mouseButtons.RIGHT = MOUSE.ROTATE;
+        configureControls(graph.controls() as OrbitControls);
+
+        graph.cameraPosition({ x: 0, y: 1000, z: 0 });
+
         this.graph = graph;
+
     }
 }
