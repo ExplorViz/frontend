@@ -131,6 +131,7 @@
     "ember-source-channel-url": "^2.0.1",
     "ember-toggle": "^6.0.1",
     "ember-websockets": "^7.2.0",
+    "gsap": "^3.10.4",
     "hammerjs": "^2.0.8",
     "jquery": "^3.6.0",
     "meshline": "2.0.3",
@@ -141,6 +142,7 @@
     "simpleheat": "^0.4.0",
     "stats.js": "^0.17.0",
     "three": "^0.131.3",
+    "three-forcegraph": "^1.39.4",
     "webxr-polyfill": "^2.0.3"
   },
   "ember-addon": {

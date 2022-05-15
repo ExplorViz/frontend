@@ -291,6 +291,7 @@ export default class ArRendering extends Component<Args> {
     // Add key listener for room positioning
     window.onkeydown = (event: any) => {
       this.handleKeyboard(event);
+
     };
   }
 
@@ -299,7 +300,7 @@ export default class ArRendering extends Component<Args> {
 
   get intersectableObjects() {
     return [this.landscapeRenderer.landscapeObject3D,
-      ...this.applicationRenderer.applicationMarkers];
+    ...this.applicationRenderer.applicationMarkers];
   }
 
   static raycastFilter(intersection: THREE.Intersection) {

@@ -26,8 +26,13 @@ export function skylight() {
 export function defaultScene() {
   const scene = new THREE.Scene();
   scene.add(light());
-  scene.add(spotlight());
+  // scene.add(spotlight());
+  scene.add(directionalLight());
   return scene;
+}
+
+export function directionalLight(): THREE.DirectionalLight {
+  return new THREE.DirectionalLight(0xffffff, 0.25);
 }
 
 export function vrScene(): THREE.Scene {

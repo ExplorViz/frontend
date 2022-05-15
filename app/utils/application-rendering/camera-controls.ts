@@ -1,64 +1,87 @@
+import gsap from 'gsap';
 import {
-  Box3, MOUSE, Object3D, PerspectiveCamera, Vector3,
+  Box3, Object3D, PerspectiveCamera, Vector3
 } from 'three';
-import { MapControls, OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 
-const size = new Vector3();
-const center = new Vector3();
-const box = new Box3();
+export class CameraControls {
 
-export default function focusCameraOn(selection: Object3D, camera: PerspectiveCamera,
-  controls: MapControls) {
-  const fitOffset = 1.2;
+  private camera: PerspectiveCamera;
 
-  box.setFromObject(selection);
-  box.getSize(size);
-  box.getCenter(center);
+  controls: MapControls;
 
-  const maxSize = Math.max(size.x, size.y, size.z);
-  const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
-  const fitWidthDistance = fitHeightDistance / camera.aspect;
-  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
+  constructor(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
+    this.camera = camera;
 
-  const direction = controls.target.clone()
-    .sub(camera.position)
-    .normalize()
-    .multiplyScalar(distance);
+    const controls = new MapControls(this.camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.3;
+    controls.minDistance = 1;
+    controls.maxDistance = 1000;
+    controls.maxPolarAngle = Math.PI / 2;
+    this.controls = controls;
+  }
 
-  controls.maxDistance = distance * 10;
-  controls.target.copy(center);
+  fitCameraToBox(duration: number = 0, box: Box3) {
+    const size = new Vector3();
+    const center = new Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    // const fitOffset = 1.2;
+    const maxSize = Math.max(size.x, size.y, size.z);
+    const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
+    const fitWidthDistance = fitHeightDistance / this.camera.aspect;
+    const distance = 2 + Math.max(fitHeightDistance, fitWidthDistance);
+    const direction = this.controls.target.clone()
+      .sub(this.camera.position)
+      .normalize()
+      .multiplyScalar(distance);
 
-  camera.near = distance / 100;
-  camera.far = distance * 100;
-  camera.updateProjectionMatrix();
+    // camera.near = distance / 100;
+    // camera.far = distance * 100;
 
-  camera.position.copy(controls.target).sub(direction);
+    const position = center.clone().sub(direction);
+    if (duration > 0) {
+      this.panCameraTo(position, center, duration);
+    } else {
+      this.camera.position.copy(position);
+      this.controls.target.copy(center);
+    }
+  }
 
-  controls.update();
-}
+  focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
+    const box = new Box3();
+    selection.forEach((object) => {
+      box.expandByObject(object)
+    })
 
-export function getDistance(selection: Object3D, camera: PerspectiveCamera) {
-  const fitOffset = 1.2;
+    this.fitCameraToBox(duration, box);
+  }
 
-  box.setFromObject(selection);
-  box.getSize(size);
-  box.getCenter(center);
+  panCameraTo(position: Vector3, target: Vector3, duration: number) {
+    gsap.to(this.camera.position, {
+      duration,
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      onUpdate: () => {
+        this.camera.updateProjectionMatrix();
+      }
+    });
 
-  const maxSize = Math.max(size.x, size.y, size.z);
-  const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
-  const fitWidthDistance = fitHeightDistance / camera.aspect;
-  const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance);
-  return distance;
-}
+    gsap.to(this.controls.target, {
+      duration,
+      x: target.x,
+      y: target.y,
+      z: target.z,
+      onUpdate: () => {
+        this.controls.update();
+      }
+    });
 
-export function configureControls(controls: OrbitControls) {
-  controls.mouseButtons.LEFT = MOUSE.PAN;
-  controls.mouseButtons.RIGHT = MOUSE.ROTATE;
+  }
 
-  controls.screenSpacePanning = false;
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.3;
-  controls.minDistance = 1;
-  controls.maxDistance = 900;
-  controls.maxPolarAngle = Math.PI / 2;
+  tick() {
+    this.controls.update();
+  }
 }

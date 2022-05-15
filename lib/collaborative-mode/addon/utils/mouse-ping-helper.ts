@@ -1,7 +1,6 @@
 import { timeout } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
 import THREE from 'three';
-import VrLandscapeObject3D from 'virtual-reality/utils/view-objects/landscape/vr-landscape-object-3d';
 
 export default class MousePing {
   obj: THREE.Object3D | null;
@@ -21,18 +20,14 @@ export default class MousePing {
   // }
 
   @restartableTask
-  public* ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
+  public * ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
     if (this.obj) {
       this.obj.parent?.remove(this.obj);
       this.obj = null;
     }
 
     // Default for applications
-    let size = 0.05;
-
-    if (parentObj.parent instanceof VrLandscapeObject3D) {
-      size = 0.05;
-    }
+    let size = 2.5;
 
     const geometry = new THREE.SphereGeometry(size, 32, 32);
     const material = new THREE.MeshBasicMaterial({ color: this.color });

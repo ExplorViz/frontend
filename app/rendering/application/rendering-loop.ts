@@ -1,16 +1,20 @@
+import { setOwner } from '@ember/application';
 import { Clock } from 'three';
 import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
-import EmberObject from '@ember/object';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
-// import { MapControls } from './jsm/controls/OrbitControls.js';
 import debugLogger from 'ember-debug-logger';
 
 const clock = new Clock();
 
-export default class RenderingLoop extends EmberObject {
+interface Args {
+  camera: THREE.Camera,
+  scene: THREE.Scene,
+  renderer: THREE.WebGLRenderer,
+  updatables: any[],
+}
+
+export default class RenderingLoop {
   threePerformance: THREEPerformance | undefined;
 
   debug = debugLogger('RenderingLoop');
@@ -18,34 +22,26 @@ export default class RenderingLoop extends EmberObject {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  camera!: THREE.Camera;
+  camera: THREE.Camera;
 
-  scene!: THREE.Scene;
+  scene: THREE.Scene;
 
-  renderer!: THREE.WebGLRenderer;
+  renderer: THREE.WebGLRenderer;
 
-  controls!: MapControls;
+  updatables: any[];
 
-  mapControls: boolean = true;
-
-  updatables!: any[];
-
-  init() {
-    super.init();
-    if (this.mapControls) {
-      this.controls = new MapControls(this.camera, this.renderer.domElement);
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.3;
-      this.controls.minDistance = 0.5;
-      this.controls.maxDistance = 30;
-      this.controls.maxPolarAngle = Math.PI / 2;
-      // this.controls.enablePan = false;
-    }
+  constructor(owner: any, args: Args) {
+    setOwner(this, owner);
+    this.camera = args.camera;
+    this.scene = args.scene;
+    this.renderer = args.renderer;
+    this.updatables = args.updatables;
   }
 
   start() {
     this.renderer.setAnimationLoop(() => {
       const { value: showFpsCounter } = this.userSettings.applicationSettings.showFpsCounter;
+      // const showFpsCounter = true;
 
       if (showFpsCounter && !this.threePerformance) {
         this.threePerformance = new THREEPerformance();
@@ -60,10 +56,6 @@ export default class RenderingLoop extends EmberObject {
       }
       // tell every animated object to tick forward one frame
       this.tick();
-
-      // orbital controls
-
-      this.controls?.update();
 
       // render a frame
       this.renderer.render(this.scene, this.camera);

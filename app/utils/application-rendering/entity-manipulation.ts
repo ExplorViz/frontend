@@ -1,7 +1,7 @@
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import THREE, { PerspectiveCamera, Vector3 } from 'three';
+import THREE, { Box3, PerspectiveCamera, Vector3 } from 'three';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   Class, Package,
@@ -9,6 +9,7 @@ import {
 import { DynamicLandscapeData, isSpan, Span } from '../landscape-schemes/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import { removeHighlighting } from './highlighting';
+import { CameraControls } from './camera-controls';
 
 /**
    * Opens a given component mesh.
@@ -205,23 +206,6 @@ export function applyDefaultApplicationLayout(applicationObject3D: ApplicationOb
   applyComponentLayout(applicationObject3D, applicationObject3D.dataModel.packages);
 }
 
-/**
-   * Moves camera to a specified position.
-   *
-   * @param centerPoint Offset of application
-   * @param camera Camera which shall be positioned
-   * @param layoutPos Desired position
-   * @param applicationObject3D Contains all application meshes
-   */
-export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.PerspectiveCamera,
-  layoutPos: THREE.Vector3, applicationObject3D: ApplicationObject3D) {
-  layoutPos.sub(centerPoint);
-
-  applicationObject3D.localToWorld(layoutPos);
-
-  // Move camera on to given position
-  camera.position.set(layoutPos.x, layoutPos.y, layoutPos.z);
-}
 
 /**
    * Moves camera such that a specified model is in focus
@@ -231,9 +215,8 @@ export function applyCameraPosition(centerPoint: THREE.Vector3, camera: THREE.Pe
    * @param camera Camera which shall be moved
    * @param applicationObject3D Object which contains all application meshes
    */
-export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vector3,
-  camera: PerspectiveCamera, applicationObject3D: ApplicationObject3D,
-  cameraTarget: THREE.Vector3, dynamicData: DynamicLandscapeData) {
+export function moveCameraTo(model: Class | Span, applicationObject3D: ApplicationObject3D,
+  dynamicData: DynamicLandscapeData, cameraControls: CameraControls) {
   if (isSpan(model)) {
     const traceOfSpan = dynamicData.find(
       (trace) => trace.traceId === model.traceId,
@@ -253,14 +236,7 @@ export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vecto
       const targetClazzMesh = applicationObject3D.getBoxMeshbyModelId(targetClass.id);
 
       if (sourceClazzMesh instanceof ClazzMesh && targetClazzMesh instanceof ClazzMesh) {
-        const sourceLayoutPos = new THREE.Vector3().copy(sourceClazzMesh.layout.position);
-        const targetLayoutPos = new THREE.Vector3().copy(targetClazzMesh.layout.position);
-
-        const directionVector = targetLayoutPos.sub(sourceLayoutPos);
-
-        const middleLayoutPos = sourceLayoutPos.add(directionVector.divideScalar(2));
-        applyCameraPosition(applicationCenter, camera, middleLayoutPos, applicationObject3D);
-        cameraTarget.copy(middleLayoutPos);
+        cameraControls.focusCameraOn(0.6, sourceClazzMesh, targetClazzMesh);
       }
     } else if (sourceClass || targetClass) {
       const existendClass = (sourceClass || targetClass)!;
@@ -268,21 +244,13 @@ export function moveCameraTo(model: Class | Span, applicationCenter: THREE.Vecto
       const clazzMesh = applicationObject3D.getBoxMeshbyModelId(existendClass.id);
 
       if (clazzMesh instanceof ClazzMesh) {
-        const classLayoutPos = new THREE.Vector3().copy(clazzMesh.layout.position);
-
-        const directionVector = new Vector3().sub(classLayoutPos);
-
-        const middleLayoutPos = classLayoutPos.add(directionVector.divideScalar(2));
-        applyCameraPosition(applicationCenter, camera, middleLayoutPos, applicationObject3D);
-        cameraTarget.copy(middleLayoutPos);
+        cameraControls.focusCameraOn(0.6, clazzMesh);
       }
     }
   } else {
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(model.id);
     if (clazzMesh instanceof ClazzMesh) {
-      const layoutPos = new THREE.Vector3().copy(clazzMesh.layout.position);
-      applyCameraPosition(applicationCenter, camera, layoutPos, applicationObject3D);
-      cameraTarget.copy(clazzMesh.position);
+      cameraControls.focusCameraOn(0.6, clazzMesh);
     }
   }
 }
