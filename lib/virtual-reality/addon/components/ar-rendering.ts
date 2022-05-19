@@ -155,7 +155,6 @@ export default class ArRendering extends Component<Args> {
       { title: 'Remove Popups', action: this.removeAllPopups },
       { title: 'Reset View', action: this.resetView },
       { title: this.arSettings.renderCommunication ? 'Hide Communication' : 'Add Communication', action: this.toggleCommunication },
-      { title: 'Close all Applications', action: this.removeAllApplications },
     ];
   }
 
@@ -459,11 +458,6 @@ export default class ArRendering extends Component<Args> {
       application.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
         90 * THREE.MathUtils.DEG2RAD);
     });
-  }
-
-  @action
-  removeAllApplications() {
-    this.applicationRenderer.removeAllApplications();
   }
 
   @action

@@ -106,7 +106,6 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    this.applicationRenderer.removeAllApplicationsLocally();
   }
 
   private resetLandscape() {

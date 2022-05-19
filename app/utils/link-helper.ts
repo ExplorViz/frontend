@@ -1,13 +1,17 @@
-import { GraphLink } from "explorviz-frontend/components/visualization/rendering/browser-rendering";
+import { GraphLink } from "explorviz-frontend/rendering/application/force-graph";
 import ApplicationObject3D from "explorviz-frontend/view-objects/3d/application/application-object-3d";
+import ClazzCommunicationMesh from "explorviz-frontend/view-objects/3d/application/clazz-communication-mesh";
 import ComponentMesh from "explorviz-frontend/view-objects/3d/application/component-mesh";
-import { Object3D } from "three";
+import CommunicationLayout from "explorviz-frontend/view-objects/layout-models/communication-layout";
 import { DrawableClassCommunication } from "./application-rendering/class-communication-computer";
 import { Class, Package } from "./landscape-schemes/structure-data";
 
 type Coords = { x: number; y: number; z: number; }
 
-export function linkPositionUpdate(line: Object3D, _coords: { start: Coords, end: Coords }, link: GraphLink) {
+export function linkPositionUpdate(line: ClazzCommunicationMesh, _coords: { start: Coords, end: Coords }, link: GraphLink) {
+  if (!link.communicationData) {
+    return true;
+  }
   const drawableClassCommunication: DrawableClassCommunication = link.communicationData;
 
   // source
@@ -17,9 +21,9 @@ export function linkPositionUpdate(line: Object3D, _coords: { start: Coords, end
   const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
   const start = sourceMesh.position.clone();
   sourceApp.localToWorld(start);
-  line.position.x = start.x;
-  line.position.y = start.y;
-  line.position.z = start.z;
+  // line.position.x = start.x;
+  // line.position.y = start.y;
+  // line.position.z = start.z;
 
   // target
   const targetApp = link.target.__threeObj
@@ -33,16 +37,27 @@ export function linkPositionUpdate(line: Object3D, _coords: { start: Coords, end
   link.__curve.v0.copy(start);
   link.__curve.v1.copy(start);
   link.__curve.v2.copy(end);
+  link.__curve.v3?.copy(end);
 
   // distance
-  const distance = start.distanceTo(end);
-  line.scale.z = distance;
-  line.lookAt(end);
+  // const distance = start.distanceTo(end);
+  // line.scale.z = distance;
+  // line.lookAt(end);
+
+  const commLayout = new CommunicationLayout(drawableClassCommunication);
+  commLayout.startPoint = start;
+  commLayout.endPoint = end;
+  commLayout.lineThickness = 0.2;
+  line.layout = commLayout;
+  line.geometry.dispose();
+  line.render();
+  // line.geometry.parameters.
+
 
   return true;
 }
 
-function findFirstOpen(app: ApplicationObject3D, clazz: Class) {
+export function findFirstOpen(app: ApplicationObject3D, clazz: Class) {
   const sourceParent = clazz.parent;
   const sourceParentMesh = app.getBoxMeshbyModelId(sourceParent.id);
   // Determine where the communication should begin
@@ -60,7 +75,7 @@ function findFirstOpen(app: ApplicationObject3D, clazz: Class) {
  *
  * @param component Component for which an open parent shall be returned
  */
-function findFirstOpenOrLastClosedAncestorComponent(app: ApplicationObject3D, component: Package): Package {
+export function findFirstOpenOrLastClosedAncestorComponent(app: ApplicationObject3D, component: Package): Package {
   const parentComponent = component.parent;
 
   if (!parentComponent) return component;

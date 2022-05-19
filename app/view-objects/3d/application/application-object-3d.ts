@@ -23,6 +23,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   dataModel: Application;
 
+  needsUpdate: boolean = true;
+
   boxLayoutMap: Map<string, BoxLayout>;
 
   /**
@@ -71,13 +73,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * (x = 0.65, y = 0.80)
    */
   resetRotation() {
-    // const ROTATION_X = 0.75;
-    const ROTATION_X = 0;
-    // const ROTATION_Y = 1.20;
-    const ROTATION_Y = 90 * THREE.MathUtils.DEG2RAD;
-
-    this.rotation.x = ROTATION_X;
-    this.rotation.y = ROTATION_Y;
+    this.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
+    this.rotation.y = 90 * THREE.MathUtils.DEG2RAD;
     this.rotation.z = 90 * THREE.MathUtils.DEG2RAD;
   }
 

@@ -97,7 +97,7 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
-  private updateHighlighting(applicationObject3D: ApplicationObject3D, value: number) {
+  updateHighlighting(applicationObject3D: ApplicationObject3D, value: number = this.opacity) {
     const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
     if (drawableClassCommunications) {
       Highlighting.updateHighlighting(applicationObject3D, drawableClassCommunications, value);
@@ -194,7 +194,7 @@ export default class HighlightingService extends Service.extend({
     return mesh.constructor.name;
   }
 
-  private* findMeshesByTypeAndId(
+  private * findMeshesByTypeAndId(
     application: ApplicationObject3D,
     entityType: string,
     entityId: string,

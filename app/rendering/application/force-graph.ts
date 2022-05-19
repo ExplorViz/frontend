@@ -1,3 +1,4 @@
+import { action } from '@ember/object';
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 // @ts-ignore
@@ -6,19 +7,29 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import applyCommunicationLayout from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import { linkPositionUpdate } from 'explorviz-frontend/utils/link-helper';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import ThreeForceGraph from 'three-forcegraph';
+import THREE, { Vector2, Vector3 } from 'three';
+import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import AppCommunicationMesh from 'explorviz-frontend/view-objects/3d/landscape/app-communication-mesh';
 
-interface GraphNode {
-  data: ApplicationData,
+export interface GraphNode {
+  // data: ApplicationData,
   id: string,
   index: number,
+  collisionRadius: number,
   x: number,
   y: number,
   z: number,
+  fx: number,
+  fy: number,
+  fz: number,
   __threeObj: ApplicationObject3D,
 }
 
@@ -28,6 +39,7 @@ export interface GraphLink {
   value: number,
   communicationData: DrawableClassCommunication,
   __curve: any,
+  __lineObj: ClazzCommunicationMesh;
 }
 
 const PARTICLE_SPEED_MULTIPLIER = 0.001;
@@ -47,43 +59,58 @@ export default class ForceGraph {
   @service('configuration')
   configuration!: Configuration;
 
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
     this.graph = new ThreeForceGraph()
-      .nodeThreeObject(({ id, data, fy }) => this.applicationRenderer.addApplicationData(data))
+      .nodeThreeObject(({ id }) => this.applicationRenderer.getApplicationById(id)!)
       .numDimensions(3)
       // .dagMode('lr')
       // .dagMode('radialin')
       // .dagLevelDistance(100)
-      .warmupTicks(300)
-      .linkDirectionalArrowLength(5.5)
-      .linkDirectionalArrowRelPos(0.8)
+      .warmupTicks(100)
       .linkColor(() => '#' + this.configuration.landscapeColors.communicationColor.getHexString())
-      .linkDirectionalArrowColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
+      // .linkDirectionalArrowColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
       .linkDirectionalParticleColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
-      .linkWidth(1)
-      .linkOpacity(1)
+      .linkWidth(0.5)
+      .linkOpacity(0.4)
       .nodeVal(5)
-      .linkCurvature(0.00001) // used as workaround to make particles aware of non-centered start/ end
+      // .linkThreeObjectExtend(true)
+      .linkThreeObject(this.linkRenderer.getLink)
+      .linkCurvature(0.0001) // used as workaround to make particles aware of non-centered start/ end
       // particles
       .linkDirectionalParticles("value")
-      .linkDirectionalParticleWidth(1.5)
+      .linkDirectionalParticleWidth(0.6)
       .linkDirectionalParticleSpeed(this.particleSpeed)
-      .linkPositionUpdate(linkPositionUpdate)
+      .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
+      .linkVisibility("communicationData")
+      // .linkVisibility(this.linkVisibility)
+      .nodeAutoColorBy("node")
 
-      .d3Force('collision', d3.forceCollide(node => {
-        const { x, z } = node.__threeObj.foundationMesh.scale
-        return Math.hypot(x, z) / 2 + 3
-        // return .width / 2 + 3
-      }))
-      .d3VelocityDecay(0.8);
+      .cooldownTicks(1)
+      .d3Force('collision', d3.forceCollide((node: GraphNode) => node.collisionRadius));
+    // .d3Force('y', d3.forceY(0))
+    // .d3VelocityDecay(0.3);
 
 
     // forces
-    this.graph.d3Force('collision')!.iterations(2)
-    // graph.d3Force('link').distance(30);
-    // graph.d3Force('charge')!.strength(-70)
+    this.graph.d3Force('collision')!.iterations(1)
+    // this.graph.d3Force('y')!.strength(1)
+    // this.graph.d3Force('link')!.distance(30);
+    // this.graph.d3Force('link')!.strength(3);
+    this.graph.d3Force('charge')!.strength(-100);
+    // this.graph.d3Force('charge')!.distanceMax(90);
+    //
+    this.applicationRenderer.updateLinks = () => {
+      this.graph.graphData().links.forEach((link: GraphLink) => {
+        const lineObj = link.__lineObj;
+        if (!lineObj) return;
+        this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
+      });
+    }
   }
 
   tick() {
@@ -93,47 +120,4 @@ export default class ForceGraph {
   private particleSpeed(link: GraphLink) {
     return Math.sqrt(link.value) * PARTICLE_SPEED_MULTIPLIER;
   }
-
-  // .onNodeClick((node: GraphNode, event: PointerEvent) => {
-  //     this.applicationRenderer.openAllComponentsOfAllApplications();
-  //     // Aim at node from outside it
-  //     const distance = getDistance(node.__threeObj, graph.camera());
-  //     this.selectedId = node.id;
-  //     // TODO fix label render order, as they are currently slighly transparent
-  //     node.__threeObj.setOpacity(0.99)
-  //     node.__threeObj.traverse(child => child.renderOrder = 1)
-
-  //     const newPos = node.x || node.y
-  //         ? { x: node.x, y: distance + 30, z: node.z + 10 }
-  //         : { x: 0, y: 0, z: distance }; // special case if node is in (0,0,0)
-
-  //     // graph.zoomToFit(1500, 10, (xx) => xx.id === node.id);
-
-  //     graph.cameraPosition(
-  //         newPos, // new position
-  //         node, // lookAt ({ x, y, z })
-  //         900  // ms transition duration
-  //     );
-  // })
-  // .onBackgroundClick((event: PointerEvent) => {
-  //     if (this.selectedId) {
-  //         const node = graph.graphData().nodes.findBy('id', this.selectedId);
-  //         node!.__threeObj.setOpacity(1)
-  //         // node!.__threeObj.children.forEach(child => child.renderOrder = 0)
-  //         node!.__threeObj.traverse(child => child.renderOrder = 0)
-  //         this.selectedId = null;
-  //     }
-  // })
-  // .onEngineTick(() => {
-  //     // workaroud because DAG mode overwrites the fy value of the graph node data
-  //     graph.graphData().nodes.forEach((node) => {
-  //         if (node.id === this.selectedId) {
-  //             node.fy = 20;
-  //         } else {
-  //             node.fy = 0;
-  //         }
-  //     })
-  // })
-  // .cooldownTicks(1)
-
 }

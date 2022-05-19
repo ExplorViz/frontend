@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { enqueueTask } from 'ember-concurrency-decorators';
+import { task } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
@@ -24,13 +24,10 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import { isObjectClosedResponse, ObjectClosedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import { SerializedVrRoom, SerialzedApp } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import HighlightingService, { HightlightComponentArgs } from './highlighting-service';
@@ -93,9 +90,6 @@ export default class ApplicationRenderer extends Service.extend({
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('vr-asset-repo')
-  private assetRepo!: VrAssetRepository;
-
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
@@ -124,8 +118,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   private openApplications: Map<string, ApplicationObject3D>;
 
-  readonly applicationMarkers: THREE.Group[] = [];
-
   readonly appCommRendering: CommunicationRendering;
 
   @tracked
@@ -146,29 +138,12 @@ export default class ApplicationRenderer extends Service.extend({
     this.openApplications = new Map();
     this.appCommRendering = new CommunicationRendering(this.configuration,
       this.userSettings);
-
-    for (let i = 0; i < 5; i++) {
-      if (this.applicationMarkers.length <= i) {
-        const applicationMarker = new THREE.Group();
-        this.applicationMarkers = [...this.applicationMarkers, applicationMarker];
-      }
-    }
   }
 
-  resetAndAddToScene(scene: THREE.Scene, updateables: any[]) {
+  resetAndAddToScene(updateables: any[]) {
     this.initCallback = undefined;
     this.updatables = updateables;
     this.openApplications.clear();
-    let i = 0;
-    this.applicationMarkers.forEach((applicationMarker) => {
-      applicationMarker.position.set(i++ * 1 - 1, 0, 2);
-      applicationMarker.clear();
-      scene.add(applicationMarker);
-    });
-  }
-
-  get raycastObjects() {
-    return this.applicationMarkers;
   }
 
   get openApplicationIds() {
@@ -231,24 +206,6 @@ export default class ApplicationRenderer extends Service.extend({
     if (args.scale) applicationObject3D.scale.copy(args.scale);
   }
 
-  removeAllApplications() {
-    this.getOpenApplications().forEach((application) => {
-      if (this.closeApplication) {
-        this.closeApplication(application.dataModel.id);
-      }
-    });
-  }
-
-  updateAllApplicationGlobes(deltaTime: number) {
-    this.getOpenApplications().forEach((application) => {
-      application.animationMixer?.update(deltaTime);
-    });
-  }
-
-  removeAllApplicationsLocally() {
-    this.openApplications.forEach((app) => this.removeApplicationLocally(app.dataModel.id));
-  }
-
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (application) {
@@ -262,53 +219,15 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  @enqueueTask * openApplicationTask(
-    applicationId: string,
-    addApplicationArgs: AddApplicationArgs = {},
-    send: boolean = true,
-  ) {
-    const applicationData = this.applicationRepo.getById(applicationId);
-    const application = applicationData?.application;
-    if (!applicationData || application?.packages.length === 0) {
-      this.toastMessage.info(
-        `Sorry, there is no information for application <b>
-        ${application?.name}</b> available.`,
-      );
-      return;
-    }
-    if (this.isApplicationOpen(applicationId)) {
-      this.toastMessage.info(
-        'Application already opened',
-      );
-      return;
-    }
-    const applicationObject3D = (yield perform(this.addApplicationTask,
-      applicationData, addApplicationArgs)) as ApplicationObject3D;
-    if (this.initCallback && applicationObject3D) {
-      this.initCallback(applicationObject3D);
-    }
-    if (send) {
-      this.sender.sendAppOpened(applicationObject3D);
-    }
-  }
-
   private saveApplicationState(applicationObject3D: ApplicationObject3D): AddApplicationArgs {
     const serializedApp = this.roomSerializer.serializeApplication(applicationObject3D);
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @action
-  addApplication(id: string) {
-    const app = this.applicationRepo.getById(id);
-    if (app) {
-      return this.addApplicationData(app);
-    }
-    return null;
-  }
-
-  addApplicationData(
-    applicationData: ApplicationData,
-    addApplicationArgs: AddApplicationArgs = {},
+  @task *
+    addApplicationTask(
+      applicationData: ApplicationData,
+      addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
     const isOpen = this.isApplicationOpen(applicationModel.id);
@@ -364,39 +283,12 @@ export default class ApplicationRenderer extends Service.extend({
 
     applicationObject3D.resetRotation();
 
-    applicationObject3D.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
-    // applicationObject3D.position.y = 0
-    // applicationObject3D.rotation.z = 90;
-    // applicationObject3D.rotation.y = 90;
-
     return applicationObject3D;
   }
 
   private cleanUpApplication(applicationObject3D: ApplicationObject3D) {
     applicationObject3D.removeAllEntities();
     removeHighlighting(applicationObject3D);
-  }
-
-  @action
-  closeApplication(appId: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Ask backend to close the application.
-      const nonce = this.sender.sendAppClosed(appId);
-
-      // Remove the application only when the backend allowed the application to be closed.
-      this.webSocket.awaitResponse({
-        nonce,
-        responseType: isObjectClosedResponse,
-        onResponse: (response: ObjectClosedResponse) => {
-          if (response.isSuccess) this.removeApplicationLocally(appId);
-          resolve(response.isSuccess);
-        },
-        onOffline: () => {
-          this.removeApplicationLocally(appId);
-          resolve(true);
-        },
-      });
-    });
   }
 
   updateOrCreateApplication(application: Application, layoutMap: Map<string, LayoutData>) {
@@ -409,17 +301,10 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.boxLayoutMap = boxLayoutMap;
       return applicationObject3D;
     }
-    return this.createApplication(application, boxLayoutMap);
-  }
-
-  private createApplication(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
-    const applicationObject3D = new VrApplicationObject3D(
+    return new VrApplicationObject3D(
       application,
       boxLayoutMap,
     );
-    this.addApplicationToMarker(applicationObject3D);
-    this.debug('Application added to marker');
-    return applicationObject3D;
   }
 
   @action
@@ -427,6 +312,7 @@ export default class ApplicationRenderer extends Service.extend({
     this.getOpenApplications().forEach((applicationObject3D) => {
       this.addCommunication(applicationObject3D);
     });
+    this.updateLinks?.();
   }
 
   @action
@@ -455,14 +341,19 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
+    applicationObject3D.needsUpdate = true;
     if (this.localUser.visualizationMode !== 'ar' || this.arSettings.renderCommunication) {
       this.addCommunication(applicationObject3D);
     }
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      // TODO this doesn't exist
-      this.unhighlightAll();
+      removeHighlighting(applicationObject3D);
+    } else {
+      this.highlightingService.updateHighlighting(applicationObject3D);
     }
+    this.updateLinks?.();
   }
+
+  updateLinks?: () => void;
 
   getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(applicationObjetc3D.dataModel.id);
@@ -590,50 +481,6 @@ export default class ApplicationRenderer extends Service.extend({
       removeHighlighting(applicationObject3D);
       this.removeApplicationLocally(applicationObject3D.dataModel.id);
     });
-  }
-
-  addGlobe(applicationObject3D: ApplicationObject3D) {
-    const addGlobe = () => {
-      // Add globe for communication that comes from the outside
-      const globeMesh = EntityRendering.addGlobeToApplication(applicationObject3D);
-
-      const period = 1000;
-      const times = [0, period];
-      const values = [0, 360];
-
-      const trackName = '.rotation[y]';
-      const track = new THREE.NumberKeyframeTrack(trackName, times, values);
-
-      const clip = new THREE.AnimationClip('default', period, [track]);
-
-      const animationMixer = new THREE.AnimationMixer(globeMesh);
-
-      const clipAction = animationMixer.clipAction(clip);
-      clipAction.play();
-      globeMesh.tick = (delta: any) => animationMixer.update(delta);
-      this.updatables.push(globeMesh);
-    };
-    addGlobe();
-  }
-
-  addApplicationToMarker(applicationObject3D: ApplicationObject3D) {
-    // applicationObject3D.setLargestSide(1.5);
-    const applicationModel = applicationObject3D.dataModel;
-    for (let i = 0; i < this.applicationMarkers.length; i++) {
-      if (this.applicationMarkers[i].children.length === 0) {
-        this.applicationMarkers[i].add(applicationObject3D);
-
-        let message = `Application '${applicationModel.name}' successfully opened`;
-        if (this.localUser.visualizationMode === 'ar') {
-          message += ` <br>
-          on marker #${i + 1}.`;
-        }
-
-        this.toastMessage.success(message);
-
-        break;
-      }
-    }
   }
 
   /**

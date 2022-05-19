@@ -108,6 +108,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     cameraControls!: CameraControls;
 
+    initDone: boolean = false;
+
     @tracked
     mousePosition: Vector3 = new Vector3(0, 0, 0);
 
@@ -194,7 +196,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     @action
     resetView() {
-        // this.cameraControls.fitCameraToBox(this.graph.getGraphBbox())
+        this.cameraControls.focusCameraOn(1.2, ...this.applicationRenderer.getOpenApplications())
     }
 
     @action
@@ -253,6 +255,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // controls
         this.cameraControls = new CameraControls(this.camera, this.canvas);
+        this.graph.onFinishUpdate(() => {
+            if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+                this.debug('initdone!');
+                setTimeout(() => {
+                    this.cameraControls.focusCameraOn(1.2, ...this.applicationRenderer.getOpenApplications())
+                }, 200);
+                this.initDone = true;
+            }
+        })
         this.updatables.push(this.cameraControls);
 
         this.renderingLoop = new RenderingLoop(getOwner(this),
@@ -540,6 +551,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.heatmapConf.cleanup();
         this.renderingLoop.stop();
         this.configuration.isCommRendered = true;
+        // this.graph.graphData([]);
 
         this.debug('Cleaned up application rendering');
 
