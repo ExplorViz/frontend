@@ -39,7 +39,7 @@ export default class RenderingLoop {
   }
 
   start() {
-    this.renderer.setAnimationLoop(() => {
+    this.renderer.setAnimationLoop((_timestamp, frame) => {
       const { value: showFpsCounter } = this.userSettings.applicationSettings.showFpsCounter;
       // const showFpsCounter = true;
 
@@ -55,7 +55,7 @@ export default class RenderingLoop {
         this.threePerformance.stats.begin();
       }
       // tell every animated object to tick forward one frame
-      this.tick();
+      this.tick(frame);
 
       // render a frame
       this.renderer.render(this.scene, this.camera);
@@ -72,10 +72,10 @@ export default class RenderingLoop {
     }
   }
 
-  tick() {
+  tick(frame?: THREE.XRFrame) {
     const delta = clock.getDelta();
     for (let i = 0; i < this.updatables.length; i++) {
-      this.updatables[i].tick(delta);
+      this.updatables[i].tick(delta, frame);
     }
   }
 }

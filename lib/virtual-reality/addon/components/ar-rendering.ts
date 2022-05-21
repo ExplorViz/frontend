@@ -8,6 +8,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
@@ -17,6 +18,7 @@ import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repositor
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
+import hitTest from 'explorviz-frontend/utils/hit-test';
 import {
   Application, Class, Node, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -39,6 +41,9 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
+import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
+import ThreeForceGraph from 'three-forcegraph';
+import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -101,9 +106,6 @@ export default class ArRendering extends Component<Args> {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
-
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
 
@@ -113,12 +115,10 @@ export default class ArRendering extends Component<Args> {
 
   canvas!: HTMLCanvasElement;
 
+  objectToPlace?: THREE.Mesh;
+
   @tracked
   arZoomHandler: ArZoomHandler | undefined;
-
-  arToolkitSource: any;
-
-  arToolkitContext: any;
 
   landscapeMarker = new THREE.Group();
 
@@ -143,11 +143,16 @@ export default class ArRendering extends Component<Args> {
   @tracked
   scene: THREE.Scene;
 
+  @tracked
+  readonly graph: ThreeForceGraph;
+
   private renderer!: THREE.WebGLRenderer;
 
   updatables: any[] = [];
 
   private raycaster: Raycaster = new Raycaster();
+
+  reticle!: THREE.Mesh;
 
   get rightClickMenuItems() {
     return [
@@ -164,13 +169,22 @@ export default class ArRendering extends Component<Args> {
     super(owner, args);
     this.debug('Constructor called');
 
-    this.landscapeRenderer.setLargestSide(2);
     this.scene = defaultScene();
     this.scene.background = null;
-    this.scene.add(this.landscapeRenderer.landscapeObject3D);
-    this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
-    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
-    this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
+
+    this.applicationRenderer.getOpenApplications().clear();
+    const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    // forceGraph.graph.position.z = 30;
+    // forceGraph.graph.updateMatrixWorld();
+    this.graph = forceGraph.graph;
+    this.objectToPlace = this.graph;
+    this.objectToPlace.visible = false;
+    this.scene.add(forceGraph.graph);
+    this.updatables.push(forceGraph);
+
+    // this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
+    // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
+    // this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
     this.toastMessage.init();
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
@@ -192,18 +206,28 @@ export default class ArRendering extends Component<Args> {
      * performance panel if it is activated in user settings
      */
   private initRendering() {
-    this.initRenderer();
     this.initCamera();
+    this.initRenderer();
+    this.initAr()
     this.configureScene();
-    this.initArJs();
-    this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
+    this.renderingLoop = new RenderingLoop(getOwner(this),
       {
         camera: this.camera,
         scene: this.scene,
         renderer: this.renderer,
         updatables: this.updatables,
-        mapControls: false,
+        // mapControls: false,
       });
+    const controller = this.renderer.xr.getController(0);
+    // https://immersive-web.github.io/webxr/input-explainer.html
+    // controller.addEventListener('select', this.onSelect);
+    this.scene.add(controller);
+
+    window.addEventListener('resize', () => {
+      this.resize(this.outerDiv);
+    });
+
+
     addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
@@ -216,7 +240,13 @@ export default class ArRendering extends Component<Args> {
      */
   private initCamera() {
     // Set camera properties
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera();
+    // this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 3000);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(700, window.innerWidth / window.innerHeight, 0.01, 20);
+    this.localUser.defaultCamera.position.set(500, 500, 500);
+    //
+    // this.camera.zoom = 0.2
+
+    // this.camera.position.set(500, 500, 500);
     this.scene.add(this.localUser.defaultCamera);
 
     this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.outerDiv,
@@ -268,6 +298,9 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
+
+  cameraControls!: CameraControls;
+
   /**
   * Initiates a WebGLRenderer
   */
@@ -278,9 +311,37 @@ export default class ArRendering extends Component<Args> {
       canvas: this.canvas,
     });
 
+    // this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.renderer.xr.enabled = true;
+
     this.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
     this.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
   }
+
+  private initAr() {
+    const reticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.15, 0.2, 32).rotateX(- Math.PI / 2),
+      new THREE.MeshBasicMaterial()
+    );
+    reticle.matrixAutoUpdate = false;
+    reticle.visible = false;
+    this.reticle = reticle;
+    this.scene.add(reticle);
+    // this.objectToPlace = this.landscapeRenderer.landscapeObject3D;
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    container.appendChild(this.renderer.domElement);
+    const button = ARButton.createButton(this.renderer, {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+      domOverlay: { root: document.body }
+    });
+    button.style.bottom = '70px'
+    this.outerDiv.appendChild(button);
+    this.resize(this.outerDiv)
+  }
+
 
   /**
    * Binds this context to all event handling functions and
@@ -298,105 +359,13 @@ export default class ArRendering extends Component<Args> {
   }
 
   get intersectableObjects() {
-    return [this.landscapeRenderer.landscapeObject3D,
-    ...this.applicationRenderer.applicationMarkers];
+    return this.scene.children;
   }
 
   static raycastFilter(intersection: THREE.Intersection) {
     return !(intersection.object instanceof LabelMesh || intersection.object instanceof LogoMesh);
   }
 
-  @action
-  initArJs(width = 640, height = 480, isSpectating = false) {
-    this.initArJsCamera(width, height, isSpectating);
-
-    // handle resize event
-    window.addEventListener('resize', () => {
-      this.resize(this.outerDiv);
-    });
-
-    /// /////////////////////////////////////////////////////////
-    // setup arToolkitContext
-    /// /////////////////////////////////////////////////////////
-
-    this.landscapeMarker.add(this.landscapeRenderer.landscapeObject3D);
-    this.scene.add(this.landscapeMarker);
-
-    // Init controls for camera
-    // eslint-disable-next-line
-    new THREEx.ArMarkerControls(this.arToolkitContext, this.landscapeMarker, {
-      type: 'pattern',
-      patternUrl: 'ar_data/marker_patterns/pattern-angular_L_thick.patt',
-    });
-
-    const applicationMarkerNames = ['pattern-angular_1', 'pattern-angular_2', 'pattern-angular_3', 'pattern-angular_4', 'pattern-angular_5'];
-
-    let i = 0;
-    this.applicationRenderer.applicationMarkers.forEach((applicationMarker) => {
-      // Init controls for camera
-      // eslint-disable-next-line
-      new THREEx.ArMarkerControls(this.arToolkitContext, applicationMarker, {
-        type: 'pattern',
-        patternUrl: `ar_data/marker_patterns/${applicationMarkerNames[i++]}.patt`,
-      });
-    });
-  }
-
-  private initArJsCamera(width = 640, height = 480, isSpectating = false) {
-    ArRendering.cleanUpAr();
-
-    if (isSpectating) {
-      this.arToolkitSource = new THREEx.ArToolkitSource({
-        sourceType: 'image',
-        sourceUrl: 'ar_data/marker_images/marker_overview.png',
-        sourceWidth: width,
-        sourceHeight: height,
-      });
-    } else {
-      this.arToolkitSource = new THREEx.ArToolkitSource({
-        sourceType: 'webcam',
-        sourceWidth: width,
-        sourceHeight: height,
-      });
-    }
-
-    this.arToolkitSource.init(() => {
-      setTimeout(() => {
-        this.resize(this.outerDiv);
-      }, 1000);
-    });
-
-    let cameraParametersUrl: string;
-    const aspectRatio = width / height;
-    if (aspectRatio > 1.5) {
-      cameraParametersUrl = 'ar_data/camera_configurations/camera_para_1280_720.dat';
-    } else {
-      cameraParametersUrl = 'ar_data/camera_configurations/camera_para_640_480.dat';
-    }
-
-    // create atToolkitContext
-    this.arToolkitContext = new THREEx.ArToolkitContext({
-      cameraParametersUrl,
-      detectionMode: 'mono',
-    });
-
-    // copy projection matrix to camera when initialization complete
-    this.arToolkitContext.init(() => {
-      this.localUser.defaultCamera.projectionMatrix.copy(
-        this.arToolkitContext.getProjectionMatrix(),
-      );
-      // The properties in the following section need to be set manually since otherwise
-      // text would be flickering
-      this.localUser.defaultCamera.aspect = width / height;
-
-      if (aspectRatio > 1.5) {
-        this.localUser.defaultCamera.fov = 34.25;
-      } else {
-        this.localUser.defaultCamera.fov = 44;
-      }
-      this.localUser.defaultCamera.updateProjectionMatrix();
-    });
-  }
   // #endregion COMPONENT AND SCENE INITIALIZATION
 
   // #region ACTIONS
@@ -435,23 +404,11 @@ export default class ArRendering extends Component<Args> {
       outerDiv.clientWidth * this.rendererResolutionMultiplier,
       outerDiv.clientHeight * this.rendererResolutionMultiplier,
     );
-    if (!this.arToolkitContext) return;
-
-    this.arToolkitSource.onResizeElement();
-    this.arToolkitSource.copyElementSizeTo(this.renderer.domElement);
-
-    if (this.arToolkitContext.arController !== null) {
-      this.arToolkitSource.copyElementSizeTo(this.arToolkitContext.arController.canvas);
-    }
     // this.camera.updateProjectionMatrix();
   }
 
   @action
   resetView() {
-    this.landscapeRenderer.setLargestSide(2);
-    this.landscapeRenderer.landscapeObject3D.position.set(0, 0, 0);
-    this.landscapeRenderer.resetRotation();
-
     this.applicationRenderer.getOpenApplications().forEach((application) => {
       application.position.set(0, 0, 0);
       application.setLargestSide(1.5);
@@ -480,6 +437,11 @@ export default class ArRendering extends Component<Args> {
 
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
+    } else if (this.reticle.visible && this.objectToPlace) {
+      const mesh = this.objectToPlace;
+      this.reticle.matrix.decompose(mesh.position, mesh.quaternion, new THREE.Vector3());
+      this.objectToPlace.visible = true;
+      this.reticle.visible = false;
     }
   }
 
@@ -634,7 +596,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection | null) {
-    AlertifyHandler.showAlertifyMessage(`Pos${this.landscapeRenderer.landscapeObject3D?.parent?.position.z}`);
+    // AlertifyHandler.showAlertifyMessage(`Pos${this.landscapeRenderer.landscapeObject3D?.parent?.position.z}`);
     if (!intersection) return;
 
     this.mousePosition.copy(intersection.point);
@@ -666,10 +628,8 @@ export default class ArRendering extends Component<Args> {
     // Handle keys
     switch (event.key) {
       case 'c':
-        this.initArJs(640, 480);
         break;
       case 's':
-        this.initArJs(1540, 1080, true);
         break;
       /*
       case 'm':
@@ -702,10 +662,11 @@ export default class ArRendering extends Component<Args> {
 
   // #region RENDERING
 
-  tick() {
-    // update artoolkit on every frame
-    if (this.arToolkitSource.ready !== false) {
-      this.arToolkitContext.update(this.arToolkitSource.domElement);
+  tick(_delta: number, frame: THREE.XRFrame) {
+    if (this.renderer.xr.enabled) {
+      if ((this.objectToPlace && !this.objectToPlace.visible) || this.reticle.visible) {
+        hitTest(this.renderer, this.reticle, frame);
+      }
     }
     // this.remoteUsers.updateRemoteUsers(delta);
 
@@ -782,27 +743,6 @@ export default class ArRendering extends Component<Args> {
     if (object instanceof ComponentMesh || object instanceof ClazzMesh
       || object instanceof ClazzCommunicationMesh) {
       this.highlightingService.highlight(object);
-    }
-  }
-
-  static cleanUpAr() {
-    // Remove video and stop corresponding stream
-    const arJsVideo = document.getElementById('arjs-video');
-
-    if (arJsVideo instanceof HTMLVideoElement) {
-      document.body.removeChild(arJsVideo);
-
-      const stream = arJsVideo.srcObject;
-
-      if (stream instanceof MediaStream) {
-        const tracks = stream.getTracks();
-
-        tracks.forEach((track) => {
-          track.stop();
-        });
-      }
-    } else if (arJsVideo instanceof HTMLImageElement) {
-      document.body.removeChild(arJsVideo);
     }
   }
 

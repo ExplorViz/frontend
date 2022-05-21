@@ -19,9 +19,9 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { moveCameraTo, openComponentMesh } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { isSpan, Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
-    Application, Class, Node, Package,
+    Application, Class, Node, Package
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -146,8 +146,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
         // camera
-        this.camera.position.set(0, 500, 0);
+        this.camera.position.set(500, 500, 500);
 
+        this.applicationRenderer.getOpenApplications().clear();
         // force graph
         const forceGraph = new ForceGraph(getOwner(this));
         this.graph = forceGraph.graph;
@@ -323,6 +324,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
         this.heatmapConf.setActiveApplication(applicationObject3D);
         applicationObject3D.position.y = 10;
+        applicationObject3D.updateMatrixWorld();
+        this.applicationRenderer.updateLinks?.()
     }
 
     @action

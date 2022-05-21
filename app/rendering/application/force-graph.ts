@@ -50,6 +50,8 @@ export default class ForceGraph {
 
   graph: ThreeForceGraph;
 
+  scale: number;
+
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -62,46 +64,37 @@ export default class ForceGraph {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  constructor(owner: any) {
+  constructor(owner: any, scale: number = 1) {
+    this.scale = scale;
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
     this.graph = new ThreeForceGraph()
       .nodeThreeObject(({ id }) => this.applicationRenderer.getApplicationById(id)!)
-      .numDimensions(3)
-      // .dagMode('lr')
-      // .dagMode('radialin')
-      // .dagLevelDistance(100)
       .warmupTicks(100)
       .linkColor(() => '#' + this.configuration.landscapeColors.communicationColor.getHexString())
-      // .linkDirectionalArrowColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
       .linkDirectionalParticleColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
-      .linkWidth(0.5)
+      // .nodeVal(5)
+      // .linkWidth(0.5)
       .linkOpacity(0.4)
-      .nodeVal(5)
-      // .linkThreeObjectExtend(true)
-      .linkThreeObject(this.linkRenderer.getLink)
-      .linkCurvature(0.0001) // used as workaround to make particles aware of non-centered start/ end
+      .linkThreeObject(this.linkRenderer.createLink)
       // particles
       .linkDirectionalParticles("value")
       .linkDirectionalParticleWidth(0.6)
       .linkDirectionalParticleSpeed(this.particleSpeed)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
       .linkVisibility("communicationData")
-      // .linkVisibility(this.linkVisibility)
       .nodeAutoColorBy("node")
 
       .cooldownTicks(1)
       .d3Force('collision', d3.forceCollide((node: GraphNode) => node.collisionRadius));
     // .d3Force('y', d3.forceY(0))
-    // .d3VelocityDecay(0.3);
-
 
     // forces
     this.graph.d3Force('collision')!.iterations(1)
     // this.graph.d3Force('y')!.strength(1)
     // this.graph.d3Force('link')!.distance(30);
     // this.graph.d3Force('link')!.strength(3);
-    this.graph.d3Force('charge')!.strength(-100);
+    this.graph.d3Force('charge')!.strength(-100 * scale);
     // this.graph.d3Force('charge')!.distanceMax(90);
     //
     this.applicationRenderer.updateLinks = () => {
@@ -111,10 +104,12 @@ export default class ForceGraph {
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
       });
     }
+    this.graph.scale.setScalar(scale);
   }
 
   tick() {
     this.graph.tickFrame();
+    // this.graph.position.z += 0.1
   }
 
   private particleSpeed(link: GraphLink) {

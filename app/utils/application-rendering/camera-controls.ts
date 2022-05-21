@@ -27,11 +27,11 @@ export class CameraControls {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
-    // const fitOffset = 1.2;
+    const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
     const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
     const fitWidthDistance = fitHeightDistance / this.camera.aspect;
-    const distance = 2 + Math.max(fitHeightDistance, fitWidthDistance);
+    const distance = 2 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
     const direction = this.controls.target.clone()
       .sub(this.camera.position)
       .normalize()

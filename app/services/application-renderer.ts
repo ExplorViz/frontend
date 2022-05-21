@@ -365,7 +365,9 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   getApplicationById(id: string): ApplicationObject3D | undefined {
-    return this.openApplications.get(id);
+    const app = this.openApplications.get(id);
+    this.debug('APP:' + app?.position.y)
+    return app;
   }
 
   getOpenApplications(): ApplicationObject3D[] {

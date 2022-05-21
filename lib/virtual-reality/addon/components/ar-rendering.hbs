@@ -68,10 +68,8 @@
           scene=this.scene
         }}
         {{landscape-data-watcher
-          initCallback=this.initializeNewApplication
-          openApplications=@openApplications
-          applicationArgs=@applicationArgs
           landscapeData=@landscapeData
+          graph=this.graph
         }}
         {{collaborative-modifier
           raycastObject3D=this.intersectableObjects
