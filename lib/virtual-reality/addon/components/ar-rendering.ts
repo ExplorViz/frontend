@@ -115,7 +115,7 @@ export default class ArRendering extends Component<Args> {
 
   canvas!: HTMLCanvasElement;
 
-  objectToPlace?: THREE.Mesh;
+  currentSession: THREE.XRSession | null = null;
 
   @tracked
   arZoomHandler: ArZoomHandler | undefined;
@@ -156,11 +156,17 @@ export default class ArRendering extends Component<Args> {
 
   get rightClickMenuItems() {
     return [
-      { title: 'Leave AR View', action: this.args.openLandscapeView },
+      { title: 'Leave AR View', action: this.leaveArView },
       { title: 'Remove Popups', action: this.removeAllPopups },
       { title: 'Reset View', action: this.resetView },
       { title: this.arSettings.renderCommunication ? 'Hide Communication' : 'Add Communication', action: this.toggleCommunication },
     ];
+  }
+
+  @action
+  leaveArView() {
+    this.currentSession?.end();
+    this.args.openLandscapeView()
   }
 
   // #endregion CLASS FIELDS AND GETTERS
@@ -174,17 +180,12 @@ export default class ArRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    // forceGraph.graph.position.z = 30;
-    // forceGraph.graph.updateMatrixWorld();
     this.graph = forceGraph.graph;
-    this.objectToPlace = this.graph;
-    this.objectToPlace.visible = false;
+    this.graph.visible = false;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
 
-    // this.landscapeRenderer.resetAndAddToScene(this.scene, landscapeRendererSettings);
     // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
-    // this.applicationRenderer.initCallback = this.initializeNewApplication.bind(this);
     this.toastMessage.init();
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
@@ -198,8 +199,6 @@ export default class ArRendering extends Component<Args> {
   // #region COMPONENT AND SCENE INITIALIZATION
   //
   renderingLoop!: RenderingLoop;
-
-  // webglrenderer!: THREE.WebGLRenderer;
 
   /**
      * Calls all three related init functions and adds the three
@@ -233,6 +232,13 @@ export default class ArRendering extends Component<Args> {
     this.renderingLoop.start();
     this.initCameraCrosshair();
     this.initInteraction();
+
+    navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+      // domOverlay: { root: document }
+      domOverlay: { root: this.outerDiv }
+    }).then(this.onSessionStarted);
   }
 
   /**
@@ -242,9 +248,9 @@ export default class ArRendering extends Component<Args> {
     // Set camera properties
     // this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 3000);
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(700, window.innerWidth / window.innerHeight, 0.01, 20);
+    // this.localUser.defaultCamera = new THREE.PerspectiveCamera(700, this.outerDiv.innerWidth / this.outerDiv.innerHeight, 0.01, 20);
     this.localUser.defaultCamera.position.set(500, 500, 500);
     //
-    // this.camera.zoom = 0.2
 
     // this.camera.position.set(500, 500, 500);
     this.scene.add(this.localUser.defaultCamera);
@@ -298,9 +304,6 @@ export default class ArRendering extends Component<Args> {
     }
   }
 
-
-  cameraControls!: CameraControls;
-
   /**
   * Initiates a WebGLRenderer
   */
@@ -310,8 +313,6 @@ export default class ArRendering extends Component<Args> {
       alpha: true,
       canvas: this.canvas,
     });
-
-    // this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.renderer.xr.enabled = true;
 
     this.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
@@ -327,19 +328,31 @@ export default class ArRendering extends Component<Args> {
     reticle.visible = false;
     this.reticle = reticle;
     this.scene.add(reticle);
-    // this.objectToPlace = this.landscapeRenderer.landscapeObject3D;
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    container.appendChild(this.renderer.domElement);
-    const button = ARButton.createButton(this.renderer, {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
-      domOverlay: { root: document.body }
-    });
-    button.style.bottom = '70px'
-    this.outerDiv.appendChild(button);
+    // const button = ARButton.createButton(this.renderer, {
+    //   requiredFeatures: ['hit-test'],
+    //   optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+    //   domOverlay: { root: document.body }
+    // });
+    // button.style.bottom = '70px'
+    // this.outerDiv.appendChild(button);
     this.resize(this.outerDiv)
+  }
+
+  @action
+  async onSessionStarted(session: THREE.XRSession) {
+    session.addEventListener('end', this.onSessionEnded);
+
+    this.renderer.xr.setReferenceSpaceType('local');
+
+    await this.renderer.xr.setSession(session);
+    this.currentSession = session;
+  }
+
+  @action
+  onSessionEnded( /*event*/) {
+    this.currentSession?.removeEventListener('end', this.onSessionEnded);
+    this.currentSession = null;
+    this.leaveArView();
   }
 
 
@@ -437,10 +450,10 @@ export default class ArRendering extends Component<Args> {
 
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
-    } else if (this.reticle.visible && this.objectToPlace) {
-      const mesh = this.objectToPlace;
+    } else if (this.reticle.visible && !this.graph.visible) {
+      const mesh = this.graph;
       this.reticle.matrix.decompose(mesh.position, mesh.quaternion, new THREE.Vector3());
-      this.objectToPlace.visible = true;
+      mesh.visible = true;
       this.reticle.visible = false;
     }
   }
@@ -664,7 +677,7 @@ export default class ArRendering extends Component<Args> {
 
   tick(_delta: number, frame: THREE.XRFrame) {
     if (this.renderer.xr.enabled) {
-      if ((this.objectToPlace && !this.objectToPlace.visible) || this.reticle.visible) {
+      if (!this.graph.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
@@ -675,25 +688,6 @@ export default class ArRendering extends Component<Args> {
   }
 
   // #endregion RENDERING
-
-  // #region APLICATION RENDERING
-  @action
-  addApplicationById(applicationId: string) {
-    this.showApplication(applicationId);
-  }
-
-  @action
-  initializeNewApplication(applicationObject3D: ApplicationObject3D) {
-    applicationObject3D.setLargestSide(1.5);
-    applicationObject3D.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
-      90 * THREE.MathUtils.DEG2RAD);
-
-    applicationObject3D.setOpacity(this.arSettings.applicationOpacity);
-
-    this.heatmapConf.currentApplication = applicationObject3D;
-  }
-
-  // #endregion APPLICATION RENDERING
 
   // #region UTILS
 
@@ -782,6 +776,7 @@ export default class ArRendering extends Component<Args> {
   willDestroy() {
     super.willDestroy();
 
+    AlertifyHandler.showAlertifyMessage('Will destroy')
     this.debug('cleanup ar rendering');
 
     this.renderingLoop.stop();
@@ -789,9 +784,6 @@ export default class ArRendering extends Component<Args> {
 
     // Remove event listers.
     this.willDestroyController.abort();
-
-    // Reset AR and position of alerts
-    ArRendering.cleanUpAr();
 
     AlertifyHandler.setAlertifyPosition('bottom-right');
   }
