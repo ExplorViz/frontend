@@ -8,6 +8,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -15,6 +16,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
+import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -22,6 +24,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import THREE from 'three';
+import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
@@ -141,10 +144,15 @@ export default class VrRendering
 
   private renderer!: THREE.WebGLRenderer;
 
+  cameraControls!: CameraControls;
+
   updatables: any[] = [];
 
   @tracked
   scene: THREE.Scene;
+
+  @tracked
+  readonly graph: ThreeForceGraph;
 
   // #endregion CLASS FIELDS
   //
@@ -157,13 +165,21 @@ export default class VrRendering
     this.toastMessage.error = ((message) => this.showHint(message));
 
     this.scene = vrScene();
+    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
+    this.localUser.userGroup.add(this.localUser.defaultCamera);
+    this.scene.add(this.localUser.userGroup);
+
+    this.applicationRenderer.getOpenApplications().clear();
+
+    const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    this.graph = forceGraph.graph;
+    this.scene.add(forceGraph.graph);
+    this.updatables.push(forceGraph);
 
     this.menuFactory.scene = this.scene;
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
-    this.landscapeRenderer.resetAndAddToScene(this.scene);
-    this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     this.scene.add(this.detachedMenuGroups.container);
-    this.scene.add(this.localUser.userGroup);
   }
 
   // #region INITIALIZATION
@@ -227,6 +243,9 @@ export default class VrRendering
     this.renderer.setSize(width, height);
     this.renderer.xr.enabled = true;
     this.localUser.xr = this.renderer.xr;
+
+    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.updatables.push(this.cameraControls);
 
     const polyfill = new WebXRPolyfill();
     if (polyfill) {
@@ -470,7 +489,7 @@ export default class VrRendering
     this.resize(outerDiv);
 
     // Start main loop.
-    this.renderingLoop = RenderingLoop.create(getOwner(this).ownerInjection(),
+    this.renderingLoop = new RenderingLoop(getOwner(this),
       {
         camera: this.camera,
         scene: this.scene,

@@ -300,9 +300,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             this.removeHighlighting();
         } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
             || mesh instanceof ClazzCommunicationMesh) {
-            if (mesh.parent instanceof ApplicationObject3D) {
-                this.highlightingService.highlightComponent(mesh!.parent, mesh);
-            }
+            this.highlightingService.highlight(mesh);
         } else if (mesh instanceof FoundationMesh) {
             if (mesh.parent instanceof ApplicationObject3D) {
                 this.selectActiveApplication(mesh.parent);

@@ -15,10 +15,8 @@
         mouseMove=this.handleMouseMove
       }}
         {{landscape-data-watcher
-          initCallback=this.initializeNewApplication
-          openApplications=@openApplications
           landscapeData=@landscapeData
-          applicationArgs=@applicationArgs
+          graph=this.graph
         }}
 
         {{collaborative-modifier

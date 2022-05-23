@@ -114,17 +114,10 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh, color?: THREE.Color) {
+  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh) {
     const applicationObject3D = mesh.parent;
     if (applicationObject3D instanceof ApplicationObject3D) {
-      const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
-      if (drawableClassCommunications) {
-        applicationObject3D.setHighlightingColor(
-          color || this.configuration.applicationColors.highlightedEntityColor,
-        );
-        Highlighting.highlight(mesh, applicationObject3D,
-          drawableClassCommunications!, this.opacity);
-      }
+      this.highlightComponent(applicationObject3D, mesh);
     }
   }
 

@@ -24,6 +24,7 @@ type State = 'pinch' | 'none';
 
 interface NamedArgs {
   mousePositionX: number,
+  rendererResolutionModifier: number,
   camera: THREE.Camera,
   raycastObjects: Object3D | Object3D[],
   raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
@@ -83,13 +84,20 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   canvas!: HTMLCanvasElement;
 
+  rendererResolutionMultiplier: number;
+
   modify(element: any, _positionalArgs: any[], args: NamedArgs) {
     this.namedArgs = args;
+    if (args.rendererResolutionMultiplier) {
+      this.rendererResolutionMultiplier = args.rendererResolutionMultiplier
+    } else {
+      this.rendererResolutionMultiplier = 1;
+    }
 
-    assert(
-      `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
-      element instanceof HTMLCanvasElement,
-    );
+    // assert(
+    //   `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
+    //   element instanceof HTMLCanvasElement,
+    // );
     this.canvas = element;
 
     if (!this.didSetup) {
@@ -225,8 +233,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   raycast(event: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
-    const width = this.canvas.clientWidth;
-    const height = this.canvas.clientHeight;
+    const width = this.canvas.clientWidth / this.rendererResolutionMultiplier;
+    const height = this.canvas.clientHeight / this.rendererResolutionMultiplier;
+
     const x = ((event.x - rect.left) / width) * 2 - 1;
     const y = -((event.y - rect.top) / height) * 2 + 1;
 

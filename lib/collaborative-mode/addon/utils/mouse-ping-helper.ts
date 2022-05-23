@@ -27,15 +27,16 @@ export default class MousePing {
     }
 
     // Default for applications
-    let size = 2.5;
+    let size = 2.3;
 
     const geometry = new THREE.SphereGeometry(size, 32, 32);
     const material = new THREE.MeshBasicMaterial({ color: this.color });
     const sphere = new THREE.Mesh(geometry, material);
 
     sphere.position.copy(position);
-    parentObj.localToWorld(sphere.position);
-    parentObj.attach(sphere);
+    // parentObj.localToWorld(sphere.position);
+    // parentObj.attach(sphere);
+    parentObj.add(sphere)
 
     this.obj = sphere;
 

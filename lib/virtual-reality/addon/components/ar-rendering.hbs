@@ -55,7 +55,8 @@
         {{did-insert this.canvasInserted}}
         {{interaction-modifier
           raycastObjects=this.intersectableObjects
-          camera=this.localUser.defaultCamera
+          rendererResolutionMultiplier=this.rendererResolutionMultiplier
+          camera=this.camera
           doubleClick=this.handleDoubleClick
           singleClick=this.handleSingleClick
           pinch=this.handlePinching

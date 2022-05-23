@@ -50,11 +50,13 @@ interface Args {
   readonly components: string[];
   readonly showDataSelection: boolean;
   readonly selectedTimestampRecords: Timestamp[];
+  readonly visualizationPaused: boolean;
   openLandscapeView(): void
   addComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
   closeDataSelection(): void;
+  toggleVisualizationUpdating(): void;
 }
 
 type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
@@ -155,10 +157,13 @@ export default class ArRendering extends Component<Args> {
   reticle!: THREE.Mesh;
 
   get rightClickMenuItems() {
+    const pauseItemtitle = this.args.visualizationPaused ? 'Resume Visualization' : 'Pause Visualization';
     return [
       { title: 'Leave AR View', action: this.leaveArView },
       { title: 'Remove Popups', action: this.removeAllPopups },
       { title: 'Reset View', action: this.resetView },
+      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
+      { title: 'Open All Components', action: this.applicationRenderer.openAllComponentsOfAllApplications },
       { title: this.arSettings.renderCommunication ? 'Hide Communication' : 'Add Communication', action: this.toggleCommunication },
     ];
   }
@@ -196,6 +201,9 @@ export default class ArRendering extends Component<Args> {
     return this.localUser.defaultCamera;
   }
 
+  @tracked
+  xcamera: any;
+
   // #region COMPONENT AND SCENE INITIALIZATION
   //
   renderingLoop!: RenderingLoop;
@@ -208,7 +216,6 @@ export default class ArRendering extends Component<Args> {
     this.initCamera();
     this.initRenderer();
     this.initAr()
-    this.configureScene();
     this.renderingLoop = new RenderingLoop(getOwner(this),
       {
         camera: this.camera,
@@ -223,7 +230,7 @@ export default class ArRendering extends Component<Args> {
     this.scene.add(controller);
 
     window.addEventListener('resize', () => {
-      this.resize(this.outerDiv);
+      this.resize();
     });
 
 
@@ -233,12 +240,17 @@ export default class ArRendering extends Component<Args> {
     this.initCameraCrosshair();
     this.initInteraction();
 
-    navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
-      // domOverlay: { root: document }
-      domOverlay: { root: this.outerDiv }
-    }).then(this.onSessionStarted);
+    // cannot be resized after session started
+    this.resize();
+
+    setTimeout(() =>
+      navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test'],
+        optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+        // use document body to display all overlays
+        domOverlay: { root: document.body }
+      }).then(this.onSessionStarted)
+      , 2000);
   }
 
   /**
@@ -246,13 +258,7 @@ export default class ArRendering extends Component<Args> {
      */
   private initCamera() {
     // Set camera properties
-    // this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 3000);
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(700, window.innerWidth / window.innerHeight, 0.01, 20);
-    // this.localUser.defaultCamera = new THREE.PerspectiveCamera(700, this.outerDiv.innerWidth / this.outerDiv.innerHeight, 0.01, 20);
-    this.localUser.defaultCamera.position.set(500, 500, 500);
-    //
-
-    // this.camera.position.set(500, 500, 500);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(65, document.body.clientWidth / document.body.clientHeight, 0.01, 20);
     this.scene.add(this.localUser.defaultCamera);
 
     this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.outerDiv,
@@ -269,39 +275,15 @@ export default class ArRendering extends Component<Args> {
     crosshairMesh.position.z = -0.1;
   }
 
+  @action
   handlePinching(intersection: THREE.Intersection, delta: number) {
-    const object = intersection.object?.parent;
+    const object = intersection.object;
     if (object) {
-      object.scale.multiplyScalar(delta);
+      this.graph.scale.multiplyScalar(delta);
     }
   }
 
-  handleRotating(intersection: THREE.Intersection, delta: number) {
-    const object = intersection.object?.parent;
-    if (object) {
-      if (object instanceof LandscapeObject3D) {
-        object.rotation.z += delta;
-      } else if (object instanceof ApplicationObject3D) {
-        object.rotation.y += delta;
-      }
-    }
-  }
-
-  handlePanning(intersection: THREE.Intersection, x: number, y: number) {
-    const object = intersection.object?.parent;
-    if (object) {
-      if (!(object instanceof LandscapeObject3D)
-        && !(object instanceof ApplicationObject3D)) {
-        return;
-      }
-
-      const deltaVector = new THREE.Vector3(x, 0, y);
-      deltaVector.multiplyScalar(0.0025);
-
-      deltaVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), object.parent!.rotation.z);
-
-      object.position.add(deltaVector);
-    }
+  handleRotating(/*  intersection: THREE.Intersection, delta: number */) {
   }
 
   /**
@@ -316,7 +298,7 @@ export default class ArRendering extends Component<Args> {
     this.renderer.xr.enabled = true;
 
     this.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
-    this.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
+    // this.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
   }
 
   private initAr() {
@@ -335,7 +317,7 @@ export default class ArRendering extends Component<Args> {
     // });
     // button.style.bottom = '70px'
     // this.outerDiv.appendChild(button);
-    this.resize(this.outerDiv)
+    // this.resize(this.outerDiv)
   }
 
   @action
@@ -368,9 +350,6 @@ export default class ArRendering extends Component<Args> {
     };
   }
 
-  private configureScene() {
-  }
-
   get intersectableObjects() {
     return this.scene.children;
   }
@@ -390,8 +369,6 @@ export default class ArRendering extends Component<Args> {
     this.outerDiv = outerDiv;
 
     this.initRendering();
-
-    this.resize(outerDiv);
   }
 
   @action
@@ -412,22 +389,24 @@ export default class ArRendering extends Component<Args> {
      * @param outerDiv HTML element containing the canvas
      */
   @action
-  resize(outerDiv: HTMLElement) {
+  resize(/*outerDiv: HTMLElement */) {
+    // AR view will be fullscreen
+    const width = window.screen.width
+    const height = window.screen.height
     this.renderer.setSize(
-      outerDiv.clientWidth * this.rendererResolutionMultiplier,
-      outerDiv.clientHeight * this.rendererResolutionMultiplier,
+      width * this.rendererResolutionMultiplier,
+      height * this.rendererResolutionMultiplier,
     );
-    // this.camera.updateProjectionMatrix();
+    this.debug('Widht/ Height' + width + '/' + height);
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   @action
   resetView() {
-    this.applicationRenderer.getOpenApplications().forEach((application) => {
-      application.position.set(0, 0, 0);
-      application.setLargestSide(1.5);
-      application.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0),
-        90 * THREE.MathUtils.DEG2RAD);
-    });
+    this.graph.scale.setScalar(0.02);
+    this.graph.visible = false;
   }
 
   @action
@@ -441,7 +420,7 @@ export default class ArRendering extends Component<Args> {
   @action
   updateRendererResolution(resolutionMultiplier: number) {
     this.rendererResolutionMultiplier = resolutionMultiplier;
-    this.resize(this.outerDiv);
+    this.resize();
   }
 
   @action
@@ -509,7 +488,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    taskFor(this.localUser.mousePing.ping).perform({ parentObj, position: pingPosition });
+    perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
 
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -681,6 +660,8 @@ export default class ArRendering extends Component<Args> {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
+    // const cam = this.renderer.xr.getCamera(this.localUser.defaultCamera);
+    // console.log('Fov' + cam.fov)
     // this.remoteUsers.updateRemoteUsers(delta);
 
     this.arZoomHandler?.renderZoomCamera(this.renderer, this.scene,
@@ -704,13 +685,6 @@ export default class ArRendering extends Component<Args> {
           appObject,
           appObject.parent,
         );
-      } else if (appObject instanceof CloseIcon) {
-        appObject.close().then((closedSuccessfully: boolean) => {
-          if (appObject.parent === self.heatmapConf.currentApplication) {
-            self.heatmapConf.currentApplication = null;
-          }
-          if (!closedSuccessfully) AlertifyHandler.showAlertifyError('Application could not be closed');
-        });
       } else if (appObject instanceof FoundationMesh) {
         self.applicationRenderer.closeAllComponents(appObject.parent);
       }
@@ -775,8 +749,6 @@ export default class ArRendering extends Component<Args> {
 
   willDestroy() {
     super.willDestroy();
-
-    AlertifyHandler.showAlertifyMessage('Will destroy')
     this.debug('cleanup ar rendering');
 
     this.renderingLoop.stop();
