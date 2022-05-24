@@ -4,6 +4,7 @@ import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
+import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 
 const clock = new Clock();
 
@@ -12,6 +13,7 @@ interface Args {
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
   updatables: any[],
+  zoomHandler: ArZoomHandler,
 }
 
 export default class RenderingLoop {
@@ -30,12 +32,15 @@ export default class RenderingLoop {
 
   updatables: any[];
 
+  zoomHandler?: ArZoomHandler;
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
+    this.zoomHandler = args.zoomHandler;
   }
 
   start() {
@@ -59,9 +64,13 @@ export default class RenderingLoop {
 
       // render a frame
       this.renderer.render(this.scene, this.camera);
+      if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
+        this.zoomHandler.renderZoomCamera(this.renderer, this.scene);
+      }
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
+
     });
   }
 

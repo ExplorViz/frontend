@@ -222,7 +222,7 @@ export default class ArRendering extends Component<Args> {
         scene: this.scene,
         renderer: this.renderer,
         updatables: this.updatables,
-        // mapControls: false,
+        zoomHandler: this.arZoomHandler!,
       });
     const controller = this.renderer.xr.getController(0);
     // https://immersive-web.github.io/webxr/input-explainer.html
@@ -261,8 +261,7 @@ export default class ArRendering extends Component<Args> {
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(65, document.body.clientWidth / document.body.clientHeight, 0.01, 20);
     this.scene.add(this.localUser.defaultCamera);
 
-    this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.outerDiv,
-      this.arSettings);
+    this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.arSettings);
   }
 
   private initCameraCrosshair() {
@@ -660,12 +659,7 @@ export default class ArRendering extends Component<Args> {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
-    // const cam = this.renderer.xr.getCamera(this.localUser.defaultCamera);
-    // console.log('Fov' + cam.fov)
     // this.remoteUsers.updateRemoteUsers(delta);
-
-    this.arZoomHandler?.renderZoomCamera(this.renderer, this.scene,
-      this.resize);
   }
 
   // #endregion RENDERING
