@@ -350,6 +350,7 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.highlightingService.updateHighlighting(applicationObject3D);
     }
+    this.addLabels(applicationObject3D, this.font, false);
     this.updateLinks?.();
   }
 

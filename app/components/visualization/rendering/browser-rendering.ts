@@ -358,7 +358,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.removePopup(appId);
         const applicationObject3D = this.applicationRenderer.getApplicationById(appId);
         if (applicationObject3D) {
-            this.cameraControls.focusCameraOn(1, applicationObject3D);
+            this.cameraControls.focusCameraOn(0.8, applicationObject3D);
         }
     }
 
@@ -472,12 +472,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
      * @param entity Component or Clazz of which the mesh parents shall be opened
      */
     @action
-    openParents(entity: Package | Class) {
-        if (!this.selectedApplicationObject3D) {
+    openParents(entity: Package | Class, applicationId: string) {
+        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
+        if (!applicationObject3D) {
             return;
         }
-        const applicationObject3D = this.selectedApplicationObject3D;
-
         // TODO after here it should probably be moved to the application renderer.
         // eslint-disable-next-line @typescript-eslint/no-shadow
         function getAllAncestorComponents(entity: Package | Class): Package[] {
@@ -508,10 +507,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
      * @param entity Component or clazz which shall be highlighted
      */
     @action
-    highlightModel(entity: Package | Class) {
-        if (this.selectedApplicationObject3D) {
-            this.highlightingService.highlightModel(entity, this.selectedApplicationObject3D);
+    highlightModel(entity: Package | Class, applicationId: string) {
+        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
+        if (!applicationObject3D) {
+            return;
         }
+        this.highlightingService.highlightModel(entity, applicationObject3D);
     }
 
     /**

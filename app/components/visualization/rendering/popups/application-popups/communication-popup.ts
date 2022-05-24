@@ -7,9 +7,9 @@ import { action } from '@ember/object';
 
 interface Args {
   communication: ClazzCommuMeshDataModel;
-  showApplication(applicationId: string): void;
-  highlightModel(entity: Package | Class): void;
-  openParents(entity: Class | Package): void;
+  showApplication?(applicationId: string): void;
+  highlightModel(entity: Package | Class, applicationId: string): void;
+  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default class CommunicationPopup extends GlimmerComponent<Args> {
@@ -27,8 +27,9 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   @action
-  highlightEntity(entity: Package | Class) {
-    this.args.openParents(entity);
-    this.args.highlightModel(entity);
+  highlightEntity(entity: Package | Class, applicationId: string) {
+    this.args.openParents(entity, applicationId);
+    this.args.highlightModel(entity, applicationId);
+    this.args.showApplication?.(applicationId);
   }
 }

@@ -65,6 +65,7 @@ export default class RenderingLoop {
       // render a frame
       this.renderer.render(this.scene, this.camera);
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
+        // must be run after normal render
         this.zoomHandler.renderZoomCamera(this.renderer, this.scene);
       }
       if (this.threePerformance) {
