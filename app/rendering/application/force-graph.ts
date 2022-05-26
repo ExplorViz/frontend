@@ -17,7 +17,6 @@ import ThreeForceGraph from 'three-forcegraph';
 import THREE, { Vector2, Vector3 } from 'three';
 import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import AppCommunicationMesh from 'explorviz-frontend/view-objects/3d/landscape/app-communication-mesh';
 
 export interface GraphNode {
   // data: ApplicationData,
@@ -69,6 +68,7 @@ export default class ForceGraph {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
     this.graph = new ThreeForceGraph()
+      .graphData({ nodes: [], links: [] })
       .nodeThreeObject(({ id }) => this.applicationRenderer.getApplicationById(id)!)
       .warmupTicks(100)
       .linkColor(() => '#' + this.configuration.landscapeColors.communicationColor.getHexString())

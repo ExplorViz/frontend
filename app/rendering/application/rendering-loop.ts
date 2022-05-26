@@ -13,7 +13,7 @@ interface Args {
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
   updatables: any[],
-  zoomHandler: ArZoomHandler,
+  zoomHandler?: ArZoomHandler,
 }
 
 export default class RenderingLoop {

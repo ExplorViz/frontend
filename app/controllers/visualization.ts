@@ -242,7 +242,7 @@ export default class VisualizationController extends Controller {
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     try {
       const [structureData, dynamicData] = await
-      this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+        this.reloadHandler.loadLandscapeByTimestamp(timestamp);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
@@ -308,6 +308,7 @@ export default class VisualizationController extends Controller {
   willDestroy() {
     this.collaborationSession.disconnect();
     this.resetLandscapeListenerPolling();
+    this.applicationRepo.clear()
     this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);

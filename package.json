@@ -96,7 +96,6 @@
     "node": ">= 12.7.0"
   },
   "dependencies": {
-    "@ar-js-org/ar.js": "^3.4.0-alpha-rc1",
     "@glimmer/component": "^1.0.2",
     "@glimmer/tracking": "^1.0.2",
     "@primer/octicons": "^17.0.0",

@@ -34,11 +34,9 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-// import { Stats } from 'fs';
 import THREE, { Vector3 } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
-import Stats from 'three/examples/jsm/libs/stats.module';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 
 interface BrowserRenderingArgs {
@@ -227,15 +225,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @action
     async outerDivInserted(outerDiv: HTMLElement) {
         this.initRenderer();
-
-        // stats
-        const stats: any = Stats();
-        outerDiv.appendChild(stats.dom);
-        stats.tick = () => {
-            stats.update()
-        };
-        this.updatables.push(stats);
-
         this.resize(outerDiv);
     }
 
