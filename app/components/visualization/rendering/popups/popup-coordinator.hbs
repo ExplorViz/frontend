@@ -37,6 +37,7 @@
   {{#if (eq this.entityType "class")}}
     <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
       @clazz={{@popupData.entity}}
+      @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
   {{#if (eq this.entityType "drawableClassCommunication")}}

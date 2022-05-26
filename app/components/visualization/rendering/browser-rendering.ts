@@ -444,6 +444,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
                 mouseX: mouseOnCanvas.x,
                 mouseY: mouseOnCanvas.y,
                 entity: mesh.dataModel,
+                applicationId: mesh.parent?.dataModel?.id,
                 isPinned: false,
             };
 

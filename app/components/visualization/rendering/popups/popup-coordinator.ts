@@ -14,6 +14,7 @@ interface IArgs {
     mouseX: number,
     mouseY: number,
     entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
+    applicationId: string;
     isPinned: boolean,
   };
   removePopup(entityId: string): void;

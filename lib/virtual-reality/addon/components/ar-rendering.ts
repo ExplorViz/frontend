@@ -552,6 +552,7 @@ export default class ArRendering extends Component<Args> {
           posX: this.canvas.width / 2,
           posY: this.canvas.height / 2,
           entity: mesh.dataModel,
+          applicationId: mesh.parent?.dataModel?.id,
         };
 
         this.popupDataMap.set(mesh.id, popupData);
