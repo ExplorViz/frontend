@@ -23,8 +23,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   dataModel: Application;
 
-  needsUpdate: boolean = true;
-
   boxLayoutMap: Map<string, BoxLayout>;
 
   /**

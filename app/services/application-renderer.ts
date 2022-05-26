@@ -36,8 +36,6 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 
-const APPLICATION_SCALAR = 1;
-
 export type LayoutData = {
   height: number;
   width: number;
@@ -187,25 +185,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  private initializeApplication(
-    applicationObject3D: ApplicationObject3D,
-    args: AddApplicationArgs,
-  ) {
-    // const closeIcon = new CloseIcon({
-    //   textures: this.assetRepo.closeIconTextures,
-    //   onClose: () => this.closeApplication(applicationObject3D?.dataModel.id),
-    // });
-    // closeIcon.addToObject(applicationObject3D);
-
-    // this.addGlobe(applicationObject3D);
-    // Set initial position, rotation and scale.
-    if (this.localUser.visualizationMode === 'vr' && args.position) {
-      applicationObject3D.parent?.position.copy(args.position);
-    }
-    if (args.quaternion) applicationObject3D.quaternion.copy(args.quaternion);
-    if (args.scale) applicationObject3D.scale.copy(args.scale);
-  }
-
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (application) {
@@ -230,50 +209,51 @@ export default class ApplicationRenderer extends Service.extend({
       addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
-    const isOpen = this.isApplicationOpen(applicationModel.id);
-    // get existing applicationObject3D or create new one.
-    const applicationObject3D = this.updateOrCreateApplication(
-      applicationModel, applicationData.layoutData,
-    );
+    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(applicationData.layoutData);
 
-    const applicationState = Object.keys(addApplicationArgs).length === 0 && isOpen
+    const isOpen = this.isApplicationOpen(applicationModel.id);
+    let applicationObject3D = this.getApplicationById(applicationModel.id);
+
+    let layoutChanged = true;
+    if (applicationObject3D) {
+      layoutChanged = JSON.stringify(boxLayoutMap) !== JSON.stringify(applicationObject3D.boxLayoutMap)
+      // if (layoutChanged) {
+      applicationObject3D.dataModel = applicationModel;
+      applicationObject3D.boxLayoutMap = boxLayoutMap;
+      // }
+    } else {
+      applicationObject3D = new VrApplicationObject3D(
+        applicationModel,
+        boxLayoutMap,
+      );
+    }
+
+    const applicationState = Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
       ? this.saveApplicationState(applicationObject3D) : addApplicationArgs;
 
-    this.cleanUpApplication(applicationObject3D);
+    if (layoutChanged) {
+      this.cleanUpApplication(applicationObject3D);
 
-    // Add new meshes to application
-    EntityRendering.addFoundationAndChildrenToApplication(
-      applicationObject3D,
-      this.configuration.applicationColors,
-    );
-
-    if (applicationObject3D.globeMesh) {
-      EntityRendering.repositionGlobeToApplication(
-        applicationObject3D, applicationObject3D.globeMesh,
+      // Add new meshes to application
+      EntityRendering.addFoundationAndChildrenToApplication(
+        applicationObject3D,
+        this.configuration.applicationColors,
       );
     }
 
     // Restore state of components highlighting
-    const openComponentIds = applicationState.openComponents;
-    if (openComponentIds) {
-      restoreComponentState(applicationObject3D, openComponentIds);
-    }
+    restoreComponentState(applicationObject3D, applicationState.openComponents);
+    this.addLabels(applicationObject3D, this.font, false);
 
     this.addCommunication(applicationObject3D);
 
-    this.addLabels(applicationObject3D, this.font, false);
-
     applicationState.highlightedComponents?.forEach((highlightedComponent) => {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        applicationObject3D,
+        applicationObject3D!,
         highlightedComponent,
       );
     });
-
-    if (!isOpen) {
-      this.initializeApplication(applicationObject3D, applicationState);
-      applicationObject3D.scale.setScalar(APPLICATION_SCALAR);
-    }
+    this.highlightingService.updateHighlighting(applicationObject3D);
 
     this.openApplications.set(
       applicationModel.id,
@@ -341,7 +321,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    applicationObject3D.needsUpdate = true;
     if (this.localUser.visualizationMode !== 'ar' || this.arSettings.renderCommunication) {
       this.addCommunication(applicationObject3D);
     }

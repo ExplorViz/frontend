@@ -169,8 +169,8 @@ export function toggleComponentMeshState(mesh: ComponentMesh,
    * @param openComponentIds Set with ids of opened components
    */
 export function restoreComponentState(applicationObject3D: ApplicationObject3D,
-  openComponentIds: Set<string>) {
-  openComponentIds.forEach((componentId) => {
+  openComponentIds?: Set<string>) {
+  openComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
     if (componentMesh instanceof ComponentMesh) {
       openComponentMesh(componentMesh, applicationObject3D);

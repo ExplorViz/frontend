@@ -78,9 +78,9 @@ export default class ForceGraph {
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createLink)
       // particles
-      .linkDirectionalParticles("value")
-      .linkDirectionalParticleWidth(0.6)
-      .linkDirectionalParticleSpeed(this.particleSpeed)
+      // .linkDirectionalParticles("value")
+      // .linkDirectionalParticleWidth(0.6)
+      // .linkDirectionalParticleSpeed(this.particleSpeed)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
       .linkVisibility("communicationData")
       .nodeAutoColorBy("node")
