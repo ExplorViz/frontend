@@ -19,12 +19,10 @@ export default class ArZoomHandler {
     this.zoomCamera = camera.clone();
     this.arSettings = arSettings;
     this.zoomEnabled = false;
-    this.mainCamera.add(this.zoomCamera)
   }
 
   enableZoom() {
     this.zoomEnabled = true;
-    this.zoomCamera = this.mainCamera.clone();
   }
 
   disableZoom() {

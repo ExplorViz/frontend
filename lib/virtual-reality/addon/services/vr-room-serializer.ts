@@ -1,6 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -26,6 +27,9 @@ export default class VrRoomSerializer extends Service {
   @service('timestamp')
   private timestampService!: TimestampService;
 
+  @service('landscape-token')
+  landscapeTokenService!: LandscapeTokenService;
+
   serializedRoom?: SerializedVrRoom;
 
   /**
@@ -44,7 +48,7 @@ export default class VrRoomSerializer extends Service {
   private serializeLandscape(): SerializedLandscape {
     const { landscapeObject3D } = this.landscapeRenderer;
     return {
-      landscapeToken: landscapeObject3D.dataModel.landscapeToken,
+      landscapeToken: this.landscapeTokenService.token!.value,
       timestamp: this.timestampService.timestamp,
       position: landscapeObject3D
         .position

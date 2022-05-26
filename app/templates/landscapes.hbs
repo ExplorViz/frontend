@@ -16,6 +16,11 @@
   >
     {{svg-jar "plus-16" class="octicon"}}
   </BsButton>
+  <h3 class="text-center mt-5 mb-5">Currently Open Collaboration Sessions</h3>
+  <RoomList
+    @tokens={{@model}}
+    @selectToken={{this.selectToken}}
+  />
 </div>
 
 <BsModalSimple
