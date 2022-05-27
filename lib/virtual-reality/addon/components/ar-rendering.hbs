@@ -42,10 +42,11 @@
       {{#each this.popupDataMap as |popupData|}}
         <Visualization::Rendering::Popups::PopupWrapper
           @popupData={{popupData.[1]}}
-          @showApplication={{this.addApplicationById}}
           @keepPopupOpen={{this.keepPopupOpen}}
           @setPopupPosition={{this.setPopupPosition}}
           @closePopup={{this.closePopup}}
+          @highlightModel={{this.applicationRenderer.highlightModel}}
+          @openParents={{this.applicationRenderer.openParents}}
         >
         </Visualization::Rendering::Popups::PopupWrapper>
       {{/each}}

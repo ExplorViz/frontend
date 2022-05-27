@@ -31,7 +31,7 @@ export class CameraControls {
     const maxSize = Math.max(size.x, size.y, size.z);
     const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
     const fitWidthDistance = fitHeightDistance / this.camera.aspect;
-    const distance = 2 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
+    const distance = 0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
     const direction = this.controls.target.clone()
       .sub(this.camera.position)
       .normalize()

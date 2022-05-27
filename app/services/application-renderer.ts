@@ -8,11 +8,11 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { openComponentMesh, restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Package, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -474,6 +474,55 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.removeCommunicationForAllApplications();
     }
+  }
+
+  /**
+   * Highlights a given component or clazz
+   *
+   * @param entity Component or clazz which shall be highlighted
+   */
+  @action
+  highlightModel(entity: Package | Class, applicationId: string) {
+    const applicationObject3D = this.getApplicationById(applicationId);
+    if (!applicationObject3D) {
+      return;
+    }
+    this.highlightingService.highlightModel(entity, applicationObject3D);
+  }
+
+  /**
+   * Opens all parents / components of a given component or clazz.
+   * Adds communication and restores highlighting.
+   *
+   * @param entity Component or Clazz of which the mesh parents shall be opened
+   */
+  @action
+  openParents(entity: Package | Class, applicationId: string) {
+    const applicationObject3D = this.getApplicationById(applicationId);
+    if (!applicationObject3D) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    function getAllAncestorComponents(entity: Package | Class): Package[] {
+      // if (isClass(entity)) {
+      //  return getAllAncestorComponents(entity.parent);
+      // }
+
+      if (entity.parent === undefined) {
+        return [];
+      }
+
+      return [entity.parent, ...getAllAncestorComponents(entity.parent)];
+    }
+
+    const ancestors = getAllAncestorComponents(entity);
+    ancestors.forEach((anc) => {
+      const ancestorMesh = applicationObject3D.getBoxMeshbyModelId(anc.id);
+      if (ancestorMesh instanceof ComponentMesh) {
+        openComponentMesh(ancestorMesh, applicationObject3D);
+      }
+    });
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   restore(room: SerializedVrRoom) {

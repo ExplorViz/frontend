@@ -143,7 +143,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // camera
         this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 100);
-        this.camera.position.set(10, 10, 10);
+        this.camera.position.set(8, 8, 8);
 
         this.applicationRenderer.getOpenApplications().clear();
         // force graph
@@ -352,23 +352,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     @action
     handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
-        // const { value: enableHoverEffects } = this.landSettings.enableHoverEffects;
-
-        // Update hover effect
-        if (mesh === undefined && this.hoveredObject) {
-            this.hoveredObject.resetHoverEffect();
-            this.hoveredObject = null;
-            // } else if (mesh instanceof PlaneMesh && enableHoverEffects) {
-            //     if (this.hoveredObject) { this.hoveredObject.resetHoverEffect(); }
-
-            //     this.hoveredObject = mesh;
-            //     mesh.applyHoverEffect();
-        }
-
-        // Hide popups when mouse moves
-        if (!this.appSettings.enableCustomPopupPosition.value) {
-            this.popupData = [];
-        }
         const { value: enableAppHoverEffects } = this.appSettings.enableHoverEffects;
 
         // Update hover effect
@@ -454,55 +437,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
     }
 
-    /**
-     * Opens all parents / components of a given component or clazz.
-     * Adds communication and restores highlighting.
-     *
-     * @param entity Component or Clazz of which the mesh parents shall be opened
-     */
-    @action
-    openParents(entity: Package | Class, applicationId: string) {
-        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
-        if (!applicationObject3D) {
-            return;
-        }
-        // TODO after here it should probably be moved to the application renderer.
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        function getAllAncestorComponents(entity: Package | Class): Package[] {
-            // if (isClass(entity)) {
-            //  return getAllAncestorComponents(entity.parent);
-            // }
-
-            if (entity.parent === undefined) {
-                return [];
-            }
-
-            return [entity.parent, ...getAllAncestorComponents(entity.parent)];
-        }
-
-        const ancestors = getAllAncestorComponents(entity);
-        ancestors.forEach((anc) => {
-            const ancestorMesh = applicationObject3D.getBoxMeshbyModelId(anc.id);
-            if (ancestorMesh instanceof ComponentMesh) {
-                openComponentMesh(ancestorMesh, applicationObject3D);
-            }
-        });
-        this.applicationRenderer.updateApplicationObject3DAfterUpdate(applicationObject3D);
-    }
-
-    /**
-     * Highlights a given component or clazz
-     *
-     * @param entity Component or clazz which shall be highlighted
-     */
-    @action
-    highlightModel(entity: Package | Class, applicationId: string) {
-        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
-        if (!applicationObject3D) {
-            return;
-        }
-        this.highlightingService.highlightModel(entity, applicationObject3D);
-    }
 
     /**
      * Moves camera such that a specified clazz or clazz communication is in focus.
