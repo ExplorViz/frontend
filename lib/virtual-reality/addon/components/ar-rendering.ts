@@ -5,7 +5,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform, taskFor } from 'ember-concurrency-ts';
+import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -13,14 +13,13 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeRenderer, { LandscapeRendererSettings } from 'explorviz-frontend/services/landscape-renderer';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
 import {
-  Application, Class, Node, Package,
+  Application, Class, Node, Package
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
@@ -37,13 +36,10 @@ import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
+import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
-import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-import ThreeForceGraph from 'three-forcegraph';
-import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -67,16 +63,6 @@ type PopupData = {
   posY: number,
   isPinned: boolean,
   entity: DataModel
-};
-
-export const landscapeRendererSettings: LandscapeRendererSettings = {
-  landscapeScalar: 0.3,
-  landscapeDepth: 0.7,
-  z_depth: 0.2,
-  commLineMinSize: 0.004,
-  commLineScalar: 0.028,
-  z_offset: 0.7 / 2 + 0.25,
-  z_pos_application: 0.3,
 };
 
 declare const THREEx: any;

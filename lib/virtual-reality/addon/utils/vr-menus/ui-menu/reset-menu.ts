@@ -1,6 +1,5 @@
 import LocalUser from 'collaborative-mode/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
@@ -11,16 +10,11 @@ export type ResetMenuArgs = UiMenuArgs & {
   localUser: LocalUser;
   online: boolean,
   applicationRenderer: ApplicationRenderer;
-  landscapeRenderer: LandscapeRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
   private localUser: LocalUser;
-
-  private applicationRenderer: ApplicationRenderer;
-
-  private landscapeRenderer: LandscapeRenderer;
 
   private detachedMenuGroups: DetachedMenuGroupsService;
 
@@ -28,14 +22,12 @@ export default class ResetMenu extends UiMenu {
     localUser,
     online,
     applicationRenderer,
-    landscapeRenderer,
     detachedMenuGroups,
     ...args
   }: ResetMenuArgs) {
     super(args);
     this.localUser = localUser;
     this.applicationRenderer = applicationRenderer;
-    this.landscapeRenderer = landscapeRenderer;
     this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
@@ -109,6 +101,5 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetLandscape() {
-    this.landscapeRenderer.centerLandscape();
   }
 }

@@ -13,7 +13,6 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, { AddApplicationArgs } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
 import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
@@ -97,9 +96,6 @@ export default class VrRendering
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
-
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;

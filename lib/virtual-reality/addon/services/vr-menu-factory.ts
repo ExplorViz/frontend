@@ -3,7 +3,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
@@ -52,9 +51,6 @@ export default class VrMenuFactoryService extends Service {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -234,7 +230,6 @@ export default class VrMenuFactoryService extends Service {
       localUser: this.localUser,
       online: this.collaborationSession.connectionStatus !== 'online',
       applicationRenderer: this.applicationRenderer,
-      landscapeRenderer: this.landscapeRenderer,
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,
     });

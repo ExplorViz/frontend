@@ -96,11 +96,6 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
   }
 
   @action
-  updateLandscapeOpacity(event: any) {
-    this.arSettings.setLandscapeOpacity(event.target.value);
-  }
-
-  @action
   updateApplicationOpacity(event: any) {
     this.arSettings.setApplicationOpacity(event.target.value);
   }

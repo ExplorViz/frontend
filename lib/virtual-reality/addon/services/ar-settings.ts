@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
@@ -12,9 +11,6 @@ export default class ArSettings extends Service.extend({
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
 
   @tracked
   landscapeOpacity: number;
@@ -38,15 +34,6 @@ export default class ArSettings extends Service.extend({
 
     this.landscapeOpacity = 0.9;
     this.applicationOpacity = 0.9;
-  }
-
-  setLandscapeOpacity(opacity: number) {
-    this.landscapeOpacity = opacity;
-    this.updateLandscapeOpacity();
-  }
-
-  updateLandscapeOpacity() {
-    this.landscapeRenderer.landscapeObject3D.setOpacity(this.landscapeOpacity);
   }
 
   setApplicationOpacity(opacity: number) {

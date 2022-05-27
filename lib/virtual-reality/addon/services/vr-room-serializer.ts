@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -11,7 +10,7 @@ import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
-  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
+  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class VrRoomSerializer extends Service {
@@ -20,9 +19,6 @@ export default class VrRoomSerializer extends Service {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
 
   @service('timestamp')
   private timestampService!: TimestampService;
@@ -46,17 +42,9 @@ export default class VrRoomSerializer extends Service {
 
   // ToDo: Add both global and local positions
   private serializeLandscape(): SerializedLandscape {
-    const { landscapeObject3D } = this.landscapeRenderer;
     return {
       landscapeToken: this.landscapeTokenService.token!.value,
       timestamp: this.timestampService.timestamp,
-      position: landscapeObject3D
-        .position
-        .toArray(),
-      quaternion: landscapeObject3D
-        .quaternion
-        .toArray(),
-      scale: landscapeObject3D.scale.toArray(),
     };
   }
 

@@ -32,9 +32,6 @@ export type SerialzedApp = {
 export type SerializedLandscape = {
   landscapeToken: string;
   timestamp: number;
-  position: Position;
-  quaternion: Quaternion;
-  scale: Scale;
 };
 
 export type SerializedVrRoom = {

@@ -7,7 +7,6 @@ import Modifier from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeRenderer from 'explorviz-frontend/services/landscape-renderer';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import THREE, { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
@@ -61,9 +60,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('landscape-renderer')
-  private landscapeRenderer!: LandscapeRenderer;
-
   get canvas(): HTMLCanvasElement {
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
@@ -87,10 +83,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
     perform(this.applicationRenderer.openApplicationTask,
       id, {
-        position: new THREE.Vector3(...position),
-        quaternion: new THREE.Quaternion(...quaternion),
-        scale: new THREE.Vector3(...scale),
-      },
+      position: new THREE.Vector3(...position),
+      quaternion: new THREE.Quaternion(...quaternion),
+      scale: new THREE.Vector3(...scale),
+    },
       false);
   }
 
@@ -158,10 +154,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     const point = new THREE.Vector3().fromArray(position);
     if (applicationObj) {
       taskFor(remoteUser.mousePing.ping).perform({ parentObj: applicationObj, position: point });
-    } else {
-      taskFor(remoteUser.mousePing.ping).perform({
-        parentObj: this.landscapeRenderer.landscapeObject3D, position: point,
-      });
     }
   }
 }
