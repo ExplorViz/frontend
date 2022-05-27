@@ -21,6 +21,7 @@ import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating
 import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerPose, Pose, UserPositionsMessage } from '../utils/vr-message/sendable/user_positions';
+import { Position } from '../utils/vr-message/util/position';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 import { Nonce } from '../utils/vr-message/util/nonce';
 
@@ -45,6 +46,7 @@ export default class VrMessageSender extends Service {
    */
   sendPoseUpdate(
     camera: Pose,
+    cameraTarget: Position,
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined,
   ) {
@@ -53,6 +55,7 @@ export default class VrMessageSender extends Service {
       controller1,
       controller2,
       camera,
+      cameraTarget,
     });
   }
 

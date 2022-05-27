@@ -132,8 +132,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         return this.userSettings.applicationSettings;
     }
 
-    selectedId: string | null = null;
-
     debug = debugLogger('BrowserRendering');
 
     constructor(owner: any, args: BrowserRenderingArgs) {
@@ -144,12 +142,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
         // camera
-        this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
-        this.camera.position.set(500, 500, 500);
+        this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 100);
+        this.camera.position.set(10, 10, 10);
 
         this.applicationRenderer.getOpenApplications().clear();
         // force graph
-        const forceGraph = new ForceGraph(getOwner(this));
+        const forceGraph = new ForceGraph(getOwner(this), 0.02);
         this.graph = forceGraph.graph;
         this.scene.add(forceGraph.graph);
         this.updatables.push(forceGraph);
@@ -246,6 +244,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // controls
         this.cameraControls = new CameraControls(this.camera, this.canvas);
+        this.spectateUserService.cameraControls = this.cameraControls;
         this.graph.onFinishUpdate(() => {
             if (!this.initDone && this.graph.graphData().nodes.length > 0) {
                 this.debug('initdone!');

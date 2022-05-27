@@ -4,7 +4,8 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
-import THREE from 'three';
+import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import THREE, { Vector3 } from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
@@ -32,6 +33,8 @@ export default class SpectateUserService extends Service {
   toastMessage!: ToastMessage;
 
   spectatedUser: RemoteUser | null = null;
+
+  cameraControls: CameraControls | null = null;
 
   private spectatingUsers: Set<string> = new Set<string>();
 
@@ -86,17 +89,20 @@ export default class SpectateUserService extends Service {
         );
       } else {
         this.localUser.camera.position.copy(this.spectatedUser.camera.model.position);
+        this.cameraControls?.controls.target.copy(this.spectatedUser.cameraTarget);
         this.localUser.camera.quaternion.copy(this.spectatedUser.camera.model.quaternion);
       }
     } else if (this.spectatingUsers.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,
+        this.cameraControls?.controls.target || new Vector3(),
         this.localUser.controller1,
         this.localUser.controller2,
       );
       if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
         this.sender.sendPoseUpdate(
           poses.camera,
+          poses.cameraTarget,
           poses.controller1,
           poses.controller2,
         );

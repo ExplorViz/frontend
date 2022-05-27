@@ -7,6 +7,7 @@ import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-in
 import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
 import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
 import { ControllerPose, Pose } from 'virtual-reality/utils/vr-message/sendable/user_positions';
+import { Position } from 'virtual-reality/utils/vr-message/util/position';
 import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from 'virtual-reality/utils/vr-message/util/controller_id';
 import MousePing from './mouse-ping-helper';
 
@@ -33,6 +34,8 @@ export default class RemoteUser extends THREE.Object3D {
   state: string;
 
   camera: Camera | null;
+
+  cameraTarget: THREE.Vector3;
 
   private animationMixer: THREE.AnimationMixer;
 
@@ -66,6 +69,7 @@ export default class RemoteUser extends THREE.Object3D {
     this.animationMixer = new THREE.AnimationMixer(this);
 
     this.camera = null;
+    this.cameraTarget = new THREE.Vector3();
     this.mousePing = new MousePing(color);
     this.controllers = [null, null];
     this.nameTag = null;
@@ -85,6 +89,10 @@ export default class RemoteUser extends THREE.Object3D {
       this.camera.model.position.fromArray(pose.position);
       this.camera.model.quaternion.fromArray(pose.quaternion);
     }
+  }
+
+  updateCameraTarget(cameraTarget: Position) {
+    this.cameraTarget.fromArray(cameraTarget);
   }
 
   protected removeCamera() {

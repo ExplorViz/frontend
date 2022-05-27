@@ -9,6 +9,7 @@ export type ControllerPose = Pose & { intersection: Position | null };
 export type UserPositionsMessage = {
   event: typeof USER_POSITIONS_EVENT;
   camera: Pose;
+  cameraTarget: Position;
   controller1: ControllerPose | undefined;
   controller2: ControllerPose | undefined;
 };
@@ -38,6 +39,7 @@ export function isUserPositionsMessage(msg: any): msg is UserPositionsMessage {
     && typeof msg === 'object'
     && msg.event === USER_POSITIONS_EVENT
     && isPose(msg.camera)
+    && isPosition(msg.cameraTarget)
     && (!msg.controller1 || isControllerPose(msg.controller1))
     && (!msg.controller2 || isControllerPose(msg.controller2))
   );

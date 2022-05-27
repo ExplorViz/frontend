@@ -264,7 +264,7 @@ export default class CollaborationSession extends Service.extend({
    */
   onUserPositions({
     userId,
-    originalMessage: { camera, controller1, controller2 },
+    originalMessage: { camera, cameraTarget, controller1, controller2 },
   }: ForwardedMessage<UserPositionsMessage>): void {
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) return;
@@ -272,6 +272,7 @@ export default class CollaborationSession extends Service.extend({
     if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
+    if (cameraTarget) remoteUser.updateCameraTarget(cameraTarget)
   }
 }
 
