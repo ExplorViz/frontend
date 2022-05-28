@@ -514,9 +514,12 @@ export default class VrRendering
     this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
+  session?: XRSession;
+
   @action
-  onVrSessionStarted(/* session: XRSession */) {
+  onVrSessionStarted(session: XRSession) {
     this.debug('WebXRSession started');
+    this.session = session;
     this.vrSessionActive = true;
   }
 
@@ -662,6 +665,12 @@ export default class VrRendering
   // #region INTERACTION
   // executed on enter VR
   private async onControllerConnected(controller: VRController) {
+    if (this.session) {
+      const source = this.session.inputSources[controller.gamepadIndex]
+      if (source.gamepad) {
+        controller.gamepad = source.gamepad;
+      }
+    }
     // Set visibilty and rays accordingly
     if (this.spectateUserService.isActive) controller.setToSpectatingAppearance();
     else controller.setToDefaultAppearance();
