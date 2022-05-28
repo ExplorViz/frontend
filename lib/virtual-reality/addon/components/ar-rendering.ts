@@ -39,7 +39,11 @@ import THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { PopupOpenedMessage, POPUP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
+import { PopupClosedMessage, POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -96,6 +100,9 @@ export default class ArRendering extends Component<Args> {
 
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   debug = debugLogger('ArRendering');
 
@@ -181,6 +188,9 @@ export default class ArRendering extends Component<Args> {
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
+
+    this.webSocket.on(POPUP_OPENED_EVENT, this, this.onPopupOpened);
+    this.webSocket.on(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
   }
 
   get camera() {
@@ -219,12 +229,10 @@ export default class ArRendering extends Component<Args> {
       this.resize();
     });
 
-
     addSpheres('skyblue', this.mousePosition, this.scene, this.updatables);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
     this.initCameraCrosshair();
-    this.initInteraction();
 
     // cannot be resized after session started
     this.resize();
@@ -283,7 +291,6 @@ export default class ArRendering extends Component<Args> {
     this.renderer.xr.enabled = true;
 
     this.renderer.setClearColor(new THREE.Color('lightgrey'), 0);
-    // this.renderer.setSize(this.outerDiv.clientWidth, this.outerDiv.clientHeight);
   }
 
   private initAr() {
@@ -320,19 +327,6 @@ export default class ArRendering extends Component<Args> {
     this.currentSession?.removeEventListener('end', this.onSessionEnded);
     this.currentSession = null;
     this.leaveArView();
-  }
-
-
-  /**
-   * Binds this context to all event handling functions and
-   * passes them to a newly created Interaction object
-   */
-  private initInteraction() {
-    // Add key listener for room positioning
-    window.onkeydown = (event: any) => {
-      this.handleKeyboard(event);
-
-    };
   }
 
   get intersectableObjects() {
@@ -515,7 +509,12 @@ export default class ArRendering extends Component<Args> {
     }
 
     const mesh = intersection.object;
+    this.openPopup(mesh);
 
+  }
+
+  @action
+  openPopup(mesh: THREE.Object3D) {
     // Show information as popup is mouse stopped on top of a mesh
     if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
       || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
@@ -545,6 +544,42 @@ export default class ArRendering extends Component<Args> {
         this.popupDataMap = new Map(this.popupDataMap);
       }
     }
+
+  }
+
+  @action
+  onPopupOpened({
+    /* userId, */
+    originalMessage: {
+      applicationId,
+      meshId,
+      position
+    },
+  }: ForwardedMessage<PopupOpenedMessage>) {
+    const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
+    if (!applicationObject3D) {
+      return;
+    }
+    const mesh = applicationObject3D.getBoxMeshbyModelId(meshId) || applicationObject3D.getCommMeshByModelId(meshId);
+    if (mesh) {
+      this.openPopup(mesh);
+    }
+  }
+
+  @action
+  onPopupClosed({
+    /* userId, */
+    originalMessage: {
+      applicationId,
+      meshId,
+    },
+  }: ForwardedMessage<PopupClosedMessage>) {
+    this.popupDataMap.forEach((value, key) => {
+      if (value.entity.id === meshId) {
+        this.popupDataMap.delete(key);
+      }
+    });
+    this.popupDataMap = new Map(this.popupDataMap);
   }
 
   @action
@@ -600,40 +635,6 @@ export default class ArRendering extends Component<Args> {
     const possibleObjects = this.intersectableObjects;
     return this.raycaster.raycasting({ x: 0, y: 0 }, this.camera,
       possibleObjects);
-  }
-
-  handleKeyboard(event: any) {
-    // Handle keys
-    switch (event.key) {
-      case 'c':
-        break;
-      case 's':
-        break;
-      /*
-      case 'm':
-        this.localUser.defaultCamera.aspect += 0.05;
-        this.localUser.defaultCamera.updateProjectionMatrix();
-        console.log('Aspect: ', this.localUser.defaultCamera.aspect);
-        break;
-      case 'n':
-        this.localUser.defaultCamera.aspect -= 0.05;
-        this.localUser.defaultCamera.updateProjectionMatrix();
-        console.log('Aspect: ', this.localUser.defaultCamera.aspect);
-        break;
-      case 'k':
-        this.localUser.defaultCamera.fov += 0.05;
-        this.localUser.defaultCamera.updateProjectionMatrix();
-        console.log('Fov: ', this.localUser.defaultCamera.fov);
-        break;
-      case 'j':
-        this.localUser.defaultCamera.fov -= 0.05;
-        this.localUser.defaultCamera.updateProjectionMatrix();
-        console.log('Fov: ', this.localUser.defaultCamera.fov);
-        break;
-      */
-      default:
-        break;
-    }
   }
 
   // #endregion MOUSE & KEYBOARD EVENT HANDLER
@@ -734,6 +735,9 @@ export default class ArRendering extends Component<Args> {
 
     this.renderingLoop.stop();
     this.debug('cleanup destorying controller');
+
+    this.webSocket.off(POPUP_OPENED_EVENT, this, this.onPopupOpened);
+    this.webSocket.off(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
 
     // Remove event listers.
     this.willDestroyController.abort();

@@ -38,6 +38,10 @@ import THREE, { Vector3 } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { PopupOpenedMessage, POPUP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
+import { POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 interface BrowserRenderingArgs {
     readonly id: string;
@@ -53,6 +57,7 @@ type PopupData = {
     mouseX: number,
     mouseY: number,
     entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
+    applicationId: string,
     isPinned: boolean,
 };
 
@@ -85,6 +90,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @service('entity-manipulation')
     private entityManipulation!: EntityManipulation;
 
+    @service('vr-message-sender')
+    private sender!: VrMessageSender;
+
     @tracked
     readonly graph: ThreeForceGraph;
 
@@ -116,6 +124,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     @tracked
     popupData: PopupData[] = [];
+
+    @service('web-socket')
+    private webSocket!: WebSocketService;
 
     get selectedApplicationObject3D() {
         return this.applicationRenderer.getApplicationById(this.selectedApplicationId);
@@ -154,6 +165,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // spectate
         this.updatables.push(this.spectateUserService);
+
+        this.webSocket.on(POPUP_OPENED_EVENT, this, this.onPopupOpened);
+        this.webSocket.on(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
     }
 
     get rightClickMenuItems() {
@@ -377,6 +391,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         if (!this.appSettings.enableCustomPopupPosition.value) {
             this.popupData = [];
         } else {
+            const closedPopup = this.popupData.find(((pd) => pd.entity.id === entityId));
+            if (closedPopup) {
+                this.sender.sendPopupClosed(closedPopup.applicationId, closedPopup.entity.id);
+            }
             this.popupData = this.popupData.filter(((pd) => pd.entity.id !== entityId));
         }
     }
@@ -386,6 +404,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.popupData.forEach((pd) => {
             if (pd.entity.id === entityId) {
                 pd.isPinned = true;
+                this.sender.sendPopupOpened(pd.applicationId, pd.entity.id, [0, 0, 0]);
             }
         });
         this.popupData = [...this.popupData];
@@ -437,6 +456,37 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
     }
 
+    @action
+    onPopupOpened({
+        /* userId, */
+        originalMessage: {
+            applicationId,
+            meshId,
+            position
+        },
+    }: ForwardedMessage<PopupOpenedMessage>) {
+        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
+        if (!applicationObject3D) {
+            return;
+        }
+        const mesh = applicationObject3D.getBoxMeshbyModelId(meshId) || applicationObject3D.getCommMeshByModelId(meshId);
+        if (mesh) {
+            this.handleMouseStopOnMesh(mesh, { x: 100, y: 200 })
+        }
+    }
+
+    @action
+    onPopupClosed({
+        /* userId, */
+        originalMessage: {
+            applicationId,
+            meshId,
+        },
+    }: ForwardedMessage<PopupOpenedMessage>) {
+        this.debug('Removing popup' + meshId);
+        this.removePopup(meshId);
+    }
+
 
     /**
      * Moves camera such that a specified clazz or clazz communication is in focus.
@@ -473,6 +523,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // this.applicationRenderer.cleanUpApplications();
         this.renderer.dispose();
         this.renderer.forceContextLoss();
+
+        this.webSocket.off(POPUP_OPENED_EVENT, this, this.onPopupOpened);
+        this.webSocket.off(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
 
         this.heatmapConf.cleanup();
         this.renderingLoop.stop();
