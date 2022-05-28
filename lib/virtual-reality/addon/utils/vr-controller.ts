@@ -9,7 +9,6 @@ import VrControllerModelFactory from './vr-controller/vr-controller-model-factor
 import { displayAsSolidObject, displayAsWireframe } from './vr-helpers/wireframe';
 import MenuGroup from './vr-menus/menu-group';
 import { ControllerId } from './vr-message/util/controller_id';
-
 /**
  * Length of the controller's ray when there is no intersection point.
  */
@@ -285,14 +284,13 @@ export default class VRController extends BaseMesh {
     const { gamepad } = this;
     const callbacks = this.eventCallbacks;
 
-    const THUMBPAD_BUTTON = 0;
-    const TRIGGER_BUTTON = 1;
-    const GRIP_BUTTON = 2;
-    const MENU_BUTTON = 3;
-
+    const THUMBPAD_BUTTON = 3;
+    const TRIGGER_BUTTON = 0;
+    const GRIP_BUTTON = 1;
+    const MENU_BUTTON = 4;
     if (gamepad) {
       const { timestamp } = gamepad;
-
+      
       // Ensure that gamepad data is fresh
       if (this.timestamp === timestamp) {
         return;
@@ -301,10 +299,10 @@ export default class VRController extends BaseMesh {
 
       // Handle change in joystick / thumbpad position
       if (
-        this.axes[0] !== gamepad.axes[0]
-        || this.axes[1] !== gamepad.axes[1]
+        this.axes[0] !== gamepad.axes[2]
+        || this.axes[1] !== gamepad.axes[3]
       ) {
-        [this.axes[0], this.axes[1]] = gamepad.axes;
+        [this.axes[0], this.axes[1]] = [gamepad.axes[2], gamepad.axes[3]];
         if (callbacks.thumbpadTouch) {
           callbacks.thumbpadTouch(this, this.axes);
         }
