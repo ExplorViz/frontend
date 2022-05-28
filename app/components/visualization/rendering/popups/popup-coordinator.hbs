@@ -1,21 +1,28 @@
 {{!-- template-lint-disable no-down-event-binding --}}
 <div
   class="popover"
-  {{on "mousedown" this.dragMouseDown}}
+  {{on "pointerdown" this.dragMouseDown}}
   {{did-insert this.setPopupPosition}}
 >
+
+  {{#if this.pinned }}
+  {{svg-jar "pin-16" class="octicon align-right"}}
+  {{else}}
   <BsButton
     @type="primary"
     @onClick={{fn @pinPopup @popupData.entity.id}}
   >
     Pin
   </BsButton>
+  {{/if}}
   <BsButton
     @type="secondary"
     @onClick={{fn @removePopup @popupData.entity.id}}
   >
     Close
   </BsButton>
+
+
   {{!-- landscape popups --}}
   {{#if (eq this.entityType "node")}}
     <Visualization::Rendering::Popups::LandscapePopups::NodePopup

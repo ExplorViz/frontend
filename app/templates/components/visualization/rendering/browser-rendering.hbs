@@ -52,7 +52,7 @@
       {{/if}}
 
       {{!-- popup(s) --}}
-      {{#each this.popupData as |d|}}
+      {{#each this.popupHandler.popupData as |d|}}
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
           @popupData={{d}}

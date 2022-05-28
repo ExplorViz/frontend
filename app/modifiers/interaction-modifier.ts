@@ -24,7 +24,7 @@ type State = 'pinch' | 'none';
 
 interface NamedArgs {
   mousePositionX: number,
-  rendererResolutionModifier: number,
+  rendererResolutionMultiplier: number,
   camera: THREE.Camera,
   raycastObjects: Object3D | Object3D[],
   raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
@@ -84,14 +84,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   canvas!: HTMLCanvasElement;
 
-  rendererResolutionMultiplier: number;
+  rendererResolutionMultiplier: number = 1;
 
   modify(element: any, _positionalArgs: any[], args: NamedArgs) {
     this.namedArgs = args;
     if (args.rendererResolutionMultiplier) {
       this.rendererResolutionMultiplier = args.rendererResolutionMultiplier
-    } else {
-      this.rendererResolutionMultiplier = 1;
     }
 
     // assert(
@@ -253,6 +251,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     // Custom event for mousemovement end
     (function computeMouseMoveEvent(delay) {
       let timeout: NodeJS.Timeout;
+      self.canvas.addEventListener('pointerdown', () => {
+        // cancel to prevent click and stop event at same time
+        clearTimeout(timeout);
+      });
       self.canvas.addEventListener('pointermove', (evt: MouseEvent) => {
         clearTimeout(timeout);
         timeout = setTimeout(() => {

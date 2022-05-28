@@ -39,16 +39,16 @@
       {{!-- popup(s) --}}
 
 
-      {{#each this.popupDataMap as |popupData|}}
-        <Visualization::Rendering::Popups::PopupWrapper
-          @popupData={{popupData.[1]}}
-          @keepPopupOpen={{this.keepPopupOpen}}
-          @setPopupPosition={{this.setPopupPosition}}
-          @closePopup={{this.closePopup}}
+      {{#each this.popupHandler.popupData as |d|}}
+        <Visualization::Rendering::Popups::PopupCoordinator
+          @isMovable=true
+          @popupData={{d}}
+          @pinPopup={{this.pinPopup}}
+          @removePopup={{this.removePopup}}
+          @structureData={{@landscapeData.structureLandscapeData}}
           @highlightModel={{this.applicationRenderer.highlightModel}}
           @openParents={{this.applicationRenderer.openParents}}
-        >
-        </Visualization::Rendering::Popups::PopupWrapper>
+        />
       {{/each}}
 
       <canvas

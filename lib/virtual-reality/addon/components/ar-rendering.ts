@@ -9,12 +9,14 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
@@ -62,9 +64,9 @@ interface Args {
 type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
 
 type PopupData = {
-  id: number,
-  posX: number,
-  posY: number,
+  // id: number,
+  mouseX: number,
+  mouseY: number,
   isPinned: boolean,
   entity: DataModel
 };
@@ -110,6 +112,8 @@ export default class ArRendering extends Component<Args> {
 
   canvas!: HTMLCanvasElement;
 
+  popupHandler: PopupHandler;
+
   currentSession: THREE.XRSession | null = null;
 
   @tracked
@@ -122,9 +126,6 @@ export default class ArRendering extends Component<Args> {
   private willDestroyController: AbortController = new AbortController();
 
   rendererResolutionMultiplier = 2;
-
-  @tracked
-  popupDataMap: Map<number, PopupData> = new Map();
 
   lastPopupClear = 0;
 
@@ -148,6 +149,13 @@ export default class ArRendering extends Component<Args> {
   private raycaster: Raycaster = new Raycaster();
 
   reticle!: THREE.Mesh;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
+
+  get appSettings() {
+    return this.userSettings.applicationSettings;
+  }
 
   get rightClickMenuItems() {
     const pauseItemtitle = this.args.visualizationPaused ? 'Resume Visualization' : 'Pause Visualization';
@@ -189,8 +197,7 @@ export default class ArRendering extends Component<Args> {
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
-    this.webSocket.on(POPUP_OPENED_EVENT, this, this.onPopupOpened);
-    this.webSocket.on(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
+    this.popupHandler = new PopupHandler(getOwner(this))
   }
 
   get camera() {
@@ -237,14 +244,12 @@ export default class ArRendering extends Component<Args> {
     // cannot be resized after session started
     this.resize();
 
-    setTimeout(() =>
-      navigator.xr.requestSession('immersive-ar', {
-        requiredFeatures: ['hit-test'],
-        optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
-        // use document body to display all overlays
-        domOverlay: { root: document.body }
-      }).then(this.onSessionStarted)
-      , 2000);
+    navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+      // use document body to display all overlays
+      domOverlay: { root: document.body }
+    }).then(this.onSessionStarted)
   }
 
   /**
@@ -509,77 +514,8 @@ export default class ArRendering extends Component<Args> {
     }
 
     const mesh = intersection.object;
-    this.openPopup(mesh);
-
-  }
-
-  @action
-  openPopup(mesh: THREE.Object3D) {
-    // Show information as popup is mouse stopped on top of a mesh
-    if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
-      || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
-      || mesh instanceof ClazzCommunicationMesh)) {
-      // Remove old popup to move it up front (stacking popups)
-      if (this.arSettings.stackPopups) {
-        this.popupDataMap.delete(mesh.id);
-      }
-
-      // Remove popup if it is already opened at default position
-      if (this.popupDataMap.has(mesh.id) && !this.popupDataMap.get(mesh.id)?.isPinned
-        && !this.arSettings.stackPopups) {
-        this.removeUnpinnedPopups();
-      } else {
-        this.removeUnpinnedPopups();
-
-        const popupData = {
-          id: mesh.id,
-          isPinned: false,
-          posX: this.canvas.width / 2,
-          posY: this.canvas.height / 2,
-          entity: mesh.dataModel,
-          applicationId: mesh.parent?.dataModel?.id,
-        };
-
-        this.popupDataMap.set(mesh.id, popupData);
-        this.popupDataMap = new Map(this.popupDataMap);
-      }
-    }
-
-  }
-
-  @action
-  onPopupOpened({
-    /* userId, */
-    originalMessage: {
-      applicationId,
-      meshId,
-      position
-    },
-  }: ForwardedMessage<PopupOpenedMessage>) {
-    const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
-    if (!applicationObject3D) {
-      return;
-    }
-    const mesh = applicationObject3D.getBoxMeshbyModelId(meshId) || applicationObject3D.getCommMeshByModelId(meshId);
-    if (mesh) {
-      this.openPopup(mesh);
-    }
-  }
-
-  @action
-  onPopupClosed({
-    /* userId, */
-    originalMessage: {
-      applicationId,
-      meshId,
-    },
-  }: ForwardedMessage<PopupClosedMessage>) {
-    this.popupDataMap.forEach((value, key) => {
-      if (value.entity.id === meshId) {
-        this.popupDataMap.delete(key);
-      }
-    });
-    this.popupDataMap = new Map(this.popupDataMap);
+    const position = { x: window.screen.width / 2, y: window.screen.height / 2, }
+    this.popupHandler.addPopup(mesh, position, false, !this.arSettings.stackPopups);
   }
 
   @action
@@ -590,7 +526,17 @@ export default class ArRendering extends Component<Args> {
   @action
   removeAllPopups() {
     this.lastPopupClear = Date.now();
-    this.popupDataMap = new Map();
+    this.popupHandler.clearPopups();
+  }
+
+  @action
+  removePopup(entityId: string) {
+    this.popupHandler.removePopup(entityId);
+  }
+
+  @action
+  pinPopup(entityId: string) {
+    this.popupHandler.pinPopup(entityId);
   }
 
   // #endregion ACTIONS
@@ -697,36 +643,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   removeUnpinnedPopups() {
-    this.popupDataMap.forEach((value, key) => {
-      if (!value.isPinned) {
-        this.popupDataMap.delete(key);
-      }
-    });
-
-    this.popupDataMap = new Map(this.popupDataMap);
-  }
-
-  @action
-  keepPopupOpen(id: number) {
-    const popupData = this.popupDataMap.get(id);
-    if (popupData) {
-      popupData.isPinned = true;
-    }
-  }
-
-  @action
-  setPopupPosition(id: number, posX: number, posY: number) {
-    const popupData = this.popupDataMap.get(id);
-    if (popupData) {
-      popupData.posX = posX;
-      popupData.posY = posY;
-    }
-  }
-
-  @action
-  closePopup(id: number) {
-    this.popupDataMap.delete(id);
-    this.popupDataMap = new Map(this.popupDataMap);
+    this.popupHandler.removeUnpinnedPopups();
   }
 
   willDestroy() {

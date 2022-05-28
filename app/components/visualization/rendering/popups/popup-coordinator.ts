@@ -25,6 +25,11 @@ export default class PopupCoordinator extends Component<IArgs> {
   @service('configuration')
   configuration!: Configuration;
 
+  get pinned() {
+    return this.args.popupData.isPinned;
+  }
+
+
   element!: HTMLDivElement;
 
   lastMousePosition: Position2D = {
@@ -42,9 +47,9 @@ export default class PopupCoordinator extends Component<IArgs> {
     // get the mouse cursor position at startup:
     this.lastMousePosition.x = event.clientX;
     this.lastMousePosition.y = event.clientY;
-    document.onmouseup = this.closeDragElement;
+    document.onpointerup = this.closeDragElement;
     // call a function whenever the cursor moves:
-    document.onmousemove = this.elementDrag;
+    document.onpointermove = this.elementDrag;
   }
 
   @action
@@ -92,8 +97,8 @@ export default class PopupCoordinator extends Component<IArgs> {
   // eslint-disable-next-line class-methods-use-this
   closeDragElement() {
     /* stop moving when mouse button is released: */
-    document.onmouseup = null;
-    document.onmousemove = null;
+    document.onpointerup = null;
+    document.onpointermove = null;
   }
 
   @action

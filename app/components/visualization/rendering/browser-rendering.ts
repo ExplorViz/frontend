@@ -8,6 +8,7 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -41,7 +42,7 @@ import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { PopupOpenedMessage, POPUP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
-import { POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
+import { PopupClosedMessage, POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 interface BrowserRenderingArgs {
     readonly id: string;
@@ -102,6 +103,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @tracked
     canvas!: HTMLCanvasElement;
 
+    popupHandler: PopupHandler;
+
     renderer!: THREE.WebGLRenderer;
 
     updatables: any[] = [];
@@ -121,9 +124,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     @tracked
     selectedApplicationId: string = '';
-
-    @tracked
-    popupData: PopupData[] = [];
 
     @service('web-socket')
     private webSocket!: WebSocketService;
@@ -166,8 +166,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // spectate
         this.updatables.push(this.spectateUserService);
 
-        this.webSocket.on(POPUP_OPENED_EVENT, this, this.onPopupOpened);
-        this.webSocket.on(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
+        this.popupHandler = new PopupHandler(getOwner(this))
     }
 
     get rightClickMenuItems() {
@@ -382,111 +381,37 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // Hide popups when mouse moves
         if (!this.appSettings.enableCustomPopupPosition.value) {
-            this.popupData = [];
+            this.popupHandler.clearPopups();
         }
     }
 
     @action
     removePopup(entityId: string) {
         if (!this.appSettings.enableCustomPopupPosition.value) {
-            this.popupData = [];
+            this.popupHandler.clearPopups();
         } else {
-            const closedPopup = this.popupData.find(((pd) => pd.entity.id === entityId));
-            if (closedPopup) {
-                this.sender.sendPopupClosed(closedPopup.applicationId, closedPopup.entity.id);
-            }
-            this.popupData = this.popupData.filter(((pd) => pd.entity.id !== entityId));
+            this.popupHandler.removePopup(entityId);
         }
     }
 
     @action
     pinPopup(entityId: string) {
-        this.popupData.forEach((pd) => {
-            if (pd.entity.id === entityId) {
-                pd.isPinned = true;
-                this.sender.sendPopupOpened(pd.applicationId, pd.entity.id, [0, 0, 0]);
-            }
-        });
-        this.popupData = [...this.popupData];
+        this.popupHandler.pinPopup(entityId);
     }
 
     @action
     handleMouseOut() {
         if (!this.appSettings.enableCustomPopupPosition.value) {
-            this.popupData = [];
+            this.popupHandler.clearPopups();
         }
     }
 
     @action
     handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
         if (intersection) {
-            this.handleMouseStopOnMesh(intersection.object, mouseOnCanvas);
+            this.popupHandler.addPopup(intersection.object, mouseOnCanvas, false, !this.appSettings.enableCustomPopupPosition.value);
         }
     }
-
-    @action
-    handleMouseStopOnMesh(mesh: THREE.Object3D, mouseOnCanvas: Position2D) {
-        // Show information as popup is mouse stopped on top of a mesh
-        if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
-            || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
-            || mesh instanceof ClazzCommunicationMesh)) {
-            const newPopup = {
-                mouseX: mouseOnCanvas.x,
-                mouseY: mouseOnCanvas.y,
-                entity: mesh.dataModel,
-                applicationId: mesh.parent?.dataModel?.id,
-                isPinned: false,
-            };
-
-            if (!this.appSettings.enableCustomPopupPosition.value) {
-                this.popupData = [newPopup];
-            } else {
-                const popupAlreadyExists = this.popupData.any((pd) => pd.entity.id === mesh.dataModel.id);
-                if (popupAlreadyExists) return;
-
-                const notPinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
-
-                if (notPinnedPopupIndex === -1) {
-                    this.popupData = [...this.popupData, newPopup];
-                } else {
-                    this.popupData[notPinnedPopupIndex] = newPopup;
-                    this.popupData = [...this.popupData];
-                }
-            }
-        }
-    }
-
-    @action
-    onPopupOpened({
-        /* userId, */
-        originalMessage: {
-            applicationId,
-            meshId,
-            position
-        },
-    }: ForwardedMessage<PopupOpenedMessage>) {
-        const applicationObject3D = this.applicationRenderer.getApplicationById(applicationId);
-        if (!applicationObject3D) {
-            return;
-        }
-        const mesh = applicationObject3D.getBoxMeshbyModelId(meshId) || applicationObject3D.getCommMeshByModelId(meshId);
-        if (mesh) {
-            this.handleMouseStopOnMesh(mesh, { x: 100, y: 200 })
-        }
-    }
-
-    @action
-    onPopupClosed({
-        /* userId, */
-        originalMessage: {
-            applicationId,
-            meshId,
-        },
-    }: ForwardedMessage<PopupOpenedMessage>) {
-        this.debug('Removing popup' + meshId);
-        this.removePopup(meshId);
-    }
-
 
     /**
      * Moves camera such that a specified clazz or clazz communication is in focus.
@@ -523,9 +448,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // this.applicationRenderer.cleanUpApplications();
         this.renderer.dispose();
         this.renderer.forceContextLoss();
-
-        this.webSocket.off(POPUP_OPENED_EVENT, this, this.onPopupOpened);
-        this.webSocket.off(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
 
         this.heatmapConf.cleanup();
         this.renderingLoop.stop();

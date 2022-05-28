@@ -24,8 +24,6 @@ import { ControllerPose, Pose, UserPositionsMessage } from '../utils/vr-message/
 import { Position } from '../utils/vr-message/util/position';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 import { Nonce } from '../utils/vr-message/util/nonce';
-import { PopupOpenedMessage } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
-import { PopupClosedMessage } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
@@ -291,23 +289,6 @@ export default class VrMessageSender extends Service {
       scale: menu.scale.toArray(),
     });
     return nonce;
-  }
-
-  sendPopupOpened(applicationId: string, meshId: string, position: Position) {
-    this.webSocket.send<PopupOpenedMessage>({
-      event: 'popup_opened',
-      applicationId,
-      meshId,
-      position,
-    })
-  }
-
-  sendPopupClosed(applicationId: string, meshId: string) {
-    this.webSocket.send<PopupClosedMessage>({
-      event: 'popup_closed',
-      applicationId,
-      meshId,
-    })
   }
 }
 
