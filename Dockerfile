@@ -1,12 +1,10 @@
-FROM nginx:alpine
+FROM nginx:1.19-alpine
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY entrypoint.sh /
+COPY variable-substitute.sh /docker-entrypoint.d/
 
 COPY dist /usr/share/nginx/html
-COPY explorviz-nginx.conf /etc/nginx/conf.d
+COPY default.conf.template /etc/nginx/templates/
 
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["nginx", "-g", "daemon off;"]
+#CMD ["nginx", "-g", "daemon off;"]
