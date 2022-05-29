@@ -220,4 +220,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
     return undefined;
   }
+
+  canBeIntersected(_intersection: THREE.Intersection) {
+    return true;
+  }
 }

@@ -89,20 +89,17 @@ export default class SpectateUserService extends Service {
         );
       } else {
         this.localUser.camera.position.copy(this.spectatedUser.camera.model.position);
-        this.cameraControls?.controls.target.copy(this.spectatedUser.cameraTarget);
         this.localUser.camera.quaternion.copy(this.spectatedUser.camera.model.quaternion);
       }
     } else if (this.spectatingUsers.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,
-        this.cameraControls?.controls.target || new Vector3(),
         this.localUser.controller1,
         this.localUser.controller2,
       );
       if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
         this.sender.sendPoseUpdate(
           poses.camera,
-          poses.cameraTarget,
           poses.controller1,
           poses.controller2,
         );
@@ -126,6 +123,9 @@ export default class SpectateUserService extends Service {
     if (this.localUser.controller2) {
       this.localUser.controller2.setToSpectatingAppearance();
     }
+    if (this.cameraControls) {
+      this.cameraControls.enabled = false;
+    }
 
     // remoteUser.setHmdVisible(false);
     this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId);
@@ -135,6 +135,9 @@ export default class SpectateUserService extends Service {
    * Deactives spectator mode for our user
    */
   deactivate() {
+    if (this.cameraControls) {
+      this.cameraControls.enabled = true;
+    }
     if (!this.spectatedUser) return;
 
     if (this.localUser.controller1) {

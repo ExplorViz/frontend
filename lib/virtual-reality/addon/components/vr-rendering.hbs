@@ -18,7 +18,10 @@
           landscapeData=@landscapeData
           graph=this.graph
         }}
-
+        {{heatmap-renderer
+          camera=this.camera
+          scene=this.scene
+        }}
         {{collaborative-modifier
           raycastObject3D=this.scene
           camera=this.localUser.defaultCamera

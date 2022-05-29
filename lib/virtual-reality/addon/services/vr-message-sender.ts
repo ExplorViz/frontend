@@ -36,7 +36,7 @@ export default class VrMessageSender extends Service {
    *
    * Messages that await responses
    */
-  private nextNonce() {
+  nextNonce() {
     return ++this.lastNonce;
   }
 
@@ -46,7 +46,6 @@ export default class VrMessageSender extends Service {
    */
   sendPoseUpdate(
     camera: Pose,
-    cameraTarget: Position,
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined,
   ) {
@@ -55,7 +54,6 @@ export default class VrMessageSender extends Service {
       controller1,
       controller2,
       camera,
-      cameraTarget,
     });
   }
 

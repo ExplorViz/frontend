@@ -86,6 +86,7 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
     });
 
     this.redrawMenu();
+    // this.detachMenu();
   }
 
   onUpdateMenu(delta: number) {

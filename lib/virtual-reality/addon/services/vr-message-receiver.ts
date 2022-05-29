@@ -116,13 +116,13 @@ export default class VrMessageReceiver extends Service {
     // Listen for responses.
     const handler = (response: any) => {
       if (isValidResponse(response)) {
-        this.responseHandlers.delete(nonce);
+        this.webSocket.responseHandlers.delete(nonce);
         onResponse(response);
       } else {
         this.debug('Received invalid response', response);
       }
     };
-    this.responseHandlers.set(nonce, handler);
+    this.webSocket.responseHandlers.set(nonce, handler);
   }
 }
 

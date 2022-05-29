@@ -45,9 +45,10 @@ export function vrScene(): THREE.Scene {
 
   // Initialize lights.
   scene.add(light());
-  scene.add(spotlight());
+  // scene.add(spotlight());
+  scene.add(directionalLight());
 
   // Add a light that illuminates the sky box if the user dragged in a backgound image.
-  scene.add(skylight());
+  // scene.add(skylight());
   return scene;
 }

@@ -16,7 +16,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
 import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { vrScene } from 'explorviz-frontend/utils/scene';
+import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
@@ -118,6 +118,7 @@ export default class VrRendering
   //
   private renderingLoop!: RenderingLoop;
 
+  @tracked
   private canvas!: HTMLCanvasElement;
 
   private debug = debugLogger('VrRendering');
@@ -161,6 +162,7 @@ export default class VrRendering
     this.toastMessage.error = ((message) => this.showHint(message));
 
     this.scene = vrScene();
+    // this.scene = defaultScene();
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);

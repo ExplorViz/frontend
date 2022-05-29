@@ -1,11 +1,9 @@
 import THREE from 'three';
 import VRController from '../vr-controller';
 import { ControllerPose, Pose } from '../vr-message/sendable/user_positions';
-import { Position } from '../vr-message/util/position';
 
 export interface VrPose {
   camera: Pose;
-  cameraTarget: Position;
   controller1: ControllerPose | undefined;
   controller2: ControllerPose | undefined;
 }
@@ -34,13 +32,11 @@ export function getControllerPose(controller: VRController): ControllerPose {
 
 export function getPoses(
   camera: THREE.Camera,
-  cameraTarget: THREE.Vector3,
   controller1: VRController | undefined,
   controller2: VRController | undefined,
 ): VrPose {
   return {
     camera: getCameraPose(camera),
-    cameraTarget: cameraTarget.toArray(),
     controller1: controller1 && getControllerPose(controller1),
     controller2: controller2 && getControllerPose(controller2),
   };

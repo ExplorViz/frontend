@@ -10,6 +10,8 @@ export class CameraControls {
 
   controls: MapControls;
 
+  enabled: boolean = true;
+
   constructor(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
     this.camera = camera;
 
@@ -82,6 +84,8 @@ export class CameraControls {
   }
 
   tick() {
-    this.controls.update();
+    if (this.enabled) {
+      this.controls.update();
+    }
   }
 }

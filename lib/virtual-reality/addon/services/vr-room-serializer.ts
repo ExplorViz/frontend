@@ -36,6 +36,7 @@ export default class VrRoomSerializer extends Service {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
+      // openPopups: this.serializeOpenPopups(),
     };
     return this.serializedRoom;
   }

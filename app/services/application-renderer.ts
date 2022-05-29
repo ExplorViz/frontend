@@ -114,7 +114,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   private structureLandscapeData!: StructureLandscapeData;
 
-  private openApplications: Map<string, ApplicationObject3D>;
+  private openApplicationsMap: Map<string, ApplicationObject3D>;
 
   readonly appCommRendering: CommunicationRendering;
 
@@ -133,7 +133,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   constructor(properties?: object) {
     super(properties);
-    this.openApplications = new Map();
+    this.openApplicationsMap = new Map();
     this.appCommRendering = new CommunicationRendering(this.configuration,
       this.userSettings);
   }
@@ -141,13 +141,16 @@ export default class ApplicationRenderer extends Service.extend({
   resetAndAddToScene(updateables: any[]) {
     this.initCallback = undefined;
     this.updatables = updateables;
-    this.openApplications.clear();
+    this.openApplicationsMap.clear();
   }
 
   get openApplicationIds() {
-    return Array.from(this.openApplications.keys());
+    return Array.from(this.openApplicationsMap.keys());
   }
 
+  get openApplications() {
+    return Array.from(this.openApplicationsMap.values());
+  }
   /**
    * Adds labels to all box meshes of a given application
    */
@@ -188,7 +191,7 @@ export default class ApplicationRenderer extends Service.extend({
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (application) {
-      this.openApplications.delete(application.dataModel.id);
+      this.openApplicationsMap.delete(application.dataModel.id);
       application.parent?.remove(application);
       application.children.forEach((child) => {
         if (child instanceof BaseMesh) {
@@ -255,7 +258,7 @@ export default class ApplicationRenderer extends Service.extend({
     });
     this.highlightingService.updateHighlighting(applicationObject3D);
 
-    this.openApplications.set(
+    this.openApplicationsMap.set(
       applicationModel.id,
       applicationObject3D,
     );
@@ -345,15 +348,15 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   getApplicationById(id: string): ApplicationObject3D | undefined {
-    return this.openApplications.get(id);
+    return this.openApplicationsMap.get(id);
   }
 
   getOpenApplications(): ApplicationObject3D[] {
-    return Array.from(this.openApplications.values());
+    return Array.from(this.openApplicationsMap.values());
   }
 
   isApplicationOpen(id: string): boolean {
-    return this.openApplications.has(id);
+    return this.openApplicationsMap.has(id);
   }
 
   getCommunicationMeshById(id: string) {
@@ -537,6 +540,10 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
     });
+  }
+
+  getMeshById(meshId: string) {
+    return this.getBoxMeshByModelId(meshId) || this.getCommunicationMeshById(meshId);
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
