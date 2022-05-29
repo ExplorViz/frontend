@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface Args {
   clazz: Class,
@@ -17,6 +18,9 @@ export default class ClazzPopup extends Component<Args> {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
 
   get name() {
     return this.args.clazz.name;
