@@ -54,7 +54,7 @@ module.exports = (defaults) => {
   app.import('node_modules/alertifyjs/build/css/alertify.min.css');
   app.import('node_modules/alertifyjs/build/css/themes/default.min.css');
 
-  app.import('node_modules/@ar-js-org/ar.js/three.js/build/ar-threex.js');
+  // app.import('node_modules/@ar-js-org/ar.js/three.js/build/ar-threex.js');
 
   app.import('vendor/cytoscape/cytoscape.min.js');
 
