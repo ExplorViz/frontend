@@ -24,6 +24,12 @@ export default class WebSocketService extends Service.extend(Evented) {
 
   private responseHandlers = new Map<Nonce, ResponseHandler<any>>();
 
+  private lastNonce: Nonce = 0;
+
+  nextNonce() {
+    return ++this.lastNonce;
+  }
+
   private getSocketUrl(ticketId: string) {
     const collaborationServiceSocket = collaborationService.replace(/^http(s?):\/\//i, 'ws$1://');
     return collaborationServiceSocket + collaborationSocketPath + ticketId;
@@ -140,6 +146,38 @@ export default class WebSocketService extends Service.extend(Evented) {
       }
     };
     this.responseHandlers.set(nonce, handler);
+  }
+
+  /**
+   * Send a message to the backend that requires a response.
+   *
+   * This is usually used, when the backend is required to synchronize some actions.
+   * */
+  sendRespondableMessage<T, R>(message: T, { responseType, onResponse, onOffline }: {
+    responseType: (msg: any) => msg is R;
+    onResponse: (msg: R) => boolean;
+    onOffline?: () => void;
+  }) {
+    const nonce = this.nextNonce();
+    // send message
+    this.send<T>({
+      ...message,
+      nonce,
+    });
+    // handle response
+    return new Promise((resolve) => {
+      this.awaitResponse({
+        nonce,
+        responseType,
+        onResponse: (response: R) => {
+          resolve(onResponse?.(response));
+        },
+        onOffline: () => {
+          onOffline?.()
+          resolve(true);
+        },
+      });
+    });
   }
 }
 

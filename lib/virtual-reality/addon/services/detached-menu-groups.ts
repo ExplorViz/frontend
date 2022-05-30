@@ -1,20 +1,21 @@
 import Service, { inject as service } from '@ember/service';
 import THREE from 'three';
+import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
 import CloseIcon from '../utils/view-objects/vr/close-icon';
 import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
 import { isMenuDetachedResponse, MenuDetachedResponse } from '../utils/vr-message/receivable/response/menu-detached';
 import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
-import VrMessageReceiver from './vr-message-receiver';
 import VrMessageSender from './vr-message-sender';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('vr-asset-repo')
   private assetRepo!: VrAssetRepository;
 
-  @service('vr-message-receiver')
-  private receiver!: VrMessageReceiver;
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -55,20 +56,33 @@ export default class DetachedMenuGroupsService extends Service {
    * but still detached.
    */
   addDetachedMenu(menu: DetachableMenu) {
-    // Notify backend about detached menu.
-    const nonce = this.sender.sendMenuDetached(menu);
+    const position = new THREE.Vector3();
+    menu.getWorldPosition(position);
 
-    // Wait for backend to assign an id to the detached menu.
-    this.receiver.awaitResponse({
-      nonce,
-      responseType: isMenuDetachedResponse,
-      onResponse: (response: MenuDetachedResponse) => {
-        this.addDetachedMenuLocally(menu, response.objectId);
+    const quaternion = new THREE.Quaternion();
+    menu.getWorldQuaternion(quaternion);
+    this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+      // Notify backend about detached menu.
+      {
+        event: 'menu_detached',
+        detachId: menu.getDetachId(),
+        entityType: menu.getEntityType(),
+        position: position.toArray(),
+        quaternion: quaternion.toArray(),
+        scale: menu.scale.toArray(),
+        nonce: 0 // will be overwritten
       },
-      onOffline: () => {
-        this.addDetachedMenuLocally(menu, null);
-      },
-    });
+      // Wait for backend to assign an id to the detached menu.
+      {
+        responseType: isMenuDetachedResponse,
+        onResponse: (response: MenuDetachedResponse) => {
+          this.addDetachedMenuLocally(menu, response.objectId);
+        },
+        onOffline: () => {
+          this.addDetachedMenuLocally(menu, null);
+        },
+      }
+    )
   }
 
   /**
@@ -135,21 +149,27 @@ export default class DetachedMenuGroupsService extends Service {
       return Promise.resolve(true);
     }
 
-    return new Promise((resolve) => {
-      const nonce = this.sender.sendDetachedMenuClosed(menuId);
-      this.receiver.awaitResponse({
-        nonce,
+    return this.webSocket.sendRespondableMessage<DetachedMenuClosedMessage, ObjectClosedResponse>(
+      // Informs the backend that an detached menu was closed by this user.
+      {
+        event: 'detached_menu_closed',
+        menuId: menuId,
+        nonce: 0 // will be overwritten
+      },
+      // Close menu if backend responds with OK.
+      {
         responseType: isObjectClosedResponse,
         onResponse: (response: ObjectClosedResponse) => {
-          if (response.isSuccess) this.removeDetachedMenuLocally(detachedMenuGroup);
-          resolve(response.isSuccess);
+          if (response.isSuccess) {
+            this.removeDetachedMenuLocally(detachedMenuGroup);
+          }
+          return response.isSuccess
         },
         onOffline: () => {
           this.removeDetachedMenuLocally(detachedMenuGroup);
-          resolve(true);
         },
-      });
-    });
+      }
+    )
   }
 
   /**

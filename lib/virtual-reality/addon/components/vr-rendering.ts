@@ -456,7 +456,6 @@ export default class VrRendering
     this.localUser.reset();
 
     // Remove event listers.
-    // this.receiver.removeMessageListener(this);
     this.willDestroyController.abort();
   }
 

@@ -12,16 +12,14 @@ import ClazzCommuMeshDataModel from "explorviz-frontend/view-objects/3d/applicat
 import ApplicationMesh from "explorviz-frontend/view-objects/3d/landscape/application-mesh";
 import NodeMesh from "explorviz-frontend/view-objects/3d/landscape/node-mesh";
 import THREE from "three";
-import VrMessageReceiver from "virtual-reality/services/vr-message-receiver";
-import VrMessageSender from "virtual-reality/services/vr-message-sender";
 import WebSocketService from "virtual-reality/services/web-socket";
+import { getTypeOfEntity, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { ForwardedMessage } from "virtual-reality/utils/vr-message/receivable/forwarded";
 import { MenuDetachedForwardMessage } from "virtual-reality/utils/vr-message/receivable/menu-detached-forward";
 import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/utils/vr-message/receivable/response/menu-detached";
 import { isObjectClosedResponse, ObjectClosedResponse } from "virtual-reality/utils/vr-message/receivable/response/object-closed";
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/detached_menu_closed";
 import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/menu_detached";
-import { COMPONENT_ENTITY_TYPE } from "virtual-reality/utils/vr-message/util/entity_type";
 
 type PopupData = {
     mouseX: number,
@@ -39,12 +37,6 @@ export default class PopupHandler {
 
     @service('web-socket')
     private webSocket!: WebSocketService;
-
-    @service('vr-message-sender')
-    private sender!: VrMessageSender;
-
-    @service('vr-message-receiver')
-    private receiver!: VrMessageReceiver;
 
     @tracked
     popupData: PopupData[] = [];
@@ -66,39 +58,34 @@ export default class PopupHandler {
     }
 
     @action
-    removeAllPopups() {
-        this.popupData = [];
-    }
-
-    @action
     pinPopup(entityId: string) {
         const mesh = this.applicationRenderer.getMeshById(entityId);
-        if (mesh) {
+        if (isEntityMesh(mesh)) {
             const worldPosition = new THREE.Vector3()
             mesh.getWorldPosition(worldPosition)
             worldPosition.y += 0.3;
-            // this.sendPopupOpened(popup.applicationId, popup.entity.id, [0, 0, 0]);
-            const nonce = this.sender.nextNonce(); // this.sender.sendMenuDetached()
-            this.webSocket.send<MenuDetachedMessage>({
-                event: 'menu_detached',
-                nonce,
-                detachId: entityId,
-                entityType: COMPONENT_ENTITY_TYPE,
-                position: worldPosition.toArray(),
-                quaternion: [0, 0, 0, 0],
-                scale: [1, 1, 1],
-            });
             // Wait for backend to assign an id to the detached menu.
-            this.receiver.awaitResponse({
-                nonce,
-                responseType: isMenuDetachedResponse,
-                onResponse: (response: MenuDetachedResponse) => {
-                    this.pinPopupLocally(entityId, response.objectId);
+            this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+                {
+                    event: 'menu_detached',
+                    detachId: entityId,
+                    entityType: getTypeOfEntity(mesh),
+                    position: worldPosition.toArray(),
+                    quaternion: [0, 0, 0, 0],
+                    scale: [1, 1, 1],
+                    nonce: 0 // will be overwritten
                 },
-                onOffline: () => {
-                    this.pinPopupLocally(entityId, null);
-                },
-            });
+                {
+                    responseType: isMenuDetachedResponse,
+                    onResponse: (response: MenuDetachedResponse) => {
+                        this.pinPopupLocally(entityId, response.objectId);
+                        return true;
+                    },
+                    onOffline: () => {
+                        this.pinPopupLocally(entityId, null);
+                    },
+                }
+            )
         }
     }
 
@@ -121,28 +108,25 @@ export default class PopupHandler {
                 this.popupData = this.popupData.filter(((pd) => pd.entity.id !== entityId));
                 return;
             }
-            const nonce = this.sender.nextNonce();
-            this.webSocket.send<DetachedMenuClosedMessage>({
-                event: 'detached_menu_closed',
-                nonce,
-                menuId: popup.menuId,
-            });
-            new Promise((resolve) => {
-                this.receiver.awaitResponse({
-                    nonce,
+            this.webSocket.sendRespondableMessage<DetachedMenuClosedMessage, ObjectClosedResponse>(
+                {
+                    event: 'detached_menu_closed',
+                    menuId: popup.menuId,
+                    nonce: 0 // will be overwritten
+                },
+                {
                     responseType: isObjectClosedResponse,
                     onResponse: (response: ObjectClosedResponse) => {
                         if (response.isSuccess) {
                             this.popupData = this.popupData.filter(((pd) => pd.entity.id !== entityId));
                         }
-                        resolve(response.isSuccess);
+                        return response.isSuccess
                     },
                     onOffline: () => {
                         this.popupData = this.popupData.filter(((pd) => pd.entity.id !== entityId));
-                        resolve(true);
                     },
-                });
-            });
+                }
+            )
         }
     }
 
@@ -203,8 +187,5 @@ export default class PopupHandler {
     willDestroy() {
         this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
         this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-    }
-
-    sendPopupPinned(entityId: string) {
     }
 }

@@ -3,14 +3,16 @@ import THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import { isObjectGrabbedResponse, ObjectGrabbedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
-import VrMessageReceiver from './vr-message-receiver';
+import { ObjectGrabbedMessage } from 'virtual-reality/utils/vr-message/sendable/request/object_grabbed';
+import WebSocketService from './web-socket';
 
 export default class GrabbedObjectService extends Service {
-  @service('vr-message-receiver')
-  private receiver!: VrMessageReceiver;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   /**
    * Counts how often an object has been requested to be grabbed.
@@ -46,18 +48,21 @@ export default class GrabbedObjectService extends Service {
     const objectId = object.getGrabId();
     if (!objectId) return Promise.resolve(true);
 
-    // Send object grab message.
-    const nonce = this.sender.sendObjectGrabbed(objectId);
-
-    // Wait for response.
-    return new Promise((resolve) => {
-      this.receiver.awaitResponse({
-        nonce,
+    this.webSocket.sendRespondableMessage<ObjectGrabbedMessage, ObjectGrabbedResponse>(
+      // Send object grab message.
+      {
+        event: 'object_grabbed',
+        objectId,
+        nonce: 0 // will be overwritten
+      },
+      // Wait for response.
+      {
         responseType: isObjectGrabbedResponse,
-        onResponse: (response: ObjectGrabbedResponse) => resolve(response.isSuccess),
-        onOffline: () => resolve(true),
-      });
-    });
+        onResponse: (response: ObjectGrabbedResponse) => {
+          return response.isSuccess
+        },
+      }
+    )
   }
 
   /**
