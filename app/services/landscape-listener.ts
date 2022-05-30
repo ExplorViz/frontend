@@ -37,6 +37,8 @@ export default class LandscapeListener extends Service.extend(Evented) {
       const endTime = Date.now() - (60 * 1000);
       this.pollData(endTime, intervalInSeconds);
     }, intervalInSeconds * 1000);
+
+    this.debug('Timer started timer');
   }
 
   async pollData(endTime: number, intervalInSeconds: number = 10) {

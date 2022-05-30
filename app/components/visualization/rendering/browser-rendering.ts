@@ -322,6 +322,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             this.selectedApplicationId = applicationObject3D.dataModel.id;
             this.heatmapConf.setActiveApplication(applicationObject3D);
         }
+        // TODO this can probably be removed
         this.heatmapConf.setActiveApplication(applicationObject3D);
         applicationObject3D.position.y = 10;
         applicationObject3D.updateMatrixWorld();

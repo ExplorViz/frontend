@@ -3,8 +3,6 @@ import { task } from 'ember-concurrency-decorators';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -25,17 +23,6 @@ interface Args {
 }
 
 export default class HeatmapRenderer extends Modifier<Args> {
-  get mode() {
-    return this.heatmapConf.selectedMode;
-  }
-
-  get metric() {
-    return this.heatmapConf.selectedMetric;
-  }
-
-  get active() {
-    return this.heatmapConf.heatmapActive;
-  }
 
   scene!: THREE.Scene;
 
@@ -48,31 +35,30 @@ export default class HeatmapRenderer extends Modifier<Args> {
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
-  @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
-
   get applicationObject3D() {
     return this.heatmapConf.currentApplication;
   }
 
+  get metric() {
+    return this.heatmapConf.selectedMetric;
+  }
+
   modify(_element: any, _positionalArgs: any[], { camera, scene }: NamedArgs) {
-    this.debug(`Arguments updated${this.applicationObject3D?.id}`);
-    // this.debug('selected metric' + this.heatmapConf.selectedMetric?.name);
     this.scene = scene;
     this.camera = camera;
 
     // Avoid unwanted reflections in heatmap mode
-    this.setSpotLightVisibilityInScene(this.active);
+    this.setSpotLightVisibilityInScene(this.metric !== undefined);
 
     if (this.lastApplicationObject3D
       && (this.lastApplicationObject3D !== this.applicationObject3D
-        || !this.heatmapConf.heatmapActive)) {
+        || !this.metric)) {
       this.debug(`Removing heatmap:${this.lastApplicationObject3D.id}`);
       this.removeHeatmap(this.lastApplicationObject3D);
       this.lastApplicationObject3D = undefined;
     }
 
-    if (this.heatmapConf.heatmapActive && this.applicationObject3D && this.mode && this.metric) {
+    if (this.applicationObject3D && this.metric) {
       this.lastApplicationObject3D = this.applicationObject3D;
       perform(this.applyHeatmap, this.applicationObject3D, this.metric);
     }
@@ -102,14 +88,8 @@ export default class HeatmapRenderer extends Modifier<Args> {
     });
   }
 
-  @task*
-  applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric | undefined) {
-    // const selectedMetric = this.metric;
-    if (!selectedMetric) {
-      AlertifyHandler.showAlertifyError('No metrics available.');
-      return;
-    }
-
+  @task *
+    applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric) {
     applicationObject3D.setComponentMeshOpacity(0.1);
     applicationObject3D.setCommunicationOpacity(0.1);
 
@@ -137,7 +117,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     boxMeshes.forEach((boxMesh) => {
       if (boxMesh instanceof ClazzMesh) {
         this.heatmapClazzUpdate(applicationObject3D, boxMesh.dataModel, foundationMesh,
-          simpleHeatMap);
+          simpleHeatMap, selectedMetric);
       }
     });
 
@@ -148,17 +128,17 @@ export default class HeatmapRenderer extends Modifier<Args> {
   }
 
   private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class,
-    foundationMesh: FoundationMesh, simpleHeatMap: any) {
+    foundationMesh: FoundationMesh, simpleHeatMap: any, selectedMetric: Metric) {
     // Calculate center point of the clazz floor. This is used for computing the corresponding
     // face on the foundation box.
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id) as
       ClazzMesh | undefined;
 
-    if (!clazzMesh || !this.heatmapConf.selectedMetric) {
+    if (!clazzMesh) {
       return;
     }
 
-    const heatmapValues = this.heatmapConf.selectedMetric.values;
+    const heatmapValues = selectedMetric.values;
     const heatmapValue = heatmapValues.get(clazz.id);
 
     if (!heatmapValue) return;

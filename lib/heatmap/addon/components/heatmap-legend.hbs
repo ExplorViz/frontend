@@ -33,6 +33,7 @@
       {{this.subHeader}}
     </div>
     <div class="d-flex flex-row mt-2">
+      {{#if this.heatmapConfiguration.currentApplication}}
       <div id="heatmap-legend" {{did-insert this.didInsertLegend}}>
         <canvas
           id="legend-canvas"
@@ -46,6 +47,9 @@
         <span class="heatmap-label">{{divide-and-round this.heatmapConfiguration.selectedMetric.max 2 0}}</span>
         <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.min}}</span>
       </div>
+      {{else}}
+      Please select an application by clicking on its foundation
+      {{/if}}
     </div>
   </div>
 </div>

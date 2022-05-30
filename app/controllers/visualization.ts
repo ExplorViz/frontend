@@ -186,6 +186,7 @@ export default class VisualizationController extends Controller {
   @action
   resetLandscapeListenerPolling() {
     if (this.landscapeListener.timer !== null) {
+      this.debug('Stopping timer');
       clearTimeout(this.landscapeListener.timer);
     }
   }
@@ -341,6 +342,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdateTimer(
     { timestamp }: TimestampUpdateTimerMessage,
   ): Promise<void> {
+    this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
   }

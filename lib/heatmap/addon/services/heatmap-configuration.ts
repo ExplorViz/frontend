@@ -52,9 +52,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @tracked
   selectedMetricName: string = '';
 
-  @tracked
-  currentApplicationHeatmapData?: ApplicationHeatmapData;
-
   useHelperLines = true;
 
   opacityValue = 0.03;
@@ -95,16 +92,24 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   updateActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (!this.currentApplication) {
+    if (!this.currentApplication || this.currentApplication === applicationObject3D) {
+      this.debug('Ayy?')
       this.currentApplication = applicationObject3D;
-    }
-    const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
-    if (applicationData && this.currentApplication === applicationObject3D) {
-      this.currentApplicationHeatmapData = applicationData.heatmapData;
     }
   }
 
+  get currentApplicationHeatmapData() {
+    if (!this.currentApplication) {
+      return;
+    }
+    const applicationData = this.applicationRepo.getById(this.currentApplication.dataModel.id);
+    return applicationData?.heatmapData;
+  }
+
   get selectedMetric() {
+    if (!this.heatmapActive || !this.currentApplication) {
+      return undefined;
+    }
     let chosenMetric = null;
     const applicationHeatmapData = this.currentApplicationHeatmapData;
     const latestClazzMetricScores = this.currentApplicationHeatmapData?.latestClazzMetricScores;

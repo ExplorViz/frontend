@@ -6,6 +6,7 @@ import HeatmapConfiguration, { HeatmapMode } from 'heatmap/services/heatmap-conf
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { HeatmapUpdateArgs, HeatmapUpdateMessage, HEATMAP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/heatmap_update';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import debugLogger from 'ember-debug-logger';
 
 function cleanup(instance: SyncStateModifier) {
   instance.webSocket.off(HEATMAP_UPDATE_EVENT, instance, instance.onHeatmapUpdate);
@@ -30,12 +31,14 @@ export default class SyncStateModifier extends Modifier {
   }
 
   modify() {
-    this.send(HEATMAP_UPDATE_EVENT, {
-      applicationId: this.heatmapConf.currentApplication?.dataModel.id || null,
-      metric: this.heatmapConf.selectedMetricName,
-      mode: this.heatmapConf.selectedMode,
-      isActive: this.heatmapConf.heatmapActive,
-    });
+    if (this.heatmapConf.currentApplication) {
+      this.send(HEATMAP_UPDATE_EVENT, {
+        applicationId: this.heatmapConf.currentApplication.dataModel.id,
+        metric: this.heatmapConf.selectedMetricName,
+        mode: this.heatmapConf.selectedMode,
+        isActive: this.heatmapConf.heatmapActive,
+      });
+    }
   }
 
   onHeatmapUpdate({ originalMessage: message }: ForwardedMessage<HeatmapUpdateMessage>) {
@@ -44,11 +47,15 @@ export default class SyncStateModifier extends Modifier {
       this.heatmapConf.currentApplication = this.applicationRenderer.getApplicationById(
         message.applicationId,
       );
+    } else {
+      this.heatmapConf.currentApplication = null;
     }
     this.heatmapConf.selectedMetricName = message.metric;
     this.heatmapConf.selectedMode = message.mode as HeatmapMode;
     this.heatmapConf.heatmapActive = message.isActive;
   }
+
+  debug = debugLogger("SyncState");
 
   private send(event: string, args: HeatmapUpdateArgs) {
     const message = {
@@ -59,6 +66,7 @@ export default class SyncStateModifier extends Modifier {
     // TODO order matters, should be implemented better
     // if (_.isEqual(object, other);)
     if (JSON.stringify(message) !== JSON.stringify(lastMessage)) {
+      this.debug("Sending" + args.isActive)
       this.webSocket.send(message);
       this.state.set(message.event, message);
     }

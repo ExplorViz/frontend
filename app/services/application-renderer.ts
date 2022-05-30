@@ -262,7 +262,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationModel.id,
       applicationObject3D,
     );
-    this.heatmapConf.updateActiveApplication(applicationObject3D);
+    // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
     applicationObject3D.resetRotation();
 
