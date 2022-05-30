@@ -21,7 +21,7 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
 import {
-  Application, Class, Node, Package
+  Application, Class, Node, Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
@@ -172,7 +172,7 @@ export default class ArRendering extends Component<Args> {
   @action
   leaveArView() {
     this.currentSession?.end();
-    this.args.openLandscapeView()
+    this.args.openLandscapeView();
   }
 
   // #endregion CLASS FIELDS AND GETTERS
@@ -197,7 +197,7 @@ export default class ArRendering extends Component<Args> {
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
-    this.popupHandler = new PopupHandler(getOwner(this))
+    this.popupHandler = new PopupHandler(getOwner(this));
   }
 
   get camera() {
@@ -218,7 +218,7 @@ export default class ArRendering extends Component<Args> {
   private initRendering() {
     this.initCamera();
     this.initRenderer();
-    this.initAr()
+    this.initAr();
     this.renderingLoop = new RenderingLoop(getOwner(this),
       {
         camera: this.camera,
@@ -248,8 +248,8 @@ export default class ArRendering extends Component<Args> {
       requiredFeatures: ['hit-test'],
       optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
       // use document body to display all overlays
-      domOverlay: { root: document.body }
-    }).then(this.onSessionStarted)
+      domOverlay: { root: document.body },
+    }).then(this.onSessionStarted);
   }
 
   /**
@@ -275,10 +275,10 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePinching(intersection: THREE.Intersection, delta: number) {
-    const object = intersection.object;
-    if (object) {
-      this.graph.scale.multiplyScalar(delta);
-    }
+    // const object = intersection.object;
+    // if (object) {
+    this.graph.scale.multiplyScalar(delta);
+    // }
   }
 
   handleRotating(/*  intersection: THREE.Intersection, delta: number */) {
@@ -300,8 +300,8 @@ export default class ArRendering extends Component<Args> {
 
   private initAr() {
     const reticle = new THREE.Mesh(
-      new THREE.RingGeometry(0.15, 0.2, 32).rotateX(- Math.PI / 2),
-      new THREE.MeshBasicMaterial()
+      new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial(),
     );
     reticle.matrixAutoUpdate = false;
     reticle.visible = false;
@@ -328,7 +328,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  onSessionEnded( /*event*/) {
+  onSessionEnded(/* event */) {
     this.currentSession?.removeEventListener('end', this.onSessionEnded);
     this.currentSession = null;
     this.leaveArView();
@@ -373,15 +373,15 @@ export default class ArRendering extends Component<Args> {
      * @param outerDiv HTML element containing the canvas
      */
   @action
-  resize(/*outerDiv: HTMLElement */) {
+  resize(/* outerDiv: HTMLElement */) {
     // AR view will be fullscreen
-    const width = window.screen.width
-    const height = window.screen.height
+    const { width } = window.screen;
+    const { height } = window.screen;
     this.renderer.setSize(
       width * this.rendererResolutionMultiplier,
       height * this.rendererResolutionMultiplier,
     );
-    this.debug('Widht/ Height' + width + '/' + height);
+    this.debug(`Widht/ Height${width}/${height}`);
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -514,7 +514,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     const mesh = intersection.object;
-    const position = { x: window.screen.width / 2, y: window.screen.height / 2, }
+    const position = { x: window.screen.width / 2, y: window.screen.height / 2 };
     this.popupHandler.addPopup(mesh, position, false, !this.arSettings.stackPopups);
   }
 
