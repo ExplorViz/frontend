@@ -36,9 +36,9 @@ interface NamedArgs {
   singleClick?(intersection: THREE.Intersection): void,
   doubleClick?(intersection: THREE.Intersection): void,
   mousePing?(intersection: THREE.Intersection): void,
-  pinch?(intersection: THREE.Intersection, delta: number): void,
-  rotate?(intersection: THREE.Intersection, delta: number): void,
-  pan?(intersection: THREE.Intersection, x: number, y: number): void,
+  pinch?(intersection: THREE.Intersection | null, delta: number): void,
+  rotate?(intersection: THREE.Intersection | null, delta: number): void,
+  pan?(intersection: THREE.Intersection | null, x: number, y: number): void,
 }
 
 interface InteractionModifierArgs {
@@ -69,6 +69,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
 
   isMouseOnCanvas = false;
 
@@ -176,45 +179,49 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
-
   @action
   onClickEventsingleClickUp(event: MouseEvent) {
-    if (event.button === 0 && this.pointers.length === 1) {
-      if (this.pointerDownCounter === 1) {
-        this.timer = setTimeout(() => {
-          this.pointerDownCounter = 0;
-          const intersectedViewObj = this.raycast(event);
-          if (intersectedViewObj) {
-            if (event.altKey) {
-              if (this.localUser.mousePing) {
-                const parentObj = intersectedViewObj.object.parent;
-                const pingPosition = intersectedViewObj.point;
-                if (parentObj) {
-                  parentObj.worldToLocal(pingPosition);
-                  perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
+    if ((event.altKey && event.button === 0) || event.button === 1) {
+      this.ping(event);
+    } else if (event.button === 0 && this.pointers.length === 1) {
+      this.onLeftClick(event);
+    }
+  }
 
-                  if (this.collaborativeSession.isOnline) {
-                    if (parentObj instanceof ApplicationObject3D) {
-                      // AlertifyHandler.showAlertifyMessage('OBJ:' + pingPosition.toArray())
-                      this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
-                    } else {
-                      this.sender.sendMousePingUpdate('landscape', false, pingPosition);
-                    }
-                  }
-                }
-              }
-            } else {
-              this.namedArgs.singleClick?.(intersectedViewObj);
-            }
-          }
-        }, 300);
-      }
-
-      if (this.pointerDownCounter > 1) {
+  @action
+  onLeftClick(event: MouseEvent) { // or touch, primary input ...
+    if (this.pointerDownCounter === 1) {
+      this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
-        this.onDoubleClick(event);
+        const intersectedViewObj = this.raycast(event);
+        if (intersectedViewObj) {
+          this.namedArgs.singleClick?.(intersectedViewObj);
+        }
+      }, 300);
+    }
+
+    if (this.pointerDownCounter > 1) {
+      this.pointerDownCounter = 0;
+      this.onDoubleClick(event);
+    }
+  }
+
+  @action
+  ping(event: MouseEvent) { // or touch, primary input ...
+    if (!this.localUser.mousePing) {
+      return;
+    }
+    const intersectedViewObj = this.raycast(event);
+    if (!intersectedViewObj) {
+      return;
+    }
+    const parentObj = intersectedViewObj.object.parent;
+    const pingPosition = intersectedViewObj.point;
+    if (parentObj) {
+      parentObj.worldToLocal(pingPosition);
+      perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
+      if (parentObj instanceof ApplicationObject3D) {
+        this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
       }
     }
   }
@@ -303,11 +310,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @action
   onPointerDown(event: PointerEvent) {
     if (this.pointers.length === 0) {
+      // save touched object for pinch, rotate and pan callbacks
       this.selectedObject = this.raycast(event);
       this.canvas.setPointerCapture(event.pointerId);
     }
     this.pointers.push(event);
-    if (event.pointerType === 'touch' && this.selectedObject && this.pointers.length === 2) {
+    if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.handlePinchStart();
       this.handleRotateStart();
     } else if (event.button === 0 && this.pointers.length === 1) {
@@ -337,7 +345,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   handleMouseMovePan(event: PointerEvent) {
-    if (!this.selectedObject) { return; }
     this.panEnd.set(event.clientX, event.clientY);
     this.panDelta.subVectors(this.panEnd, this.panStart).multiplyScalar(this.panSpeed);
     this.namedArgs.pan?.(this.selectedObject, this.panDelta.x, this.panDelta.y);
@@ -356,7 +363,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   onTouchMove(event: PointerEvent) {
-    if (this.selectedObject && this.pointers.length === 2) {
+    if (this.pointers.length === 2) {
       this.trackPointer(event);
       this.handleTouchMovePinch(event);
       this.handleTouchMoveRotate();
@@ -365,7 +372,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   handleTouchMovePinch(event: PointerEvent) {
     const position = this.getSecondPointerPosition(event);
-    if (!position || !this.selectedObject) { return; }
+    if (!position) { return; }
 
     const dx = event.pageX - position.x;
     const dy = event.pageY - position.y;
@@ -387,7 +394,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       const pointer0 = this.pointerPositions.get(this.pointers[0].pointerId);
       const pointer1 = this.pointerPositions.get(this.pointers[1].pointerId);
 
-      if (!pointer0 || !pointer1 || !this.selectedObject) { return; }
+      if (!pointer0 || !pointer1) { return; }
 
       const dx = pointer0.x - pointer1.x;
       const dy = pointer0.y - pointer1.y;

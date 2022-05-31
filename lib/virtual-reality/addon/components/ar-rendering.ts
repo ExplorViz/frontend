@@ -275,13 +275,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePinching(intersection: THREE.Intersection, delta: number) {
-    // const object = intersection.object;
-    // if (object) {
     this.graph.scale.multiplyScalar(delta);
-    // }
-  }
-
-  handleRotating(/*  intersection: THREE.Intersection, delta: number */) {
   }
 
   /**
