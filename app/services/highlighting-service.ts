@@ -14,6 +14,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import debugLogger from 'ember-debug-logger';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -69,6 +70,8 @@ export default class HighlightingService extends Service.extend({
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
+
+  debug = debugLogger('HighlightingService');
 
   get opacity() {
     return this.userSettings.applicationSettings.transparencyIntensity.value;
@@ -163,7 +166,12 @@ export default class HighlightingService extends Service.extend({
       entityId,
     );
 
-    meshes.forEach((mesh) => this.hightlightMesh(application, mesh, color));
+    this.debug('meshes length', meshes.length);
+
+    meshes.forEach((mesh) => {
+      this.debug('highlight mesh Aufruf');
+      this.hightlightMesh(application, mesh, color);
+    });
   }
 
   private hightlightMesh(
@@ -179,6 +187,7 @@ export default class HighlightingService extends Service.extend({
         color || this.configuration.applicationColors.highlightedEntityColor,
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
+      this.debug('Highlighting.highlight wurde aufgerufen');
     }
   }
 
@@ -191,7 +200,7 @@ export default class HighlightingService extends Service.extend({
     entityType: string,
     entityId: string,
   ): HighlightableMesh[] {
-    const highlightableMeshes = []
+    const highlightableMeshes = [];
     if (entityType === 'ComponentMesh' || entityType === 'ClazzMesh') {
       const mesh = application.getBoxMeshbyModelId(entityId);
       if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh) {
@@ -204,7 +213,7 @@ export default class HighlightingService extends Service.extend({
         if (mesh.dataModel.id === entityId) {
           highlightableMeshes.push(mesh);
         }
-      })
+      });
     }
     return highlightableMeshes;
   }
