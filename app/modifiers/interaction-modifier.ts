@@ -30,7 +30,6 @@ interface NamedArgs {
   rendererResolutionMultiplier: number,
   camera: THREE.Camera,
   raycastObjects: Object3D | Object3D[],
-  raycastFilter?: ((intersection: THREE.Intersection) => boolean) | null,
   mouseEnter?(): void,
   mouseLeave?(): void,
   mouseOut?(): void,
@@ -125,14 +124,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const { raycastObjects } = this.namedArgs;
     return raycastObjects instanceof Object3D
       ? [raycastObjects] : raycastObjects;
-  }
-
-  get raycastFilter(): ((intersection: THREE.Intersection) => boolean) | undefined {
-    const filter = this.namedArgs.raycastFilter;
-    if (filter === null) {
-      return undefined;
-    }
-    return filter;
   }
 
   get camera(): THREE.Camera {
@@ -264,7 +255,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       ? [this.raycastObjects] : this.raycastObjects;
 
     return this.raycaster.raycasting(origin, this.namedArgs.camera,
-      possibleObjects, this.raycastFilter);
+      possibleObjects);
   }
 
   createPointerStopEvent() {

@@ -12,13 +12,6 @@ export default class MousePing {
     this.color = color;
   }
 
-  // @task *emberEventedLoop() {
-  //   while (true) {
-  //     let event = yield waitForEvent(this, 'fooEvent');
-  //     this.set('emberEvent', event);
-  //   }
-  // }
-
   @restartableTask
   public * ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
     if (this.obj) {
@@ -27,15 +20,15 @@ export default class MousePing {
     }
 
     // Default for applications
-    let size = 2.3;
+    const worldScale = new THREE.Vector3();
+    parentObj.getWorldScale(worldScale);
+    let size = 0.06 / worldScale.x;
 
     const geometry = new THREE.SphereGeometry(size, 32, 32);
     const material = new THREE.MeshBasicMaterial({ color: this.color });
     const sphere = new THREE.Mesh(geometry, material);
 
     sphere.position.copy(position);
-    // parentObj.localToWorld(sphere.position);
-    // parentObj.attach(sphere);
     parentObj.add(sphere)
 
     this.obj = sphere;

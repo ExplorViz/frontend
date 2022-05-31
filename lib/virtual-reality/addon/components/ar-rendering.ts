@@ -20,9 +20,6 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
-import {
-  Application, Class, Node, Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -30,12 +27,8 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
-import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -43,9 +36,6 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { PopupOpenedMessage, POPUP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
-import { PopupClosedMessage, POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -60,16 +50,6 @@ interface Args {
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
 }
-
-type DataModel = Node | Application | Package | Class | ClazzCommuMeshDataModel;
-
-type PopupData = {
-  // id: number,
-  mouseX: number,
-  mouseY: number,
-  isPinned: boolean,
-  entity: DataModel
-};
 
 declare const THREEx: any;
 
@@ -102,9 +82,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
 
   debug = debugLogger('ArRendering');
 
@@ -330,10 +307,6 @@ export default class ArRendering extends Component<Args> {
 
   get intersectableObjects() {
     return this.scene.children;
-  }
-
-  static raycastFilter(intersection: THREE.Intersection) {
-    return !(intersection.object instanceof LabelMesh || intersection.object instanceof LogoMesh);
   }
 
   // #endregion COMPONENT AND SCENE INITIALIZATION
@@ -645,9 +618,6 @@ export default class ArRendering extends Component<Args> {
 
     this.renderingLoop.stop();
     this.debug('cleanup destorying controller');
-
-    this.webSocket.off(POPUP_OPENED_EVENT, this, this.onPopupOpened);
-    this.webSocket.off(POPUP_CLOSED_EVENT, this, this.onPopupClosed);
 
     // Remove event listers.
     this.willDestroyController.abort();
