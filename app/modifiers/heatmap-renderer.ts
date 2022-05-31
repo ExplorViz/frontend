@@ -23,7 +23,6 @@ interface Args {
 }
 
 export default class HeatmapRenderer extends Modifier<Args> {
-
   scene!: THREE.Scene;
 
   camera!: THREE.Camera;
@@ -48,7 +47,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     this.camera = camera;
 
     // Avoid unwanted reflections in heatmap mode
-    this.setSpotLightVisibilityInScene(this.metric !== undefined);
+    this.setSpotLightVisibilityInScene(this.metric === undefined);
 
     if (this.lastApplicationObject3D
       && (this.lastApplicationObject3D !== this.applicationObject3D
@@ -82,14 +81,14 @@ export default class HeatmapRenderer extends Modifier<Args> {
        */
   private setSpotLightVisibilityInScene(isVisible = true) {
     this.scene?.children.forEach((child) => {
-      if (child instanceof THREE.SpotLight) {
+      if (child instanceof THREE.DirectionalLight) {
         child.visible = isVisible;
       }
     });
   }
 
-  @task *
-    applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric) {
+  @task*
+  applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric) {
     applicationObject3D.setComponentMeshOpacity(0.1);
     applicationObject3D.setCommunicationOpacity(0.1);
 
