@@ -20,6 +20,9 @@ export type Position2D = {
 type MouseStopEvent = {
   srcEvent: MouseEvent
 };
+type OpenMenuEvent = {
+  srcEvent: MouseEvent
+};
 type State = 'pinch' | 'none';
 
 interface NamedArgs {
@@ -79,6 +82,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   timer!: NodeJS.Timeout;
 
+  longPressTimer!: NodeJS.Timeout;
+
   pointerDownCounter: number = 0;
 
   didSetup = false;
@@ -95,10 +100,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.rendererResolutionMultiplier = args.rendererResolutionMultiplier
     }
 
-    // assert(
-    //   `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
-    //   element instanceof HTMLCanvasElement,
-    // );
+    assert(
+      `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
+      element instanceof HTMLCanvasElement,
+    );
     this.canvas = element;
 
     if (!this.didSetup) {
@@ -180,20 +185,34 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  onClickEventsingleClickUp(event: MouseEvent) {
+  onClickEventsingleClickUp(event: PointerEvent) {
+    const intersectedViewObj = this.raycast(event);
+
     if ((event.altKey && event.button === 0) || event.button === 1) {
-      this.ping(event);
+      this.ping(intersectedViewObj);
     } else if (event.button === 0 && this.pointers.length === 1) {
-      this.onLeftClick(event);
+      this.onLeftClick(event, intersectedViewObj);
+    } else if (event.button === 2 && this.pointers.length === 1 && !intersectedViewObj) {
+      this.dispatchOpenMenuEvent(event);
     }
   }
 
+  dispatchOpenMenuEvent(event: MouseEvent) {
+    const evt = new CustomEvent<OpenMenuEvent>('openmenu', {
+      detail: {
+        srcEvent: event,
+      },
+      bubbles: true,
+      cancelable: true,
+    });
+    if (event.target) event.target.dispatchEvent(evt);
+  }
+
   @action
-  onLeftClick(event: MouseEvent) { // or touch, primary input ...
+  onLeftClick(event: MouseEvent, intersectedViewObj: THREE.Intersection | null) { // or touch, primary input ...
     if (this.pointerDownCounter === 1) {
       this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
-        const intersectedViewObj = this.raycast(event);
         if (intersectedViewObj) {
           this.namedArgs.singleClick?.(intersectedViewObj);
         }
@@ -207,12 +226,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  ping(event: MouseEvent) { // or touch, primary input ...
-    if (!this.localUser.mousePing) {
-      return;
-    }
-    const intersectedViewObj = this.raycast(event);
-    if (!intersectedViewObj) {
+  ping(intersectedViewObj: THREE.Intersection | null) { // or touch, primary input ...
+    if (!this.localUser.mousePing || !intersectedViewObj) {
       return;
     }
     const parentObj = intersectedViewObj.object.parent;
@@ -282,6 +297,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   rotateStart = 0;
 
+  longPressStart = new Vector2();
+
+  longPressEnd = new Vector2();
+
+  longPressDelta = new Vector2();
+
   panStart = new Vector2();
 
   panEnd = new Vector2();
@@ -309,6 +330,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   // from orbit controls
   @action
   onPointerDown(event: PointerEvent) {
+    clearTimeout(this.longPressTimer);
     if (this.pointers.length === 0) {
       // save touched object for pinch, rotate and pan callbacks
       this.selectedObject = this.raycast(event);
@@ -321,6 +343,20 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     } else if (event.button === 0 && this.pointers.length === 1) {
       this.pointerDownCounter += 1;
       this.handlePanStart(event);
+      if (event.pointerType === 'touch') {
+        this.longPressStart.set(event.clientX, event.clientY);
+        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 600)
+      }
+    }
+  }
+
+  handleLongPress(event: PointerEvent,) {
+    this.longPressDelta.subVectors(this.longPressEnd, this.longPressStart);
+    if (this.selectedObject) {
+      const mousePosition = new Vector2(event.clientX, event.clientY);
+      this.namedArgs.mouseStop?.(this.selectedObject, mousePosition);
+    } else if (this.longPressDelta.x < 30 && this.longPressDelta.y < 30) {
+      this.dispatchOpenMenuEvent(event);
     }
   }
 
@@ -345,6 +381,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   handleMouseMovePan(event: PointerEvent) {
+    this.longPressEnd.set(event.clientX, event.clientY);
     this.panEnd.set(event.clientX, event.clientY);
     this.panDelta.subVectors(this.panEnd, this.panStart).multiplyScalar(this.panSpeed);
     this.namedArgs.pan?.(this.selectedObject, this.panDelta.x, this.panDelta.y);
@@ -417,6 +454,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onPointerUp(event: PointerEvent) {
+    clearTimeout(this.longPressTimer);
     this.onClickEventsingleClickUp(event);
     this.removePointer(event);
 
