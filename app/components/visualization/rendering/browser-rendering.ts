@@ -30,19 +30,13 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE, { Vector3 } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { PopupOpenedMessage, POPUP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup-opened';
-import { PopupClosedMessage, POPUP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/popup_closed';
 
 interface BrowserRenderingArgs {
     readonly id: string;
@@ -54,13 +48,6 @@ interface BrowserRenderingArgs {
     switchToAR(): void,
     switchToVR(): void,
 }
-type PopupData = {
-    mouseX: number,
-    mouseY: number,
-    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
-    applicationId: string,
-    isPinned: boolean,
-};
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 

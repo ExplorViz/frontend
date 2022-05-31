@@ -48,6 +48,15 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     });
   }
 
+  unhighlight(): void {
+    super.unhighlight();
+    this.children.forEach((childObject) => {
+      if (childObject instanceof CommunicationArrowMesh) {
+        childObject.turnOpaque();
+      }
+    });
+  }
+
   /**
    * Renders the communication mesh as straight cylinder geometry.
    *

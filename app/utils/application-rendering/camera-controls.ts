@@ -18,7 +18,7 @@ export class CameraControls {
     const controls = new MapControls(this.camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.3;
-    controls.minDistance = 1;
+    controls.minDistance = 0.1;
     controls.maxDistance = 1000;
     controls.maxPolarAngle = Math.PI / 2;
     this.controls = controls;

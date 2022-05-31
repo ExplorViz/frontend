@@ -7,13 +7,56 @@ import CommunicationLayout from '../../view-objects/layout-models/communication-
 import { DrawableClassCommunication } from './class-communication-computer';
 import { Application, Class, Package } from '../landscape-schemes/structure-data';
 
+export function calculatePipeSize(drawableClassCommunications: DrawableClassCommunication[]) {
+  /**
+   * Retrieves all requests and pushes them to a list for further processing
+   */
+  function gatherRequestsIntoList() {
+    const requestsList: number[] = [];
+
+    // Generate a list with all requests
+    drawableClassCommunications.forEach((clazzCommunication) => {
+      if ((clazzCommunication.sourceClass !== clazzCommunication.targetClass)) {
+        requestsList.push(clazzCommunication.totalRequests);
+      }
+    });
+
+    return requestsList;
+  }
+
+  // Constant factors for rendering communication lines (pipes)
+  const LINE_THICKNESS_FACTOR = 0.5;
+
+  const requestsList = gatherRequestsIntoList();
+
+  const minRequests = Math.min(...requestsList);
+  const maximumRequests = Math.max(...requestsList);
+
+
+  const pipeSizeMap = new Map<string, number>();
+  drawableClassCommunications.forEach((clazzCommunication) => {
+    // normalize request count to [0, 1] interval
+    let range = maximumRequests - minRequests;
+    let normalizedRequests = 1;
+    if (range !== 0) {
+      normalizedRequests = (clazzCommunication.totalRequests - minRequests) / range;
+      // normalize request count to [0.2, 1] interval
+      range = 1 - 0.2;
+      normalizedRequests = normalizedRequests * range + 0.2;
+    }
+
+    // Apply line thickness depending on calculated request category
+    pipeSizeMap.set(clazzCommunication.id, normalizedRequests * LINE_THICKNESS_FACTOR);
+  });
+  return pipeSizeMap;
+}
+
 // Communication Layouting //
 export default function applyCommunicationLayout(applicationObject3D: ApplicationObject3D,
   boxLayoutMap: Map<string, BoxLayout>, drawableClassCommunications: DrawableClassCommunication[]) {
   const application = applicationObject3D.dataModel;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
-
   // HELPER FUNCTIONS
 
   /**
@@ -143,7 +186,7 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
       }
 
       if ((parentMesh instanceof ComponentMesh && parentMesh.opened)
-      || parentMesh instanceof FoundationMesh) {
+        || parentMesh instanceof FoundationMesh) {
         let sourceEntity: Class | Package | null = null;
         let targetEntity: Class | Package | null = null;
 
@@ -211,9 +254,9 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
       if (clazzBoxLayout === undefined) { return; }
 
       const centerPoint = new THREE.Vector3(clazzBoxLayout.positionX
-          + clazzBoxLayout.width / 2.0,
-      clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
-      clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0);
+        + clazzBoxLayout.width / 2.0,
+        clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
+        clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0);
 
       end.x = clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0;
       end.y = centerPoint.y;

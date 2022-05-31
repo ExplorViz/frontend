@@ -171,6 +171,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return this.modelIdToMesh.get(id);
   }
 
+  getMeshById(id: string) {
+    return this.getBoxMeshbyModelId(id) || this.getCommMeshByModelId(id);
+  }
+
   /**
    * Returns a set containing all application regarded box meshes inside this application
    */

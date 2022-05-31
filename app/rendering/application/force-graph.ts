@@ -82,7 +82,7 @@ export default class ForceGraph {
       // .linkDirectionalParticleWidth(0.6)
       // .linkDirectionalParticleSpeed(this.particleSpeed)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
-      .linkVisibility("communicationData")
+      .linkVisibility(this.linkRenderer.linkVisible)
       .nodeAutoColorBy("node")
 
       .cooldownTicks(1)

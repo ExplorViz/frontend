@@ -477,6 +477,7 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.removeCommunicationForAllApplications();
     }
+    this.updateLinks?.()
   }
 
   /**

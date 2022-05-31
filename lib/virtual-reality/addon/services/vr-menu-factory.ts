@@ -166,7 +166,7 @@ export default class VrMenuFactoryService extends Service {
     return new ZoomMenu({
       renderer: this.renderer,
       scene: this.scene,
-      headsetCamera: this.localUser.defaultCamera,
+      headsetCamera: this.localUser.camera,
       menuFactory: this,
     });
   }

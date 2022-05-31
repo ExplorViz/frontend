@@ -485,7 +485,6 @@ export default class ArRendering extends Component<Args> {
       if (this.heatmapConf.currentApplication === applicationObject3D
         && this.heatmapConf.heatmapActive) {
         this.heatmapConf.heatmapActive = false;
-        this.heatmapConf.currentApplication = null;
         return;
       }
       this.heatmapConf.setActiveApplication(applicationObject3D);

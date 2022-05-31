@@ -12,6 +12,7 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -120,12 +121,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
 
     const interAppCommunications = drawableClassCommunications.filter(x => x.sourceApp !== x.targetApp);
+    const pipeSizeMap = calculatePipeSize(interAppCommunications);
     // could be used to render all communication, but does not combine collapsed components
     // const interAppCommunications = drawableClassCommunications.filter(x => x.sourceClass.id !== x.targetClass.id)
     const communicationLinks = interAppCommunications.map(communication => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: communication.totalRequests, // used for particles
+      value: pipeSizeMap.get(communication.id), // used for particles
       communicationData: communication
     }));
 

@@ -160,18 +160,10 @@ export default class HighlightingService extends Service.extend({
     application: ApplicationObject3D,
     { entityType, entityId, color }: HightlightComponentArgs,
   ) {
-    const meshes = this.findMeshesByTypeAndId(
-      application,
-      entityType,
-      entityId,
-    );
-
-    this.debug('meshes length', meshes.length);
-
-    meshes.forEach((mesh) => {
-      this.debug('highlight mesh Aufruf');
+    const mesh = application.getMeshById(entityId);
+    if (mesh && isHighlightableMesh(mesh)) {
       this.hightlightMesh(application, mesh, color);
-    });
+    }
   }
 
   private hightlightMesh(
@@ -193,29 +185,6 @@ export default class HighlightingService extends Service.extend({
 
   private getEntityType(mesh: HighlightableMesh): string {
     return mesh.constructor.name;
-  }
-
-  private findMeshesByTypeAndId(
-    application: ApplicationObject3D,
-    entityType: string,
-    entityId: string,
-  ): HighlightableMesh[] {
-    const highlightableMeshes = [];
-    if (entityType === 'ComponentMesh' || entityType === 'ClazzMesh') {
-      const mesh = application.getBoxMeshbyModelId(entityId);
-      if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh) {
-        highlightableMeshes.push(mesh);
-      }
-    }
-
-    if (entityType === 'ClazzCommunicationMesh') {
-      application.getCommMeshes().forEach((mesh) => {
-        if (mesh.dataModel.id === entityId) {
-          highlightableMeshes.push(mesh);
-        }
-      });
-    }
-    return highlightableMeshes;
   }
 }
 

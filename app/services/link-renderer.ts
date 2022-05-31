@@ -35,6 +35,7 @@ export default class LinkRenderer extends Service.extend({
 
   @action
   linkPositionUpdate(line: ClazzCommunicationMesh, _coords: { start: Coords, end: Coords }, link: GraphLink) {
+    line.visible = this.linkVisible(link);
     if (!link.communicationData) {
       return true;
     }
@@ -59,7 +60,7 @@ export default class LinkRenderer extends Service.extend({
     const commLayout = new CommunicationLayout(drawableClassCommunication);
     commLayout.startPoint = start
     commLayout.endPoint = end
-    commLayout.lineThickness = 0.2;
+    commLayout.lineThickness = link.value;
     line.layout = commLayout;
     line.geometry.dispose();
 
@@ -89,6 +90,15 @@ export default class LinkRenderer extends Service.extend({
     const { communicationColor, highlightedEntityColor } = this.configuration.applicationColors;
     return new ClazzCommunicationMesh(undefined, clazzCommuMeshData,
       communicationColor, highlightedEntityColor);
+  }
+
+  @action
+  linkVisible(link: GraphLink) {
+    // return false;
+    if (!link.communicationData) {
+      return false;
+    }
+    return this.configuration.isCommRendered;
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
