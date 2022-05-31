@@ -124,6 +124,10 @@ export default abstract class BaseMenu extends THREE.Group {
    * return `undefined` to disable this behavior.
    */
   makeMenuButtonBinding(): VRControllerButtonBinding<undefined> | undefined {
+    return undefined;
+  }
+
+  makeBButtonBinding() {
     const label = this.menuGroup?.hasPreviousMenu ? 'Back' : 'Close';
     return new VRControllerButtonBinding(label, {
       onButtonDown: () => this.closeMenu(),
@@ -143,6 +147,7 @@ export default abstract class BaseMenu extends THREE.Group {
       triggerButton: this.makeTriggerButtonBinding(),
       gripButton: this.makeGripButtonBinding(),
       menuButton: this.makeMenuButtonBinding(),
+      bButton: this.makeBButtonBinding(),
     });
   }
 
@@ -203,7 +208,7 @@ export default abstract class BaseMenu extends THREE.Group {
    * @param delta The time in seconds since the last frame.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdateMenu(_delta: number) {}
+  onUpdateMenu(_delta: number) { }
 
   /**
    * Callback that is invoked by the menu group when this menu is hidden because

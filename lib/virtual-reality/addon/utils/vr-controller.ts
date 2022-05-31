@@ -36,6 +36,10 @@ export type VRControllerCallbackFunctions = {
   menuPress?(controller: VRController): void;
   menuDown?(controller: VRController): void;
 
+  bButtonUp?(controller: VRController): void;
+  bButtonPress?(controller: VRController): void;
+  bButtonDown?(controller: VRController): void;
+
   updateIntersectedObject?(controller: VRController): void;
 };
 
@@ -61,6 +65,8 @@ export default class VRController extends BaseMesh {
   gripIsPressed = false;
 
   menuIsPressed = false;
+
+  bButtonIsPressed = false;
 
   timestamp = 0;
 
@@ -290,10 +296,11 @@ export default class VRController extends BaseMesh {
     const THUMBPAD_BUTTON = 3;
     const TRIGGER_BUTTON = 0;
     const GRIP_BUTTON = 1;
-    const MENU_BUTTON = 4;
+    const A_BUTTON = 4;
+    const B_BUTTON = 5;
     if (gamepad) {
       const { timestamp } = gamepad;
-      
+
       // Ensure that gamepad data is fresh
       if (this.timestamp === timestamp) {
         return;
@@ -350,9 +357,9 @@ export default class VRController extends BaseMesh {
       }
 
       // Handle clicked / released menu button
-      if (gamepad.buttons[MENU_BUTTON]) {
-        if (this.menuIsPressed !== gamepad.buttons[MENU_BUTTON].pressed) {
-          this.menuIsPressed = gamepad.buttons[MENU_BUTTON].pressed;
+      if (gamepad.buttons[A_BUTTON]) {
+        if (this.menuIsPressed !== gamepad.buttons[A_BUTTON].pressed) {
+          this.menuIsPressed = gamepad.buttons[A_BUTTON].pressed;
           if (this.menuIsPressed && callbacks.menuDown) {
             callbacks.menuDown(this);
           } else if (!this.menuIsPressed && callbacks.menuUp) {
@@ -360,6 +367,19 @@ export default class VRController extends BaseMesh {
           }
         } else if (callbacks.menuPress && this.menuIsPressed) {
           callbacks.menuPress(this);
+        }
+      }
+
+      if (gamepad.buttons[B_BUTTON]) {
+        if (this.bButtonIsPressed !== gamepad.buttons[B_BUTTON].pressed) {
+          this.bButtonIsPressed = gamepad.buttons[B_BUTTON].pressed;
+          if (this.bButtonIsPressed && callbacks.bButtonDown) {
+            callbacks.bButtonDown(this);
+          } else if (!this.bButtonIsPressed && callbacks.bButtonUp) {
+            callbacks.bButtonUp(this);
+          }
+        } else if (callbacks.bButtonPress && this.bButtonIsPressed) {
+          callbacks.bButtonPress(this);
         }
       }
     }

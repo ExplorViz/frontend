@@ -23,6 +23,7 @@ export type VRControllerLabelPositions = {
   triggerButton?: VRControllerLabelPosition;
   gripButton?: VRControllerLabelPosition;
   menuButton?: VRControllerLabelPosition;
+  bButton?: VRControllerLabelPosition;
 };
 
 export function getVRControllerLabelPositions(

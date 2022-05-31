@@ -22,7 +22,7 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import THREE from 'three';
+import THREE, { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
@@ -712,8 +712,22 @@ export default class VrRendering
         },
       }),
 
-      menuButton: new VRControllerButtonBinding('Menu', {
-        onButtonDown: (controller) => this.openToolMenu(controller),
+      menuButton: new VRControllerButtonBinding('Ping', {
+        onButtonDown: (controller) => {
+          if (controller.intersectedObject) {
+            this.secondaryInputManager.handleTriggerDown(
+              controller.intersectedObject,
+            );
+          }
+        }
+      }),
+
+      bButton: new VRControllerButtonBinding('B-Button', {
+        onButtonDown: (controller) => {
+          if (controller.intersectedObject) {
+            this.ping(controller.intersectedObject);
+          }
+        }
       }),
 
       gripButton: new VRControllerButtonBinding('Grab Object', {
@@ -731,22 +745,16 @@ export default class VrRendering
               threshold: THUMBPAD_THRESHOLD,
             });
             switch (direction) {
-              case VRControllerThumbpadVerticalDirection.UP:
-                if (controller.intersectedObject) {
-                  this.secondaryInputManager.handleTriggerDown(
-                    controller.intersectedObject,
-                  );
-                }
+              case VRControllerThumbpadVerticalDirection.NONE:
+                this.openToolMenu(controller)
                 break;
-              case VRControllerThumbpadVerticalDirection.DOWN:
+              default:
                 if (controller.intersectedObject) {
                   const { object } = controller.intersectedObject;
                   if (isEntityMesh(object)) {
                     this.openInfoMenu(controller, object);
                   }
                 }
-                break;
-              default:
                 break;
             }
           },
@@ -885,6 +893,19 @@ export default class VrRendering
         break;
       default:
         break;
+    }
+  }
+
+  @action
+  ping(intersectedViewObj: Intersection) {
+    const parentObj = intersectedViewObj.object.parent;
+    const pingPosition = intersectedViewObj.point;
+    if (parentObj) {
+      parentObj.worldToLocal(pingPosition);
+      perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
+      if (parentObj instanceof ApplicationObject3D) {
+        this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
+      }
     }
   }
 
