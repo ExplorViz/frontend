@@ -153,7 +153,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // spectate
         this.updatables.push(this.spectateUserService);
 
-        this.popupHandler = new PopupHandler(getOwner(this))
+        this.popupHandler = new PopupHandler(getOwner(this), this.graph)
     }
 
     get rightClickMenuItems() {
@@ -431,6 +431,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.heatmapConf.cleanup();
         this.renderingLoop.stop();
         this.configuration.isCommRendered = true;
+        this.popupHandler.willDestroy();
         // this.graph.graphData([]);
 
         this.debug('Cleaned up application rendering');

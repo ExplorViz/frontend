@@ -48,7 +48,7 @@ export default class GrabbedObjectService extends Service {
     const objectId = object.getGrabId();
     if (!objectId) return Promise.resolve(true);
 
-    this.webSocket.sendRespondableMessage<ObjectGrabbedMessage, ObjectGrabbedResponse>(
+    return this.webSocket.sendRespondableMessage<ObjectGrabbedMessage, ObjectGrabbedResponse>(
       // Send object grab message.
       {
         event: 'object_grabbed',

@@ -106,7 +106,6 @@ export default class HighlightingService extends Service.extend({
     this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
       const mesh = applicationObject3D.highlightedEntity
       this.highlightComponent(applicationObject3D, mesh);
-      // removeHighlighting(applicationObject3D);
     });
   }
 

@@ -1,4 +1,3 @@
-import { action } from '@ember/object';
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 // @ts-ignore
@@ -6,17 +5,12 @@ import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import applyCommunicationLayout from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import { linkPositionUpdate } from 'explorviz-frontend/utils/link-helper';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import ThreeForceGraph from 'three-forcegraph';
-import THREE, { Vector2, Vector3 } from 'three';
-import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
-import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 export interface GraphNode {
   // data: ApplicationData,
@@ -105,11 +99,11 @@ export default class ForceGraph {
       });
     }
     this.graph.scale.setScalar(scale);
+    this.graph.getGrabId = () => { 'force-graph-grabbable' }
   }
 
   tick() {
     this.graph.tickFrame();
-    // this.graph.position.z += 0.1
   }
 
   private particleSpeed(link: GraphLink) {

@@ -21,6 +21,8 @@ import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/ut
 import { isObjectClosedResponse, ObjectClosedResponse } from "virtual-reality/utils/vr-message/receivable/response/object-closed";
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/detached_menu_closed";
 import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/menu_detached";
+import ForceGraph, { GraphLink } from './force-graph';
+import ThreeForceGraph from 'three-forcegraph';
 
 type PopupData = {
     mouseX: number,
@@ -43,10 +45,13 @@ export default class PopupHandler {
     @tracked
     popupData: PopupData[] = [];
 
-    constructor(owner: any) {
+    forceGraph: ThreeForceGraph;
+
+    constructor(owner: any, forceGraph: ThreeForceGraph) {
         setOwner(this, owner);
         this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
         this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+        this.forceGraph = forceGraph;
     }
 
     @action
@@ -63,8 +68,9 @@ export default class PopupHandler {
     pinPopup(popup: PopupData) {
         const mesh = popup.mesh;
         const entityId = mesh.dataModel.id;
-        const worldPosition = new THREE.Vector3()
-        mesh.getWorldPosition(worldPosition)
+        const worldPosition = new THREE.Vector3();
+        mesh.getWorldPosition(worldPosition);
+        this.forceGraph.worldToLocal(worldPosition);
         worldPosition.y += 0.3;
         // Wait for backend to assign an id to the detached menu.
         this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
@@ -172,17 +178,17 @@ export default class PopupHandler {
         quaternion,
         scale,
     }: MenuDetachedForwardMessage) {
-        const mesh = this.applicationRenderer.getMeshById(detachId);
+        const mesh = this.applicationRenderer.getMeshById(detachId) || this.forceGraph.graphData().links.find((link: GraphLink) => link.__lineObj.dataModel.id === detachId).__lineObj;
         if (mesh) {
             this.addPopup(mesh, { x: 100, y: 200 }, true, false, objectId)
             return;
         }
-        // TODO app communication workaround. FIX/ implement better. Access list of links somehow.
-        const appCommunicationMesh = this.applicationRenderer.openApplications[0].parent?.children.find((x) => x.dataModel.id === detachId)
-        if (appCommunicationMesh) {
-            this.addPopup(appCommunicationMesh, { x: 100, y: 200 }, true, false, objectId)
-            return;
-        }
+        // // TODO app communication workaround. FIX/ implement better. Access list of links somehow.
+        // const appCommunicationMesh = this.applicationRenderer.openApplications[0].parent?.children.find((x) => x.dataModel.id === detachId)
+        // if (appCommunicationMesh) {
+        //     this.addPopup(appCommunicationMesh, { x: 100, y: 200 }, true, false, objectId)
+        //     return;
+        // }
 
     }
 

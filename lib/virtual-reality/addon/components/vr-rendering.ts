@@ -986,13 +986,17 @@ export default class VrRendering
     quaternion,
     scale,
   }: MenuDetachedForwardMessage) {
+    const x = new THREE.Vector3();
+    x.fromArray(position);
+    x.y += 15;
+    this.graph.localToWorld(x)
     this.detachedMenuRenderer.restoreMenu({
       objectId,
       entityType,
       // TODO align the naming with SerializedDetachedMenu
       entityId: detachId,
-      position,
-      quaternion,
+      position: x.toArray(),
+      quaternion: this.localUser.camera.quaternion.toArray(),
       scale,
     });
   }
