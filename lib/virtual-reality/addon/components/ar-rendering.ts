@@ -255,6 +255,16 @@ export default class ArRendering extends Component<Args> {
     this.graph.scale.multiplyScalar(delta);
   }
 
+  @action
+  increaseSize() {
+    this.graph.scale.multiplyScalar(1.1);
+  }
+
+  @action
+  decreaseSize() {
+    this.graph.scale.multiplyScalar(0.90);
+  }
+
   /**
   * Initiates a WebGLRenderer
   */

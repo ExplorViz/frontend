@@ -96,6 +96,14 @@
           @handleZoomToggle={{this.handleZoomToggle}}
         />
 
+        <BsButton
+          @type="primary"
+          class="half-transparent"
+          {{ on "click" this.decreaseSize }}
+        >
+          {{svg-jar "dash-16" class="octicon align-middle ar-button-svg"}}
+        </BsButton>
+
       </div>
 
       <div class="ar-right-button-container">
@@ -112,6 +120,14 @@
         <Visualization::PageSetup::ArButtons::PingButton
           @handlePing={{this.handlePing}}
         />
+
+        <BsButton
+          @type="primary"
+          class="half-transparent"
+          {{ on "click" this.increaseSize }}
+        >
+          {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
+        </BsButton>
 
       </div>
 

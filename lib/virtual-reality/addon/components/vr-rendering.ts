@@ -166,6 +166,7 @@ export default class VrRendering
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
+    this.localUser.defaultCamera.position.set(2, 2, 2);
     this.localUser.userGroup.add(this.localUser.defaultCamera);
     this.scene.add(this.localUser.userGroup);
 

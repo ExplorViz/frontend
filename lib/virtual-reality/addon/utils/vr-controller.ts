@@ -1,4 +1,5 @@
 import debugLogger from 'ember-debug-logger';
+import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
@@ -397,7 +398,7 @@ export default class VRController extends BaseMesh {
 
     for (let i = 0; i < intersections.length; i++) {
       const intersection = intersections[i];
-      if (canIntersectAllParentObjects(intersection, { onlyVisible: true })) {
+      if (canIntersectAllParentObjects(intersection, { onlyVisible: true }) && defaultRaycastFilter(intersection)) {
         return intersection;
       }
     }
