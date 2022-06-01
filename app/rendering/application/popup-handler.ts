@@ -24,7 +24,7 @@ import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/
 import ForceGraph, { GraphLink } from './force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 
-type PopupData = {
+export type PopupData = {
     mouseX: number,
     mouseY: number,
     entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
@@ -155,8 +155,15 @@ export default class PopupHandler {
             if (replace) {
                 this.popupData = [newPopup];
             } else {
-                const popupAlreadyExists = this.popupData.any((pd) => pd.entity.id === mesh.dataModel.id);
-                if (popupAlreadyExists) return;
+                const popupAlreadyExists = this.popupData.find((pd) => pd.entity.id === newPopup.entity.id);
+                if (popupAlreadyExists) {
+                    // this.pinPopupLocally(newPopup.entity.id, newPopup.menuId);
+                    return;
+                }
+                while (this.popupData.any((pd) => pd.mouseX === newPopup.mouseX && pd.mouseY === newPopup.mouseY)) {
+                    newPopup.mouseX += 20;
+                    newPopup.mouseY += 20;
+                }
 
                 const notPinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
 

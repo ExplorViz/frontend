@@ -96,17 +96,29 @@
           @handleZoomToggle={{this.handleZoomToggle}}
         />
 
-        <BsButton
-          @type="primary"
-          class="half-transparent"
-          {{ on "click" this.decreaseSize }}
-        >
-          {{svg-jar "dash-16" class="octicon align-middle ar-button-svg"}}
-        </BsButton>
+        <div id="ar-minus-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.decreaseSize }}
+          >
+            {{svg-jar "dash-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
 
       </div>
 
       <div class="ar-right-button-container">
+
+        <div id="ar-three-bars-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.openMenu }}
+          >
+            {{svg-jar "three-bars-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
 
         <Visualization::PageSetup::ArButtons::PrimaryInteractionButton
           @handlePrimaryCrosshairInteraction={{this.handlePrimaryCrosshairInteraction}}
@@ -121,13 +133,15 @@
           @handlePing={{this.handlePing}}
         />
 
-        <BsButton
-          @type="primary"
-          class="half-transparent"
-          {{ on "click" this.increaseSize }}
-        >
-          {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
-        </BsButton>
+        <div id="ar-plus-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.increaseSize }}
+          >
+            {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
 
       </div>
 

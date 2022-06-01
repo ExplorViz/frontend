@@ -104,8 +104,9 @@
   right: var(--ar-button-padding);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-areas: 
-            ". p"
+  grid-template-areas:
+            ". t"
+            "x p"
             "l s";
   grid-gap: var(--ar-button-padding);
   padding: var(--ar-button-padding);
@@ -137,7 +138,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-areas: 
-            "i ."
+            "i -"
             "h z";
   grid-gap: var(--ar-button-padding);
   padding: var(--ar-button-padding);
@@ -175,6 +176,14 @@
 
 #ar-info-interaction-container {
   grid-area: i;
+}
+
+#ar-plus-interaction-container {
+  grid-area: x;
+}
+
+#ar-three-bars-interaction-container {
+  grid-area: t;
 }
 
 #ar-settings {

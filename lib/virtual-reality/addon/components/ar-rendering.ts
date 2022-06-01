@@ -9,7 +9,7 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
+import PopupHandler, { PopupData } from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
@@ -174,7 +174,7 @@ export default class ArRendering extends Component<Args> {
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
-    this.popupHandler = new PopupHandler(getOwner(this));
+    this.popupHandler = new PopupHandler(getOwner(this), this.graph);
   }
 
   get camera() {
@@ -263,6 +263,19 @@ export default class ArRendering extends Component<Args> {
   @action
   decreaseSize() {
     this.graph.scale.multiplyScalar(0.90);
+  }
+
+  @action
+  openMenu() {
+    const position = { clientX: 100, clientY: window.screen.availHeight - 200, preventDefault: () => { } }
+    const evt = new CustomEvent('openmenu', {
+      detail: {
+        srcEvent: position,
+      },
+      bubbles: true,
+      cancelable: true,
+    });
+    this.canvas.dispatchEvent(evt);
   }
 
   /**
@@ -513,8 +526,8 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  pinPopup(entityId: string) {
-    this.popupHandler.pinPopup(entityId);
+  pinPopup(entity: PopupData) {
+    this.popupHandler.pinPopup(entity);
   }
 
   // #endregion ACTIONS

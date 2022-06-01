@@ -8,7 +8,7 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
+import PopupHandler, { PopupData } from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';

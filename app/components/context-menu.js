@@ -4,24 +4,31 @@ import { action } from '@ember/object';
 
 export default class ContextMenu extends RightClickMenu {
 
+  open = false;
+
   @action
   addContextMenuListeners() {
     const targetElement = this.getTargetElement(this.popperId);
     targetElement.addEventListener('openmenu', this.openMenu);
     window.addEventListener('closemenu', this.closeContextMenu);
-    window.addEventListener('click', this.closeContextMenu);
+    // window.addEventListener('click', this.closeContextMenu);
   }
 
   @action
   openMenu(event) {
     const srcEvent = event.detail.srcEvent
-    this.contextMenu(srcEvent);
+    if (open) {
+      this.closeContextMenu();
+    } else {
+      this.contextMenu(srcEvent);
+      open = true;
+    }
   }
 
   @action
   willDestroy() {
     window.removeEventListener('closemenu', this.closeContextMenu);
-    window.removeEventListener('click', this.closeContextMenu);
+    // window.removeEventListener('click', this.closeContextMenu);
 
     if (this.targetElement) {
       this.targetElement.removeEventListener('openmenu', this.openMenu);
@@ -37,5 +44,6 @@ export default class ContextMenu extends RightClickMenu {
       e.path = e.composedPath && e.composedPath();
     }
     super.closeContextMenu(e);
+    open = false;
   }
 }
