@@ -39,7 +39,7 @@ interface NamedArgs {
   mouseOut?(): void,
   mouseMove?(intersection: THREE.Intersection | null): void,
   mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void,
-  singleClick?(intersection: THREE.Intersection): void,
+  singleClick?(intersection: THREE.Intersection | null): void,
   doubleClick?(intersection: THREE.Intersection): void,
   mousePing?(intersection: THREE.Intersection): void,
   pinch?(intersection: THREE.Intersection | null, delta: number): void,
@@ -160,8 +160,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.onTouchMove(event);
-    } else if (this.pointers.length === 1 && this.pointers[0].button === 2 && event.timeStamp - this.pointers[0].timeStamp > 100) {
-      this.dispatchCloseMenuEvent(event);
     } else if (this.pointers.length === 1) {
       this.handleMouseMovePan(event);
     } else {
@@ -190,6 +188,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.ping(intersectedViewObj);
     } else if (event.button === 0 && this.pointers.length === 1 && !this.longPressTriggered) {
       this.onLeftClick(event, intersectedViewObj);
+    } else if (event.button === 2 && this.pointers.length === 1 && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 100) {
+      this.dispatchOpenMenuEvent(event);
     }
   }
 
@@ -221,9 +221,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     if (this.pointerDownCounter === 1) {
       this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
-        if (intersectedViewObj) {
-          this.namedArgs.singleClick?.(intersectedViewObj);
-        }
+        this.namedArgs.singleClick?.(intersectedViewObj);
       }, 300);
     }
 
@@ -352,8 +350,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.handlePinchStart();
       this.handleRotateStart();
-    } else if (event.button === 2 && this.pointers.length === 1 && !this.selectedObject) {
-      this.dispatchOpenMenuEvent(event);
     } else if (event.button === 0 && this.pointers.length === 1) {
       this.dispatchCloseMenuEvent(event);
       this.pointerDownCounter += 1;

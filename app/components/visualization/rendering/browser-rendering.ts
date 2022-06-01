@@ -271,22 +271,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         if (intersection) {
             // this.mousePosition.copy(intersection.point);
             this.handleSingleClickOnMesh(intersection.object);
-        }
-    }
-
-    @action
-    removeHighlighting() {
-        if (this.selectedApplicationObject3D) {
-            removeHighlighting(this.selectedApplicationObject3D);
+        } else {
+            this.highlightingService.removeHighlightingForAllApplications();
         }
     }
 
     @action
     handleSingleClickOnMesh(mesh: THREE.Object3D) {
         // User clicked on blank spot on the canvas
-        if (mesh === undefined) {
-            this.removeHighlighting();
-        } else if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
+        if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
             || mesh instanceof ClazzCommunicationMesh) {
             this.highlightingService.highlight(mesh);
         } else if (mesh instanceof FoundationMesh) {
@@ -381,8 +374,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     @action
-    pinPopup(entityId: string) {
-        this.popupHandler.pinPopup(entityId);
+    pinPopup(popup: PopupData) {
+        this.popupHandler.pinPopup(popup);
     }
 
     @action

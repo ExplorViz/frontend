@@ -2,6 +2,7 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
+import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { Position2D } from "explorviz-frontend/modifiers/interaction-modifier";
 import ApplicationRenderer from "explorviz-frontend/services/application-renderer";
 import { Application, Class, Node, Package } from "explorviz-frontend/utils/landscape-schemes/structure-data";
@@ -25,6 +26,7 @@ type PopupData = {
     mouseX: number,
     mouseY: number,
     entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
+    mesh: EntityMesh,
     applicationId: string,
     isPinned: boolean,
     menuId: string | null,
@@ -58,35 +60,34 @@ export default class PopupHandler {
     }
 
     @action
-    pinPopup(entityId: string) {
-        const mesh = this.applicationRenderer.getMeshById(entityId);
-        if (isEntityMesh(mesh)) {
-            const worldPosition = new THREE.Vector3()
-            mesh.getWorldPosition(worldPosition)
-            worldPosition.y += 0.3;
-            // Wait for backend to assign an id to the detached menu.
-            this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
-                {
-                    event: 'menu_detached',
-                    detachId: entityId,
-                    entityType: getTypeOfEntity(mesh),
-                    position: worldPosition.toArray(),
-                    quaternion: [0, 0, 0, 0],
-                    scale: [1, 1, 1],
-                    nonce: 0 // will be overwritten
+    pinPopup(popup: PopupData) {
+        const mesh = popup.mesh;
+        const entityId = mesh.dataModel.id;
+        const worldPosition = new THREE.Vector3()
+        mesh.getWorldPosition(worldPosition)
+        worldPosition.y += 0.3;
+        // Wait for backend to assign an id to the detached menu.
+        this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+            {
+                event: 'menu_detached',
+                detachId: entityId,
+                entityType: getTypeOfEntity(mesh),
+                position: worldPosition.toArray(),
+                quaternion: [0, 0, 0, 0],
+                scale: [1, 1, 1],
+                nonce: 0 // will be overwritten
+            },
+            {
+                responseType: isMenuDetachedResponse,
+                onResponse: (response: MenuDetachedResponse) => {
+                    this.pinPopupLocally(entityId, response.objectId);
+                    return true;
                 },
-                {
-                    responseType: isMenuDetachedResponse,
-                    onResponse: (response: MenuDetachedResponse) => {
-                        this.pinPopupLocally(entityId, response.objectId);
-                        return true;
-                    },
-                    onOffline: () => {
-                        this.pinPopupLocally(entityId, null);
-                    },
-                }
-            )
-        }
+                onOffline: () => {
+                    this.pinPopupLocally(entityId, null);
+                },
+            }
+        )
     }
 
     @action
@@ -139,6 +140,7 @@ export default class PopupHandler {
                 mouseX: position.x,
                 mouseY: position.y,
                 entity: mesh.dataModel,
+                mesh: mesh,
                 applicationId: mesh.parent?.dataModel?.id,
                 menuId: menuId,
                 isPinned: pinned,
@@ -175,6 +177,13 @@ export default class PopupHandler {
             this.addPopup(mesh, { x: 100, y: 200 }, true, false, objectId)
             return;
         }
+        // TODO app communication workaround. FIX/ implement better. Access list of links somehow.
+        const appCommunicationMesh = this.applicationRenderer.openApplications[0].parent?.children.find((x) => x.dataModel.id === detachId)
+        if (appCommunicationMesh) {
+            this.addPopup(appCommunicationMesh, { x: 100, y: 200 }, true, false, objectId)
+            return;
+        }
+
     }
 
     @action

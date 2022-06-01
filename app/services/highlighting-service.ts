@@ -15,6 +15,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import debugLogger from 'ember-debug-logger';
+import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -100,6 +101,15 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
+  @action
+  removeHighlightingForAllApplications() {
+    this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
+      const mesh = applicationObject3D.highlightedEntity
+      this.highlightComponent(applicationObject3D, mesh);
+      // removeHighlighting(applicationObject3D);
+    });
+  }
+
   updateHighlighting(applicationObject3D: ApplicationObject3D, value: number = this.opacity) {
     const drawableClassCommunications = this.getDrawableClassCommunications(applicationObject3D);
     if (drawableClassCommunications) {
@@ -179,7 +189,6 @@ export default class HighlightingService extends Service.extend({
         color || this.configuration.applicationColors.highlightedEntityColor,
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
-      this.debug('Highlighting.highlight wurde aufgerufen');
     }
   }
 
