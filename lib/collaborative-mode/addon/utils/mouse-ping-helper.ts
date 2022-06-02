@@ -1,41 +1,38 @@
 import { timeout } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
-import THREE from 'three';
+import THREE, { AnimationMixer } from 'three';
+import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 
 export default class MousePing {
-  obj: THREE.Object3D | null;
 
-  color: THREE.Color;
+  mesh: PingMesh;
 
-  constructor(color: THREE.Color) {
-    this.obj = null;
-    this.color = color;
+  constructor(color: THREE.Color, animationMixer: AnimationMixer) {
+    this.mesh = new PingMesh({
+      animationMixer: animationMixer,
+      color: color,
+    });
   }
 
   @restartableTask
   public * ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
-    if (this.obj) {
-      this.obj.parent?.remove(this.obj);
-      this.obj = null;
+    if (this.mesh) {
+      this.mesh.parent?.remove(this.mesh);
     }
 
-    // Default for applications
     const worldScale = new THREE.Vector3();
     parentObj.getWorldScale(worldScale);
-    let size = 0.06 / worldScale.x;
+    // disable for floor and other unscaled objects
+    if (worldScale.x === 1) {
+      return;
+    }
 
-    const geometry = new THREE.SphereGeometry(size, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: this.color });
-    const sphere = new THREE.Mesh(geometry, material);
-
-    sphere.position.copy(position);
-    parentObj.add(sphere)
-
-    this.obj = sphere;
-
+    this.mesh.position.copy(position);
+    parentObj.add(this.mesh);
+    this.mesh.startPinging();
     yield timeout(2000);
+    this.mesh.stopPinging();
 
-    this.obj.parent?.remove(this.obj);
-    this.obj = null;
+    this.mesh.parent?.remove(this.mesh);
   }
 }

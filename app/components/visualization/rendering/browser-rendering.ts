@@ -3,6 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
@@ -112,8 +113,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @tracked
     selectedApplicationId: string = '';
 
-    @service('web-socket')
-    private webSocket!: WebSocketService;
+    @service('collaboration-session')
+    private collaborationSession!: CollaborationSession;
 
     get selectedApplicationObject3D() {
         return this.applicationRenderer.getApplicationById(this.selectedApplicationId);
@@ -149,11 +150,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.graph = forceGraph.graph;
         this.scene.add(forceGraph.graph);
         this.updatables.push(forceGraph);
+        this.updatables.push(this);
 
         // spectate
         this.updatables.push(this.spectateUserService);
 
         this.popupHandler = new PopupHandler(getOwner(this), this.graph)
+    }
+
+    tick(delta: number) {
+        this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
+            remoteUser.update(delta);
+        });
     }
 
     get rightClickMenuItems() {
@@ -255,6 +263,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             }
         })
         this.updatables.push(this.cameraControls);
+        this.updatables.push(this.localUser);
 
         this.renderingLoop = new RenderingLoop(getOwner(this),
             {

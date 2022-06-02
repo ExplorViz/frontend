@@ -168,6 +168,7 @@ export default class ArRendering extends Component<Args> {
     this.graph.visible = false;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
+    this.updatables.push(this.localUser);
 
     // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     this.toastMessage.init();
@@ -375,7 +376,6 @@ export default class ArRendering extends Component<Args> {
       width * this.rendererResolutionMultiplier,
       height * this.rendererResolutionMultiplier,
     );
-    this.debug(`Widht/ Height${width}/${height}`);
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -582,13 +582,15 @@ export default class ArRendering extends Component<Args> {
 
   // #region RENDERING
 
-  tick(_delta: number, frame: THREE.XRFrame) {
+  tick(delta: number, frame: THREE.XRFrame) {
     if (this.renderer.xr.enabled) {
       if (!this.graph.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
-    // this.remoteUsers.updateRemoteUsers(delta);
+    this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
+      remoteUser.update(delta);
+    });
   }
 
   // #endregion RENDERING

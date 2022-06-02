@@ -39,6 +39,8 @@ export default class LocalUser extends Service.extend({
 
   panoramaSphere: THREE.Object3D | undefined;
 
+  animationMixer!: THREE.AnimationMixer;
+
   xr?: WebXRManager;
 
   init() {
@@ -53,7 +55,8 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.defaultCamera.position.set(0, 1, 2);
     this.userGroup.add(this.defaultCamera);
-    this.mousePing = new MousePing(new THREE.Color('skyblue'));
+    this.animationMixer = new THREE.AnimationMixer(this.userGroup);
+    this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
   }
 
   get camera() {
@@ -61,6 +64,10 @@ export default class LocalUser extends Service.extend({
       return this.xr.getCamera(this.defaultCamera);
     }
     return this.defaultCamera;
+  }
+
+  tick(delta: number) {
+    this.animationMixer.update(delta)
   }
 
   connected({
@@ -76,7 +83,7 @@ export default class LocalUser extends Service.extend({
     this.userName = name;
 
     this.color = color;
-    this.mousePing = new MousePing(color);
+    this.mousePing = new MousePing(new THREE.Color(color), this.animationMixer);
   }
 
   // VR Capabilities

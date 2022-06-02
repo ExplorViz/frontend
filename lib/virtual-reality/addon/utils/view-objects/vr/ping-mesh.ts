@@ -10,7 +10,7 @@ export const PING_ANIMATION_CLIP = new THREE.AnimationClip(
   ],
 );
 
-const PING_RADIUS = 0.02;
+const PING_RADIUS = 2.4;
 
 const PING_SEGMENTS = 32;
 

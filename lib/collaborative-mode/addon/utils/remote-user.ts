@@ -66,7 +66,7 @@ export default class RemoteUser extends THREE.Object3D {
     this.animationMixer = new THREE.AnimationMixer(this);
 
     this.camera = null;
-    this.mousePing = new MousePing(color);
+    this.mousePing = new MousePing(color, this.animationMixer);
     this.controllers = [null, null];
     this.nameTag = null;
 

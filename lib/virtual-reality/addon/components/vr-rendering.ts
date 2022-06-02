@@ -176,6 +176,7 @@ export default class VrRendering
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
+    this.updatables.push(this.localUser);
 
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
