@@ -34,8 +34,8 @@ export default class ArZoomHandler {
     if (!this.zoomEnabled) return;
     renderer.xr.enabled = false;
 
-    const width = window.screen.width
-    const height = window.screen.height
+    const width = window.screen.height
+    const height = window.screen.width
     this.zoomCamera.quaternion.copy(this.mainCamera.quaternion);
 
     const originalSize = renderer.getSize(new THREE.Vector2());

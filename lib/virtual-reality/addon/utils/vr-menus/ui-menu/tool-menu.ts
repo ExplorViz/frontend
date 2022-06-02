@@ -340,8 +340,7 @@ export default class ToolMenu extends InteractiveMenu {
           })
           ) {
             case VRControllerThumbpadHorizontalDirection.NONE:
-              // this.selectTool(this.selectedToolIndex);
-              this.selectedTool?.action();
+              this.closeMenu()
               break;
           }
         }

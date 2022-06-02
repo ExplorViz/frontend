@@ -162,7 +162,7 @@ export default class GrabMenu extends BaseMenu {
           ) {
             // Adapt distance for moving according to trigger value.
             direction.normalize();
-            const length = yAxis * 0.016;
+            const length = yAxis * 0.062;
 
             this.grabbedObject.translateOnAxis(direction, length);
             this.collideWithFloor();

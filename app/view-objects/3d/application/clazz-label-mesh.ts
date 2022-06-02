@@ -40,7 +40,7 @@ export default class ClazzLabelMesh extends LabelMesh {
 
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
-      depthTest: false,
+      // depthTest: false,
     });
   }
 }

@@ -746,14 +746,16 @@ export default class VrRendering
               threshold: THUMBPAD_THRESHOLD,
             });
             switch (direction) {
-              case VRControllerThumbpadVerticalDirection.NONE:
-                this.openToolMenu(controller)
-                break;
+              // case VRControllerThumbpadVerticalDirection.NONE:
+              //   this.openToolMenu(controller)
+              //   break;
               default:
                 if (controller.intersectedObject) {
                   const { object } = controller.intersectedObject;
                   if (isEntityMesh(object)) {
                     this.openInfoMenu(controller, object);
+                  } else {
+                    this.openToolMenu(controller)
                   }
                 }
                 break;
