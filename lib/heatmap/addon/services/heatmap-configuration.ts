@@ -47,7 +47,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   // Switches and models used by config
   @tracked
-  selectedMode: HeatmapMode = 'aggregatedHeatmap';
+  selectedMode: HeatmapMode = 'snapshotHeatmap';
 
   @tracked
   selectedMetricName: string = '';
@@ -93,7 +93,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   updateActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (!this.currentApplication || this.currentApplication === applicationObject3D) {
-      this.debug('Ayy?')
+      this.debug('Ayy?');
       this.currentApplication = applicationObject3D;
     }
   }
