@@ -132,7 +132,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
       return 0;
     }
     const reducer = (accumulator: number, currentValue: number) => accumulator + currentValue;
-    return dynamicData.map((trace) => trace.spanList.length).reduce(reducer);
+    return dynamicData.map((trace) => trace.overallRequestCount).reduce(reducer);
   }
 
   updateTimestampRepoAndTimeline(timestamp: number, totalRequests: number) {

@@ -74,18 +74,21 @@ self.addEventListener('message', function(e) {
       let max = 0;
       const values = new Map();
   
-      getAllClazzesInApplication(application).forEach((clazz) => {
+      const clazzes = getAllClazzesInApplication(application);
+
+      clazzes.forEach((clazz) => {
         values.set(clazz.id, 0);
       });
 
-      const clazzes = [];
-      application.packages.forEach((component) => {
-        getClazzList(component, clazzes);
-      });
+      //const clazzes = getAllClazzesInApplication(application);
+      // clazzes = [];
+      //application.packages.forEach((component) => {
+      //  getClazzList(component, clazzes);
+     // });
   
       const hashCodeToClassMap = getHashCodeToClassMap(clazzes);
   
-      const allMethodHashCodes = getAllSpanHashCodesFromTraces(allLandscapeTraces);
+      const allMethodHashCodes = getAllSpanHashCodesFromTracesExceptParentSpans(allLandscapeTraces);
   
       for (let methodHashCode of allMethodHashCodes) {
         const classMatchingTraceHashCode = hashCodeToClassMap.get(methodHashCode);
@@ -122,13 +125,10 @@ self.addEventListener('message', function(e) {
       let max = 0;
       const values = new Map();
   
-      getAllClazzesInApplication(application).forEach((clazz) => {
-        values.set(clazz.id, 0);
-      });
+      const clazzes = getAllClazzesInApplication(application);
 
-      const clazzes = [];
-      application.packages.forEach((component) => {
-        getClazzList(component, clazzes);
+      clazzes.forEach((clazz) => {
+        values.set(clazz.id, 0);
       });
 
       const hashCodeToClassMap = getHashCodeToClassMap(clazzes);
@@ -300,6 +300,19 @@ self.addEventListener('message', function(e) {
       });
     
       return hashCodeToClassMap;
+    }
+
+    function getAllSpanHashCodesFromTracesExceptParentSpans(traceArray) {
+      const hashCodes = [];
+      
+      traceArray.forEach((trace) => {
+        trace.spanList.forEach((span) => {
+          if(span.parentSpanId) {
+            hashCodes.push(span.hashCode);
+          }          
+        });
+      });
+      return hashCodes;
     }
   
     function getAllSpanHashCodesFromTraces(traceArray) {
