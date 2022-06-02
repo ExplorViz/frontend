@@ -102,6 +102,7 @@ export default class ArRendering extends Component<Args> {
 
   private willDestroyController: AbortController = new AbortController();
 
+  @tracked
   rendererResolutionMultiplier = 2;
 
   lastPopupClear = 0;
@@ -196,6 +197,8 @@ export default class ArRendering extends Component<Args> {
     this.initCamera();
     this.initRenderer();
     this.initAr();
+
+    this.arZoomHandler = new ArZoomHandler(this.localUser.camera, this.arSettings);
     this.renderingLoop = new RenderingLoop(getOwner(this),
       {
         camera: this.camera,
@@ -237,7 +240,6 @@ export default class ArRendering extends Component<Args> {
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(65, document.body.clientWidth / document.body.clientHeight, 0.01, 20);
     this.scene.add(this.localUser.defaultCamera);
 
-    this.arZoomHandler = new ArZoomHandler(this.localUser.defaultCamera, this.arSettings);
   }
 
   private initCameraCrosshair() {
@@ -267,7 +269,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   openMenu() {
-    const position = { clientX: 100, clientY: window.screen.availHeight - 200, preventDefault: () => { } }
+    const position = { clientX: 100, clientY: window.innerHeight - 200, preventDefault: () => { } }
     const evt = new CustomEvent('openmenu', {
       detail: {
         srcEvent: position,
@@ -365,8 +367,10 @@ export default class ArRendering extends Component<Args> {
   @action
   resize(/* outerDiv: HTMLElement */) {
     // AR view will be fullscreen
-    const { width } = window.screen;
-    const { height } = window.screen;
+    // const { width } = window.screen;
+    // const { height } = window.screen;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     this.renderer.setSize(
       width * this.rendererResolutionMultiplier,
       height * this.rendererResolutionMultiplier,
@@ -505,7 +509,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     const mesh = intersection.object;
-    const position = { x: window.screen.width / 2, y: window.screen.height / 2 };
+    const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     this.popupHandler.addPopup(mesh, position, false, !this.arSettings.stackPopups);
   }
 

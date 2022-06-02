@@ -34,9 +34,12 @@ export default class ArZoomHandler {
     if (!this.zoomEnabled) return;
     renderer.xr.enabled = false;
 
-    const width = window.screen.height
-    const height = window.screen.width
+    // const width = window.screen.width // for chrome fullscreen
+    // const height = window.screen.height // for chrome fullscreen
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     this.zoomCamera.quaternion.copy(this.mainCamera.quaternion);
+    this.zoomCamera.position.copy(this.mainCamera.position);
 
     const originalSize = renderer.getSize(new THREE.Vector2());
 
@@ -71,8 +74,15 @@ export default class ArZoomHandler {
     this.zoomCamera.aspect = width / height;
     this.zoomCamera.updateProjectionMatrix();
 
+    // add border
+    renderer.setScissor(zoomPos.x - 4, zoomPos.y - 4, zoomSize.x * 2 + 8, zoomSize.y * 2 + 8);
+    renderer.setClearColor(0xffffff, 1); // border color
+    renderer.clearColor(); // clear color buffer
+
+    // render zoom content
     renderer.setViewport(zoomPos.x, zoomPos.y, zoomSize.x * 2, zoomSize.y * 2);
     renderer.setScissor(zoomPos.x, zoomPos.y, zoomSize.x * 2, zoomSize.y * 2);
+    renderer.setClearColor(0x000000, 0); // border color
 
     renderer.render(scene, this.zoomCamera);
 

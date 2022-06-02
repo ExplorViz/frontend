@@ -171,6 +171,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onPointerStop(customEvent: CustomEvent<MouseStopEvent>) {
+    if (this.pointers.length > 0) { return; }
     const event = customEvent.detail.srcEvent;
 
     const intersectedViewObj = this.raycast(event);
