@@ -723,7 +723,7 @@ export default class VrRendering
         },
       }),
 
-      menuButton: new VRControllerButtonBinding('Ping', {
+      menuButton: new VRControllerButtonBinding('Highlight', {
         onButtonDown: (controller) => {
           if (controller.intersectedObject) {
             this.secondaryInputManager.handleTriggerDown(
@@ -733,7 +733,7 @@ export default class VrRendering
         }
       }),
 
-      bButton: new VRControllerButtonBinding('B-Button', {
+      bButton: new VRControllerButtonBinding('Ping', {
         onButtonDown: (controller) => {
           if (controller.intersectedObject) {
             this.ping(controller.intersectedObject);

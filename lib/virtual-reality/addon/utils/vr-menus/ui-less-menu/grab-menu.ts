@@ -155,14 +155,14 @@ export default class GrabMenu extends BaseMenu {
           );
 
           // Stop object from moving too close to controller.
-          const yAxis = axes[1];
+          const yAxis = -axes[1];
           if (
             (worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1)
             || (worldDirection.length() <= 0.5 && yAxis > 0.1)
           ) {
             // Adapt distance for moving according to trigger value.
             direction.normalize();
-            const length = yAxis * 0.062;
+            const length = yAxis * 0.1;
 
             this.grabbedObject.translateOnAxis(direction, length);
             this.collideWithFloor();

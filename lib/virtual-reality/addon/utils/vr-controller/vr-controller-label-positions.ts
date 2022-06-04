@@ -120,10 +120,10 @@ export function getVRControllerLabelPositions(
   };
 
   return {
-    thumbpad: thumbpadPosition('xr-standard-touchpad'),
+    thumbpad: thumbpadPosition('xr-standard-thumbstick'),
     triggerButton: buttonPosition('xr-standard-trigger'),
     gripButton: buttonPosition('xr-standard-squeeze'),
-    menuButton: buttonPosition('menu', 'x-button', 'a-button'),
-    bButton: buttonPosition('y-button', 'y-button'),
+    menuButton: buttonPosition('x-button', 'a-button'),
+    bButton: buttonPosition('y-button', 'b-button'),
   };
 }
