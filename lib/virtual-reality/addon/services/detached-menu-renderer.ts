@@ -33,6 +33,7 @@ export default class DetachedMenuRenderer extends Service.extend({
       this.detachedMenuGroups.addDetachedMenuLocally(
         menu,
         detachedMenu.objectId,
+        detachedMenu.userId,
       );
     }
   }

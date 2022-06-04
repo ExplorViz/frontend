@@ -35,12 +35,12 @@ export function getVRControllerLabelPositions(
 
   // Since the layout description is not exposed by the TypeScript interface,
   // we have to remove the type first.
-  const controllerNodeName = (motionController as any).layoutDescription
-    .rootNodeName;
+  // const controllerNodeName = (motionController as any).layoutDescription
+  // .rootNodeName;
 
   // Make sure that the controller model has been loaded and its position is
   // up to date.
-  if (!controller.controllerModel.getObjectByName(controllerNodeName)) return null;
+  // if (!controller.controllerModel.getObjectByName(controllerNodeName)) return null;
   controller.controllerModel.updateMatrixWorld(true);
 
   // Gets the position of mesh in the controller model. We cannot use the
@@ -124,5 +124,6 @@ export function getVRControllerLabelPositions(
     triggerButton: buttonPosition('xr-standard-trigger'),
     gripButton: buttonPosition('xr-standard-squeeze'),
     menuButton: buttonPosition('menu', 'x-button', 'a-button'),
+    bButton: buttonPosition('y-button', 'y-button'),
   };
 }

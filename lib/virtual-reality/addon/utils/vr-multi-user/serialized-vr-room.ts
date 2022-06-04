@@ -5,6 +5,7 @@ import { Scale } from '../vr-message/util/Scale';
 
 export type SerializedDetachedMenu = {
   objectId: string | null;
+  userId: string | null;
   entityId: string;
   entityType: EntityType;
   position: Position;

@@ -118,6 +118,14 @@ export default class CollaborationSession extends Service.extend({
     return this.idToRemoteUser.get(userId);
   }
 
+  getColor(userId: string) {
+    const remoteUser = this.lookupRemoteUserById(userId);
+    if (!remoteUser) {
+      return "#" + this.localUser.color?.getHexString();
+    }
+    return "#" + remoteUser?.color.getHexString()
+  }
+
   /**
    * After succesfully connecting to the backend, create and spawn other users.
    */

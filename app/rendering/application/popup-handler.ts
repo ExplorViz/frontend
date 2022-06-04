@@ -2,30 +2,26 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import LocalUser from 'collaborative-mode/services/local-user';
+import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from "explorviz-frontend/modifiers/interaction-modifier";
 import ApplicationRenderer from "explorviz-frontend/services/application-renderer";
-import { Application, Class, Node, Package } from "explorviz-frontend/utils/landscape-schemes/structure-data";
 import ClazzCommunicationMesh from "explorviz-frontend/view-objects/3d/application/clazz-communication-mesh";
 import ClazzMesh from "explorviz-frontend/view-objects/3d/application/clazz-mesh";
 import ComponentMesh from "explorviz-frontend/view-objects/3d/application/component-mesh";
-import ClazzCommuMeshDataModel from "explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model";
 import ApplicationMesh from "explorviz-frontend/view-objects/3d/landscape/application-mesh";
 import NodeMesh from "explorviz-frontend/view-objects/3d/landscape/node-mesh";
 import THREE from "three";
+import ThreeForceGraph from 'three-forcegraph';
 import WebSocketService from "virtual-reality/services/web-socket";
-import { getTypeOfEntity, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { getTypeOfEntity } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from "virtual-reality/utils/vr-message/receivable/menu-detached-forward";
 import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/utils/vr-message/receivable/response/menu-detached";
 import { isObjectClosedResponse, ObjectClosedResponse } from "virtual-reality/utils/vr-message/receivable/response/object-closed";
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/detached_menu_closed";
 import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/menu_detached";
-import ForceGraph, { GraphLink } from './force-graph';
-import ThreeForceGraph from 'three-forcegraph';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
-import LocalUser from 'collaborative-mode/services/local-user';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import { GraphLink } from './force-graph';
 
 export default class PopupHandler {
 

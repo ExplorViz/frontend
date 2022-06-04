@@ -1,5 +1,8 @@
 import Service, { inject as service } from '@ember/service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import THREE from 'three';
+import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
 import CloseIcon from '../utils/view-objects/vr/close-icon';
@@ -9,6 +12,7 @@ import { isMenuDetachedResponse, MenuDetachedResponse } from '../utils/vr-messag
 import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
 import VrMessageSender from './vr-message-sender';
+import WebSocketService from './web-socket';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('vr-asset-repo')
@@ -19,6 +23,12 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   private detachedMenuGroups: Set<DetachedMenuGroup>;
 
@@ -56,12 +66,17 @@ export default class DetachedMenuGroupsService extends Service {
    * but still detached.
    */
   addDetachedMenu(menu: DetachableMenu) {
+    this.addDetachedMenuLocally(menu, null, null);
+  }
+
+  shareDetachedMenu(menuGroup: DetachedMenuGroup, icon: ActionIcon): Promise<boolean> {
+    const menu = menuGroup.currentMenu as DetachableMenu;
     const position = new THREE.Vector3();
     menu.getWorldPosition(position);
 
     const quaternion = new THREE.Quaternion();
     menu.getWorldQuaternion(quaternion);
-    this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+    return this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
       // Notify backend about detached menu.
       {
         event: 'menu_detached',
@@ -76,10 +91,17 @@ export default class DetachedMenuGroupsService extends Service {
       {
         responseType: isMenuDetachedResponse,
         onResponse: (response: MenuDetachedResponse) => {
-          this.addDetachedMenuLocally(menu, response.objectId);
+          const menuId = response.objectId;
+          if (menuId) {
+            const color = this.collaborationSession.getColor("");
+            icon.material.color = new THREE.Color(color);
+            menuGroup.menuId = menuId;
+            if (menuId) this.detachedMenuGroupsById.set(menuId, menuGroup);
+            return true;
+          }
+          return false;
         },
         onOffline: () => {
-          this.addDetachedMenuLocally(menu, null);
         },
       }
     )
@@ -96,7 +118,7 @@ export default class DetachedMenuGroupsService extends Service {
    * Adds a group for a detached menu to this container at the position and
    * with the same rotation and scale as the given menu.
    */
-  addDetachedMenuLocally(menu: DetachableMenu, menuId: string | null) {
+  addDetachedMenuLocally(menu: DetachableMenu, menuId: string | null, userId: string | null) {
     // Remember the position, rotation and scale of the detached menu.
     const position = new THREE.Vector3();
     const quaternion = new THREE.Quaternion();
@@ -120,6 +142,11 @@ export default class DetachedMenuGroupsService extends Service {
     if (menuId) this.detachedMenuGroupsById.set(menuId, detachedMenuGroup);
     this.container.add(detachedMenuGroup);
 
+
+    let color = "white"
+    if (userId) {
+      color = this.collaborationSession.getColor(userId);
+    }
     // Make detached menu closable.
     // Since the menu has been scaled already and is not scaled when it has its
     // normal size, the close icon does not have to correct for the menu's scale.
@@ -130,11 +157,42 @@ export default class DetachedMenuGroupsService extends Service {
     });
     closeIcon.addToObject(detachedMenuGroup);
 
+    const shareIcon = new ActionIcon({
+      textures: this.assetRepo.shareIconTextures,
+      color: new THREE.Color(color),
+      onAction: () => this.shareDetachedMenu(detachedMenuGroup, shareIcon),
+      radius: 0.04,
+    });
+    shareIcon.addToObject(detachedMenuGroup);
+    shareIcon.position.y -= 0.04;
+    shareIcon.position.x -= 0.15;
+
+    color = this.collaborationSession.getColor("");
+    // highlight icon
+    const highlightIcon = new ActionIcon({
+      textures: this.assetRepo.paintbrushIconTextures,
+      color: new THREE.Color(color),
+      onAction: () => this.highlightComponent(menu.getDetachId()),
+      radius: 0.04,
+    });
+    highlightIcon.addToObject(detachedMenuGroup);
+    highlightIcon.position.y -= 0.04;
+    highlightIcon.position.x -= 0.25;
+
     // Apply same position, rotation and scale as detached menu.
     detachedMenuGroup.position.copy(position);
     detachedMenuGroup.quaternion.copy(quaternion);
     detachedMenuGroup.scale.copy(scale);
   }
+
+  highlightComponent(entityId: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.highlightingService.highlightById(entityId)
+      resolve(true);
+    })
+  }
+
+
 
   /**
    * Asks the backend to close the given detached menu. If the backend allows

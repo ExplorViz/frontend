@@ -59,11 +59,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (!userId) {
       return "";
     }
-    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
-    if (!remoteUser) {
-      return "#" + this.localUser.color?.getHexString();
-    }
-    return "#" + remoteUser?.color.getHexString()
+    return this.collaborationSession.getColor(userId);
   }
 
   @action

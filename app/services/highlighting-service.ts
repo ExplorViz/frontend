@@ -16,7 +16,7 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import debugLogger from 'ember-debug-logger';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -123,6 +123,14 @@ export default class HighlightingService extends Service.extend({
     if (drawableClassCommunications) {
       Highlighting.highlightModel(entity, applicationObject3D,
         drawableClassCommunications, this.opacity);
+    }
+  }
+
+  @action
+  highlightById(meshId: string) {
+    const mesh = this.applicationRenderer.getMeshById(meshId) // || this.forceGraph.graphData().links.find((link: GraphLink) => link.__lineObj.dataModel.id === detachId).__lineObj;
+    if (isEntityMesh(mesh)) {
+      this.highlight(mesh);
     }
   }
 

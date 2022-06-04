@@ -33,8 +33,10 @@ import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
+import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
+import ShareIcon from 'virtual-reality/utils/view-objects/vr/share-icon';
 import VRController from 'virtual-reality/utils/vr-controller';
 import VRControllerBindings from 'virtual-reality/utils/vr-controller/vr-controller-bindings';
 import VRControllerBindingsList from 'virtual-reality/utils/vr-controller/vr-controller-bindings-list';
@@ -327,6 +329,13 @@ export default class VrRendering
       targetType: CloseIcon,
       triggerDown: (event) => event.target.close().then((closedSuccessfully: boolean) => {
         if (!closedSuccessfully) this.showHint('Object could not be closed');
+      }),
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: ActionIcon,
+      triggerDown: (event) => event.target.action().then((closedSuccessfully: boolean) => {
+        if (!closedSuccessfully) this.showHint('Action not possible.');
       }),
     });
 
@@ -983,6 +992,7 @@ export default class VrRendering
 
   onMenuDetached({
     objectId,
+    userId,
     entityType,
     detachId,
     position,
@@ -996,6 +1006,7 @@ export default class VrRendering
     this.detachedMenuRenderer.restoreMenu({
       objectId,
       entityType,
+      userId,
       // TODO align the naming with SerializedDetachedMenu
       entityId: detachId,
       position: x.toArray(),
