@@ -121,10 +121,8 @@ export default class ZoomMenu extends UiMenu {
   }
 
   makeMenuButtonBinding(): vrControllerButtonBinding<unknown> {
-    return new VRControllerButtonBinding(label, {
+    return new VRControllerButtonBinding('Close', {
       onButtonDown: () => this.closeMenu(),
     });
   }
-
-
 }

@@ -189,7 +189,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.ping(intersectedViewObj);
     } else if (event.button === 0 && this.pointers.length === 1 && !this.longPressTriggered) {
       this.onLeftClick(event, intersectedViewObj);
-    } else if (event.button === 2 && this.pointers.length === 1 && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 100) {
+    } else if (event.button === 2 && this.pointers.length === 1 && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 220) {
       this.dispatchOpenMenuEvent(event);
     }
   }

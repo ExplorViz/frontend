@@ -43,8 +43,9 @@
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable=true
           @popupData={{d}}
-          @pinPopup={{this.pinPopup}}
-          @removePopup={{this.removePopup}}
+          @pinPopup={{this.popupHandler.pinPopup}}
+          @sharePopup={{this.popupHandler.sharePopup}}
+          @removePopup={{this.popupHandler.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
           @highlightModel={{this.applicationRenderer.highlightModel}}
           @openParents={{this.applicationRenderer.openParents}}

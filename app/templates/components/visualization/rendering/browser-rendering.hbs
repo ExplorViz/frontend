@@ -56,7 +56,8 @@
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
           @popupData={{d}}
-          @pinPopup={{this.pinPopup}}
+          @pinPopup={{this.popupHandler.pinPopup}}
+          @sharePopup={{this.popupHandler.sharePopup}}
           @removePopup={{this.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
           @showApplication={{this.showApplication}}

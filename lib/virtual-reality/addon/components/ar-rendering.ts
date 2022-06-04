@@ -27,6 +27,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -404,7 +405,6 @@ export default class ArRendering extends Component<Args> {
   @action
   handlePrimaryCrosshairInteraction() {
     const intersection = this.raycastCenter();
-
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
     } else if (this.reticle.visible && !this.graph.visible) {
@@ -510,7 +510,11 @@ export default class ArRendering extends Component<Args> {
 
     const mesh = intersection.object;
     const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    this.popupHandler.addPopup(mesh, position, false, !this.arSettings.stackPopups);
+    this.popupHandler.addPopup({
+      mesh,
+      position,
+      replace: !this.arSettings.stackPopups
+    });
   }
 
   @action
@@ -522,16 +526,6 @@ export default class ArRendering extends Component<Args> {
   removeAllPopups() {
     this.lastPopupClear = Date.now();
     this.popupHandler.clearPopups();
-  }
-
-  @action
-  removePopup(entityId: string) {
-    this.popupHandler.removePopup(entityId);
-  }
-
-  @action
-  pinPopup(entity: PopupData) {
-    this.popupHandler.pinPopup(entity);
   }
 
   // #endregion ACTIONS
@@ -582,7 +576,24 @@ export default class ArRendering extends Component<Args> {
 
   // #region RENDERING
 
+  hoveredObject: THREE.Object3D | null = null;
+
   tick(delta: number, frame: THREE.XRFrame) {
+    const intersection = this.raycastCenter()
+    this.popupHandler.hover(intersection?.object);
+    if (intersection) {
+      const mesh = intersection.object;
+      this.hoveredObject = mesh;
+      if (mesh instanceof BaseMesh) {
+        mesh.applyHoverEffect();
+      }
+    } else {
+      if (this.hoveredObject instanceof BaseMesh) {
+        this.hoveredObject.applyHoverEffect();
+      }
+      this.hoveredObject = null;
+    }
+
     if (this.renderer.xr.enabled) {
       if (!this.graph.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);

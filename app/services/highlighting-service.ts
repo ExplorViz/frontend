@@ -16,6 +16,7 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import debugLogger from 'ember-debug-logger';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -126,7 +127,7 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh) {
+  highlight(mesh: EntityMesh) {
     const applicationObject3D = mesh.parent;
     if (applicationObject3D instanceof ApplicationObject3D) {
       this.highlightComponent(applicationObject3D, mesh);

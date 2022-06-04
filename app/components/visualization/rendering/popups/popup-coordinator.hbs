@@ -2,24 +2,68 @@
 <div
   class="popover"
   {{on "pointerdown" this.dragMouseDown}}
+  {{on "pointerover" this.onPointerOver}}
+  {{on "pointerout" this.onPointerOut}}
   {{did-insert this.setPopupPosition}}
+  hover={{@popupData.hovered}}
+  {{style
+    color=this.highlightingColorStyle
+  }}
 >
 
-  {{#if this.pinned }}
+  {{#if @popupData.isPinned }}
+  <div class="inline" {{style
+    color="#212529"
+  }}
+  >
   {{svg-jar "pin-16" class="octicon align-right"}}
+  </div>
   {{else}}
   <BsButton
     @type="primary"
     @onClick={{fn @pinPopup @popupData}}
   >
-    Pin
+  {{svg-jar "pin-16" class="octicon align-right"}}
+  <BsTooltip @placement="top" @triggerEvents="hover">
+    Pin popup.
+  </BsTooltip>
+  </BsButton>
+  {{/if}}
+
+  {{#if @popupData.sharedBy}}
+  <div class="inline" {{style
+    color=this.sharedByColor
+  }}
+  >
+  {{svg-jar "share-android-16" class="octicon align-right"}}
+  </div>
+  {{else if this.collaborationSession.isOnline}}
+  <BsButton
+    @type="secondary"
+    @onClick={{fn @sharePopup @popupData}}
+  >
+    {{svg-jar "share-android-16" class="octicon align-middle"}}
+  <BsTooltip @placement="top" @triggerEvents="hover">
+    Share popup with other users.
+  </BsTooltip>
   </BsButton>
   {{/if}}
   <BsButton
+    @type={{if @popupData.mesh.highlighted "success" "secondary"}}
+    style={{html-safe this.highlightingService.highlightingColorStyle}}
+    @onClick={{this.highlight}}
+  >
+    {{svg-jar "paintbrush-16" class="octicon align-middle"}}
+  <BsTooltip @placement="top" @triggerEvents="hover">
+    Highlight component.
+  </BsTooltip>
+  </BsButton>
+  <BsButton
+    style="float: right;"
     @type="secondary"
     @onClick={{fn @removePopup @popupData.entity.id}}
   >
-    Close
+  X
   </BsButton>
 
 

@@ -7,28 +7,33 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import PopupData from './popup-data';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 interface IArgs {
   isMovable: boolean;
-  popupData: {
-    mouseX: number,
-    mouseY: number,
-    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
-    applicationId: string;
-    isPinned: boolean,
-  };
+  popupData: PopupData;
+  popupHandler: PopupHandler;
   removePopup(entityId: string): void;
-  pinPopup(entityId: string): void;
+  pinPopup(popup: PopupData): void;
+  sharePopup(popup: PopupData): void,
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
   @service('configuration')
   configuration!: Configuration;
 
-  get pinned() {
-    return this.args.popupData.isPinned;
-  }
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   element!: HTMLDivElement;
 
@@ -36,6 +41,44 @@ export default class PopupCoordinator extends Component<IArgs> {
     x: 0,
     y: 0,
   };
+
+  @action
+  onPointerOver() {
+    this.args.popupData.mesh.applyHoverEffect();
+    this.args.popupData.hovered = true;
+  }
+
+  @action
+  onPointerOut() {
+    this.args.popupData.mesh.resetHoverEffect();
+    this.args.popupData.hovered = false;
+  }
+
+  get sharedByColor() {
+    const userId = this.args.popupData.sharedBy;
+    if (!userId) {
+      return "";
+    }
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+    if (!remoteUser) {
+      return "#" + this.localUser.color?.getHexString();
+    }
+    return "#" + remoteUser?.color.getHexString()
+  }
+
+  @action
+  highlight() {
+    this.args.popupData
+    this.highlightingService.highlight(this.args.popupData.mesh);
+  }
+
+  get highlightingColorStyle() {
+    if (this.args.popupData.mesh.highlighted) {
+      const hexColor = this.args.popupData.mesh.highlightingColor.getHexString()
+      return `#${hexColor}`;
+    }
+    return "";
+  }
 
   @action
   dragMouseDown(event: MouseEvent) {

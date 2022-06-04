@@ -15,7 +15,7 @@ import NodeMesh from "explorviz-frontend/view-objects/3d/landscape/node-mesh";
 import THREE from "three";
 import WebSocketService from "virtual-reality/services/web-socket";
 import { getTypeOfEntity, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { ForwardedMessage } from "virtual-reality/utils/vr-message/receivable/forwarded";
+import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from "virtual-reality/utils/vr-message/receivable/menu-detached-forward";
 import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/utils/vr-message/receivable/response/menu-detached";
 import { isObjectClosedResponse, ObjectClosedResponse } from "virtual-reality/utils/vr-message/receivable/response/object-closed";
@@ -23,16 +23,9 @@ import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from "virtual-r
 import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/menu_detached";
 import ForceGraph, { GraphLink } from './force-graph';
 import ThreeForceGraph from 'three-forcegraph';
-
-export type PopupData = {
-    mouseX: number,
-    mouseY: number,
-    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
-    mesh: EntityMesh,
-    applicationId: string,
-    isPinned: boolean,
-    menuId: string | null,
-};
+import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 
 export default class PopupHandler {
 
@@ -41,6 +34,9 @@ export default class PopupHandler {
 
     @service('web-socket')
     private webSocket!: WebSocketService;
+
+    @service('local-user')
+    private localUser!: LocalUser;
 
     @tracked
     popupData: PopupData[] = [];
@@ -65,14 +61,14 @@ export default class PopupHandler {
     }
 
     @action
-    pinPopup(popup: PopupData) {
+    sharePopup(popup: PopupData) {
         const mesh = popup.mesh;
         const entityId = mesh.dataModel.id;
         const worldPosition = new THREE.Vector3();
         mesh.getWorldPosition(worldPosition);
         this.forceGraph.worldToLocal(worldPosition);
         worldPosition.y += 0.3;
-        // Wait for backend to assign an id to the detached menu.
+
         this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
             {
                 event: 'menu_detached',
@@ -86,22 +82,27 @@ export default class PopupHandler {
             {
                 responseType: isMenuDetachedResponse,
                 onResponse: (response: MenuDetachedResponse) => {
-                    this.pinPopupLocally(entityId, response.objectId);
+                    popup.sharedBy = this.localUser.userId;
+                    popup.isPinned = true;
+                    popup.menuId = response.objectId;
                     return true;
                 },
                 onOffline: () => {
-                    this.pinPopupLocally(entityId, null);
                 },
             }
         )
     }
 
     @action
-    pinPopupLocally(entityId: string, menuId: string | null) {
+    pinPopup(popup: PopupData) {
+        this.pinPopupLocally(popup.mesh.dataModel.id);
+    }
+
+    @action
+    pinPopupLocally(entityId: string) {
         this.popupData.forEach((popup) => {
             if (popup.entity.id === entityId) {
                 popup.isPinned = true;
-                popup.menuId = menuId;
             }
         });
         this.popupData = [...this.popupData];
@@ -138,11 +139,23 @@ export default class PopupHandler {
     }
 
     @action
-    addPopup(mesh: THREE.Object3D, position: Position2D, pinned: boolean = false, replace: boolean = false, menuId: string | null = null) {
+    hover(mesh?: THREE.Object3D) {
         if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
             || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
             || mesh instanceof ClazzCommunicationMesh)) {
-            const newPopup = {
+            this.popupData.forEach((pd) => pd.hovered = pd.entity.id === mesh.dataModel.id);
+        } else {
+            this.popupData.forEach((pd) => pd.hovered = false);
+        }
+    }
+
+    @action
+    addPopup({ mesh, position, pinned, replace, menuId, sharedBy }: { mesh: THREE.Object3D, position: Position2D, pinned: boolean, replace: boolean, menuId: string | null, sharedBy: string }) {
+        // addPopup(mesh: THREE.Object3D, position: Position2D, pinned: boolean = false, replace: boolean = false, menuId: string | null = null) {
+        if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
+            || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
+            || mesh instanceof ClazzCommunicationMesh)) {
+            const newPopup = new PopupData({
                 mouseX: position.x,
                 mouseY: position.y,
                 entity: mesh.dataModel,
@@ -150,7 +163,9 @@ export default class PopupHandler {
                 applicationId: mesh.parent?.dataModel?.id,
                 menuId: menuId,
                 isPinned: pinned,
-            };
+                sharedBy: sharedBy,
+                hovered: false,
+            });
 
             if (replace) {
                 this.popupData = [newPopup];
@@ -179,24 +194,19 @@ export default class PopupHandler {
 
     onMenuDetached({
         objectId,
-        entityType,
+        userId,
         detachId,
-        position,
-        quaternion,
-        scale,
     }: MenuDetachedForwardMessage) {
         const mesh = this.applicationRenderer.getMeshById(detachId) || this.forceGraph.graphData().links.find((link: GraphLink) => link.__lineObj.dataModel.id === detachId).__lineObj;
         if (mesh) {
-            this.addPopup(mesh, { x: 100, y: 200 }, true, false, objectId)
-            return;
+            this.addPopup({
+                mesh,
+                position: { x: 100, y: 200 },
+                pinned: true,
+                sharedBy: userId,
+                menuId: objectId,
+            })
         }
-        // // TODO app communication workaround. FIX/ implement better. Access list of links somehow.
-        // const appCommunicationMesh = this.applicationRenderer.openApplications[0].parent?.children.find((x) => x.dataModel.id === detachId)
-        // if (appCommunicationMesh) {
-        //     this.addPopup(appCommunicationMesh, { x: 100, y: 200 }, true, false, objectId)
-        //     return;
-        // }
-
     }
 
     @action

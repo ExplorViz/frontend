@@ -38,6 +38,7 @@ import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface BrowserRenderingArgs {
     readonly id: string;
@@ -288,14 +289,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @action
     handleSingleClickOnMesh(mesh: THREE.Object3D) {
         // User clicked on blank spot on the canvas
-        if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh
-            || mesh instanceof ClazzCommunicationMesh) {
+        if (isEntityMesh(mesh)) {
             this.highlightingService.highlight(mesh);
         } else if (mesh instanceof FoundationMesh) {
             if (mesh.parent instanceof ApplicationObject3D) {
                 this.selectActiveApplication(mesh.parent);
             }
-            this.cameraControls.focusCameraOn(1, mesh);
+            // this.cameraControls.focusCameraOn(1, mesh);
         }
     }
 
@@ -339,7 +339,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         if (intersection) {
             this.mousePosition.copy(intersection.point);
             this.handleMouseMoveOnMesh(intersection.object);
+        } else if (this.hoveredObject) {
+            this.hoveredObject.resetHoverEffect();
+            this.hoveredObject = null;
         }
+        this.popupHandler.hover(intersection?.object);
     }
 
     @action
@@ -356,10 +360,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         const { value: enableAppHoverEffects } = this.appSettings.enableHoverEffects;
 
         // Update hover effect
-        if (mesh === undefined && this.hoveredObject) {
-            this.hoveredObject.resetHoverEffect();
-            this.hoveredObject = null;
-        } else if (mesh instanceof BaseMesh
+        if (mesh instanceof BaseMesh
             && enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
             if (this.hoveredObject) { this.hoveredObject.resetHoverEffect(); }
 
@@ -383,12 +384,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     @action
-    pinPopup(popup: PopupData) {
-        this.popupHandler.pinPopup(popup);
-    }
-
-    @action
     handleMouseOut() {
+        this.popupHandler.hover();
         if (!this.appSettings.enableCustomPopupPosition.value) {
             this.popupHandler.clearPopups();
         }
@@ -397,7 +394,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     @action
     handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
         if (intersection) {
-            this.popupHandler.addPopup(intersection.object, mouseOnCanvas, false, !this.appSettings.enableCustomPopupPosition.value);
+            this.popupHandler.addPopup({
+                mesh: intersection.object,
+                position: mouseOnCanvas,
+                replace: !this.appSettings.enableCustomPopupPosition.value,
+            });
         }
     }
 

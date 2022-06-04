@@ -19,3 +19,13 @@
   max-height: 50vh;
   overflow-y: auto;
 }
+
+.popover[hover] {
+  background-color: #bbbbbb!important;
+  border-color: #eeeeee!important;
+}
+
+.popover[hover] > .popover-header {
+  background-color: #999999!important;
+  border-color: #aaaaaa!important;
+}
