@@ -1,5 +1,7 @@
-import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { isApplication, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getSubPackagesOfPackage, getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -102,31 +104,27 @@ function composeComponentContent(componentMesh: ComponentMesh) {
   return content;
 }
 
-function composeClazzContent(clazzMesh: ClazzMesh) {
+function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationRepository) {
   const clazz = clazzMesh.dataModel;
+
+  let application = clazzMesh.parent;
+  if (!(application instanceof ApplicationObject3D)) {
+    return [];
+  }
+  // TODO refactor, duplicated from clazz-popup
+  const currentApplicationHeatmapData = applicationRepo.getById(application.dataModel.id)?.heatmapData;;
 
   const content: DetailedInfo = { title: trimString(clazz.name, 40), entries: [] };
 
-  content.entries.push({
-    key: 'Instances:',
-    value: '0',
-  });
-
-  content.entries.push({
-    key: 'Inc. Requests:',
-    value: '0',
-  });
-
-  content.entries.push({
-    key: 'Out. Requests:',
-    value: '0',
-  });
-
-  content.entries.push({
-    key: 'Overall Requests:',
-    value: '0',
-  });
-
+  if (currentApplicationHeatmapData) {
+    const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
+    metrics.forEach((metric) => {
+      content.entries.push({
+        key: metric.name,
+        value: String(metric.values.get(clazzMesh.dataModel.id)),
+      });
+    })
+  }
   return content;
 }
 
@@ -168,7 +166,7 @@ function composeDrawableClazzCommunicationContent(
   // add information for each unique method call
   communication.drawableClassCommus.forEach((drawableCommu, index) => {
     const commuHasExternalApp = applicationId !== drawableCommu.sourceApp?.id
-    || applicationId !== drawableCommu.targetApp?.id;
+      || applicationId !== drawableCommu.targetApp?.id;
 
     // Call hierarchy
     content.entries.push({
@@ -177,7 +175,7 @@ function composeDrawableClazzCommunicationContent(
     });
 
     if (commuHasExternalApp) {
-    // App hierarchy
+      // App hierarchy
       content.entries.push({
         key: 'Src / Tgt App:',
         value: `${trimString(drawableCommu.sourceApp?.name, 20)} -> ${trimString(drawableCommu.targetApp?.name, 20)}`,
@@ -210,7 +208,7 @@ function composeDrawableClazzCommunicationContent(
 
 // #endregion APPLICATION CONTENT COMPOSER
 
-export default function composeContent(object: THREE.Object3D) {
+export default function composeContent(object: THREE.Object3D, applicationRepo: ApplicationRepository) {
   let content: DetailedInfo | null = null;
 
   // Landscape Content
@@ -222,7 +220,7 @@ export default function composeContent(object: THREE.Object3D) {
   } else if (object instanceof ComponentMesh) {
     content = composeComponentContent(object);
   } else if (object instanceof ClazzMesh) {
-    content = composeClazzContent(object);
+    content = composeClazzContent(object, applicationRepo);
   } else if (object instanceof ClazzCommunicationMesh) {
     content = composeDrawableClazzCommunicationContent(object);
   }

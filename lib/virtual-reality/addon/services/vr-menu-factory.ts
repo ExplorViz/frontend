@@ -3,7 +3,9 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
@@ -60,6 +62,9 @@ export default class VrMenuFactoryService extends Service {
 
   @service('timestamp')
   private timestampService!: TimestampService;
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.
   scene!: THREE.Scene;
@@ -180,7 +185,11 @@ export default class VrMenuFactoryService extends Service {
   }
 
   buildInfoMenu(object: EntityMesh): DetailInfoMenu {
-    return new DetailInfoMenu({ object, menuFactory: this });
+    return new DetailInfoMenu({
+      object,
+      menuFactory: this,
+      applicationRepo: this.applicationRepo,
+    });
   }
 
   buildGrabMenu(grabbedObject: GrabbableObject): GrabMenu {
