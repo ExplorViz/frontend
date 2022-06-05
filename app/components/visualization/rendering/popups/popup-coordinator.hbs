@@ -18,7 +18,7 @@
   >
   {{svg-jar "share-android-16" class="octicon align-right"}}
   </div>
-  {{else if this.collaborationSession.isOnline}}
+  {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
   <BsButton
     @type="secondary"
     @onClick={{fn @sharePopup @popupData}}
