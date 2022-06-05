@@ -260,6 +260,11 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
+  handleRotate(intersection: THREE.Intersection, delta: number) {
+    this.graph.rotateY(delta);
+  }
+
+  @action
   increaseSize() {
     this.graph.scale.multiplyScalar(1.1);
   }
@@ -267,6 +272,16 @@ export default class ArRendering extends Component<Args> {
   @action
   decreaseSize() {
     this.graph.scale.multiplyScalar(0.90);
+  }
+
+  @action
+  rotateLeft() {
+    this.graph.rotateY(12.5 * Math.PI / 180);
+  }
+
+  @action
+  rotateRight() {
+    this.graph.rotateY(-12.5 * Math.PI / 180);
   }
 
   @action

@@ -105,7 +105,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-areas:
-            ". t"
+            "r t"
             "x p"
             "l s";
   grid-gap: var(--ar-button-padding);
@@ -137,8 +137,9 @@
   left: var(--ar-button-padding);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-areas: 
-            "i -"
+  grid-template-areas:
+            "- n"
+            "i m"
             "h z";
   grid-gap: var(--ar-button-padding);
   padding: var(--ar-button-padding);
@@ -182,8 +183,20 @@
   grid-area: x;
 }
 
+#ar-minus-interaction-container {
+  grid-area: m;
+}
+
 #ar-three-bars-interaction-container {
   grid-area: t;
+}
+
+#ar-left-interaction-container {
+  grid-area: n;
+}
+
+#ar-right-interaction-container {
+  grid-area: r;
 }
 
 #ar-settings {

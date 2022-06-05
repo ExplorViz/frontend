@@ -143,7 +143,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
         // camera
         this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 100);
-        this.camera.position.set(8, 8, 8);
+        this.camera.position.set(5, 5, 5);
 
         this.applicationRenderer.getOpenApplications().clear();
         // force graph

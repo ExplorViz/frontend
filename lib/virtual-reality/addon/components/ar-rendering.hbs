@@ -62,6 +62,7 @@
           doubleClick=this.handleDoubleClick
           singleClick=this.handleSingleClick
           pinch=this.handlePinching
+          rotate=this.handleRotate
         }}
         {{heatmap-renderer
           camera=this.camera
@@ -107,6 +108,16 @@
           </BsButton>
         </div>
 
+        <div id="ar-left-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.rotateLeft }}
+          >
+            {{svg-jar "arrow-left-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
+
       </div>
 
       <div class="ar-right-button-container">
@@ -141,6 +152,16 @@
             {{ on "click" this.increaseSize }}
           >
             {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
+
+        <div id="ar-right-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.rotateRight }}
+          >
+            {{svg-jar "arrow-right-16" class="octicon align-middle ar-button-svg"}}
           </BsButton>
         </div>
 
