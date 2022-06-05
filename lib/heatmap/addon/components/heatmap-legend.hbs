@@ -22,6 +22,21 @@
         </BsTooltip>
       </button>
     </div>--}}
+
+     <div>
+       <BsButton
+         @type={{if this.heatmapConfiguration.heatmapShared "success" "secondary"}}
+         @onClick={{this.heatmapConfiguration.toggleShared}}
+       >
+         {{svg-jar "share-android-16" class="octicon align-middle"}}
+         <BsTooltip @placement="top" @triggerEvents="hover">
+           Share heatmap with other users?
+           Green: Yes,
+           Grey: No
+         </BsTooltip>
+       </BsButton>
+    <HelpTooltip @title="Select an application by clicking on its foundation" />
+    </div>
     <div>
       <input id="collapsible" class="heatmap-legend-toggle" type="checkbox" checked>
       <label for="collapsible" class="collapse-toggle-label" data-toggle="collapse" href="#heatmapCollapseContainer" aria-expanded="false" aria-controls="heatmapCollapseContainer"></label>

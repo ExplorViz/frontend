@@ -31,7 +31,7 @@ export default class SyncStateModifier extends Modifier {
   }
 
   modify() {
-    if (this.heatmapConf.currentApplication) {
+    if (this.heatmapConf.currentApplication && this.heatmapConf.heatmapShared) {
       this.send(HEATMAP_UPDATE_EVENT, {
         applicationId: this.heatmapConf.currentApplication.dataModel.id,
         metric: this.heatmapConf.selectedMetricName,
@@ -42,6 +42,9 @@ export default class SyncStateModifier extends Modifier {
   }
 
   onHeatmapUpdate({ originalMessage: message }: ForwardedMessage<HeatmapUpdateMessage>) {
+    if (!this.heatmapConf.heatmapShared) {
+      return;
+    }
     this.state.set(message.event, message);
     if (message.applicationId) {
       this.heatmapConf.currentApplication = this.applicationRenderer.getApplicationById(

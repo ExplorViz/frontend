@@ -30,6 +30,10 @@ export default class LinkRenderer extends Service.extend({
 
   private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
+  getAllLinks() {
+    return Array.from(this.linkIdToMesh.values());
+  }
+
   get appSettings() {
     return this.userSettings.applicationSettings;
   }

@@ -84,7 +84,7 @@ export default class ForceGraph {
     // .d3Force('y', d3.forceY(0))
 
     // forces
-    this.graph.d3Force('collision')!.iterations(1)
+    this.graph.d3Force('collision')!.iterations(2)
     // this.graph.d3Force('y')!.strength(1)
     // this.graph.d3Force('link')!.distance(30);
     // this.graph.d3Force('link')!.strength(3);

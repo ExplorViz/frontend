@@ -35,6 +35,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   heatmapActive = false;
 
   @tracked
+  heatmapShared = false;
+
+  @tracked
   currentApplication: ApplicationObject3D | undefined | null;
 
   // Switch for the legend
@@ -50,7 +53,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   selectedMode: HeatmapMode = 'snapshotHeatmap';
 
   @tracked
-  selectedMetricName: string = '';
+  selectedMetricName: string = 'Instance Count';
 
   useHelperLines = true;
 
@@ -65,6 +68,11 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   simpleHeatGradient = getSimpleDefaultGradient();
 
   debug = debugLogger();
+
+  @action
+  toggleShared() {
+    this.heatmapShared = !this.heatmapShared;
+  }
 
   @action
   toggleHeatmap() {
@@ -170,6 +178,14 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       default:
         this.selectedMode = 'snapshotHeatmap';
         break;
+    }
+  }
+
+  switchMetric() {
+    const numOfMetrics = this.latestClazzMetricScores.length;
+    if (numOfMetrics > 0) {
+      const index = this.latestClazzMetricScores.findIndex((metric) => metric.name === this.selectedMetricName);
+      this.selectedMetricName = this.latestClazzMetricScores[(index + 1) % numOfMetrics].name;
     }
   }
 

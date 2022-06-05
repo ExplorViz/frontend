@@ -17,6 +17,7 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import LinkRenderer from './link-renderer';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -73,6 +74,9 @@ export default class HighlightingService extends Service.extend({
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   debug = debugLogger('HighlightingService');
 
@@ -157,6 +161,7 @@ export default class HighlightingService extends Service.extend({
     if (mesh.highlighted) {
       mesh.unhighlight()
     } else {
+      this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
       mesh.highlight();
     }
   }

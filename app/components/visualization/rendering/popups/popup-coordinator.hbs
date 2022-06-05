@@ -68,11 +68,11 @@
       @component={{@popupData.entity}}
     />
   {{/if}}
-  {{#if (eq this.entitytype "class")}}
-    <visualization::rendering::popups::applicationpopups::clazzpopup
-      @clazz={{@popupdata.entity}}
-      @applicationid={{@popupdata.applicationid}}
-    />
+  {{#if (eq this.entityType "class")}}
+    <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
+      @clazz={{@popupData.entity}}
+      @applicationId={{@popupData.applicationId}}
+     />
   {{/if}}
   {{#if (eq this.entityType "drawableClassCommunication")}}
     <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
