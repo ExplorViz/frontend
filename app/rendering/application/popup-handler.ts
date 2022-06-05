@@ -9,11 +9,12 @@ import ApplicationRenderer from "explorviz-frontend/services/application-rendere
 import ClazzCommunicationMesh from "explorviz-frontend/view-objects/3d/application/clazz-communication-mesh";
 import ClazzMesh from "explorviz-frontend/view-objects/3d/application/clazz-mesh";
 import ComponentMesh from "explorviz-frontend/view-objects/3d/application/component-mesh";
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ApplicationMesh from "explorviz-frontend/view-objects/3d/landscape/application-mesh";
 import NodeMesh from "explorviz-frontend/view-objects/3d/landscape/node-mesh";
 import THREE from "three";
 import WebSocketService from "virtual-reality/services/web-socket";
-import { getTypeOfEntity } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { getTypeOfEntity, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { MenuDetachedForwardMessage } from "virtual-reality/utils/vr-message/receivable/menu-detached-forward";
 import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/utils/vr-message/receivable/response/menu-detached";
@@ -129,9 +130,7 @@ export default class PopupHandler {
 
     @action
     hover(mesh?: THREE.Object3D) {
-        if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
-            || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
-            || mesh instanceof ClazzCommunicationMesh)) {
+        if (isEntityMesh(mesh)) {
             this.popupData.forEach((pd) => pd.hovered = pd.entity.id === mesh.dataModel.id);
         } else {
             this.popupData.forEach((pd) => pd.hovered = false);
@@ -140,10 +139,7 @@ export default class PopupHandler {
 
     @action
     addPopup({ mesh, position, pinned, replace, menuId, sharedBy, hovered }: { mesh: THREE.Object3D, position: Position2D, pinned?: boolean, replace?: boolean, menuId?: string, sharedBy?: string, hovered?: boolean }) {
-        // addPopup(mesh: THREE.Object3D, position: Position2D, pinned: boolean = false, replace: boolean = false, menuId: string | null = null) {
-        if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
-            || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
-            || mesh instanceof ClazzCommunicationMesh)) {
+        if (isEntityMesh(mesh)) {
             const newPopup = new PopupData({
                 mouseX: position.x,
                 mouseY: position.y,

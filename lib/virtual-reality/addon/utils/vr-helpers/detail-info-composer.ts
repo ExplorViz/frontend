@@ -1,10 +1,12 @@
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { isApplication, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getSubPackagesOfPackage, getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import THREE from 'three';
@@ -104,12 +106,39 @@ function composeComponentContent(componentMesh: ComponentMesh) {
   return content;
 }
 
+function composeFoundationContent(componentMesh: FoundationMesh) {
+  const component = componentMesh.dataModel;
+  const classCount = getAllClassesInApplication(componentMesh.dataModel).length;
+  const packageCount = getAllPackagesInApplication(componentMesh.dataModel).length;
+
+  const content: DetailedInfo = { title: trimString(component.name, 40), entries: [] };
+
+  content.entries.push({
+    key: 'Instance ID: ',
+    value: component.instanceId,
+  });
+  content.entries.push({
+    key: 'Language: ',
+    value: component.language,
+  });
+  content.entries.push({
+    key: 'Contained Packages: ',
+    value: packageCount.toString(),
+  });
+  content.entries.push({
+    key: 'Contained Classes: ',
+    value: classCount.toString(),
+  });
+
+  return content;
+}
+
 function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationRepository) {
   const clazz = clazzMesh.dataModel;
 
   let application = clazzMesh.parent;
   if (!(application instanceof ApplicationObject3D)) {
-    return [];
+    return null;
   }
   // TODO refactor, duplicated from clazz-popup
   const currentApplicationHeatmapData = applicationRepo.getById(application.dataModel.id)?.heatmapData;;
@@ -223,6 +252,8 @@ export default function composeContent(object: THREE.Object3D, applicationRepo: 
     content = composeClazzContent(object, applicationRepo);
   } else if (object instanceof ClazzCommunicationMesh) {
     content = composeDrawableClazzCommunicationContent(object);
+  } else if (object instanceof FoundationMesh) {
+    content = composeFoundationContent(object);
   }
 
   return content;
@@ -233,7 +264,8 @@ export type EntityMesh =
   | ApplicationMesh
   | ComponentMesh
   | ClazzMesh
-  | ClazzCommunicationMesh;
+  | ClazzCommunicationMesh
+  | FoundationMesh
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
@@ -242,6 +274,7 @@ export function isEntityMesh(object: any): object is EntityMesh {
     || object instanceof ComponentMesh
     || object instanceof ClazzMesh
     || object instanceof ClazzCommunicationMesh
+    || object instanceof FoundationMesh
   );
 }
 

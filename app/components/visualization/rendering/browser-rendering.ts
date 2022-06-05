@@ -32,7 +32,7 @@ import THREE, { Vector3 } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface BrowserRenderingArgs {
     readonly id: string;
@@ -91,7 +91,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     renderingLoop!: RenderingLoop;
 
-    hoveredObject: BaseMesh | null = null;
+    hoveredObject: EntityMesh | null = null;
 
     controls!: MapControls;
 
@@ -283,7 +283,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // User clicked on blank spot on the canvas
         if (isEntityMesh(mesh)) {
             this.highlightingService.highlight(mesh);
-        } else if (mesh instanceof FoundationMesh) {
+        }
+        if (mesh instanceof FoundationMesh) {
             if (mesh.parent instanceof ApplicationObject3D) {
                 this.selectActiveApplication(mesh.parent);
             }
@@ -352,7 +353,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         const { value: enableAppHoverEffects } = this.appSettings.enableHoverEffects;
 
         // Update hover effect
-        if (mesh instanceof BaseMesh
+        if (isEntityMesh(mesh)
             && enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
             if (this.hoveredObject) { this.hoveredObject.resetHoverEffect(); }
 

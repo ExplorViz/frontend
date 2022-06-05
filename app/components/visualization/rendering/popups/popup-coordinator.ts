@@ -208,7 +208,6 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'drawableClassCommunication';
     }
-
     return '';
   }
 }

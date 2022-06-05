@@ -12,6 +12,7 @@ import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Configuration from 'explorviz-frontend/services/configuration';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
@@ -36,6 +37,7 @@ import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
+import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -131,19 +133,23 @@ export default class ArRendering extends Component<Args> {
   @service('user-settings')
   userSettings!: UserSettings;
 
+  @service('configuration')
+  configuration!: Configuration;
+
   get appSettings() {
     return this.userSettings.applicationSettings;
   }
 
   get rightClickMenuItems() {
     const pauseItemtitle = this.args.visualizationPaused ? 'Resume Visualization' : 'Pause Visualization';
+    const commButtonTitle = this.configuration.isCommRendered ? 'Hide Communication' : 'Add Communication';
     return [
       { title: 'Leave AR View', action: this.leaveArView },
       { title: 'Remove Popups', action: this.removeAllPopups },
       { title: 'Reset View', action: this.resetView },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open All Components', action: this.applicationRenderer.openAllComponentsOfAllApplications },
-      { title: this.arSettings.renderCommunication ? 'Hide Communication' : 'Add Communication', action: this.toggleCommunication },
+      { title: commButtonTitle, action: this.applicationRenderer.toggleCommunicationRendering },
     ];
   }
 
@@ -404,14 +410,6 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  toggleCommunication() {
-    const oldValue = this.arSettings.renderCommunication;
-    this.arSettings.renderCommunication = !oldValue;
-
-    this.applicationRenderer.updateCommunication();
-  }
-
-  @action
   updateRendererResolution(resolutionMultiplier: number) {
     this.rendererResolutionMultiplier = resolutionMultiplier;
     this.resize();
@@ -592,19 +590,19 @@ export default class ArRendering extends Component<Args> {
 
   // #region RENDERING
 
-  hoveredObject: THREE.Object3D | null = null;
+  hoveredObject: EntityMesh | null = null;
 
   tick(delta: number, frame: THREE.XRFrame) {
     const intersection = this.raycastCenter()
     this.popupHandler.hover(intersection?.object);
     if (intersection) {
       const mesh = intersection.object;
-      this.hoveredObject = mesh;
-      if (mesh instanceof BaseMesh) {
+      if (isEntityMesh(mesh)) {
+        this.hoveredObject = mesh;
         mesh.applyHoverEffect();
       }
     } else {
-      if (this.hoveredObject instanceof BaseMesh) {
+      if (isEntityMesh(this.hoveredObject)) {
         this.hoveredObject.applyHoverEffect();
       }
       this.hoveredObject = null;
