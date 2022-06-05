@@ -7,6 +7,7 @@ export default class VrAssetRepository extends Service {
   closeIconTextures!: CloseIconTextures;
   shareIconTextures!: ActionIconTextures;
   paintbrushIconTextures!: ActionIconTextures;
+  fireIconTextures!: ActionIconTextures;
 
   font: THREE.Font | undefined;
 
@@ -28,6 +29,11 @@ export default class VrAssetRepository extends Service {
     this.paintbrushIconTextures = {
       defaultTexture: textureLoader.load('images/paintbrush.png'),
       hoverTexture: textureLoader.load('images/paintbrush.png'),
+    };
+
+    this.fireIconTextures = {
+      defaultTexture: textureLoader.load('images/fire_transp.png'),
+      hoverTexture: textureLoader.load('images/fire.png'),
     };
   }
 }

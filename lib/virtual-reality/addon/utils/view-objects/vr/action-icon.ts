@@ -77,7 +77,7 @@ export default class ActionIcon extends BaseMesh implements IntersectableObject 
     // Restore rotation.
     object.rotation.copy(originalRotation);
 
-    // Position the share button in the top-right corner.
+    // Position the action button in the top-right corner.
     this.position.x = (width / 2 + this.radius) * this.scale.x;
     if (height > depth) {
       this.position.y = (height / 2 + this.radius) * this.scale.y;

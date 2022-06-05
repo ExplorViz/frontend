@@ -72,6 +72,11 @@ export default class ToolMenu extends InteractiveMenu {
       icon: 'gear',
       action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildMainMenu()),
     });
+    this.addTool({
+      label: 'Heatmap',
+      icon: 'flame',
+      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildHeatmapMenu()),
+    });
     // this.addTool({
     //   label: 'Ping',
     //   icon: 'north-star',

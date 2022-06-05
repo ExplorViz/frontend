@@ -20,6 +20,7 @@ import ConnectionBaseMenu from 'virtual-reality/utils/vr-menus/ui-menu/connectio
 import JoinMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/join-menu';
 import SpectateMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-menu';
 import DetailInfoMenu from 'virtual-reality/utils/vr-menus/ui-menu/detail-info-menu';
+import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
 import HintMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/hint-menu';
 import MessageBoxMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/message-box-menu';
 import ResetMenu from 'virtual-reality/utils/vr-menus/ui-menu/reset-menu';
@@ -65,6 +66,9 @@ export default class VrMenuFactoryService extends Service {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('heatmap-configuration')
+  heatmapConfiguration!: HeatmapConfiguration;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.
   scene!: THREE.Scene;
@@ -172,6 +176,13 @@ export default class VrMenuFactoryService extends Service {
       renderer: this.renderer,
       scene: this.scene,
       headsetCamera: this.localUser.camera,
+      menuFactory: this,
+    });
+  }
+
+  buildHeatmapMenu(): HeatmapMenu {
+    return new HeatmapMenu({
+      heatmapConfiguration: this.heatmapConfiguration,
       menuFactory: this,
     });
   }

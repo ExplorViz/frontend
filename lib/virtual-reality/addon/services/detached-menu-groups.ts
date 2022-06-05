@@ -1,8 +1,11 @@
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
+import MenuGroup from 'virtual-reality/utils/vr-menus/menu-group';
+import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
 import CloseIcon from '../utils/view-objects/vr/close-icon';
@@ -25,6 +28,9 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
 
   private detachedMenuGroups: Set<DetachedMenuGroup>;
 
@@ -153,27 +159,62 @@ export default class DetachedMenuGroupsService extends Service {
     });
     closeIcon.addToObject(detachedMenuGroup);
 
-    const shareIcon: ActionIcon = new ActionIcon({
-      textures: this.assetRepo.shareIconTextures,
-      color: new THREE.Color(color),
-      onAction: () => this.shareDetachedMenu(detachedMenuGroup, shareIcon),
-      radius: 0.04,
-    });
-    shareIcon.addToObject(detachedMenuGroup);
-    shareIcon.position.y -= 0.04;
-    shareIcon.position.x -= 0.15;
+    if (menu instanceof HeatmapMenu) {
+      const shareIcon: ActionIcon = new ActionIcon({
+        textures: this.assetRepo.shareIconTextures,
+        color: new THREE.Color(color),
+        onAction: () => {
+          this.heatmapConf.toggleShared()
+          if (this.heatmapConf.heatmapShared) {
+            shareIcon.material.color = new THREE.Color(this.collaborationSession.getColor(""));
+          } else {
+            shareIcon.material.color = new THREE.Color('white');
+          }
+          // shareIcon.updateColor();
+          return Promise.resolve(true);
+        },
+        radius: 0.04,
+      });
+      shareIcon.addToObject(detachedMenuGroup);
+      shareIcon.position.y -= 0.04;
+      shareIcon.position.x -= 0.15;
 
-    color = this.collaborationSession.getColor("");
-    // highlight icon
-    const highlightIcon = new ActionIcon({
-      textures: this.assetRepo.paintbrushIconTextures,
-      color: new THREE.Color(color),
-      onAction: () => this.highlightComponent(menu.getDetachId()),
-      radius: 0.04,
-    });
-    highlightIcon.addToObject(detachedMenuGroup);
-    highlightIcon.position.y -= 0.04;
-    highlightIcon.position.x -= 0.25;
+      const metricIcon = new ActionIcon({
+        textures: this.assetRepo.fireIconTextures,
+        color: new THREE.Color(color),
+        onAction: () => {
+          this.heatmapConf.switchMetric();
+          menu.redrawMenu();
+          return Promise.resolve(true);
+        },
+        radius: 0.04,
+      });
+      metricIcon.addToObject(detachedMenuGroup);
+      metricIcon.position.y -= 0.04;
+      metricIcon.position.x -= 0.25;
+    } else {
+      const shareIcon: ActionIcon = new ActionIcon({
+        textures: this.assetRepo.shareIconTextures,
+        color: new THREE.Color(color),
+        onAction: () => this.shareDetachedMenu(detachedMenuGroup, shareIcon),
+        radius: 0.04,
+      });
+      shareIcon.addToObject(detachedMenuGroup);
+      shareIcon.position.y -= 0.04;
+      shareIcon.position.x -= 0.15;
+
+      color = this.collaborationSession.getColor("");
+      // highlight icon
+      const highlightIcon = new ActionIcon({
+        textures: this.assetRepo.paintbrushIconTextures,
+        color: new THREE.Color(color),
+        onAction: () => this.highlightComponent(menu.getDetachId()),
+        radius: 0.04,
+      });
+      highlightIcon.addToObject(detachedMenuGroup);
+      highlightIcon.position.y -= 0.04;
+      highlightIcon.position.x -= 0.25;
+    }
 
     // Apply same position, rotation and scale as detached menu.
     detachedMenuGroup.position.copy(position);

@@ -113,6 +113,9 @@ export default class VrRendering
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
+
   // #endregion SERVICES
 
   // #region CLASS FIELDS
@@ -298,6 +301,7 @@ export default class VrRendering
       triggerDown: (event) => {
         if (event.target.parent instanceof ApplicationObject3D) {
           this.applicationRenderer.closeAllComponents(event.target.parent);
+          this.heatmapConf.setActiveApplication(event.target.parent);
         }
       },
     });
