@@ -7,7 +7,9 @@ import Modifier from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import THREE, { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
@@ -122,11 +124,17 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       isHighlighted, appId, entityType, entityId,
     },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
-    const application = this.applicationRenderer.getApplicationById(appId);
-    if (!application) return;
-
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
+
+    const application = this.applicationRenderer.getApplicationById(appId);
+    if (!application) {
+      const mesh = this.applicationRenderer.getMeshById(entityId);
+      if (mesh instanceof ClazzCommunicationMesh) {
+        this.highlightingService.highlightLink(mesh, user.color);
+      }
+      return;
+    }
 
     if (isHighlighted) {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(

@@ -16,12 +16,12 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
 import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
+import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import THREE, { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -36,12 +36,11 @@ import { findGrabbableObject, GrabbableObjectWrapper, isGrabbableObject } from '
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
-import ShareIcon from 'virtual-reality/utils/view-objects/vr/share-icon';
 import VRController from 'virtual-reality/utils/vr-controller';
 import VRControllerBindings from 'virtual-reality/utils/vr-controller/vr-controller-bindings';
 import VRControllerBindingsList from 'virtual-reality/utils/vr-controller/vr-controller-bindings-list';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding, { VRControllerThumbpadVerticalDirection } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import VrInputManager from 'virtual-reality/utils/vr-controller/vr-input-manager';
 import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
@@ -280,27 +279,6 @@ export default class VrRendering
       resetHover: (event) => event.target.resetHoverEffect(),
     });
 
-    // When an application on the landscape is clicked, open the application.
-    this.primaryInputManager.addInputHandler<ApplicationMesh>({
-      targetType: ApplicationMesh,
-      triggerDown: (event) => {
-        perform(this.applicationRenderer.openApplicationTask,
-          event.target.dataModel.id,
-          {
-            position: event.intersection.point,
-            quaternion: new THREE.Quaternion()
-              .setFromEuler(
-                new THREE.Euler(
-                  90 * THREE.MathUtils.DEG2RAD,
-                  90 * THREE.MathUtils.DEG2RAD,
-                  0,
-                ),
-              )
-              .premultiply(this.landscapeRenderer.landscapeObject3D.quaternion),
-          });
-      },
-    });
-
     // When a component of an application is clicked, open it.
     this.primaryInputManager.addInputHandler({
       targetType: ComponentMesh,
@@ -373,6 +351,15 @@ export default class VrRendering
         event.target,
         event.intersection.object,
       ),
+    });
+
+    this.secondaryInputManager.addInputHandler({
+      targetType: ClazzCommunicationMesh,
+      triggerDown: (event) => {
+        if (event.intersection.object instanceof ClazzCommunicationMesh) {
+          this.highlightingService.highlight(event.intersection.object);
+        }
+      }
     });
   }
 
@@ -996,7 +983,7 @@ export default class VrRendering
     entityType,
     detachId,
     position,
-    quaternion,
+    /** quaternion, */
     scale,
   }: MenuDetachedForwardMessage) {
     const x = new THREE.Vector3();

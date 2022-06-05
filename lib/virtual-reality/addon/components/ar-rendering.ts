@@ -9,7 +9,7 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import PopupHandler, { PopupData } from 'explorviz-frontend/rendering/application/popup-handler';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
@@ -35,7 +35,6 @@ import THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 
 interface Args {
@@ -177,7 +176,8 @@ export default class ArRendering extends Component<Args> {
     AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
-    this.popupHandler = new PopupHandler(getOwner(this), this.graph);
+    this.popupHandler = new PopupHandler(getOwner(this));
+    this.applicationRenderer.forceGraph = this.graph;
   }
 
   get camera() {
@@ -255,12 +255,12 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  handlePinching(intersection: THREE.Intersection, delta: number) {
+  handlePinching(_intersection: THREE.Intersection, delta: number) {
     this.graph.scale.multiplyScalar(delta);
   }
 
   @action
-  handleRotate(intersection: THREE.Intersection, delta: number) {
+  handleRotate(_intersection: THREE.Intersection, delta: number) {
     this.graph.rotateY(delta);
   }
 
@@ -528,7 +528,8 @@ export default class ArRendering extends Component<Args> {
     this.popupHandler.addPopup({
       mesh,
       position,
-      replace: !this.arSettings.stackPopups
+      replace: !this.arSettings.stackPopups,
+      hovered: true,
     });
   }
 

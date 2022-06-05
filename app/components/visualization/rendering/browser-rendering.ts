@@ -9,7 +9,7 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import PopupHandler, { PopupData } from 'explorviz-frontend/rendering/application/popup-handler';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -19,16 +19,11 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { moveCameraTo, openComponentMesh } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import {
-    Application, Class, Node, Package
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
@@ -37,7 +32,6 @@ import THREE, { Vector3 } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface BrowserRenderingArgs {
@@ -79,9 +73,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     @service('entity-manipulation')
     private entityManipulation!: EntityManipulation;
-
-    @service('vr-message-sender')
-    private sender!: VrMessageSender;
 
     @tracked
     readonly graph: ThreeForceGraph;
@@ -156,7 +147,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         // spectate
         this.updatables.push(this.spectateUserService);
 
-        this.popupHandler = new PopupHandler(getOwner(this), this.graph)
+        this.popupHandler = new PopupHandler(getOwner(this))
+        this.applicationRenderer.forceGraph = this.graph;
     }
 
     tick(delta: number) {
@@ -398,6 +390,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
                 mesh: intersection.object,
                 position: mouseOnCanvas,
                 replace: !this.appSettings.enableCustomPopupPosition.value,
+                hovered: true,
             });
         }
     }

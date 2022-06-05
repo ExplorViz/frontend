@@ -1,13 +1,13 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { GraphLink } from "explorviz-frontend/rendering/application/force-graph";
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
 import ClazzCommunicationMesh from "explorviz-frontend/view-objects/3d/application/clazz-communication-mesh";
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from "explorviz-frontend/view-objects/layout-models/communication-layout";
 import { Vector3 } from 'three';
 import ApplicationRenderer from './application-renderer';
-import { DrawableClassCommunication } from "./application-rendering/class-communication-computer";
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
@@ -28,13 +28,14 @@ export default class LinkRenderer extends Service.extend({
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
+  private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
   get appSettings() {
     return this.userSettings.applicationSettings;
   }
 
   @action
-  linkPositionUpdate(line: ClazzCommunicationMesh, _coords: { start: Coords, end: Coords }, link: GraphLink) {
+  linkPositionUpdate(line: ClazzCommunicationMesh, _coords: any /**  { start: Coords, end: Coords }*/, link: GraphLink) {
     line.visible = this.linkVisible(link);
     if (!link.communicationData) {
       return true;
@@ -68,7 +69,7 @@ export default class LinkRenderer extends Service.extend({
     line.render(new Vector3(), curveHeight);
 
     // to move particles and arrow
-    const curve = line.geometry.parameters.path;
+    const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
     link.__curve = curve;
     line.children.clear();
     this.addArrows(line, curveHeight, new Vector3());
@@ -80,16 +81,30 @@ export default class LinkRenderer extends Service.extend({
   createLink(link: GraphLink) {
     const drawableClazzComm = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
+    const id = drawableClazzComm.id;
+
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.dataModel,
       [drawableClazzComm],
       false,
-      drawableClazzComm.id,
+      id,
     );
-
     const { communicationColor, highlightedEntityColor } = this.configuration.applicationColors;
-    return new ClazzCommunicationMesh(undefined, clazzCommuMeshData,
+
+    const existingMesh = this.linkIdToMesh.get(drawableClazzComm.id);
+    if (existingMesh) {
+      existingMesh.dataModel = clazzCommuMeshData;
+      return existingMesh;
+    }
+    const newMesh = new ClazzCommunicationMesh(undefined, clazzCommuMeshData,
       communicationColor, highlightedEntityColor);
+    this.linkIdToMesh.set(id, newMesh);
+
+    return newMesh;
+  }
+
+  getLinkById(linkId: string) {
+    return this.linkIdToMesh.get(linkId);
   }
 
   @action

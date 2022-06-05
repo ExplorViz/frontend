@@ -2,6 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
+import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
@@ -14,8 +15,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import debugLogger from 'ember-debug-logger';
-import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 export type HightlightComponentArgs = {
@@ -128,7 +127,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlightById(meshId: string) {
-    const mesh = this.applicationRenderer.getMeshById(meshId) // || this.forceGraph.graphData().links.find((link: GraphLink) => link.__lineObj.dataModel.id === detachId).__lineObj;
+    const mesh = this.applicationRenderer.getMeshById(meshId);
     if (isEntityMesh(mesh)) {
       this.highlight(mesh);
     }
@@ -136,9 +135,27 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlight(mesh: EntityMesh) {
-    const applicationObject3D = mesh.parent;
-    if (applicationObject3D instanceof ApplicationObject3D) {
-      this.highlightComponent(applicationObject3D, mesh);
+    const parent = mesh.parent;
+    if (parent instanceof ApplicationObject3D) {
+      this.highlightComponent(parent, mesh);
+    } else if (mesh instanceof ClazzCommunicationMesh) {
+      this.highlightLink(mesh, this.localUser.color);
+      this.sender.sendHighlightingUpdate(
+        "",
+        this.getEntityType(mesh),
+        mesh.dataModel.id,
+        mesh.highlighted,
+      );
+    }
+  }
+
+  @action
+  highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
+    mesh.highlightingColor = color || this.configuration.applicationColors.highlightedEntityColor;
+    if (mesh.highlighted) {
+      mesh.unhighlight()
+    } else {
+      mesh.highlight();
     }
   }
 

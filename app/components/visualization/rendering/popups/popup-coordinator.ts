@@ -1,17 +1,16 @@
 import { action } from '@ember/object';
-import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
+import Component from '@glimmer/component';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import {
-  Application, Class, isApplication, isClass, isNode, isPackage, Node, Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import Configuration from 'explorviz-frontend/services/configuration';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import {
+  isApplication, isClass, isNode, isPackage
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
 
 interface IArgs {
   isMovable: boolean;
@@ -31,9 +30,6 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('local-user')
-  private localUser!: LocalUser;
 
   element!: HTMLDivElement;
 

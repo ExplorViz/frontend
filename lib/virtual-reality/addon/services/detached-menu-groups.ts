@@ -11,7 +11,6 @@ import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
 import { isMenuDetachedResponse, MenuDetachedResponse } from '../utils/vr-message/receivable/response/menu-detached';
 import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
-import VrMessageSender from './vr-message-sender';
 import WebSocketService from './web-socket';
 
 export default class DetachedMenuGroupsService extends Service {
@@ -20,9 +19,6 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('web-socket')
   private webSocket!: WebSocketService;
-
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -157,7 +153,7 @@ export default class DetachedMenuGroupsService extends Service {
     });
     closeIcon.addToObject(detachedMenuGroup);
 
-    const shareIcon = new ActionIcon({
+    const shareIcon: ActionIcon = new ActionIcon({
       textures: this.assetRepo.shareIconTextures,
       color: new THREE.Color(color),
       onAction: () => this.shareDetachedMenu(detachedMenuGroup, shareIcon),

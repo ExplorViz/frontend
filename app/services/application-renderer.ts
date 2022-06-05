@@ -23,14 +23,15 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
+import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { SerializedVrRoom, SerialzedApp } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import HighlightingService, { HightlightComponentArgs } from './highlighting-service';
+import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
@@ -103,14 +104,16 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('web-socket')
-  private webSocket!: WebSocketService;
-
   @service('vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
+  forceGraph!: ThreeForceGraph;
 
   private structureLandscapeData!: StructureLandscapeData;
 
@@ -543,8 +546,17 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  getMeshById(meshId: string) {
-    return this.getBoxMeshByModelId(meshId) || this.getCommunicationMeshById(meshId);
+  getMeshById(meshId: string): BaseMesh | undefined {
+    return this.getBoxMeshByModelId(meshId)
+      || this.getCommunicationMeshById(meshId)
+      || this.linkRenderer.getLinkById(meshId);
+  }
+
+  getGraphPosition(mesh: THREE.Object3D) {
+    const worldPosition = new THREE.Vector3();
+    mesh.getWorldPosition(worldPosition);
+    this.forceGraph.worldToLocal(worldPosition);
+    return worldPosition;
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

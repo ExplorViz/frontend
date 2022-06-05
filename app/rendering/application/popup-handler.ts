@@ -12,7 +12,6 @@ import ComponentMesh from "explorviz-frontend/view-objects/3d/application/compon
 import ApplicationMesh from "explorviz-frontend/view-objects/3d/landscape/application-mesh";
 import NodeMesh from "explorviz-frontend/view-objects/3d/landscape/node-mesh";
 import THREE from "three";
-import ThreeForceGraph from 'three-forcegraph';
 import WebSocketService from "virtual-reality/services/web-socket";
 import { getTypeOfEntity } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
@@ -21,7 +20,6 @@ import { isMenuDetachedResponse, MenuDetachedResponse } from "virtual-reality/ut
 import { isObjectClosedResponse, ObjectClosedResponse } from "virtual-reality/utils/vr-message/receivable/response/object-closed";
 import { DetachedMenuClosedMessage, DETACHED_MENU_CLOSED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/detached_menu_closed";
 import { MenuDetachedMessage, MENU_DETACHED_EVENT } from "virtual-reality/utils/vr-message/sendable/request/menu_detached";
-import { GraphLink } from './force-graph';
 
 export default class PopupHandler {
 
@@ -37,13 +35,10 @@ export default class PopupHandler {
     @tracked
     popupData: PopupData[] = [];
 
-    forceGraph: ThreeForceGraph;
-
-    constructor(owner: any, forceGraph: ThreeForceGraph) {
+    constructor(owner: any) {
         setOwner(this, owner);
         this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
         this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-        this.forceGraph = forceGraph;
     }
 
     @action
@@ -60,9 +55,7 @@ export default class PopupHandler {
     sharePopup(popup: PopupData) {
         const mesh = popup.mesh;
         const entityId = mesh.dataModel.id;
-        const worldPosition = new THREE.Vector3();
-        mesh.getWorldPosition(worldPosition);
-        this.forceGraph.worldToLocal(worldPosition);
+        const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
         worldPosition.y += 0.3;
 
         this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
@@ -146,7 +139,7 @@ export default class PopupHandler {
     }
 
     @action
-    addPopup({ mesh, position, pinned, replace, menuId, sharedBy }: { mesh: THREE.Object3D, position: Position2D, pinned: boolean, replace: boolean, menuId: string | null, sharedBy: string }) {
+    addPopup({ mesh, position, pinned, replace, menuId, sharedBy, hovered }: { mesh: THREE.Object3D, position: Position2D, pinned?: boolean, replace?: boolean, menuId?: string, sharedBy?: string, hovered?: boolean }) {
         // addPopup(mesh: THREE.Object3D, position: Position2D, pinned: boolean = false, replace: boolean = false, menuId: string | null = null) {
         if ((mesh instanceof NodeMesh || mesh instanceof ApplicationMesh
             || mesh instanceof ClazzMesh || mesh instanceof ComponentMesh
@@ -157,10 +150,10 @@ export default class PopupHandler {
                 entity: mesh.dataModel,
                 mesh: mesh,
                 applicationId: mesh.parent?.dataModel?.id,
-                menuId: menuId,
-                isPinned: pinned,
-                sharedBy: sharedBy,
-                hovered: false,
+                menuId: menuId || null,
+                isPinned: pinned || false,
+                sharedBy: sharedBy || "",
+                hovered: hovered || false,
             });
 
             if (replace) {
@@ -193,7 +186,7 @@ export default class PopupHandler {
         userId,
         detachId,
     }: MenuDetachedForwardMessage) {
-        const mesh = this.applicationRenderer.getMeshById(detachId) || this.forceGraph.graphData().links.find((link: GraphLink) => link.__lineObj.dataModel.id === detachId).__lineObj;
+        const mesh = this.applicationRenderer.getMeshById(detachId);
         if (mesh) {
             this.addPopup({
                 mesh,

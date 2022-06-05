@@ -157,7 +157,7 @@ export default class WebSocketService extends Service.extend(Evented) {
     responseType: (msg: any) => msg is R;
     onResponse: (msg: R) => boolean;
     onOffline?: () => void;
-  }) {
+  }): Promise<boolean> {
     const nonce = this.nextNonce();
     // send message
     this.send<T>({
@@ -165,7 +165,7 @@ export default class WebSocketService extends Service.extend(Evented) {
       nonce,
     });
     // handle response
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
       this.awaitResponse({
         nonce,
         responseType,
