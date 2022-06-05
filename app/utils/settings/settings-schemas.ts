@@ -43,8 +43,6 @@ export type ApplicationCommunicationSettingId =
 
 export type ApplicationDebugSettingId = 'showFpsCounter';
 
-export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
-
 export type ApplicationSettingId
 = ApplicationColorSettingId
 | ApplicationHighlightingSettingId

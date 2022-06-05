@@ -7,7 +7,7 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import {
-  isApplication, isClass, isNode, isPackage
+  isApplication, isClass, isNode, isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
@@ -53,23 +53,23 @@ export default class PopupCoordinator extends Component<IArgs> {
   get sharedByColor() {
     const userId = this.args.popupData.sharedBy;
     if (!userId) {
-      return "";
+      return '';
     }
     return this.collaborationSession.getColor(userId);
   }
 
   @action
   highlight() {
-    this.args.popupData
+    this.args.popupData;
     this.highlightingService.highlight(this.args.popupData.mesh);
   }
 
   get highlightingColorStyle() {
     if (this.args.popupData.mesh.highlighted) {
-      const hexColor = this.args.popupData.mesh.highlightingColor.getHexString()
+      const hexColor = this.args.popupData.mesh.highlightingColor.getHexString();
       return `#${hexColor}`;
     }
-    return "";
+    return '';
   }
 
   @action

@@ -135,14 +135,6 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  enableCustomPopupPosition: {
-    value: true,
-    orderNumber: 1,
-    group: 'Popup',
-    displayName: 'Enable Custom Popup Positioning',
-    description: 'If enabled, popups can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
-  },
   // Debug Settings
   showFpsCounter: {
     value: false,
