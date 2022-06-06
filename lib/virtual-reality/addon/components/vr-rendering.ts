@@ -299,9 +299,10 @@ export default class VrRendering
     this.primaryInputManager.addInputHandler({
       targetType: FoundationMesh,
       triggerDown: (event) => {
-        if (event.target.parent instanceof ApplicationObject3D) {
-          this.applicationRenderer.closeAllComponents(event.target.parent);
+        if (this.heatmapConf.heatmapActive) {
           this.heatmapConf.setActiveApplication(event.target.parent);
+        } else if (event.target.parent instanceof ApplicationObject3D) {
+          this.applicationRenderer.closeAllComponents(event.target.parent);
         }
       },
     });
@@ -758,6 +759,8 @@ export default class VrRendering
                   } else {
                     this.openToolMenu(controller)
                   }
+                } else {
+                  this.openToolMenu(controller)
                 }
                 break;
             }

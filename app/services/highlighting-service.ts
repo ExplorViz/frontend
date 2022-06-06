@@ -113,6 +113,7 @@ export default class HighlightingService extends Service.extend({
       const mesh = applicationObject3D.highlightedEntity
       this.highlightComponent(applicationObject3D, mesh);
     });
+    this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
   }
 
   updateHighlighting(applicationObject3D: ApplicationObject3D, value: number = this.opacity) {
