@@ -59,6 +59,13 @@ export default class PopupCoordinator extends Component<IArgs> {
   }
 
   @action
+  closeIfNotPinned() {
+    if (!this.args.popupData.isPinned) {
+      this.args.removePopup(this.args.popupData.entity.id);
+    }
+  }
+
+  @action
   highlight() {
     this.highlightingService.highlightById(this.args.popupData.entity.id);
   }

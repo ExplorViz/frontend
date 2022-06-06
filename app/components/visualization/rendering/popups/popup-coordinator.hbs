@@ -88,7 +88,7 @@
       style="position: relative; top: 20px; left: 50%; transform: translateX(-50%);"
       @type="primary"
       @onClick={{fn @pinPopup @popupData}}
-      onmouseout={{fn @removePopup @popupData.entity.id}}
+      onmouseout={{fn this.closeIfNotPinned}}
     >
       {{svg-jar "pin-16" class="octicon align-right"}}
     </BsButton>
