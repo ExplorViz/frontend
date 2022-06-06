@@ -43,8 +43,14 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
     this.heatmapConfiguration.deactivate();
   }
 
+  opened = false;
+
   onOpenMenu() {
     super.onOpenMenu();
+    if (this.opened) {
+      return;
+    }
+    this.opened = true;
 
     this.heatmapConfiguration.activate();
 
