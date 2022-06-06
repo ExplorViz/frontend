@@ -121,7 +121,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
 
     const interAppCommunications = drawableClassCommunications.filter(x => x.sourceApp !== x.targetApp);
-    const pipeSizeMap = calculatePipeSize(interAppCommunications);
+    // const pipeSizeMap = calculatePipeSize(interAppCommunications);
+    const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
     // could be used to render all communication, but does not combine collapsed components
     // const interAppCommunications = drawableClassCommunications.filter(x => x.sourceClass.id !== x.targetClass.id)
     const communicationLinks = interAppCommunications.map(communication => ({

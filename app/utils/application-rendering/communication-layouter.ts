@@ -7,6 +7,9 @@ import CommunicationLayout from '../../view-objects/layout-models/communication-
 import { DrawableClassCommunication } from './class-communication-computer';
 import { Application, Class, Package } from '../landscape-schemes/structure-data';
 
+let minRequests = 0
+let maximumRequests = 0
+
 export function calculatePipeSize(drawableClassCommunications: DrawableClassCommunication[]) {
   /**
    * Retrieves all requests and pushes them to a list for further processing
@@ -29,8 +32,8 @@ export function calculatePipeSize(drawableClassCommunications: DrawableClassComm
 
   const requestsList = gatherRequestsIntoList();
 
-  const minRequests = Math.min(...requestsList);
-  const maximumRequests = Math.max(...requestsList);
+  minRequests = Math.min(...requestsList);
+  maximumRequests = Math.max(...requestsList);
 
 
   const pipeSizeMap = new Map<string, number>();
@@ -84,8 +87,8 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
 
     const requestsList = gatherRequestsIntoList();
 
-    const minRequests = Math.min(...requestsList);
-    const maximumRequests = Math.max(...requestsList);
+    // const minRequests = Math.min(...requestsList);
+    // const maximumRequests = Math.max(...requestsList);
 
     drawableClassCommunications.forEach((clazzCommunication) => {
       const maybeCommunicationLayout = layoutMap.get(clazzCommunication.id);

@@ -222,6 +222,23 @@ export default class HighlightingService extends Service.extend({
         color || this.configuration.applicationColors.highlightedEntityColor,
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
+      this.linkRenderer.getAllLinks().forEach((link) => {
+        const linkCommunication = link.dataModel.drawableClassCommus[0];
+        const targetAppId = linkCommunication?.targetApp?.id
+        const sourceAppId = linkCommunication?.sourceApp?.id
+        const sourceClassId = linkCommunication?.sourceClass.id
+        const targetClassId = linkCommunication?.targetClass.id
+        if (mesh.highlighted && (sourceAppId === application.dataModel.id
+          && sourceClassId !== mesh.dataModel.id)
+          || (targetAppId === application.dataModel.id
+            && targetClassId !== mesh.dataModel.id)) {
+          link.turnTransparent();
+        } else if (sourceAppId === application.dataModel.id || targetAppId === application.dataModel.id) {
+          link.turnOpaque();
+        } else if (sourceClassId === mesh.dataModel.id || targetClassId === mesh.dataModel.id) {
+          link.turnOpaque();
+        }
+      })
     }
   }
 
