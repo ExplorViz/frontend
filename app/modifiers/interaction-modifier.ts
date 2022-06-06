@@ -99,7 +99,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   modify(element: any, _positionalArgs: any[], args: NamedArgs) {
     this.namedArgs = args;
     if (args.rendererResolutionMultiplier) {
-      this.rendererResolutionMultiplier = args.rendererResolutionMultiplier;
+      this.rendererResolutionMultiplier = args.rendererResolutionMultiplier
     }
 
     assert(
@@ -146,11 +146,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs.mouseEnter?.();
   }
 
-  // @action onPointerOut() {
-  //  this.isMouseOnCanvas = false;
+  @action onPointerOut() {
+    this.isMouseOnCanvas = false;
 
-  // this.namedArgs.mouseOut?.();
-  // }
+    this.namedArgs.mouseOut?.();
+  }
 
   @action
   onPointerMove(event: PointerEvent) {
@@ -201,7 +201,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       bubbles: true,
       cancelable: true,
     });
-    event.stopPropagation();
+    event.stopPropagation()
     if (event.target) event.target.dispatchEvent(evt);
   }
 
@@ -356,12 +356,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handlePanStart(event);
       if (event.pointerType === 'touch') {
         this.longPressStart.set(event.clientX, event.clientY);
-        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 500);
+        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 500)
       }
     }
   }
 
-  handleLongPress(event: PointerEvent) {
+  handleLongPress(event: PointerEvent,) {
     this.longPressTriggered = true;
     this.longPressDelta.subVectors(this.longPressEnd, this.longPressStart);
     if (this.selectedObject) {

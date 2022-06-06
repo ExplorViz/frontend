@@ -11,6 +11,25 @@
   }}
 >
 
+  {{#if @popupData.isPinned }}
+  <div class="inline" {{style
+    color="#212529"
+  }}
+  >
+  {{svg-jar "pin-16" class="octicon align-right"}}
+  </div>
+  {{else}}
+  <BsButton
+    @type="primary"
+    @onClick={{fn @pinPopup @popupData}}
+  >
+  {{svg-jar "pin-16" class="octicon align-right"}}
+  <BsTooltip @placement="top" @triggerEvents="hover">
+    Pin popup.
+  </BsTooltip>
+  </BsButton>
+  {{/if}}
+
   {{#if @popupData.sharedBy}}
   <div class="inline" {{style
     color=this.sharedByColor
@@ -29,25 +48,23 @@
   </BsTooltip>
   </BsButton>
   {{/if}}
-  {{#if @popupData.isPinned}}
-    <BsButton
-      @type={{if @popupData.mesh.highlighted "success" "secondary"}}
-      style={{html-safe this.highlightingService.highlightingColorStyle}}
-      @onClick={{this.highlight}}
-    >
-      {{svg-jar "paintbrush-16" class="octicon align-middle"}}
-    <BsTooltip @placement="top" @triggerEvents="hover">
-      Highlight component.
-    </BsTooltip>
-    </BsButton>
-    <BsButton
-      style="float: right;"
-      @type="secondary"
-      @onClick={{fn @removePopup @popupData.entity.id}}
-    >
-    X
-    </BsButton>
-  {{/if}}
+  <BsButton
+    @type={{if @popupData.mesh.highlighted "success" "secondary"}}
+    style={{html-safe this.highlightingService.highlightingColorStyle}}
+    @onClick={{this.highlight}}
+  >
+    {{svg-jar "paintbrush-16" class="octicon align-middle"}}
+  <BsTooltip @placement="top" @triggerEvents="hover">
+    Highlight component.
+  </BsTooltip>
+  </BsButton>
+  <BsButton
+    style="float: right;"
+    @type="secondary"
+    @onClick={{fn @removePopup @popupData.entity.id}}
+  >
+  X
+  </BsButton>
 
 
   {{!-- landscape popups --}}
@@ -82,15 +99,4 @@
       @openParents={{@openParents}}
     />
   {{/if}}
-  {{#unless @popupData.isPinned}}
-    <BsButton
-      oncontextmenu="return false;"
-      style="position: relative; top: 20px; left: 50%; transform: translateX(-50%);"
-      @type="primary"
-      @onClick={{fn @pinPopup @popupData}}
-      onmouseout={{fn this.closeIfNotPinned}}
-    >
-      {{svg-jar "pin-16" class="octicon align-right"}}
-    </BsButton>
-  {{/unless}}  
 </div>
