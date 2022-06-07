@@ -44,8 +44,8 @@ export function calculatePipeSize(drawableClassCommunications: DrawableClassComm
     if (range !== 0) {
       normalizedRequests = (clazzCommunication.totalRequests - minRequests) / range;
       // normalize request count to [0.2, 1] interval
-      range = 1 - 0.2;
-      normalizedRequests = normalizedRequests * range + 0.2;
+      range = 1 - 0.3;
+      normalizedRequests = normalizedRequests * range + 0.5;
     }
 
     // Apply line thickness depending on calculated request category
@@ -100,8 +100,8 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
         if (range !== 0) {
           normalizedRequests = (clazzCommunication.totalRequests - minRequests) / range;
           // normalize request count to [0.2, 1] interval
-          range = 1 - 0.2;
-          normalizedRequests = normalizedRequests * range + 0.2;
+          range = 1 - 0.3;
+          normalizedRequests = normalizedRequests * range + 0.5;
         }
 
         // Apply line thickness depending on calculated request category
