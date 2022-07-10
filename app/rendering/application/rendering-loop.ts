@@ -71,7 +71,6 @@ export default class RenderingLoop {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
-
     });
   }
 

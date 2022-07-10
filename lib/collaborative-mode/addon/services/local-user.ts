@@ -67,7 +67,7 @@ export default class LocalUser extends Service.extend({
   }
 
   tick(delta: number) {
-    this.animationMixer.update(delta)
+    this.animationMixer.update(delta);
   }
 
   connected({

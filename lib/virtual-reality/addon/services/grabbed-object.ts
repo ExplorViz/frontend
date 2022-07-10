@@ -7,7 +7,6 @@ import { ObjectGrabbedMessage } from 'virtual-reality/utils/vr-message/sendable/
 import WebSocketService from './web-socket';
 
 export default class GrabbedObjectService extends Service {
-
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
@@ -53,16 +52,14 @@ export default class GrabbedObjectService extends Service {
       {
         event: 'object_grabbed',
         objectId,
-        nonce: 0 // will be overwritten
+        nonce: 0, // will be overwritten
       },
       // Wait for response.
       {
         responseType: isObjectGrabbedResponse,
-        onResponse: (response: ObjectGrabbedResponse) => {
-          return response.isSuccess
-        },
-      }
-    )
+        onResponse: (response: ObjectGrabbedResponse) => response.isSuccess,
+      },
+    );
   }
 
   /**

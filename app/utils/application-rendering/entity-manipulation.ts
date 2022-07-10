@@ -1,7 +1,6 @@
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import THREE, { Box3, PerspectiveCamera, Vector3 } from 'three';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   Class, Package,
@@ -205,7 +204,6 @@ export function applyDefaultApplicationLayout(applicationObject3D: ApplicationOb
 
   applyComponentLayout(applicationObject3D, applicationObject3D.dataModel.packages);
 }
-
 
 /**
    * Moves camera such that a specified model is in focus

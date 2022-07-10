@@ -108,7 +108,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   get currentApplicationHeatmapData() {
     if (!this.currentApplication) {
-      return;
+      return undefined;
     }
     const applicationData = this.applicationRepo.getById(this.currentApplication.dataModel.id);
     return applicationData?.heatmapData;
@@ -184,7 +184,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   switchMetric() {
     const numOfMetrics = this.latestClazzMetricScores.length;
     if (numOfMetrics > 0) {
-      const index = this.latestClazzMetricScores.findIndex((metric) => metric.name === this.selectedMetricName);
+      const index = this.latestClazzMetricScores.findIndex(
+        (metric) => metric.name === this.selectedMetricName,
+      );
       this.selectedMetricName = this.latestClazzMetricScores[(index + 1) % numOfMetrics].name;
     }
   }

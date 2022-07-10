@@ -119,7 +119,7 @@ export function highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMe
   communication.forEach((comm) => {
     const { sourceClass, targetClass, id } = comm;
 
-    const containedClazzesArray = Array.from(containedClazzes)
+    const containedClazzesArray = Array.from(containedClazzes);
     // Add clazzes which communicate directly with highlighted entity
     // For a highlighted communication all involved clazzes are already known
     if (containedClazzesArray.findBy('id', sourceClass.id)

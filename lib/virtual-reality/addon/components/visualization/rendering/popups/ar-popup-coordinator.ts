@@ -13,7 +13,6 @@ interface Args {
 }
 
 export default class ArPopupCoordinator extends Component<Args> {
-
   get entityType() {
     if (isNode(this.args.popupData.entity)) {
       return 'node';

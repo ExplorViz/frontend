@@ -25,8 +25,8 @@ export default abstract class UiMenu extends InteractiveMenu {
   canvas!: HTMLCanvasElement;
 
   canvasMesh!: THREE.Mesh<
-    THREE.PlaneGeometry | THREE.BufferGeometry,
-    THREE.MeshBasicMaterial
+  THREE.PlaneGeometry | THREE.BufferGeometry,
+  THREE.MeshBasicMaterial
   >;
 
   resolution: { width: number; height: number };
@@ -268,8 +268,7 @@ export default abstract class UiMenu extends InteractiveMenu {
       onButtonDown: () => {
         this.activeTarget?.onTriggerDown?.();
       },
-    }
-    );
+    });
   }
 
   /**

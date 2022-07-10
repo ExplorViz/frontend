@@ -38,7 +38,6 @@ export interface GraphLink {
 const PARTICLE_SPEED_MULTIPLIER = 0.001;
 
 export default class ForceGraph {
-
   debug = debugLogger('ForceGraph');
 
   graph: ThreeForceGraph;
@@ -65,41 +64,33 @@ export default class ForceGraph {
       .graphData({ nodes: [], links: [] })
       .nodeThreeObject(({ id }) => this.applicationRenderer.getApplicationById(id)!)
       .warmupTicks(100)
-      .linkColor(() => '#' + this.configuration.landscapeColors.communicationColor.getHexString())
-      .linkDirectionalParticleColor(() => '#' + this.configuration.applicationColors.communicationArrowColor.getHexString())
-      // .nodeVal(5)
-      // .linkWidth(0.5)
+      .linkColor(() => `#${this.configuration.landscapeColors.communicationColor.getHexString()}`)
+      .linkDirectionalParticleColor(() => `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`)
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createLink)
-      // particles
-      // .linkDirectionalParticles("value")
-      // .linkDirectionalParticleWidth(0.6)
-      // .linkDirectionalParticleSpeed(this.particleSpeed)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
       .linkVisibility(this.linkRenderer.linkVisible)
-      .nodeAutoColorBy("node")
-
+      .nodeAutoColorBy('node')
       .cooldownTicks(1)
       .d3Force('collision', d3.forceCollide((node: GraphNode) => node.collisionRadius));
-    // .d3Force('y', d3.forceY(0))
+    // particles
+    // .linkDirectionalParticles("value")
+    // .linkDirectionalParticleWidth(0.6)
+    // .linkDirectionalParticleSpeed(this.particleSpeed)
 
     // forces
-    this.graph.d3Force('collision')!.iterations(2)
-    // this.graph.d3Force('y')!.strength(1)
-    // this.graph.d3Force('link')!.distance(30);
-    // this.graph.d3Force('link')!.strength(3);
+    this.graph.d3Force('collision')!.iterations(2);
     this.graph.d3Force('charge')!.strength(-100 * scale);
-    // this.graph.d3Force('charge')!.distanceMax(90);
-    //
     this.applicationRenderer.updateLinks = () => {
       this.graph.graphData().links.forEach((link: GraphLink) => {
+        // eslint-disable-next-line no-underscore-dangle
         const lineObj = link.__lineObj;
         if (!lineObj) return;
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
       });
-    }
+    };
     this.graph.scale.setScalar(scale);
-    this.graph.getGrabId = () => { 'force-graph-grabbable' }
+    this.graph.getGrabId = () => { 'force-graph-grabbable'; };
   }
 
   tick() {

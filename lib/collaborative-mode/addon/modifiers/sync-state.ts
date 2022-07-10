@@ -58,7 +58,7 @@ export default class SyncStateModifier extends Modifier {
     this.heatmapConf.heatmapActive = message.isActive;
   }
 
-  debug = debugLogger("SyncState");
+  debug = debugLogger('SyncState');
 
   private send(event: string, args: HeatmapUpdateArgs) {
     const message = {
@@ -69,7 +69,7 @@ export default class SyncStateModifier extends Modifier {
     // TODO order matters, should be implemented better
     // if (_.isEqual(object, other);)
     if (JSON.stringify(message) !== JSON.stringify(lastMessage)) {
-      this.debug("Sending" + args.isActive)
+      this.debug(`Sending${args.isActive}`);
       this.webSocket.send(message);
       this.state.set(message.event, message);
     }

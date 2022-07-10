@@ -10,7 +10,7 @@ import THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
-  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp
+  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class VrRoomSerializer extends Service {

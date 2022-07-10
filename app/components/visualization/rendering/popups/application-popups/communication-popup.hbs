@@ -38,9 +38,9 @@
               </button>
             {{else}}
               {{drawableClassCommu.sourceClass.name}}
-                <BsTooltip @placement="top" @triggerEvents="hover">
-                  Application: {{drawableClassCommu.sourceApp.name}}
-                </BsTooltip>
+              <BsTooltip @placement="top" @triggerEvents="hover">
+                Application: {{drawableClassCommu.sourceApp.name}}
+              </BsTooltip>
             {{/if}}
             {{#if (not (eq drawableClassCommu.sourceApp.id this.application.id))}}
               (<button type="button" class="buttonToLink" {{on "click" (fn @showApplication drawableClassCommu.sourceApp.id)}}>
@@ -61,7 +61,7 @@
                 <BsTooltip @placement="top" @triggerEvents="hover">
                   Application: {{drawableClassCommu.targetApp.name}}
                 </BsTooltip>
-               </button>
+              </button>
             {{/if}}
           </td>
         </tr>

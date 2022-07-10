@@ -4,18 +4,17 @@ import THREE, { AnimationMixer } from 'three';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 
 export default class MousePing {
-
   mesh: PingMesh;
 
   constructor(color: THREE.Color, animationMixer: AnimationMixer) {
     this.mesh = new PingMesh({
-      animationMixer: animationMixer,
-      color: color,
+      animationMixer,
+      color,
     });
   }
 
   @restartableTask
-  public * ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
+  public* ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
     if (this.mesh) {
       this.mesh.parent?.remove(this.mesh);
     }

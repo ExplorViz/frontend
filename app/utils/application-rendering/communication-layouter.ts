@@ -7,8 +7,8 @@ import CommunicationLayout from '../../view-objects/layout-models/communication-
 import { DrawableClassCommunication } from './class-communication-computer';
 import { Application, Class, Package } from '../landscape-schemes/structure-data';
 
-let minRequests = 0
-let maximumRequests = 0
+let minRequests = 0;
+let maximumRequests = 0;
 
 export function calculatePipeSize(drawableClassCommunications: DrawableClassCommunication[]) {
   /**
@@ -34,7 +34,6 @@ export function calculatePipeSize(drawableClassCommunications: DrawableClassComm
 
   minRequests = Math.min(...requestsList);
   maximumRequests = Math.max(...requestsList);
-
 
   const pipeSizeMap = new Map<string, number>();
   drawableClassCommunications.forEach((clazzCommunication) => {
@@ -66,26 +65,8 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
    * Calculates the size of the pipes regarding the number of requests
    */
   function calculatePipeSizeFromQuantiles() {
-    /**
-     * Retrieves all requests and pushes them to a list for further processing
-     */
-    function gatherRequestsIntoList() {
-      const requestsList: number[] = [];
-
-      // Generate a list with all requests
-      drawableClassCommunications.forEach((clazzCommunication) => {
-        if ((clazzCommunication.sourceClass !== clazzCommunication.targetClass)) {
-          requestsList.push(clazzCommunication.totalRequests);
-        }
-      });
-
-      return requestsList;
-    }
-
     // Constant factors for rendering communication lines (pipes)
     const LINE_THICKNESS_FACTOR = 0.5;
-
-    const requestsList = gatherRequestsIntoList();
 
     // const minRequests = Math.min(...requestsList);
     // const maximumRequests = Math.max(...requestsList);
@@ -258,8 +239,8 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
 
       const centerPoint = new THREE.Vector3(clazzBoxLayout.positionX
         + clazzBoxLayout.width / 2.0,
-        clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
-        clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0);
+      clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
+      clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0);
 
       end.x = clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0;
       end.y = centerPoint.y;

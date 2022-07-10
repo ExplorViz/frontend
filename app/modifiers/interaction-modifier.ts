@@ -99,7 +99,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   modify(element: any, _positionalArgs: any[], args: NamedArgs) {
     this.namedArgs = args;
     if (args.rendererResolutionMultiplier) {
-      this.rendererResolutionMultiplier = args.rendererResolutionMultiplier
+      this.rendererResolutionMultiplier = args.rendererResolutionMultiplier;
     }
 
     assert(
@@ -188,7 +188,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.ping(intersectedViewObj);
     } else if (event.button === 0 && this.pointers.length === 1 && !this.longPressTriggered) {
       this.onLeftClick(event, intersectedViewObj);
-    } else if (event.button === 2 && this.pointers.length === 1 && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 220) {
+    } else if (event.button === 2 && this.pointers.length === 1
+      && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 220) {
       this.dispatchOpenMenuEvent(event);
     }
   }
@@ -201,7 +202,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       bubbles: true,
       cancelable: true,
     });
-    event.stopPropagation()
+    event.stopPropagation();
     if (event.target) event.target.dispatchEvent(evt);
   }
 
@@ -217,7 +218,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  onLeftClick(event: MouseEvent, intersectedViewObj: THREE.Intersection | null) { // or touch, primary input ...
+  onLeftClick(event: MouseEvent, intersectedViewObj: THREE.Intersection | null) {
     if (this.pointerDownCounter === 1) {
       this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
@@ -356,12 +357,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handlePanStart(event);
       if (event.pointerType === 'touch') {
         this.longPressStart.set(event.clientX, event.clientY);
-        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 500)
+        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 500);
       }
     }
   }
 
-  handleLongPress(event: PointerEvent,) {
+  handleLongPress(event: PointerEvent) {
     this.longPressTriggered = true;
     this.longPressDelta.subVectors(this.longPressEnd, this.longPressStart);
     if (this.selectedObject) {

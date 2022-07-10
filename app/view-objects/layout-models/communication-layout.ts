@@ -45,13 +45,13 @@ export default class CommunicationLayout {
   }
 
   equals(obj?: CommunicationLayout) {
-    return obj &&
-      this.startX === obj.startX &&
-      this.startY === obj.startY &&
-      this.startZ === obj.startZ &&
-      this.endX === obj.endX &&
-      this.endY === obj.endY &&
-      this.endZ === obj.endZ &&
-      this.lineThickness === obj.lineThickness
+    return obj
+      && this.startX === obj.startX
+      && this.startY === obj.startY
+      && this.startZ === obj.startZ
+      && this.endX === obj.endX
+      && this.endY === obj.endY
+      && this.endZ === obj.endZ
+      && this.lineThickness === obj.lineThickness;
   }
 }

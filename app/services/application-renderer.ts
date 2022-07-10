@@ -12,7 +12,9 @@ import { openComponentMesh, restoreComponentState } from 'explorviz-frontend/uti
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import { Application, Class, Package, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application, Class, Package, StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -154,6 +156,7 @@ export default class ApplicationRenderer extends Service.extend({
   get openApplications() {
     return Array.from(this.openApplicationsMap.values());
   }
+
   /**
    * Adds labels to all box meshes of a given application
    */
@@ -209,10 +212,10 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @task *
-    addApplicationTask(
-      applicationData: ApplicationData,
-      addApplicationArgs: AddApplicationArgs = {},
+  @task*
+  addApplicationTask(
+    applicationData: ApplicationData,
+    addApplicationArgs: AddApplicationArgs = {},
   ) {
     const applicationModel = applicationData.application;
     const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(applicationData.layoutData);
@@ -222,7 +225,8 @@ export default class ApplicationRenderer extends Service.extend({
 
     let layoutChanged = true;
     if (applicationObject3D) {
-      layoutChanged = JSON.stringify(boxLayoutMap) !== JSON.stringify(applicationObject3D.boxLayoutMap)
+      layoutChanged = JSON.stringify(boxLayoutMap)
+        !== JSON.stringify(applicationObject3D.boxLayoutMap);
       // if (layoutChanged) {
       applicationObject3D.dataModel = applicationModel;
       applicationObject3D.boxLayoutMap = boxLayoutMap;
@@ -403,7 +407,6 @@ export default class ApplicationRenderer extends Service.extend({
       componentMesh,
       applicationObject3D,
     );
-    this.addLabels(applicationObject3D, this.font, false);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
@@ -442,7 +445,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.openAllComponents(applicationObject3D);
-    this.addLabels(applicationObject3D, this.font, false);
 
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
@@ -480,7 +482,7 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.removeCommunicationForAllApplications();
     }
-    this.updateLinks?.()
+    this.updateLinks?.();
   }
 
   /**

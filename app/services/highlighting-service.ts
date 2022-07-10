@@ -110,7 +110,7 @@ export default class HighlightingService extends Service.extend({
   @action
   removeHighlightingForAllApplications() {
     this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
-      const mesh = applicationObject3D.highlightedEntity
+      const mesh = applicationObject3D.highlightedEntity;
       this.highlightComponent(applicationObject3D, mesh);
     });
     this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
@@ -142,13 +142,13 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlight(mesh: EntityMesh) {
-    const parent = mesh.parent;
+    const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh);
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, this.localUser.color);
       this.sender.sendHighlightingUpdate(
-        "",
+        '',
         this.getEntityType(mesh),
         mesh.dataModel.id,
         mesh.highlighted,
@@ -160,7 +160,7 @@ export default class HighlightingService extends Service.extend({
   highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
     mesh.highlightingColor = color || this.configuration.applicationColors.highlightedEntityColor;
     if (mesh.highlighted) {
-      mesh.unhighlight()
+      mesh.unhighlight();
     } else {
       this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
       mesh.highlight();
@@ -201,7 +201,7 @@ export default class HighlightingService extends Service.extend({
 
   hightlightComponentLocallyByTypeAndId(
     application: ApplicationObject3D,
-    { entityType, entityId, color }: HightlightComponentArgs,
+    { entityId, color }: HightlightComponentArgs,
   ) {
     const mesh = application.getMeshById(entityId);
     if (mesh && isHighlightableMesh(mesh)) {
@@ -224,21 +224,22 @@ export default class HighlightingService extends Service.extend({
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
       this.linkRenderer.getAllLinks().forEach((link) => {
         const linkCommunication = link.dataModel.drawableClassCommus[0];
-        const targetAppId = linkCommunication?.targetApp?.id
-        const sourceAppId = linkCommunication?.sourceApp?.id
-        const sourceClassId = linkCommunication?.sourceClass.id
-        const targetClassId = linkCommunication?.targetClass.id
-        if (mesh.highlighted && (sourceAppId === application.dataModel.id
+        const targetAppId = linkCommunication?.targetApp?.id;
+        const sourceAppId = linkCommunication?.sourceApp?.id;
+        const sourceClassId = linkCommunication?.sourceClass.id;
+        const targetClassId = linkCommunication?.targetClass.id;
+        if (mesh.highlighted && ((sourceAppId === application.dataModel.id
           && sourceClassId !== mesh.dataModel.id)
           || (targetAppId === application.dataModel.id
-            && targetClassId !== mesh.dataModel.id)) {
+            && targetClassId !== mesh.dataModel.id))) {
           link.turnTransparent();
-        } else if (sourceAppId === application.dataModel.id || targetAppId === application.dataModel.id) {
+        } else if (sourceAppId === application.dataModel.id
+          || targetAppId === application.dataModel.id) {
           link.turnOpaque();
         } else if (sourceClassId === mesh.dataModel.id || targetClassId === mesh.dataModel.id) {
           link.turnOpaque();
         }
-      })
+      });
     }
   }
 

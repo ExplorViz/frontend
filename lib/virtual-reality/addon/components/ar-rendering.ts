@@ -28,7 +28,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -52,8 +51,6 @@ interface Args {
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
 }
-
-declare const THREEx: any;
 
 export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
@@ -245,9 +242,9 @@ export default class ArRendering extends Component<Args> {
      */
   private initCamera() {
     // Set camera properties
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(65, document.body.clientWidth / document.body.clientHeight, 0.01, 20);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(65,
+      document.body.clientWidth / document.body.clientHeight, 0.01, 20);
     this.scene.add(this.localUser.defaultCamera);
-
   }
 
   private initCameraCrosshair() {
@@ -282,17 +279,17 @@ export default class ArRendering extends Component<Args> {
 
   @action
   rotateLeft() {
-    this.graph.rotateY(12.5 * Math.PI / 180);
+    this.graph.rotateY((12.5 * Math.PI) / 180);
   }
 
   @action
   rotateRight() {
-    this.graph.rotateY(-12.5 * Math.PI / 180);
+    this.graph.rotateY((-12.5 * Math.PI) / 180);
   }
 
   @action
   openMenu() {
-    const position = { clientX: 100, clientY: window.innerHeight - 200, preventDefault: () => { } }
+    const position = { clientX: 100, clientY: window.innerHeight - 200, preventDefault: () => { } };
     const evt = new CustomEvent('openmenu', {
       detail: {
         srcEvent: position,
@@ -558,7 +555,6 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection | null) {
-    // AlertifyHandler.showAlertifyMessage(`Pos${this.landscapeRenderer.landscapeObject3D?.parent?.position.z}`);
     if (!intersection) return;
 
     this.mousePosition.copy(intersection.point);
@@ -593,7 +589,7 @@ export default class ArRendering extends Component<Args> {
   hoveredObject: EntityMesh | null = null;
 
   tick(delta: number, frame: THREE.XRFrame) {
-    const intersection = this.raycastCenter()
+    const intersection = this.raycastCenter();
     this.popupHandler.hover(intersection?.object);
     if (intersection) {
       const mesh = intersection.object;

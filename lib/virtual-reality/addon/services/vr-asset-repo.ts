@@ -5,8 +5,11 @@ import { CloseIconTextures } from 'virtual-reality/utils/view-objects/vr/close-i
 
 export default class VrAssetRepository extends Service {
   closeIconTextures!: CloseIconTextures;
+
   shareIconTextures!: ActionIconTextures;
+
   paintbrushIconTextures!: ActionIconTextures;
+
   fireIconTextures!: ActionIconTextures;
 
   font: THREE.Font | undefined;

@@ -173,7 +173,7 @@ export default class WebSocketService extends Service.extend(Evented) {
           resolve(onResponse?.(response));
         },
         onOffline: () => {
-          onOffline?.()
+          onOffline?.();
           resolve(true);
         },
       });

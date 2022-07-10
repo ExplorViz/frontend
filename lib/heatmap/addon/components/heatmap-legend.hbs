@@ -23,19 +23,19 @@
       </button>
     </div>--}}
 
-     <div>
-       <BsButton
-         @type={{if this.heatmapConfiguration.heatmapShared "success" "secondary"}}
-         @onClick={{this.heatmapConfiguration.toggleShared}}
-       >
-         {{svg-jar "share-android-16" class="octicon align-middle"}}
-         <BsTooltip @placement="top" @triggerEvents="hover">
-           Share heatmap with other users?
-           Green: Yes,
-           Grey: No
-         </BsTooltip>
-       </BsButton>
-    <HelpTooltip @title="Select an application by clicking on its foundation" />
+    <div>
+      <BsButton
+        @type={{if this.heatmapConfiguration.heatmapShared "success" "secondary"}}
+        @onClick={{this.heatmapConfiguration.toggleShared}}
+      >
+        {{svg-jar "share-android-16" class="octicon align-middle"}}
+        <BsTooltip @placement="top" @triggerEvents="hover">
+          Share heatmap with other users?
+          Green: Yes,
+          Grey: No
+        </BsTooltip>
+      </BsButton>
+      <HelpTooltip @title="Select an application by clicking on its foundation" />
     </div>
     <div>
       <input id="collapsible" class="heatmap-legend-toggle" type="checkbox" checked>
@@ -49,21 +49,21 @@
     </div>
     <div class="d-flex flex-row mt-2">
       {{#if this.heatmapConfiguration.currentApplication}}
-      <div id="heatmap-legend" {{did-insert this.didInsertLegend}}>
-        <canvas
-          id="legend-canvas"
-          height="100%"
-          {{did-insert this.didInsertCanvas}}
-        >
-        </canvas>
-      </div>
-      <div id="heatmap-legend-label">
-        <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.max}}</span>
-        <span class="heatmap-label">{{divide-and-round this.heatmapConfiguration.selectedMetric.max 2 0}}</span>
-        <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.min}}</span>
-      </div>
+        <div id="heatmap-legend" {{did-insert this.didInsertLegend}}>
+          <canvas
+            id="legend-canvas"
+            height="100%"
+            {{did-insert this.didInsertCanvas}}
+          >
+          </canvas>
+        </div>
+        <div id="heatmap-legend-label">
+          <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.max}}</span>
+          <span class="heatmap-label">{{divide-and-round this.heatmapConfiguration.selectedMetric.max 2 0}}</span>
+          <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.min}}</span>
+        </div>
       {{else}}
-      Please select an application by clicking on its foundation
+        Please select an application by clicking on its foundation
       {{/if}}
     </div>
   </div>

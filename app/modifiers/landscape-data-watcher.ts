@@ -6,7 +6,7 @@ import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { GraphNode, isGraphNode } from 'explorviz-frontend/rendering/application/force-graph';
+import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
@@ -69,8 +69,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     perform(this.handleUpdatedLandscapeData);
   }
 
-  @restartableTask *
-    handleUpdatedLandscapeData() {
+  @restartableTask*
+  handleUpdatedLandscapeData() {
     yield Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
@@ -84,15 +84,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
 
-    const nodeLinks: any[] = []
+    const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
-        const applicationData = yield perform(this.updateApplicationData, application, drawableClassCommunications);
+        const applicationData = yield perform(this.updateApplicationData,
+          application, drawableClassCommunications);
 
         // create or update applicationObject3D
-        const app = yield perform(this.applicationRenderer.addApplicationTask, applicationData,);
+        const app = yield perform(this.applicationRenderer.addApplicationTask, applicationData);
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy('id', applicationData.application.id) as GraphNode;
@@ -104,7 +105,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           graphNode.fx = graphNode.x;
           graphNode.fz = graphNode.z;
         } else {
-          graphNodes.push({ id: applicationData.application.id, fy: 0, collisionRadius } as GraphNode);
+          graphNodes.push(
+            { id: applicationData.application.id, fy: 0, collisionRadius } as GraphNode,
+          );
         }
 
         // create (invisible) links between apps on the same node
@@ -114,22 +117,21 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
               source: application.id,
               target: nodeApp.id,
               value: 1, // used for particles
-            })
+            });
           }
-        })
+        });
       }
     }
 
-    const interAppCommunications = drawableClassCommunications.filter(x => x.sourceApp !== x.targetApp);
-    // const pipeSizeMap = calculatePipeSize(interAppCommunications);
+    const interAppCommunications = drawableClassCommunications.filter(
+      (x) => x.sourceApp !== x.targetApp,
+    );
     const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
-    // could be used to render all communication, but does not combine collapsed components
-    // const interAppCommunications = drawableClassCommunications.filter(x => x.sourceClass.id !== x.targetClass.id)
-    const communicationLinks = interAppCommunications.map(communication => ({
+    const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
       value: pipeSizeMap.get(communication.id), // used for particles
-      communicationData: communication
+      communicationData: communication,
     }));
 
     const gData = {
@@ -156,8 +158,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.graph.graphData(gData);
   }
 
-  @task *
-    updateApplicationData(application: Application, drawableClassCommunications: DrawableClassCommunication[]) {
+  @task*
+  updateApplicationData(application: Application,
+    drawableClassCommunications: DrawableClassCommunication[]) {
     const workerPayload = {
       structure: application,
       dynamic: this.dynamicLandscapeData,

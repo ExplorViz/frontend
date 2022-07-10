@@ -1,11 +1,10 @@
 import gsap from 'gsap';
 import {
-  Box3, Object3D, PerspectiveCamera, Vector3
+  Box3, Object3D, PerspectiveCamera, Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 
-export class CameraControls {
-
+export default class CameraControls {
   private camera: PerspectiveCamera;
 
   controls: MapControls;
@@ -55,8 +54,8 @@ export class CameraControls {
   focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
     const box = new Box3();
     selection.forEach((object) => {
-      box.expandByObject(object)
-    })
+      box.expandByObject(object);
+    });
 
     this.fitCameraToBox(duration, box);
   }
@@ -69,7 +68,7 @@ export class CameraControls {
       z: position.z,
       onUpdate: () => {
         this.camera.updateProjectionMatrix();
-      }
+      },
     });
 
     gsap.to(this.controls.target, {
@@ -79,9 +78,8 @@ export class CameraControls {
       z: target.z,
       onUpdate: () => {
         this.controls.update();
-      }
+      },
     });
-
   }
 
   tick() {

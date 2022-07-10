@@ -1,21 +1,20 @@
+/* eslint-disable no-underscore-dangle */
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import { GraphLink } from "explorviz-frontend/rendering/application/force-graph";
+import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
-import ClazzCommunicationMesh from "explorviz-frontend/view-objects/3d/application/clazz-communication-mesh";
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import CommunicationLayout from "explorviz-frontend/view-objects/layout-models/communication-layout";
+import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
 import { Vector3 } from 'three';
 import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 
-
 export default class LinkRenderer extends Service.extend({
 }) {
-
   @service('configuration')
   private configuration!: Configuration;
 
@@ -39,7 +38,7 @@ export default class LinkRenderer extends Service.extend({
   }
 
   @action
-  linkPositionUpdate(line: ClazzCommunicationMesh, _coords: any /**  { start: Coords, end: Coords }*/, link: GraphLink) {
+  linkPositionUpdate(line: ClazzCommunicationMesh, _coords: any, link: GraphLink) {
     line.visible = this.linkVisible(link);
     if (!link.communicationData) {
       return true;
@@ -55,7 +54,7 @@ export default class LinkRenderer extends Service.extend({
     forceGraph.worldToLocal(start);
 
     // target
-    const targetApp = link.target.__threeObj
+    const targetApp = link.target.__threeObj;
     const targetClass = findFirstOpen(targetApp, drawableClassCommunication.targetClass);
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
     const end = targetMesh.getWorldPosition(new Vector3());
@@ -63,8 +62,8 @@ export default class LinkRenderer extends Service.extend({
 
     // add arrow
     const commLayout = new CommunicationLayout(drawableClassCommunication);
-    commLayout.startPoint = start
-    commLayout.endPoint = end
+    commLayout.startPoint = start;
+    commLayout.endPoint = end;
     commLayout.lineThickness = link.value;
     line.layout = commLayout;
     line.geometry.dispose();
@@ -85,7 +84,7 @@ export default class LinkRenderer extends Service.extend({
   createLink(link: GraphLink) {
     const drawableClazzComm = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
-    const id = drawableClazzComm.id;
+    const { id } = drawableClazzComm;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.dataModel,

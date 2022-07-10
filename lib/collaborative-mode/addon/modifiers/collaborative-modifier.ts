@@ -9,7 +9,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import THREE, { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
@@ -85,10 +84,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
     perform(this.applicationRenderer.openApplicationTask,
       id, {
-      position: new THREE.Vector3(...position),
-      quaternion: new THREE.Quaternion(...quaternion),
-      scale: new THREE.Vector3(...scale),
-    },
+        position: new THREE.Vector3(...position),
+        quaternion: new THREE.Quaternion(...quaternion),
+        scale: new THREE.Vector3(...scale),
+      },
       false);
   }
 

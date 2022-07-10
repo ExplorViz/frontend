@@ -4,7 +4,6 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
-import MenuGroup from 'virtual-reality/utils/vr-menus/menu-group';
 import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
@@ -87,7 +86,7 @@ export default class DetachedMenuGroupsService extends Service {
         position: position.toArray(),
         quaternion: quaternion.toArray(),
         scale: menu.scale.toArray(),
-        nonce: 0 // will be overwritten
+        nonce: 0, // will be overwritten
       },
       // Wait for backend to assign an id to the detached menu.
       {
@@ -95,7 +94,7 @@ export default class DetachedMenuGroupsService extends Service {
         onResponse: (response: MenuDetachedResponse) => {
           const menuId = response.objectId;
           if (menuId) {
-            const color = this.collaborationSession.getColor("");
+            const color = this.collaborationSession.getColor('');
             icon.material.color = new THREE.Color(color);
             menuGroup.menuId = menuId;
             if (menuId) this.detachedMenuGroupsById.set(menuId, menuGroup);
@@ -105,8 +104,8 @@ export default class DetachedMenuGroupsService extends Service {
         },
         onOffline: () => {
         },
-      }
-    )
+      },
+    );
   }
 
   /**
@@ -144,8 +143,7 @@ export default class DetachedMenuGroupsService extends Service {
     if (menuId) this.detachedMenuGroupsById.set(menuId, detachedMenuGroup);
     this.container.add(detachedMenuGroup);
 
-
-    let color = "white"
+    let color = 'white';
     if (userId) {
       color = this.collaborationSession.getColor(userId);
     }
@@ -164,9 +162,9 @@ export default class DetachedMenuGroupsService extends Service {
         textures: this.assetRepo.shareIconTextures,
         color: new THREE.Color(color),
         onAction: () => {
-          this.heatmapConf.toggleShared()
+          this.heatmapConf.toggleShared();
           if (this.heatmapConf.heatmapShared) {
-            shareIcon.material.color = new THREE.Color(this.collaborationSession.getColor(""));
+            shareIcon.material.color = new THREE.Color(this.collaborationSession.getColor(''));
           } else {
             shareIcon.material.color = new THREE.Color('white');
           }
@@ -203,7 +201,7 @@ export default class DetachedMenuGroupsService extends Service {
       shareIcon.position.y -= 0.04;
       shareIcon.position.x -= 0.15;
 
-      color = this.collaborationSession.getColor("");
+      color = this.collaborationSession.getColor('');
       // highlight icon
       const highlightIcon = new ActionIcon({
         textures: this.assetRepo.paintbrushIconTextures,
@@ -224,12 +222,10 @@ export default class DetachedMenuGroupsService extends Service {
 
   highlightComponent(entityId: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.highlightingService.highlightById(entityId)
+      this.highlightingService.highlightById(entityId);
       resolve(true);
-    })
+    });
   }
-
-
 
   /**
    * Asks the backend to close the given detached menu. If the backend allows
@@ -248,8 +244,8 @@ export default class DetachedMenuGroupsService extends Service {
       // Informs the backend that an detached menu was closed by this user.
       {
         event: 'detached_menu_closed',
-        menuId: menuId,
-        nonce: 0 // will be overwritten
+        menuId,
+        nonce: 0, // will be overwritten
       },
       // Close menu if backend responds with OK.
       {
@@ -258,13 +254,13 @@ export default class DetachedMenuGroupsService extends Service {
           if (response.isSuccess) {
             this.removeDetachedMenuLocally(detachedMenuGroup);
           }
-          return response.isSuccess
+          return response.isSuccess;
         },
         onOffline: () => {
           this.removeDetachedMenuLocally(detachedMenuGroup);
         },
-      }
-    )
+      },
+    );
   }
 
   /**

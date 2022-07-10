@@ -136,12 +136,14 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
 function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationRepository) {
   const clazz = clazzMesh.dataModel;
 
-  let application = clazzMesh.parent;
+  const application = clazzMesh.parent;
   if (!(application instanceof ApplicationObject3D)) {
     return null;
   }
   // TODO refactor, duplicated from clazz-popup
-  const currentApplicationHeatmapData = applicationRepo.getById(application.dataModel.id)?.heatmapData;;
+  const currentApplicationHeatmapData = applicationRepo.getById(
+    application.dataModel.id,
+  )?.heatmapData;
 
   const content: DetailedInfo = { title: trimString(clazz.name, 40), entries: [] };
 
@@ -152,7 +154,7 @@ function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationR
         key: metric.name,
         value: String(metric.values.get(clazzMesh.dataModel.id)),
       });
-    })
+    });
   }
   return content;
 }
@@ -237,7 +239,9 @@ function composeDrawableClazzCommunicationContent(
 
 // #endregion APPLICATION CONTENT COMPOSER
 
-export default function composeContent(object: THREE.Object3D, applicationRepo: ApplicationRepository) {
+export default function composeContent(
+  object: THREE.Object3D, applicationRepo: ApplicationRepository,
+) {
   let content: DetailedInfo | null = null;
 
   // Landscape Content
@@ -265,7 +269,7 @@ export type EntityMesh =
   | ComponentMesh
   | ClazzMesh
   | ClazzCommunicationMesh
-  | FoundationMesh
+  | FoundationMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (

@@ -364,7 +364,7 @@ export default class VrRendering
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
           this.highlightingService.highlight(event.intersection.object);
         }
-      }
+      },
     });
   }
 
@@ -668,7 +668,7 @@ export default class VrRendering
   // executed on enter VR
   private async onControllerConnected(controller: VRController) {
     if (this.session) {
-      const source = this.session.inputSources[controller.gamepadIndex]
+      const source = this.session.inputSources[controller.gamepadIndex];
       if (source.gamepad) {
         controller.gamepad = source.gamepad;
       }
@@ -722,7 +722,7 @@ export default class VrRendering
               controller.intersectedObject,
             );
           }
-        }
+        },
       }),
 
       bButton: new VRControllerButtonBinding('Ping', {
@@ -730,7 +730,7 @@ export default class VrRendering
           if (controller.intersectedObject) {
             this.ping(controller.intersectedObject);
           }
-        }
+        },
       }),
 
       gripButton: new VRControllerButtonBinding('Grab Object', {
@@ -757,10 +757,10 @@ export default class VrRendering
                   if (isEntityMesh(object)) {
                     this.openInfoMenu(controller, object);
                   } else {
-                    this.openToolMenu(controller)
+                    this.openToolMenu(controller);
                   }
                 } else {
-                  this.openToolMenu(controller)
+                  this.openToolMenu(controller);
                 }
                 break;
             }
@@ -996,7 +996,7 @@ export default class VrRendering
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x)
+    this.graph.localToWorld(x);
     this.detachedMenuRenderer.restoreMenu({
       objectId,
       entityType,

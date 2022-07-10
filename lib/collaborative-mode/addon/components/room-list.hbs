@@ -20,12 +20,12 @@
           <th scope="row">{{room.size}}</th>
           <th scope="row">
             {{#if room.alias}}
-            {{room.alias}}
-            <BsTooltip @placement="top" @triggerEvents="hover">
-              Token: {{room.landscapeToken}}
-            </BsTooltip>
+              {{room.alias}}
+              <BsTooltip @placement="top" @triggerEvents="hover">
+                Token: {{room.landscapeToken}}
+              </BsTooltip>
             {{else}}
-            {{room.landscapeToken}}
+              {{room.landscapeToken}}
             {{/if}}
           </th>
           <th scope="row">

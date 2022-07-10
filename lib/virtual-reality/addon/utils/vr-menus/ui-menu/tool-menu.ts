@@ -324,9 +324,9 @@ export default class ToolMenu extends InteractiveMenu {
       {
         onThumbpadTouch: (_controller, axes) => {
           switch (
-          VRControllerThumbpadBinding.getHorizontalDirection(axes, {
-            threshold: THUMBPAD_THRESHOLD,
-          })
+            VRControllerThumbpadBinding.getHorizontalDirection(axes, {
+              threshold: THUMBPAD_THRESHOLD,
+            })
           ) {
             case VRControllerThumbpadHorizontalDirection.LEFT:
               this.selectPreviousTool();
@@ -340,15 +340,17 @@ export default class ToolMenu extends InteractiveMenu {
         },
         onThumbpadDown: (_controller, axes) => {
           switch (
-          VRControllerThumbpadBinding.getHorizontalDirection(axes, {
-            threshold: THUMBPAD_THRESHOLD,
-          })
+            VRControllerThumbpadBinding.getHorizontalDirection(axes, {
+              threshold: THUMBPAD_THRESHOLD,
+            })
           ) {
             case VRControllerThumbpadHorizontalDirection.NONE:
-              this.closeMenu()
+              this.closeMenu();
+              break;
+            default:
               break;
           }
-        }
+        },
       },
     );
   }

@@ -1,5 +1,4 @@
 import THREE from 'three';
-import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import vrControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../ui-menu';
@@ -110,12 +109,12 @@ export default class ZoomMenu extends UiMenu {
     return new VRControllerThumbpadBinding(
       { labelLeft: 'Back', labelRight: 'Next' },
       {
-        onThumbpadTouch: (_controller, axes) => {
-          this.closeMenu()
+        onThumbpadTouch: () => {
+          this.closeMenu();
         },
-        onThumbpadDown: (_controller, axes) => {
-          this.closeMenu()
-        }
+        onThumbpadDown: () => {
+          this.closeMenu();
+        },
       },
     );
   }

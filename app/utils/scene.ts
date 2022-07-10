@@ -7,6 +7,10 @@ export function light(): THREE.AmbientLight {
   return new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
 }
 
+export function directionalLight(): THREE.DirectionalLight {
+  return new THREE.DirectionalLight(0xffffff, 0.25);
+}
+
 export function spotlight(): THREE.SpotLight {
   const spotLight = new THREE.SpotLight(0xffffff, 0.5, 2000);
   spotLight.position.set(-200, 100, 100);
@@ -29,10 +33,6 @@ export function defaultScene() {
   // scene.add(spotlight());
   scene.add(directionalLight());
   return scene;
-}
-
-export function directionalLight(): THREE.DirectionalLight {
-  return new THREE.DirectionalLight(0xffffff, 0.25);
 }
 
 export function vrScene(): THREE.Scene {

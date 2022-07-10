@@ -79,6 +79,7 @@ export default class VrMessageSender extends Service {
       objectId,
     });
   }
+
   /**
    * Informs the backend that a component was opened or closed by this user.
    *

@@ -7,7 +7,6 @@ interface Args {
 }
 
 export default class ApplicationPopup extends Component<Args> {
-
   get clazzCount() {
     return getAllClassesInApplication(this.args.application).length;
   }

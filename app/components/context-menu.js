@@ -1,10 +1,8 @@
 import RightClickMenu from 'ember-right-click-menu/components/right-click-menu';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
 
 export default class ContextMenu extends RightClickMenu {
-
-  open = false;
+  opened = false;
 
   @action
   addContextMenuListeners() {
@@ -16,12 +14,12 @@ export default class ContextMenu extends RightClickMenu {
 
   @action
   openMenu(event) {
-    const srcEvent = event.detail.srcEvent
-    if (open) {
+    const { srcEvent } = event.detail;
+    if (this.opened) {
       this.closeContextMenu();
     } else {
       this.contextMenu(srcEvent);
-      open = true;
+      this.opened = true;
     }
   }
 
@@ -44,6 +42,6 @@ export default class ContextMenu extends RightClickMenu {
       e.path = e.composedPath && e.composedPath();
     }
     super.closeContextMenu(e);
-    open = false;
+    this.opened = false;
   }
 }

@@ -2,7 +2,6 @@ import { action } from '@ember/object';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import { EntityType } from '../../vr-message/util/entity_type';
-import { MenuState } from '../base-menu';
 import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';
 import TextItem from '../items/text-item';
@@ -31,11 +30,11 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
   }
 
   getDetachId(): string {
-    return "heatmap-menu";
+    return 'heatmap-menu';
   }
 
   getEntityType(): EntityType {
-    return "heatmap-menu"
+    return 'heatmap-menu';
   }
 
   onCloseMenu() {
@@ -74,7 +73,7 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
 
     let offset = 100;
 
-    content.entries.forEach(({ key, value }) => {
+    content.entries.forEach(({ key }) => {
       const keyTextItem = new TextItem({
         text: key,
         color: '#ffffff',
@@ -100,10 +99,11 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
   }
 
   getContent() {
-    const min = this.heatmapConfiguration.selectedMetric?.min || "0"
-    const max = this.heatmapConfiguration.selectedMetric?.max || "0"
+    const min = this.heatmapConfiguration.selectedMetric?.min || '0';
+    const max = this.heatmapConfiguration.selectedMetric?.max || '0';
     return {
-      title: 'Heatmap', entries: [
+      title: 'Heatmap',
+      entries: [
         {
           key: 'Metric',
           value: this.heatmapConfiguration.selectedMetricName,
@@ -116,18 +116,18 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
           key: 'Max',
           value: max,
         },
-      ]
-    }
+      ],
+    };
   }
 
   @action
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
 
-    const content = this.getContent()
+    const content = this.getContent();
     if (content) {
       content.entries.forEach(({ key, value }) => {
-        const item = this.entryItems.get(key)
+        const item = this.entryItems.get(key);
         if (item) {
           item.setText(String(value));
         }

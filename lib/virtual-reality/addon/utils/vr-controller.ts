@@ -398,7 +398,8 @@ export default class VRController extends BaseMesh {
 
     for (let i = 0; i < intersections.length; i++) {
       const intersection = intersections[i];
-      if (canIntersectAllParentObjects(intersection, { onlyVisible: true }) && defaultRaycastFilter(intersection)) {
+      if (canIntersectAllParentObjects(intersection, { onlyVisible: true })
+        && defaultRaycastFilter(intersection)) {
         return intersection;
       }
     }
