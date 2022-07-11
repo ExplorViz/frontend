@@ -23,6 +23,7 @@ export type VRControllerLabelPositions = {
   triggerButton?: VRControllerLabelPosition;
   gripButton?: VRControllerLabelPosition;
   menuButton?: VRControllerLabelPosition;
+  bButton?: VRControllerLabelPosition;
 };
 
 export function getVRControllerLabelPositions(
@@ -34,12 +35,12 @@ export function getVRControllerLabelPositions(
 
   // Since the layout description is not exposed by the TypeScript interface,
   // we have to remove the type first.
-  const controllerNodeName = (motionController as any).layoutDescription
-    .rootNodeName;
+  // const controllerNodeName = (motionController as any).layoutDescription
+  // .rootNodeName;
 
   // Make sure that the controller model has been loaded and its position is
   // up to date.
-  if (!controller.controllerModel.getObjectByName(controllerNodeName)) return null;
+  // if (!controller.controllerModel.getObjectByName(controllerNodeName)) return null;
   controller.controllerModel.updateMatrixWorld(true);
 
   // Gets the position of mesh in the controller model. We cannot use the
@@ -72,10 +73,10 @@ export function getVRControllerLabelPositions(
   ): VRControllerThumbpadLabelPositions => {
     for (let i = 0; i < componentNames.length; i++) {
       const componentName = componentNames[i];
-      const up = meshPosition(componentName, 'yaxis_touched', 'min');
-      const right = meshPosition(componentName, 'xaxis_touched', 'max');
-      const down = meshPosition(componentName, 'yaxis_touched', 'max');
-      const left = meshPosition(componentName, 'xaxis_touched', 'min');
+      const up = meshPosition(componentName, 'yaxis', 'min');
+      const right = meshPosition(componentName, 'xaxis', 'max');
+      const down = meshPosition(componentName, 'yaxis', 'max');
+      const left = meshPosition(componentName, 'xaxis', 'min');
       if (up && right && down && left) {
         return {
           positionUp: {
@@ -119,9 +120,10 @@ export function getVRControllerLabelPositions(
   };
 
   return {
-    thumbpad: thumbpadPosition('xr-standard-touchpad'),
+    thumbpad: thumbpadPosition('xr-standard-thumbstick'),
     triggerButton: buttonPosition('xr-standard-trigger'),
     gripButton: buttonPosition('xr-standard-squeeze'),
-    menuButton: buttonPosition('menu', 'x-button', 'a-button'),
+    menuButton: buttonPosition('x-button', 'a-button'),
+    bButton: buttonPosition('y-button', 'b-button'),
   };
 }

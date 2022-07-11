@@ -1,7 +1,7 @@
-import VrTimestampService from 'virtual-reality/services/vr-timestamp';
+import TimestampService from 'explorviz-frontend/services/timestamp';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, { VRControllerThumbpadHorizontalDirection } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
-import VrRoomSerializer from '../../../services/vr-room-serializer';
 import ArrowbuttonItem from '../items/arrowbutton-item';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
@@ -12,8 +12,7 @@ const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;
 
 export type TimeMenuArgs = UiMenuArgs & {
-  roomSerializer: VrRoomSerializer;
-  timestampService: VrTimestampService;
+  timestampService: TimestampService;
 };
 
 export default class TimeMenu extends UiMenu {
@@ -21,20 +20,17 @@ export default class TimeMenu extends UiMenu {
 
   private selectButton: TextbuttonItem;
 
-  private roomSerializer: VrRoomSerializer;
-
   private timeBackButton: ArrowbuttonItem;
 
   private timeForthButton: ArrowbuttonItem;
 
-  private timestampService: VrTimestampService;
+  private timestampService: TimestampService;
 
   private timestampTextItem: TextItem;
 
-  constructor({ roomSerializer, timestampService, ...args }: TimeMenuArgs) {
+  constructor({ timestampService, ...args }: TimeMenuArgs) {
     super(args);
 
-    this.roomSerializer = roomSerializer;
     this.timestampService = timestampService;
     this.date = new Date(timestampService.timestamp);
 
@@ -60,6 +56,12 @@ export default class TimeMenu extends UiMenu {
       height: 60,
       onTriggerPressed: (value) => {
         this.setDateBackBy(value * TIMESTAMP_INTERVAL);
+        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
+        this.redrawMenu();
+      },
+      onTriggerDown: () => {
+        this.setDateBackBy(TIMESTAMP_INTERVAL);
+        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
         this.redrawMenu();
       },
     });
@@ -111,12 +113,7 @@ export default class TimeMenu extends UiMenu {
   }
 
   private applySelectedTimestamp() {
-    this.roomSerializer.preserveRoom(
-      () => this.timestampService.updateTimestamp(this.date.getTime()),
-      {
-        restoreLandscapeData: false,
-      },
-    );
+    this.timestampService.updateTimestamp(this.date.getTime());
   }
 
   makeThumbpadBinding() {

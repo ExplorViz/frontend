@@ -25,6 +25,7 @@
     "ember-websockets": "^7.2.0",
     "jquery": "^3.4.1",
     "three": "^0.119.1",
+    "three-forcegraph": "^1.39.4",
     "webxr-polyfill": "^2.0.3"
   }
 }

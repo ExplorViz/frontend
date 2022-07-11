@@ -1,0 +1,35 @@
+version: "3.5"
+services:
+
+  ## Demo-Supplier ##
+
+  demo-supplier:
+    # container_name: explorviz-demo-supplier
+    image: explorviz/demo-supplier:latest
+    networks:
+      - explorviz
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./generic/backend-reverse-proxy:/etc/nginx/templates
+      - /home/maba/development/explorviz/frontend/.ssl:/etc/nginx/certs
+
+    ports:
+      - 8082:8082
+      - 8083:8083
+      - 8084:8084
+      - 4444:4444
+
+    environment:
+      - NGINX_LANDSCAPE_PORT=8082
+      - NGINX_TRACE_PORT=8083
+      - NGINX_USER_PORT=8084
+      - NGINX_VR_PORT=4444
+      - HOSTNAME=maba-desktop
+    networks:
+      - explorviz
+
+networks:
+  explorviz:
+    name: explorviz

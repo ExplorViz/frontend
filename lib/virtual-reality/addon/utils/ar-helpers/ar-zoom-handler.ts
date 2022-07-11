@@ -14,28 +14,32 @@ export default class ArZoomHandler {
   @tracked
   zoomEnabled: boolean;
 
-  private outerDiv: HTMLElement;
-
-  constructor(camera: THREE.PerspectiveCamera, outerDiv: HTMLElement, arSettings: ArSettings) {
+  constructor(camera: THREE.PerspectiveCamera, arSettings: ArSettings) {
     this.mainCamera = camera;
     this.zoomCamera = camera.clone();
-    this.outerDiv = outerDiv;
     this.arSettings = arSettings;
     this.zoomEnabled = false;
   }
 
   enableZoom() {
     this.zoomEnabled = true;
-    this.zoomCamera = this.mainCamera.clone();
   }
 
   disableZoom() {
     this.zoomEnabled = false;
   }
 
-  renderZoomCamera(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
-    resize: (outerDiv: HTMLElement) => void) {
+  // has to be rendered after the normal render
+  renderZoomCamera(renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
     if (!this.zoomEnabled) return;
+    renderer.xr.enabled = false;
+
+    // const width = window.screen.width // for chrome fullscreen
+    // const height = window.screen.height // for chrome fullscreen
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.zoomCamera.quaternion.copy(this.mainCamera.quaternion);
+    this.zoomCamera.position.copy(this.mainCamera.position);
 
     const originalSize = renderer.getSize(new THREE.Vector2());
 
@@ -65,22 +69,27 @@ export default class ArZoomHandler {
       zoomSize.y / zoomLevel,
     );
 
-    const canvas = renderer.domElement;
-
     renderer.setScissorTest(true);
 
-    this.zoomCamera.aspect = canvas.clientWidth / canvas.clientHeight;
+    this.zoomCamera.aspect = width / height;
     this.zoomCamera.updateProjectionMatrix();
 
-    renderer.setViewport(zoomPos.x, zoomPos.y, zoomSize.x, zoomSize.y);
-    renderer.setScissor(zoomPos.x, zoomPos.y, zoomSize.x, zoomSize.y);
+    // add border
+    renderer.setScissor(zoomPos.x - 4, zoomPos.y - 4, zoomSize.x * 2 + 8, zoomSize.y * 2 + 8);
+    renderer.setClearColor(0xffffff, 1); // border color
+    renderer.clearColor(); // clear color buffer
+
+    // render zoom content
+    renderer.setViewport(zoomPos.x, zoomPos.y, zoomSize.x * 2, zoomSize.y * 2);
+    renderer.setScissor(zoomPos.x, zoomPos.y, zoomSize.x * 2, zoomSize.y * 2);
+    renderer.setClearColor(0x000000, 0); // border color
 
     renderer.render(scene, this.zoomCamera);
 
     renderer.setScissorTest(false);
 
-    renderer.setViewport(0, 0, this.outerDiv.clientWidth, this.outerDiv.clientHeight);
+    renderer.setViewport(0, 0, width, height);
 
-    resize(this.outerDiv);
+    renderer.xr.enabled = true;
   }
 }

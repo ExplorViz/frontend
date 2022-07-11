@@ -1,3 +1,5 @@
+import debugLogger from 'ember-debug-logger';
+import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
@@ -9,7 +11,6 @@ import VrControllerModelFactory from './vr-controller/vr-controller-model-factor
 import { displayAsSolidObject, displayAsWireframe } from './vr-helpers/wireframe';
 import MenuGroup from './vr-menus/menu-group';
 import { ControllerId } from './vr-message/util/controller_id';
-
 /**
  * Length of the controller's ray when there is no intersection point.
  */
@@ -36,6 +37,10 @@ export type VRControllerCallbackFunctions = {
   menuPress?(controller: VRController): void;
   menuDown?(controller: VRController): void;
 
+  bButtonUp?(controller: VRController): void;
+  bButtonPress?(controller: VRController): void;
+  bButtonDown?(controller: VRController): void;
+
   updateIntersectedObject?(controller: VRController): void;
 };
 
@@ -44,6 +49,8 @@ export type VRControllerCallbackFunctions = {
  * a VR controller and provides update and callback functionalities.
  */
 export default class VRController extends BaseMesh {
+  debug = debugLogger('VRController');
+
   gamepadIndex: ControllerId;
 
   gamepad: Gamepad | null = null;
@@ -59,6 +66,8 @@ export default class VRController extends BaseMesh {
   gripIsPressed = false;
 
   menuIsPressed = false;
+
+  bButtonIsPressed = false;
 
   timestamp = 0;
 
@@ -285,11 +294,11 @@ export default class VRController extends BaseMesh {
     const { gamepad } = this;
     const callbacks = this.eventCallbacks;
 
-    const THUMBPAD_BUTTON = 0;
-    const TRIGGER_BUTTON = 1;
-    const GRIP_BUTTON = 2;
-    const MENU_BUTTON = 3;
-
+    const THUMBPAD_BUTTON = 3;
+    const TRIGGER_BUTTON = 0;
+    const GRIP_BUTTON = 1;
+    const A_BUTTON = 4;
+    const B_BUTTON = 5;
     if (gamepad) {
       const { timestamp } = gamepad;
 
@@ -301,10 +310,10 @@ export default class VRController extends BaseMesh {
 
       // Handle change in joystick / thumbpad position
       if (
-        this.axes[0] !== gamepad.axes[0]
-        || this.axes[1] !== gamepad.axes[1]
+        this.axes[0] !== gamepad.axes[2]
+        || this.axes[1] !== gamepad.axes[3]
       ) {
-        [this.axes[0], this.axes[1]] = gamepad.axes;
+        [this.axes[0], this.axes[1]] = [gamepad.axes[2], gamepad.axes[3]];
         if (callbacks.thumbpadTouch) {
           callbacks.thumbpadTouch(this, this.axes);
         }
@@ -349,9 +358,9 @@ export default class VRController extends BaseMesh {
       }
 
       // Handle clicked / released menu button
-      if (gamepad.buttons[MENU_BUTTON]) {
-        if (this.menuIsPressed !== gamepad.buttons[MENU_BUTTON].pressed) {
-          this.menuIsPressed = gamepad.buttons[MENU_BUTTON].pressed;
+      if (gamepad.buttons[A_BUTTON]) {
+        if (this.menuIsPressed !== gamepad.buttons[A_BUTTON].pressed) {
+          this.menuIsPressed = gamepad.buttons[A_BUTTON].pressed;
           if (this.menuIsPressed && callbacks.menuDown) {
             callbacks.menuDown(this);
           } else if (!this.menuIsPressed && callbacks.menuUp) {
@@ -359,6 +368,19 @@ export default class VRController extends BaseMesh {
           }
         } else if (callbacks.menuPress && this.menuIsPressed) {
           callbacks.menuPress(this);
+        }
+      }
+
+      if (gamepad.buttons[B_BUTTON]) {
+        if (this.bButtonIsPressed !== gamepad.buttons[B_BUTTON].pressed) {
+          this.bButtonIsPressed = gamepad.buttons[B_BUTTON].pressed;
+          if (this.bButtonIsPressed && callbacks.bButtonDown) {
+            callbacks.bButtonDown(this);
+          } else if (!this.bButtonIsPressed && callbacks.bButtonUp) {
+            callbacks.bButtonUp(this);
+          }
+        } else if (callbacks.bButtonPress && this.bButtonIsPressed) {
+          callbacks.bButtonPress(this);
         }
       }
     }
@@ -376,7 +398,8 @@ export default class VRController extends BaseMesh {
 
     for (let i = 0; i < intersections.length; i++) {
       const intersection = intersections[i];
-      if (canIntersectAllParentObjects(intersection, { onlyVisible: true })) {
+      if (canIntersectAllParentObjects(intersection, { onlyVisible: true })
+        && defaultRaycastFilter(intersection)) {
         return intersection;
       }
     }

@@ -1,23 +1,23 @@
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
+import LocalUser from 'collaborative-mode/services/local-user';
+import RemoteUser from 'collaborative-mode/utils/remote-user';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VRController from 'virtual-reality/utils/vr-controller';
-import RemoteVrUser from 'virtual-reality/utils/vr-multi-user/remote-vr-user';
 import TextItem from '../../items/text-item';
 import DisableInputMenu from '../../ui-less-menu/disable-input-menu';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../../ui-menu';
 
 export type SpectateMenuArgs = UiMenuArgs & {
-  localUser: LocalVrUser;
-  remoteUser: RemoteVrUser;
+  localUser: LocalUser;
+  remoteUser: RemoteUser;
   spectateUserService: SpectateUserService;
 };
 
 const HEIGHT = 60;
 
 export default class SpectateMenu extends UiMenu {
-  private localUser: LocalVrUser;
+  private localUser: LocalUser;
 
-  private remoteUser: RemoteVrUser;
+  private remoteUser: RemoteUser;
 
   private spectateUserService: SpectateUserService;
 

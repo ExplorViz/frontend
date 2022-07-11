@@ -5,6 +5,7 @@ import { Scale } from '../vr-message/util/Scale';
 
 export type SerializedDetachedMenu = {
   objectId: string | null;
+  userId: string | null;
   entityId: string;
   entityType: EntityType;
   position: Position;
@@ -12,7 +13,7 @@ export type SerializedDetachedMenu = {
   scale: Scale;
 };
 
-type SerializedHighlightedComponent = {
+export type SerializedHighlightedComponent = {
   userId: string;
   appId: string;
   entityType: string;
@@ -32,9 +33,6 @@ export type SerialzedApp = {
 export type SerializedLandscape = {
   landscapeToken: string;
   timestamp: number;
-  position: Position;
-  quaternion: Quaternion;
-  scale: Scale;
 };
 
 export type SerializedVrRoom = {

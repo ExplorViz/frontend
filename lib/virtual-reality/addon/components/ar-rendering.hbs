@@ -11,7 +11,7 @@
       {{#if this.heatmapConf.heatmapActive}}
         <HeatmapInfo
           @metrics={{this.heatmapConf.metrics}}
-          @updateMetric={{this.updateMetric}}
+          @updateMetric={{this.heatmapConf.updateMetric}}
           @selectedMetric={{this.heatmapConf.selectedMetric}}
         />
       {{/if}}
@@ -39,35 +39,47 @@
       {{!-- popup(s) --}}
 
 
-      {{#each this.popupDataMap as |popupData|}}
-        <Visualization::Rendering::Popups::PopupWrapper
-          @popupData={{popupData.[1]}}
-          @showApplication={{this.addApplicationById}}
-          @keepPopupOpen={{this.keepPopupOpen}}
-          @setPopupPosition={{this.setPopupPosition}}
-          @closePopup={{this.closePopup}}
-        >
-        </Visualization::Rendering::Popups::PopupWrapper>
+      {{#each this.popupHandler.popupData as |d|}}
+        <Visualization::Rendering::Popups::PopupCoordinator
+          @isMovable="true"
+          @popupData={{d}}
+          @pinPopup={{this.popupHandler.pinPopup}}
+          @sharePopup={{this.popupHandler.sharePopup}}
+          @removePopup={{this.popupHandler.removePopup}}
+          @structureData={{@landscapeData.structureLandscapeData}}
+          @highlightModel={{this.applicationRenderer.highlightModel}}
+          @openParents={{this.applicationRenderer.openParents}}
+        />
       {{/each}}
 
       <canvas
         class="main-content-majority position-absolute {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
         {{did-insert this.canvasInserted}}
         {{interaction-modifier
-          raycastObjects=this.interaction.raycastObjects
-          camera=this.localUser.defaultCamera
-          hammerInteraction=this.hammerInteraction
+          raycastObjects=this.intersectableObjects
+          rendererResolutionMultiplier=this.rendererResolutionMultiplier
+          camera=this.camera
           doubleClick=this.handleDoubleClick
           singleClick=this.handleSingleClick
-          mouseWheel=this.handleMouseWheel
+          pinch=this.handlePinching
+          rotate=this.handleRotate
+        }}
+        {{heatmap-renderer
+          camera=this.camera
+          scene=this.scene
+        }}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          graph=this.graph
+        }}
+        {{collaborative-modifier
+          raycastObject3D=this.intersectableObjects
+          camera=this.localUser.defaultCamera
         }}
       >
-        {{#if this.hammerInteraction}}
-          <RightClickMenuHammer
-            @items={{this.rightClickMenuItems}}
-            @hammer={{this.hammerInteraction}}
-          />
-        {{/if}}
+        <ContextMenu
+          @items={{this.rightClickMenuItems}}
+        />
       </canvas>
 
       <div class="ar-left-button-container">
@@ -86,9 +98,39 @@
           @handleZoomToggle={{this.handleZoomToggle}}
         />
 
+        <div id="ar-minus-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.decreaseSize }}
+          >
+            {{svg-jar "dash-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
+
+        <div id="ar-left-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.rotateLeft }}
+          >
+            {{svg-jar "arrow-left-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
+
       </div>
 
       <div class="ar-right-button-container">
+
+        <div id="ar-three-bars-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.openMenu }}
+          >
+            {{svg-jar "three-bars-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
 
         <Visualization::PageSetup::ArButtons::PrimaryInteractionButton
           @handlePrimaryCrosshairInteraction={{this.handlePrimaryCrosshairInteraction}}
@@ -102,6 +144,26 @@
         <Visualization::PageSetup::ArButtons::PingButton
           @handlePing={{this.handlePing}}
         />
+
+        <div id="ar-plus-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.increaseSize }}
+          >
+            {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
+
+        <div id="ar-right-interaction-container">
+          <BsButton
+            @type="primary"
+            class="half-transparent"
+            {{ on "click" this.rotateRight }}
+          >
+            {{svg-jar "arrow-right-16" class="octicon align-middle ar-button-svg"}}
+          </BsButton>
+        </div>
 
       </div>
 

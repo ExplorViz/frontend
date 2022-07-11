@@ -7,37 +7,26 @@ import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/pin
 import { TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VRController from '../utils/vr-controller';
 import { getControllerPose } from '../utils/vr-helpers/vr-poses';
-import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import { AppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
 import { ComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
 import { HighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
 import { ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
 import { ObjectReleasedMessage } from '../utils/vr-message/sendable/object_released';
-import { AppClosedMessage } from '../utils/vr-message/sendable/request/app_closed';
-import { DetachedMenuClosedMessage } from '../utils/vr-message/sendable/request/detached_menu_closed';
-import { MenuDetachedMessage } from '../utils/vr-message/sendable/request/menu_detached';
-import { ObjectGrabbedMessage } from '../utils/vr-message/sendable/request/object_grabbed';
 import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
 import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import { ControllerPose, Pose, UserPositionsMessage } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
-import { Nonce } from '../utils/vr-message/util/nonce';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
   private webSocket!: WebSocketService;
-
-  private lastNonce: Nonce = 0;
 
   /**
    * Gets the next request identifier.
    *
    * Messages that await responses
    */
-  private nextNonce() {
-    return ++this.lastNonce;
-  }
 
   /**
    * Sends position and rotation information of the local user's camera and
@@ -54,22 +43,6 @@ export default class VrMessageSender extends Service {
       controller2,
       camera,
     });
-  }
-
-  /**
-   * Send a request to the backend to grab the object with the given id.
-   *
-   * @param objectId The id of the object to request to grab.
-   * @return A locally unique identifier that is used by the backend to respond to this request.
-   */
-  sendObjectGrabbed(objectId: string): Nonce {
-    const nonce = this.nextNonce();
-    this.webSocket.send<ObjectGrabbedMessage>({
-      event: 'object_grabbed',
-      nonce,
-      objectId,
-    });
-    return nonce;
   }
 
   /**
@@ -105,36 +78,6 @@ export default class VrMessageSender extends Service {
       event: 'object_released',
       objectId,
     });
-  }
-
-  /**
-   * Informs the backend that an application was closed by this user.
-   *
-   * @param {string} appId ID of the closed application
-   */
-  sendAppClosed(appId: string) {
-    const nonce = this.nextNonce();
-    this.webSocket.send<AppClosedMessage>({
-      event: 'app_closed',
-      nonce,
-      appId,
-    });
-    return nonce;
-  }
-
-  /**
-   * Informs the backend that an detached menu was closed by this user.
-   *
-   * @param objectId The ID (grabId) of the closed menu
-   */
-  sendDetachedMenuClosed(menuId: string): Nonce {
-    const nonce = this.nextNonce();
-    this.webSocket.send<DetachedMenuClosedMessage>({
-      event: 'detached_menu_closed',
-      nonce,
-      menuId,
-    });
-    return nonce;
   }
 
   /**
@@ -266,26 +209,6 @@ export default class VrMessageSender extends Service {
       event: 'timestamp_update',
       timestamp,
     });
-  }
-
-  sendMenuDetached(menu: DetachableMenu): Nonce {
-    const position = new THREE.Vector3();
-    menu.getWorldPosition(position);
-
-    const quaternion = new THREE.Quaternion();
-    menu.getWorldQuaternion(quaternion);
-
-    const nonce = this.nextNonce();
-    this.webSocket.send<MenuDetachedMessage>({
-      event: 'menu_detached',
-      nonce,
-      detachId: menu.getDetachId(),
-      entityType: menu.getEntityType(),
-      position: position.toArray(),
-      quaternion: quaternion.toArray(),
-      scale: menu.scale.toArray(),
-    });
-    return nonce;
   }
 }
 

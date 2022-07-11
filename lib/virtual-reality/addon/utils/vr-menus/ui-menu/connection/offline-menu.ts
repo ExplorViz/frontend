@@ -38,6 +38,6 @@ export default class OfflineMenu extends ConnectionBaseMenu {
   }
 
   private createAndJoinNewRoom() {
-    this.localUser.hostRoom();
+    this.collaborationSession.hostRoom();
   }
 }

@@ -56,7 +56,7 @@ export default class ComponentLabelMesh extends LabelMesh {
 
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
-      depthTest: false,
+      // depthTest: false,
     });
 
     const textDimensions = computeBoxSize(this.geometry);

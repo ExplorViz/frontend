@@ -1,4 +1,6 @@
 import THREE from 'three';
+import vrControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../ui-menu';
 
 const CIRCLE_SEGMENTS = 48;
@@ -101,5 +103,25 @@ export default class ZoomMenu extends UiMenu {
 
     this.renderer.setRenderTarget(oldTarget);
     this.renderer.xr.enabled = oldXREnabled;
+  }
+
+  makeThumbpadBinding() {
+    return new VRControllerThumbpadBinding(
+      { labelLeft: 'Back', labelRight: 'Next' },
+      {
+        onThumbpadTouch: () => {
+          this.closeMenu();
+        },
+        onThumbpadDown: () => {
+          this.closeMenu();
+        },
+      },
+    );
+  }
+
+  makeMenuButtonBinding(): vrControllerButtonBinding<unknown> {
+    return new VRControllerButtonBinding('Close', {
+      onButtonDown: () => this.closeMenu(),
+    });
   }
 }

@@ -1,7 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import VrApplicationRenderer from 'explorviz-frontend/services/vr-application-renderer';
-import VrLandscapeRenderer from 'explorviz-frontend/services/vr-landscape-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 export default class ArSettings extends Service.extend({
@@ -10,11 +9,8 @@ export default class ArSettings extends Service.extend({
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
-  @service('vr-application-renderer')
-  private vrApplicationRenderer!: VrApplicationRenderer;
-
-  @service('vr-landscape-renderer')
-  private vrLandscapeRenderer!: VrLandscapeRenderer;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   @tracked
   landscapeOpacity: number;
@@ -31,22 +27,13 @@ export default class ArSettings extends Service.extend({
   zoomLevel = 3;
 
   @tracked
-  stackPopups = false;
+  stackPopups = true;
 
   constructor() {
     super(...arguments);
 
     this.landscapeOpacity = 0.9;
     this.applicationOpacity = 0.9;
-  }
-
-  setLandscapeOpacity(opacity: number) {
-    this.landscapeOpacity = opacity;
-    this.updateLandscapeOpacity();
-  }
-
-  updateLandscapeOpacity() {
-    this.vrLandscapeRenderer.landscapeObject3D.setOpacity(this.landscapeOpacity);
   }
 
   setApplicationOpacity(opacity: number) {
@@ -57,7 +44,7 @@ export default class ArSettings extends Service.extend({
   }
 
   updateApplicationOpacity() {
-    this.vrApplicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
+    this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
       applicationObject3D.setOpacity(this.applicationOpacity);
     });
   }

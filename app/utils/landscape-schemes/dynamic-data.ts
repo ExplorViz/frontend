@@ -6,7 +6,7 @@ export interface Trace {
   startTime: number,
   endTime: number,
   duration: number;
-  overallRequestCount: 1;
+  overallRequestCount: number;
   traceCount: number;
   spanList: Span[];
 }

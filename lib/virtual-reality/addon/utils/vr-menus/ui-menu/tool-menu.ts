@@ -73,10 +73,15 @@ export default class ToolMenu extends InteractiveMenu {
       action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildMainMenu()),
     });
     this.addTool({
-      label: 'Ping',
-      icon: 'north-star',
-      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildPingMenu()),
+      label: 'Heatmap',
+      icon: 'flame',
+      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildHeatmapMenu()),
     });
+    // this.addTool({
+    //   label: 'Ping',
+    //   icon: 'north-star',
+    //   action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildPingMenu()),
+    // });
 
     this.selectTool(this.defaultToolIndex, { enableAnimation: false });
   }
@@ -333,11 +338,30 @@ export default class ToolMenu extends InteractiveMenu {
               break;
           }
         },
+        onThumbpadDown: (_controller, axes) => {
+          switch (
+            VRControllerThumbpadBinding.getHorizontalDirection(axes, {
+              threshold: THUMBPAD_THRESHOLD,
+            })
+          ) {
+            case VRControllerThumbpadHorizontalDirection.NONE:
+              this.closeMenu();
+              break;
+            default:
+              break;
+          }
+        },
       },
     );
   }
 
   makeTriggerButtonBinding() {
+    return new VRControllerButtonBinding('Select', {
+      onButtonDown: () => this.selectedTool?.action(),
+    });
+  }
+
+  makeMenuButtonBinding() {
     return new VRControllerButtonBinding('Select', {
       onButtonDown: () => this.selectedTool?.action(),
     });

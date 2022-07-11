@@ -1,39 +1,33 @@
+import LocalUser from 'collaborative-mode/services/local-user';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
-import LocalVrUser from 'virtual-reality/services/local-vr-user';
-import VrApplicationRenderer from 'virtual-reality/services/vr-application-renderer';
-import VrLandscapeRenderer from '../../../services/vr-landscape-renderer';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 export type ResetMenuArgs = UiMenuArgs & {
-  localUser: LocalVrUser;
-  vrApplicationRenderer: VrApplicationRenderer;
-  vrLandscapeRenderer: VrLandscapeRenderer;
+  localUser: LocalUser;
+  online: boolean,
+  applicationRenderer: ApplicationRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
-  private localUser: LocalVrUser;
-
-  private vrApplicationRenderer: VrApplicationRenderer;
-
-  private vrLandscapeRenderer: VrLandscapeRenderer;
+  private localUser: LocalUser;
 
   private detachedMenuGroups: DetachedMenuGroupsService;
 
   constructor({
     localUser,
-    vrApplicationRenderer,
-    vrLandscapeRenderer,
+    online,
+    applicationRenderer,
     detachedMenuGroups,
     ...args
   }: ResetMenuArgs) {
     super(args);
     this.localUser = localUser;
-    this.vrApplicationRenderer = vrApplicationRenderer;
-    this.vrLandscapeRenderer = vrLandscapeRenderer;
+    this.applicationRenderer = applicationRenderer;
     this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
@@ -42,7 +36,7 @@ export default class ResetMenu extends UiMenu {
     });
     this.items.push(textItem);
 
-    if (localUser.connectionStatus !== 'online') {
+    if (online) {
       const question = new TextItem({
         text: 'Reset state and position?',
         color: '#ffffff',
@@ -104,10 +98,8 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    this.vrApplicationRenderer.removeAllApplicationsLocally();
   }
 
   private resetLandscape() {
-    this.vrLandscapeRenderer.centerLandscape();
   }
 }

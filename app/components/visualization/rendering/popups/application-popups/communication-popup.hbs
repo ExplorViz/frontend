@@ -30,11 +30,17 @@
           <td class="text-nowrap align-top">{{svg-jar "arrow-switch-16" class="octicon align-middle mr-1"}}</td>
           <td class="text-right text-break pl-1">
             {{#if (eq drawableClassCommu.sourceApp.id this.application.id)}}
-              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.sourceClass)}}>
+              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.sourceClass drawableClassCommu.sourceApp.id)}}>
                 {{drawableClassCommu.sourceClass.name}}
+                <BsTooltip @placement="top" @triggerEvents="hover">
+                  Application: {{drawableClassCommu.sourceApp.name}}
+                </BsTooltip>
               </button>
             {{else}}
               {{drawableClassCommu.sourceClass.name}}
+              <BsTooltip @placement="top" @triggerEvents="hover">
+                Application: {{drawableClassCommu.sourceApp.name}}
+              </BsTooltip>
             {{/if}}
             {{#if (not (eq drawableClassCommu.sourceApp.id this.application.id))}}
               (<button type="button" class="buttonToLink" {{on "click" (fn @showApplication drawableClassCommu.sourceApp.id)}}>
@@ -43,16 +49,19 @@
             {{/if}}
             {{svg-jar "arrow-right-16" class="octicon align-middle"}}
             {{#if (eq drawableClassCommu.targetApp.id this.application.id)}}
-              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.targetClass)}}>
+              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.targetClass drawableClassCommu.targetApp.id)}}>
                 {{drawableClassCommu.targetClass.name}}
+                <BsTooltip @placement="top" @triggerEvents="hover">
+                  Application: {{drawableClassCommu.targetApp.name}}
+                </BsTooltip>
               </button>
             {{else}}
-              {{drawableClassCommu.targetClass.name}}
-            {{/if}}
-            {{#if (not (eq drawableClassCommu.targetApp.id this.application.id))}}
-              (<button type="button" class="buttonToLink" {{on "click" (fn @showApplication drawableClassCommu.targetApp.id)}}>
-                 {{drawableClassCommu.targetApp.name}}
-               </button>)
+              <button type="button" class="buttonToLink" {{on "click" (fn this.highlightEntity drawableClassCommu.targetClass drawableClassCommu.targetApp.id)}}>
+                {{drawableClassCommu.targetClass.name}}
+                <BsTooltip @placement="top" @triggerEvents="hover">
+                  Application: {{drawableClassCommu.targetApp.name}}
+                </BsTooltip>
+              </button>
             {{/if}}
           </td>
         </tr>

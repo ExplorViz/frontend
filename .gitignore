@@ -25,6 +25,7 @@
 npm-debug.log*
 testem.log
 jsconfig.json
+.log
 
 # .env files
 .env-custom

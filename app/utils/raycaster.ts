@@ -1,4 +1,11 @@
+import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
+import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import THREE from 'three';
+
+export function defaultRaycastFilter(intersection: THREE.Intersection): boolean {
+  return !(intersection.object instanceof LabelMesh
+    || intersection.object instanceof LogoMesh);
+}
 
 export default class Raycaster extends THREE.Raycaster {
   /**
@@ -12,7 +19,7 @@ export default class Raycaster extends THREE.Raycaster {
     coords: { x: number, y: number },
     camera: THREE.Camera,
     possibleObjects: THREE.Object3D[],
-    raycastFilter: ((object: THREE.Intersection) => boolean) | undefined,
+    raycastFilter?: ((object: THREE.Intersection) => boolean),
   ) {
     this.setFromCamera(coords, camera);
 
@@ -33,6 +40,9 @@ export default class Raycaster extends THREE.Raycaster {
 
     if (raycastFilter) {
       visibleObjects = visibleObjects.filter(raycastFilter);
+    } else {
+      visibleObjects = visibleObjects.filter(defaultRaycastFilter);
+      // visibleObjects = visibleObjects.filter((x) => !(x.object instanceof LabelMesh);
     }
 
     // Returns the nearest hit object if one exists

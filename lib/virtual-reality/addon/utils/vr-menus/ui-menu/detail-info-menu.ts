@@ -1,3 +1,4 @@
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import composeContent, { EntityMesh, getIdOfEntity, getTypeOfEntity } from '../../vr-helpers/detail-info-composer';
 import { EntityType } from '../../vr-message/util/entity_type';
@@ -8,6 +9,7 @@ import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 
 export type DetailInfoMenuArgs = UiMenuArgs & {
   object: EntityMesh;
+  applicationRepo: ApplicationRepository;
 };
 
 export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
@@ -15,17 +17,21 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
 
   private entryItems: Map<string, TextItem>;
 
+  private applicationRepo: ApplicationRepository;
+
   constructor({
     object,
     resolution = {
       width: 1.5 * DEFAULT_MENU_RESOLUTION,
       height: DEFAULT_MENU_RESOLUTION,
     },
+    applicationRepo,
     ...args
   }: DetailInfoMenuArgs) {
     super({ resolution, ...args });
     this.object = object;
     this.entryItems = new Map<string, TextItem>();
+    this.applicationRepo = applicationRepo;
   }
 
   getDetachId(): string {
@@ -39,7 +45,7 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
   onOpenMenu() {
     super.onOpenMenu();
 
-    const content = composeContent(this.object);
+    const content = composeContent(this.object, this.applicationRepo);
     if (!content) {
       this.closeMenu();
       return;
@@ -86,12 +92,13 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
     });
 
     this.redrawMenu();
+    // this.detachMenu();
   }
 
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
 
-    const content = composeContent(this.object);
+    const content = composeContent(this.object, this.applicationRepo);
     if (content) {
       content.entries.forEach(({ key, value }) => {
         this.entryItems.get(key)?.setText(value);

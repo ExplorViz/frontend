@@ -89,6 +89,22 @@ export default class VRControllerBindingsList {
           this.currentBindings.menuButton.callbacks.onButtonUp(controller);
         }
       },
+
+      bButtonUp: (controller) => {
+        if (this.currentBindings.bButton?.callbacks.onButtonDown) {
+          this.currentBindings.bButton.callbacks.onButtonDown(controller);
+        }
+      },
+      bButtonPress: (controller) => {
+        if (this.currentBindings.bButton?.callbacks.onButtonPress) {
+          this.currentBindings.bButton.callbacks.onButtonPress(controller, undefined);
+        }
+      },
+      bButtonDown: (controller) => {
+        if (this.currentBindings.bButton?.callbacks.onButtonUp) {
+          this.currentBindings.bButton.callbacks.onButtonUp(controller);
+        }
+      },
     };
   }
 }

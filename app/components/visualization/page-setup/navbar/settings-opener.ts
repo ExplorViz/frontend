@@ -8,6 +8,6 @@ interface Args {
 export default class VisualizationPageSetupNavbarSettingsOpener extends Component<Args> {
   @action
   showSettings() {
-    this.args.addComponent('settings');
+    this.args.addComponent('app-settings');
   }
 }

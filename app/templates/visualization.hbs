@@ -4,31 +4,29 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener
-  this.collaborativeService
-  "open_landscape_view"
-  this.receiveOpenLandscapeView
-}}
-
-{{add-listener
   this.timestampRepo
   "updated"
   this.updateTimestampList
 }}
 
-<div id="vizspace">
+<div id="vizspace"
+  {{sync-state}}
+>
   {{#if this.showAR}}
     <ArRendering
       @id="landscape1"
       @landscapeData={{this.landscapeData}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
-      @font={{this.font}}
       @openLandscapeView={{this.openLandscapeView}}
       @addComponent={{this.addComponent}}
+      @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+      @visualizationPaused={{this.visualizationPaused}}
       @components={{this.components}}
       @removeComponent={{this.removeComponent}}
       @openDataSelection={{this.openDataSelection}}
       @closeDataSelection={{this.closeDataSelection}}
       @showDataSelection={{this.showDataSelection}}
+      @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
     {{#if this.showVR}}
@@ -36,15 +34,14 @@
         @id="landscape1"
         @landscapeData={{this.landscapeData}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
-        @font={{this.font}}
         @components={{this.components}}
         @removeComponent={{this.removeComponent}}
         @openDataSelection={{this.openDataSelection}}
         @closeDataSelection={{this.closeDataSelection}}
         @showDataSelection={{this.showDataSelection}}
-        @showApplication={{this.showApplication}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
+        @applicationArgs={{this.applicationArgs}}
       />
       <div class="position-absolute mt-6 ml-3">
         <BsButton
@@ -58,87 +55,60 @@
         </BsButton>
       </div>
     {{else}}
-      {{#if this.showLandscapeView}}
-        {{#if this.isLandscapeExistentAndEmpty}}
-          <div class="container-fluid mt-6">
-            <div class="jumbotron">
-              <h2>Empty Landscape received!</h2>
-              <p>A new landscape will be fetched every 10 seconds.</p>
-            </div>
-            <div class="spinner-center-3" role="status"></div>
+      {{#if this.isLandscapeExistentAndEmpty}}
+        <div class="container-fluid mt-6">
+          <div class="jumbotron">
+            <h2>Empty Landscape received!</h2>
+            <p>A new landscape will be fetched every 10 seconds.</p>
           </div>
-        {{else if this.allLandscapeDataExistsAndNotEmpty}}
-          <Visualization::Rendering::LandscapeRendering
-            @landscapeData={{this.landscapeData}}
-            @font={{this.font}}
-            @elk={{this.elk}}
-            @components={{this.components}}
-            @removeComponent={{this.removeComponent}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @openDataSelection={{this.openDataSelection}}
-            @showDataSelection={{this.showDataSelection}}
-            @addComponent={{this.addComponent}}
-            @showApplication={{this.showApplication}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @switchToAR={{this.switchToAR}}
-            @switchToVR={{this.switchToVR}}
-          />
-        {{else}}
-          <div class="container-fluid mt-6">
-            <div class="jumbotron">
-              <h2>No Landscape found!</h2>
-              <p>A new landscape will be fetched every 10 seconds.</p>
-              <BsButton
-                @onClick={{this.switchToAR}}
-                @type="secondary"
-                @outline={{true}}
-                title="Enter AR"
-              >
-                Enter AR
-              </BsButton>
-              <BsButton
-                @onClick={{this.switchToVR}}
-                @type="secondary"
-                @outline={{true}}
-                title="Enter VR"
-              >
-                Enter VR
-              </BsButton>
-            </div>
-            <div class="spinner-center-3" role="status"></div>
-          </div>
-        {{/if}}
-      {{else if this.showApplicationView}}
-        <Visualization::Rendering::ApplicationRendering
+          <div class="spinner-center-3" role="status"></div>
+        </div>
+      {{else if this.allLandscapeDataExistsAndNotEmpty}}
+        <Visualization::Rendering::BrowserRendering
           @landscapeData={{this.landscapeData}}
-          @addComponent={{this.addComponent}}
-          @font={{this.font}}
           @components={{this.components}}
           @removeComponent={{this.removeComponent}}
-          @openDataSelection={{this.openDataSelection}}
           @closeDataSelection={{this.closeDataSelection}}
+          @openDataSelection={{this.openDataSelection}}
           @showDataSelection={{this.showDataSelection}}
-          @showApplication={{this.showApplication}}
+          @addComponent={{this.addComponent}}
           @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
           @visualizationPaused={{this.visualizationPaused}}
+          @switchToAR={{this.switchToAR}}
+          @switchToVR={{this.switchToVR}}
+          @selectedTimestampRecords={{this.selectedTimestampRecords}}
+          @applicationArgs={{this.applicationArgs}}
         />
-        <div class="position-absolute mt-6 ml-3">
-          <BsButton
-            title="Back to Landscape"
-            @onClick={{this.openLandscapeView}}
-            @type="secondary"
-            @outline={{true}}
-          >
-            {{svg-jar "reply-16" class="octicon align-middle"}}
-          </BsButton>
+      {{else}}
+        <div class="container-fluid mt-6">
+          <div class="jumbotron">
+            <h2>No Landscape found!</h2>
+            <p>A new landscape will be fetched every 10 seconds.</p>
+            <BsButton
+              @onClick={{this.switchToAR}}
+              @type="secondary"
+              @outline={{true}}
+              title="Enter AR"
+            >
+              Enter AR
+            </BsButton>
+            <BsButton
+              @onClick={{this.switchToVR}}
+              @type="secondary"
+              @outline={{true}}
+              title="Enter VR"
+            >
+              Enter VR
+            </BsButton>
+          </div>
+          <div class="spinner-center-3" role="status"></div>
         </div>
       {{/if}}
     {{/if}}
   {{/if}}
 </div>
 {{!-- timeline --}}
-{{#unless this.showAR}}
+{{!--{{#unless this.showAR}}
   {{#unless this.showVR}}
     <div id="timeline-content">
       <BsButton
@@ -166,4 +136,4 @@
       </div>
     </div>
   {{/unless}}
-{{/unless}}
+{{/unless}}--}}

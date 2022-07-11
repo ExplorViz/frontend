@@ -8,15 +8,24 @@
       class="main-content-majority"
       {{did-insert this.canvasInserted}}
       {{interaction-modifier
-        raycastObjects=this.sceneService.scene
+        raycastObjects=this.scene
         camera=this.localUser.defaultCamera
         singleClick=this.handleSingleClick
         doubleClick=this.handleDoubleClick
-        mouseWheel=this.handleMouseWheel
         mouseMove=this.handleMouseMove
-        panning=this.handlePanning
-        hammerInteraction=this.hammerInteraction
       }}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          graph=this.graph
+        }}
+        {{heatmap-renderer
+          camera=this.camera
+          scene=this.scene
+        }}
+        {{collaborative-modifier
+          raycastObject3D=this.scene
+          camera=this.localUser.defaultCamera
+        }}
     >
     </canvas>
     {{#if this.loadNewLandscape.isRunning}}
@@ -26,7 +35,7 @@
     {{/if}}
   </div>
   <VrButton
-    @renderer={{this.localUser.renderer}}
+    @renderer={{this.renderer}}
     @onSessionStartedCallback={{this.onVrSessionStarted}}
     @onSessionEndedCallback={{this.onVrSessionEnded}}
   />

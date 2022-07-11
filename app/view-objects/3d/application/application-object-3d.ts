@@ -25,8 +25,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   boxLayoutMap: Map<string, BoxLayout>;
 
-  traces: Trace[];
-
   /**
    * Map to store all box shaped meshes (i.e., Clazz, Component, Foundation)
    */
@@ -49,12 +47,11 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: BaseMesh | Trace | null = null;
 
-  constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>, traces: Trace[]) {
+  constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
     this.dataModel = application;
     this.boxLayoutMap = boxLayoutMap;
-    this.traces = traces;
   }
 
   get layout() {
@@ -67,18 +64,16 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
-  tick(_delta: number): void {}
+  tick(_delta: number): void { }
 
   /**
    * Resets this object's rotation to default
    * (x = 0.65, y = 0.80)
    */
   resetRotation() {
-    const ROTATION_X = 0.75;
-    const ROTATION_Y = 1.20;
-
-    this.rotation.x = ROTATION_X;
-    this.rotation.y = ROTATION_Y;
+    this.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
+    this.rotation.y = 90 * THREE.MathUtils.DEG2RAD;
+    this.rotation.z = 90 * THREE.MathUtils.DEG2RAD;
   }
 
   /**
@@ -94,7 +89,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     // Ensure fast access to application meshes by additionally storing them in maps
     if (object instanceof FoundationMesh) {
       this.modelIdToMesh.set(object.dataModel.id, object);
-    // Store communication separately to allow efficient iteration over meshes
+      // Store communication separately to allow efficient iteration over meshes
     } else if (object instanceof ComponentMesh || object instanceof ClazzMesh) {
       this.modelIdToMesh.set(object.dataModel.id, object);
     } else if (object instanceof ClazzCommunicationMesh) {
@@ -176,6 +171,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return this.modelIdToMesh.get(id);
   }
 
+  getMeshById(id: string) {
+    return this.getBoxMeshbyModelId(id) || this.getCommMeshByModelId(id);
+  }
+
   /**
    * Returns a set containing all application regarded box meshes inside this application
    */
@@ -204,6 +203,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   getAllMeshes(): Set<BaseMesh> {
     return new Set([...this.getBoxMeshes(), ...this.getCommMeshes()]);
+  }
+
+  get foundationMesh() {
+    return this.getBoxMeshbyModelId(this.dataModel.id);
   }
 
   /**

@@ -5,7 +5,6 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { DrawableClassCommunication } from './class-communication-computer';
 
@@ -13,15 +12,12 @@ export default class CommunicationRendering {
   // Service to access preferences
   configuration: Configuration;
 
-  heatmapConf: HeatmapConfiguration;
-
   userSettings: UserSettings;
 
   constructor(configuration: Configuration,
-    userSettings: UserSettings, heatmapConf: HeatmapConfiguration) {
+    userSettings: UserSettings) {
     this.configuration = configuration;
     this.userSettings = userSettings;
-    this.heatmapConf = heatmapConf;
   }
 
   get appSettings() {
@@ -152,10 +148,6 @@ export default class CommunicationRendering {
         this.addArrows(pipe, curveHeight, viewCenterPoint);
 
         positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
-
-        if (this.heatmapConf.heatmapActive) {
-          pipe.turnTransparent(0.1);
-        }
       }
     });
   }

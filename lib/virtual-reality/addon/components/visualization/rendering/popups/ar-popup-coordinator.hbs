@@ -21,14 +21,15 @@
     {{#if (eq this.entityType "class")}}
       <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
         @clazz={{@popupData.entity}}
+        @applicationId={{@popupData.applicationId}}
       />
     {{/if}}
     {{#if (eq this.entityType "drawableClassCommunication")}}
       <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
         @communication={{@popupData.entity}}
         @showApplication={{@showApplication}}
-        @highlightModel={{this.doNothing}}
-        @openParents={{this.doNothing}}
+        @highlightModel={{@highlightModel}}
+        @openParents={{@openParents}}
       />
     {{/if}}
   </div>

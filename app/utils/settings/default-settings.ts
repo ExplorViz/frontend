@@ -136,7 +136,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   enableCustomPopupPosition: {
-    value: false,
+    value: true,
     orderNumber: 1,
     group: 'Popup',
     displayName: 'Enable Custom Popup Positioning',

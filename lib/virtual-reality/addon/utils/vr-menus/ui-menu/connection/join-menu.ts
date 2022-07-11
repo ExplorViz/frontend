@@ -59,7 +59,7 @@ export default class JoinMenu extends ConnectionBaseMenu {
         width: 316,
         height: 50,
         fontSize: 28,
-        onTriggerDown: () => this.localUser.joinRoom(room.roomId),
+        onTriggerDown: () => this.collaborationSession.joinRoom(room.roomId),
       });
       this.items.push(roomButton);
       this.thumbpadTargets.push(roomButton);

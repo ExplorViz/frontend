@@ -15,7 +15,7 @@ export function isMousePingUpdateMessage(msg: any): msg is MousePingUpdateMessag
     && typeof msg === 'object'
     && msg.event === MOUSE_PING_UPDATE_EVENT
     && typeof msg.modelId === 'string'
-    && typeof msg.isApplication === 'boolean'
+    // && typeof msg.isApplication === 'boolean'
     && isPosition(msg.position)
   );
 }

@@ -1,17 +1,23 @@
 import Component from '@glimmer/component';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { inject as service } from '@ember/service';
-import { computed } from '@ember/object';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface Args {
-  clazz: Class
+  clazz: Class,
+  applicationId: string,
 }
 
-type AllMetricScoresObject = { metricName: string,
-  snapshotVal: number | undefined, contAggVal: number | undefined, winVal: number | undefined };
+type AllMetricScoresObject = {
+  metricName: string,
+  snapshotVal: number | undefined, contAggVal: number | undefined, winVal: number | undefined
+};
 
 export default class ClazzPopup extends Component<Args> {
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
@@ -19,19 +25,23 @@ export default class ClazzPopup extends Component<Args> {
     return this.args.clazz.name;
   }
 
-  @computed('heatmapConf.latestClazzMetricScores')
+  get applicationHeatmapData() {
+    return this.applicationRepo.getById(this.args.applicationId)?.heatmapData;
+  }
+
   get allMetrics() {
-    const metrics = this.heatmapConf.latestClazzMetricScores;
+    const currentApplicationHeatmapData = this.applicationHeatmapData;
     const allClassMetricScores: AllMetricScoresObject[] = [];
 
     // snapshot
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
       metrics.forEach((metric) => {
-        const aggMetrics = this.heatmapConf.aggregatedMetricScores.get(metric.name);
+        const aggMetrics = currentApplicationHeatmapData.aggregatedMetricScores.get(metric.name);
 
         let winValToShow;
 
-        const winMetrics = this.heatmapConf.differenceMetricScores.get(metric.name);
+        const winMetrics = currentApplicationHeatmapData.differenceMetricScores.get(metric.name);
 
         if (winMetrics) {
           const newestWinMetricScores = winMetrics[winMetrics?.length - 1];
@@ -51,12 +61,12 @@ export default class ClazzPopup extends Component<Args> {
     return allClassMetricScores;
   }
 
-  @computed('heatmapConf.latestClazzMetricScores')
   get metrics() {
-    const metrics = this.heatmapConf.latestClazzMetricScores;
+    const currentApplicationHeatmapData = this.applicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
       metrics.forEach((metric) => {
         classMetrics.push({ name: metric.name, value: metric.values.get(this.args.clazz.id) });
       });
@@ -64,12 +74,12 @@ export default class ClazzPopup extends Component<Args> {
     return classMetrics;
   }
 
-  @computed('heatmapConf.aggregatedMetricScores')
   get contAggregatedMetrics() {
-    const metrics = this.heatmapConf.aggregatedMetricScores;
+    const currentApplicationHeatmapData = this.applicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.aggregatedMetricScores;
       metrics.forEach((metric) => {
         classMetrics.push({ name: metric.name, value: metric.values.get(this.args.clazz.id) });
       });
@@ -77,12 +87,12 @@ export default class ClazzPopup extends Component<Args> {
     return classMetrics;
   }
 
-  @computed('heatmapConf.differenceMetricScores')
   get windowedMetrics() {
-    const metrics = this.heatmapConf.differenceMetricScores;
+    const currentApplicationHeatmapData = this.applicationHeatmapData;
     const classMetrics: { name: string, value: number | undefined }[] = [];
 
-    if (metrics) {
+    if (currentApplicationHeatmapData) {
+      const metrics = currentApplicationHeatmapData.differenceMetricScores;
       metrics.forEach((metric) => {
         const newWindowedScores = metric.lastObject;
         if (newWindowedScores) {

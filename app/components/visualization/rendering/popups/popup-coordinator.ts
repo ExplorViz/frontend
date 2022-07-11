@@ -1,28 +1,35 @@
 import { action } from '@ember/object';
-import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
+import Component from '@glimmer/component';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import {
-  Application, Class, isApplication, isClass, isNode, isPackage, Node, Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import Configuration from 'explorviz-frontend/services/configuration';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import {
+  isApplication, isClass, isNode, isPackage,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import PopupData from './popup-data';
 
 interface IArgs {
   isMovable: boolean;
-  popupData: {
-    mouseX: number,
-    mouseY: number,
-    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
-    isPinned: boolean,
-  };
+  popupData: PopupData;
+  popupHandler: PopupHandler;
   removePopup(entityId: string): void;
-  pinPopup(entityId: string): void;
+  pinPopup(popup: PopupData): void;
+  sharePopup(popup: PopupData): void,
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
   @service('configuration')
   configuration!: Configuration;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   element!: HTMLDivElement;
 
@@ -30,6 +37,46 @@ export default class PopupCoordinator extends Component<IArgs> {
     x: 0,
     y: 0,
   };
+
+  @action
+  onPointerOver() {
+    this.args.popupData.mesh.applyHoverEffect();
+    this.args.popupData.hovered = true;
+  }
+
+  @action
+  onPointerOut() {
+    this.args.popupData.mesh.resetHoverEffect();
+    this.args.popupData.hovered = false;
+  }
+
+  get sharedByColor() {
+    const userId = this.args.popupData.sharedBy;
+    if (!userId) {
+      return '';
+    }
+    return this.collaborationSession.getColor(userId);
+  }
+
+  @action
+  closeIfNotPinned() {
+    if (!this.args.popupData.isPinned) {
+      this.args.removePopup(this.args.popupData.entity.id);
+    }
+  }
+
+  @action
+  highlight() {
+    this.highlightingService.highlightById(this.args.popupData.entity.id);
+  }
+
+  get highlightingColorStyle() {
+    if (this.args.popupData.mesh.highlighted) {
+      const hexColor = this.args.popupData.mesh.highlightingColor.getHexString();
+      return `#${hexColor}`;
+    }
+    return '';
+  }
 
   @action
   dragMouseDown(event: MouseEvent) {
@@ -41,9 +88,9 @@ export default class PopupCoordinator extends Component<IArgs> {
     // get the mouse cursor position at startup:
     this.lastMousePosition.x = event.clientX;
     this.lastMousePosition.y = event.clientY;
-    document.onmouseup = this.closeDragElement;
+    document.onpointerup = this.closeDragElement;
     // call a function whenever the cursor moves:
-    document.onmousemove = this.elementDrag;
+    document.onpointermove = this.elementDrag;
   }
 
   @action
@@ -91,8 +138,8 @@ export default class PopupCoordinator extends Component<IArgs> {
   // eslint-disable-next-line class-methods-use-this
   closeDragElement() {
     /* stop moving when mouse button is released: */
-    document.onmouseup = null;
-    document.onmousemove = null;
+    document.onpointerup = null;
+    document.onpointermove = null;
   }
 
   @action
@@ -167,7 +214,6 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'drawableClassCommunication';
     }
-
     return '';
   }
 }

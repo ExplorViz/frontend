@@ -263,6 +263,14 @@ export default abstract class UiMenu extends InteractiveMenu {
     );
   }
 
+  makeMenuButtonBinding() {
+    return new VRControllerButtonBinding('Select', {
+      onButtonDown: () => {
+        this.activeTarget?.onTriggerDown?.();
+      },
+    });
+  }
+
   /**
    * The trigger can be used as a select button when this menu has items
    * that can be selected by the thumbpad.
