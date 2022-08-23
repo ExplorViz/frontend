@@ -18,7 +18,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
