@@ -16,7 +16,6 @@ export default class Landscapes extends BaseRoute {
   }
 
   async model() {
-    debugger;
     let uId = this.auth.user?.sub;
 
     if (!uId) {

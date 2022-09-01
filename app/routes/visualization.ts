@@ -18,6 +18,9 @@ export default class VisualizationRoute extends BaseRoute {
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
 
+  @service('router')
+  router!: any;
+
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
@@ -25,7 +28,7 @@ export default class VisualizationRoute extends BaseRoute {
 
   async beforeModel() {
     if (this.landscapeToken.token === null) {
-      this.transitionTo('landscapes');
+      this.router.transitionTo('landscapes');
       return Promise.resolve();
     }
     // load font for labels
