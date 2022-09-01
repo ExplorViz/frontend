@@ -83,8 +83,6 @@
     "ember-qunit": "^5.1.5",
     "ember-resolver": "^8.0.3",
     "ember-right-click-menu": "^0.6.0",
-    "ember-route-action-helper": "^2.0.8",
-    "ember-scrollable": "^1.0.2",
     "ember-source": "~4.6.0",
     "ember-style-modifier": "^0.8.0",
     "ember-svg-jar": "^2.3.4",
