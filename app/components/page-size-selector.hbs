@@ -1,0 +1,24 @@
+{{!-- Arguements:
+  label: string|undefined - Label to display next to the select box
+  pageSizes: number[] - Array of page sizes to select from
+  size: number - Current page size
+  position: 'below'|'above'|'auto' - The position of the selection list
+  changePageSize(size: number) - Function which changes the @size value
+ --}}
+<div class="d-flex flex-row">
+  {{#if @label}}
+    <div class="mr-2 align-self-center">{{@label}}</div>
+  {{/if}}
+  <div class="page-size-select">
+    <PowerSelect
+      @verticalPosition={{@position}}
+      @searchEnabled={{false}}
+      @options={{@pageSizes}}
+      @renderInPlace={{true}}
+      @selected={{@size}}
+      @onchange={{@changePageSize}} as |name|
+    >
+      {{name}}
+    </PowerSelect>
+  </div>
+</div>

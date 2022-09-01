@@ -1,0 +1,10 @@
+<div id="ar-info-interaction-container">
+  <BsButton
+    {{did-insert this.addLongPressListener}}
+    @type="primary"
+    class="half-transparent"
+    {{ on "click" @handleInfoInteraction }}
+  >
+    {{svg-jar "info-16" class="octicon align-middle ar-button-svg"}}
+  </BsButton>
+</div>

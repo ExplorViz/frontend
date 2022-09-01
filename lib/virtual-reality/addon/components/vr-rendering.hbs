@@ -1,0 +1,42 @@
+<VrDropArea @onDropFiles={{this.onDropFiles}}>
+  <div
+    id="rendering"
+    {{did-insert this.outerDivInserted}}
+    {{did-resize this.resize debounce=100}}
+  >
+    <canvas
+      class="main-content-majority"
+      {{did-insert this.canvasInserted}}
+      {{interaction-modifier
+        raycastObjects=this.scene
+        camera=this.localUser.defaultCamera
+        singleClick=this.handleSingleClick
+        doubleClick=this.handleDoubleClick
+        mouseMove=this.handleMouseMove
+      }}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          graph=this.graph
+        }}
+        {{heatmap-renderer
+          camera=this.camera
+          scene=this.scene
+        }}
+        {{collaborative-modifier
+          raycastObject3D=this.scene
+          camera=this.localUser.defaultCamera
+        }}
+    >
+    </canvas>
+    {{#if this.loadNewLandscape.isRunning}}
+      <Visualization::Rendering::LoadingIndicator @text="Loading New Landscape" />
+    {{else if this.addApplication.isRunning}}
+      <Visualization::Rendering::LoadingIndicator @text="Loading New Application" />
+    {{/if}}
+  </div>
+  <VrButton
+    @renderer={{this.renderer}}
+    @onSessionStartedCallback={{this.onVrSessionStarted}}
+    @onSessionEndedCallback={{this.onVrSessionEnded}}
+  />
+</VrDropArea>

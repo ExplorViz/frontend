@@ -1,50 +1,79 @@
 'use strict';
 
+const DOTENV = require('dotenv');
+
 module.exports = function (environment) {
-  let ENV = {
+  const path = { path: process.env.DOTENV };
+
+  const P_ENV = process.env;
+
+  // custom DOTENV file, e.g., "DOTENV=.env-custom ember s"
+  if (P_ENV.DOTENV) {
+    DOTENV.config(path);
+  } else if (environment === 'production') {
+    DOTENV.config({ path: '.env-prod' });
+  } else {
+    // Development, use .env file
+    DOTENV.config();
+  }
+
+  const ENV = {
     modulePrefix: 'explorviz-frontend',
     environment,
     rootURL: '/',
-    locationType: 'history',
+    locationType: 'auto',
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
-        // e.g. EMBER_NATIVE_DECORATOR_SUPPORT: true
+        // e.g. 'with-controller': true
       },
       EXTEND_PROTOTYPES: {
         // Prevent Ember Data from overriding Date.parse.
         Date: false,
       },
     },
-
+    auth0: {
+      enabled: P_ENV.AUTH0_ENABLED,
+      clientId: P_ENV.AUTH0_CLIENT_ID,
+      domain: P_ENV.AUTH0_DOMAIN,
+      logoUrl: P_ENV.AUTH0_LOGO_URL,
+      callbackUrl: P_ENV.AUTH0_CALLBACK_URL,
+      logoutReturnUrl: P_ENV.AUTH0_LOGOUT_URL,
+      routeAfterLogin: P_ENV.AUTH0_ROUTE_AFTER_LOGIN,
+      accessToken: P_ENV.AUTH0_DISABLED_ACCESS_TOKEN,
+      profile: {
+        name: P_ENV.AUTH0_DISABLED_PROFILE_NAME,
+        nickname: P_ENV.AUTH0_DISABLED_NICKNAME,
+        sub: P_ENV.AUTH0_DISABLED_SUB,
+      },
+    },
+    backendAddresses: {
+      landscapeService: P_ENV.LANDSCAPE_SERV_URL,
+      traceService: P_ENV.TRACE_SERV_URL,
+      userService: P_ENV.USER_SERV_URL,
+      collaborationService: P_ENV.COLLABORATION_SERV_URL,
+      collaborationSocketPath: P_ENV.COLLABORATION_SOCKET_PATH,
+    },
+    version: {
+      versionTag: P_ENV.VERSION_TAG,
+    },
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
     },
   };
 
-  if (environment === 'development') {
-    // ENV.APP.LOG_RESOLVER = true;
-    // ENV.APP.LOG_ACTIVE_GENERATION = true;
-    // ENV.APP.LOG_TRANSITIONS = true;
-    // ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
-    // ENV.APP.LOG_VIEW_LOOKUPS = true;
-  }
-
   if (environment === 'test') {
     // Testem prefers this...
     ENV.locationType = 'none';
+
+    ENV.APP.autoboot = false;
 
     // keep test console output quieter
     ENV.APP.LOG_ACTIVE_GENERATION = false;
     ENV.APP.LOG_VIEW_LOOKUPS = false;
 
     ENV.APP.rootElement = '#ember-testing';
-    ENV.APP.autoboot = false;
-  }
-
-  if (environment === 'production') {
-    // here you can enable a production-specific feature
   }
 
   return ENV;

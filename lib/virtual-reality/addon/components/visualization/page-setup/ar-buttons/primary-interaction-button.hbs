@@ -1,0 +1,11 @@
+<div id="ar-primary-interaction-container">
+  <BsButton
+    {{did-insert this.addLongPressListener}}
+    id="ar-primary-interaction-button"
+    @type="primary"
+    class="half-transparent"
+    {{ on "click" @handlePrimaryCrosshairInteraction }}
+    >
+    {{svg-jar "unfold-16" class="octicon align-middle ar-button-svg"}}
+  </BsButton>
+</div>

@@ -1,0 +1,36 @@
+{{#if @popupData}}
+  <div class="ar-popover">
+    {{!-- landscape popups --}}
+    {{#if (eq this.entityType "node")}}
+      <Visualization::Rendering::Popups::LandscapePopups::NodePopup
+        @node={{@popupData.entity}}
+      />
+    {{/if}}
+    {{#if (eq this.entityType "application")}}
+      <Visualization::Rendering::Popups::LandscapePopups::ApplicationPopup
+        @application={{@popupData.entity}}
+      />
+    {{/if}}
+
+    {{!-- application popups --}}
+    {{#if (eq this.entityType "package")}}
+      <Visualization::Rendering::Popups::ApplicationPopups::ComponentPopup
+        @component={{@popupData.entity}}
+      />
+    {{/if}}
+    {{#if (eq this.entityType "class")}}
+      <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
+        @clazz={{@popupData.entity}}
+        @applicationId={{@popupData.applicationId}}
+      />
+    {{/if}}
+    {{#if (eq this.entityType "drawableClassCommunication")}}
+      <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
+        @communication={{@popupData.entity}}
+        @showApplication={{@showApplication}}
+        @highlightModel={{@highlightModel}}
+        @openParents={{@openParents}}
+      />
+    {{/if}}
+  </div>
+{{/if}}

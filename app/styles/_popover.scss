@@ -1,0 +1,31 @@
+@media (min-width: 576px) {
+  .popover {
+    cursor: move;
+    max-width: 550px!important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .popover > .popover-body {
+    overflow-x: auto;
+
+    > table {
+      display: inline-table;
+    }
+  }
+}
+
+.popover > .popover-body {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.popover[hover] {
+  background-color: #bbbbbb!important;
+  border-color: #eeeeee!important;
+}
+
+.popover[hover] > .popover-header {
+  background-color: #999999!important;
+  border-color: #aaaaaa!important;
+}

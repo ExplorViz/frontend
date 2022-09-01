@@ -1,0 +1,92 @@
+#dataselection {
+  display: flex;
+  @extend .flex-row;
+  height: 100%;
+}
+
+#colorHeader {
+  display: flex; 
+  justify-content: flex-end;
+}
+
+#colorTitle {
+  padding-top: 6px;
+}
+
+#colorPresets {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sidebar-component-close {
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 1px grey inherit;
+  padding-left: calc(0.25rem + 8px);
+  padding-right: calc(0.25rem + 8px);
+  padding-top: calc(0.25rem + 4px);
+  padding-bottom: 0.25rem;
+
+  &:hover {
+    background-color: #9bb3c4;
+  }
+}
+
+.th-btn {
+  padding-top: 0px;
+  padding-bottom: 4px;
+  padding-left: 2px;
+  padding-right: 2px;
+  line-height: 1;
+  text-align: center;
+}
+
+.red-hover:hover {
+  color: red !important;
+  text-decoration: none;
+}
+
+.colorpicker-input {
+  padding: 3px 0 3px 0;
+
+  &-addon {
+    border-radius: 0 !important;
+  }
+}
+
+.colorpicker-label {
+  padding: 5px 0 0 0;
+}
+
+.chevron::before {
+	border-style: solid;
+	border-width: 0.1em 0.1em 0 0;
+	content: '';
+	display: inline-block;
+	height: 1em;
+	position: relative;
+	transform: rotate(-45deg);
+	vertical-align: top;
+	width: 1em;
+}
+
+.chevron.right:before {
+	left: 0;
+	transform: rotate(45deg);
+}
+
+.chevron.bottom:before {
+	top: 0;
+	transform: rotate(135deg);
+}
+
+.chevron.left:before {
+	left: 0.25em;
+	transform: rotate(-135deg);
+}
+
+.sidebar-card {
+  background-color: rgba(rgb(255, 255, 255), 0.95) !important;
+}

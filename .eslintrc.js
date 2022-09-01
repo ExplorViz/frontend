@@ -1,58 +1,58 @@
-'use strict';
-
 module.exports = {
   root: true,
-  parser: 'babel-eslint',
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2019,
     sourceType: 'module',
-    ecmaFeatures: {
-      legacyDecorators: true,
-    },
+    project: './tsconfig.json',
   },
-  plugins: ['ember'],
+  plugins: [
+    // 'ember',
+    '@typescript-eslint',
+    'import',
+  ],
   extends: [
-    'eslint:recommended',
-    'plugin:ember/recommended',
-    'plugin:prettier/recommended',
+    // 'airbnb-typescript/base',
+    // 'plugin:ember/recommended',
   ],
   env: {
     browser: true,
+    node: true,
   },
-  rules: {},
+  globals: {
+    auth0: false,
+  },
+  rules: {
+    'linebreak-style': 'off',
+    'class-methods-use-this': 'off',
+    'import/no-unresolved': 'off',
+    'require-yield': 'off',
+    'no-plusplus': 'off',
+    'import/no-cycle': 'off',
+    'prefer-rest-params': 'off',
+    'ember/no-mixins': 'off',
+    'ember/require-computed-property-dependencies': 'off',
+    '@typescript-eslint/type-annotation-spacing': ['error'],
+    'no-param-reassign': ['error', { props: false }],
+    'func-names': ['error', 'always', { generators: 'never' }],
+  },
   overrides: [
     // node files
     {
       files: [
-        './.eslintrc.js',
-        './.prettierrc.js',
-        './.template-lintrc.js',
-        './ember-cli-build.js',
-        './testem.js',
-        './blueprints/*/index.js',
-        './config/**/*.js',
-        './lib/*/index.js',
-        './server/**/*.js',
+        'ember-cli-build.js',
+        'testem.js',
+        'config/**/*.js',
+        'lib/*/index.js',
       ],
       parserOptions: {
         sourceType: 'script',
+        ecmaVersion: 2015,
       },
       env: {
         browser: false,
         node: true,
       },
-      plugins: ['node'],
-      extends: ['plugin:node/recommended'],
-      rules: {
-        // this can be removed once the following is fixed
-        // https://github.com/mysticatea/eslint-plugin-node/issues/77
-        'node/no-unpublished-require': 'off',
-      },
-    },
-    {
-      // test files
-      files: ['tests/**/*-test.{js,ts}'],
-      extends: ['plugin:qunit/recommended'],
     },
   ],
 };

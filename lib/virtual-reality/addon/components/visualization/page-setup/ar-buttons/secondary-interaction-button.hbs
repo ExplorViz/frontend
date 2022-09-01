@@ -1,0 +1,10 @@
+<div id="ar-secondary-interaction-container">
+  <BsButton
+    @type="primary"
+    style={{html-safe this.highlightingService.highlightingColorStyle}}
+    class="half-transparent"
+    {{ on "click" @handleSecondaryCrosshairInteraction }}
+  >
+    {{svg-jar "paintbrush-16" class="octicon align-middle ar-button-svg"}}
+  </BsButton>
+</div>

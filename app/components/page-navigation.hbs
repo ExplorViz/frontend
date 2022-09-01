@@ -1,0 +1,38 @@
+{{!-- Arguments:
+  first: number|undefined/null - First page's number
+  prev: number|undefined/null - Previous page's number
+  self: number - Current page's number
+  next: number|undefined/null - Next page's number
+  last: number|undefined/null - Last page's number
+  goToPage(page: number) - Function to update page number
+ --}}
+<nav>
+  <ul class="pagination justify-content-center mb-0">
+    <li class="page-item {{if (eq @first @self) "disabled"}}">
+      <span class="page-link-pointer" {{on "click" (fn @goToPage @first)}}>
+        First
+      </span>
+    </li>
+    {{!-- Need gte here, because if this.prev is 0, its truth value was false --}}
+    <li class="page-item {{if (is-empty @prev) "disabled"}}">
+      <span class="page-link-pointer" {{on "click" (fn @goToPage @prev)}}>
+        Previous
+      </span>
+    </li>
+    <li class="page-item disabled">
+      <span class="page-link-pointer" {{on "click" (fn @goToPage @self)}}>
+        {{inc @self}}
+      </span>
+    </li>
+    <li class="page-item {{unless @next "disabled"}}">
+      <span class="page-link-pointer" {{on "click" (fn @goToPage @next)}}>
+        Next
+      </span>
+    </li>
+    <li class="page-item {{if (eq @last @self) "disabled"}}">
+      <span class="page-link-pointer" {{on "click" (fn @goToPage @last)}}>
+        Last
+      </span>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,20 @@
+<div
+  id="VrDropArea"
+  {{ on "drop" this.onDrop }}
+  {{ on "dragover" this.onDragover }}
+  {{ on "dragleave" this.onDragleave }}
+>
+  {{!-- Content --}}
+  {{yield}}
+
+  {{!-- Overlay --}}
+  {{#if this.isDraggedOver}}
+    <div class="vr-drop-area-background">
+      <div class="vr-drop-area-border">
+        <div class="vr-drop-area-text">
+          Drop texture file to set background.
+        </div>
+      </div>
+    </div>
+  {{/if}}
+</div>

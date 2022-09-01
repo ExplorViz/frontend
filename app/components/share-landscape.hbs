@@ -1,0 +1,82 @@
+<div id="colorPresets" class="dropdown">
+  <button class="button-svg-with-hover" type="button">
+    {{svg-jar "share-android-16" class="octicon align-middle"}}
+    <BsTooltip @placement="bottom" @triggerEvents="hover">
+      Manage access to token
+    </BsTooltip>
+    <BsPopover @title="Manage Access">
+      <table class="table table-striped" style="width: 100%">
+        <tbody>
+          {{#if (eq @token.ownerId this.auth.user.sub)}}
+            {{#each @token.sharedUsersIds as |userWithAccess|}}
+              <tr class="d-flex">
+                <td class="col-10">{{userWithAccess}}</td>
+                <td class="col-2">
+                  <button
+                    class="button-svg-with-hover"
+                    type="button"
+                    {{on "click" (fn this.revokeAccess userWithAccess)}}
+                  >
+                    {{svg-jar "dash-16" class="octicon align-middle"}}
+                    <BsTooltip @placement="bottom" @triggerEvents="hover">
+                      Revoke access
+                    </BsTooltip>
+                  </button>
+                </td>
+              </tr>
+            {{/each}}
+            <tr class="d-flex">
+              <td class="col-10">
+                <label for="username">Enter username</label>
+                <Input id="username" @value={{this.username}} placeholder="github|12345" />
+              </td>
+              <td class="col-2">
+                <button
+                  class="button-svg-with-hover"
+                  type="button"
+                  {{on "click" this.grantAccess}}
+                >
+                  {{svg-jar "plus-16" class="octicon align-middle"}}
+                  <BsTooltip @placement="bottom" @triggerEvents="hover">
+                    Grant access
+                  </BsTooltip>
+                </button>
+              </td>
+            </tr>
+          {{else}}
+            <tr class="d-flex">
+              <td class="col-10">Revoke own access</td>
+              <td class="col-2">
+                <button
+                  class="button-svg-with-hover"
+                  type="button"
+                  {{on "click" (fn this.revokeAccess this.auth.user.sub)}}
+                >
+                  {{svg-jar "trash-16" class="octicon align-middle"}}
+                  <BsTooltip @placement="bottom" @triggerEvents="hover">
+                    Revoke own access
+                  </BsTooltip>
+                </button>
+              </td>
+            </tr>
+            <tr class="d-flex">
+              <td class="col-10">Clone token</td>
+              <td class="col-2">
+                <button
+                  class="button-svg-with-hover"
+                  type="button"
+                  {{on "click" (fn this.cloneToken this.auth.user.sub)}}
+                >
+                  {{svg-jar "clippy-16" class="octicon align-middle"}}
+                  <BsTooltip @placement="bottom" @triggerEvents="hover">
+                    Clone token to gain write access
+                  </BsTooltip>
+                </button>
+              </td>
+            </tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </BsPopover>
+  </button>
+</div>
