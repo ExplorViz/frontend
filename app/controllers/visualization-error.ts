@@ -9,7 +9,7 @@ export default class VisualizationError extends Controller {
 
   @action
   refresh() {
-    this.router.transitionToRoute('visualization');
+    this.router.transitionTo('visualization');
   }
 }
 

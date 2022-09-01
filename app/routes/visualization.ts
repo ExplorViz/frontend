@@ -1,5 +1,6 @@
 import VisualizationController from 'explorviz-frontend/controllers/visualization';
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
@@ -46,7 +47,7 @@ export default class VisualizationRoute extends BaseRoute {
 
   private async loadFont(): Promise<THREE.Font> {
     return new Promise((resolve, reject) => {
-      new THREE.FontLoader().load(
+      new FontLoader().load(
         // resource URL
         '/three.js/fonts/roboto_mono_bold_typeface.json',
 

@@ -40,7 +40,7 @@ export default class Landscapes extends Controller {
   @action
   selectToken(token: LandscapeToken) {
     this.tokenService.setToken(token);
-    this.router.transitionToRoute('visualization');
+    this.router.transitionTo('visualization');
   }
 
   @action

@@ -4,7 +4,7 @@ const { Webpack } = require('@embroider/webpack');
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
 const sass = require('sass');
 
-module.exports = function (defaults) {
+module.exports = (defaults) => {
   let app = new EmberApp(defaults, {
     sassOptions: {
       implementation: sass,
@@ -46,6 +46,6 @@ module.exports = function (defaults) {
   app.import('node_modules/elkjs/lib/elk-api.js');
 
 
-  // return app.toTree();
-  return require('@embroider/compat').compatBuild(app, Webpack);
+  return app.toTree();
+  // return require('@embroider/compat').compatBuild(app, Webpack);
 };

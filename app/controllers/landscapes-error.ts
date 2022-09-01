@@ -9,7 +9,7 @@ export default class LandscapesError extends Controller {
 
   @action
   refresh() {
-    this.router.transitionToRoute('landscapes');
+    this.router.transitionTo('landscapes');
   }
 }
 
