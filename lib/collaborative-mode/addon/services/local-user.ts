@@ -2,7 +2,8 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
-import THREE, { WebXRManager } from 'three';
+import * as THREE from 'three';
+import { WebXRManager } from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';

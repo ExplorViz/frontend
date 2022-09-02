@@ -8,7 +8,8 @@ import { isLobbyJoinedResponse, LobbyJoinedResponse } from '../utils/vr-payload/
 import { isRoomCreatedResponse, RoomCreatedResponse } from '../utils/vr-payload/receivable/room-created';
 import { isRoomListRecord, RoomListRecord } from '../utils/vr-payload/receivable/room-list';
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
-import VrRoomSerializer from './vr-room-serializer';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+//import VrRoomSerializer from './vr-room-serializer';
 
 const { collaborationService } = ENV.backendAddresses;
 

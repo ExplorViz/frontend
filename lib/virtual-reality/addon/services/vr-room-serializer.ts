@@ -93,6 +93,7 @@ export default class VrRoomSerializer extends Service {
       .map((detachedMenuGroup) => {
         const detachedMenu = detachedMenuGroup.currentMenu as DetachableMenu;
         return {
+          userId: null, // TODO Check if this works
           objectId: detachedMenuGroup.getGrabId(),
           entityId: detachedMenu.getDetachId(),
           entityType: detachedMenu.getEntityType(),

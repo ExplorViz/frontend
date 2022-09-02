@@ -145,7 +145,7 @@ export default class VisualizationController extends Controller {
     dynamicData: DynamicLandscapeData) {
     this.landscapeData = {
       structureLandscapeData: structureData,
-      dynamicLandscapeData: dynamicData,
+      dynamicLandscapeData: [],
     };
   }
 
