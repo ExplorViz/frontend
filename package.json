@@ -35,7 +35,7 @@
     "@types/crypto-js": "^4.1.1",
     "@types/ember": "^4.0.1",
     "@types/ember__test-helpers": "^2.8.1",
-    "@types/ember-qunit": "^5.0.0",
+    "@types/ember-qunit": "^5.0.1",
     "@types/ember-test-helpers": "^1.0.11",
     "@types/ember-testing-helpers": "0.0.4",
     "@types/hammerjs": "^2.0.41",
@@ -86,7 +86,7 @@
     "ember-source": "~4.6.0",
     "ember-style-modifier": "^0.8.0",
     "ember-svg-jar": "^2.3.4",
-    "ember-template-lint": "^4.13.0",
+    "ember-template-lint": "^4.14.0",
     "ember-try": "^2.0.0",
     "ember-web-workers": "^1.0.0",
     "ember-welcome-page": "^6.2.0",
@@ -132,11 +132,11 @@
     "dotenv": "^16.0.2",
     "elkjs": "^0.8.2",
     "ember-ajax": "^5.1.1",
-    "ember-cli": "^4.1.0",
+    "ember-cli": "^4.6.0",
     "ember-cli-babel": "^7.26.11",
     "ember-cli-clipboard": "^0.16.0",
     "ember-cli-htmlbars": "^6.1.0",
-    "ember-cli-ifa": "^0.10.0",
+    "ember-cli-ifa": "~0.10.0",
     "ember-cli-node-modules-to-vendor": "^0.3.0",
     "ember-cli-sass": "^11.0.1",
     "ember-concurrency": "^2.3.2",
@@ -163,6 +163,9 @@
     "three": "^0.143.0",
     "three-forcegraph": "^1.39.5",
     "webxr-polyfill": "^2.0.3"
+  },
+  "overrides": {
+    "ember-cli-ifa": "~0.10.0"
   },
   "ember-addon": {
     "paths": [
