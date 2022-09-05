@@ -310,10 +310,17 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.resetLandscapeListenerPolling();
     this.applicationRepo.clear();
-    this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
-    this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+
+    if(this.webSocket.isWebSocketOpen() === true) {
+      this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+      this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
+    }
+
+    if(this.timestampService) {
+      this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    }
+    
   }
 
   private async initWebSocket() {

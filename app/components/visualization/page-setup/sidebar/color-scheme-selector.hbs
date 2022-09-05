@@ -1,22 +1,16 @@
-<div id="colorPresets" class="dropdown">
-  <button
-      class="btn btn-outline-dark dropdown-toggle autoMargin"
-      type="button"
-      data-toggle="dropdown"
-      aria-haspopup="true"
-      aria-expanded="false"
-  >
-    Color Presets
-  </button>
+<div class="dropdown">
+  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+    Dropdown link
+  </a>
 
-  <div class="dropdown-menu dropdown-menu-right">
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
     {{#each @colorSchemes as |colorScheme|}}
-      <div
-      class="dropdown-item pointer-cursor"
-      {{on "click" (fn @applyColorScheme colorScheme.id)}}
-      >
+      <li>
+      <a class="dropdown-item pointer-cursor"
+      {{on "click" (fn @applyColorScheme colorScheme.id)}}>
         {{colorScheme.name}}
-      </div>
+      </a>
+      </li>
     {{/each}}
-  </div>
+  </ul>
 </div>
