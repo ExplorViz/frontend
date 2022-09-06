@@ -321,6 +321,7 @@ export default class ApplicationRenderer extends Service.extend({
   addCommunication(applicationObject3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
     const drawableClassCommunications = applicationData?.drawableClassCommunications;
+
     if (drawableClassCommunications) {
       this.appCommRendering.addCommunication(
         applicationObject3D,

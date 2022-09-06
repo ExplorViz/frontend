@@ -113,8 +113,8 @@ export default class VisualizationController extends Controller {
       && this.landscapeData.structureLandscapeData.nodes.length > 0;
   }
 
-  constructor() {
-    super(...arguments);
+  @action
+  setupListeners() {
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
@@ -145,7 +145,7 @@ export default class VisualizationController extends Controller {
     dynamicData: DynamicLandscapeData) {
     this.landscapeData = {
       structureLandscapeData: structureData,
-      dynamicLandscapeData: [],
+      dynamicLandscapeData: dynamicData,
     };
   }
 
@@ -310,16 +310,13 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.resetLandscapeListenerPolling();
     this.applicationRepo.clear();
+   
+    this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);    
 
-    if(this.webSocket.isWebSocketOpen() === true) {
-      this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-      this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
-    }
-
-    if(this.timestampService) {
-      this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    }
+    this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    
     
   }
 
