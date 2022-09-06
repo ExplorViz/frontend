@@ -47,6 +47,8 @@ export default class ColorPicker extends Component<Args> {
 
     const picker = new Picker(element);
 
+    element.style.background = colorPickerObject.colorObject.getStyle();
+
     picker.setOptions({
       "popup":"left",
       "color": colorPickerObject.colorObject.getHexString(),
