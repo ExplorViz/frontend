@@ -20,6 +20,11 @@ module.exports = (defaults) => {
         'node_modules/@primer/octicons/build/svg',
       ],
     },
+
+    'ember-bootstrap': {
+      bootstrapVersion: 5,
+      importBootstrapCSS: false
+    }
   });
 
   app.import('node_modules/three/build/three.min.js', {
