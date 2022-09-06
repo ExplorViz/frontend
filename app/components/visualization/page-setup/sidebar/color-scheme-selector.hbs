@@ -1,4 +1,28 @@
-<div class="dropdown">
+<div id="colorPresets" class="dropdown">
+  <button
+      class="btn btn-outline-dark dropdown-toggle autoMargin"
+      type="button"
+      data-toggle="dropdown"
+      aria-haspopup="true"
+      aria-expanded="false"
+  >
+    Color Presets
+  </button>
+
+  <div class="dropdown-menu dropdown-menu-right">
+    {{#each @colorSchemes as |colorScheme|}}
+      <div
+      class="dropdown-item pointer-cursor"
+      {{on "click" (fn @applyColorScheme colorScheme.id)}}
+      >
+        {{colorScheme.name}}
+      </div>
+    {{/each}}
+  </div>
+</div>
+
+
+{{!-- <div class="dropdown">
   <a class="btn btn-outline-dark dropdown-toggle autoMargin" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
     Color Presets
   </a>
@@ -13,4 +37,4 @@
       </li>
     {{/each}}
   </ul>
-</div>
+</div>--}}

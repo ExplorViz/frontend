@@ -137,6 +137,7 @@ export default class PopupHandler {
     mesh: THREE.Object3D, position: Position2D, pinned?: boolean,
     replace?: boolean, menuId?: string, sharedBy?: string, hovered?: boolean
   }) {
+
     if (isEntityMesh(mesh)) {
       const newPopup = new PopupData({
         mouseX: position.x,

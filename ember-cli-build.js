@@ -22,7 +22,7 @@ module.exports = (defaults) => {
     },
 
     'ember-bootstrap': {
-      bootstrapVersion: 5,
+      bootstrapVersion: 4,
       importBootstrapCSS: false
     }
   });
@@ -39,8 +39,8 @@ module.exports = (defaults) => {
 
   app.import('vendor/eventsource-polyfill/eventsource.min.js');
 
-  app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
-  app.import('node_modules/bootstrap/dist/js/bootstrap.min.js');
+  //app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
+  app.import('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
   app.import('node_modules/auth0-js/dist/auth0.js');
 
   app.import('node_modules/crypto-js/crypto-js.js');
