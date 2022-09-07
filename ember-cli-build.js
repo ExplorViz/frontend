@@ -1,6 +1,6 @@
 'use strict';
 
-//const { Webpack } = require('@embroider/webpack');
+const { Webpack } = require('@embroider/webpack');
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
 const sass = require('sass');
 
@@ -50,6 +50,6 @@ module.exports = (defaults) => {
   app.import('node_modules/elkjs/lib/elk-api.js');
 
 
-   return app.toTree();
-  // require('@embroider/compat').compatBuild(app, Webpack);
+  //return app.toTree();
+  return require('@embroider/compat').compatBuild(app, Webpack);
 };

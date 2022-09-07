@@ -44,7 +44,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service

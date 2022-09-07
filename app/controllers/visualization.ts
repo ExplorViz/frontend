@@ -61,7 +61,7 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service('timestamp')
@@ -331,7 +331,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
   }: InitialLandscapeMessage): Promise<void> {
-    this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
+    //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();

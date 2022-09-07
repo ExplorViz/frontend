@@ -106,7 +106,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service('toast-message')

@@ -8,8 +8,7 @@ import { isLobbyJoinedResponse, LobbyJoinedResponse } from '../utils/vr-payload/
 import { isRoomCreatedResponse, RoomCreatedResponse } from '../utils/vr-payload/receivable/room-created';
 import { isRoomListRecord, RoomListRecord } from '../utils/vr-payload/receivable/room-list';
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-//import VrRoomSerializer from './vr-room-serializer';
+import VrRoomSerializer from './vr-room-serializer';
 
 const { collaborationService } = ENV.backendAddresses;
 
@@ -20,7 +19,7 @@ export default class VrRoomService extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   private roomSerializer!: VrRoomSerializer;
 
   async listRooms(): Promise<RoomListRecord[]> {
@@ -54,12 +53,12 @@ export default class VrRoomService extends Service {
 
   private buildInitialRoomPayload(): InitialRoomPayload {
     // Serialize room and remove unsupported properties.
-    const room = this.roomSerializer.serializeRoom();
+   /* const room = this.roomSerializer.serializeRoom();
     return {
       landscape: room.landscape,
       openApps: room.openApps.map(({ highlightedComponents, ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ objectId, ...menu }) => menu),
-    };
+    };*/
   }
 
   async joinLobby(roomId: string): Promise<LobbyJoinedResponse> {
