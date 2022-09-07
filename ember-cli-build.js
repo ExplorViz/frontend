@@ -14,17 +14,17 @@ module.exports = (defaults) => {
       ],
     },
 
+    'ember-bootstrap': {
+      bootstrapVersion: 4,
+      importBootstrapCSS: false
+    },
+
     svgJar: {
       sourceDirs: [
         'public', // default SVGJar lookup directory
         'node_modules/@primer/octicons/build/svg',
       ],
     },
-
-    'ember-bootstrap': {
-      bootstrapVersion: 4,
-      importBootstrapCSS: false
-    }
   });
 
   app.import('node_modules/three/build/three.min.js', {
@@ -39,8 +39,9 @@ module.exports = (defaults) => {
 
   app.import('vendor/eventsource-polyfill/eventsource.min.js');
 
-  //app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
-  app.import('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
+  app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
+  app.import('node_modules/bootstrap/dist/js/bootstrap.min.js');
+
   app.import('node_modules/auth0-js/dist/auth0.js');
 
   app.import('node_modules/crypto-js/crypto-js.js');
