@@ -27,7 +27,10 @@
                 type="button"
                 {{on "click" (fn @selectToken token)}}
               >
-                {{svg-jar "search-16" class="octicon align-middle"}}             
+                {{svg-jar "search-16" class="octicon align-middle"}}
+                <BsTooltip @placement="bottom" @triggerEvents="hover">
+                    Open Visualization
+                  </BsTooltip>          
               </button>
             </li>
             <li>

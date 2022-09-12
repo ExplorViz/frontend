@@ -39,8 +39,12 @@ module.exports = (defaults) => {
 
   app.import('vendor/eventsource-polyfill/eventsource.min.js');
 
-  app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
-  app.import('node_modules/bootstrap/dist/js/bootstrap.min.js');
+  //app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
+  //app.import('node_modules/bootstrap/dist/js/bootstrap.min.js');
+
+  // Bundle is necessary for "Color Presets" Dropdown
+  // Separated imports as shown above do not work
+  app.import('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
 
   app.import('node_modules/auth0-js/dist/auth0.js');
 
