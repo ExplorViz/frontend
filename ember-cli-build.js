@@ -16,7 +16,7 @@ module.exports = (defaults) => {
 
     'ember-bootstrap': {
       bootstrapVersion: 4,
-      importBootstrapCSS: false
+      importBootstrapCSS: false,
     },
 
     svgJar: {
@@ -52,7 +52,6 @@ module.exports = (defaults) => {
 
   app.import('node_modules/webxr-polyfill/build/webxr-polyfill.min.js');
   app.import('node_modules/elkjs/lib/elk-api.js');
-
 
   //return app.toTree();
   return require('@embroider/compat').compatBuild(app, Webpack);

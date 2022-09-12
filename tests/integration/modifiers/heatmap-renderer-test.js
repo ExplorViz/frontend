@@ -10,6 +10,6 @@ module('Integration | Modifier | heatmap-renderer', (hooks) => {
   test('it renders', async (assert) => {
     await render(hbs`<div {{heatmap-renderer}}></div>`);
 
-    assert.ok(true);
+    assert.expect(0);
   });
 });

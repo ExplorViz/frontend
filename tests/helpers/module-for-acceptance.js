@@ -15,9 +15,10 @@ export default (name, options = {}) => {
     },
 
     async afterEach() {
-      const afterEach = options.afterEach && options.afterEach.apply(this, arguments);
+      const afterEach =
+        options.afterEach && options.afterEach.apply(this, arguments);
       await Promise.resolve(afterEach);
       return destroyApp(this.application);
     },
   });
-}
+};

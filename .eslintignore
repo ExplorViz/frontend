@@ -28,3 +28,4 @@
 public/assets/web-workers/*
 testem.js
 yuidoc-packages.js
+.prettierrc.js

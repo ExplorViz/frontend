@@ -1,3 +1,4 @@
+/* eslint-disable qunit/no-commented-tests */
 // import { module, test } from 'qunit';
 import { module } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
@@ -17,6 +18,7 @@ module('Integration | Component | page-setup/navbar', (hooks) => {
     assert.ok(this.element.textContent.trim().includes('Visualization'));
   });
 
+  // eslint-disable-next-line qunit/no-commented-tests
   test('username is rendered', async function(assert) {
     await render(hbs`{{page-setup/navbar}}`);
 

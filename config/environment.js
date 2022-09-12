@@ -2,7 +2,7 @@
 
 const DOTENV = require('dotenv');
 
-module.exports = function (environment) {
+module.exports = (environment) => {
   const path = { path: process.env.DOTENV };
 
   const P_ENV = process.env;
