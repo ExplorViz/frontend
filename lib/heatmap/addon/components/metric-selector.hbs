@@ -1,8 +1,8 @@
 <PowerSelect
-  @options={{this.heatmapConfiguration.latestClazzMetricScores}}
+  @options={{this.metricNames}}
   @triggerClass="metric-selector"
   @selected={{this.heatmapConfiguration.selectedMetric}}
-  @onchange={{@selectMetric}}
+  @onChange={{@selectMetric}}
   @placeholder="Select metric..."
   @searchEnabled={{false}}
   @matchTriggerWidth={{false}} as |metric|

@@ -4,17 +4,16 @@
     "ember-addon"
   ],
   "dependencies": {
-    "@glimmer/component": "^1.0.0",
-    "@glimmer/tracking": "^1.0.0",
-    "broccoli-funnel": "3.0.3",
+    "@glimmer/component": "^1.1.2",
+    "@glimmer/tracking": "^1.1.2",
+    "broccoli-funnel": "3.0.8",
     "broccoli-merge-trees": "4.2.0",
-    "ember-auto-import": "^1.5.3",
+    "ember-auto-import": "^2.4.2",
     "ember-cli-babel": "*",
     "ember-cli-typescript": "*",
     "ember-cli-htmlbars": "*",
-    "ember-data": "3.17.0",
     "ember-debug-logger": "^2.1.1",
     "simpleheat": "^0.4.0",
-    "three": "0.113.1"
+    "three": "0.143.0"
   }
 }

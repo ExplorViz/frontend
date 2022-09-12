@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import MinMaxRectangle from 'explorviz-frontend/view-objects/layout-models/min-max-rectangle';
 import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
 import { Node, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';

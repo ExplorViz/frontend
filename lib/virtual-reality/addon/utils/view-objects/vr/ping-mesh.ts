@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 export const PING_ANIMATION_CLIP = new THREE.AnimationClip(
   'ping-animation',

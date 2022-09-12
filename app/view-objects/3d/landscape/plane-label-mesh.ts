@@ -1,4 +1,5 @@
-import THREE from 'three';
+import * as THREE from 'three';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import LabelMesh from '../label-mesh';
 
 export default class PlaneLabelMesh extends LabelMesh {
@@ -22,7 +23,7 @@ export default class PlaneLabelMesh extends LabelMesh {
       this.geometry = geometry;
     // Create new geometry
     } else {
-      const labelGeo = new THREE.TextBufferGeometry(text, {
+      const labelGeo = new TextGeometry(text, {
         font: this.font,
         curveSegments: 1,
         size: fontSize,

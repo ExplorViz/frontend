@@ -1,5 +1,5 @@
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
-import THREE from 'three';
+import * as THREE from 'three';
 import { GrabbableObject } from '../interfaces/grabbable-object';
 
 /**

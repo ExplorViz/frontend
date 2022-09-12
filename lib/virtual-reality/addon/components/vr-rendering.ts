@@ -15,7 +15,7 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, { MessageArgs } from 'explorviz-frontend/services/toast-message';
-import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';

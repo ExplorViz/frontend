@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import VRController from 'virtual-reality/utils/vr-controller';

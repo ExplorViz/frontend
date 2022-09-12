@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';

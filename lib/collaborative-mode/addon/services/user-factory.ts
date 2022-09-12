@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
-import THREE from 'three';
+import * as THREE from 'three';
 import HmdService from 'virtual-reality/services/hmd-service';
 import { Color } from 'virtual-reality/utils/vr-message/util/color';
 import { Position } from 'virtual-reality/utils/vr-message/util/position';

@@ -20,7 +20,7 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import * as THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
@@ -61,7 +61,7 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service('timestamp')
@@ -113,8 +113,8 @@ export default class VisualizationController extends Controller {
       && this.landscapeData.structureLandscapeData.nodes.length > 0;
   }
 
-  constructor() {
-    super(...arguments);
+  @action
+  setupListeners() {
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
@@ -310,10 +310,17 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.resetLandscapeListenerPolling();
     this.applicationRepo.clear();
-    this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
-    this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+
+    if(this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+      this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);    
+    }
+
+    if(this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
+      this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);  
+    }
+      
   }
 
   private async initWebSocket() {
@@ -327,7 +334,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
   }: InitialLandscapeMessage): Promise<void> {
-    this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
+    //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();

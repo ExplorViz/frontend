@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import AppCommunicationMesh from 'explorviz-frontend/view-objects/3d/landscape/app-communication-mesh';
 import { ApplicationCommunication } from './application-communication-computer';
 

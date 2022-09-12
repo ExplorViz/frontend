@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 /**
  * Interface for all objects that can be intersected by a controller's ray.

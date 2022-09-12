@@ -6,7 +6,7 @@ import {
   Constants as MotionControllerConstants, fetchProfile, MotionController, VisualResponse,
 } from '@webxr-input-profiles/motion-controllers';
 import debugLogger from 'ember-debug-logger';
-import THREE from 'three';
+import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import VrControllerModel from './vr-controller-model';
 

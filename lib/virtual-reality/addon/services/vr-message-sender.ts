@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import THREE from 'three';
+import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
 import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 /**
  * Sets MeshStandardMaterial of given object to have the given opacity.

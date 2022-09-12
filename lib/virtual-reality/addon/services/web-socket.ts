@@ -89,7 +89,7 @@ export default class WebSocketService extends Service.extend(Evented) {
     if (this.isWebSocketOpen()) this.currentSocket.send(JSON.stringify(msg));
   }
 
-  isWebSocketOpen() {
+  isWebSocketOpen(): boolean {
     return this.currentSocket && this.currentSocket.readyState() === 1;
   }
 

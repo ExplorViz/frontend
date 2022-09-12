@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from '../vr-controller';
 import { ControllerPose, Pose } from '../vr-message/sendable/user_positions';
 

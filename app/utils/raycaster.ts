@@ -1,6 +1,6 @@
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 
 export function defaultRaycastFilter(intersection: THREE.Intersection): boolean {
   return !(intersection.object instanceof LabelMesh

@@ -51,6 +51,10 @@ export default class Auth extends Service {
     );
 
     this.lock.on('authenticated', (authResult) => {
+      console.log("clientId", ENV.auth0.clientId);
+      console.log("domain", ENV.auth0.domain);
+      console.log("Auth0 Lock", this.lock);
+      console.log("authResult", authResult);
       this.router.transitionTo(ENV.auth0.routeAfterLogin).then(async () => {
         await this.setUser(authResult.accessToken);
         this.set('accessToken', authResult.accessToken);
@@ -67,7 +71,6 @@ export default class Auth extends Service {
     if (!document.getElementById('auth0-login-container')) {
       return;
     }
-
     if (this.lock) {
       this.lock.show();
     } else { // no-auth
@@ -106,7 +109,9 @@ export default class Auth extends Service {
     return new Promise((resolve, reject) => {
       if (this.lock) {
         this.lock.checkSession({}, async (err, authResult) => {
-          this.debug(authResult);
+          console.log("error", err);
+          console.log("authResult", authResult);
+           console.log("Alex lock", this.lock);
           if (err || authResult === undefined) {
             reject(err);
           } else {

@@ -6,7 +6,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import THREE from 'three';
+import * as THREE from 'three';
 import VrRoomService from 'virtual-reality/services/vr-room';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';

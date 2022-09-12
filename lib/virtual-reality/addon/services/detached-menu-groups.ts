@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import * as THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { MeshLine, MeshLineMaterial } from 'meshline';
 import BaseMesh from '../base-mesh';
 

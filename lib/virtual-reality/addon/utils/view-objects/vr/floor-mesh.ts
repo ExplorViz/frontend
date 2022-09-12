@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { IntersectableObject } from '../interfaces/intersectable-object';
 
 export default class FloorMesh extends THREE.Mesh implements IntersectableObject {

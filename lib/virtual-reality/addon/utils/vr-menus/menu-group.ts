@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import DetachedMenuGroupsService from '../../services/detached-menu-groups';
 import FloorMesh from '../view-objects/vr/floor-mesh';
 import VRController from '../vr-controller';

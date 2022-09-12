@@ -1,72 +1,56 @@
-<p align="center">
-  <img width="60%" src="https://raw.githubusercontent.com/ExplorViz/Docs/master/images/explorviz-logo.png">
-</p>
+# explorviz-frontend
 
-___
+This README outlines the details of collaborating on this Ember application.
+A short introduction of this app could easily go here.
 
-<a href="https://travis-ci.org/ExplorViz/explorviz-frontend"><img src="https://travis-ci.org/ExplorViz/explorviz-frontend.svg?branch=master" alt="Build Status"></a>
-<a href="https://david-dm.org/ExplorViz/explorviz-frontend/master"><img src="https://david-dm.org/ExplorViz/explorviz-frontend/master/status.svg" alt="Dependency Status"></a>
-<a href="https://david-dm.org/ExplorViz/explorviz-frontend/master?type=dev"><img src="https://david-dm.org/ExplorViz/explorviz-frontend/master/dev-status.svg" alt="devDependencies status"></a>
+## Prerequisites
 
-## Project Description
-ExplorViz uses dynamic analysis techniques to provide live trace visualization of the communication in large software landscape. It targets system and program comprehension in those landscapes while still providing details on the communication within an application. A landscape perspective enriches current system visualizations with additional abstraction levels for efficient comprehension of communication between hundreds of applications which is often encountered in, for instance, Cloud environments. On the application level perspective, ExplorViz utilizes the 3D city metaphor combined with an interactive concept of showing only details that are in focus of the analysis. For best accessibility, ExplorViz is a web-based tool featuring cutting-edge technologies like WebGL and HTML 5.
-
-Given the 3D city metaphor visualization of an application, we investigate new interaction styles and higher immersion for a more effective and efficient program comprehension process. For this purpose, we utilize uprising technologies and evaluate developed approaches in experiments with real test subjects.
-
-The usability and effectiveness of ExplorViz has been investigated in controlled experiments which resulted in increased efficiency and effectiveness over competing approaches.
-
-This project is a WIP replica of ExplorViz's visualization component. It substitutes [GWT](http://www.gwtproject.org/) client-code with [EmberJS](https://www.emberjs.com/). This is only the frontend, you will need the [backend](https://github.com/ExplorViz/explorviz-backend) as well for production.
-
-## Reference
-Citing ExplorViz as a tool:
-
-Florian Fittkau, Alexander Krause, Wilhelm Hasselbring (2017): Software landscape and application visualization for system comprehension with ExplorViz. Information and Software Technology, Volume 87. pp. 259-277. DOI https://doi.org/10.1016/j.infsof.2016.07.004.
-
-[[BibTex]](http://eprints.uni-kiel.de/cgi/export/eprint/33464/BibTeX/cau-eprint-33464.bib) | [[Endnote]](http://eprints.uni-kiel.de/cgi/export/eprint/33464/EndNote/cau-eprint-33464.enw)
-
-Citing ExplorViz' collaborative modularization process:
-
-Zirkelbach, Christian, Krause, Alexander and Hasselbring, Wilhelm (2019): Modularization of Research Software for Collaborative Open Source Development. In Proceedings of the Ninth International Conference on Advanced Collaborative Networks, Systems and Applications (COLLA 2019), June 30 - July 04, 2019, Rome, Italy.
-
-[[BibTex]](http://eprints.uni-kiel.de/cgi/export/eprint/46777/BibTeX/cau-eprint-46777.bib) | [[Endnote]](http://eprints.uni-kiel.de/cgi/export/eprint/46777/EndNote/cau-eprint-46777.enw)
-
-## Documentation
-The API documentation is available [here](https://explorviz.github.io/explorviz-frontend/).
-
-## Deployment
-Use our Docker images as described in our [Wiki](https://github.com/ExplorViz/docs/wiki).
-
-## Development
-### Prerequisites
 You will need the following things properly installed on your computer.
 
-* [Git](http://git-scm.com/)
-* [Node.js](http://nodejs.org/) with NPM (currently 12.13.0 / npm 6.12.0)
+* [Git](https://git-scm.com/)
+* [Node.js](https://nodejs.org/) (with npm)
+* [Ember CLI](https://cli.emberjs.com/release/)
+* [Google Chrome](https://google.com/chrome/)
 
-### Installation (Generic)
+## Installation
+
 * `git clone <repository-url>` this repository
-* `cd frontend`
-* `npm install -g ember-cli`
+* `cd explorviz-frontend`
 * `npm install`
 
-### Running / Development
-* Generate a SSL certificate and place the `server.key` and `server.crt` files in the `.ssl` directory.
-* Unless the backend is running on `localhost`, specify the backend's base URL in the `API_ROOT` environment variable.
-* `ember serve` or `ember s`
-* Visit the frontend at [https://localhost:4200](https://localhost:4200).
+## Running / Development
 
-#### Code Analysis
-For development, we suggest using VSCode. Installing the following extensions will help you stick to our code-styling rules and other best practices.
-* [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-* [Unstable Ember Language Server](https://marketplace.visualstudio.com/items?itemName=lifeart.vscode-ember-unstable)
+* `ember serve`
+* Visit your app at [http://localhost:4200](http://localhost:4200).
+* Visit your tests at [http://localhost:4200/tests](http://localhost:4200/tests).
 
-You can also run the code analysis within you terminal with:
-* `npm run lint` (.js, .ts, .hbs),
-* `npm run lint:eslint` (.js, .ts), or
-* `npm run lint:template` (.hbs)
+### Code Generators
 
-#### Testing
-* `npm test` or `ember test` / `ember test --server`
+Make use of the many generators for code, try `ember help generate` for more details
 
-#### Building
-* `npm build` or `ember build` (development) / `ember build --environment=production` (production)
+### Running Tests
+
+* `ember test`
+* `ember test --server`
+
+### Linting
+
+* `npm run lint`
+* `npm run lint:fix`
+
+### Building
+
+* `ember build` (development)
+* `ember build --environment production` (production)
+
+### Deploying
+
+Specify what it takes to deploy your app.
+
+## Further Reading / Useful Links
+
+* [ember.js](https://emberjs.com/)
+* [ember-cli](https://cli.emberjs.com/release/)
+* Development Browser Extensions
+  * [ember inspector for chrome](https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi)
+  * [ember inspector for firefox](https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/)

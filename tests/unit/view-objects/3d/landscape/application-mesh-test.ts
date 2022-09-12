@@ -2,15 +2,15 @@ import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/applic
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import THREE from 'three';
+import {Color} from 'three';
 import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
-module('Unit | View Object | 3d/landscape/application-mesh', function (hooks) {
+module('Unit | View Object | 3d/landscape/application-mesh', (hooks) => {
   setupTest(hooks);
 
-  test('Default highlighting color is assigned', function (assert) {
+  test('Default highlighting color is assigned', (assert) => {
     const planeLayout = new PlaneLayout();
-    const defaultColor = new THREE.Color('green');
+    const defaultColor = new Color('green');
 
     const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
 
@@ -20,18 +20,18 @@ module('Unit | View Object | 3d/landscape/application-mesh', function (hooks) {
     assert.equal(highlightingColor, redColor);
   });
 
-  test('Datamodel is assigned to mesh', function (assert) {
+  test('Datamodel is assigned to mesh', (assert) => {
     const planeLayout = new PlaneLayout();
-    const defaultColor = new THREE.Color('green');
+    const defaultColor = new Color('green');
 
     const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
 
     assert.equal(application, applicationMesh.dataModel);
   });
 
-  test('Passed default color is correctly applied to material', function (assert) {
+  test('Passed default color is correctly applied to material', (assert) => {
     const planeLayout = new PlaneLayout();
-    const defaultColor = new THREE.Color('#ff00ff');
+    const defaultColor = new Color('#ff00ff');
 
     const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
 

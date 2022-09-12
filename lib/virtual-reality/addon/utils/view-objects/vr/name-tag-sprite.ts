@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import TextTexture from '../../vr-helpers/text-texture';
 
 const SIZE_PER_PIXEL = 1 / 500;

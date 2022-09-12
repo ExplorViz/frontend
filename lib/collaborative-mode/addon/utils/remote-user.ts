@@ -1,5 +1,5 @@
 import LocalUser from 'collaborative-mode/services/local-user';
-import THREE from 'three';
+import * as THREE from 'three';
 import NameTagSprite from 'virtual-reality/utils/view-objects/vr/name-tag-sprite';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';

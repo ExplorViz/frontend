@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import calculateColorBrightness from
   'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';

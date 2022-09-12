@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from '../../view-objects/3d/application/component-mesh';

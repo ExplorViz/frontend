@@ -1,6 +1,7 @@
 import { timeout } from 'ember-concurrency';
 import { restartableTask } from 'ember-concurrency-decorators';
-import THREE, { AnimationMixer } from 'three';
+import * as THREE from 'three';
+import { AnimationMixer } from 'three';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 
 export default class MousePing {

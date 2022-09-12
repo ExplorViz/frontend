@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 /**
 * This method calculates a new color with a different brightness

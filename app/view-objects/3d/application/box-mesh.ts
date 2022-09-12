@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import BaseMesh from '../base-mesh';
 

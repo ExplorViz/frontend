@@ -3,7 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import Configuration from 'explorviz-frontend/services/configuration';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 
 export default class EntityManipulation extends Service.extend({
   // anything which *must* be merged to prototype here

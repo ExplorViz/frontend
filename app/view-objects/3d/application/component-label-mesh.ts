@@ -1,4 +1,5 @@
-import THREE from 'three';
+import * as THREE from 'three';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import LabelMesh from '../label-mesh';
 import ComponentMesh from './component-mesh';
 import FoundationMesh from './foundation-mesh';
@@ -47,7 +48,7 @@ export default class ComponentLabelMesh extends LabelMesh {
     // Text should look like it is written on the parent's box (no height required)
     const textHeight = 0.0;
 
-    this.geometry = new THREE.TextGeometry(labelText, {
+    this.geometry = new TextGeometry(labelText, {
       font: this.font,
       size: textSize,
       height: textHeight,

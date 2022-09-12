@@ -31,7 +31,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';

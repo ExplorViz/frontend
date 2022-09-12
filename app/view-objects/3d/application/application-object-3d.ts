@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';

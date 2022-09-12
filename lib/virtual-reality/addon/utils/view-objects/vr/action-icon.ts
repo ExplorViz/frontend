@@ -1,5 +1,5 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 import { IntersectableObject } from '../interfaces/intersectable-object';
 

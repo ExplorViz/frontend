@@ -1,5 +1,5 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 
 export default class TeleportMesh extends BaseMesh {
   private yOffset: number;

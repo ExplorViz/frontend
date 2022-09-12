@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from '../vr-controller';
 import VRControllerBindings from './vr-controller-bindings';
 import VRControllerBindingsList from './vr-controller-bindings-list';

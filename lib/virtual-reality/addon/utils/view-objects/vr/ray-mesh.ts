@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 export default class RayMesh extends THREE.Line {
   constructor(color: THREE.Color) {

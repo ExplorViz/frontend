@@ -2,8 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Explorviz Frontend Tests</title>
+    <title>Explorviz Tests</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -18,15 +17,6 @@
     {{content-for "test-head-footer"}}
   </head>
   <body>
-
-    <!-- 
-      Fix for scrollable page, since our 
-      CSS interferes with this index.html file
-    -->
-    <style type="text/css">
-      body { overflow-y: scroll; }
-    </style>
-
     {{content-for "body"}}
     {{content-for "test-body"}}
 
@@ -37,7 +27,7 @@
       </div>
     </div>
 
-    <script src="/testem.js" integrity=""></script>
+    <script src="/testem.js" integrity="" data-embroider-ignore></script>
     <script src="{{rootURL}}assets/vendor.js"></script>
     <script src="{{rootURL}}assets/test-support.js"></script>
     <script src="{{rootURL}}assets/explorviz-frontend.js"></script>

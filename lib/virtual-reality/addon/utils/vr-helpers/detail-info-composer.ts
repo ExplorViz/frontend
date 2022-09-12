@@ -9,7 +9,7 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import {
   APPLICATION_ENTITY_TYPE,
   CLASS_COMMUNICATION_ENTITY_TYPE,

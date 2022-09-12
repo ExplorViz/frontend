@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import TextTexture from 'virtual-reality/utils/vr-helpers/text-texture';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, { VRControllerThumbpadHorizontalDirection } from '../../vr-controller/vr-controller-thumbpad-binding';

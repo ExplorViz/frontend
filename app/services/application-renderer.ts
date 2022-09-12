@@ -24,7 +24,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
@@ -106,7 +106,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
   @service('toast-message')
@@ -321,6 +321,7 @@ export default class ApplicationRenderer extends Service.extend({
   addCommunication(applicationObject3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
     const drawableClassCommunications = applicationData?.drawableClassCommunications;
+
     if (drawableClassCommunications) {
       this.appCommRendering.addCommunication(
         applicationObject3D,

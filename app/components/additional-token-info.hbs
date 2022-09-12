@@ -11,9 +11,9 @@
             <td>Owner</td>
             <td style="word-break: break-all">
               {{#if (eq @token.ownerId this.auth.user.sub)}}
-                You
+              You
               {{else}}
-                {{@token.ownerId}}
+              {{@token.ownerId}}
               {{/if}}
             </td>
             <td></td>
@@ -22,11 +22,8 @@
             <td>ID</td>
             <td>{{@token.value}}</td>
             <td>
-              <CopyButton
-                class="button-svg-with-hover"
-                @clipboardText={{@token.value}}
-                @success={{this.onTokenIdCopied}}
-              >
+              <CopyButton class="button-svg-with-hover" @clipboardText={{@token.value}}
+                @success={{this.onTokenIdCopied}}>
                 {{svg-jar "clippy-16" class="octicon align-middle"}}
                 <BsTooltip @placement="bottom" @triggerEvents="hover">
                   Copy id to clipboard
@@ -35,22 +32,19 @@
             </td>
           </tr>
           {{#if @token.secret}}
-            <tr>
-              <td>Secret</td>
-              <td style="word-break: break-all">{{@token.secret}}</td>
-              <td>
-                <CopyButton
-                  class="button-svg-with-hover"
-                  @clipboardText={{@token.secret}}
-                  @success={{this.onTokenSecretCopied}}
-                >
-                  {{svg-jar "clippy-16" class="octicon align-middle"}}
-                  <BsTooltip @placement="bottom" @triggerEvents="hover">
-                    Copy secret to clipboard
-                  </BsTooltip>
-                </CopyButton>
-              </td>
-            </tr>
+          <tr>
+            <td>Secret</td>
+            <td style="word-break: break-all">{{@token.secret}}</td>
+            <td>
+              <CopyButton class="button-svg-with-hover" @clipboardText={{@token.secret}}
+                @success={{this.onTokenSecretCopied}}>
+                {{svg-jar "clippy-16" class="octicon align-middle"}}
+                <BsTooltip @placement="bottom" @triggerEvents="hover">
+                  Copy secret to clipboard
+                </BsTooltip>
+              </CopyButton>
+            </td>
+          </tr>
           {{/if}}
         </tbody>
       </table>

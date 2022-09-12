@@ -1,16 +1,8 @@
-/* jshint node: true */
-
-/* eslint no-console: 0 */
-
-/**
- * Environment variables:
- * "DOTENV=.env-custom ember s" -> Use custom DOTENV file instead of default one
- */
+'use strict';
 
 const DOTENV = require('dotenv');
-var colors = require('colors'); // eslint-disable-line
 
-module.exports = function initEnvironment(environment) {
+module.exports = (environment) => {
   const path = { path: process.env.DOTENV };
 
   const P_ENV = process.env;
@@ -29,7 +21,7 @@ module.exports = function initEnvironment(environment) {
     modulePrefix: 'explorviz-frontend',
     environment,
     rootURL: '/',
-    locationType: 'auto',
+    locationType: 'history',
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build

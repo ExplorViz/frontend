@@ -8,12 +8,16 @@ module.exports = {
   },
   plugins: [
     // 'ember',
+    'prettier',
     '@typescript-eslint',
     'import',
   ],
   extends: [
-    'airbnb-typescript/base',
-    // 'plugin:ember/recommended',
+    'eslint:recommended',
+    'plugin:import/errors',
+    'plugin:import/typescript',
+    'plugin:qunit/recommended',
+    'plugin:prettier/recommended',
   ],
   env: {
     browser: true,

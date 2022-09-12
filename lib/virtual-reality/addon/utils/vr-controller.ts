@@ -1,7 +1,7 @@
 import debugLogger from 'ember-debug-logger';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
 import TeleportMesh from './view-objects/vr/teleport-mesh';
 import VRControllerBindingsList from './vr-controller/vr-controller-bindings-list';

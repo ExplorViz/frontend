@@ -6,7 +6,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
@@ -93,6 +93,7 @@ export default class VrRoomSerializer extends Service {
       .map((detachedMenuGroup) => {
         const detachedMenu = detachedMenuGroup.currentMenu as DetachableMenu;
         return {
+          userId: null, // TODO Check if this works
           objectId: detachedMenuGroup.getGrabId(),
           entityId: detachedMenu.getDetachId(),
           entityType: detachedMenu.getEntityType(),

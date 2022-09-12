@@ -27,7 +27,8 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE, { Vector3 } from 'three';
+import { Vector3 } from 'three';
+import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';

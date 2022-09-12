@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRControllerButtonBinding from '../vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from '../vr-controller/vr-controller-thumbpad-binding';
 import { BaseMenuArgs } from './base-menu';

@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import THREE from 'three';
+import * as THREE from 'three';
 import { tracked } from '@glimmer/tracking';
 import { ApplicationColorSettingId, LandscapeColorSettingId } from 'explorviz-frontend/utils/settings/settings-schemas';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import BaseMenu, { BaseMenuArgs } from '../base-menu';
 import GrabMenu from './grab-menu';

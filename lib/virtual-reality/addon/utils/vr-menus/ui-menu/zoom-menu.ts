@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import vrControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../ui-menu';

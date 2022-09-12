@@ -9,7 +9,8 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import THREE, { Object3D, Vector2 } from 'three';
+import { Object3D, Vector2 } from 'three';
+import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 export type Position2D = {

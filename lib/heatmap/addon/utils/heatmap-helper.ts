@@ -1,6 +1,6 @@
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 
 export default function applySimpleHeatOnFoundation(foundationMesh: FoundationMesh,
   canvas: HTMLCanvasElement) {

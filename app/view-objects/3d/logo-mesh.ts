@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import BaseMesh from './base-mesh';
 
 export default class LogoMesh extends BaseMesh {

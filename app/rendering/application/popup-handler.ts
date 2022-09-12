@@ -6,7 +6,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import THREE from 'three';
+import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { getTypeOfEntity, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
@@ -137,6 +137,7 @@ export default class PopupHandler {
     mesh: THREE.Object3D, position: Position2D, pinned?: boolean,
     replace?: boolean, menuId?: string, sharedBy?: string, hovered?: boolean
   }) {
+
     if (isEntityMesh(mesh)) {
       const newPopup = new PopupData({
         mouseX: position.x,

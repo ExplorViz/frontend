@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ClazzLabelMesh from 'explorviz-frontend/view-objects/3d/application/clazz-label-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';

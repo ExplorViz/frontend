@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 export default class BoxLayout {
   positionX: number = 0;

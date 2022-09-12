@@ -10,7 +10,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
 import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
 import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
-import THREE from 'three';
+import * as THREE from 'three';
 
 interface NamedArgs {
   camera: THREE.Camera,

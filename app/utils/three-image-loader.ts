@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 
 export default class ThreeImageLoader {
