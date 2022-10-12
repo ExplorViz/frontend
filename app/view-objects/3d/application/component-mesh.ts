@@ -22,10 +22,10 @@ export default class ComponentMesh extends BoxMesh {
 
     this.receiveShadow = true;
 
-    const material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
-    this.material = material;
     this.dataModel = component;
   }
 }

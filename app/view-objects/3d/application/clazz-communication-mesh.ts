@@ -20,6 +20,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.material = new THREE.MeshBasicMaterial({
       color: defaultColor,
     });
+    this.material.transparent = true;
   }
 
   /**

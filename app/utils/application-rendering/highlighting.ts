@@ -157,6 +157,7 @@ export function highlight(mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMe
   nonInvolvedClazzes.forEach((clazz) => {
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(clazz.parent.id);
+
     if (clazzMesh instanceof ClazzMesh && componentMesh instanceof ComponentMesh
       && componentMesh.opened) {
       clazzMesh.turnTransparent(opacity);

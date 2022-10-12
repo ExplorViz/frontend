@@ -21,10 +21,10 @@ export default class ClazzMesh extends BoxMesh {
     this.castShadow = true;
     this.receiveShadow = true;
 
-    const material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
-    this.material = material;
     this.dataModel = clazz;
   }
 }
