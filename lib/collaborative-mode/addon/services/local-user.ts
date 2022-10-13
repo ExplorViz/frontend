@@ -55,15 +55,23 @@ export default class LocalUser extends Service.extend({
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.defaultCamera.position.set(0, 1, 2);
-    this.userGroup.add(this.defaultCamera);
+    if (this.xr?.isPresenting) {
+      console.log("init xr");
+      return this.xr.getCamera();
+    } else {
+      console.log("init default");
+      this.userGroup.add(this.defaultCamera);
+    }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
   }
 
   get camera() {
     if (this.xr?.isPresenting) {
-      return this.xr.getCamera(this.defaultCamera);
+      console.log("camera");
+      return this.xr.getCamera();
     }
+    console.log("persepectivecamera");
     return this.defaultCamera;
   }
 
@@ -131,14 +139,14 @@ export default class LocalUser extends Service.extend({
       adaptCameraHeight?: boolean;
     } = {},
   ) {
-    if (!this.camera) return;
+    const worldPos = this.xr?.getCamera().getWorldPosition(new THREE.Vector3());
 
-    const cameraWorldPos = this.getCameraWorldPosition();
-    this.userGroup.position.x += position.x - cameraWorldPos.x;
-    if (adaptCameraHeight) {
-      this.userGroup.position.y += position.y - cameraWorldPos.y;
-    }
-    this.userGroup.position.z += position.z - cameraWorldPos.z;
+    const offsetPosition = { x: position.x - worldPos.x, y: position.y, z: position.z - worldPos.z, w: 1 };
+    const offsetRotation = new THREE.Quaternion();
+    const transform = new XRRigidTransform(offsetPosition, offsetRotation).inverse;
+    const teleportSpaceOffset = this.xr?.getReferenceSpace()?.getOffsetReferenceSpace(transform);
+
+    this.xr?.setReferenceSpace(teleportSpaceOffset);
   }
 
   getCameraWorldPosition() {
