@@ -41,8 +41,12 @@ export default class GrabMenu extends BaseMenu {
     const controller = VRController.findController(this);
     if (controller && this.isMenuOpen) {
       // Get inverse of controller transformation.
+      //const matrix = new THREE.Matrix4();
+      //matrix.getInverse(controller.gripSpace.matrixWorld);
+
       const matrix = new THREE.Matrix4();
-      matrix.getInverse(controller.gripSpace.matrixWorld);
+      matrix.copyPosition(controller.gripSpace.matrixWorld);
+      //matrix.invert();
 
       // Store original parent of grabbed object.
       this.grabbedObjectParent = this.grabbedObject.parent;

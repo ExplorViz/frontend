@@ -16,7 +16,7 @@ import VrAssetRepository from './vr-asset-repo';
 import WebSocketService from './web-socket';
 
 export default class DetachedMenuGroupsService extends Service {
-  @service('vr-asset-repo')
+  @service('virtual-reality@vr-asset-repo')
   private assetRepo!: VrAssetRepository;
 
   @service('web-socket')

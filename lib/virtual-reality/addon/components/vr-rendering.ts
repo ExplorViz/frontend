@@ -22,7 +22,8 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE, { Intersection } from 'three';
+import * as THREE from 'three';
+import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
@@ -171,7 +172,7 @@ export default class VrRendering
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.localUser.defaultCamera.position.set(2, 2, 2);
-    this.localUser.userGroup.add(this.localUser.defaultCamera);
+    //this.localUser.userGroup.add(this.localUser.defaultCamera);
     this.scene.add(this.localUser.userGroup);
 
     this.applicationRenderer.getOpenApplications().clear();
