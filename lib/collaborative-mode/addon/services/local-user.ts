@@ -132,14 +132,18 @@ export default class LocalUser extends Service.extend({
    *  the new position
    */
   teleportToPosition(
-    position: THREE.Vector3,
-    {
-      adaptCameraHeight = false,
-    }: {
-      adaptCameraHeight?: boolean;
-    } = {}
+    position: THREE.Vector3
+    //{
+    //  adaptCameraHeight = false,
+    //}: {
+    //  adaptCameraHeight?: boolean;
+    //} = {}
   ) {
     const worldPos = this.xr?.getCamera().getWorldPosition(new THREE.Vector3());
+
+    if (!(worldPos?.x || worldPos?.z)) {
+      return;
+    }
 
     const offsetPosition = {
       x: position.x - worldPos.x,

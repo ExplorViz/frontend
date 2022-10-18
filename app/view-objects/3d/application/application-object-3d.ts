@@ -64,7 +64,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
-  tick(_delta: number): void {}
+  tick(_delta: number): void {
+    // will be overriden
+  }
 
   /**
    * Resets this object's rotation to default

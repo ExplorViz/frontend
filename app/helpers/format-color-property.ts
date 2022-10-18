@@ -1,6 +1,6 @@
 import { helper } from '@ember/component/helper';
 
-export function formatColorProperty(params: String[]) {
+export function formatColorProperty(params: string[]) {
   let [property] = params;
   if (typeof property === 'string' && property.length > 0) {
     property = property.replace(

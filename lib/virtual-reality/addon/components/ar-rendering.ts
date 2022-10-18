@@ -313,7 +313,9 @@ export default class ArRendering extends Component<Args> {
     const position = {
       clientX: 100,
       clientY: window.innerHeight - 200,
-      preventDefault: () => {},
+      preventDefault: () => {
+        // not used atm
+      },
     };
     const evt = new CustomEvent('openmenu', {
       detail: {

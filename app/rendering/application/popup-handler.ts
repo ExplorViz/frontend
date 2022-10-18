@@ -88,7 +88,9 @@ export default class PopupHandler {
           popup.menuId = response.objectId;
           return true;
         },
-        onOffline: () => {},
+        onOffline: () => {
+          // not used atm
+        },
       }
     );
   }

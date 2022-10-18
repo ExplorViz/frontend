@@ -97,7 +97,11 @@ export default class ResetMenu extends UiMenu {
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
   }
 
-  private resetApplications() {}
+  private resetApplications() {
+    // not used atm
+  }
 
-  private resetLandscape() {}
+  private resetLandscape() {
+    // not used atm
+  }
 }

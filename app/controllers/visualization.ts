@@ -378,9 +378,9 @@ export default class VisualizationController extends Controller {
   // user handling end
   async onInitialLandscape({
     landscape,
-    openApps,
-    detachedMenus,
-  }: InitialLandscapeMessage): Promise<void> {
+  }: //openApps,
+  //detachedMenus,
+  InitialLandscapeMessage): Promise<void> {
     //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.

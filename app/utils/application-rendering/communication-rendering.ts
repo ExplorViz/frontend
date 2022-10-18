@@ -102,7 +102,7 @@ export default class CommunicationRendering {
     const { communicationColor, highlightedEntityColor } =
       this.configuration.applicationColors;
 
-    const positionToClazzCommMesh = new Map<String, ClazzCommunicationMesh>();
+    const positionToClazzCommMesh = new Map<string, ClazzCommunicationMesh>();
 
     // Render all drawable communications
     drawableClassCommunications.forEach((drawableClazzComm) => {

@@ -11,7 +11,7 @@ export type VrTriggerPressEvent<T> = VrInputEvent<T> & {
 };
 
 export type VrInputHandler<T extends THREE.Object3D> = {
-  targetType: Function & { prototype: T };
+  targetType: { prototype: T };
   triggerDown?(event: VrInputEvent<T>): void;
   triggerPress?(event: VrTriggerPressEvent<T>): void;
   triggerUp?(event: VrInputEvent<T>): void;

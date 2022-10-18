@@ -40,5 +40,3 @@ export default function hitTest(
   }
   return true;
 }
-
-export function initHitTest() {}

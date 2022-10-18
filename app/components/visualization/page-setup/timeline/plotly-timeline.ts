@@ -323,7 +323,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   static getPlotlySlidingWindowUpdateObject(
     minTimestamp: number,
     maxTimestamp: number
-  ): { xaxis: { type: 'date'; range: number[]; title: {} } } {
+  ) {
     return {
       xaxis: {
         range: [minTimestamp, maxTimestamp],
@@ -356,7 +356,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     return { min: minTimestamp, max: maxTimestamp };
   }
 
-  static getPlotlyLayoutObject(minRange: number, maxRange: number): {} {
+  static getPlotlyLayoutObject(minRange: number, maxRange: number) {
     return {
       dragmode: 'pan',
       hoverdistance: 10,
@@ -394,7 +394,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   getUpdatedPlotlyDataObject(
     timestamps: Timestamp[],
     markerStates: IMarkerStates
-  ): [{}] {
+  ) {
     const colors: string[] = [];
     const sizes: number[] = [];
 
@@ -450,7 +450,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     colors: string[],
     sizes: number[],
     timestampIds: string[]
-  ): [{}] {
+  ) {
     return [
       {
         fill: 'tozeroy',
@@ -487,7 +487,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     this.selectedTimestamps = [];
   }
 
-  static getPlotlyOptionsObject(): {} {
+  static getPlotlyOptionsObject() {
     return {
       displayModeBar: false,
       doubleClick: false,
