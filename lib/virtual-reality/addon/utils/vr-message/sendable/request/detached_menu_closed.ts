@@ -9,13 +9,13 @@ export type DetachedMenuClosedMessage = {
 };
 
 export function isDetachedMenuClosedMessage(
-  msg: any,
+  msg: any
 ): msg is DetachedMenuClosedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === DETACHED_MENU_CLOSED_EVENT
-    && isNonce(msg.nonce)
-    && typeof msg.menuId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === DETACHED_MENU_CLOSED_EVENT &&
+    isNonce(msg.nonce) &&
+    typeof msg.menuId === 'string'
   );
 }

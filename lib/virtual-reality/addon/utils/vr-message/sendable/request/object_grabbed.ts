@@ -10,10 +10,10 @@ export type ObjectGrabbedMessage = {
 
 export function isObjectGrabbedMessage(msg: any): msg is ObjectGrabbedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === OBJECT_GRABBED_EVENT
-    && isNonce(msg.nonce)
-    && typeof msg.objectId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === OBJECT_GRABBED_EVENT &&
+    isNonce(msg.nonce) &&
+    typeof msg.objectId === 'string'
   );
 }

@@ -75,7 +75,7 @@ export default class TextbuttonItem extends InteractiveItem {
     ctx.fillText(
       this.text,
       this.position.x + this.width / 2,
-      this.position.y + this.height / 2,
+      this.position.y + this.height / 2
     );
     ctx.restore();
   }

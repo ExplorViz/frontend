@@ -2,14 +2,24 @@ import Modifier from 'ember-modifier';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import HeatmapConfiguration, { HeatmapMode } from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration, {
+  HeatmapMode,
+} from 'heatmap/services/heatmap-configuration';
 import WebSocketService from 'virtual-reality/services/web-socket';
-import { HeatmapUpdateArgs, HeatmapUpdateMessage, HEATMAP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/heatmap_update';
+import {
+  HeatmapUpdateArgs,
+  HeatmapUpdateMessage,
+  HEATMAP_UPDATE_EVENT,
+} from 'virtual-reality/utils/vr-message/sendable/heatmap_update';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import debugLogger from 'ember-debug-logger';
 
 function cleanup(instance: SyncStateModifier) {
-  instance.webSocket.off(HEATMAP_UPDATE_EVENT, instance, instance.onHeatmapUpdate);
+  instance.webSocket.off(
+    HEATMAP_UPDATE_EVENT,
+    instance,
+    instance.onHeatmapUpdate
+  );
 }
 
 export default class SyncStateModifier extends Modifier {
@@ -41,15 +51,16 @@ export default class SyncStateModifier extends Modifier {
     }
   }
 
-  onHeatmapUpdate({ originalMessage: message }: ForwardedMessage<HeatmapUpdateMessage>) {
+  onHeatmapUpdate({
+    originalMessage: message,
+  }: ForwardedMessage<HeatmapUpdateMessage>) {
     if (!this.heatmapConf.heatmapShared) {
       return;
     }
     this.state.set(message.event, message);
     if (message.applicationId) {
-      this.heatmapConf.currentApplication = this.applicationRenderer.getApplicationById(
-        message.applicationId,
-      );
+      this.heatmapConf.currentApplication =
+        this.applicationRenderer.getApplicationById(message.applicationId);
     } else {
       this.heatmapConf.currentApplication = null;
     }

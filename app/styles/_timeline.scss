@@ -30,30 +30,30 @@
 }
 
 .btn-timeline {
-  border-bottom: none!important;
+  border-bottom: none !important;
   border-color: darkgray;
-  border-bottom-right-radius: 0!important;
-  border-bottom-left-radius: 0!important;
-  background-color:white!important;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background-color: white !important;
   left: 50%;
   transform: translate(-50%, -26px);
   z-index: 490;
   height: 27px;
   position: absolute;
-  padding-top: 0!important;
-  padding-bottom: 0!important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .btn-timeline:focus {
-  box-shadow: none!important;
+  box-shadow: none !important;
 }
 
 .btn-timeline:hover {
-  background-color: #6c757d!important;
+  background-color: #6c757d !important;
 }
 
 .hidetimeline-icon-down {
-  transform:rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .timeline-no-content {
@@ -87,5 +87,5 @@
 }
 
 .timeline-blur-effect {
-  filter: blur(.1rem) opacity(0.5);
+  filter: blur(0.1rem) opacity(0.5);
 }

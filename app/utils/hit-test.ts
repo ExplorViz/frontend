@@ -1,7 +1,11 @@
 let hitTestSource: any = null;
 let hitTestSourceRequested = false;
 
-export default function hitTest(renderer: THREE.WebGLRenderer, reticle: THREE.Mesh, frame: any) {
+export default function hitTest(
+  renderer: THREE.WebGLRenderer,
+  reticle: THREE.Mesh,
+  frame: any
+) {
   if (frame) {
     const referenceSpace = renderer.xr.getReferenceSpace();
     const session = renderer.xr.getSession();
@@ -37,6 +41,4 @@ export default function hitTest(renderer: THREE.WebGLRenderer, reticle: THREE.Me
   return true;
 }
 
-export function initHitTest() {
-
-}
+export function initHitTest() {}

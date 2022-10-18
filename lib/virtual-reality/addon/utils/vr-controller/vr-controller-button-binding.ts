@@ -21,7 +21,7 @@ export default class VRControllerButtonBinding<V> {
 
   addLabel(
     group: VRControllerLabelGroup,
-    position: VRControllerLabelPosition,
+    position: VRControllerLabelPosition
   ): void {
     group.add(new VRControllerLabelMesh(this.label, position));
   }

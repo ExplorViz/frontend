@@ -14,12 +14,12 @@ export type AppOpenedMessage = {
 
 export function isAppOpenedMessage(msg: any): msg is AppOpenedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === APP_OPENED_EVENT
-    && typeof msg.id === 'string'
-    && isPosition(msg.position)
-    && isQuaternion(msg.quaternion)
-    && isScale(msg.scale)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === APP_OPENED_EVENT &&
+    typeof msg.id === 'string' &&
+    isPosition(msg.position) &&
+    isQuaternion(msg.quaternion) &&
+    isScale(msg.scale)
   );
 }

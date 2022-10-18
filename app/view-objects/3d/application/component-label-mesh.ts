@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import LabelMesh from '../label-mesh';
 import ComponentMesh from './component-mesh';
 import FoundationMesh from './foundation-mesh';
@@ -9,8 +9,13 @@ export default class ComponentLabelMesh extends LabelMesh {
 
   minLength: number;
 
-  constructor(componentMesh: ComponentMesh | FoundationMesh,
-    font: THREE.Font, textColor = new THREE.Color('black'), minHeight = 1.5, minLength = 4) {
+  constructor(
+    componentMesh: ComponentMesh | FoundationMesh,
+    font: THREE.Font,
+    textColor = new THREE.Color('black'),
+    minHeight = 1.5,
+    minLength = 4
+  ) {
     const labelText = componentMesh.dataModel.name;
     super(font, labelText, textColor);
 
@@ -27,8 +32,11 @@ export default class ComponentLabelMesh extends LabelMesh {
    * @param componentMesh The component or foundation mesh to add a label to
    * @param labelText The desired text for the label
    */
-  computeLabel(componentMesh: ComponentMesh | FoundationMesh, labelText = this.labelText,
-    scalar = 1) {
+  computeLabel(
+    componentMesh: ComponentMesh | FoundationMesh,
+    labelText = this.labelText,
+    scalar = 1
+  ) {
     /**
      * Updates bounding box of geometry and returns respective dimensions
      */
@@ -66,7 +74,7 @@ export default class ComponentLabelMesh extends LabelMesh {
     let scaleFactor = 1;
 
     // Handle too long labels, expect labels to be (at most) 90% the width of the parent's mesh
-    const desiredWidth = componentMesh.geometry.parameters.depth * 0.90;
+    const desiredWidth = componentMesh.geometry.parameters.depth * 0.9;
     if (textWidth > desiredWidth) {
       scaleFactor = desiredWidth / textWidth;
       this.geometry.scale(scaleFactor, scaleFactor, scaleFactor);
@@ -79,17 +87,25 @@ export default class ComponentLabelMesh extends LabelMesh {
     const absoluteTextHeight = textDimensions.y * parentScale.x * scaleFactor;
 
     // Shorten label string if scaling obliterated label
-    if (absoluteTextHeight < this.minHeight && labelText.length > this.minLength && !labelText.includes('...')) {
+    if (
+      absoluteTextHeight < this.minHeight &&
+      labelText.length > this.minLength &&
+      !labelText.includes('...')
+    ) {
       // Dispose objects because new text object needs to be computed
       this.geometry.dispose();
       this.material.dispose();
       this.scale.set(1, 1, 1);
 
       // Calculate theoretical label length based on height mismatch
-      const desiredLength = (absoluteTextHeight / this.minHeight) * Math.floor(labelText.length);
+      const desiredLength =
+        (absoluteTextHeight / this.minHeight) * Math.floor(labelText.length);
 
       if (labelText.length - desiredLength > 3) {
-        const shortenedLabel = `${labelText.substring(0, desiredLength - 1)}...`;
+        const shortenedLabel = `${labelText.substring(
+          0,
+          desiredLength - 1
+        )}...`;
 
         // Recursive call to reuse existing code
         this.computeLabel(componentMesh, shortenedLabel);

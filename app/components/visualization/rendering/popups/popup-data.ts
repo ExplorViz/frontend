@@ -1,19 +1,22 @@
 import { tracked } from '@glimmer/tracking';
 import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import {
-  Application, Class, Node, Package,
+  Application,
+  Class,
+  Node,
+  Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 export interface PopupDataArgs {
-  mouseX: number,
-  mouseY: number,
-  entity: Node | Application | Package | Class | ClazzCommuMeshDataModel,
-  mesh: EntityMesh,
-  applicationId: string,
-  isPinned: boolean,
-  sharedBy: string,
-  menuId: string | null,
+  mouseX: number;
+  mouseY: number;
+  entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
+  mesh: EntityMesh;
+  applicationId: string;
+  isPinned: boolean;
+  sharedBy: string;
+  menuId: string | null;
   hovered: boolean;
 }
 
@@ -42,7 +45,15 @@ export default class PopupData {
   hovered: boolean;
 
   constructor({
-    mouseX, mouseY, entity, mesh, applicationId, isPinned, sharedBy, menuId, hovered,
+    mouseX,
+    mouseY,
+    entity,
+    mesh,
+    applicationId,
+    isPinned,
+    sharedBy,
+    menuId,
+    hovered,
   }: PopupDataArgs) {
     this.mouseX = mouseX;
     this.mouseY = mouseY;

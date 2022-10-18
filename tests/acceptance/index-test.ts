@@ -5,8 +5,12 @@ import { setupApplicationTest } from 'ember-qunit';
 module('Acceptance | index', (hooks) => {
   setupApplicationTest(hooks);
 
-  test('visiting /index', async (assert) =>{
+  test('visiting /index', async (assert) => {
     await visit('/index');
-    assert.equal(currentURL(), '/login', 'Index route replaces current URL with login route.');
+    assert.equal(
+      currentURL(),
+      '/login',
+      'Index route replaces current URL with login route.'
+    );
   });
 });

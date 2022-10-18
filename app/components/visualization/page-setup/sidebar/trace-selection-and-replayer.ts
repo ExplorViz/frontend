@@ -1,8 +1,16 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { DynamicLandscapeData, Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import {
+  DynamicLandscapeData,
+  Span,
+  Trace,
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { action } from '@ember/object';
-import { Application, Class, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  Class,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 interface Args {
@@ -22,8 +30,10 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
   get applicationTraces() {
     const hashCodeToClassMap = getHashCodeToClassMap(this.args.application);
 
-    return this.args.dynamicData.filter(
-      (trace) => trace.spanList.any((span) => hashCodeToClassMap.get(span.hashCode) !== undefined),
+    return this.args.dynamicData.filter((trace) =>
+      trace.spanList.any(
+        (span) => hashCodeToClassMap.get(span.hashCode) !== undefined
+      )
     );
   }
 

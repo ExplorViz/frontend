@@ -1,7 +1,13 @@
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/utils/application-helpers';
 import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getSubPackagesOfPackage, getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
+import {
+  getSubPackagesOfPackage,
+  getClassesInPackage,
+} from 'explorviz-frontend/utils/package-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -33,7 +39,10 @@ function countComponentElements(component: Package) {
   return { classCount, packageCount };
 }
 
-function trimString(passedString: string | undefined, charLimit: number): string {
+function trimString(
+  passedString: string | undefined,
+  charLimit: number
+): string {
   if (!passedString) {
     return '';
   }
@@ -68,7 +77,10 @@ function composeNodeContent(nodeMesh: NodeMesh) {
     entries: [],
   };
 
-  content.entries.push({ key: '# Applications: ', value: trimString(`${nodeModel.applications.length}`, 40) });
+  content.entries.push({
+    key: '# Applications: ',
+    value: trimString(`${nodeModel.applications.length}`, 40),
+  });
 
   return content;
 }
@@ -76,10 +88,19 @@ function composeNodeContent(nodeMesh: NodeMesh) {
 function composeApplicationContent(applicationMesh: ApplicationMesh) {
   const application = applicationMesh.dataModel;
 
-  const content: DetailedInfo = { title: trimString(application.name, 40), entries: [] };
+  const content: DetailedInfo = {
+    title: trimString(application.name, 40),
+    entries: [],
+  };
 
-  content.entries.push({ key: 'Instance ID: ', value: trimString(application.id, 40) });
-  content.entries.push({ key: 'Language: ', value: trimString(application.language, 40) });
+  content.entries.push({
+    key: 'Instance ID: ',
+    value: trimString(application.id, 40),
+  });
+  content.entries.push({
+    key: 'Language: ',
+    value: trimString(application.language, 40),
+  });
 
   return content;
 }
@@ -92,7 +113,10 @@ function composeComponentContent(componentMesh: ComponentMesh) {
   const component = componentMesh.dataModel;
   const { packageCount, classCount } = countComponentElements(component);
 
-  const content: DetailedInfo = { title: trimString(component.name, 40), entries: [] };
+  const content: DetailedInfo = {
+    title: trimString(component.name, 40),
+    entries: [],
+  };
 
   content.entries.push({
     key: 'Contained Packages: ',
@@ -109,9 +133,14 @@ function composeComponentContent(componentMesh: ComponentMesh) {
 function composeFoundationContent(componentMesh: FoundationMesh) {
   const component = componentMesh.dataModel;
   const classCount = getAllClassesInApplication(componentMesh.dataModel).length;
-  const packageCount = getAllPackagesInApplication(componentMesh.dataModel).length;
+  const packageCount = getAllPackagesInApplication(
+    componentMesh.dataModel
+  ).length;
 
-  const content: DetailedInfo = { title: trimString(component.name, 40), entries: [] };
+  const content: DetailedInfo = {
+    title: trimString(component.name, 40),
+    entries: [],
+  };
 
   content.entries.push({
     key: 'Instance ID: ',
@@ -133,7 +162,10 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
   return content;
 }
 
-function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationRepository) {
+function composeClazzContent(
+  clazzMesh: ClazzMesh,
+  applicationRepo: ApplicationRepository
+) {
   const clazz = clazzMesh.dataModel;
 
   const application = clazzMesh.parent;
@@ -142,10 +174,13 @@ function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationR
   }
   // TODO refactor, duplicated from clazz-popup
   const currentApplicationHeatmapData = applicationRepo.getById(
-    application.dataModel.id,
+    application.dataModel.id
   )?.heatmapData;
 
-  const content: DetailedInfo = { title: trimString(clazz.name, 40), entries: [] };
+  const content: DetailedInfo = {
+    title: trimString(clazz.name, 40),
+    entries: [],
+  };
 
   if (currentApplicationHeatmapData) {
     const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
@@ -160,7 +195,7 @@ function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: ApplicationR
 }
 
 function composeDrawableClazzCommunicationContent(
-  communicationMesh: ClazzCommunicationMesh,
+  communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
   const applicationId = communication.application.id;
@@ -196,20 +231,27 @@ function composeDrawableClazzCommunicationContent(
 
   // add information for each unique method call
   communication.drawableClassCommus.forEach((drawableCommu, index) => {
-    const commuHasExternalApp = applicationId !== drawableCommu.sourceApp?.id
-      || applicationId !== drawableCommu.targetApp?.id;
+    const commuHasExternalApp =
+      applicationId !== drawableCommu.sourceApp?.id ||
+      applicationId !== drawableCommu.targetApp?.id;
 
     // Call hierarchy
     content.entries.push({
       key: 'Src / Tgt Class:',
-      value: `${trimString(drawableCommu.sourceClass.name, 20)} -> ${trimString(drawableCommu.targetClass.name, 20)}`,
+      value: `${trimString(drawableCommu.sourceClass.name, 20)} -> ${trimString(
+        drawableCommu.targetClass.name,
+        20
+      )}`,
     });
 
     if (commuHasExternalApp) {
       // App hierarchy
       content.entries.push({
         key: 'Src / Tgt App:',
-        value: `${trimString(drawableCommu.sourceApp?.name, 20)} -> ${trimString(drawableCommu.targetApp?.name, 20)}`,
+        value: `${trimString(
+          drawableCommu.sourceApp?.name,
+          20
+        )} -> ${trimString(drawableCommu.targetApp?.name, 20)}`,
       });
     }
 
@@ -222,7 +264,9 @@ function composeDrawableClazzCommunicationContent(
     // Request count
     content.entries.push({
       key: 'Request count:',
-      value: `${drawableCommu.totalRequests} ( ${Math.round((drawableCommu.totalRequests / aggregatedReqCount) * 100)}% )`,
+      value: `${drawableCommu.totalRequests} ( ${Math.round(
+        (drawableCommu.totalRequests / aggregatedReqCount) * 100
+      )}% )`,
     });
 
     // Spacer
@@ -240,7 +284,8 @@ function composeDrawableClazzCommunicationContent(
 // #endregion APPLICATION CONTENT COMPOSER
 
 export default function composeContent(
-  object: THREE.Object3D, applicationRepo: ApplicationRepository,
+  object: THREE.Object3D,
+  applicationRepo: ApplicationRepository
 ) {
   let content: DetailedInfo | null = null;
 
@@ -273,12 +318,12 @@ export type EntityMesh =
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
-    object instanceof NodeMesh
-    || object instanceof ApplicationMesh
-    || object instanceof ComponentMesh
-    || object instanceof ClazzMesh
-    || object instanceof ClazzCommunicationMesh
-    || object instanceof FoundationMesh
+    object instanceof NodeMesh ||
+    object instanceof ApplicationMesh ||
+    object instanceof ComponentMesh ||
+    object instanceof ClazzMesh ||
+    object instanceof ClazzCommunicationMesh ||
+    object instanceof FoundationMesh
   );
 }
 

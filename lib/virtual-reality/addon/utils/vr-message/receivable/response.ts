@@ -8,16 +8,16 @@ export type ResponseMessage<T> = {
 
 export function isResponseMessage(msg: any): msg is ResponseMessage<any> {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === RESPONSE_EVENT
-    && typeof msg.nonce === 'number'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === RESPONSE_EVENT &&
+    typeof msg.nonce === 'number'
   );
 }
 
 export function isResponseMessageOf<T>(
   msg: any,
-  isT: (x: any) => x is T,
+  isT: (x: any) => x is T
 ): msg is ResponseMessage<T> {
   return isResponseMessage(msg) && isT(msg.response);
 }

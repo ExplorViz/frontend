@@ -14,8 +14,12 @@ export default class ClazzCommuMeshDataModel {
 
   targetApplication?: Application;
 
-  constructor(application: Application, drawableClassCommus: DrawableClassCommunication[],
-    bidirectional: boolean, id: string) {
+  constructor(
+    application: Application,
+    drawableClassCommus: DrawableClassCommunication[],
+    bidirectional: boolean,
+    id: string
+  ) {
     this.application = application;
     this.drawableClassCommus = drawableClassCommus;
     this.bidirectional = bidirectional;

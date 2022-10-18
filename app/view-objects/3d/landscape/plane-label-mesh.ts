@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import LabelMesh from '../label-mesh';
 
 export default class PlaneLabelMesh extends LabelMesh {
@@ -7,8 +7,13 @@ export default class PlaneLabelMesh extends LabelMesh {
 
   fontSize: number;
 
-  constructor(font: THREE.Font, labelText: string, fontSize = 0.4,
-    textColor = new THREE.Color('black'), geometry?: THREE.BufferGeometry) {
+  constructor(
+    font: THREE.Font,
+    labelText: string,
+    fontSize = 0.4,
+    textColor = new THREE.Color('black'),
+    geometry?: THREE.BufferGeometry
+  ) {
     super(font, labelText, textColor);
 
     this.text = labelText;
@@ -17,11 +22,12 @@ export default class PlaneLabelMesh extends LabelMesh {
     this.computeLabel(labelText, fontSize, geometry);
   }
 
-  computeLabel(text: string, fontSize: number, geometry?: THREE.BufferGeometry) {
+  computeLabel(text: string, fontSize: number, geometry: THREE.BufferGeometry) {
     // Use text geoemtry if it is passed
+    // eslint-disable-next-line import/namespace
     if (geometry instanceof THREE.TextBufferGeometry) {
       this.geometry = geometry;
-    // Create new geometry
+      // Create new geometry
     } else {
       const labelGeo = new TextGeometry(text, {
         font: this.font,

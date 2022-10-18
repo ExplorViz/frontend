@@ -1,11 +1,12 @@
 <PowerSelect
   @options={{this.metricNames}}
-  @triggerClass="metric-selector"
+  @triggerClass='metric-selector'
   @selected={{this.heatmapConfiguration.selectedMetric}}
   @onChange={{@selectMetric}}
-  @placeholder="Select metric..."
+  @placeholder='Select metric...'
   @searchEnabled={{false}}
-  @matchTriggerWidth={{false}} as |metric|
+  @matchTriggerWidth={{false}}
+  as |metric|
 >
   {{capitalize metric.name}}
   {{!-- <HelpTooltipRight @title={{metric.description}}/> --}}

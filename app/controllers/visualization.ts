@@ -1,12 +1,11 @@
 import Controller from '@ember/controller';
-import {
-  action,
-  set,
-} from '@ember/object';
+import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser, { VisualizationMode } from 'collaborative-mode/services/local-user';
+import LocalUser, {
+  VisualizationMode,
+} from 'collaborative-mode/services/local-user';
 import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
@@ -14,7 +13,9 @@ import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import TimestampRepository, { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampRepository, {
+  Timestamp,
+} from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
@@ -24,26 +25,37 @@ import * as THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { InitialLandscapeMessage, INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
-import { TimestampUpdateTimerMessage, TIMESTAMP_UPDATE_TIMER_EVENT } from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
-import { TimestampUpdateMessage, TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import {
+  InitialLandscapeMessage,
+  INITIAL_LANDSCAPE_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/landscape';
+import {
+  TimestampUpdateTimerMessage,
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
+import {
+  TimestampUpdateMessage,
+  TIMESTAMP_UPDATE_EVENT,
+} from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
 }
 
-export const earthTexture = new THREE.TextureLoader().load('images/earth-map.jpg');
+export const earthTexture = new THREE.TextureLoader().load(
+  'images/earth-map.jpg'
+);
 
 /**
-* TODO
-*
-* @class Visualization-Controller
-* @extends Ember.Controller
-*
-* @module explorviz
-* @submodule visualization
-*/
+ * TODO
+ *
+ * @class Visualization-Controller
+ * @extends Ember.Controller
+ *
+ * @module explorviz
+ * @submodule visualization
+ */
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
 
@@ -104,45 +116,62 @@ export default class VisualizationController extends Controller {
   debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
-    return this.landscapeData !== null
-      && this.landscapeData.structureLandscapeData.nodes.length === 0;
+    return (
+      this.landscapeData !== null &&
+      this.landscapeData.structureLandscapeData.nodes.length === 0
+    );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
-    return this.landscapeData !== null
-      && this.landscapeData.structureLandscapeData.nodes.length > 0;
+    return (
+      this.landscapeData !== null &&
+      this.landscapeData.structureLandscapeData.nodes.length > 0
+    );
   }
 
   @action
   setupListeners() {
-
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);
-    this.timestampService.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(
+      TIMESTAMP_UPDATE_TIMER_EVENT,
+      this,
+      this.onTimestampUpdateTimer
+    );
+    this.timestampService.on(
+      TIMESTAMP_UPDATE_EVENT,
+      this,
+      this.onTimestampUpdate
+    );
   }
 
   @action
   updateTimestampList() {
     this.debug('updateTimestampList');
     const currentToken = this.landscapeTokenService.token!.value;
-    this.timelineTimestamps = this.timestampRepo.getTimestamps(currentToken) ?? [];
+    this.timelineTimestamps =
+      this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
 
   @action
-  receiveNewLandscapeData(structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData) {
+  receiveNewLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
       if (this.timelineTimestamps.lastObject) {
-        this.timestampService.timestamp = this.timelineTimestamps.lastObject?.timestamp;
+        this.timestampService.timestamp =
+          this.timelineTimestamps.lastObject?.timestamp;
       }
     }
   }
 
-  updateLandscape(structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData) {
+  updateLandscape(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
@@ -219,7 +248,9 @@ export default class VisualizationController extends Controller {
 
   @action
   removeComponent(path: string) {
-    if (this.components.length === 0) { return; }
+    if (this.components.length === 0) {
+      return;
+    }
 
     const index = this.components.indexOf(path);
     // Remove existing sidebar component
@@ -232,18 +263,23 @@ export default class VisualizationController extends Controller {
 
   @action
   async timelineClicked(timestampRecordArray: Timestamp[]) {
-    if (this.selectedTimestampRecords.length > 0
-      && timestampRecordArray[0] === this.selectedTimestampRecords[0]) {
+    if (
+      this.selectedTimestampRecords.length > 0 &&
+      timestampRecordArray[0] === this.selectedTimestampRecords[0]
+    ) {
       return;
     }
     this.pauseVisualizationUpdating();
-    this.updateTimestamp(timestampRecordArray[0].timestamp, timestampRecordArray);
+    this.updateTimestamp(
+      timestampRecordArray[0].timestamp,
+      timestampRecordArray
+    );
   }
 
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     try {
-      const [structureData, dynamicData] = await
-      this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+      const [structureData, dynamicData] =
+        await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
@@ -251,8 +287,8 @@ export default class VisualizationController extends Controller {
       }
       this.timestampService.timestamp = timestamp;
     } catch (e) {
-      this.debug('Landscape couldn\'t be requested!', e);
-      AlertifyHandler.showAlertifyMessage('Landscape couldn\'t be requested!');
+      this.debug("Landscape couldn't be requested!", e);
+      AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
       this.resumeVisualizationUpdating();
     }
   }
@@ -311,16 +347,27 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.applicationRepo.clear();
 
-    if(this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        INITIAL_LANDSCAPE_EVENT,
+        this,
+        this.onInitialLandscape
+      );
       this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-      this.webSocket.off(TIMESTAMP_UPDATE_TIMER_EVENT, this, this.onTimestampUpdateTimer);    
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
     }
 
-    if(this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
-      this.timestampService.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);  
+    if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
+      this.timestampService.off(
+        TIMESTAMP_UPDATE_EVENT,
+        this,
+        this.onTimestampUpdate
+      );
     }
-      
   }
 
   private async initWebSocket() {
@@ -346,9 +393,9 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-  async onTimestampUpdateTimer(
-    { timestamp }: TimestampUpdateTimerMessage,
-  ): Promise<void> {
+  async onTimestampUpdateTimer({
+    timestamp,
+  }: TimestampUpdateTimerMessage): Promise<void> {
     this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
@@ -359,6 +406,6 @@ export default class VisualizationController extends Controller {
 declare module '@ember/controller' {
   // tslint:disable-next-line: interface-name
   interface Registry {
-    'visualizationController': VisualizationController;
+    visualizationController: VisualizationController;
   }
 }

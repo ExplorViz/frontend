@@ -1,6 +1,4 @@
-import {
-  Span, Trace,
-} from './landscape-schemes/dynamic-data';
+import { Span, Trace } from './landscape-schemes/dynamic-data';
 
 /**
  * Returns the span's total duration in nanoseconds
@@ -22,7 +20,11 @@ export function calculateDuration(traceOrSpan: Trace | Span) {
  * @param copy - If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned
  */
-export function sortTracesByDuration(traces: Trace[], ascending = true, copy = false) {
+export function sortTracesByDuration(
+  traces: Trace[],
+  ascending = true,
+  copy = false
+) {
   let sortedArray = traces;
   if (copy) {
     sortedArray = [...sortedArray];
@@ -48,14 +50,22 @@ export function sortTracesByDuration(traces: Trace[], ascending = true, copy = f
  * @param copy - If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned. Default: `true`
  */
-export function sortTracesById(traces: Trace[], ascending = true, copy = false) {
+export function sortTracesById(
+  traces: Trace[],
+  ascending = true,
+  copy = false
+) {
   let sortedArray = traces;
   if (copy) {
     sortedArray = [...sortedArray];
   }
   sortedArray.sort((a, b) => {
-    if (a.traceId > b.traceId) { return 1; }
-    if (b.traceId > a.traceId) { return -1; }
+    if (a.traceId > b.traceId) {
+      return 1;
+    }
+    if (b.traceId > a.traceId) {
+      return -1;
+    }
     return 0;
   });
 
@@ -114,7 +124,9 @@ export function getTraceIdToSpanTree(trace: Trace) {
     parentSpanIdToChildSpansMap.get(span.parentSpanId)?.push(span);
   });
 
-  parentSpanIdToChildSpansMap.forEach((spanArary) => sortSpanArrayByTime(spanArary));
+  parentSpanIdToChildSpansMap.forEach((spanArary) =>
+    sortSpanArrayByTime(spanArary)
+  );
 
   const tree: SpanTree = {
     root: firstSpan,
@@ -146,7 +158,9 @@ export function getSortedTraceSpans(trace: Trace) {
       return [span];
     }
 
-    const subSpans = childSpans.map((subSpan) => getSortedSpanList(subSpan, tree)).flat();
+    const subSpans = childSpans
+      .map((subSpan) => getSortedSpanList(subSpan, tree))
+      .flat();
 
     return [span, ...subSpans];
   }
@@ -163,6 +177,6 @@ export function getSortedTraceSpans(trace: Trace) {
 }
 
 export interface SpanTree {
-  root: Span,
-  tree: Map<string, Span[]>
+  root: Span;
+  tree: Map<string, Span[]>;
 }

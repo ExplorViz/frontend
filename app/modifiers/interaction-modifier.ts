@@ -14,42 +14,42 @@ import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 export type Position2D = {
-  x: number,
-  y: number
+  x: number;
+  y: number;
 };
 
 type MouseStopEvent = {
-  srcEvent: MouseEvent
+  srcEvent: MouseEvent;
 };
 type OpenMenuEvent = {
-  srcEvent: MouseEvent
+  srcEvent: MouseEvent;
 };
 type CloseMenuEvent = {
-  srcEvent: MouseEvent
+  srcEvent: MouseEvent;
 };
 type State = 'pinch' | 'none';
 
 interface NamedArgs {
-  mousePositionX: number,
-  rendererResolutionMultiplier: number,
-  camera: THREE.Camera,
-  raycastObjects: Object3D | Object3D[],
-  mouseEnter?(): void,
-  mouseLeave?(): void,
-  mouseOut?(): void,
-  mouseMove?(intersection: THREE.Intersection | null): void,
-  mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void,
-  singleClick?(intersection: THREE.Intersection | null): void,
-  doubleClick?(intersection: THREE.Intersection): void,
-  mousePing?(intersection: THREE.Intersection): void,
-  pinch?(intersection: THREE.Intersection | null, delta: number): void,
-  rotate?(intersection: THREE.Intersection | null, delta: number): void,
-  pan?(intersection: THREE.Intersection | null, x: number, y: number): void,
+  mousePositionX: number;
+  rendererResolutionMultiplier: number;
+  camera: THREE.Camera;
+  raycastObjects: Object3D | Object3D[];
+  mouseEnter?(): void;
+  mouseLeave?(): void;
+  mouseOut?(): void;
+  mouseMove?(intersection: THREE.Intersection | null): void;
+  mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void;
+  singleClick?(intersection: THREE.Intersection | null): void;
+  doubleClick?(intersection: THREE.Intersection): void;
+  mousePing?(intersection: THREE.Intersection): void;
+  pinch?(intersection: THREE.Intersection | null, delta: number): void;
+  rotate?(intersection: THREE.Intersection | null, delta: number): void;
+  pan?(intersection: THREE.Intersection | null, x: number, y: number): void;
 }
 
 interface InteractionModifierArgs {
-  positional: [],
-  named: NamedArgs,
+  positional: [];
+  named: NamedArgs;
 }
 
 function cleanup(instance: InteractionModifierModifier) {
@@ -105,7 +105,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof element}`,
-      element instanceof HTMLCanvasElement,
+      element instanceof HTMLCanvasElement
     );
     this.canvas = element;
 
@@ -128,7 +128,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   get raycastObjects(): Object3D | Object3D[] {
     const { raycastObjects } = this.namedArgs;
     return raycastObjects instanceof Object3D
-      ? [raycastObjects] : raycastObjects;
+      ? [raycastObjects]
+      : raycastObjects;
   }
 
   get camera(): THREE.Camera {
@@ -171,7 +172,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onPointerStop(customEvent: CustomEvent<MouseStopEvent>) {
-    if (this.pointers.length > 0) { return; }
+    if (this.pointers.length > 0) {
+      return;
+    }
     const event = customEvent.detail.srcEvent;
 
     const intersectedViewObj = this.raycast(event);
@@ -187,10 +190,18 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     if ((event.altKey && event.button === 0) || event.button === 1) {
       this.ping(intersectedViewObj);
-    } else if (event.button === 0 && this.pointers.length === 1 && !this.longPressTriggered) {
+    } else if (
+      event.button === 0 &&
+      this.pointers.length === 1 &&
+      !this.longPressTriggered
+    ) {
       this.onLeftClick(event, intersectedViewObj);
-    } else if (event.button === 2 && this.pointers.length === 1
-      && !this.selectedObject && event.timeStamp - this.pointers[0].timeStamp < 220) {
+    } else if (
+      event.button === 2 &&
+      this.pointers.length === 1 &&
+      !this.selectedObject &&
+      event.timeStamp - this.pointers[0].timeStamp < 220
+    ) {
       this.dispatchOpenMenuEvent(event);
     }
   }
@@ -219,7 +230,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  onLeftClick(event: MouseEvent, intersectedViewObj: THREE.Intersection | null) {
+  onLeftClick(
+    event: MouseEvent,
+    intersectedViewObj: THREE.Intersection | null
+  ) {
     if (this.pointerDownCounter === 1) {
       this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
@@ -234,7 +248,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
-  ping(intersectedViewObj: THREE.Intersection | null) { // or touch, primary input ...
+  ping(intersectedViewObj: THREE.Intersection | null) {
+    // or touch, primary input ...
     if (!this.localUser.mousePing || !intersectedViewObj) {
       return;
     }
@@ -242,9 +257,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
-      perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
+      perform(this.localUser.mousePing.ping, {
+        parentObj,
+        position: pingPosition,
+      });
       if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
+        this.sender.sendMousePingUpdate(
+          parentObj.dataModel.id,
+          true,
+          pingPosition
+        );
       }
     }
   }
@@ -268,11 +290,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const y = -((event.y - rect.top) / height) * 2 + 1;
 
     const origin = new Vector2(x, y);
-    const possibleObjects = this.raycastObjects instanceof Object3D
-      ? [this.raycastObjects] : this.raycastObjects;
+    const possibleObjects =
+      this.raycastObjects instanceof Object3D
+        ? [this.raycastObjects]
+        : this.raycastObjects;
 
-    return this.raycaster.raycasting(origin, this.namedArgs.camera,
-      possibleObjects);
+    return this.raycaster.raycasting(
+      origin,
+      this.namedArgs.camera,
+      possibleObjects
+    );
   }
 
   createPointerStopEvent() {
@@ -295,10 +322,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
             bubbles: true,
             cancelable: true,
           });
-          if (evt.target && self.isMouseOnCanvas) evt.target.dispatchEvent(event);
+          if (evt.target && self.isMouseOnCanvas)
+            evt.target.dispatchEvent(event);
         }, delay);
       });
-    }(300));
+    })(300);
   }
 
   pointers: PointerEvent[] = [];
@@ -358,7 +386,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handlePanStart(event);
       if (event.pointerType === 'touch') {
         this.longPressStart.set(event.clientX, event.clientY);
-        this.longPressTimer = setTimeout(() => this.handleLongPress(event), 500);
+        this.longPressTimer = setTimeout(
+          () => this.handleLongPress(event),
+          500
+        );
       }
     }
   }
@@ -397,7 +428,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   handleMouseMovePan(event: PointerEvent) {
     this.longPressEnd.set(event.clientX, event.clientY);
     this.panEnd.set(event.clientX, event.clientY);
-    this.panDelta.subVectors(this.panEnd, this.panStart).multiplyScalar(this.panSpeed);
+    this.panDelta
+      .subVectors(this.panEnd, this.panStart)
+      .multiplyScalar(this.panSpeed);
     this.namedArgs.pan?.(this.selectedObject, this.panDelta.x, this.panDelta.y);
     this.panStart.copy(this.panEnd);
   }
@@ -423,7 +456,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   handleTouchMovePinch(event: PointerEvent) {
     const position = this.getSecondPointerPosition(event);
-    if (!position) { return; }
+    if (!position) {
+      return;
+    }
 
     const dx = event.pageX - position.x;
     const dy = event.pageY - position.y;
@@ -432,7 +467,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     this.pinchEnd.set(0, distance);
 
-    this.pinchDelta.set(0, (this.pinchEnd.y / this.pinchStart.y) ** this.pinchSpeed);
+    this.pinchDelta.set(
+      0,
+      (this.pinchEnd.y / this.pinchStart.y) ** this.pinchSpeed
+    );
 
     this.namedArgs.pinch?.(this.selectedObject, this.pinchDelta.y);
 
@@ -445,7 +483,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       const pointer0 = this.pointerPositions.get(this.pointers[0].pointerId);
       const pointer1 = this.pointerPositions.get(this.pointers[1].pointerId);
 
-      if (!pointer0 || !pointer1) { return; }
+      if (!pointer0 || !pointer1) {
+        return;
+      }
 
       const dx = pointer0.x - pointer1.x;
       const dy = pointer0.y - pointer1.y;
@@ -460,8 +500,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   getSecondPointerPosition(event: PointerEvent) {
-    const pointer = (event.pointerId === this.pointers[0].pointerId)
-      ? this.pointers[1] : this.pointers[0];
+    const pointer =
+      event.pointerId === this.pointers[0].pointerId
+        ? this.pointers[1]
+        : this.pointers[0];
 
     return this.pointerPositions.get(pointer.pointerId);
   }

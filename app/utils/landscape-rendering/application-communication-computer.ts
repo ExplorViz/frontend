@@ -1,11 +1,16 @@
 import { DynamicLandscapeData, Span } from '../landscape-schemes/dynamic-data';
-import { Application, StructureLandscapeData } from '../landscape-schemes/structure-data';
+import {
+  Application,
+  StructureLandscapeData,
+} from '../landscape-schemes/structure-data';
 import { getHashCodeToApplicationMap } from '../landscape-structure-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 
-function computeApplicationCommunicationRecursively(span: Span,
+function computeApplicationCommunicationRecursively(
+  span: Span,
   parentSpanIdToChildSpanMap: Map<string, Span[]>,
-  hashCodeToApplicationMap: Map<string, Application>) {
+  hashCodeToApplicationMap: Map<string, Application>
+) {
   const childSpans = parentSpanIdToChildSpanMap.get(span.spanId);
 
   if (childSpans === undefined) {
@@ -17,7 +22,9 @@ function computeApplicationCommunicationRecursively(span: Span,
   const allApplicationCommunications: ApplicationCommunication[] = [];
 
   childSpans.forEach((childSpan) => {
-    const childSpanApplication = hashCodeToApplicationMap.get(childSpan.hashCode)!;
+    const childSpanApplication = hashCodeToApplicationMap.get(
+      childSpan.hashCode
+    )!;
 
     if (parentSpanApplication !== childSpanApplication) {
       const applicationCommunication: ApplicationCommunication = {
@@ -27,8 +34,11 @@ function computeApplicationCommunicationRecursively(span: Span,
       };
       allApplicationCommunications.push(applicationCommunication);
     }
-    const childCommunications = computeApplicationCommunicationRecursively(childSpan,
-      parentSpanIdToChildSpanMap, hashCodeToApplicationMap);
+    const childCommunications = computeApplicationCommunicationRecursively(
+      childSpan,
+      parentSpanIdToChildSpanMap,
+      hashCodeToApplicationMap
+    );
 
     allApplicationCommunications.push(...childCommunications);
   });
@@ -36,8 +46,10 @@ function computeApplicationCommunicationRecursively(span: Span,
   return allApplicationCommunications;
 }
 
-export default function computeApplicationCommunication(landscape: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData) {
+export default function computeApplicationCommunication(
+  landscape: StructureLandscapeData,
+  landscapeDynamicData: DynamicLandscapeData
+) {
   if (landscapeDynamicData.length === 0) {
     return [];
   }
@@ -50,14 +62,20 @@ export default function computeApplicationCommunication(landscape: StructureLand
   landscapeDynamicData.forEach((trace) => {
     const spanTree = traceIdToSpanTrees.get(trace.traceId);
     if (spanTree !== undefined) {
-      applicationCommunications.push(...computeApplicationCommunicationRecursively(spanTree.root,
-        spanTree.tree, hashCodeToApplicationMap));
+      applicationCommunications.push(
+        ...computeApplicationCommunicationRecursively(
+          spanTree.root,
+          spanTree.tree,
+          hashCodeToApplicationMap
+        )
+      );
     }
   });
 
   // filter out duplicates
-  const comms = applicationCommunications
-    .filter((v, i, a) => a.findIndex((t) => (t.id === v.id)) === i);
+  const comms = applicationCommunications.filter(
+    (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+  );
 
   return comms;
 }

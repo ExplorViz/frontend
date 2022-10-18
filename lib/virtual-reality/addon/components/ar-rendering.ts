@@ -36,7 +36,10 @@ import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
-import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -44,7 +47,7 @@ interface Args {
   readonly showDataSelection: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
-  openLandscapeView(): void
+  openLandscapeView(): void;
   addComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
@@ -111,7 +114,7 @@ export default class ArRendering extends Component<Args> {
   @tracked
   showSettings = false;
 
-  localPing: { obj: THREE.Object3D, time: number } | undefined | null;
+  localPing: { obj: THREE.Object3D; time: number } | undefined | null;
 
   @tracked
   scene: THREE.Scene;
@@ -138,15 +141,25 @@ export default class ArRendering extends Component<Args> {
   }
 
   get rightClickMenuItems() {
-    const pauseItemtitle = this.args.visualizationPaused ? 'Resume Visualization' : 'Pause Visualization';
-    const commButtonTitle = this.configuration.isCommRendered ? 'Hide Communication' : 'Add Communication';
+    const pauseItemtitle = this.args.visualizationPaused
+      ? 'Resume Visualization'
+      : 'Pause Visualization';
+    const commButtonTitle = this.configuration.isCommRendered
+      ? 'Hide Communication'
+      : 'Add Communication';
     return [
       { title: 'Leave AR View', action: this.leaveArView },
       { title: 'Remove Popups', action: this.removeAllPopups },
       { title: 'Reset View', action: this.resetView },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open All Components', action: this.applicationRenderer.openAllComponentsOfAllApplications },
-      { title: commButtonTitle, action: this.applicationRenderer.toggleCommunicationRendering },
+      {
+        title: 'Open All Components',
+        action: this.applicationRenderer.openAllComponentsOfAllApplications,
+      },
+      {
+        title: commButtonTitle,
+        action: this.applicationRenderer.toggleCommunicationRendering,
+      },
     ];
   }
 
@@ -195,23 +208,25 @@ export default class ArRendering extends Component<Args> {
   renderingLoop!: RenderingLoop;
 
   /**
-     * Calls all three related init functions and adds the three
-     * performance panel if it is activated in user settings
-     */
+   * Calls all three related init functions and adds the three
+   * performance panel if it is activated in user settings
+   */
   private initRendering() {
     this.initCamera();
     this.initRenderer();
     this.initAr();
 
-    this.arZoomHandler = new ArZoomHandler(this.localUser.camera, this.arSettings);
-    this.renderingLoop = new RenderingLoop(getOwner(this),
-      {
-        camera: this.camera,
-        scene: this.scene,
-        renderer: this.renderer,
-        updatables: this.updatables,
-        zoomHandler: this.arZoomHandler!,
-      });
+    this.arZoomHandler = new ArZoomHandler(
+      this.localUser.camera,
+      this.arSettings
+    );
+    this.renderingLoop = new RenderingLoop(getOwner(this), {
+      camera: this.camera,
+      scene: this.scene,
+      renderer: this.renderer,
+      updatables: this.updatables,
+      zoomHandler: this.arZoomHandler!,
+    });
     const controller = this.renderer.xr.getController(0);
     // https://immersive-web.github.io/webxr/input-explainer.html
     // controller.addEventListener('select', this.onSelect);
@@ -229,21 +244,27 @@ export default class ArRendering extends Component<Args> {
     // cannot be resized after session started
     this.resize();
 
-    navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
-      // use document body to display all overlays
-      domOverlay: { root: document.body },
-    }).then(this.onSessionStarted);
+    navigator.xr
+      .requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test'],
+        optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
+        // use document body to display all overlays
+        domOverlay: { root: document.body },
+      })
+      .then(this.onSessionStarted);
   }
 
   /**
-     * Creates a PerspectiveCamera according to canvas size and sets its initial position
-     */
+   * Creates a PerspectiveCamera according to canvas size and sets its initial position
+   */
   private initCamera() {
     // Set camera properties
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(65,
-      document.body.clientWidth / document.body.clientHeight, 0.01, 20);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      65,
+      document.body.clientWidth / document.body.clientHeight,
+      0.01,
+      20
+    );
     this.scene.add(this.localUser.defaultCamera);
   }
 
@@ -274,7 +295,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   decreaseSize() {
-    this.graph.scale.multiplyScalar(0.90);
+    this.graph.scale.multiplyScalar(0.9);
   }
 
   @action
@@ -289,7 +310,11 @@ export default class ArRendering extends Component<Args> {
 
   @action
   openMenu() {
-    const position = { clientX: 100, clientY: window.innerHeight - 200, preventDefault: () => { } };
+    const position = {
+      clientX: 100,
+      clientY: window.innerHeight - 200,
+      preventDefault: () => {},
+    };
     const evt = new CustomEvent('openmenu', {
       detail: {
         srcEvent: position,
@@ -301,8 +326,8 @@ export default class ArRendering extends Component<Args> {
   }
 
   /**
-  * Initiates a WebGLRenderer
-  */
+   * Initiates a WebGLRenderer
+   */
   private initRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -317,7 +342,7 @@ export default class ArRendering extends Component<Args> {
   private initAr() {
     const reticle = new THREE.Mesh(
       new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
-      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial()
     );
     reticle.matrixAutoUpdate = false;
     reticle.visible = false;
@@ -379,11 +404,11 @@ export default class ArRendering extends Component<Args> {
   }
 
   /**
-     * Call this whenever the canvas is resized. Updated properties of camera
-     * and renderer.
-     *
-     * @param outerDiv HTML element containing the canvas
-     */
+   * Call this whenever the canvas is resized. Updated properties of camera
+   * and renderer.
+   *
+   * @param outerDiv HTML element containing the canvas
+   */
   @action
   resize(/* outerDiv: HTMLElement */) {
     // AR view will be fullscreen
@@ -393,7 +418,7 @@ export default class ArRendering extends Component<Args> {
     const height = window.innerHeight;
     this.renderer.setSize(
       width * this.rendererResolutionMultiplier,
-      height * this.rendererResolutionMultiplier,
+      height * this.rendererResolutionMultiplier
     );
 
     this.camera.aspect = width / height;
@@ -419,7 +444,11 @@ export default class ArRendering extends Component<Args> {
       this.handlePrimaryInputOn(intersection);
     } else if (this.reticle.visible && !this.graph.visible) {
       const mesh = this.graph;
-      this.reticle.matrix.decompose(mesh.position, mesh.quaternion, new THREE.Vector3());
+      this.reticle.matrix.decompose(
+        mesh.position,
+        mesh.quaternion,
+        new THREE.Vector3()
+      );
       mesh.visible = true;
       this.reticle.visible = false;
     }
@@ -463,14 +492,18 @@ export default class ArRendering extends Component<Args> {
   @action
   async handlePing() {
     if (!this.collaborationSession.isOnline) {
-      AlertifyHandler.showAlertifyWarning('Offline. <br> Join session with users to ping.');
+      AlertifyHandler.showAlertifyWarning(
+        'Offline. <br> Join session with users to ping.'
+      );
       return;
     }
 
     const intersection = this.raycastCenter();
 
-    if (!(intersection?.object.parent instanceof ApplicationObject3D)
-      && !(intersection?.object.parent instanceof LandscapeObject3D)) {
+    if (
+      !(intersection?.object.parent instanceof ApplicationObject3D) &&
+      !(intersection?.object.parent instanceof LandscapeObject3D)
+    ) {
       return;
     }
 
@@ -478,11 +511,18 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    perform(this.localUser.mousePing.ping, { parentObj, position: pingPosition });
+    perform(this.localUser.mousePing.ping, {
+      parentObj,
+      position: pingPosition,
+    });
 
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(parentObj.dataModel.id, true, pingPosition);
+        this.sender.sendMousePingUpdate(
+          parentObj.dataModel.id,
+          true,
+          pingPosition
+        );
       } else {
         this.sender.sendMousePingUpdate('landscape', false, pingPosition);
       }
@@ -492,17 +532,27 @@ export default class ArRendering extends Component<Args> {
   @action
   async handleHeatmapToggle() {
     const intersection = this.raycastCenter();
-    if (intersection && intersection.object.parent instanceof ApplicationObject3D) {
+    if (
+      intersection &&
+      intersection.object.parent instanceof ApplicationObject3D
+    ) {
       const applicationObject3D = intersection.object.parent;
-      if (this.heatmapConf.currentApplication === applicationObject3D
-        && this.heatmapConf.heatmapActive) {
+      if (
+        this.heatmapConf.currentApplication === applicationObject3D &&
+        this.heatmapConf.heatmapActive
+      ) {
         this.heatmapConf.heatmapActive = false;
         return;
       }
       this.heatmapConf.setActiveApplication(applicationObject3D);
       this.heatmapConf.heatmapActive = true;
-    } else if (intersection && intersection.object.parent instanceof LandscapeObject3D) {
-      AlertifyHandler.showAlertifyWarning('Heat Map only available for applications.');
+    } else if (
+      intersection &&
+      intersection.object.parent instanceof LandscapeObject3D
+    ) {
+      AlertifyHandler.showAlertifyWarning(
+        'Heat Map only available for applications.'
+      );
     }
   }
 
@@ -566,20 +616,25 @@ export default class ArRendering extends Component<Args> {
   handleMouseWheel(delta: number) {
     const intersection = this.raycastCenter();
 
-    if (intersection && (
-      intersection.object.parent instanceof ApplicationObject3D
-      || intersection.object.parent instanceof LandscapeObject3D)) {
+    if (
+      intersection &&
+      (intersection.object.parent instanceof ApplicationObject3D ||
+        intersection.object.parent instanceof LandscapeObject3D)
+    ) {
       const object = intersection.object.parent;
 
       // Scale hit object with respect to scroll direction and scroll distance
-      object.scale.copy(object.scale.multiplyScalar(1 - (delta / 25)));
+      object.scale.copy(object.scale.multiplyScalar(1 - delta / 25));
     }
   }
 
   private raycastCenter() {
     const possibleObjects = this.intersectableObjects;
-    return this.raycaster.raycasting({ x: 0, y: 0 }, this.camera,
-      possibleObjects);
+    return this.raycaster.raycasting(
+      { x: 0, y: 0 },
+      this.camera,
+      possibleObjects
+    );
   }
 
   // #endregion MOUSE & KEYBOARD EVENT HANDLER
@@ -623,14 +678,14 @@ export default class ArRendering extends Component<Args> {
     const { object } = intersection;
 
     function handleApplicationObject(appObject: THREE.Object3D) {
-      if (!(appObject.parent instanceof ApplicationObject3D)
-        || Date.now() - self.lastOpenAllComponents < 20) return;
+      if (
+        !(appObject.parent instanceof ApplicationObject3D) ||
+        Date.now() - self.lastOpenAllComponents < 20
+      )
+        return;
 
       if (appObject instanceof ComponentMesh) {
-        self.applicationRenderer.toggleComponent(
-          appObject,
-          appObject.parent,
-        );
+        self.applicationRenderer.toggleComponent(appObject, appObject.parent);
       } else if (appObject instanceof FoundationMesh) {
         self.applicationRenderer.closeAllComponents(appObject.parent);
       }
@@ -645,17 +700,17 @@ export default class ArRendering extends Component<Args> {
   }
 
   private showApplication(appId: string) {
-    perform(
-      this.applicationRenderer.openApplicationTask,
-      appId,
-    );
+    perform(this.applicationRenderer.openApplicationTask, appId);
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {
     const { object } = intersection;
 
-    if (object instanceof ComponentMesh || object instanceof ClazzMesh
-      || object instanceof ClazzCommunicationMesh) {
+    if (
+      object instanceof ComponentMesh ||
+      object instanceof ClazzMesh ||
+      object instanceof ClazzCommunicationMesh
+    ) {
       this.highlightingService.highlight(object);
     }
   }

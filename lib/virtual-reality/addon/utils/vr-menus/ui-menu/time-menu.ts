@@ -1,7 +1,9 @@
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding, { VRControllerThumbpadHorizontalDirection } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, {
+  VRControllerThumbpadHorizontalDirection,
+} from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import ArrowbuttonItem from '../items/arrowbutton-item';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
@@ -56,12 +58,16 @@ export default class TimeMenu extends UiMenu {
       height: 60,
       onTriggerPressed: (value) => {
         this.setDateBackBy(value * TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
+        AlertifyHandler.showAlertifyError(
+          `Reduced time${this.date.toTimeString()}`
+        );
         this.redrawMenu();
       },
       onTriggerDown: () => {
         this.setDateBackBy(TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError(`Reduced time${this.date.toTimeString()}`);
+        AlertifyHandler.showAlertifyError(
+          `Reduced time${this.date.toTimeString()}`
+        );
         this.redrawMenu();
       },
     });
@@ -140,7 +146,7 @@ export default class TimeMenu extends UiMenu {
           this.timeBackButton.resetHoverEffectByButton();
           this.redrawMenu();
         },
-      },
+      }
     );
   }
 

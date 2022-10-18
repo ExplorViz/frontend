@@ -1,7 +1,7 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
-import {Color} from 'three';
+import { Color } from 'three';
 
 module('Unit | View Object | 3d/base-mesh', (hooks) => {
   setupTest(hooks);
@@ -11,7 +11,9 @@ module('Unit | View Object | 3d/base-mesh', (hooks) => {
 
     const applicationMesh = new BaseMeshMock(defaultColor);
 
-    const highlightingColor = applicationMesh.highlightingColor.getHexString().toLowerCase();
+    const highlightingColor = applicationMesh.highlightingColor
+      .getHexString()
+      .toLowerCase();
 
     const redColor = 'ff0000';
     assert.equal(highlightingColor, redColor);

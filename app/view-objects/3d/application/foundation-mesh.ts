@@ -11,8 +11,12 @@ export default class FoundationMesh extends BoxMesh {
 
   labelMesh: ComponentLabelMesh | null = null;
 
-  constructor(layout: BoxLayout, foundation: Application,
-    defaultColor: THREE.Color, highlightingColor: THREE.Color) {
+  constructor(
+    layout: BoxLayout,
+    foundation: Application,
+    defaultColor: THREE.Color,
+    highlightingColor: THREE.Color
+  ) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
@@ -24,7 +28,9 @@ export default class FoundationMesh extends BoxMesh {
   }
 
   setDefaultMaterial() {
-    const material = new THREE.MeshLambertMaterial({ color: this.defaultColor });
+    const material = new THREE.MeshLambertMaterial({
+      color: this.defaultColor,
+    });
     this.material = material;
   }
 }

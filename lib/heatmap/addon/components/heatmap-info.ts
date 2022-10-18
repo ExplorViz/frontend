@@ -54,17 +54,21 @@ export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
 
     if (newPositionX < 0) {
       newPositionX = 0;
-    } else if (containerDiv.clientWidth
-      && newPositionX > containerDiv.clientWidth - popoverWidth) {
+    } else if (
+      containerDiv.clientWidth &&
+      newPositionX > containerDiv.clientWidth - popoverWidth
+    ) {
       newPositionX = containerDiv.clientWidth - popoverWidth;
     }
 
     if (newPositionY < 0) {
       newPositionY = 0;
-    } else if (containerDiv.clientHeight
-      && newPositionY > containerDiv.clientHeight - popoverHeight) {
+    } else if (
+      containerDiv.clientHeight &&
+      newPositionY > containerDiv.clientHeight - popoverHeight
+    ) {
       newPositionY = containerDiv.clientHeight - popoverHeight;
-    }   
+    }
 
     this.element.style.top = `${newPositionY}px`;
     this.element.style.left = `${newPositionX}px`;
@@ -77,7 +81,8 @@ export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
     const containerDiv = this.element.parentElement as HTMLElement;
 
     this.element.style.top = '100px';
-    this.element.style.left = `${containerDiv.clientWidth - this.element.clientWidth - 15}px`;
+    this.element.style.left = `${
+      containerDiv.clientWidth - this.element.clientWidth - 15
+    }px`;
   }
-  
 }

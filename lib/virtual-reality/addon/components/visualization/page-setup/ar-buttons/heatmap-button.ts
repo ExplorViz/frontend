@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface HeatmapButtonArgs {
-  toggleHeatmap(): void
+  toggleHeatmap(): void;
 }
 
 export default class HeatmapButton extends Component<HeatmapButtonArgs> {

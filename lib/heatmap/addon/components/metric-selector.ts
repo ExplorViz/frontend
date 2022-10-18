@@ -1,5 +1,7 @@
 import Component from '@glimmer/component';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration, {
+  Metric,
+} from 'heatmap/services/heatmap-configuration';
 import { inject as service } from '@ember/service';
 
 interface Args {
@@ -11,6 +13,6 @@ export default class MetricSelector extends Component<Args> {
   heatmapConfiguration!: HeatmapConfiguration;
 
   get metricNames() {
-    return this.heatmapConfiguration.latestClazzMetricScores.map(m => m.name);
+    return this.heatmapConfiguration.latestClazzMetricScores.map((m) => m.name);
   }
 }

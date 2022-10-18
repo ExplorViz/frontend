@@ -1,5 +1,5 @@
 {
-  "eslint.validate":["javascript", "typescript"],
+  "eslint.validate": ["javascript", "typescript"]
   //"editor.codeActionsOnSave": {
   //    "source.fixAll.eslint": true
   //},

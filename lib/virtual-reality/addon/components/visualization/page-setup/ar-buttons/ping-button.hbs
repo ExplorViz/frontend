@@ -1,20 +1,20 @@
-<div id="ar-ping-interaction-container">
+<div id='ar-ping-interaction-container'>
   {{#if this.userIsAlone}}
     <BsButton
-    @type="primary"
-    class="half-transparent"
-    {{ on "click" @handlePing }}
+      @type='primary'
+      class='half-transparent'
+      {{on 'click' @handlePing}}
     >
-      {{svg-jar "north-star-16" class="octicon align-middle ar-button-svg"}}
+      {{svg-jar 'north-star-16' class='octicon align-middle ar-button-svg'}}
     </BsButton>
   {{else}}
     <BsButton
-    @type="primary"
-    style={{html-safe this.highlightingService.highlightingColorStyle}}
-    class="half-transparent"
-    {{ on "click" @handlePing }}
+      @type='primary'
+      style={{html-safe this.highlightingService.highlightingColorStyle}}
+      class='half-transparent'
+      {{on 'click' @handlePing}}
     >
-      {{svg-jar "north-star-16" class="octicon align-middle ar-button-svg"}}
+      {{svg-jar 'north-star-16' class='octicon align-middle ar-button-svg'}}
     </BsButton>
   {{/if}}
 </div>

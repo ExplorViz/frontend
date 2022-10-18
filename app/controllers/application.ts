@@ -19,6 +19,6 @@ export default class ApplicationController extends Controller {
 declare module '@ember/controller' {
   // tslint:disable-next-line: interface-name
   interface Registry {
-    'applicationController': ApplicationController;
+    applicationController: ApplicationController;
   }
 }

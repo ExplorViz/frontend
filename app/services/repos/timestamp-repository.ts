@@ -4,17 +4,17 @@ import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 
 export interface Timestamp {
-  id: string,
-  timestamp: number,
-  totalRequests: number,
+  id: string;
+  timestamp: number;
+  totalRequests: number;
 }
 
 /**
-* Handles all landscape-related timestamps within the application, especially for the timelines
-*
-* @class Timestamp-Repository-Service
-* @extends Ember.Service
-*/
+ * Handles all landscape-related timestamps within the application, especially for the timelines
+ *
+ * @class Timestamp-Repository-Service
+ * @extends Ember.Service
+ */
 export default class TimestampRepository extends Service.extend(Evented) {
   debug = debugLogger();
 

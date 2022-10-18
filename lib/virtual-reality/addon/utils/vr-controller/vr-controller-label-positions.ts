@@ -27,7 +27,7 @@ export type VRControllerLabelPositions = {
 };
 
 export function getVRControllerLabelPositions(
-  controller: VRController | null,
+  controller: VRController | null
 ): VRControllerLabelPositions | null {
   // Wait until the input profile of the controller model is fully loaded.
   const motionController = controller?.controllerModel.motionController;
@@ -54,7 +54,7 @@ export function getVRControllerLabelPositions(
   const meshPosition = (
     componentName: string,
     visualResponseName: string,
-    nodeName: string,
+    nodeName: string
   ): THREE.Vector3 | undefined => {
     const rootNodeName = componentName.replace(/-/g, '_');
     const meshName = `${rootNodeName}_${visualResponseName}_${nodeName}`;

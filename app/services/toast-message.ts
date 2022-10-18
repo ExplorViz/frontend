@@ -2,10 +2,10 @@ import Service from '@ember/service';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 export interface MessageArgs {
-  title: string,
-  text: string,
-  color: string,
-  time: number,
+  title: string;
+  text: string;
+  color: string;
+  time: number;
 }
 
 export default class ToastMessage extends Service.extend({
@@ -21,10 +21,14 @@ export default class ToastMessage extends Service.extend({
 
   init() {
     super.init();
-    this.info = ((message) => AlertifyHandler.showAlertifyMessage(message));
-    this.message = ((message) => AlertifyHandler.showAlertifyMessageWithDuration(`${message.title}: ${message.text}`, message.time));
-    this.success = ((message) => AlertifyHandler.showAlertifySuccess(message));
-    this.error = ((message) => AlertifyHandler.showAlertifyError(message));
+    this.info = (message) => AlertifyHandler.showAlertifyMessage(message);
+    this.message = (message) =>
+      AlertifyHandler.showAlertifyMessageWithDuration(
+        `${message.title}: ${message.text}`,
+        message.time
+      );
+    this.success = (message) => AlertifyHandler.showAlertifySuccess(message);
+    this.error = (message) => AlertifyHandler.showAlertifyError(message);
   }
 }
 

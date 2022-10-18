@@ -12,11 +12,11 @@ export type Controller = {
 
 export function isController(controller: any): controller is Controller {
   return (
-    controller !== null
-    && typeof controller === 'object'
-    && typeof controller.assetUrl === 'string'
-    && isPosition(controller.position)
-    && isQuaternion(controller.quaternion)
-    && (!controller.intersection || isPosition(controller.intersection))
+    controller !== null &&
+    typeof controller === 'object' &&
+    typeof controller.assetUrl === 'string' &&
+    isPosition(controller.position) &&
+    isQuaternion(controller.quaternion) &&
+    (!controller.intersection || isPosition(controller.intersection))
   );
 }

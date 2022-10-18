@@ -1,10 +1,7 @@
-<div class="row" style="height:100%">
-  <div
-    class="d-flex col-12"
-    style="flex-direction: column; height: 100%"
-  >
+<div class='row' style='height:100%'>
+  <div class='d-flex col-12' style='flex-direction: column; height: 100%'>
     <div
-      id="rendering"
+      id='rendering'
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
@@ -17,31 +14,34 @@
       {{/if}}
 
       {{#if this.loadNewLandscape.isRunning}}
-        <Visualization::Rendering::LoadingIndicator @text="Loading New Landscape" />
+        <Visualization::Rendering::LoadingIndicator
+          @text='Loading New Landscape'
+        />
       {{else if this.addApplication.isRunning}}
-        <Visualization::Rendering::LoadingIndicator @text="Loading New Application" />
+        <Visualization::Rendering::LoadingIndicator
+          @text='Loading New Application'
+        />
       {{/if}}
 
       {{#unless @showDataSelection}}
-        <div class="ar-right-relative foreground mt-6">
+        <div class='ar-right-relative foreground mt-6'>
           <BsButton
-            id="arSettingsOpener"
+            id='arSettingsOpener'
             @onClick={{this.toggleSettingsPane}}
-            @type="secondary"
+            @type='secondary'
             @outline={{true}}
-            title="Settings"
+            title='Settings'
           >
-            {{svg-jar "gear-16" class="octicon align-middle"}}
+            {{svg-jar 'gear-16' class='octicon align-middle'}}
           </BsButton>
         </div>
       {{/unless}}
 
-      {{!-- popup(s) --}}
-
+      {{! popup(s) }}
 
       {{#each this.popupHandler.popupData as |d|}}
         <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable="true"
+          @isMovable='true'
           @popupData={{d}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
@@ -53,7 +53,8 @@
       {{/each}}
 
       <canvas
-        class="main-content-majority position-absolute {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
+        class='main-content-majority position-absolute
+          {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{did-insert this.canvasInserted}}
         {{interaction-modifier
           raycastObjects=this.intersectableObjects
@@ -64,25 +65,17 @@
           pinch=this.handlePinching
           rotate=this.handleRotate
         }}
-        {{heatmap-renderer
-          camera=this.camera
-          scene=this.scene
-        }}
-        {{landscape-data-watcher
-          landscapeData=@landscapeData
-          graph=this.graph
-        }}
+        {{heatmap-renderer camera=this.camera scene=this.scene}}
+        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
         {{collaborative-modifier
           raycastObject3D=this.intersectableObjects
           camera=this.localUser.defaultCamera
         }}
       >
-        <ContextMenu
-          @items={{this.rightClickMenuItems}}
-        />
+        <ContextMenu @items={{this.rightClickMenuItems}} />
       </canvas>
 
-      <div class="ar-left-button-container">
+      <div class='ar-left-button-container'>
 
         <Visualization::PageSetup::ArButtons::PopupButton
           @handleInfoInteraction={{this.handleInfoInteraction}}
@@ -98,37 +91,43 @@
           @handleZoomToggle={{this.handleZoomToggle}}
         />
 
-        <div id="ar-minus-interaction-container">
+        <div id='ar-minus-interaction-container'>
           <BsButton
-            @type="primary"
-            class="half-transparent"
-            {{ on "click" this.decreaseSize }}
+            @type='primary'
+            class='half-transparent'
+            {{on 'click' this.decreaseSize}}
           >
-            {{svg-jar "dash-16" class="octicon align-middle ar-button-svg"}}
+            {{svg-jar 'dash-16' class='octicon align-middle ar-button-svg'}}
           </BsButton>
         </div>
 
-        <div id="ar-left-interaction-container">
+        <div id='ar-left-interaction-container'>
           <BsButton
-            @type="primary"
-            class="half-transparent"
-            {{ on "click" this.rotateLeft }}
+            @type='primary'
+            class='half-transparent'
+            {{on 'click' this.rotateLeft}}
           >
-            {{svg-jar "arrow-left-16" class="octicon align-middle ar-button-svg"}}
+            {{svg-jar
+              'arrow-left-16'
+              class='octicon align-middle ar-button-svg'
+            }}
           </BsButton>
         </div>
 
       </div>
 
-      <div class="ar-right-button-container">
+      <div class='ar-right-button-container'>
 
-        <div id="ar-three-bars-interaction-container">
+        <div id='ar-three-bars-interaction-container'>
           <BsButton
-            @type="primary"
-            class="half-transparent"
-            {{ on "click" this.openMenu }}
+            @type='primary'
+            class='half-transparent'
+            {{on 'click' this.openMenu}}
           >
-            {{svg-jar "three-bars-16" class="octicon align-middle ar-button-svg"}}
+            {{svg-jar
+              'three-bars-16'
+              class='octicon align-middle ar-button-svg'
+            }}
           </BsButton>
         </div>
 
@@ -145,23 +144,26 @@
           @handlePing={{this.handlePing}}
         />
 
-        <div id="ar-plus-interaction-container">
+        <div id='ar-plus-interaction-container'>
           <BsButton
-            @type="primary"
-            class="half-transparent"
-            {{ on "click" this.increaseSize }}
+            @type='primary'
+            class='half-transparent'
+            {{on 'click' this.increaseSize}}
           >
-            {{svg-jar "plus-16" class="octicon align-middle ar-button-svg"}}
+            {{svg-jar 'plus-16' class='octicon align-middle ar-button-svg'}}
           </BsButton>
         </div>
 
-        <div id="ar-right-interaction-container">
+        <div id='ar-right-interaction-container'>
           <BsButton
-            @type="primary"
-            class="half-transparent"
-            {{ on "click" this.rotateRight }}
+            @type='primary'
+            class='half-transparent'
+            {{on 'click' this.rotateRight}}
           >
-            {{svg-jar "arrow-right-16" class="octicon align-middle ar-button-svg"}}
+            {{svg-jar
+              'arrow-right-16'
+              class='octicon align-middle ar-button-svg'
+            }}
           </BsButton>
         </div>
 
@@ -170,14 +172,14 @@
     </div>
   </div>
   {{#if @showDataSelection}}
-    <div class="position-absolute right col-8" id="dataselection">
-      <div class="mt-6 d-flex flex-row w-100">
-        <Visualization::PageSetup::Sidebar::SidebarResizer/>
+    <div class='position-absolute right col-8' id='dataselection'>
+      <div class='mt-6 d-flex flex-row w-100'>
+        <Visualization::PageSetup::Sidebar::SidebarResizer />
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >
-          <div class="explorviz-visualization-navbar foreground">
-            <ul class="nav justify-content-center">
+          <div class='explorviz-visualization-navbar foreground'>
+            <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
@@ -187,16 +189,16 @@
             </ul>
           </div>
           {{#each @components as |componentName|}}
-            <div class="card mt-3 border-radius-0 foreground">
-              <div class="card-body d-flex flex-column">
-                {{#if (eq componentName "xr-collaboration")}}
-                  <h5 class="text-center">Collaboration</h5>
+            <div class='card mt-3 border-radius-0 foreground'>
+              <div class='card-body d-flex flex-column'>
+                {{#if (eq componentName 'xr-collaboration')}}
+                  <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
-                {{#if (eq componentName "ar-settings-selector")}}
-                  <h5 class="text-center">Settings</h5>
+                {{#if (eq componentName 'ar-settings-selector')}}
+                  <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::ArSettingsSelector
                     @removeComponent={{@removeComponent}}
                     @updateView={{this.updateColors}}
@@ -215,6 +217,6 @@
 
 {{add-listener
   this.heatmapConfiguration
-  "updatedClazzMetrics"
+  'updatedClazzMetrics'
   this.applyHeatmap
 }}

@@ -8,7 +8,7 @@ export default class VRControllerBindingsList {
 
   constructor(
     defaultBindings: VRControllerBindings,
-    controllerBindings: VRControllerBindings[],
+    controllerBindings: VRControllerBindings[]
   ) {
     this.defaultBindings = defaultBindings;
     this.controllerBindings = controllerBindings;
@@ -23,22 +23,34 @@ export default class VRControllerBindingsList {
     return {
       thumbpadTouch: (controller, axes) => {
         if (this.currentBindings.thumbpad?.callbacks.onThumbpadTouch) {
-          this.currentBindings.thumbpad.callbacks.onThumbpadTouch(controller, axes);
+          this.currentBindings.thumbpad.callbacks.onThumbpadTouch(
+            controller,
+            axes
+          );
         }
       },
       thumbpadDown: (controller, axes) => {
         if (this.currentBindings.thumbpad?.callbacks.onThumbpadDown) {
-          this.currentBindings.thumbpad.callbacks.onThumbpadDown(controller, axes);
+          this.currentBindings.thumbpad.callbacks.onThumbpadDown(
+            controller,
+            axes
+          );
         }
       },
       thumbpadPress: (controller, axes) => {
         if (this.currentBindings.thumbpad?.callbacks.onThumbpadPress) {
-          this.currentBindings.thumbpad.callbacks.onThumbpadPress(controller, axes);
+          this.currentBindings.thumbpad.callbacks.onThumbpadPress(
+            controller,
+            axes
+          );
         }
       },
       thumbpadUp: (controller, axes) => {
         if (this.currentBindings.thumbpad?.callbacks.onThumbpadUp) {
-          this.currentBindings.thumbpad.callbacks.onThumbpadUp(controller, axes);
+          this.currentBindings.thumbpad.callbacks.onThumbpadUp(
+            controller,
+            axes
+          );
         }
       },
 
@@ -49,7 +61,10 @@ export default class VRControllerBindingsList {
       },
       triggerPress: (controller, value) => {
         if (this.currentBindings.triggerButton?.callbacks.onButtonPress) {
-          this.currentBindings.triggerButton.callbacks.onButtonPress(controller, value);
+          this.currentBindings.triggerButton.callbacks.onButtonPress(
+            controller,
+            value
+          );
         }
       },
       triggerUp: (controller) => {
@@ -65,7 +80,10 @@ export default class VRControllerBindingsList {
       },
       gripPress: (controller) => {
         if (this.currentBindings.gripButton?.callbacks.onButtonPress) {
-          this.currentBindings.gripButton.callbacks.onButtonPress(controller, undefined);
+          this.currentBindings.gripButton.callbacks.onButtonPress(
+            controller,
+            undefined
+          );
         }
       },
       gripUp: (controller) => {
@@ -81,7 +99,10 @@ export default class VRControllerBindingsList {
       },
       menuPress: (controller) => {
         if (this.currentBindings.menuButton?.callbacks.onButtonPress) {
-          this.currentBindings.menuButton.callbacks.onButtonPress(controller, undefined);
+          this.currentBindings.menuButton.callbacks.onButtonPress(
+            controller,
+            undefined
+          );
         }
       },
       menuDown: (controller) => {
@@ -97,7 +118,10 @@ export default class VRControllerBindingsList {
       },
       bButtonPress: (controller) => {
         if (this.currentBindings.bButton?.callbacks.onButtonPress) {
-          this.currentBindings.bButton.callbacks.onButtonPress(controller, undefined);
+          this.currentBindings.bButton.callbacks.onButtonPress(
+            controller,
+            undefined
+          );
         }
       },
       bButtonDown: (controller) => {

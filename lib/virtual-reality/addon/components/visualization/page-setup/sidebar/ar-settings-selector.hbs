@@ -1,40 +1,53 @@
-<div id="ar-settings">
-  <div
-    class="sidebar-component-close"
-    {{on "click" this.close}}
-  >
-    {{svg-jar "x-16" class="octicon"}}
+<div id='ar-settings'>
+  <div class='sidebar-component-close' {{on 'click' this.close}}>
+    {{svg-jar 'x-16' class='octicon'}}
   </div>
 
-  <div class="arSettingsGridContainer">
-    <div class="arSettingsGridItem arPresetGridItem">
-      <form method="get" action="ar_data/marker_images/Marker_DINA4.pdf" class="center-horizontal" target="_blank">
-        <button type="submit" class="btn btn-primary autoMargin">Download Markers</button>
+  <div class='arSettingsGridContainer'>
+    <div class='arSettingsGridItem arPresetGridItem'>
+      <form
+        method='get'
+        action='ar_data/marker_images/Marker_DINA4.pdf'
+        class='center-horizontal'
+        target='_blank'
+      >
+        <button type='submit' class='btn btn-primary autoMargin'>Download
+          Markers</button>
       </form>
     </div>
 
-    <div class="arSettingsGridItem arPresetGridItem">
+    <div class='arSettingsGridItem arPresetGridItem'>
       <Visualization::PageSetup::Sidebar::ColorSchemeSelector
         @updateView={{@updateView}}
       />
     </div>
 
-    <div id="cameraPresets" class="dropdown arSettingsGridItem arPresetGridItem">
+    <div
+      id='cameraPresets'
+      class='dropdown arSettingsGridItem arPresetGridItem'
+    >
       <button
-          class="btn btn-outline-dark dropdown-toggle autoMargin"
-          type="button"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
+        class='btn btn-outline-dark dropdown-toggle autoMargin'
+        type='button'
+        data-toggle='dropdown'
+        aria-haspopup='true'
+        aria-expanded='false'
       >
         Camera Resolution
       </button>
 
-      <div class="dropdown-menu">
+      <div class='dropdown-menu'>
         {{#each this.cameraPresets as |cameraPreset|}}
           <div
-          class="dropdown-item pointer-cursor"
-          {{on "click" (fn this.updateCameraResoltion cameraPreset.width cameraPreset.height)}}
+            class='dropdown-item pointer-cursor'
+            {{on
+              'click'
+              (fn
+                this.updateCameraResoltion
+                cameraPreset.width
+                cameraPreset.height
+              )
+            }}
           >
             {{cameraPreset.name}}
           </div>
@@ -42,22 +55,28 @@
       </div>
     </div>
 
-    <div id="rendererPresets" class="dropdown arSettingsGridItem arPresetGridItem">
+    <div
+      id='rendererPresets'
+      class='dropdown arSettingsGridItem arPresetGridItem'
+    >
       <button
-          class="btn btn-outline-dark dropdown-toggle autoMargin"
-          type="button"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
+        class='btn btn-outline-dark dropdown-toggle autoMargin'
+        type='button'
+        data-toggle='dropdown'
+        aria-haspopup='true'
+        aria-expanded='false'
       >
         Rendering Resolution
       </button>
 
-      <div class="dropdown-menu">
+      <div class='dropdown-menu'>
         {{#each this.renderResolutions as |renderResolution|}}
           <div
-          class="dropdown-item pointer-cursor"
-          {{on "click" (fn this.updateRendererResoltion renderResolution.multiplier)}}
+            class='dropdown-item pointer-cursor'
+            {{on
+              'click'
+              (fn this.updateRendererResoltion renderResolution.multiplier)
+            }}
           >
             {{renderResolution.name}}
           </div>
@@ -65,129 +84,158 @@
       </div>
     </div>
 
-    <div id="communicationSettingsContainer" class="arSettingsGridItem">
-      <div class="arSettingsPropertyContainer">
-        <label for="renderCommunicationCheckbox" class="form-label">Render Communication</label>
-        <div class="arSettingsSliderContainer">
+    <div id='communicationSettingsContainer' class='arSettingsGridItem'>
+      <div class='arSettingsPropertyContainer'>
+        <label for='renderCommunicationCheckbox' class='form-label'>Render
+          Communication</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="renderCommunicationCheckbox"
-              @type="checkbox"
-              @checked={{this.arSettings.renderCommunication}}
-              {{on "input" this.toggleRenderClassCommunication}}
+            id='renderCommunicationCheckbox'
+            @type='checkbox'
+            @checked={{this.arSettings.renderCommunication}}
+            {{on 'input' this.toggleRenderClassCommunication}}
           />
         </div>
       </div>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="communicationWidthRange" class="form-label">Communication Width</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='communicationWidthRange' class='form-label'>Communication
+          Width</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="communicationWidthRange"
-              @type="range"
-              @value={{this.configuration.commWidthMultiplier}}
-              class="form-range" min="0.1" max="2.0" step="0.1"
-              {{on "input" this.updateCommunicationWidth}}
+            id='communicationWidthRange'
+            @type='range'
+            @value={{this.configuration.commWidthMultiplier}}
+            class='form-range'
+            min='0.1'
+            max='2.0'
+            step='0.1'
+            {{on 'input' this.updateCommunicationWidth}}
           />
-          <div class="arSliderLabel">{{this.configuration.commWidthMultiplier}}</div>
+          <div
+            class='arSliderLabel'
+          >{{this.configuration.commWidthMultiplier}}</div>
         </div>
       </div>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="communicationHeightRange" class="form-label">Communication Height</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='communicationHeightRange' class='form-label'>Communication
+          Height</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="communicationHeightRange"
-              @type="range"
-              @value={{this.configuration.commCurveHeightMultiplier}}
-              class="form-range" min="0.0" max="3.0" step="0.2"
-              {{on "input" this.updateCommunicationHeight}}
+            id='communicationHeightRange'
+            @type='range'
+            @value={{this.configuration.commCurveHeightMultiplier}}
+            class='form-range'
+            min='0.0'
+            max='3.0'
+            step='0.2'
+            {{on 'input' this.updateCommunicationHeight}}
           />
-          <div class="arSliderLabel">{{this.configuration.commCurveHeightMultiplier}}</div>
+          <div
+            class='arSliderLabel'
+          >{{this.configuration.commCurveHeightMultiplier}}</div>
         </div>
       </div>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="communicationDistanceCheckbox" class="form-label">Depends on Distance</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='communicationDistanceCheckbox' class='form-label'>Depends on
+          Distance</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="communicationDistanceCheckbox"
-              @type="checkbox"
-              @checked={{this.configuration.commCurveHeightDependsOnDistance}}
-              {{on "input" this.toggleApplicationDependsOnDistance}}
+            id='communicationDistanceCheckbox'
+            @type='checkbox'
+            @checked={{this.configuration.commCurveHeightDependsOnDistance}}
+            {{on 'input' this.toggleApplicationDependsOnDistance}}
           />
         </div>
       </div>
     </div>
 
-    <div id="opacitySettingsContainer" class="arSettingsGridItem">
+    <div id='opacitySettingsContainer' class='arSettingsGridItem'>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="applicationOpacityRange" class="form-label">Application Opacity</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='applicationOpacityRange' class='form-label'>Application
+          Opacity</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-            id="applicationOpacityRange"
-            @type="range"
+            id='applicationOpacityRange'
+            @type='range'
             @value={{this.arSettings.applicationOpacity}}
-            class="form-range" min="0.1" max="1.0" step="0.1"
-            {{on "input" this.updateApplicationOpacity}}
+            class='form-range'
+            min='0.1'
+            max='1.0'
+            step='0.1'
+            {{on 'input' this.updateApplicationOpacity}}
           />
-          <div class="arSliderLabel">{{this.arSettings.applicationOpacity}}</div>
+          <div
+            class='arSliderLabel'
+          >{{this.arSettings.applicationOpacity}}</div>
         </div>
       </div>
     </div>
 
-    <div id="buttonSettingsContainer" class="arSettingsGridItem">
-      <div class="arSettingsPropertyContainer">
-        <label for="buttonSizeRange" class="form-label">Button Size</label>
-        <div class="arSettingsSliderContainer">
+    <div id='buttonSettingsContainer' class='arSettingsGridItem'>
+      <div class='arSettingsPropertyContainer'>
+        <label for='buttonSizeRange' class='form-label'>Button Size</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="buttonSizeRange"
-              @type="range"
-              @value={{this.buttonSize}}
-              class="form-range" min="1.0" max="16.0" step="1.5"
-              {{on "input" this.updateButtonSize}}
+            id='buttonSizeRange'
+            @type='range'
+            @value={{this.buttonSize}}
+            class='form-range'
+            min='1.0'
+            max='16.0'
+            step='1.5'
+            {{on 'input' this.updateButtonSize}}
           />
-          <div class="arSliderLabel">{{this.buttonSize}}</div>
+          <div class='arSliderLabel'>{{this.buttonSize}}</div>
         </div>
       </div>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="buttonSpacingRange" class="form-label">Button Spacing</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='buttonSpacingRange' class='form-label'>Button Spacing</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="buttonSpacingRange"
-              @type="range"
-              @value={{this.buttonPadding}}
-              class="form-range" min="0.0" max="10.0" step="1"
-              {{on "input" this.updateButtonSpacing}}
+            id='buttonSpacingRange'
+            @type='range'
+            @value={{this.buttonPadding}}
+            class='form-range'
+            min='0.0'
+            max='10.0'
+            step='1'
+            {{on 'input' this.updateButtonSpacing}}
           />
-          <div class="arSliderLabel">{{this.buttonPadding}}</div>
+          <div class='arSliderLabel'>{{this.buttonPadding}}</div>
         </div>
       </div>
     </div>
 
-    <div id="miscSettingsContainer" class="arSettingsGridItem">
-      <div class="arSettingsPropertyContainer">
-        <label for="zoomLevelRange" class="form-label">Zoom Level</label>
-        <div class="arSettingsSliderContainer">
+    <div id='miscSettingsContainer' class='arSettingsGridItem'>
+      <div class='arSettingsPropertyContainer'>
+        <label for='zoomLevelRange' class='form-label'>Zoom Level</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="zoomLevelRange"
-              @type="range"
-              @value={{this.arSettings.zoomLevel}}
-              class="form-range" min="2.0" max="5.0" step="0.25"
-              {{on "input" this.updateZoomLevel}}
+            id='zoomLevelRange'
+            @type='range'
+            @value={{this.arSettings.zoomLevel}}
+            class='form-range'
+            min='2.0'
+            max='5.0'
+            step='0.25'
+            {{on 'input' this.updateZoomLevel}}
           />
-          <div class="arSliderLabel">{{this.arSettings.zoomLevel}}</div>
+          <div class='arSliderLabel'>{{this.arSettings.zoomLevel}}</div>
         </div>
       </div>
 
-      <div class="arSettingsPropertyContainer">
-        <label for="stackPopupsCheckBox" class="form-label">Stack Popups</label>
-        <div class="arSettingsSliderContainer">
+      <div class='arSettingsPropertyContainer'>
+        <label for='stackPopupsCheckBox' class='form-label'>Stack Popups</label>
+        <div class='arSettingsSliderContainer'>
           <Input
-              id="stackPopupsCheckBox"
-              @type="checkbox"
-              @checked={{this.arSettings.stackPopups}}
+            id='stackPopupsCheckBox'
+            @type='checkbox'
+            @checked={{this.arSettings.stackPopups}}
           />
         </div>
       </div>

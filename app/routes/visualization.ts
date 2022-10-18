@@ -10,11 +10,11 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import BaseRoute from './base-route';
 
 /**
-* TODO
-*
-* @class Visualization-Route
-* @extends Ember.Route
-*/
+ * TODO
+ *
+ * @class Visualization-Route
+ * @extends Ember.Route
+ */
 export default class VisualizationRoute extends BaseRoute {
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
@@ -60,7 +60,7 @@ export default class VisualizationRoute extends BaseRoute {
         (e) => {
           reject(e);
           this.debug('(THREE.js) font failed to load.');
-        },
+        }
       );
     });
   }
@@ -75,7 +75,11 @@ export default class VisualizationRoute extends BaseRoute {
   }
 
   // @Override
-  setupController(controller: VisualizationController, model: any, transition: any) {
+  setupController(
+    controller: VisualizationController,
+    model: any,
+    transition: any
+  ) {
     // Call _super for default behavior
     super.setupController(controller, model, transition);
 
@@ -84,7 +88,10 @@ export default class VisualizationRoute extends BaseRoute {
 
   // @Override Ember-Hook
   /* eslint-disable-next-line class-methods-use-this */
-  resetController(controller: VisualizationController, isExiting: boolean /* , transition: any */) {
+  resetController(
+    controller: VisualizationController,
+    isExiting: boolean /* , transition: any */
+  ) {
     if (isExiting) {
       controller.send('resetLandscapeListenerPolling');
       controller.willDestroy();

@@ -6,12 +6,12 @@ export type ObjectGrabbedResponse = {
 };
 
 export function isObjectGrabbedResponse(
-  msg: any,
+  msg: any
 ): msg is ObjectGrabbedResponse {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === OBJECT_GRABBED_RESPONSE_EVENT
-    && typeof msg.isSuccess === 'boolean'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === OBJECT_GRABBED_RESPONSE_EVENT &&
+    typeof msg.isSuccess === 'boolean'
   );
 }

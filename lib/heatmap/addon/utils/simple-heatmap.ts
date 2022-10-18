@@ -15,8 +15,13 @@ export function getDefaultGradient() {
   };
 }
 
-export function simpleHeatmap(maximumValue: number, canvas: HTMLCanvasElement, gradient: any,
-  heatmapRadius: number, blurRadius: number) {
+export function simpleHeatmap(
+  maximumValue: number,
+  canvas: HTMLCanvasElement,
+  gradient: any,
+  heatmapRadius: number,
+  blurRadius: number
+) {
   const simpleHeatMap = simpleheat(canvas);
   simpleHeatMap.radius(heatmapRadius, blurRadius);
   simpleHeatMap.max(maximumValue);
@@ -25,5 +30,5 @@ export function simpleHeatmap(maximumValue: number, canvas: HTMLCanvasElement, g
 }
 
 export type Gradient = {
-  [value: string]: string
+  [value: string]: string;
 };

@@ -8,13 +8,30 @@ import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import * as THREE from 'three';
 import VrRoomService from 'virtual-reality/services/vr-room';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from 'virtual-reality/services/web-socket';
+import WebSocketService, {
+  SELF_DISCONNECTED_EVENT,
+} from 'virtual-reality/services/web-socket';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { SelfConnectedMessage, SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
-import { UserConnectedMessage, USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
-import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import { UserPositionsMessage, USER_POSITIONS_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_positions';
-import { CONTROLLER_1_ID, CONTROLLER_2_ID } from 'virtual-reality/utils/vr-message/util/controller_id';
+import {
+  SelfConnectedMessage,
+  SELF_CONNECTED_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/self_connected';
+import {
+  UserConnectedMessage,
+  USER_CONNECTED_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/user_connected';
+import {
+  UserDisconnectedMessage,
+  USER_DISCONNECTED_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
+import {
+  UserPositionsMessage,
+  USER_POSITIONS_EVENT,
+} from 'virtual-reality/utils/vr-message/sendable/user_positions';
+import {
+  CONTROLLER_1_ID,
+  CONTROLLER_2_ID,
+} from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 
@@ -77,7 +94,8 @@ export default class CollaborationSession extends Service.extend({
 
   addRemoteUser(remoteUser: RemoteUser) {
     // Make sure that the user does not already exist.
-    if (this.idToRemoteUser.has(remoteUser.userId)) this.removeRemoteUser(remoteUser);
+    if (this.idToRemoteUser.has(remoteUser.userId))
+      this.removeRemoteUser(remoteUser);
 
     this.idToRemoteUser.set(remoteUser.userId, remoteUser);
     this.notifyPropertyChange('idToRemoteUser');
@@ -153,11 +171,13 @@ export default class CollaborationSession extends Service.extend({
     });
   }
 
-  onUserConnected(
-    {
-      id, name, color, position, quaternion,
-    }: UserConnectedMessage,
-  ): void {
+  onUserConnected({
+    id,
+    name,
+    color,
+    position,
+    quaternion,
+  }: UserConnectedMessage): void {
     const remoteUser = this.userFactory.createUser({
       userName: name,
       userId: id,
@@ -202,7 +222,9 @@ export default class CollaborationSession extends Service.extend({
           this.toastMessage.info('Successfully disconnected');
           break;
         case 1006: // Abnormal closure
-          this.toastMessage.error('Collaboration backend service closed abnormally');
+          this.toastMessage.error(
+            'Collaboration backend service closed abnormally'
+          );
           break;
         default:
           this.toastMessage.error('Unexpected disconnect');
@@ -236,14 +258,17 @@ export default class CollaborationSession extends Service.extend({
         this.joinRoom(response.roomId, { checkConnectionStatus: false });
       } catch (e: any) {
         this.connectionStatus = 'offline';
-        AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
+        AlertifyHandler.showAlertifyError(
+          'Cannot reach Collaboration-Service.'
+        );
       }
     }
   }
 
-  async joinRoom(roomId: string, {
-    checkConnectionStatus = true,
-  }: { checkConnectionStatus?: boolean } = {}) {
+  async joinRoom(
+    roomId: string,
+    { checkConnectionStatus = true }: { checkConnectionStatus?: boolean } = {}
+  ) {
     if (!checkConnectionStatus || !this.isConnecting) {
       this.connectionStatus = 'connecting';
       this.currentRoomId = roomId;
@@ -253,7 +278,9 @@ export default class CollaborationSession extends Service.extend({
       } catch (e: any) {
         this.connectionStatus = 'offline';
         this.currentRoomId = null;
-        AlertifyHandler.showAlertifyError('Cannot reach Collaboration-Service.');
+        AlertifyHandler.showAlertifyError(
+          'Cannot reach Collaboration-Service.'
+        );
       }
     }
   }

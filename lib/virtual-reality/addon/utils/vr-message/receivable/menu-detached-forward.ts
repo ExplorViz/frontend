@@ -17,18 +17,18 @@ export type MenuDetachedForwardMessage = {
 };
 
 export function isMenuDetachedForwardMessage(
-  msg: any,
+  msg: any
 ): msg is MenuDetachedForwardMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === MENU_DETACHED_FORWARD_EVENT
-    && typeof msg.objectId === 'string'
-    && typeof msg.userId === 'string'
-    && isEntityType(msg.entityType)
-    && typeof msg.detachId === 'string'
-    && isPosition(msg.position)
-    && isQuaternion(msg.quaternion)
-    && isScale(msg.scale)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === MENU_DETACHED_FORWARD_EVENT &&
+    typeof msg.objectId === 'string' &&
+    typeof msg.userId === 'string' &&
+    isEntityType(msg.entityType) &&
+    typeof msg.detachId === 'string' &&
+    isPosition(msg.position) &&
+    isQuaternion(msg.quaternion) &&
+    isScale(msg.scale)
   );
 }

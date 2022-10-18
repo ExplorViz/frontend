@@ -8,7 +8,6 @@ import { inject as service } from '@ember/service';
  * @extends Ember.Route
  */
 export default class Badroute extends Route {
-
   @service('router')
   router!: any;
 

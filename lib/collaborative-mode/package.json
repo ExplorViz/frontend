@@ -1,6 +1,8 @@
 {
   "name": "collaborative-mode",
-  "keywords": [ "ember-addon" ],
+  "keywords": [
+    "ember-addon"
+  ],
   "devDependencies": {
     "typescript": "4.8.2"
   },

@@ -7,7 +7,10 @@ export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
   @tracked
-  applications: Map<string, ApplicationData> = new Map<string, ApplicationData>();
+  applications: Map<string, ApplicationData> = new Map<
+    string,
+    ApplicationData
+  >();
 
   @tracked
   communications: ApplicationCommunication[] = [];

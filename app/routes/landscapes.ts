@@ -1,5 +1,7 @@
 import { inject as service } from '@ember/service';
-import LandscapeTokenService, { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import LandscapeTokenService, {
+  LandscapeToken,
+} from 'explorviz-frontend/services/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import { action } from '@ember/object';
 import BaseRoute from './base-route';
@@ -32,7 +34,7 @@ export default class Landscapes extends BaseRoute {
       })
         .then(async (response: Response) => {
           if (response.ok) {
-            const tokens = await response.json() as LandscapeToken[];
+            const tokens = (await response.json()) as LandscapeToken[];
             resolve(tokens);
           } else {
             reject();
@@ -44,7 +46,9 @@ export default class Landscapes extends BaseRoute {
 
   afterModel(landscapeTokens: LandscapeToken[]) {
     const currentToken = this.tokenService.token;
-    const tokenCandidates = landscapeTokens.filter((token) => token.value === currentToken?.value);
+    const tokenCandidates = landscapeTokens.filter(
+      (token) => token.value === currentToken?.value
+    );
     if (tokenCandidates.length > 0) {
       this.tokenService.setToken(tokenCandidates[0]);
     } else {

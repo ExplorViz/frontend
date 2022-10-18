@@ -16,6 +16,6 @@ export default class TimestampService extends Service.extend(Evented) {
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'timestamp': TimestampService;
+    timestamp: TimestampService;
   }
 }

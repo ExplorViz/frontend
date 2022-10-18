@@ -22,7 +22,7 @@ export interface Package {
 }
 
 export interface Application {
-  id: string,
+  id: string;
   name: string;
   language: string;
   instanceId: string;
@@ -31,7 +31,7 @@ export interface Application {
 }
 
 export interface Node {
-  id: string
+  id: string;
   ipAddress: string;
   hostName: string;
   applications: Application[];
@@ -67,9 +67,10 @@ export function isMethod(x: any): x is Method {
 }
 
 export function preProcessAndEnhanceStructureLandscape(
-  landscapeStructure: StructureLandscapeData,
+  landscapeStructure: StructureLandscapeData
 ) {
-  const entitiesForIdHashing: Set<Class | Package | Application | Node> = new Set();
+  const entitiesForIdHashing: Set<Class | Package | Application | Node> =
+    new Set();
 
   function createNodeId(node: Node) {
     const { hostName, ipAddress } = node;
@@ -103,7 +104,9 @@ export function preProcessAndEnhanceStructureLandscape(
 
   function addParentToPackage(child: Package, parent: Package) {
     child.parent = parent;
-    child.subPackages.forEach((subChild) => addParentToPackage(subChild, child));
+    child.subPackages.forEach((subChild) =>
+      addParentToPackage(subChild, child)
+    );
   }
 
   function addParentToClazzes(component: Package) {
@@ -127,7 +130,7 @@ export function preProcessAndEnhanceStructureLandscape(
 
   /* const a = performance.now(); */
   const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure),
+    JSON.stringify(landscapeStructure)
   );
 
   enhancedlandscapeStructure.nodes.forEach((node) => {

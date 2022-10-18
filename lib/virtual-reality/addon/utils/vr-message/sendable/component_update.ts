@@ -9,15 +9,15 @@ export type ComponentUpdateMessage = {
 };
 
 export function isComponentUpdateMessage(
-  msg: any,
+  msg: any
 ): msg is ComponentUpdateMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === COMPONENT_UPDATE_EVENT
-    && typeof msg.isFoundation === 'boolean'
-    && typeof msg.isOpened === 'boolean'
-    && typeof msg.appId === 'string'
-    && typeof msg.componentId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === COMPONENT_UPDATE_EVENT &&
+    typeof msg.isFoundation === 'boolean' &&
+    typeof msg.isOpened === 'boolean' &&
+    typeof msg.appId === 'string' &&
+    typeof msg.componentId === 'string'
   );
 }

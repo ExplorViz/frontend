@@ -1,20 +1,34 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import isObject, { objectsHaveSameKeys } from 'explorviz-frontend/utils/object-helpers';
+import isObject, {
+  objectsHaveSameKeys,
+} from 'explorviz-frontend/utils/object-helpers';
 import {
-  classicApplicationColors, classicLandscapeColors, ColorScheme,
-  darkApplicationColors, darkLandscapeColors, defaultApplicationColors,
-  defaultLandscapeColors, visuallyImpairedApplicationColors,
+  classicApplicationColors,
+  classicLandscapeColors,
+  ColorScheme,
+  darkApplicationColors,
+  darkLandscapeColors,
+  defaultApplicationColors,
+  defaultLandscapeColors,
+  visuallyImpairedApplicationColors,
   visuallyImpairedLandscapeColors,
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
-  defaultApplicationSettings, defaultLanscapeSettings,
+  defaultApplicationSettings,
+  defaultLanscapeSettings,
 } from 'explorviz-frontend/utils/settings/default-settings';
 import {
-  ApplicationColorSettings, ApplicationSettingId,
-  ApplicationSettings, isColorSetting, isFlagSetting,
-  isRangeSetting, LandscapeColorSettings,
-  LandscapeSettingId, LandscapeSettings, RangeSetting,
+  ApplicationColorSettings,
+  ApplicationSettingId,
+  ApplicationSettings,
+  isColorSetting,
+  isFlagSetting,
+  isRangeSetting,
+  LandscapeColorSettings,
+  LandscapeSettingId,
+  LandscapeSettings,
+  RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 
 export default class UserSettings extends Service {
@@ -41,7 +55,9 @@ export default class UserSettings extends Service {
   }
 
   private restoreLandscapeSettings() {
-    const userLandscapeSettingsJSON = localStorage.getItem('userLandscapeSettings');
+    const userLandscapeSettingsJSON = localStorage.getItem(
+      'userLandscapeSettings'
+    );
 
     if (userLandscapeSettingsJSON === null) {
       throw new Error('There are no landscape settings to restore');
@@ -58,7 +74,9 @@ export default class UserSettings extends Service {
   }
 
   private restoreApplicationSettings() {
-    const userApplicationSettingsJSON = localStorage.getItem('userApplicationSettings');
+    const userApplicationSettingsJSON = localStorage.getItem(
+      'userApplicationSettings'
+    );
 
     if (userApplicationSettingsJSON === null) {
       throw new Error('There are no application settings to restore');
@@ -75,16 +93,28 @@ export default class UserSettings extends Service {
   }
 
   applyDefaultLandscapeSettings() {
-    this.set('landscapeSettings', JSON.parse(JSON.stringify(defaultLanscapeSettings)));
+    this.set(
+      'landscapeSettings',
+      JSON.parse(JSON.stringify(defaultLanscapeSettings))
+    );
   }
 
   applyDefaultApplicationSettings() {
-    this.set('applicationSettings', JSON.parse(JSON.stringify(defaultApplicationSettings)));
+    this.set(
+      'applicationSettings',
+      JSON.parse(JSON.stringify(defaultApplicationSettings))
+    );
   }
 
   updateSettings() {
-    localStorage.setItem('userLandscapeSettings', JSON.stringify(this.landscapeSettings));
-    localStorage.setItem('userApplicationSettings', JSON.stringify(this.applicationSettings));
+    localStorage.setItem(
+      'userLandscapeSettings',
+      JSON.stringify(this.landscapeSettings)
+    );
+    localStorage.setItem(
+      'userApplicationSettings',
+      JSON.stringify(this.applicationSettings)
+    );
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
@@ -184,14 +214,18 @@ export default class UserSettings extends Service {
 
   // eslint-disable-next-line class-methods-use-this
   private areValidLandscapeSettings(maybeSettings: unknown) {
-    return isObject(maybeSettings)
-      && objectsHaveSameKeys(maybeSettings, defaultLanscapeSettings);
+    return (
+      isObject(maybeSettings) &&
+      objectsHaveSameKeys(maybeSettings, defaultLanscapeSettings)
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
   private areValidApplicationSettings(maybeSettings: unknown) {
-    return isObject(maybeSettings)
-      && objectsHaveSameKeys(maybeSettings, defaultApplicationSettings);
+    return (
+      isObject(maybeSettings) &&
+      objectsHaveSameKeys(maybeSettings, defaultApplicationSettings)
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this

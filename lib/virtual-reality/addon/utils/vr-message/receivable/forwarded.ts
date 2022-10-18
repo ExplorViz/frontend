@@ -8,16 +8,16 @@ export type ForwardedMessage<T> = {
 
 export function isForwardedMessage(msg: any): msg is ForwardedMessage<any> {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === FORWARDED_EVENT
-    && typeof msg.userId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === FORWARDED_EVENT &&
+    typeof msg.userId === 'string'
   );
 }
 
 export function isForwardedMessageOf<T>(
   msg: any,
-  isT: (x: any) => x is T,
+  isT: (x: any) => x is T
 ): msg is ForwardedMessage<T> {
   return isForwardedMessage(msg) && isT(msg.originalMessage);
 }

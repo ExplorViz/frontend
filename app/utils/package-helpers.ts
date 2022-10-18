@@ -8,20 +8,31 @@ export function getClassesInPackage(pckg: Package, recursive = true): Class[] {
     return [...pckg.classes];
   }
 
-  return [...pckg.classes,
-    ...pckg.subPackages.map((subPackage) => getClassesInPackage(subPackage)).flat()];
+  return [
+    ...pckg.classes,
+    ...pckg.subPackages
+      .map((subPackage) => getClassesInPackage(subPackage))
+      .flat(),
+  ];
 }
 
 /**
  * Returns the package's sub-packages
  */
-export function getSubPackagesOfPackage(pckg: Package, recursive = true): Package[] {
+export function getSubPackagesOfPackage(
+  pckg: Package,
+  recursive = true
+): Package[] {
   if (!recursive) {
     return [...pckg.subPackages];
   }
 
-  return [...pckg.subPackages,
-    ...pckg.subPackages.map((subPackage) => getSubPackagesOfPackage(subPackage)).flat()];
+  return [
+    ...pckg.subPackages,
+    ...pckg.subPackages
+      .map((subPackage) => getSubPackagesOfPackage(subPackage))
+      .flat(),
+  ];
 }
 
 /**
@@ -36,10 +47,15 @@ export function getAncestorPackages(pckg: Package): Package[] {
   return [pckg.parent, ...getAncestorPackages(pckg.parent)];
 }
 
-export function packageContainsClass(component: Package, clazz: Class): boolean {
-  return component.classes.includes(clazz)
-    || (component.subPackages.length > 0
-      && component.subPackages.any(
-        (subPackage) => packageContainsClass(subPackage, clazz),
-      ));
+export function packageContainsClass(
+  component: Package,
+  clazz: Class
+): boolean {
+  return (
+    component.classes.includes(clazz) ||
+    (component.subPackages.length > 0 &&
+      component.subPackages.any((subPackage) =>
+        packageContainsClass(subPackage, clazz)
+      ))
+  );
 }

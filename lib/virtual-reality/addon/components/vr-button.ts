@@ -88,7 +88,7 @@ export default class VrButton extends Component<VrButtonArgs> {
       // @ts-ignore
       const session = await navigator.xr.requestSession(
         'immersive-vr',
-        sessionInit,
+        sessionInit
       );
       this.onSessionStarted(session);
     } else {

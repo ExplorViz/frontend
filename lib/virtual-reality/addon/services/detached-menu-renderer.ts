@@ -5,8 +5,7 @@ import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/seri
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
 
-export default class DetachedMenuRenderer extends Service.extend({
-}) {
+export default class DetachedMenuRenderer extends Service.extend({}) {
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
 
@@ -33,7 +32,7 @@ export default class DetachedMenuRenderer extends Service.extend({
       this.detachedMenuGroups.addDetachedMenuLocally(
         menu,
         detachedMenu.objectId,
-        detachedMenu.userId,
+        detachedMenu.userId
       );
     }
   }

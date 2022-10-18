@@ -3,14 +3,18 @@
  */
 
 import {
-  Constants as MotionControllerConstants, fetchProfile, MotionController, VisualResponse,
+  Constants as MotionControllerConstants,
+  fetchProfile,
+  MotionController,
+  VisualResponse,
 } from '@webxr-input-profiles/motion-controllers';
 import debugLogger from 'ember-debug-logger';
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import VrControllerModel from './vr-controller-model';
 
-const DEFAULT_PROFILES_PATH = 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles';
+const DEFAULT_PROFILES_PATH =
+  'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles';
 const DEFAULT_PROFILE = 'generic-trigger';
 
 export default class VrControllerModelFactory {
@@ -56,7 +60,7 @@ export default class VrControllerModelFactory {
             controllerModel.addTouchPointNode({ component, touchPointNode });
           } else {
             debug(
-              `Could not find touch dot, ${component.touchPointNodeName}, in touchpad component ${component.id}`,
+              `Could not find touch dot, ${component.touchPointNodeName}, in touchpad component ${component.id}`
             );
           }
         }
@@ -80,10 +84,10 @@ export default class VrControllerModelFactory {
 
             // If animating a transform, find the two nodes to be interpolated between.
             if (
-              minNodeName
-              && maxNodeName
-              && valueNodeProperty
-                === MotionControllerConstants.VisualResponseProperty.TRANSFORM
+              minNodeName &&
+              maxNodeName &&
+              valueNodeProperty ===
+                MotionControllerConstants.VisualResponseProperty.TRANSFORM
             ) {
               const minNode = scene.getObjectByName(minNodeName);
               const maxNode = scene.getObjectByName(maxNodeName);
@@ -111,15 +115,15 @@ export default class VrControllerModelFactory {
                 valueNode,
               });
             }
-          },
+          }
         );
-      },
+      }
     );
   }
 
   static addAssetSceneToControllerModel(
     controllerModel: VrControllerModel,
-    scene: THREE.Group | null,
+    scene: THREE.Group | null
   ) {
     if (!controllerModel.motionController || !scene) return;
 
@@ -148,9 +152,10 @@ export default class VrControllerModelFactory {
       try {
         const xrInputSource = event.data;
         if (
-          xrInputSource.targetRayMode !== 'tracked-pointer'
-          || !xrInputSource.gamepad
-        ) return;
+          xrInputSource.targetRayMode !== 'tracked-pointer' ||
+          !xrInputSource.gamepad
+        )
+          return;
 
         // In version 1.0.0 of the motion-controllers library the return type of `fetchProfile` is
         // not annotated correctly. The bug has already been fixed (see
@@ -159,22 +164,22 @@ export default class VrControllerModelFactory {
         //
         // TODO update dependency once a new version is released and remove the type assertions
         // below.
-        const { profile, assetPath } = await ((fetchProfile(
+        const { profile, assetPath } = await (fetchProfile(
           xrInputSource,
           this.path,
-          DEFAULT_PROFILE,
-        ) as unknown) as Promise<{ profile: object; assetPath?: string }>);
+          DEFAULT_PROFILE
+        ) as unknown as Promise<{ profile: object; assetPath?: string }>);
         if (!assetPath) return;
 
         controllerModel.onMotionControllerConnect(
-          new MotionController(xrInputSource, profile, assetPath),
+          new MotionController(xrInputSource, profile, assetPath)
         );
 
         // Load the controller model.
         const assetScene = await this.loadAssetScene(assetPath);
         VrControllerModelFactory.addAssetSceneToControllerModel(
           controllerModel,
-          assetScene,
+          assetScene
         );
         lastAssetScene = assetScene;
       } catch (err) {
@@ -201,7 +206,7 @@ export default class VrControllerModelFactory {
             resolve(asset.scene);
           },
           undefined,
-          () => reject(new Error(`Failed to load asset from ${assetUrl}`)),
+          () => reject(new Error(`Failed to load asset from ${assetUrl}`))
         );
       });
     }

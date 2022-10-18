@@ -35,8 +35,12 @@ export default class Spheres {
   }
 }
 
-export function addSpheres(color: string, position: THREE.Vector3,
-  scene: THREE.Scene, updatables: any[]) {
+export function addSpheres(
+  color: string,
+  position: THREE.Vector3,
+  scene: THREE.Scene,
+  updatables: any[]
+) {
   const spheres = new Spheres(color, position);
   scene.add(...spheres.spheres);
   updatables.push(spheres);

@@ -7,9 +7,9 @@ export type ObjectClosedResponse = {
 
 export function isObjectClosedResponse(msg: any): msg is ObjectClosedResponse {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === OBJECT_CLOSED_RESPONSE_EVENT
-    && typeof msg.isSuccess === 'boolean'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === OBJECT_CLOSED_RESPONSE_EVENT &&
+    typeof msg.isSuccess === 'boolean'
   );
 }

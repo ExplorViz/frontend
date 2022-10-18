@@ -15,7 +15,9 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
   const label = boxMesh.labelMesh;
 
-  if (!label) { return; }
+  if (!label) {
+    return;
+  }
 
   const foundationOffset = label.minHeight;
 
@@ -31,7 +33,8 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
   // Foundation is labeled like an opened component
   if (boxMesh instanceof FoundationMesh || boxMesh.opened) {
     // Position Label just above the bottom edge
-    label.position.x = -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+    label.position.x =
+      -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
   } else {
     label.position.x = 0;
   }
@@ -48,10 +51,23 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
  * @param minLength Minimal length (#letters) of text. More important than minHeight
  * @param scalar Allows to scale text size additionally
  */
-export function addBoxTextLabel(boxMesh: ComponentMesh | FoundationMesh, font: THREE.Font,
-  color: THREE.Color, minHeight = 1.5, minLength = 4, scalar = 1, replace = false) {
+export function addBoxTextLabel(
+  boxMesh: ComponentMesh | FoundationMesh,
+  font: THREE.Font,
+  color: THREE.Color,
+  minHeight = 1.5,
+  minLength = 4,
+  scalar = 1,
+  replace = false
+) {
   if (boxMesh.labelMesh && !replace) return;
-  const labelMesh = new ComponentLabelMesh(boxMesh, font, color, minHeight, minLength);
+  const labelMesh = new ComponentLabelMesh(
+    boxMesh,
+    font,
+    color,
+    minHeight,
+    minLength
+  );
   labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
 
   boxMesh.labelMesh = labelMesh;
@@ -68,8 +84,13 @@ export function addBoxTextLabel(boxMesh: ComponentMesh | FoundationMesh, font: T
  * @param color Desired color of the text
  * @param size Size of text
  */
-export function addClazzTextLabel(clazzMesh: ClazzMesh, font: THREE.Font,
-  color: THREE.Color, size = 0.75, replace = false) {
+export function addClazzTextLabel(
+  clazzMesh: ClazzMesh,
+  font: THREE.Font,
+  color: THREE.Color,
+  size = 0.75,
+  replace = false
+) {
   if (clazzMesh.labelMesh && !replace) return;
 
   const text = clazzMesh.dataModel.name;

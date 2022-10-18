@@ -17,7 +17,8 @@ export default class TraceOverview extends Component<Args> {
 
   @action
   showTraces() {
-    const { dynamicData, visualizationPaused, toggleVisualizationUpdating } = this.args;
+    const { dynamicData, visualizationPaused, toggleVisualizationUpdating } =
+      this.args;
 
     if (dynamicData.length === 0) {
       AlertifyHandler.showAlertifyMessage('No Traces found!');

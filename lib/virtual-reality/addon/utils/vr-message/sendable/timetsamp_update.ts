@@ -6,12 +6,12 @@ export type TimestampUpdateMessage = {
 };
 
 export function isTimestampUpdateMessage(
-  msg: any,
+  msg: any
 ): msg is TimestampUpdateMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === TIMESTAMP_UPDATE_EVENT
-    && typeof msg.timestamp === 'number'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === TIMESTAMP_UPDATE_EVENT &&
+    typeof msg.timestamp === 'number'
   );
 }

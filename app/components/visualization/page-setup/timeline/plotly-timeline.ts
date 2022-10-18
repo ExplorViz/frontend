@@ -178,7 +178,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
       // double click
       plotlyDiv.on('plotly_doubleclick', () => {
         const { min, max } = self.oldPlotlySlidingWindow;
-        const update = PlotlyTimeline.getPlotlySlidingWindowUpdateObject(min, max);
+        const update = PlotlyTimeline.getPlotlySlidingWindowUpdateObject(
+          min,
+          max
+        );
         Plotly.relayout(plotlyDiv, update);
       });
 
@@ -217,10 +220,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const latestTimestamp = timestamps[timestamps.length - 1];
     const latestTimestampValue = new Date(latestTimestamp.timestamp);
 
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes, this.slidingWindowUpperBoundInMinutes);
+    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
+      latestTimestampValue,
+      this.slidingWindowLowerBoundInMinutes,
+      this.slidingWindowUpperBoundInMinutes
+    );
 
-    const layout = PlotlyTimeline.getPlotlyLayoutObject(windowInterval.min, windowInterval.max);
+    const layout = PlotlyTimeline.getPlotlyLayoutObject(
+      windowInterval.min,
+      windowInterval.max
+    );
 
     this.oldPlotlySlidingWindow = windowInterval;
 
@@ -228,7 +237,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.timelineDiv,
       data,
       layout,
-      PlotlyTimeline.getPlotlyOptionsObject(),
+      PlotlyTimeline.getPlotlyOptionsObject()
     );
 
     this.initDone = true;
@@ -239,16 +248,26 @@ export default class PlotlyTimeline extends Component<IArgs> {
       return;
     }
 
-    const data: any = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
+    const data: any = this.getUpdatedPlotlyDataObject(
+      timestamps,
+      this.markerState
+    );
 
     const latestTimestamp: Timestamp = timestamps[timestamps.length - 1];
     const latestTimestampValue = new Date(latestTimestamp.timestamp);
 
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes, this.slidingWindowUpperBoundInMinutes);
+    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
+      latestTimestampValue,
+      this.slidingWindowLowerBoundInMinutes,
+      this.slidingWindowUpperBoundInMinutes
+    );
 
-    const layout = this.userSlidingWindow ? this.userSlidingWindow
-      : PlotlyTimeline.getPlotlyLayoutObject(windowInterval.min, windowInterval.max);
+    const layout = this.userSlidingWindow
+      ? this.userSlidingWindow
+      : PlotlyTimeline.getPlotlyLayoutObject(
+          windowInterval.min,
+          windowInterval.max
+        );
 
     this.oldPlotlySlidingWindow = windowInterval;
 
@@ -256,7 +275,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.timelineDiv,
       data,
       layout,
-      PlotlyTimeline.getPlotlyOptionsObject(),
+      PlotlyTimeline.getPlotlyOptionsObject()
     );
   }
 
@@ -293,7 +312,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.timelineDiv,
       null,
       PlotlyTimeline.getPlotlyLayoutObject(minRange, maxRange),
-      PlotlyTimeline.getPlotlyOptionsObject(),
+      PlotlyTimeline.getPlotlyOptionsObject()
     );
   }
 
@@ -301,8 +320,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   // BEGIN Helper functions
 
-  static getPlotlySlidingWindowUpdateObject(minTimestamp: number, maxTimestamp: number):
-  { xaxis: { type: 'date', range: number[], title: {} } } {
+  static getPlotlySlidingWindowUpdateObject(
+    minTimestamp: number,
+    maxTimestamp: number
+  ): { xaxis: { type: 'date'; range: number[]; title: {} } } {
     return {
       xaxis: {
         range: [minTimestamp, maxTimestamp],
@@ -319,11 +340,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   static hoverText(x: Date[], y: number[]) {
-    return x.map((xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`);
+    return x.map(
+      (xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`
+    );
   }
 
-  static getSlidingWindowInterval(t: Date, lowerBound: number, upperBound: number):
-  { min: number, max: number } {
+  static getSlidingWindowInterval(
+    t: Date,
+    lowerBound: number,
+    upperBound: number
+  ): { min: number; max: number } {
     const minTimestamp = t.setMinutes(t.getMinutes() - lowerBound);
     const maxTimestamp = t.setMinutes(t.getMinutes() + upperBound);
 
@@ -365,7 +391,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
-  getUpdatedPlotlyDataObject(timestamps: Timestamp[], markerStates: IMarkerStates): [{}] {
+  getUpdatedPlotlyDataObject(
+    timestamps: Timestamp[],
+    markerStates: IMarkerStates
+  ): [{}] {
     const colors: string[] = [];
     const sizes: number[] = [];
 
@@ -406,7 +435,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     this.markerState = markerStates;
 
-    return PlotlyTimeline.getPlotlyDataObject(x, y, colors, sizes, timestampIds);
+    return PlotlyTimeline.getPlotlyDataObject(
+      x,
+      y,
+      colors,
+      sizes,
+      timestampIds
+    );
   }
 
   static getPlotlyDataObject(
@@ -414,7 +449,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     requests: number[],
     colors: string[],
     sizes: number[],
-    timestampIds: string[],
+    timestampIds: string[]
   ): [{}] {
     return [
       {

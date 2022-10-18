@@ -14,7 +14,7 @@ export default class VRControllerLabelGroup extends THREE.Group {
   static set visibilitySetting(visible: boolean) {
     window.localStorage.setItem(
       'explorviz.vr.labels.visible',
-      visible.toString(),
+      visible.toString()
     );
   }
 

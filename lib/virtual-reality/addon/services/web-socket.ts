@@ -31,7 +31,10 @@ export default class WebSocketService extends Service.extend(Evented) {
   }
 
   private getSocketUrl(ticketId: string) {
-    const collaborationServiceSocket = collaborationService.replace(/^http(s?):\/\//i, 'ws$1://');
+    const collaborationServiceSocket = collaborationService.replace(
+      /^http(s?):\/\//i,
+      'ws$1://'
+    );
     return collaborationServiceSocket + collaborationSocketPath + ticketId;
   }
 
@@ -43,14 +46,15 @@ export default class WebSocketService extends Service.extend(Evented) {
   }
 
   closeSocket() {
-    if (this.currentSocketUrl) this.websockets.closeSocketFor(this.currentSocketUrl);
+    if (this.currentSocketUrl)
+      this.websockets.closeSocketFor(this.currentSocketUrl);
   }
 
   private closeHandler(event: any) {
     // Log that connection has been closed.
     if (event && event.code && event.target.url) {
       this.debug(
-        `Connection to Backend-Extension ( ${event.target.url} ) closed, WebSocket close code ${event.code}.`,
+        `Connection to Backend-Extension ( ${event.target.url} ) closed, WebSocket close code ${event.code}.`
       );
     }
 
@@ -153,11 +157,18 @@ export default class WebSocketService extends Service.extend(Evented) {
    *
    * This is usually used, when the backend is required to synchronize some actions.
    * */
-  sendRespondableMessage<T, R>(message: T, { responseType, onResponse, onOffline }: {
-    responseType: (msg: any) => msg is R;
-    onResponse: (msg: R) => boolean;
-    onOffline?: () => void;
-  }): Promise<boolean> {
+  sendRespondableMessage<T, R>(
+    message: T,
+    {
+      responseType,
+      onResponse,
+      onOffline,
+    }: {
+      responseType: (msg: any) => msg is R;
+      onResponse: (msg: R) => boolean;
+      onOffline?: () => void;
+    }
+  ): Promise<boolean> {
     const nonce = this.nextNonce();
     // send message
     this.send<T>({

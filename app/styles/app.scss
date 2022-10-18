@@ -1,26 +1,25 @@
-@import "_main";
-@import "_sidebar";
-@import "_timeline";
-@import "_alertify";
-@import "_pagenavigation";
-@import "_navbar";
-@import "_visualization_navbar";
-@import "_token_selection";
-@import "_login";
+@import '_main';
+@import '_sidebar';
+@import '_timeline';
+@import '_alertify';
+@import '_pagenavigation';
+@import '_navbar';
+@import '_visualization_navbar';
+@import '_token_selection';
+@import '_login';
 @import '_right_click_menu';
 @import '_popover';
 // located in lib/virtual-reality/addon/style
-@import "_augmented_reality";
+@import '_augmented_reality';
 // located in lib/virtual-reality/addon/styles
-@import "_virtual_reality";
+@import '_virtual_reality';
 
 // located in lib/heatmap/addon/styles
-@import "_heatmap";
-@import "ember-bootstrap/bootstrap";
+@import '_heatmap';
+@import 'ember-bootstrap/bootstrap';
 @import 'ember-right-click-menu';
 @import 'ember-power-select/themes/bootstrap';
 @import 'ember-power-select';
-
 
 .disable-select {
   user-select: none; /* supported by Chrome and Opera */
@@ -30,7 +29,18 @@
   -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
-h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   font-weight: 400;
 }
 

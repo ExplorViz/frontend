@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   overflow: hidden;
   position: relative;
   height: 100vh;
@@ -33,7 +34,7 @@ html, body {
   margin: auto;
 }
 
-.no-margin{
+.no-margin {
   margin: 0px;
 }
 
@@ -57,7 +58,7 @@ html, body {
 
 // Disable double tap to zoom for mobile devices
 * {
-touch-action: pan-y;
+  touch-action: pan-y;
 }
 
 //Additional classes
@@ -102,10 +103,9 @@ touch-action: pan-y;
 }
 
 ::-webkit-scrollbar-thumb {
-  background:#989898; 
+  background: #989898;
   border-radius: 5px;
 }
-
 
 // Needed for firefox, since the scrollbar might else overlap the options
 li.ember-power-select-option {
@@ -114,7 +114,7 @@ li.ember-power-select-option {
 }
 
 .removecaret.dropdown-toggle::after {
-  display: none!important;
+  display: none !important;
 }
 
 .dropdown-item.active,
@@ -132,12 +132,12 @@ svg.octicon {
 }
 
 .d-flex-center {
-  align-items: center!important;
-  display: flex!important;
+  align-items: center !important;
+  display: flex !important;
 }
 
 .d-contents {
-  display: contents!important;
+  display: contents !important;
 }
 
 .btn-primary {
@@ -172,20 +172,22 @@ svg.octicon {
   }
 }
 
-* { @include centerSpinners(); }
+* {
+  @include centerSpinners();
+}
 
 .spinner-center-3-relative {
   @extend .spinner-center-3;
   position: relative;
 }
 
-.buttonToLink{
+.buttonToLink {
   background: none;
   border: none;
-  color: #0000FF;
+  color: #0000ff;
 }
 
-.buttonToLink:hover{
+.buttonToLink:hover {
   background: none;
   text-decoration: underline;
 }

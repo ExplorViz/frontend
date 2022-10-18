@@ -3,7 +3,10 @@ import Evented from '@ember/object/evented';
 
 import debugLogger from 'ember-debug-logger';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { preProcessAndEnhanceStructureLandscape, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  preProcessAndEnhanceStructureLandscape,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import LandscapeListener from './landscape-listener';
 
 export default class ReloadHandler extends Service.extend(Evented) {
@@ -22,14 +25,21 @@ export default class ReloadHandler extends Service.extend(Evented) {
     self.debug('Start import landscape-request');
 
     try {
-      const [structureDataPromise, dynamicDataPromise] = await
-      this.landscapeListener.requestData(timestamp, interval);
+      const [structureDataPromise, dynamicDataPromise] =
+        await this.landscapeListener.requestData(timestamp, interval);
 
-      if (structureDataPromise.status === 'fulfilled' && dynamicDataPromise.status === 'fulfilled') {
-        const structure = preProcessAndEnhanceStructureLandscape(structureDataPromise.value);
+      if (
+        structureDataPromise.status === 'fulfilled' &&
+        dynamicDataPromise.status === 'fulfilled'
+      ) {
+        const structure = preProcessAndEnhanceStructureLandscape(
+          structureDataPromise.value
+        );
 
-        return [structure, dynamicDataPromise.value] as
-        [StructureLandscapeData, DynamicLandscapeData];
+        return [structure, dynamicDataPromise.value] as [
+          StructureLandscapeData,
+          DynamicLandscapeData
+        ];
       }
       throw Error('No data available.');
     } catch (e) {

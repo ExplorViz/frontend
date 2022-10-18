@@ -19,8 +19,18 @@ module('Integration | Component | additional-token-info', function (hooks) {
 
     await click('.button-svg-with-hover');
 
-    assert.equal(this.element.querySelector('tbody > tr td:nth-child(2)')?.textContent?.trim(), 'github|1234');
+    assert.equal(
+      this.element
+        .querySelector('tbody > tr td:nth-child(2)')
+        ?.textContent?.trim(),
+      'github|1234'
+    );
 
-    assert.equal(this.element.querySelector('tbody > tr:nth-child(2) td:nth-child(2)')?.textContent?.trim(), '0123');
+    assert.equal(
+      this.element
+        .querySelector('tbody > tr:nth-child(2) td:nth-child(2)')
+        ?.textContent?.trim(),
+      '0123'
+    );
   });
 });

@@ -8,7 +8,7 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 export type ResetMenuArgs = UiMenuArgs & {
   localUser: LocalUser;
-  online: boolean,
+  online: boolean;
   applicationRenderer: ApplicationRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
@@ -97,9 +97,7 @@ export default class ResetMenu extends UiMenu {
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
   }
 
-  private resetApplications() {
-  }
+  private resetApplications() {}
 
-  private resetLandscape() {
-  }
+  private resetLandscape() {}
 }

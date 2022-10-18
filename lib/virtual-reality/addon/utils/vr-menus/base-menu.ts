@@ -208,7 +208,9 @@ export default abstract class BaseMenu extends THREE.Group {
    * @param delta The time in seconds since the last frame.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdateMenu(_delta: number) { }
+  onUpdateMenu(_delta: number) {
+    // will be overriden
+  }
 
   /**
    * Callback that is invoked by the menu group when this menu is hidden because

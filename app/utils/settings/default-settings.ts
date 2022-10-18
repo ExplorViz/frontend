@@ -1,4 +1,7 @@
-import { defaultApplicationColors, defaultLandscapeColors } from './color-schemes';
+import {
+  defaultApplicationColors,
+  defaultLandscapeColors,
+} from './color-schemes';
 import { ApplicationSettings, LandscapeSettings } from './settings-schemas';
 
 export const defaultApplicationSettings: ApplicationSettings = {
@@ -86,7 +89,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Highlighting',
     displayName: 'Keep Highlighting On Open Or Close',
-    description: 'Toggle if highlighting should be reset on double click in application visualization',
+    description:
+      'Toggle if highlighting should be reset on double click in application visualization',
     isFlagSetting: true,
   },
   transparencyIntensity: {
@@ -98,7 +102,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 2,
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
-    description: 'Transparency effect intensity (\'Enable Transparent Components\' must be enabled)',
+    description:
+      "Transparency effect intensity ('Enable Transparent Components' must be enabled)",
     isRangeSetting: true,
   },
   // Hover Effect Settings
@@ -120,7 +125,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Communication',
     displayName: 'Arrow Size in Application Visualization',
-    description: 'Arrow Size for selected communications in application visualization',
+    description:
+      'Arrow Size for selected communications in application visualization',
     isRangeSetting: true,
   },
   curvyCommHeight: {
@@ -132,7 +138,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 2,
     group: 'Communication',
     displayName: 'Curviness factor of the Communication Lines',
-    description: 'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
+    description:
+      'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
   enableCustomPopupPosition: {
@@ -140,7 +147,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Popup',
     displayName: 'Enable Custom Popup Positioning',
-    description: 'If enabled, popups can be dragged to a prefered, fixed position',
+    description:
+      'If enabled, popups can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
   // Debug Settings
@@ -149,7 +157,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Debugging',
     displayName: 'Show FPS Counter',
-    description: '\'Frames Per Second\' metrics in visualizations',
+    description: "'Frames Per Second' metrics in visualizations",
     isFlagSetting: true,
   },
 };
@@ -212,7 +220,7 @@ export const defaultLanscapeSettings: LandscapeSettings = {
     orderNumber: 1,
     group: 'Debugging',
     displayName: 'Show FPS Counter',
-    description: '\'Frames Per Second\' metrics in visualizations',
+    description: "'Frames Per Second' metrics in visualizations",
     isFlagSetting: true,
   },
 };

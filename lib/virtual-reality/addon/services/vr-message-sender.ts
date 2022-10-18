@@ -15,7 +15,11 @@ import { ObjectReleasedMessage } from '../utils/vr-message/sendable/object_relea
 import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
 import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
-import { ControllerPose, Pose, UserPositionsMessage } from '../utils/vr-message/sendable/user_positions';
+import {
+  ControllerPose,
+  Pose,
+  UserPositionsMessage,
+} from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 
 export default class VrMessageSender extends Service {
@@ -35,7 +39,7 @@ export default class VrMessageSender extends Service {
   sendPoseUpdate(
     camera: Pose,
     controller1?: ControllerPose | undefined,
-    controller2?: ControllerPose | undefined,
+    controller2?: ControllerPose | undefined
   ) {
     this.webSocket.send<UserPositionsMessage>({
       event: 'user_positions',
@@ -56,7 +60,7 @@ export default class VrMessageSender extends Service {
     objectId: string,
     position: THREE.Vector3,
     quaternion: THREE.Quaternion,
-    scale: THREE.Vector3,
+    scale: THREE.Vector3
   ) {
     this.webSocket.send<ObjectMovedMessage>({
       event: 'object_moved',
@@ -91,7 +95,7 @@ export default class VrMessageSender extends Service {
     appId: string,
     componentId: string,
     isOpened: boolean,
-    isFoundation: boolean,
+    isFoundation: boolean
   ) {
     this.webSocket.send<ComponentUpdateMessage>({
       event: 'component_update',
@@ -115,7 +119,7 @@ export default class VrMessageSender extends Service {
     appId: string,
     entityType: string,
     entityId: string,
-    isHighlighted: boolean,
+    isHighlighted: boolean
   ) {
     this.webSocket.send<HighlightingUpdateMessage>({
       event: 'highlighting_update',
@@ -194,7 +198,7 @@ export default class VrMessageSender extends Service {
   sendMousePingUpdate(
     modelId: string,
     isApplication: boolean,
-    position: THREE.Vector3,
+    position: THREE.Vector3
   ) {
     this.webSocket.send<MousePingUpdateMessage>({
       event: 'mouse_ping_update',

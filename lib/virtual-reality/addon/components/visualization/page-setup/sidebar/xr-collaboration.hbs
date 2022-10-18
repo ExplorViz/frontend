@@ -1,34 +1,32 @@
-<div
-  class="sidebar-component-close"
-  {{on "click" this.close}}
->
-  {{svg-jar "x-16" class="octicon"}}
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
 </div>
 
 <div>
-  <label class="bold">Status: </label>
+  <label class='bold'>Status: </label>
 
   <label>{{this.collaborationSession.connectionStatus}}</label>
 </div>
 
-{{#if (eq this.collaborationSession.connectionStatus "online")}}
+{{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
-    <label class="bold">Current Room: </label>
+    <label class='bold'>Current Room: </label>
 
     <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
-  <label class="bold">Users</label>
+  <label class='bold'>Users</label>
 
   <ul>
     {{#each this.users as |user|}}
       <li style={{html-safe user.style}}>
         <div
-          class="nav-link-with-cursor"
-          title="Spectate"
-          {{on "click" (fn this.spectate user.id)}}
+          class='nav-link-with-cursor'
+          title='Spectate'
+          {{on 'click' (fn this.spectate user.id)}}
         >
-          {{user.name}} {{svg-jar "device-camera-video-16" class="octicon align-middle"}}
+          {{user.name}}
+          {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
         </div>
       </li>
     {{/each}}
@@ -36,30 +34,30 @@
 
 {{/if}}
 
-{{#if (eq this.collaborationSession.connectionStatus "offline")}}
-  <div class="flex-space-between">
-    <label class="bold">Rooms</label>
+{{#if (eq this.collaborationSession.connectionStatus 'offline')}}
+  <div class='flex-space-between'>
+    <label class='bold'>Rooms</label>
 
     <BsButton
-      title="Reload Rooms"
-      {{on "click" this.loadRooms}}
-      @type="secondary"
+      title='Reload Rooms'
+      {{on 'click' this.loadRooms}}
+      @type='secondary'
       @outline={{true}}
     >
-      {{svg-jar "sync-16" class="octicon"}}
+      {{svg-jar 'sync-16' class='octicon'}}
     </BsButton>
   </div>
 
   <ul>
     {{#each this.rooms as |room|}}
-      <div class="flex-space-between room-list-item">
+      <div class='flex-space-between room-list-item'>
         <li>
           {{room.roomName}}
         </li>
         <BsButton
-          title="Join Room"
-          {{on "click" (fn this.joinRoom room)}}
-          @type="success"
+          title='Join Room'
+          {{on 'click' (fn this.joinRoom room)}}
+          @type='success'
           @outline={{true}}
         >
           Join
@@ -70,24 +68,24 @@
 
   {{#if this.timestampService.timestamp}}
     <BsButton
-      title="Host Room"
-      {{on "click" this.hostRoom}}
-      @type="secondary"
+      title='Host Room'
+      {{on 'click' this.hostRoom}}
+      @type='secondary'
       @outline={{true}}
     >
       Host Room
     </BsButton>
   {{else}}
-    <label class="bold">No landscape data available. Cannot host room. </label>
+    <label class='bold'>No landscape data available. Cannot host room. </label>
   {{/if}}
 {{/if}}
 
-{{#if (eq this.collaborationSession.connectionStatus "online")}}
+{{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <BsButton
-  title="Disconnect from Room"
-  {{on "click" this.leaveSession}}
-  @type="danger"
-  @outline={{true}}
+    title='Disconnect from Room'
+    {{on 'click' this.leaveSession}}
+    @type='danger'
+    @outline={{true}}
   >
     Disconnect
   </BsButton>

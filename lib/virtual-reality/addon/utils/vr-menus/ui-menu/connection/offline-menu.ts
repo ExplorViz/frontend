@@ -18,7 +18,8 @@ export default class OfflineMenu extends ConnectionBaseMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.replaceMenu(this.menuFactory.buildJoinMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildJoinMenu()),
     });
     this.items.push(joinButton);
     this.thumbpadTargets.push(joinButton);

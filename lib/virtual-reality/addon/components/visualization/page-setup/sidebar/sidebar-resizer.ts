@@ -3,9 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import ArSettings from 'virtual-reality/services/ar-settings';
 
-interface SidebarResizerArgs {}
-
-export default class SidebarResizer extends Component<SidebarResizerArgs> {
+export default class SidebarResizer extends Component {
   @service('ar-settings')
   private settings!: ArSettings;
 
@@ -36,7 +34,8 @@ export default class SidebarResizer extends Component<SidebarResizerArgs> {
 
     function handleDragInput(targetX: number) {
       const buttonOffset = 30;
-      const widthInPercent = 100 - ((targetX - buttonOffset) / (window.innerWidth)) * 100;
+      const widthInPercent =
+        100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
 
       setSidebarWidth(widthInPercent);
     }

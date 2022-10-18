@@ -8,12 +8,18 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { openComponentMesh, restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import {
+  openComponentMesh,
+  restoreComponentState,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
-  Application, Class, Package, StructureLandscapeData,
+  Application,
+  Class,
+  Package,
+  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -30,9 +36,14 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import { SerializedVrRoom, SerialzedApp } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import {
+  SerializedVrRoom,
+  SerialzedApp,
+} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
-import HighlightingService, { HightlightComponentArgs } from './highlighting-service';
+import HighlightingService, {
+  HightlightComponentArgs,
+} from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
@@ -69,7 +80,7 @@ function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
         // color: this.remoteUsers.lookupRemoteUserById(
         //     highlightedComponent.userId,
         // )?.color,
-      }),
+      })
     ),
   };
 }
@@ -139,8 +150,10 @@ export default class ApplicationRenderer extends Service.extend({
   constructor(properties?: object) {
     super(properties);
     this.openApplicationsMap = new Map();
-    this.appCommRendering = new CommunicationRendering(this.configuration,
-      this.userSettings);
+    this.appCommRendering = new CommunicationRendering(
+      this.configuration,
+      this.userSettings
+    );
   }
 
   resetAndAddToScene(updateables: any[]) {
@@ -160,35 +173,24 @@ export default class ApplicationRenderer extends Service.extend({
   /**
    * Adds labels to all box meshes of a given application
    */
-  addLabels(applicationObject3D: ApplicationObject3D, font: THREE.Font, labelAll: boolean = false) {
-    const {
-      clazzTextColor,
-      componentTextColor,
-      foundationTextColor,
-    } = this.configuration.applicationColors;
+  addLabels(
+    applicationObject3D: ApplicationObject3D,
+    font: THREE.Font,
+    labelAll: boolean = false
+  ) {
+    const { clazzTextColor, componentTextColor, foundationTextColor } =
+      this.configuration.applicationColors;
 
     applicationObject3D.getBoxMeshes().forEach((mesh) => {
       // Labeling is time-consuming. Thus, label only visible meshes incrementally
       // as opposed to labeling all meshes up front (as done in application-rendering).
       if (labelAll || mesh.visible) {
         if (mesh instanceof ClazzMesh) {
-          Labeler.addClazzTextLabel(
-            mesh,
-            font,
-            clazzTextColor,
-          );
+          Labeler.addClazzTextLabel(mesh, font, clazzTextColor);
         } else if (mesh instanceof ComponentMesh) {
-          Labeler.addBoxTextLabel(
-            mesh,
-            font,
-            componentTextColor,
-          );
+          Labeler.addBoxTextLabel(mesh, font, componentTextColor);
         } else if (mesh instanceof FoundationMesh) {
-          Labeler.addBoxTextLabel(
-            mesh,
-            font,
-            foundationTextColor,
-          );
+          Labeler.addBoxTextLabel(mesh, font, foundationTextColor);
         }
       }
     });
@@ -207,26 +209,31 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  private saveApplicationState(applicationObject3D: ApplicationObject3D): AddApplicationArgs {
-    const serializedApp = this.roomSerializer.serializeApplication(applicationObject3D);
+  private saveApplicationState(
+    applicationObject3D: ApplicationObject3D
+  ): AddApplicationArgs {
+    const serializedApp =
+      this.roomSerializer.serializeApplication(applicationObject3D);
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @task*
-  addApplicationTask(
+  @task *addApplicationTask(
     applicationData: ApplicationData,
-    addApplicationArgs: AddApplicationArgs = {},
+    addApplicationArgs: AddApplicationArgs = {}
   ) {
     const applicationModel = applicationData.application;
-    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(applicationData.layoutData);
+    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
+      applicationData.layoutData
+    );
 
     const isOpen = this.isApplicationOpen(applicationModel.id);
     let applicationObject3D = this.getApplicationById(applicationModel.id);
 
     let layoutChanged = true;
     if (applicationObject3D) {
-      layoutChanged = JSON.stringify(boxLayoutMap)
-        !== JSON.stringify(applicationObject3D.boxLayoutMap);
+      layoutChanged =
+        JSON.stringify(boxLayoutMap) !==
+        JSON.stringify(applicationObject3D.boxLayoutMap);
       // if (layoutChanged) {
       applicationObject3D.dataModel = applicationModel;
       applicationObject3D.boxLayoutMap = boxLayoutMap;
@@ -234,12 +241,14 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       applicationObject3D = new VrApplicationObject3D(
         applicationModel,
-        boxLayoutMap,
+        boxLayoutMap
       );
     }
 
-    const applicationState = Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
-      ? this.saveApplicationState(applicationObject3D) : addApplicationArgs;
+    const applicationState =
+      Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        ? this.saveApplicationState(applicationObject3D)
+        : addApplicationArgs;
 
     if (layoutChanged) {
       this.cleanUpApplication(applicationObject3D);
@@ -247,7 +256,7 @@ export default class ApplicationRenderer extends Service.extend({
       // Add new meshes to application
       EntityRendering.addFoundationAndChildrenToApplication(
         applicationObject3D,
-        this.configuration.applicationColors,
+        this.configuration.applicationColors
       );
     }
 
@@ -260,15 +269,12 @@ export default class ApplicationRenderer extends Service.extend({
     applicationState.highlightedComponents?.forEach((highlightedComponent) => {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(
         applicationObject3D!,
-        highlightedComponent,
+        highlightedComponent
       );
     });
     this.highlightingService.updateHighlighting(applicationObject3D);
 
-    this.openApplicationsMap.set(
-      applicationModel.id,
-      applicationObject3D,
-    );
+    this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
     // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
     applicationObject3D.resetRotation();
@@ -281,7 +287,10 @@ export default class ApplicationRenderer extends Service.extend({
     removeHighlighting(applicationObject3D);
   }
 
-  updateOrCreateApplication(application: Application, layoutMap: Map<string, LayoutData>) {
+  updateOrCreateApplication(
+    application: Application,
+    layoutMap: Map<string, LayoutData>
+  ) {
     // Converting plain JSON layout data due to worker limitations
     const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
     const applicationObject3D = this.getApplicationById(application.id);
@@ -291,10 +300,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.boxLayoutMap = boxLayoutMap;
       return applicationObject3D;
     }
-    return new VrApplicationObject3D(
-      application,
-      boxLayoutMap,
-    );
+    return new VrApplicationObject3D(application, boxLayoutMap);
   }
 
   @action
@@ -311,7 +317,9 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.removeAllCommunication();
 
       // Remove highlighting if highlighted communication is no longer visible
-      if (applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
+      if (
+        applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh
+      ) {
         removeHighlighting(applicationObject3D);
       }
     });
@@ -319,20 +327,28 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(applicationObject3D.dataModel.id);
-    const drawableClassCommunications = applicationData?.drawableClassCommunications;
+    const applicationData = this.applicationRepo.getById(
+      applicationObject3D.dataModel.id
+    );
+    const drawableClassCommunications =
+      applicationData?.drawableClassCommunications;
 
     if (drawableClassCommunications) {
       this.appCommRendering.addCommunication(
         applicationObject3D,
-        drawableClassCommunications,
+        drawableClassCommunications
       );
     }
   }
 
   @action
-  updateApplicationObject3DAfterUpdate(applicationObject3D: ApplicationObject3D) {
-    if (this.localUser.visualizationMode !== 'ar' || this.arSettings.renderCommunication) {
+  updateApplicationObject3DAfterUpdate(
+    applicationObject3D: ApplicationObject3D
+  ) {
+    if (
+      this.localUser.visualizationMode !== 'ar' ||
+      this.arSettings.renderCommunication
+    ) {
       this.addCommunication(applicationObject3D);
     }
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
@@ -347,7 +363,9 @@ export default class ApplicationRenderer extends Service.extend({
   updateLinks?: () => void;
 
   getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(applicationObjetc3D.dataModel.id);
+    const applicationData = this.applicationRepo.getById(
+      applicationObjetc3D.dataModel.id
+    );
     return applicationData?.drawableClassCommunications;
   }
 
@@ -389,24 +407,24 @@ export default class ApplicationRenderer extends Service.extend({
 
   toggleComponent(
     componentMesh: ComponentMesh,
-    applicationObject3D: ApplicationObject3D,
+    applicationObject3D: ApplicationObject3D
   ) {
     this.toggleComponentLocally(componentMesh, applicationObject3D);
     this.sender.sendComponentUpdate(
       applicationObject3D.dataModel.id,
       componentMesh.dataModel.id,
       componentMesh.opened,
-      false,
+      false
     );
   }
 
   toggleComponentLocally(
     componentMesh: ComponentMesh,
-    applicationObject3D: ApplicationObject3D,
+    applicationObject3D: ApplicationObject3D
   ) {
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
-      applicationObject3D,
+      applicationObject3D
     );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
@@ -417,7 +435,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.dataModel.id,
       '',
       false,
-      true,
+      true
     );
   }
 
@@ -433,7 +451,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.dataModel.id,
       '',
       true,
-      true,
+      true
     );
   }
 
@@ -452,9 +470,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
-      const drawableComm = this.getDrawableClassCommunications(
-        application,
-      )!;
+      const drawableComm = this.getDrawableClassCommunications(application)!;
 
       if (this.arSettings.renderCommunication) {
         this.appCommRendering.addCommunication(application, drawableComm);
@@ -543,16 +559,18 @@ export default class ApplicationRenderer extends Service.extend({
         perform(
           this.addApplicationTask,
           applicationData,
-          serializedRoomToAddApplicationArgs(app),
+          serializedRoomToAddApplicationArgs(app)
         );
       }
     });
   }
 
   getMeshById(meshId: string): BaseMesh | undefined {
-    return this.getBoxMeshByModelId(meshId)
-      || this.getCommunicationMeshById(meshId)
-      || this.linkRenderer.getLinkById(meshId);
+    return (
+      this.getBoxMeshByModelId(meshId) ||
+      this.getCommunicationMeshById(meshId) ||
+      this.linkRenderer.getLinkById(meshId)
+    );
   }
 
   getGraphPosition(mesh: THREE.Object3D) {

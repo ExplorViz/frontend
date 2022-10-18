@@ -5,8 +5,11 @@ import BaseMesh from '../base-mesh';
 export default abstract class BoxMesh extends BaseMesh {
   layout: BoxLayout;
 
-  constructor(layout: BoxLayout,
-    defaultColor: THREE.Color, highlightingColor: THREE.Color) {
+  constructor(
+    layout: BoxLayout,
+    defaultColor: THREE.Color,
+    highlightingColor: THREE.Color
+  ) {
     super(defaultColor, highlightingColor);
 
     this.layout = layout;

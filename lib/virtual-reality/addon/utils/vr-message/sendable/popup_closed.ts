@@ -8,9 +8,9 @@ export type PopupClosedMessage = {
 
 export function isPopupOpenedMessage(msg: any): msg is PopupClosedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === POPUP_CLOSED_EVENT
-    && typeof msg.id === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === POPUP_CLOSED_EVENT &&
+    typeof msg.id === 'string'
   );
 }

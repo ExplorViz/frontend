@@ -8,12 +8,12 @@ export interface IntersectableObject extends THREE.Object3D {
 }
 
 export function isIntersectableObject(
-  object: any,
+  object: any
 ): object is IntersectableObject {
   return (
-    object !== null
-    && typeof object === 'object'
-    && typeof object.canBeIntersected === 'function'
+    object !== null &&
+    typeof object === 'object' &&
+    typeof object.canBeIntersected === 'function'
   );
 }
 
@@ -31,7 +31,7 @@ export function canIntersectAllParentObjects(
     onlyVisible,
   }: {
     onlyVisible: boolean;
-  },
+  }
 ) {
   let result = false;
   let current: THREE.Object3D | null = intersection.object;

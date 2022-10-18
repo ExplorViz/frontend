@@ -5,11 +5,11 @@ import $ from 'jquery';
 declare const THREEx: any;
 
 /**
-* @class THREEPerformance
-*
-* @module explorviz
-* @submodule visualization.rendering
-*/
+ * @class THREEPerformance
+ *
+ * @module explorviz
+ * @submodule visualization.rendering
+ */
 export default class THREEPerformance {
   // Can display information like fps or memory usage
   stats: any = new Stats();

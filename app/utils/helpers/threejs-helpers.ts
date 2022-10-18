@@ -12,8 +12,10 @@ import * as THREE from 'three';
 * @module explorviz
 * @submodule util
 */
-export default function calculateColorBrightness(threeColor: THREE.Color,
-  brightnessDegree: number): THREE.Color {
+export default function calculateColorBrightness(
+  threeColor: THREE.Color,
+  brightnessDegree: number
+): THREE.Color {
   const r = Math.floor(threeColor.r * brightnessDegree * 255);
   const g = Math.floor(threeColor.g * brightnessDegree * 255);
   const b = Math.floor(threeColor.b * brightnessDegree * 255);

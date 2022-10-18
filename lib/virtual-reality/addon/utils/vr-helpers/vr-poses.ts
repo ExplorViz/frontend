@@ -33,7 +33,7 @@ export function getControllerPose(controller: VRController): ControllerPose {
 export function getPoses(
   camera: THREE.Camera,
   controller1: VRController | undefined,
-  controller2: VRController | undefined,
+  controller2: VRController | undefined
 ): VrPose {
   return {
     camera: getCameraPose(camera),

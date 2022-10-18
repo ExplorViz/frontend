@@ -49,12 +49,15 @@
   #navbar-user-options > .dropdown > .dropdown-menu {
     // ml-3 and mr-3 are 1rem each
     width: calc(100% - 2rem);
-    top: 100%!important;
-    transform: none!important;
+    top: 100% !important;
+    transform: none !important;
   }
 }
 
-#navbar-user-options > .dropdown > .dropdown-menu.show ~ .navbar-user-button::after {
+#navbar-user-options
+  > .dropdown
+  > .dropdown-menu.show
+  ~ .navbar-user-button::after {
   transform: rotateX(180deg);
 }
 

@@ -14,24 +14,24 @@ import ThreeForceGraph from 'three-forcegraph';
 
 export interface GraphNode {
   // data: ApplicationData,
-  id: string,
-  index: number,
-  collisionRadius: number,
-  x: number,
-  y: number,
-  z: number,
-  fx: number,
-  fy: number,
-  fz: number,
-  __threeObj: ApplicationObject3D,
+  id: string;
+  index: number;
+  collisionRadius: number;
+  x: number;
+  y: number;
+  z: number;
+  fx: number;
+  fy: number;
+  fz: number;
+  __threeObj: ApplicationObject3D;
 }
 
 export interface GraphLink {
-  source: GraphNode,
-  target: GraphNode,
-  value: number,
-  communicationData: DrawableClassCommunication,
-  __curve: any,
+  source: GraphNode;
+  target: GraphNode;
+  value: number;
+  communicationData: DrawableClassCommunication;
+  __curve: any;
   __lineObj: ClazzCommunicationMesh;
 }
 
@@ -62,17 +62,28 @@ export default class ForceGraph {
     setOwner(this, owner);
     this.graph = new ThreeForceGraph()
       .graphData({ nodes: [], links: [] })
-      .nodeThreeObject(({ id }) => this.applicationRenderer.getApplicationById(id)!)
+      .nodeThreeObject(
+        ({ id }) => this.applicationRenderer.getApplicationById(id)!
+      )
       .warmupTicks(100)
-      .linkColor(() => `#${this.configuration.landscapeColors.communicationColor.getHexString()}`)
-      .linkDirectionalParticleColor(() => `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`)
+      .linkColor(
+        () =>
+          `#${this.configuration.landscapeColors.communicationColor.getHexString()}`
+      )
+      .linkDirectionalParticleColor(
+        () =>
+          `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`
+      )
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createLink)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
       .linkVisibility(this.linkRenderer.linkVisible)
       .nodeAutoColorBy('node')
       .cooldownTicks(1)
-      .d3Force('collision', d3.forceCollide((node: GraphNode) => node.collisionRadius));
+      .d3Force(
+        'collision',
+        d3.forceCollide((node: GraphNode) => node.collisionRadius)
+      );
     // particles
     // .linkDirectionalParticles("value")
     // .linkDirectionalParticleWidth(0.6)
@@ -90,7 +101,9 @@ export default class ForceGraph {
       });
     };
     this.graph.scale.setScalar(scale);
-    this.graph.getGrabId = () => { 'force-graph-grabbable'; };
+    this.graph.getGrabId = () => {
+      'force-graph-grabbable';
+    };
   }
 
   tick() {

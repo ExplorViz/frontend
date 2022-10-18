@@ -34,12 +34,14 @@ export default class TextTexture extends THREE.CanvasTexture {
       // Resize canvas to fit the text and padding.
       ctx.font = `${fontSize}px ${fontFamily}`;
       const metrics = ctx.measureText(text);
-      canvas.width = Math.abs(metrics.actualBoundingBoxLeft)
-        + Math.abs(metrics.actualBoundingBoxRight)
-        + padding;
-      canvas.height = Math.abs(metrics.actualBoundingBoxAscent)
-        + Math.abs(metrics.actualBoundingBoxDescent)
-        + padding;
+      canvas.width =
+        Math.abs(metrics.actualBoundingBoxLeft) +
+        Math.abs(metrics.actualBoundingBoxRight) +
+        padding;
+      canvas.height =
+        Math.abs(metrics.actualBoundingBoxAscent) +
+        Math.abs(metrics.actualBoundingBoxDescent) +
+        padding;
 
       // Fill background.
       if (backgroundColor) {

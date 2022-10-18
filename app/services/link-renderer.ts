@@ -13,8 +13,7 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 
-export default class LinkRenderer extends Service.extend({
-}) {
+export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
   private configuration!: Configuration;
 
@@ -38,24 +37,35 @@ export default class LinkRenderer extends Service.extend({
   }
 
   @action
-  linkPositionUpdate(line: ClazzCommunicationMesh, _coords: any, link: GraphLink) {
+  linkPositionUpdate(
+    line: ClazzCommunicationMesh,
+    _coords: any,
+    link: GraphLink
+  ) {
     line.visible = this.linkVisible(link);
     if (!link.communicationData) {
       return true;
     }
-    const drawableClassCommunication: DrawableClassCommunication = link.communicationData;
+    const drawableClassCommunication: DrawableClassCommunication =
+      link.communicationData;
 
     // source
     const sourceApp = link.source.__threeObj;
     const forceGraph = sourceApp.parent!;
-    const sourceClass = findFirstOpen(sourceApp, drawableClassCommunication.sourceClass);
+    const sourceClass = findFirstOpen(
+      sourceApp,
+      drawableClassCommunication.sourceClass
+    );
     const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
     const start = sourceMesh.getWorldPosition(new Vector3());
     forceGraph.worldToLocal(start);
 
     // target
     const targetApp = link.target.__threeObj;
-    const targetClass = findFirstOpen(targetApp, drawableClassCommunication.targetClass);
+    const targetClass = findFirstOpen(
+      targetApp,
+      drawableClassCommunication.targetClass
+    );
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
     const end = targetMesh.getWorldPosition(new Vector3());
     forceGraph.worldToLocal(end);
@@ -90,17 +100,22 @@ export default class LinkRenderer extends Service.extend({
       applicationObject3D.dataModel,
       [drawableClazzComm],
       false,
-      id,
+      id
     );
-    const { communicationColor, highlightedEntityColor } = this.configuration.applicationColors;
+    const { communicationColor, highlightedEntityColor } =
+      this.configuration.applicationColors;
 
     const existingMesh = this.linkIdToMesh.get(drawableClazzComm.id);
     if (existingMesh) {
       existingMesh.dataModel = clazzCommuMeshData;
       return existingMesh;
     }
-    const newMesh = new ClazzCommunicationMesh(undefined, clazzCommuMeshData,
-      communicationColor, highlightedEntityColor);
+    const newMesh = new ClazzCommunicationMesh(
+      undefined,
+      clazzCommuMeshData,
+      communicationColor,
+      highlightedEntityColor
+    );
     this.linkIdToMesh.set(id, newMesh);
 
     return newMesh;
@@ -124,7 +139,8 @@ export default class LinkRenderer extends Service.extend({
 
     if (this.configuration.commCurveHeightDependsOnDistance) {
       const classDistance = Math.hypot(
-        commLayout.endX - commLayout.startX, commLayout.endZ - commLayout.startZ,
+        commLayout.endX - commLayout.startX,
+        commLayout.endZ - commLayout.startZ
       );
       baseCurveHeight = classDistance * 0.5;
     }
@@ -132,14 +148,24 @@ export default class LinkRenderer extends Service.extend({
     return baseCurveHeight * this.appSettings.curvyCommHeight.value;
   }
 
-  private addArrows(pipe: ClazzCommunicationMesh, curveHeight: number, viewCenterPoint: Vector3) {
+  private addArrows(
+    pipe: ClazzCommunicationMesh,
+    curveHeight: number,
+    viewCenterPoint: Vector3
+  ) {
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
-    const arrowColorHex = this.configuration.applicationColors.communicationArrowColor.getHex();
+    const arrowColorHex =
+      this.configuration.applicationColors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(viewCenterPoint, arrowThickness, arrowHeight, arrowColorHex);
+      pipe.addArrows(
+        viewCenterPoint,
+        arrowThickness,
+        arrowHeight,
+        arrowColorHex
+      );
     }
   }
 }

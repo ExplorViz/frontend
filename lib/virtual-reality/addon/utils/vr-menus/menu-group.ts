@@ -43,13 +43,17 @@ export default class MenuGroup extends THREE.Group {
   toggleControllerRay() {
     const controller = VRController.findController(this);
     if (controller) {
-      const rayVisibleInMenu = !this.currentMenu || this.currentMenu.enableControllerRay;
-      const enableTeleportInMenu = !this.currentMenu || this.currentMenu.enableTeleport;
+      const rayVisibleInMenu =
+        !this.currentMenu || this.currentMenu.enableControllerRay;
+      const enableTeleportInMenu =
+        !this.currentMenu || this.currentMenu.enableTeleport;
       if (controller.ray) controller.ray.visible = rayVisibleInMenu;
       if (controller.teleportArea) {
-        const intersectsFloor = controller.intersectedObject?.object instanceof FloorMesh;
+        const intersectsFloor =
+          controller.intersectedObject?.object instanceof FloorMesh;
         controller.enableTeleport = enableTeleportInMenu;
-        controller.teleportArea.visible = enableTeleportInMenu && intersectsFloor;
+        controller.teleportArea.visible =
+          enableTeleportInMenu && intersectsFloor;
       }
     }
   }
@@ -86,9 +90,8 @@ export default class MenuGroup extends THREE.Group {
   updateControllerBindings() {
     if (this.currentMenu) {
       const index = this.controllerBindings.length - 1;
-      this.controllerBindings[
-        index
-      ] = this.currentMenu.makeControllerBindings();
+      this.controllerBindings[index] =
+        this.currentMenu.makeControllerBindings();
     }
   }
 
@@ -168,7 +171,7 @@ export default class MenuGroup extends THREE.Group {
    * is invoked.
    */
   private removeMenu(
-    callback: (removedMenu: BaseMenu) => void,
+    callback: (removedMenu: BaseMenu) => void
   ): BaseMenu | undefined {
     const menu = this.popMenu(callback);
     if (menu) {

@@ -7,11 +7,11 @@ import * as THREE from 'three';
 export function displayAsWireframe(
   object: THREE.Object3D,
   frameLineWidth = 0.5,
-  opacity = 0.1,
+  opacity = 0.1
 ) {
   if (
-    object instanceof THREE.Mesh
-    && object.material instanceof THREE.MeshStandardMaterial
+    object instanceof THREE.Mesh &&
+    object.material instanceof THREE.MeshStandardMaterial
   ) {
     object.material.wireframe = true;
     object.material.wireframeLinewidth = frameLineWidth;
@@ -33,8 +33,8 @@ export function displayAsWireframe(
  */
 export function displayAsSolidObject(object: THREE.Object3D, opacity = 1) {
   if (
-    object instanceof THREE.Mesh
-    && object.material instanceof THREE.MeshStandardMaterial
+    object instanceof THREE.Mesh &&
+    object.material instanceof THREE.MeshStandardMaterial
   ) {
     object.material.wireframe = false;
 

@@ -1,6 +1,8 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import LandscapeTokenService, { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import LandscapeTokenService, {
+  LandscapeToken,
+} from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -131,6 +133,6 @@ export default class Landscapes extends Controller {
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
 declare module '@ember/controller' {
   interface Registry {
-    'landscapes': Landscapes;
+    landscapes: Landscapes;
   }
 }

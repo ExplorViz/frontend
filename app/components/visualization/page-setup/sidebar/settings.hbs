@@ -1,23 +1,20 @@
-{{!-- template-lint-disable simple-unless --}}
-<div
-  class="sidebar-component-close"
-  {{on "click" this.close}}
->
-  {{svg-jar "x-16" class="octicon"}}
+{{! template-lint-disable simple-unless }}
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
 </div>
 
 {{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
-    <h6 class="mb-3 mt-3"><strong>{{groupId}}</strong></h6>
-    {{#if (eq groupId "Colors")}}
-      <div id="colorHeader" class="mb-2">
+    <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>
+    {{#if (eq groupId 'Colors')}}
+      <div id='colorHeader' class='mb-2'>
         <Visualization::PageSetup::Sidebar::ColorSchemeSelector
           @colorSchemes={{this.colorSchemes}}
           @applyColorScheme={{this.applyColorScheme}}
         />
       </div>
     {{/if}}
-    <div class="ml-3">
+    <div class='ml-3'>
       {{#each settingIdArray as |settingId|}}
         {{#let
           (get this.userSettings.applicationSettings settingId)

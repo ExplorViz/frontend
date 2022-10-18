@@ -1,15 +1,17 @@
-<div class="d-flex justify-content-between">
+<div class='d-flex justify-content-between'>
   <div>
     <HelpTooltip @title={{@setting.description}} />
     {{@setting.displayName}}
   </div>
-  <div class="d-flex align-self-center">
+  <div class='d-flex align-self-center'>
     <XToggle
-      class="mr-4"
-      @theme="skewed"
+      class='mr-4'
+      @theme='skewed'
       @value={{@setting.value}}
       @onToggle={{@onChange}}
     />
-    <Visualization::PageSetup::Sidebar::Settings::ResetButton @onClick={{@onChange}} />
+    <Visualization::PageSetup::Sidebar::Settings::ResetButton
+      @onClick={{@onChange}}
+    />
   </div>
 </div>

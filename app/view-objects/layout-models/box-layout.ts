@@ -28,7 +28,7 @@ export default class BoxLayout {
     const centerPoint = new THREE.Vector3(
       this.positionX + (this.width - this.positionX) / 2.0,
       this.positionY + (this.height - this.positionY) / 2.0,
-      this.positionZ + (this.depth - this.positionZ) / 2.0,
+      this.positionZ + (this.depth - this.positionZ) / 2.0
     );
 
     return centerPoint;

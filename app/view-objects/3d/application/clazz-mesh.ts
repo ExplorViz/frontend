@@ -14,8 +14,12 @@ export default class ClazzMesh extends BoxMesh {
 
   dataModel: Class;
 
-  constructor(layout: BoxLayout, clazz: Class, defaultColor: THREE.Color,
-    highlightingColor: THREE.Color) {
+  constructor(
+    layout: BoxLayout,
+    clazz: Class,
+    defaultColor: THREE.Color,
+    highlightingColor: THREE.Color
+  ) {
     super(layout, defaultColor, highlightingColor);
 
     this.castShadow = true;

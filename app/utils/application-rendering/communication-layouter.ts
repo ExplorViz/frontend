@@ -5,12 +5,18 @@ import ComponentMesh from '../../view-objects/3d/application/component-mesh';
 import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
 import CommunicationLayout from '../../view-objects/layout-models/communication-layout';
 import { DrawableClassCommunication } from './class-communication-computer';
-import { Application, Class, Package } from '../landscape-schemes/structure-data';
+import {
+  Application,
+  Class,
+  Package,
+} from '../landscape-schemes/structure-data';
 
 let minRequests = 0;
 let maximumRequests = 0;
 
-export function calculatePipeSize(drawableClassCommunications: DrawableClassCommunication[]) {
+export function calculatePipeSize(
+  drawableClassCommunications: DrawableClassCommunication[]
+) {
   /**
    * Retrieves all requests and pushes them to a list for further processing
    */
@@ -19,7 +25,7 @@ export function calculatePipeSize(drawableClassCommunications: DrawableClassComm
 
     // Generate a list with all requests
     drawableClassCommunications.forEach((clazzCommunication) => {
-      if ((clazzCommunication.sourceClass !== clazzCommunication.targetClass)) {
+      if (clazzCommunication.sourceClass !== clazzCommunication.targetClass) {
         requestsList.push(clazzCommunication.totalRequests);
       }
     });
@@ -41,21 +47,28 @@ export function calculatePipeSize(drawableClassCommunications: DrawableClassComm
     let range = maximumRequests - minRequests;
     let normalizedRequests = 1;
     if (range !== 0) {
-      normalizedRequests = (clazzCommunication.totalRequests - minRequests) / range;
+      normalizedRequests =
+        (clazzCommunication.totalRequests - minRequests) / range;
       // normalize request count to [0.2, 1] interval
       range = 1 - 0.3;
       normalizedRequests = normalizedRequests * range + 0.5;
     }
 
     // Apply line thickness depending on calculated request category
-    pipeSizeMap.set(clazzCommunication.id, normalizedRequests * LINE_THICKNESS_FACTOR);
+    pipeSizeMap.set(
+      clazzCommunication.id,
+      normalizedRequests * LINE_THICKNESS_FACTOR
+    );
   });
   return pipeSizeMap;
 }
 
 // Communication Layouting //
-export default function applyCommunicationLayout(applicationObject3D: ApplicationObject3D,
-  boxLayoutMap: Map<string, BoxLayout>, drawableClassCommunications: DrawableClassCommunication[]) {
+export default function applyCommunicationLayout(
+  applicationObject3D: ApplicationObject3D,
+  boxLayoutMap: Map<string, BoxLayout>,
+  drawableClassCommunications: DrawableClassCommunication[]
+) {
   const application = applicationObject3D.dataModel;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
@@ -79,14 +92,16 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
         let range = maximumRequests - minRequests;
         let normalizedRequests = 1;
         if (range !== 0) {
-          normalizedRequests = (clazzCommunication.totalRequests - minRequests) / range;
+          normalizedRequests =
+            (clazzCommunication.totalRequests - minRequests) / range;
           // normalize request count to [0.2, 1] interval
           range = 1 - 0.3;
           normalizedRequests = normalizedRequests * range + 0.5;
         }
 
         // Apply line thickness depending on calculated request category
-        maybeCommunicationLayout.lineThickness = (normalizedRequests * LINE_THICKNESS_FACTOR);
+        maybeCommunicationLayout.lineThickness =
+          normalizedRequests * LINE_THICKNESS_FACTOR;
       }
     });
   } // END calculatePipeSizeFromQuantiles
@@ -97,13 +112,17 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
    *
    * @param component Component for which an open parent shall be returned
    */
-  function findFirstOpenOrLastClosedAncestorComponent(component: Package): Package {
+  function findFirstOpenOrLastClosedAncestorComponent(
+    component: Package
+  ): Package {
     const parentComponent = component.parent;
 
     if (!parentComponent) return component;
 
     // Check open status in corresponding component mesh
-    const parentMesh = applicationObject3D.getBoxMeshbyModelId(parentComponent.id);
+    const parentMesh = applicationObject3D.getBoxMeshbyModelId(
+      parentComponent.id
+    );
     if (parentMesh instanceof ComponentMesh && parentMesh.opened) {
       return component;
     }
@@ -112,7 +131,9 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
     return findFirstOpenOrLastClosedAncestorComponent(parentComponent);
   }
 
-  function getParentComponentOfDrawableCommunication(communication: DrawableClassCommunication) {
+  function getParentComponentOfDrawableCommunication(
+    communication: DrawableClassCommunication
+  ) {
     // Contains all parent components of source clazz incl. foundation in hierarchical order
     const sourceClassComponents: Package[] = [];
     const { sourceClass } = communication;
@@ -137,7 +158,11 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
 
     // Find the most inner common component
     let commonComponent: Package | null = null;
-    for (let i = 0; i < sourceClassComponents.length && i < targetClassComponents.length; i++) {
+    for (
+      let i = 0;
+      i < sourceClassComponents.length && i < targetClassComponents.length;
+      i++
+    ) {
       if (sourceClassComponents[i] === targetClassComponents[i]) {
         commonComponent = sourceClassComponents[i];
       } else {
@@ -149,16 +174,18 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
   }
 
   /**
-  * Calculates start and end positions for all drawable communications
-  */
+   * Calculates start and end positions for all drawable communications
+   */
   function layoutEdges() {
     if (drawableClassCommunications.length === 0) {
       return;
     }
     for (let i = 0; i < drawableClassCommunications.length; i++) {
-      const classCommunication: DrawableClassCommunication = drawableClassCommunications[i];
+      const classCommunication: DrawableClassCommunication =
+        drawableClassCommunications[i];
 
-      const parentComponent = getParentComponentOfDrawableCommunication(classCommunication);
+      const parentComponent =
+        getParentComponentOfDrawableCommunication(classCommunication);
 
       let parentMesh;
 
@@ -166,11 +193,15 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
         // common ancestor must be the foundation
         parentMesh = applicationObject3D.getBoxMeshbyModelId(application.id);
       } else {
-        parentMesh = applicationObject3D.getBoxMeshbyModelId(parentComponent.id);
+        parentMesh = applicationObject3D.getBoxMeshbyModelId(
+          parentComponent.id
+        );
       }
 
-      if ((parentMesh instanceof ComponentMesh && parentMesh.opened)
-        || parentMesh instanceof FoundationMesh) {
+      if (
+        (parentMesh instanceof ComponentMesh && parentMesh.opened) ||
+        parentMesh instanceof FoundationMesh
+      ) {
         let sourceEntity: Class | Package | null = null;
         let targetEntity: Class | Package | null = null;
 
@@ -178,25 +209,37 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
         const targetClazz = classCommunication.targetClass;
 
         const sourceParent = sourceClazz.parent;
-        const sourceParentMesh = applicationObject3D.getBoxMeshbyModelId(sourceParent.id);
+        const sourceParentMesh = applicationObject3D.getBoxMeshbyModelId(
+          sourceParent.id
+        );
 
         // Determine where the communication should begin
         // (clazz or component - based upon their visiblity)
-        if (sourceParentMesh instanceof ComponentMesh && sourceParentMesh.opened) {
+        if (
+          sourceParentMesh instanceof ComponentMesh &&
+          sourceParentMesh.opened
+        ) {
           sourceEntity = classCommunication.sourceClass;
         } else {
-          sourceEntity = findFirstOpenOrLastClosedAncestorComponent(sourceParent);
+          sourceEntity =
+            findFirstOpenOrLastClosedAncestorComponent(sourceParent);
         }
 
         const targetParent = targetClazz.parent;
-        const targetParentMesh = applicationObject3D.getBoxMeshbyModelId(targetParent.id);
+        const targetParentMesh = applicationObject3D.getBoxMeshbyModelId(
+          targetParent.id
+        );
 
         // Determine where the communication should end
         // (clazz or component - based upon their visiblity)
-        if (targetParentMesh instanceof ComponentMesh && targetParentMesh.opened) {
+        if (
+          targetParentMesh instanceof ComponentMesh &&
+          targetParentMesh.opened
+        ) {
           targetEntity = classCommunication.targetClass;
         } else {
-          targetEntity = findFirstOpenOrLastClosedAncestorComponent(targetParent);
+          targetEntity =
+            findFirstOpenOrLastClosedAncestorComponent(targetParent);
         }
 
         const commLayout = new CommunicationLayout(classCommunication);
@@ -221,8 +264,11 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
     calculatePipeSizeFromQuantiles();
   }
 
-  function layoutInAndOutCommunication(commu: DrawableClassCommunication,
-    internalClazz: Class, centerCommuIcon: THREE.Vector3) {
+  function layoutInAndOutCommunication(
+    commu: DrawableClassCommunication,
+    internalClazz: Class,
+    centerCommuIcon: THREE.Vector3
+  ) {
     const communicationData = layoutMap.get(commu.id);
     if (!communicationData) {
       return;
@@ -235,12 +281,15 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
       const end = new THREE.Vector3();
 
       const clazzBoxLayout = boxLayoutMap.get(internalClazz.id);
-      if (clazzBoxLayout === undefined) { return; }
+      if (clazzBoxLayout === undefined) {
+        return;
+      }
 
-      const centerPoint = new THREE.Vector3(clazzBoxLayout.positionX
-        + clazzBoxLayout.width / 2.0,
-      clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
-      clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0);
+      const centerPoint = new THREE.Vector3(
+        clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0,
+        clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
+        clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0
+      );
 
       end.x = clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0;
       end.y = centerPoint.y;
@@ -249,17 +298,29 @@ export default function applyCommunicationLayout(applicationObject3D: Applicatio
     }
   }
 
-  function layoutDrawableCommunication(commu: DrawableClassCommunication, app: Application) {
+  function layoutDrawableCommunication(
+    commu: DrawableClassCommunication,
+    app: Application
+  ) {
     const externalPortsExtension = new THREE.Vector3(3.0, 3.5, 3.0);
 
     const foundationLayout = boxLayoutMap.get(app.id);
 
-    if (!foundationLayout) { return; }
+    if (!foundationLayout) {
+      return;
+    }
 
     const centerCommuIcon = new THREE.Vector3(
-      foundationLayout.positionX + foundationLayout.width * 2.0 + externalPortsExtension.x * 4.0,
-      foundationLayout.positionY - foundationLayout.height + externalPortsExtension.y,
-      foundationLayout.positionZ + foundationLayout.depth * 2.0 - externalPortsExtension.z - 12.0,
+      foundationLayout.positionX +
+        foundationLayout.width * 2.0 +
+        externalPortsExtension.x * 4.0,
+      foundationLayout.positionY -
+        foundationLayout.height +
+        externalPortsExtension.y,
+      foundationLayout.positionZ +
+        foundationLayout.depth * 2.0 -
+        externalPortsExtension.z -
+        12.0
     );
 
     layoutInAndOutCommunication(commu, commu.sourceClass, centerCommuIcon);

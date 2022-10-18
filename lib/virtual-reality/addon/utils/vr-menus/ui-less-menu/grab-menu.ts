@@ -20,11 +20,7 @@ export default class GrabMenu extends BaseMenu {
 
   private grabbedObjectService: GrabbedObjectService;
 
-  constructor({
-    grabbedObject,
-    grabbedObjectService,
-    ...args
-  }: GrabMenuArgs) {
+  constructor({ grabbedObject, grabbedObjectService, ...args }: GrabMenuArgs) {
     super(args);
     this.grabbedObject = grabbedObject;
     this.grabbedObjectParent = null;
@@ -64,7 +60,7 @@ export default class GrabMenu extends BaseMenu {
 
     // Grab the object only when we are allowed to grab it.
     this.allowedToGrab = await this.grabbedObjectService.grabObject(
-      this.grabbedObject,
+      this.grabbedObject
     );
     if (this.allowedToGrab) {
       // If the object is grabbed by another menu already, open the scale
@@ -74,7 +70,7 @@ export default class GrabMenu extends BaseMenu {
       const otherMenu = otherController?.menuGroup.currentMenu;
       if (controller && otherController && otherMenu instanceof GrabMenu) {
         const { scaleMenu1, scaleMenu2 } = this.menuFactory.buildScaleMenus(
-          this.grabbedObject,
+          this.grabbedObject
         );
         controller.menuGroup.openMenu(scaleMenu1);
         otherController.menuGroup.openMenu(scaleMenu2);
@@ -128,14 +124,14 @@ export default class GrabMenu extends BaseMenu {
 
           const worldDirection = new THREE.Vector3().subVectors(
             controllerPosition,
-            intersectionPosWorld,
+            intersectionPosWorld
           );
 
           // Stop object from moving too close to controller.
           const yAxis = -axes[1];
           if (
-            (worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1)
-            || (worldDirection.length() <= 0.5 && yAxis > 0.1)
+            (worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1) ||
+            (worldDirection.length() <= 0.5 && yAxis > 0.1)
           ) {
             // Adapt distance for moving according to trigger value.
             direction.normalize();
@@ -145,7 +141,7 @@ export default class GrabMenu extends BaseMenu {
             this.collideWithFloor();
           }
         },
-      },
+      }
     );
   }
 

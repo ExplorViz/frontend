@@ -8,9 +8,15 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
-import { DetachableMenu, isDetachableMenu } from 'virtual-reality/utils/vr-menus/detachable-menu';
 import {
-  SerializedDetachedMenu, SerializedLandscape, SerializedVrRoom, SerialzedApp,
+  DetachableMenu,
+  isDetachableMenu,
+} from 'virtual-reality/utils/vr-menus/detachable-menu';
+import {
+  SerializedDetachedMenu,
+  SerializedLandscape,
+  SerializedVrRoom,
+  SerialzedApp,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class VrRoomSerializer extends Service {
@@ -44,7 +50,7 @@ export default class VrRoomSerializer extends Service {
   // ToDo: Add both global and local positions
   private serializeLandscape(): SerializedLandscape {
     return {
-      landscapeToken: this.landscapeTokenService.token!.value,
+      landscapeToken: this.landscapeTokenService.token?.value,
       timestamp: this.timestampService.timestamp,
     };
   }
@@ -60,9 +66,7 @@ export default class VrRoomSerializer extends Service {
     return {
       id: application.dataModel.id,
       position: application.position.toArray(),
-      quaternion: application
-        .quaternion
-        .toArray(),
+      quaternion: application.quaternion.toArray(),
       scale: application.scale.toArray(),
       openComponents: Array.from(application.openComponentIds),
       highlightedComponents: this.serializeHighlightedComponent(application),
@@ -71,17 +75,21 @@ export default class VrRoomSerializer extends Service {
 
   private serializeHighlightedComponent(application: ApplicationObject3D) {
     const { highlightedEntity } = application;
-    if (highlightedEntity && (
-      highlightedEntity instanceof ComponentMesh
-      || highlightedEntity instanceof ClazzMesh
-      || highlightedEntity instanceof ClazzCommunicationMesh)) {
-      return [{
-        appId: application.dataModel.id,
-        userId: '1',
-        entityType: highlightedEntity.constructor.name,
-        entityId: highlightedEntity.dataModel.id,
-        isHighlighted: true,
-      }];
+    if (
+      highlightedEntity &&
+      (highlightedEntity instanceof ComponentMesh ||
+        highlightedEntity instanceof ClazzMesh ||
+        highlightedEntity instanceof ClazzCommunicationMesh)
+    ) {
+      return [
+        {
+          appId: application.dataModel.id,
+          userId: '1',
+          entityType: highlightedEntity.constructor.name,
+          entityId: highlightedEntity.dataModel.id,
+          isHighlighted: true,
+        },
+      ];
     }
     return [];
   }
@@ -89,7 +97,9 @@ export default class VrRoomSerializer extends Service {
   private serializeDetachedMenus(): SerializedDetachedMenu[] {
     return this.detachedMenuGroups
       .getDetachedMenus()
-      .filter((detachedMenuGroup) => isDetachableMenu(detachedMenuGroup.currentMenu))
+      .filter((detachedMenuGroup) =>
+        isDetachableMenu(detachedMenuGroup.currentMenu)
+      )
       .map((detachedMenuGroup) => {
         const detachedMenu = detachedMenuGroup.currentMenu as DetachableMenu;
         return {

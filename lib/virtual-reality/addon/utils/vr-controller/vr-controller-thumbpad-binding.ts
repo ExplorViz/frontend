@@ -43,7 +43,7 @@ export enum VRControllerThumbpadDirection {
  * @param direction The direction to convert.
  */
 export function thumbpadDirectionToVector2(
-  direction: VRControllerThumbpadDirection,
+  direction: VRControllerThumbpadDirection
 ) {
   switch (direction) {
     case VRControllerThumbpadDirection.UP:
@@ -61,7 +61,8 @@ export function thumbpadDirectionToVector2(
 
 export default class VRControllerThumbpadBinding {
   static getDirection(axes: number[]): VRControllerThumbpadDirection {
-    if (axes[0] === 0 && axes[1] === 0) return VRControllerThumbpadDirection.NONE;
+    if (axes[0] === 0 && axes[1] === 0)
+      return VRControllerThumbpadDirection.NONE;
 
     const angle = THREE.MathUtils.RAD2DEG * Math.atan2(axes[1], axes[0]) + 180;
     if (angle < 45) return VRControllerThumbpadDirection.LEFT;
@@ -76,12 +77,14 @@ export default class VRControllerThumbpadBinding {
       threshold = 0,
     }: {
       threshold?: number;
-    } = {},
+    } = {}
   ): VRControllerThumbpadHorizontalDirection {
     // Negative values SHOULD correspond to "left" and positive values to "right".
     // See also <https://w3c.github.io/gamepad/#dom-gamepad-axes>.
-    if (axes[0] <= -threshold) return VRControllerThumbpadHorizontalDirection.LEFT;
-    if (axes[0] >= threshold) return VRControllerThumbpadHorizontalDirection.RIGHT;
+    if (axes[0] <= -threshold)
+      return VRControllerThumbpadHorizontalDirection.LEFT;
+    if (axes[0] >= threshold)
+      return VRControllerThumbpadHorizontalDirection.RIGHT;
     return VRControllerThumbpadHorizontalDirection.NONE;
   }
 
@@ -91,12 +94,13 @@ export default class VRControllerThumbpadBinding {
       threshold = 0,
     }: {
       threshold?: number;
-    } = {},
+    } = {}
   ): VRControllerThumbpadVerticalDirection {
     // Negative values SHOULD correspond to "forward" and positive values to "backward".
     // See also <https://w3c.github.io/gamepad/#dom-gamepad-axes>.
     // However, the axes are inverted in the HTC Vive, thus we swap up and down.
-    if (axes[1] <= -threshold) return VRControllerThumbpadVerticalDirection.DOWN;
+    if (axes[1] <= -threshold)
+      return VRControllerThumbpadVerticalDirection.DOWN;
     if (axes[1] >= threshold) return VRControllerThumbpadVerticalDirection.UP;
     return VRControllerThumbpadVerticalDirection.NONE;
   }
@@ -107,7 +111,7 @@ export default class VRControllerThumbpadBinding {
 
   constructor(
     labels: VRControllerThumbpadLabels,
-    callbacks: VRControllerThumbpadCallbacks,
+    callbacks: VRControllerThumbpadCallbacks
   ) {
     this.labels = labels;
     this.callbacks = callbacks;
@@ -115,29 +119,29 @@ export default class VRControllerThumbpadBinding {
 
   addLabels(
     group: VRControllerLabelGroup,
-    positions: VRControllerThumbpadLabelPositions,
+    positions: VRControllerThumbpadLabelPositions
   ): void {
     if (this.labels.labelUp && positions.positionUp) {
       group.add(
-        new VRControllerLabelMesh(this.labels.labelUp, positions.positionUp),
+        new VRControllerLabelMesh(this.labels.labelUp, positions.positionUp)
       );
     }
     if (this.labels.labelRight && positions.positionRight) {
       group.add(
         new VRControllerLabelMesh(
           this.labels.labelRight,
-          positions.positionRight,
-        ),
+          positions.positionRight
+        )
       );
     }
     if (this.labels.labelDown && positions.positionDown) {
       group.add(
-        new VRControllerLabelMesh(this.labels.labelDown, positions.positionDown),
+        new VRControllerLabelMesh(this.labels.labelDown, positions.positionDown)
       );
     }
     if (this.labels.labelLeft && positions.positionLeft) {
       group.add(
-        new VRControllerLabelMesh(this.labels.labelLeft, positions.positionLeft),
+        new VRControllerLabelMesh(this.labels.labelLeft, positions.positionLeft)
       );
     }
   }

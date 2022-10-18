@@ -16,8 +16,12 @@ export default class ComponentMesh extends BoxMesh {
   // Set by labeler
   labelMesh: ComponentLabelMesh | null = null;
 
-  constructor(layout: BoxLayout, component: Package, defaultColor: THREE.Color,
-    highlightingColor: THREE.Color) {
+  constructor(
+    layout: BoxLayout,
+    component: Package,
+    defaultColor: THREE.Color,
+    highlightingColor: THREE.Color
+  ) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;

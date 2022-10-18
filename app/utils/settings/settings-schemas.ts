@@ -1,90 +1,118 @@
-export type SettingGroup = 'Colors' | 'Highlighting' | 'Hover Effects'
-| 'Communication' | 'Popup' | 'Debugging';
+export type SettingGroup =
+  | 'Colors'
+  | 'Highlighting'
+  | 'Hover Effects'
+  | 'Communication'
+  | 'Popup'
+  | 'Debugging';
 
-export type LandscapeColorSettingId
-= 'nodeColor'
-| 'applicationColor'
-| 'communicationColor'
-| 'nodeTextColor'
-| 'applicationTextColor'
-| 'backgroundColor';
+export type LandscapeColorSettingId =
+  | 'nodeColor'
+  | 'applicationColor'
+  | 'communicationColor'
+  | 'nodeTextColor'
+  | 'applicationTextColor'
+  | 'backgroundColor';
 
 export type LandscapeHoveringSettingId = 'enableHoverEffects';
 
 export type LandscapeDebugSettingId = 'showFpsCounter';
 
-export type LandscapeSettingId
-= LandscapeColorSettingId
-| LandscapeDebugSettingId
-| LandscapeHoveringSettingId;
+export type LandscapeSettingId =
+  | LandscapeColorSettingId
+  | LandscapeDebugSettingId
+  | LandscapeHoveringSettingId;
 
-export type ApplicationColorSettingId
-= 'foundationColor'
-| 'componentOddColor'
-| 'componentEvenColor'
-| 'clazzColor'
-| 'highlightedEntityColor'
-| 'componentTextColor'
-| 'clazzTextColor'
-| 'foundationTextColor'
-| 'communicationColor'
-| 'communicationArrowColor'
-| 'backgroundColor';
+export type ApplicationColorSettingId =
+  | 'foundationColor'
+  | 'componentOddColor'
+  | 'componentEvenColor'
+  | 'clazzColor'
+  | 'highlightedEntityColor'
+  | 'componentTextColor'
+  | 'clazzTextColor'
+  | 'foundationTextColor'
+  | 'communicationColor'
+  | 'communicationArrowColor'
+  | 'backgroundColor';
 
-export type ApplicationHighlightingSettingId
-= 'keepHighlightingOnOpenOrClose'
-| 'transparencyIntensity';
+export type ApplicationHighlightingSettingId =
+  | 'keepHighlightingOnOpenOrClose'
+  | 'transparencyIntensity';
 
 export type ApplicationHoveringSettingId = 'enableHoverEffects';
 
 export type ApplicationCommunicationSettingId =
-| 'commArrowSize'
-| 'curvyCommHeight';
+  | 'commArrowSize'
+  | 'curvyCommHeight';
 
 export type ApplicationDebugSettingId = 'showFpsCounter';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
-export type ApplicationSettingId
-= ApplicationColorSettingId
-| ApplicationHighlightingSettingId
-| ApplicationHoveringSettingId
-| ApplicationCommunicationSettingId
-| ApplicationDebugSettingId
-| ApplicationPopupSettingId;
+export type ApplicationSettingId =
+  | ApplicationColorSettingId
+  | ApplicationHighlightingSettingId
+  | ApplicationHoveringSettingId
+  | ApplicationCommunicationSettingId
+  | ApplicationDebugSettingId
+  | ApplicationPopupSettingId;
 
-export type LandscapeColorSettings = Record<LandscapeColorSettingId, ColorSetting>;
+export type LandscapeColorSettings = Record<
+  LandscapeColorSettingId,
+  ColorSetting
+>;
 
-export type LandscapeHoveringSettings = Record<LandscapeHoveringSettingId, FlagSetting>;
+export type LandscapeHoveringSettings = Record<
+  LandscapeHoveringSettingId,
+  FlagSetting
+>;
 
-export type LandscapeDebugSettings = Record<LandscapeDebugSettingId, FlagSetting>;
+export type LandscapeDebugSettings = Record<
+  LandscapeDebugSettingId,
+  FlagSetting
+>;
 
-export type ApplicationColorSettings = Record<ApplicationColorSettingId, ColorSetting>;
+export type ApplicationColorSettings = Record<
+  ApplicationColorSettingId,
+  ColorSetting
+>;
 
 export type ApplicationHighlightingSettings = {
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
 };
 
-export type ApplicationHoveringSettings = Record<ApplicationHoveringSettingId, FlagSetting>;
+export type ApplicationHoveringSettings = Record<
+  ApplicationHoveringSettingId,
+  FlagSetting
+>;
 
-export type ApplicationCommunicationSettings
-= Record<ApplicationCommunicationSettingId, RangeSetting>;
+export type ApplicationCommunicationSettings = Record<
+  ApplicationCommunicationSettingId,
+  RangeSetting
+>;
 
-export type ApplicationDebugSettings = Record<ApplicationDebugSettingId, FlagSetting>;
+export type ApplicationDebugSettings = Record<
+  ApplicationDebugSettingId,
+  FlagSetting
+>;
 
-export type ApplicationPopupSettings = Record<ApplicationPopupSettingId, FlagSetting>;
+export type ApplicationPopupSettings = Record<
+  ApplicationPopupSettingId,
+  FlagSetting
+>;
 
-export type ApplicationSettings
-= ApplicationColorSettings
-& ApplicationHighlightingSettings
-& ApplicationHoveringSettings
-& ApplicationDebugSettings
-& ApplicationPopupSettings
-& ApplicationCommunicationSettings;
+export type ApplicationSettings = ApplicationColorSettings &
+  ApplicationHighlightingSettings &
+  ApplicationHoveringSettings &
+  ApplicationDebugSettings &
+  ApplicationPopupSettings &
+  ApplicationCommunicationSettings;
 
-export type LandscapeSettings = LandscapeColorSettings
-& LandscapeHoveringSettings & LandscapeDebugSettings;
+export type LandscapeSettings = LandscapeColorSettings &
+  LandscapeHoveringSettings &
+  LandscapeDebugSettings;
 
 export interface Setting<T> {
   value: T;

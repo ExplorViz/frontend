@@ -2,8 +2,11 @@ import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/applic
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import {Color} from 'three';
-import { Application, Node } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Color } from 'three';
+import {
+  Application,
+  Node,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 module('Unit | View Object | 3d/landscape/application-mesh', (hooks) => {
   setupTest(hooks);
@@ -12,9 +15,15 @@ module('Unit | View Object | 3d/landscape/application-mesh', (hooks) => {
     const planeLayout = new PlaneLayout();
     const defaultColor = new Color('green');
 
-    const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
+    const applicationMesh = new ApplicationMesh(
+      planeLayout,
+      application,
+      defaultColor
+    );
 
-    const highlightingColor = applicationMesh.highlightingColor.getHexString().toLowerCase();
+    const highlightingColor = applicationMesh.highlightingColor
+      .getHexString()
+      .toLowerCase();
 
     const redColor = 'ff0000';
     assert.equal(highlightingColor, redColor);
@@ -24,7 +33,11 @@ module('Unit | View Object | 3d/landscape/application-mesh', (hooks) => {
     const planeLayout = new PlaneLayout();
     const defaultColor = new Color('green');
 
-    const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
+    const applicationMesh = new ApplicationMesh(
+      planeLayout,
+      application,
+      defaultColor
+    );
 
     assert.equal(application, applicationMesh.dataModel);
   });
@@ -33,9 +46,14 @@ module('Unit | View Object | 3d/landscape/application-mesh', (hooks) => {
     const planeLayout = new PlaneLayout();
     const defaultColor = new Color('#ff00ff');
 
-    const applicationMesh = new ApplicationMesh(planeLayout, application, defaultColor);
+    const applicationMesh = new ApplicationMesh(
+      planeLayout,
+      application,
+      defaultColor
+    );
 
-    const applicationMaterialColor = applicationMesh.material.color.getHexString();
+    const applicationMaterialColor =
+      applicationMesh.material.color.getHexString();
 
     assert.equal(applicationMaterialColor, defaultColor.getHexString());
   });

@@ -18,7 +18,9 @@ export default class EntityManipulation extends Service.extend({
         object3D.updateColor();
         // Special case because communication arrow is no base mesh
       } else if (object3D instanceof CommunicationArrowMesh) {
-        object3D.updateColor(this.configuration.applicationColors.communicationArrowColor);
+        object3D.updateColor(
+          this.configuration.applicationColors.communicationArrowColor
+        );
       }
     });
   }

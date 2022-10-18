@@ -1,14 +1,21 @@
 import { DynamicLandscapeData, Span } from '../landscape-schemes/dynamic-data';
 import {
   Application,
-  Class, StructureLandscapeData,
+  Class,
+  StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import { getHashCodeToClassMap, getApplicationFromClass } from '../landscape-structure-helpers';
+import {
+  getHashCodeToClassMap,
+  getApplicationFromClass,
+} from '../landscape-structure-helpers';
 import isObject from '../object-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 
-function computeClassCommunicationRecursively(span: Span, spanIdToChildSpanMap: Map<string, Span[]>,
-  hashCodeToClassMap: Map<string, Class>) {
+function computeClassCommunicationRecursively(
+  span: Span,
+  spanIdToChildSpanMap: Map<string, Span[]>,
+  hashCodeToClassMap: Map<string, Class>
+) {
   const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
   if (childSpans === undefined) {
@@ -26,18 +33,26 @@ function computeClassCommunicationRecursively(span: Span, spanIdToChildSpanMap: 
     const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
     if (classMatchingChildSpan !== undefined) {
       // retrieve operationName
-      const methodMatchingSpanHash = classMatchingChildSpan
-        .methods.find((method) => method.hashCode === childSpan.hashCode);
+      const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
+        (method) => method.hashCode === childSpan.hashCode
+      );
 
-      const methodName = methodMatchingSpanHash ? methodMatchingSpanHash.name : 'UNKNOWN';
+      const methodName = methodMatchingSpanHash
+        ? methodMatchingSpanHash.name
+        : 'UNKNOWN';
 
       classCommunications.push({
         sourceClass: classMatchingSpan,
         targetClass: classMatchingChildSpan,
         operationName: methodName,
       });
-      classCommunications.push(...computeClassCommunicationRecursively(childSpan,
-        spanIdToChildSpanMap, hashCodeToClassMap));
+      classCommunications.push(
+        ...computeClassCommunicationRecursively(
+          childSpan,
+          spanIdToChildSpanMap,
+          hashCodeToClassMap
+        )
+      );
     }
   });
 
@@ -46,7 +61,7 @@ function computeClassCommunicationRecursively(span: Span, spanIdToChildSpanMap: 
 
 export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData,
+  landscapeDynamicData: DynamicLandscapeData
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -61,51 +76,73 @@ export default function computeDrawableClassCommunication(
 
     if (traceSpanTree) {
       const firstSpan = traceSpanTree.root;
-      totalClassCommunications.push(...computeClassCommunicationRecursively(firstSpan,
-        traceSpanTree.tree, hashCodeToClassMap));
+      totalClassCommunications.push(
+        ...computeClassCommunicationRecursively(
+          firstSpan,
+          traceSpanTree.tree,
+          hashCodeToClassMap
+        )
+      );
     }
   });
 
-  const aggregatedDrawableClassCommunications = new Map<string, DrawableClassCommunication>();
+  const aggregatedDrawableClassCommunications = new Map<
+    string,
+    DrawableClassCommunication
+  >();
 
-  totalClassCommunications.forEach(({ sourceClass, targetClass, operationName }) => {
-    const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
+  totalClassCommunications.forEach(
+    ({ sourceClass, targetClass, operationName }) => {
+      const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
-    // get source app
-    const sourceApp = getApplicationFromClass(landscapeStructureData, sourceClass);
+      // get source app
+      const sourceApp = getApplicationFromClass(
+        landscapeStructureData,
+        sourceClass
+      );
 
-    // get target app
-    const targetApp = getApplicationFromClass(landscapeStructureData, targetClass);
+      // get target app
+      const targetApp = getApplicationFromClass(
+        landscapeStructureData,
+        targetClass
+      );
 
-    // Find all identical method calls based on their source
-    // and target app / class
-    // and aggregate identical method calls with exactly same source
-    // and target app / class within a single representative
-    const drawableClassCommunication = aggregatedDrawableClassCommunications
-      .get(sourceTargetClassMethodId);
+      // Find all identical method calls based on their source
+      // and target app / class
+      // and aggregate identical method calls with exactly same source
+      // and target app / class within a single representative
+      const drawableClassCommunication =
+        aggregatedDrawableClassCommunications.get(sourceTargetClassMethodId);
 
-    if (!drawableClassCommunication) {
-      aggregatedDrawableClassCommunications.set(sourceTargetClassMethodId, {
-        id: sourceTargetClassMethodId,
-        totalRequests: 1,
-        sourceClass,
-        targetClass,
-        operationName,
-        sourceApp,
-        targetApp,
-      });
-    } else {
-      drawableClassCommunication.totalRequests++;
+      if (!drawableClassCommunication) {
+        aggregatedDrawableClassCommunications.set(sourceTargetClassMethodId, {
+          id: sourceTargetClassMethodId,
+          totalRequests: 1,
+          sourceClass,
+          targetClass,
+          operationName,
+          sourceApp,
+          targetApp,
+        });
+      } else {
+        drawableClassCommunication.totalRequests++;
+      }
     }
-  });
+  );
 
-  const drawableClassCommunications = [...aggregatedDrawableClassCommunications.values()];
+  const drawableClassCommunications = [
+    ...aggregatedDrawableClassCommunications.values(),
+  ];
 
   return drawableClassCommunications;
 }
 
-export function isDrawableClassCommunication(x: any): x is DrawableClassCommunication {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests');
+export function isDrawableClassCommunication(
+  x: any
+): x is DrawableClassCommunication {
+  return (
+    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests')
+  );
 }
 
 interface ClassCommunication {

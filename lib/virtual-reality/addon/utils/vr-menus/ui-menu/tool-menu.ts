@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import TextTexture from 'virtual-reality/utils/vr-helpers/text-texture';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding, { VRControllerThumbpadHorizontalDirection } from '../../vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, {
+  VRControllerThumbpadHorizontalDirection,
+} from '../../vr-controller/vr-controller-thumbpad-binding';
 import { BaseMenuArgs } from '../base-menu';
 import InteractiveMenu from '../interactive-menu';
 import { SIZE_RESOLUTION_FACTOR } from '../ui-menu';
@@ -65,17 +67,20 @@ export default class ToolMenu extends InteractiveMenu {
     this.addTool({
       label: 'Zoom',
       icon: 'search',
-      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildZoomMenu()),
+      action: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildZoomMenu()),
     });
     this.addDefaultTool({
       label: 'Options',
       icon: 'gear',
-      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildMainMenu()),
+      action: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildMainMenu()),
     });
     this.addTool({
       label: 'Heatmap',
       icon: 'flame',
-      action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildHeatmapMenu()),
+      action: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildHeatmapMenu()),
     });
     // this.addTool({
     //   label: 'Ping',
@@ -96,7 +101,8 @@ export default class ToolMenu extends InteractiveMenu {
   private addTool({ label, icon, action }: ToolArgs) {
     const group = new THREE.Group();
     this.add(group);
-    group.position.x = this.tools.length * (TOOL_X_OFFSET + 2 * TOOL_CIRCLE_RADIUS);
+    group.position.x =
+      this.tools.length * (TOOL_X_OFFSET + 2 * TOOL_CIRCLE_RADIUS);
 
     const backgroundMesh = this.buildBackgroundMesh();
     group.add(backgroundMesh);
@@ -139,7 +145,7 @@ export default class ToolMenu extends InteractiveMenu {
   private buildBackgroundMesh() {
     const geometry = new THREE.CircleGeometry(
       TOOL_CIRCLE_RADIUS,
-      TOOL_CIRCLE_SEGMENTS,
+      TOOL_CIRCLE_SEGMENTS
     );
     const material = new THREE.MeshBasicMaterial({
       color: BACKGROUND_COLOR,
@@ -152,11 +158,11 @@ export default class ToolMenu extends InteractiveMenu {
 
   private buildIconMesh(icon: string) {
     const texture = new THREE.TextureLoader().load(
-      `images/menu-icons/${icon}-128.png`,
+      `images/menu-icons/${icon}-128.png`
     );
     const geometry = new THREE.CircleGeometry(
       TOOL_ICON_RADIUS,
-      TOOL_CIRCLE_SEGMENTS,
+      TOOL_CIRCLE_SEGMENTS
     );
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -228,7 +234,7 @@ export default class ToolMenu extends InteractiveMenu {
       enableAnimation = true,
     }: {
       enableAnimation?: boolean;
-    } = {},
+    } = {}
   ) {
     // While an animation is playing, no other tool can be selected.
     if (this.currentSelectAnimation) return;
@@ -251,9 +257,9 @@ export default class ToolMenu extends InteractiveMenu {
           new THREE.KeyframeTrack(
             '.position[x]',
             [0.0, SELECT_ANIMATION_DURATION],
-            [this.position.x, targetPositionX],
+            [this.position.x, targetPositionX]
           ),
-        ]),
+        ])
       );
       this.currentSelectAnimation.setLoop(THREE.LoopOnce, 0);
       this.currentSelectAnimation.clampWhenFinished = true;
@@ -351,7 +357,7 @@ export default class ToolMenu extends InteractiveMenu {
               break;
           }
         },
-      },
+      }
     );
   }
 

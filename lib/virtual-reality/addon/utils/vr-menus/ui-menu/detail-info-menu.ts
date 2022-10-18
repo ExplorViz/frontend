@@ -1,6 +1,10 @@
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
-import composeContent, { EntityMesh, getIdOfEntity, getTypeOfEntity } from '../../vr-helpers/detail-info-composer';
+import composeContent, {
+  EntityMesh,
+  getIdOfEntity,
+  getTypeOfEntity,
+} from '../../vr-helpers/detail-info-composer';
 import { EntityType } from '../../vr-message/util/entity_type';
 import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';

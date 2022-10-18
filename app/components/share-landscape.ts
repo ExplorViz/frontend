@@ -24,10 +24,16 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   @action
   async grantAccess() {
     try {
-      await this.sendModifyAccess(this.args.token.value, this.username, 'grant');
+      await this.sendModifyAccess(
+        this.args.token.value,
+        this.username,
+        'grant'
+      );
       this.args.token.sharedUsersIds.addObject(this.username);
 
-      AlertifyHandler.showAlertifySuccess(`Access of ${this.username} granted for token ${this.args.token.value}`);
+      AlertifyHandler.showAlertifySuccess(
+        `Access of ${this.username} granted for token ${this.args.token.value}`
+      );
     } catch (e) {
       AlertifyHandler.showAlertifySuccess(e.message);
     }
@@ -38,7 +44,9 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     try {
       await this.sendModifyAccess(this.args.token.value, userId, 'revoke');
       this.args.token.sharedUsersIds.removeObject(userId);
-      AlertifyHandler.showAlertifySuccess(`Access of ${userId} revoked for token ${this.args.token.value}`);
+      AlertifyHandler.showAlertifySuccess(
+        `Access of ${userId} revoked for token ${this.args.token.value}`
+      );
     } catch (e) {
       AlertifyHandler.showAlertifySuccess(e.message);
     }
@@ -49,7 +57,9 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     try {
       await this.sendModifyAccess(this.args.token.value, userId, 'clone');
       this.args.reload();
-      AlertifyHandler.showAlertifySuccess(`Cloned token ${this.args.token.value}`);
+      AlertifyHandler.showAlertifySuccess(
+        `Cloned token ${this.args.token.value}`
+      );
     } catch (e) {
       AlertifyHandler.showAlertifySuccess(e.message);
     }
@@ -59,12 +69,15 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     return new Promise<undefined>((resolve, reject) => {
       const encodedUserId = encodeURI(userId);
 
-      fetch(`${userService}/token/${tokenId}/${encodedUserId}?method=${method}`, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-        },
-        method: 'POST',
-      })
+      fetch(
+        `${userService}/token/${tokenId}/${encodedUserId}?method=${method}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+          method: 'POST',
+        }
+      )
         .then(async (response: Response) => {
           if (response.ok) {
             resolve(undefined);

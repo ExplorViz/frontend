@@ -21,7 +21,8 @@ export default class ScaleMenu extends BaseMenu {
    * the two scale menus.
    */
   private scaleGrabbedObject() {
-    const scale = this.sharedState.currentDistance / this.sharedState.initialDistance;
+    const scale =
+      this.sharedState.currentDistance / this.sharedState.initialDistance;
     this.sharedState.grabbedObject.scale
       .copy(this.sharedState.initialScale)
       .multiplyScalar(scale);
@@ -73,7 +74,7 @@ export default class ScaleMenu extends BaseMenu {
         // menu when the grip is released.
         this.sharedState.isGrabbedByBoth = false;
         this.closeMenusWhile(
-          (menu) => menu instanceof ScaleMenu || menu instanceof GrabMenu,
+          (menu) => menu instanceof ScaleMenu || menu instanceof GrabMenu
         );
       },
     });

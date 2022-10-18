@@ -14,12 +14,12 @@ export type ObjectMovedMessage = {
 
 export function isObjectMovedMessage(msg: any): msg is ObjectMovedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === OBJECT_MOVED_EVENT
-    && typeof msg.objectId === 'string'
-    && isPosition(msg.position)
-    && isQuaternion(msg.quaternion)
-    && isScale(msg.scale)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === OBJECT_MOVED_EVENT &&
+    typeof msg.objectId === 'string' &&
+    isPosition(msg.position) &&
+    isQuaternion(msg.quaternion) &&
+    isScale(msg.scale)
   );
 }

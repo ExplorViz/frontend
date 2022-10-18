@@ -11,10 +11,10 @@ export type PopupOpenedMessage = {
 
 export function isPopupOpenedMessage(msg: any): msg is PopupOpenedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === POPUP_OPENED_EVENT
-    && typeof msg.id === 'string'
-    && isPosition(msg.position)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === POPUP_OPENED_EVENT &&
+    typeof msg.id === 'string' &&
+    isPosition(msg.position)
   );
 }

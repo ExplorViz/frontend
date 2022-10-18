@@ -1,10 +1,15 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
-import Configuration, { ApplicationColors, LandscapeColors } from 'explorviz-frontend/services/configuration';
+import Configuration, {
+  ApplicationColors,
+} from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import isObject from 'explorviz-frontend/utils/object-helpers';
-import { ApplicationColorSettingId, ColorSetting, LandscapeColorSettingId } from 'explorviz-frontend/utils/settings/settings-schemas';
+import {
+  ApplicationColorSettingId,
+  ColorSetting,
+  LandscapeColorSettingId,
+} from 'explorviz-frontend/utils/settings/settings-schemas';
 import Picker from 'vanilla-picker';
 
 interface Args {
@@ -26,11 +31,14 @@ export default class ColorPicker extends Component<Args> {
   userSettings!: UserSettings;
 
   @action
-  setupApplicationColorpicker(colorName: keyof ApplicationColors, element: HTMLElement) {
+  setupApplicationColorpicker(
+    colorName: keyof ApplicationColors,
+    element: HTMLElement
+  ) {
     const colorObject = this.configuration.applicationColors[colorName];
     this.setupColorpicker(element, {
       colorObject,
-      colorName
+      colorName,
     });
   }
 
@@ -41,8 +49,10 @@ export default class ColorPicker extends Component<Args> {
    * @param element The HTML colorpicker element
    * @param configColor Reference to the respective color in the configuration service
    */
-  setupColorpicker(element: HTMLElement,
-    colorPickerObject: ColorPickerObjectApplication) {
+  setupColorpicker(
+    element: HTMLElement,
+    colorPickerObject: ColorPickerObjectApplication
+  ) {
     // eslint-disable-next-line
 
     const picker = new Picker(element);
@@ -50,18 +60,20 @@ export default class ColorPicker extends Component<Args> {
     element.style.background = colorPickerObject.colorObject.getStyle();
 
     picker.setOptions({
-      "popup":"left",
-      "color": colorPickerObject.colorObject.getHexString(),
-      "alpha": false
+      popup: 'left',
+      color: colorPickerObject.colorObject.getHexString(),
+      alpha: false,
     });
 
     picker.onChange = (color) => {
       element.style.background = color.rgbaString;
       const inputColor = color.printHex();
       colorPickerObject.colorObject.set(inputColor);
-      this.userSettings.updateApplicationSetting(colorPickerObject.colorName, inputColor);
-      this.args.updateColors();      
-    };   
+      this.userSettings.updateApplicationSetting(
+        colorPickerObject.colorName,
+        inputColor
+      );
+      this.args.updateColors();
+    };
   }
-
 }

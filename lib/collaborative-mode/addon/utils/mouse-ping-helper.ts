@@ -15,7 +15,13 @@ export default class MousePing {
   }
 
   @restartableTask
-  public* ping({ parentObj, position }: { parentObj: THREE.Object3D; position: THREE.Vector3; }) {
+  public *ping({
+    parentObj,
+    position,
+  }: {
+    parentObj: THREE.Object3D;
+    position: THREE.Vector3;
+  }) {
     if (this.mesh) {
       this.mesh.parent?.remove(this.mesh);
     }

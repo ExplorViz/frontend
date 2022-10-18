@@ -138,13 +138,14 @@ export default class CameraMenu extends UiMenu {
     return new VRControllerThumbpadBinding(
       { labelUp: 'Up', labelDown: 'Down' },
       {
-        onThumbpadPress: (controller, axes) => this.onThumbpadPress(controller, axes),
+        onThumbpadPress: (controller, axes) =>
+          this.onThumbpadPress(controller, axes),
         onThumbpadUp: () => {
           this.heightDownButton.resetHoverEffectByButton();
           this.heightUpButton.resetHoverEffectByButton();
           this.redrawMenu();
         },
-      },
+      }
     );
   }
 }

@@ -10,8 +10,14 @@ import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { UserDisconnectedMessage, USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import { SpectatingUpdateMessage, SPECTATING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
+import {
+  UserDisconnectedMessage,
+  USER_DISCONNECTED_EVENT,
+} from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
+import {
+  SpectatingUpdateMessage,
+  SPECTATING_UPDATE_EVENT,
+} from 'virtual-reality/utils/vr-message/sendable/spectating_update';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 
 export default class SpectateUserService extends Service {
@@ -85,23 +91,27 @@ export default class SpectateUserService extends Service {
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(
           this.spectatedUser.camera.model.position,
-          { adaptCameraHeight: true },
+          { adaptCameraHeight: true }
         );
       } else {
-        this.localUser.camera.position.copy(this.spectatedUser.camera.model.position);
-        this.localUser.camera.quaternion.copy(this.spectatedUser.camera.model.quaternion);
+        this.localUser.camera.position.copy(
+          this.spectatedUser.camera.model.position
+        );
+        this.localUser.camera.quaternion.copy(
+          this.spectatedUser.camera.model.quaternion
+        );
       }
     } else if (this.spectatingUsers.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,
         this.localUser.controller1,
-        this.localUser.controller2,
+        this.localUser.controller2
       );
       if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
         this.sender.sendPoseUpdate(
           poses.camera,
           poses.controller1,
-          poses.controller2,
+          poses.controller2
         );
       }
       this.lastPose = poses;
@@ -178,10 +188,7 @@ export default class SpectateUserService extends Service {
     userId,
     originalMessage: { isSpectating, spectatedUser },
   }: ForwardedMessage<SpectatingUpdateMessage>): void {
-    const remoteUser = this.setRemoteUserSpectatingById(
-      userId,
-      isSpectating,
-    );
+    const remoteUser = this.setRemoteUserSpectatingById(userId, isSpectating);
     if (!remoteUser) return;
 
     const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
@@ -205,7 +212,7 @@ export default class SpectateUserService extends Service {
 
   private setRemoteUserSpectatingById(
     userId: string,
-    isSpectating: boolean,
+    isSpectating: boolean
   ): RemoteUser | undefined {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
@@ -213,10 +220,7 @@ export default class SpectateUserService extends Service {
       remoteUser.setVisible(!isSpectating);
 
       // If we spectated the remote user before, stop spectating.
-      if (
-        isSpectating
-        && this.spectatedUser?.userId === remoteUser.userId
-      ) {
+      if (isSpectating && this.spectatedUser?.userId === remoteUser.userId) {
         this.deactivate();
       }
     }
