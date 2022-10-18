@@ -14,6 +14,8 @@ module.exports = {
   ],
   extends: [
     'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
     'plugin:import/errors',
     'plugin:import/typescript',
     'plugin:qunit/recommended',
@@ -27,6 +29,7 @@ module.exports = {
     auth0: false,
   },
   rules: {
+    'prettier/prettier': 'error',
     'linebreak-style': 'off',
     'class-methods-use-this': 'off',
     'import/no-unresolved': 'off',
