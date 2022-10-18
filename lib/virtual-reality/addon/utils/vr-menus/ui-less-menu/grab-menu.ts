@@ -40,25 +40,9 @@ export default class GrabMenu extends BaseMenu {
     // since the object was requested to be grabbed.
     const controller = VRController.findController(this);
     if (controller && this.isMenuOpen) {
-      // Get inverse of controller transformation.
-      //const matrix = new THREE.Matrix4();
-      //matrix.getInverse(controller.gripSpace.matrixWorld);
-
-      const matrix = new THREE.Matrix4();
-      matrix.copyPosition(controller.gripSpace.matrixWorld);
-      //matrix.invert();
-
       // Store original parent of grabbed object.
       this.grabbedObjectParent = this.grabbedObject.parent;
-
-      // Set transforamtion relative to controller transformation.
-      this.grabbedObject.matrix.premultiply(matrix);
-      this.grabbedObject.matrix.decompose(
-        this.grabbedObject.position,
-        this.grabbedObject.quaternion,
-        this.grabbedObject.scale,
-      );
-      controller.gripSpace.add(this.grabbedObject);
+      controller.controllerModel.attach(this.grabbedObject);
     }
   }
 
@@ -70,19 +54,8 @@ export default class GrabMenu extends BaseMenu {
     // If the object has not been grabbed, it cannot be released.
     if (!this.grabbedObjectParent) return;
 
-    // Undo transformation of controller.
-    const controller = VRController.findController(this);
-    if (controller) {
-      this.grabbedObject.matrix.premultiply(controller.gripSpace.matrixWorld);
-      this.grabbedObject.matrix.decompose(
-        this.grabbedObject.position,
-        this.grabbedObject.quaternion,
-        this.grabbedObject.scale,
-      );
-    }
-
     // Restore original parent.
-    this.grabbedObjectParent.add(this.grabbedObject);
+    this.grabbedObjectParent.attach(this.grabbedObject);
     this.grabbedObjectParent = null;
   }
 
