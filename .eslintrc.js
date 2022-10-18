@@ -33,7 +33,6 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-this-alias': 'off',
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
@@ -43,6 +42,13 @@ module.exports = {
     'linebreak-style': 'off',
     'class-methods-use-this': 'off',
     'import/no-unresolved': 'off',
+    '@typescript-eslint/no-this-alias': [
+      'error',
+      {
+        allowDestructuring: true,
+        allowedNames: ['self'],
+      },
+    ],
     'require-yield': 'off',
     'no-plusplus': 'off',
     'import/no-cycle': 'off',
