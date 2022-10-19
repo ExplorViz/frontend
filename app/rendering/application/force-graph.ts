@@ -1,6 +1,6 @@
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-// @ts-ignore
+// @ts-ignore: no types atm
 import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';

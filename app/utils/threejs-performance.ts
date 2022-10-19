@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore: no types atm
 import Stats from 'stats.js';
 import $ from 'jquery';
 

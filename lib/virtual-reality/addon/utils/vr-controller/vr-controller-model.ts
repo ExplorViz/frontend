@@ -97,7 +97,7 @@ export default class VrControllerModel extends Object3D {
     this.envMap = envMap;
     this.traverse((child) => {
       if (child instanceof Mesh && child.material instanceof Material) {
-        // @ts-ignore
+        // @ts-ignore: ...
         child.material.envMap = this.envMap;
         child.material.needsUpdate = true;
       }

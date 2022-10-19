@@ -1,5 +1,5 @@
 import $ from 'jquery';
-// @ts-ignore until types for AlertifyJS are available
+// @ts-ignore: no types atm
 import alertify from 'alertifyjs';
 
 type AlertifyPosition =
