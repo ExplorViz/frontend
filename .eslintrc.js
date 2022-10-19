@@ -34,7 +34,6 @@ module.exports = {
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
-    '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/type-annotation-spacing': ['error'],
     'linebreak-style': 'off',
     'class-methods-use-this': 'off',
