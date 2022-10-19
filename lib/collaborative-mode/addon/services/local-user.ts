@@ -56,10 +56,8 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
-      console.log('init xr');
       return this.xr.getCamera();
     } else {
-      console.log('init default');
       this.userGroup.add(this.defaultCamera);
     }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
@@ -68,10 +66,8 @@ export default class LocalUser extends Service.extend({
 
   get camera() {
     if (this.xr?.isPresenting) {
-      console.log('camera');
       return this.xr.getCamera();
     }
-    console.log('persepectivecamera');
     return this.defaultCamera;
   }
 
