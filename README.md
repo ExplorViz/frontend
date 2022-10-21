@@ -1,28 +1,33 @@
-# explorviz-frontend
+# ExplorViz
 
-This README outlines the details of collaborating on this Ember application.
-A short introduction of this app could easily go here.
+ExplorViz is a software visualization as a service approach that researches how to facilitate program comprehension via collaboration and device-heterogenity.
 
-## Prerequisites
+Our [website](https://explorviz.dev) contains additional information such as a quickstart guide and a demo.
+
+## Frontend
+
+This repository contains ExplorViz' frontend component. Below you can find instructions that outline the details of collaborating on this software.
+
+### Prerequisites
 
 You will need the following things properly installed on your computer.
 
 - [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/) (with npm)
+- [Node.js 16](https://nodejs.org/) (with npm)
 - [Ember CLI](https://cli.emberjs.com/release/)
-- [Google Chrome](https://google.com/chrome/)
 
-## Installation
+### Installation
 
 - `git clone <repository-url>` this repository
 - `cd explorviz-frontend`
 - `npm install`
 
-## Running / Development
+### Running / Development
 
-- `ember serve`
-- Visit your app at [http://localhost:4200](http://localhost:4200).
-- Visit your tests at [http://localhost:4200/tests](http://localhost:4200/tests).
+- Copy configuration file: `cp .env .env-custom`
+- In `.env-custom`: change `AUTH0_ENABLED` to false.
+- Start application: `DOTENV=.env-custom ember s`
+- Open frontend at [http://localhost:4200](http://localhost:4200).
 
 ### Code Generators
 
@@ -40,17 +45,5 @@ Make use of the many generators for code, try `ember help generate` for more det
 
 ### Building
 
-- `ember build` (development)
-- `ember build --environment production` (production)
-
-### Deploying
-
-Specify what it takes to deploy your app.
-
-## Further Reading / Useful Links
-
-- [ember.js](https://emberjs.com/)
-- [ember-cli](https://cli.emberjs.com/release/)
-- Development Browser Extensions
-  - [ember inspector for chrome](https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi)
-  - [ember inspector for firefox](https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/)
+- `ember build --prod`
+- For a given Docker tag `X`: `docker build --no-cache -t explorviz/explorviz-frontend:X`
