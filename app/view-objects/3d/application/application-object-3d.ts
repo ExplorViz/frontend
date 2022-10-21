@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
@@ -64,7 +64,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
-  tick(_delta: number): void { }
+  tick(_delta: number): void {
+    // will be overriden
+  }
 
   /**
    * Resets this object's rotation to default
@@ -129,7 +131,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   initializeGlobeAnimation() {
-    if (!this.globeMesh) { return; }
+    if (!this.globeMesh) {
+      return;
+    }
 
     const period = 1000;
     const times = [0, period];
@@ -147,7 +151,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   repositionGlobeToApplication() {
-    if (!this.globeMesh) { return; }
+    if (!this.globeMesh) {
+      return;
+    }
 
     const applicationCenter = this.layout.center;
 
@@ -338,7 +344,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
     if (max <= 0) return;
 
     const appDimensions = new THREE.Box3().setFromObject(this);
-    const scalar = max / Math.max(...appDimensions.getSize(new THREE.Vector3()).toArray());
+    const scalar =
+      max / Math.max(...appDimensions.getSize(new THREE.Vector3()).toArray());
 
     this.scale.multiplyScalar(scalar);
   }

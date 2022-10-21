@@ -1,14 +1,21 @@
 import Component from '@glimmer/component';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import {
-  Application, Class, isApplication, isClass, isNode, isPackage, Node, Package,
+  Application,
+  Class,
+  isApplication,
+  isClass,
+  isNode,
+  isPackage,
+  Node,
+  Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 interface Args {
   popupData: {
-    mouseX: number,
-    mouseY: number,
-    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel
+    mouseX: number;
+    mouseY: number;
+    entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
   };
 }
 

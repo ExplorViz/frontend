@@ -3,11 +3,11 @@ export type RoomCreatedResponse = {
 };
 
 export function isRoomCreatedResponse(
-  response: any,
+  response: any
 ): response is RoomCreatedResponse {
   return (
-    response !== null
-    && typeof response === 'object'
-    && typeof response.roomId === 'string'
+    response !== null &&
+    typeof response === 'object' &&
+    typeof response.roomId === 'string'
   );
 }

@@ -1,11 +1,18 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   dataModel: DrawableClassCommunication;
 
-  constructor(dataModel: DrawableClassCommunication, dir: THREE.Vector3,
-    origin: THREE.Vector3, length: number, color: number, headLength: number, headWidth: number) {
+  constructor(
+    dataModel: DrawableClassCommunication,
+    dir: THREE.Vector3,
+    origin: THREE.Vector3,
+    length: number,
+    color: number,
+    headLength: number,
+    headWidth: number
+  ) {
     super(dir, origin, length, color, headLength, headWidth);
     this.dataModel = dataModel;
   }
@@ -20,11 +27,15 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
     const { line } = this;
     line.geometry.dispose();
 
-    if (line.material instanceof THREE.Material) { line.material.dispose(); }
+    if (line.material instanceof THREE.Material) {
+      line.material.dispose();
+    }
 
     const { cone } = this;
     cone.geometry.dispose();
-    if (cone.material instanceof THREE.Material) { cone.material.dispose(); }
+    if (cone.material instanceof THREE.Material) {
+      cone.material.dispose();
+    }
   }
 
   updateColor(color: THREE.Color) {

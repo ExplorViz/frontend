@@ -9,13 +9,15 @@ export type MousePingUpdateMessage = {
   position: Position;
 };
 
-export function isMousePingUpdateMessage(msg: any): msg is MousePingUpdateMessage {
+export function isMousePingUpdateMessage(
+  msg: any
+): msg is MousePingUpdateMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === MOUSE_PING_UPDATE_EVENT
-    && typeof msg.modelId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === MOUSE_PING_UPDATE_EVENT &&
+    typeof msg.modelId === 'string' &&
     // && typeof msg.isApplication === 'boolean'
-    && isPosition(msg.position)
+    isPosition(msg.position)
   );
 }

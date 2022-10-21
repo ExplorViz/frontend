@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import HudMenu from '../../hud-menu';
 import TextItem from '../../items/text-item';
 import { UiMenuArgs } from '../../ui-menu';

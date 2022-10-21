@@ -15,30 +15,30 @@ export type UserPositionsMessage = {
 
 function isPose(pose: any): pose is Pose {
   return (
-    pose !== null
-    && typeof pose === 'object'
-    && isPosition(pose.position)
-    && isQuaternion(pose.quaternion)
+    pose !== null &&
+    typeof pose === 'object' &&
+    isPosition(pose.position) &&
+    isQuaternion(pose.quaternion)
   );
 }
 
 function isControllerPose(pose: any): pose is ControllerPose {
   return (
-    pose !== null
-    && typeof pose === 'object'
-    && isPosition(pose.position)
-    && isQuaternion(pose.quaternion)
-    && (isPosition(pose.intersection) || pose.intersection === null)
+    pose !== null &&
+    typeof pose === 'object' &&
+    isPosition(pose.position) &&
+    isQuaternion(pose.quaternion) &&
+    (isPosition(pose.intersection) || pose.intersection === null)
   );
 }
 
 export function isUserPositionsMessage(msg: any): msg is UserPositionsMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === USER_POSITIONS_EVENT
-    && isPose(msg.camera)
-    && (!msg.controller1 || isControllerPose(msg.controller1))
-    && (!msg.controller2 || isControllerPose(msg.controller2))
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_POSITIONS_EVENT &&
+    isPose(msg.camera) &&
+    (!msg.controller1 || isControllerPose(msg.controller1)) &&
+    (!msg.controller2 || isControllerPose(msg.controller2))
   );
 }

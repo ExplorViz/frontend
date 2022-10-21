@@ -1,14 +1,17 @@
 import debugLogger from 'ember-debug-logger';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
 import TeleportMesh from './view-objects/vr/teleport-mesh';
 import VRControllerBindingsList from './vr-controller/vr-controller-bindings-list';
 import VRControllerLabelGroup from './vr-controller/vr-controller-label-group';
 import VrControllerModel from './vr-controller/vr-controller-model';
 import VrControllerModelFactory from './vr-controller/vr-controller-model-factory';
-import { displayAsSolidObject, displayAsWireframe } from './vr-helpers/wireframe';
+import {
+  displayAsSolidObject,
+  displayAsWireframe,
+} from './vr-helpers/wireframe';
 import MenuGroup from './vr-menus/menu-group';
 import { ControllerId } from './vr-message/util/controller_id';
 /**
@@ -146,7 +149,7 @@ export default class VRController extends BaseMesh {
     // Init controller model
     const controllerModelFactory = VrControllerModelFactory.INSTANCE;
     this.controllerModel = controllerModelFactory.createControllerModel(
-      this.gripSpace,
+      this.gripSpace
     );
     this.raySpace.add(this.controllerModel);
 
@@ -262,7 +265,8 @@ export default class VRController extends BaseMesh {
 
     // Remove and dispose ray
     this.raySpace.remove(this.ray);
-    if (this.ray.material instanceof THREE.Material) this.ray.material.dispose();
+    if (this.ray.material instanceof THREE.Material)
+      this.ray.material.dispose();
     this.ray.geometry.dispose();
     this.ray = null;
   }
@@ -310,8 +314,8 @@ export default class VRController extends BaseMesh {
 
       // Handle change in joystick / thumbpad position
       if (
-        this.axes[0] !== gamepad.axes[2]
-        || this.axes[1] !== gamepad.axes[3]
+        this.axes[0] !== gamepad.axes[2] ||
+        this.axes[1] !== gamepad.axes[3]
       ) {
         [this.axes[0], this.axes[1]] = [gamepad.axes[2], gamepad.axes[3]];
         if (callbacks.thumbpadTouch) {
@@ -398,8 +402,10 @@ export default class VRController extends BaseMesh {
 
     for (let i = 0; i < intersections.length; i++) {
       const intersection = intersections[i];
-      if (canIntersectAllParentObjects(intersection, { onlyVisible: true })
-        && defaultRaycastFilter(intersection)) {
+      if (
+        canIntersectAllParentObjects(intersection, { onlyVisible: true }) &&
+        defaultRaycastFilter(intersection)
+      ) {
         return intersection;
       }
     }

@@ -1,91 +1,45 @@
-{{!-- template-lint-disable simple-unless --}}
-<div
-  class="sidebar-component-close"
-  {{on "click" this.close}}
->
-  {{svg-jar "x-16" class="octicon"}}
+{{! template-lint-disable simple-unless }}
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
 </div>
 
-{{#if @isLandscapeView}}
-  {{#each-in this.landscapeSettingsSortedByGroup as |groupId settingIdArray|}}
-    {{#unless (is-empty settingIdArray)}}
-      <h6 class="mb-3 mt-3"><strong>{{groupId}}</strong></h6>
-      {{#if (eq groupId "Colors")}}
-        <div id="colorHeader" class="mb-2">
-          <Visualization::PageSetup::Sidebar::ColorSchemeSelector
-            @colorSchemes={{this.colorSchemes}}
-            @applyColorScheme={{this.applyColorScheme}}
-          />
-        </div>
-      {{/if}}
-      <div class="ml-3">
-        {{#each settingIdArray as |settingId|}}
-          {{#let
-            (get this.userSettings.landscapeSettings settingId)
-            as |setting|
-          }}
-            {{#if setting.isFlagSetting}}
-              <Visualization::PageSetup::Sidebar::Settings::FlagSetting
-                @setting={{setting}}
-                @onChange={{fn this.updateFlagSetting settingId}}
-              />
-            {{else if setting.isRangeSetting}}
-              <Visualization::PageSetup::Sidebar::Settings::RangeSetting
-                @setting={{setting}}
-                @onChange={{fn this.updateRangeSetting settingId}}
-              />
-            {{else if setting.isColorSetting}}
-              <Visualization::PageSetup::Sidebar::ColorPicker
-                @id={{settingId}}
-                @setting={{setting}}
-                @updateColors={{@updateColors}}
-                @isLandscapeView={{@isLandscapeView}}
-              />
-            {{/if}}
-          {{/let}}
-        {{/each}}
+{{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
+  {{#unless (is-empty settingIdArray)}}
+    <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>
+    {{#if (eq groupId 'Colors')}}
+      <div id='colorHeader' class='mb-2'>
+        <Visualization::PageSetup::Sidebar::ColorSchemeSelector
+          @colorSchemes={{this.colorSchemes}}
+          @applyColorScheme={{this.applyColorScheme}}
+        />
       </div>
-    {{/unless}}
-  {{/each-in}}
-{{else}}
-  {{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
-    {{#unless (is-empty settingIdArray)}}
-      <h6 class="mb-3 mt-3"><strong>{{groupId}}</strong></h6>
-      {{#if (eq groupId "Colors")}}
-        <div id="colorHeader" class="mb-2">
-          <Visualization::PageSetup::Sidebar::ColorSchemeSelector
-            @colorSchemes={{this.colorSchemes}}
-            @applyColorScheme={{this.applyColorScheme}}
-          />
-        </div>
-      {{/if}}
-      <div class="ml-3">
-        {{#each settingIdArray as |settingId|}}
-          {{#let
-            (get this.userSettings.applicationSettings settingId)
-            as |setting|
-          }}
-            {{#if setting.isFlagSetting}}
-              <Visualization::PageSetup::Sidebar::Settings::FlagSetting
-                @setting={{setting}}
-                @onChange={{fn this.updateFlagSetting settingId}}
-              />
-            {{else if setting.isRangeSetting}}
-              <Visualization::PageSetup::Sidebar::Settings::RangeSetting
-                @setting={{setting}}
-                @onChange={{fn this.updateRangeSetting settingId}}
-              />
-            {{else if setting.isColorSetting}}
-              <Visualization::PageSetup::Sidebar::ColorPicker
-                @id={{settingId}}
-                @setting={{setting}}
-                @updateColors={{@updateColors}}
-                @isLandscapeView={{@isLandscapeView}}
-              />
-            {{/if}}
-          {{/let}}
-        {{/each}}
-      </div>
-    {{/unless}}
-  {{/each-in}}
-{{/if}}
+    {{/if}}
+    <div class='ml-3'>
+      {{#each settingIdArray as |settingId|}}
+        {{#let
+          (get this.userSettings.applicationSettings settingId)
+          as |setting|
+        }}
+          {{#if setting.isFlagSetting}}
+            <Visualization::PageSetup::Sidebar::Settings::FlagSetting
+              @setting={{setting}}
+              @onChange={{fn this.updateFlagSetting settingId}}
+            />
+          {{else if setting.isRangeSetting}}
+            <Visualization::PageSetup::Sidebar::Settings::RangeSetting
+              @setting={{setting}}
+              @onChange={{fn this.updateRangeSetting settingId}}
+            />
+          {{else if setting.isColorSetting}}
+            <Visualization::PageSetup::Sidebar::ColorPicker
+              @id={{settingId}}
+              @setting={{setting}}
+              @updateColors={{@updateColors}}
+              @isLandscapeView={{@isLandscapeView}}
+            />
+          {{/if}}
+        {{/let}}
+      {{/each}}
+    </div>
+  {{/unless}}
+{{/each-in}}

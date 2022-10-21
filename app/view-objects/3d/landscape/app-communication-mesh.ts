@@ -1,14 +1,18 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { MeshLine, MeshLineMaterial } from 'meshline';
 import BaseMesh from '../base-mesh';
 
 // Simple 2-dimensional point
-type Point = { x: number, y: number };
+type Point = { x: number; y: number };
 
 // Blueprint for application communication
 type Tile = {
-  startPoint: Point, endPoint: Point, positionZ: number, requestsCache: number,
-  lineThickness: number, pipeColor: THREE.Color
+  startPoint: Point;
+  endPoint: Point;
+  positionZ: number;
+  requestsCache: number;
+  lineThickness: number;
+  pipeColor: THREE.Color;
 };
 
 export default class AppCommunicationMesh extends BaseMesh {
@@ -24,17 +28,23 @@ export default class AppCommunicationMesh extends BaseMesh {
     const firstVector = new THREE.Vector3(
       tile.startPoint.x,
       tile.startPoint.y,
-      tile.positionZ,
+      tile.positionZ
     );
 
     const secondVector = new THREE.Vector3(
       tile.endPoint.x,
       tile.endPoint.y,
-      tile.positionZ,
+      tile.positionZ
     );
 
-    const points = [firstVector.x, firstVector.y, firstVector.z,
-      secondVector.x, secondVector.y, secondVector.z];
+    const points = [
+      firstVector.x,
+      firstVector.y,
+      firstVector.z,
+      secondVector.x,
+      secondVector.y,
+      secondVector.z,
+    ];
 
     const geometry = new MeshLine();
     geometry.setPoints(points, () => tile.lineThickness);

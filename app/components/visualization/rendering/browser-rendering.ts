@@ -20,18 +20,25 @@ import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repositor
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import {
+  Span,
+  Trace,
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE, { Vector3 } from 'three';
+import { Vector3 } from 'three';
+import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -40,8 +47,8 @@ interface BrowserRenderingArgs {
   readonly selectedTimestampRecords: Timestamp[];
   openDataSelection(): void;
   toggleVisualizationUpdating(): void;
-  switchToAR(): void,
-  switchToVR(): void,
+  switchToAR(): void;
+  switchToVR(): void;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -107,7 +114,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private collaborationSession!: CollaborationSession;
 
   get selectedApplicationObject3D() {
-    return this.applicationRenderer.getApplicationById(this.selectedApplicationId);
+    return this.applicationRenderer.getApplicationById(
+      this.selectedApplicationId
+    );
   }
 
   get camera() {
@@ -132,7 +141,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
     // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 100);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      1.0,
+      0.1,
+      100
+    );
     this.camera.position.set(5, 5, 5);
 
     this.applicationRenderer.getOpenApplications().clear();
@@ -157,14 +171,26 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get rightClickMenuItems() {
-    const commButtonTitle = this.configuration.isCommRendered ? 'Hide Communication' : 'Add Communication';
-    const heatmapButtonTitle = this.heatmapConf.heatmapActive ? 'Disable Heatmap' : 'Enable Heatmap';
-    const pauseItemtitle = this.args.visualizationPaused ? 'Resume Visualization' : 'Pause Visualization';
+    const commButtonTitle = this.configuration.isCommRendered
+      ? 'Hide Communication'
+      : 'Add Communication';
+    const heatmapButtonTitle = this.heatmapConf.heatmapActive
+      ? 'Disable Heatmap'
+      : 'Enable Heatmap';
+    const pauseItemtitle = this.args.visualizationPaused
+      ? 'Resume Visualization'
+      : 'Pause Visualization';
 
     return [
       { title: 'Reset View', action: this.resetView },
-      { title: 'Open All Components', action: this.applicationRenderer.openAllComponentsOfAllApplications },
-      { title: commButtonTitle, action: this.applicationRenderer.toggleCommunicationRendering },
+      {
+        title: 'Open All Components',
+        action: this.applicationRenderer.openAllComponentsOfAllApplications,
+      },
+      {
+        title: commButtonTitle,
+        action: this.applicationRenderer.toggleCommunicationRendering,
+      },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
@@ -174,26 +200,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   /**
-     * Highlights a trace or specified trace step.
-     * Opens all component meshes to make whole trace visible.
-     *
-     * @param trace Trace which shall be highlighted.
-     * @param step Step of the trace which shall be highlighted. Default is 1.
-     */
+   * Highlights a trace or specified trace step.
+   * Opens all component meshes to make whole trace visible.
+   *
+   * @param trace Trace which shall be highlighted.
+   * @param step Step of the trace which shall be highlighted. Default is 1.
+   */
   @action
   highlightTrace(trace: Trace, traceStep: string) {
     if (this.selectedApplicationObject3D) {
       this.highlightingService.highlightTrace(
-        trace, traceStep,
+        trace,
+        traceStep,
         this.selectedApplicationObject3D,
-        this.args.landscapeData.structureLandscapeData,
+        this.args.landscapeData.structureLandscapeData
       );
     }
   }
 
   @action
   resetView() {
-    this.cameraControls.focusCameraOn(1.2, ...this.applicationRenderer.getOpenApplications());
+    this.cameraControls.focusCameraOn(
+      1.2,
+      ...this.applicationRenderer.getOpenApplications()
+    );
   }
 
   @action
@@ -226,8 +256,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   /**
-     * Initiates a WebGLRenderer
-     */
+   * Initiates a WebGLRenderer
+   */
   private initRenderer() {
     const { width, height } = this.canvas;
     this.renderer = new THREE.WebGLRenderer({
@@ -248,7 +278,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.focusCameraOn(1.2, ...this.applicationRenderer.getOpenApplications());
+          this.cameraControls.focusCameraOn(
+            1.2,
+            ...this.applicationRenderer.getOpenApplications()
+          );
         }, 200);
         this.initDone = true;
       }
@@ -256,13 +289,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.cameraControls);
     this.updatables.push(this.localUser);
 
-    this.renderingLoop = new RenderingLoop(getOwner(this),
-      {
-        camera: this.camera,
-        scene: this.scene,
-        renderer: this.renderer,
-        updatables: this.updatables,
-      });
+    this.renderingLoop = new RenderingLoop(getOwner(this), {
+      camera: this.camera,
+      scene: this.scene,
+      renderer: this.renderer,
+      updatables: this.updatables,
+    });
     this.renderingLoop.start();
   }
 
@@ -340,7 +372,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   showApplication(appId: string) {
     this.removePopup(appId);
-    const applicationObject3D = this.applicationRenderer.getApplicationById(appId);
+    const applicationObject3D =
+      this.applicationRenderer.getApplicationById(appId);
     if (applicationObject3D) {
       this.cameraControls.focusCameraOn(0.8, applicationObject3D);
     }
@@ -348,12 +381,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
-    const { value: enableAppHoverEffects } = this.appSettings.enableHoverEffects;
+    const { value: enableAppHoverEffects } =
+      this.appSettings.enableHoverEffects;
 
     // Update hover effect
-    if (isEntityMesh(mesh)
-      && enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
-      if (this.hoveredObject) { this.hoveredObject.resetHoverEffect(); }
+    if (
+      isEntityMesh(mesh) &&
+      enableAppHoverEffects &&
+      !this.heatmapConf.heatmapActive
+    ) {
+      if (this.hoveredObject) {
+        this.hoveredObject.resetHoverEffect();
+      }
 
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
@@ -395,17 +434,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   /**
-     * Moves camera such that a specified clazz or clazz communication is in focus.
-     *
-     * @param model Clazz or clazz communication which shall be in focus of the camera
-     */
+   * Moves camera such that a specified clazz or clazz communication is in focus.
+   *
+   * @param model Clazz or clazz communication which shall be in focus of the camera
+   */
   @action
   moveCameraTo(emberModel: Class | Span) {
     if (!this.selectedApplicationObject3D) {
       return;
     }
-    moveCameraTo(emberModel, this.selectedApplicationObject3D,
-      this.args.landscapeData.dynamicLandscapeData, this.cameraControls);
+    moveCameraTo(
+      emberModel,
+      this.selectedApplicationObject3D,
+      this.args.landscapeData.dynamicLandscapeData,
+      this.cameraControls
+    );
   }
 
   @action
@@ -414,11 +457,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   /**
-    * This overridden Ember Component lifecycle hook enables calling
-    * ExplorViz's custom cleanup code.
-    *
-    * @method willDestroy
-    */
+   * This overridden Ember Component lifecycle hook enables calling
+   * ExplorViz's custom cleanup code.
+   *
+   * @method willDestroy
+   */
   willDestroy() {
     super.willDestroy();
 

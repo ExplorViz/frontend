@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from '../vr-controller';
 import VRControllerBindings from './vr-controller-bindings';
 import VRControllerBindingsList from './vr-controller-bindings-list';
@@ -14,7 +14,7 @@ export default class VRControllerLabelGroup extends THREE.Group {
   static set visibilitySetting(visible: boolean) {
     window.localStorage.setItem(
       'explorviz.vr.labels.visible',
-      visible.toString(),
+      visible.toString()
     );
   }
 

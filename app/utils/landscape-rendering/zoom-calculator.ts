@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import MinMaxRectangle from 'explorviz-frontend/view-objects/layout-models/min-max-rectangle';
 
 /**
@@ -8,8 +8,11 @@ import MinMaxRectangle from 'explorviz-frontend/view-objects/layout-models/min-m
  * @param camera Object to which the zoom is applied
  * @param renderer Renderer is needed to calculate viewPortSize
  */
-export default function updateCameraZoom(landscapeRect: MinMaxRectangle,
-  camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer) {
+export default function updateCameraZoom(
+  landscapeRect: MinMaxRectangle,
+  camera: THREE.PerspectiveCamera,
+  renderer: THREE.WebGLRenderer
+) {
   const INITIAL_CAM_ZOOM = 0;
   // Update zoom only if camera has not been moved by user
   if (camera.position.z !== INITIAL_CAM_ZOOM) {

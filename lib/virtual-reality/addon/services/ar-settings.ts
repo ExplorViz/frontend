@@ -44,9 +44,11 @@ export default class ArSettings extends Service.extend({
   }
 
   updateApplicationOpacity() {
-    this.applicationRenderer.getOpenApplications().forEach((applicationObject3D) => {
-      applicationObject3D.setOpacity(this.applicationOpacity);
-    });
+    this.applicationRenderer
+      .getOpenApplications()
+      .forEach((applicationObject3D) => {
+        applicationObject3D.setOpacity(this.applicationOpacity);
+      });
   }
 }
 

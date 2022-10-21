@@ -1,58 +1,38 @@
 declare module 'webxr-polyfill';
 
-type XRSessionMode =
-    | 'inline'
-    | 'immersive-vr'
-    | 'immersive-ar';
+type XRSessionMode = 'inline' | 'immersive-vr' | 'immersive-ar';
 
 type XRReferenceSpaceType =
-    | 'viewer'
-    | 'local'
-    | 'local-floor'
-    | 'bounded-floor'
-    | 'unbounded';
+  | 'viewer'
+  | 'local'
+  | 'local-floor'
+  | 'bounded-floor'
+  | 'unbounded';
 
-type XREnvironmentBlendMode =
-    | 'opaque'
-    | 'additive'
-    | 'alpha-blend';
+type XREnvironmentBlendMode = 'opaque' | 'additive' | 'alpha-blend';
 
-type XRVisibilityState =
-    | 'visible'
-    | 'visible-blurred'
-    | 'hidden';
+type XRVisibilityState = 'visible' | 'visible-blurred' | 'hidden';
 
-type XRHandedness =
-    | 'none'
-    | 'left'
-    | 'right';
+type XRHandedness = 'none' | 'left' | 'right';
 
-type XRTargetRayMode =
-    | 'gaze'
-    | 'tracked-pointer'
-    | 'screen';
+type XRTargetRayMode = 'gaze' | 'tracked-pointer' | 'screen';
 
-type XREye =
-    | 'none'
-    | 'left'
-    | 'right';
+type XREye = 'none' | 'left' | 'right';
 
 type XREventType =
-    | 'devicechange'
-    | 'visibilitychange'
-    | 'end'
-    | 'inputsourceschange'
-    | 'select'
-    | 'selectstart'
-    | 'selectend'
-    | 'squeeze'
-    | 'squeezestart'
-    | 'squeezeend'
-    | 'reset';
+  | 'devicechange'
+  | 'visibilitychange'
+  | 'end'
+  | 'inputsourceschange'
+  | 'select'
+  | 'selectstart'
+  | 'selectend'
+  | 'squeeze'
+  | 'squeezestart'
+  | 'squeezeend'
+  | 'reset';
 
-interface XRSpace extends EventTarget {
-
-}
+interface XRSpace extends EventTarget {}
 
 interface XRRenderState {
   depthNear?: number;
@@ -87,15 +67,19 @@ interface XRSession {
 
   // hit test
   requestHitTestSource(options: XRHitTestOptionsInit): Promise<XRHitTestSource>;
-  requestHitTestSourceForTransientInput(options: XRTransientInputHitTestOptionsInit):
-  Promise<XRTransientInputHitTestSource>;
+  requestHitTestSourceForTransientInput(
+    options: XRTransientInputHitTestOptionsInit
+  ): Promise<XRTransientInputHitTestSource>;
 
   // legacy AR hit test
-  requestHitTest(ray: XRRay, referenceSpace: XRReferenceSpace): Promise<XRHitResult[]>;
+  requestHitTest(
+    ray: XRRay,
+    referenceSpace: XRReferenceSpace
+  ): Promise<XRHitResult[]>;
 
   // legacy plane detection
   updateWorldTrackingState(options: {
-    planeDetectionState?: { enabled: boolean; }
+    planeDetectionState?: { enabled: boolean };
   }): void;
 }
 
@@ -113,9 +97,10 @@ interface XRFrame {
   getPose(space: XRSpace, baseSpace: XRSpace): XRPose | undefined;
 
   // AR
-  getHitTestResults(hitTestSource: XRHitTestSource): Array<XRHitTestResult> ;
-  getHitTestResultsForTransientInput(hitTestSource: XRTransientInputHitTestSource):
-  Array<XRTransientInputHitTestResult>;
+  getHitTestResults(hitTestSource: XRHitTestSource): Array<XRHitTestResult>;
+  getHitTestResultsForTransientInput(
+    hitTestSource: XRTransientInputHitTestSource
+  ): Array<XRTransientInputHitTestResult>;
   // Anchors
   trackedAnchors?: XRAnchorSet;
   createAnchor(pose: XRRigidTransform, space: XRSpace): Promise<XRAnchor>;
@@ -145,8 +130,11 @@ interface XRWebGLLayerOptions {
 
 declare class XRWebGLLayer {
   static getNativeFramebufferScaleFactor(session: XRSession): number;
-  constructor(session: XRSession, context: WebGLRenderingContext | WebGL2RenderingContext,
-    layerInit?: XRWebGLLayerInit);
+  constructor(
+    session: XRSession,
+    context: WebGLRenderingContext | WebGL2RenderingContext,
+    layerInit?: XRWebGLLayerInit
+  );
   readonly antialias: boolean;
 
   readonly framebuffer: WebGLFramebuffer;
@@ -179,7 +167,10 @@ interface XRInputSourceEvent extends Event {
 
 // Experimental(er) features
 declare class XRRay {
-  constructor(transformOrOrigin: XRRigidTransform | DOMPointInit, direction?: DOMPointInit);
+  constructor(
+    transformOrOrigin: XRRigidTransform | DOMPointInit,
+    direction?: DOMPointInit
+  );
 
   origin: DOMPointReadOnly;
 

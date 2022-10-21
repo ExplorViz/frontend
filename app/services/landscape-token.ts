@@ -2,12 +2,12 @@
 import Service from '@ember/service';
 
 export type LandscapeToken = {
-  alias: string,
-  created: number,
-  ownerId: string,
-  secret?: string,
-  sharedUsersIds: string[],
-  value: string,
+  alias: string;
+  created: number;
+  ownerId: string;
+  secret?: string;
+  sharedUsersIds: string[];
+  value: string;
 };
 
 export default class LandscapeTokenService extends Service {
@@ -20,7 +20,9 @@ export default class LandscapeTokenService extends Service {
   }
 
   restoreToken() {
-    const currentLandscapeTokenJSON = localStorage.getItem('currentLandscapeToken');
+    const currentLandscapeTokenJSON = localStorage.getItem(
+      'currentLandscapeToken'
+    );
 
     if (currentLandscapeTokenJSON === null) {
       this.set('token', null);
@@ -47,27 +49,29 @@ export default class LandscapeTokenService extends Service {
   }
 
   private isValidToken(token: unknown): token is LandscapeToken {
-    return (this.isObject(token)
-      && Object.keys(token).length === 5
-      && {}.hasOwnProperty.call(token, 'alias')
-      && {}.hasOwnProperty.call(token, 'created')
-      && {}.hasOwnProperty.call(token, 'ownerId')
-      && {}.hasOwnProperty.call(token, 'sharedUsersIds')
-      && {}.hasOwnProperty.call(token, 'value')
-      && (
-        !{}.hasOwnProperty.call(token, 'secret')
-        || typeof (<LandscapeToken>token).secret === 'string'
-      )
-      && typeof (<LandscapeToken>token).alias === 'string'
-      && typeof (<LandscapeToken>token).created === 'number'
-      && typeof (<LandscapeToken>token).ownerId === 'string'
-      && this.isStringArray((<LandscapeToken>token).sharedUsersIds)
-      && typeof (<LandscapeToken>token).value === 'string');
+    return (
+      this.isObject(token) &&
+      Object.keys(token).length === 5 &&
+      {}.hasOwnProperty.call(token, 'alias') &&
+      {}.hasOwnProperty.call(token, 'created') &&
+      {}.hasOwnProperty.call(token, 'ownerId') &&
+      {}.hasOwnProperty.call(token, 'sharedUsersIds') &&
+      {}.hasOwnProperty.call(token, 'value') &&
+      (!{}.hasOwnProperty.call(token, 'secret') ||
+        typeof (<LandscapeToken>token).secret === 'string') &&
+      typeof (<LandscapeToken>token).alias === 'string' &&
+      typeof (<LandscapeToken>token).created === 'number' &&
+      typeof (<LandscapeToken>token).ownerId === 'string' &&
+      this.isStringArray((<LandscapeToken>token).sharedUsersIds) &&
+      typeof (<LandscapeToken>token).value === 'string'
+    );
   }
 
   private isStringArray(possibleArray: unknown) {
-    return Array.isArray(possibleArray)
-      && possibleArray.every((item) => typeof item === 'string');
+    return (
+      Array.isArray(possibleArray) &&
+      possibleArray.every((item) => typeof item === 'string')
+    );
   }
 
   private isObject(variable: unknown): variable is object {

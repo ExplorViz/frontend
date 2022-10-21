@@ -211,9 +211,10 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildScaleMenus(
-    grabbedObject: GrabbableObject,
-  ): { scaleMenu1: ScaleMenu; scaleMenu2: ScaleMenu } {
+  buildScaleMenus(grabbedObject: GrabbableObject): {
+    scaleMenu1: ScaleMenu;
+    scaleMenu2: ScaleMenu;
+  } {
     const sharedState = new SharedScaleMenuState(grabbedObject);
     return {
       scaleMenu1: new ScaleMenu({ sharedState, menuFactory: this }),

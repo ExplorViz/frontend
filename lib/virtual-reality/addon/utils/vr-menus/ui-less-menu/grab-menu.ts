@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import VRController from 'virtual-reality/utils/vr-controller';
@@ -20,11 +20,7 @@ export default class GrabMenu extends BaseMenu {
 
   private grabbedObjectService: GrabbedObjectService;
 
-  constructor({
-    grabbedObject,
-    grabbedObjectService,
-    ...args
-  }: GrabMenuArgs) {
+  constructor({ grabbedObject, grabbedObjectService, ...args }: GrabMenuArgs) {
     super(args);
     this.grabbedObject = grabbedObject;
     this.grabbedObjectParent = null;
@@ -40,21 +36,9 @@ export default class GrabMenu extends BaseMenu {
     // since the object was requested to be grabbed.
     const controller = VRController.findController(this);
     if (controller && this.isMenuOpen) {
-      // Get inverse of controller transformation.
-      const matrix = new THREE.Matrix4();
-      matrix.getInverse(controller.gripSpace.matrixWorld);
-
       // Store original parent of grabbed object.
       this.grabbedObjectParent = this.grabbedObject.parent;
-
-      // Set transforamtion relative to controller transformation.
-      this.grabbedObject.matrix.premultiply(matrix);
-      this.grabbedObject.matrix.decompose(
-        this.grabbedObject.position,
-        this.grabbedObject.quaternion,
-        this.grabbedObject.scale,
-      );
-      controller.gripSpace.add(this.grabbedObject);
+      controller.controllerModel.attach(this.grabbedObject);
     }
   }
 
@@ -66,19 +50,8 @@ export default class GrabMenu extends BaseMenu {
     // If the object has not been grabbed, it cannot be released.
     if (!this.grabbedObjectParent) return;
 
-    // Undo transformation of controller.
-    const controller = VRController.findController(this);
-    if (controller) {
-      this.grabbedObject.matrix.premultiply(controller.gripSpace.matrixWorld);
-      this.grabbedObject.matrix.decompose(
-        this.grabbedObject.position,
-        this.grabbedObject.quaternion,
-        this.grabbedObject.scale,
-      );
-    }
-
     // Restore original parent.
-    this.grabbedObjectParent.add(this.grabbedObject);
+    this.grabbedObjectParent.attach(this.grabbedObject);
     this.grabbedObjectParent = null;
   }
 
@@ -87,7 +60,7 @@ export default class GrabMenu extends BaseMenu {
 
     // Grab the object only when we are allowed to grab it.
     this.allowedToGrab = await this.grabbedObjectService.grabObject(
-      this.grabbedObject,
+      this.grabbedObject
     );
     if (this.allowedToGrab) {
       // If the object is grabbed by another menu already, open the scale
@@ -97,7 +70,7 @@ export default class GrabMenu extends BaseMenu {
       const otherMenu = otherController?.menuGroup.currentMenu;
       if (controller && otherController && otherMenu instanceof GrabMenu) {
         const { scaleMenu1, scaleMenu2 } = this.menuFactory.buildScaleMenus(
-          this.grabbedObject,
+          this.grabbedObject
         );
         controller.menuGroup.openMenu(scaleMenu1);
         otherController.menuGroup.openMenu(scaleMenu2);
@@ -151,14 +124,14 @@ export default class GrabMenu extends BaseMenu {
 
           const worldDirection = new THREE.Vector3().subVectors(
             controllerPosition,
-            intersectionPosWorld,
+            intersectionPosWorld
           );
 
           // Stop object from moving too close to controller.
           const yAxis = -axes[1];
           if (
-            (worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1)
-            || (worldDirection.length() <= 0.5 && yAxis > 0.1)
+            (worldDirection.length() > 0.5 && Math.abs(yAxis) > 0.1) ||
+            (worldDirection.length() <= 0.5 && yAxis > 0.1)
           ) {
             // Adapt distance for moving according to trigger value.
             direction.normalize();
@@ -168,7 +141,7 @@ export default class GrabMenu extends BaseMenu {
             this.collideWithFloor();
           }
         },
-      },
+      }
     );
   }
 

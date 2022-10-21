@@ -7,9 +7,9 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface ArSettingsSelectorArgs {
-  removeComponent(componentPath: string): void
-  updateCameraResolution(width: number, height: number): void
-  updateRendererResolution(multiplier: number): void
+  removeComponent(componentPath: string): void;
+  updateCameraResolution(width: number, height: number): void;
+  updateRendererResolution(multiplier: number): void;
 }
 
 export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs> {
@@ -44,7 +44,9 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
     super(owner, args);
 
     this.buttonSize = ArSettingsSelector.getCssVminSize('--ar-button-size');
-    this.buttonPadding = ArSettingsSelector.getCssVminSize('--ar-button-padding');
+    this.buttonPadding = ArSettingsSelector.getCssVminSize(
+      '--ar-button-padding'
+    );
   }
 
   @action
@@ -59,13 +61,17 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
 
   @action
   updateCommunicationWidth(event: any) {
-    this.configuration.commWidthMultiplier = Number.parseFloat(event.target.value);
+    this.configuration.commWidthMultiplier = Number.parseFloat(
+      event.target.value
+    );
     this.applicationRenderer.updateCommunication();
   }
 
   @action
   updateCommunicationHeight(event: any) {
-    this.configuration.commCurveHeightMultiplier = Number.parseFloat(event.target.value);
+    this.configuration.commCurveHeightMultiplier = Number.parseFloat(
+      event.target.value
+    );
     this.applicationRenderer.updateCommunication();
   }
 

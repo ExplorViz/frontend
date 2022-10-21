@@ -1,5 +1,5 @@
-import THREE from 'three';
-import vrControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
+import * as THREE from 'three';
+import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../ui-menu';
 
@@ -22,9 +22,7 @@ export default class ZoomMenu extends UiMenu {
 
   headsetCamera!: THREE.Camera;
 
-  constructor({
-    renderer, scene, headsetCamera, ...args
-  }: ZoomMenuArgs) {
+  constructor({ renderer, scene, headsetCamera, ...args }: ZoomMenuArgs) {
     super(args);
     this.renderer = renderer;
     this.scene = scene;
@@ -32,7 +30,7 @@ export default class ZoomMenu extends UiMenu {
 
     this.target = new THREE.WebGLRenderTarget(
       this.resolution.width,
-      this.resolution.height,
+      this.resolution.height
     );
 
     const worldSizeFactor = SIZE_RESOLUTION_FACTOR / 2;
@@ -81,7 +79,7 @@ export default class ZoomMenu extends UiMenu {
     const direction = new THREE.Vector3();
     direction.subVectors(
       this.worldToLocal(lensPosition),
-      this.worldToLocal(headsetPosition),
+      this.worldToLocal(headsetPosition)
     );
 
     const rotationX = Math.atan2(direction.z, direction.y) + Math.PI / 2;
@@ -94,7 +92,7 @@ export default class ZoomMenu extends UiMenu {
     const slope = (zoomMax - zoomMin) / maxZoomDistance;
     this.lensCamera.zoom = Math.max(
       zoomMax - slope * direction.length(),
-      zoomMin,
+      zoomMin
     );
     this.lensCamera.updateProjectionMatrix();
 
@@ -115,11 +113,11 @@ export default class ZoomMenu extends UiMenu {
         onThumbpadDown: () => {
           this.closeMenu();
         },
-      },
+      }
     );
   }
 
-  makeMenuButtonBinding(): vrControllerButtonBinding<unknown> {
+  makeMenuButtonBinding(): VRControllerButtonBinding<unknown> {
     return new VRControllerButtonBinding('Close', {
       onButtonDown: () => this.closeMenu(),
     });

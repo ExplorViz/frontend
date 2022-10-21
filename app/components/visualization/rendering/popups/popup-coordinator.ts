@@ -7,7 +7,10 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import {
-  isApplication, isClass, isNode, isPackage,
+  isApplication,
+  isClass,
+  isNode,
+  isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
@@ -18,7 +21,7 @@ interface IArgs {
   popupHandler: PopupHandler;
   removePopup(entityId: string): void;
   pinPopup(popup: PopupData): void;
-  sharePopup(popup: PopupData): void,
+  sharePopup(popup: PopupData): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
@@ -72,7 +75,8 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   get highlightingColorStyle() {
     if (this.args.popupData.mesh.highlighted) {
-      const hexColor = this.args.popupData.mesh.highlightingColor.getHexString();
+      const hexColor =
+        this.args.popupData.mesh.highlightingColor.getHexString();
       return `#${hexColor}`;
     }
     return '';
@@ -112,15 +116,19 @@ export default class PopupCoordinator extends Component<IArgs> {
 
     if (newPositionX < 0) {
       newPositionX = 0;
-    } else if (containerDiv.clientWidth
-      && newPositionX > containerDiv.clientWidth - popoverWidth) {
+    } else if (
+      containerDiv.clientWidth &&
+      newPositionX > containerDiv.clientWidth - popoverWidth
+    ) {
       newPositionX = containerDiv.clientWidth - popoverWidth;
     }
 
     if (newPositionY < 0) {
       newPositionY = 0;
-    } else if (containerDiv.clientHeight
-      && newPositionY > containerDiv.clientHeight - popoverHeight) {
+    } else if (
+      containerDiv.clientHeight &&
+      newPositionY > containerDiv.clientHeight - popoverHeight
+    ) {
       newPositionY = containerDiv.clientHeight - popoverHeight;
     }
 
@@ -159,7 +167,11 @@ export default class PopupCoordinator extends Component<IArgs> {
 
     const containerWidth = containerDiv.clientWidth;
 
-    if (popoverHeight === undefined || popoverWidth === undefined || containerWidth === undefined) {
+    if (
+      popoverHeight === undefined ||
+      popoverWidth === undefined ||
+      containerWidth === undefined
+    ) {
       return;
     }
 
@@ -180,7 +192,8 @@ export default class PopupCoordinator extends Component<IArgs> {
     // position at right edge of canvas
     if (popupLeftPosition + popoverWidth > containerWidth) {
       const extraPopupMarginFromAtBottom = 5;
-      popupLeftPosition = containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
+      popupLeftPosition =
+        containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
     }
 
     // Prevent popup positioning left(outside) of rendering canvas =>

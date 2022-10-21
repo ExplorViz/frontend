@@ -6,12 +6,12 @@ export type UserDisconnectedMessage = {
 };
 
 export function isUserDisconnectedMessage(
-  msg: any,
+  msg: any
 ): msg is UserDisconnectedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === USER_DISCONNECTED_EVENT
-    && typeof msg.id === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_DISCONNECTED_EVENT &&
+    typeof msg.id === 'string'
   );
 }

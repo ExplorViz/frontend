@@ -1,13 +1,12 @@
-import THREE from 'three';
-import calculateColorBrightness from
-  'explorviz-frontend/utils/helpers/threejs-helpers';
+import * as THREE from 'three';
+import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { tracked } from '@glimmer/tracking';
 
 export default abstract class BaseMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material = THREE.Material,
-  > extends THREE.Mesh<TGeometry, TMaterial> {
+  TMaterial extends THREE.Material = THREE.Material
+> extends THREE.Mesh<TGeometry, TMaterial> {
   @tracked
   highlighted: boolean = false;
 
@@ -19,7 +18,11 @@ export default abstract class BaseMesh<
 
   isHovered = false;
 
-  constructor(defaultColor: THREE.Color = new THREE.Color(), highlightingColor = new THREE.Color('red'), defaultOpacity = 1) {
+  constructor(
+    defaultColor: THREE.Color = new THREE.Color(),
+    highlightingColor = new THREE.Color('red'),
+    defaultOpacity = 1
+  ) {
     super();
     this.defaultColor = defaultColor;
     this.defaultOpacity = defaultOpacity;
@@ -28,18 +31,22 @@ export default abstract class BaseMesh<
 
   highlight() {
     this.highlighted = true;
-    if (this.material instanceof THREE.MeshLambertMaterial
-      || this.material instanceof THREE.MeshBasicMaterial
-      || this.material instanceof MeshLineMaterial) {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
       this.material.color = this.highlightingColor;
     }
   }
 
   unhighlight() {
     this.highlighted = false;
-    if (this.material instanceof THREE.MeshLambertMaterial
-      || this.material instanceof THREE.MeshBasicMaterial
-      || this.material instanceof MeshLineMaterial) {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
       this.material.color = this.defaultColor;
       this.changeOpacity(this.defaultOpacity);
     }
@@ -55,11 +62,15 @@ export default abstract class BaseMesh<
     if (this.isHovered) return;
 
     // Calculate and apply brighter color to material ('hover effect')
-    if (this.material instanceof THREE.MeshLambertMaterial
-      || this.material instanceof THREE.MeshBasicMaterial
-      || this.material instanceof MeshLineMaterial) {
-      this.material.color = calculateColorBrightness(new THREE.Color(this.material.color),
-        colorShift);
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      this.material.color = calculateColorBrightness(
+        new THREE.Color(this.material.color),
+        colorShift
+      );
     }
     this.isHovered = true;
   }
@@ -68,9 +79,11 @@ export default abstract class BaseMesh<
    * Restores original color of mesh which had a hover effect
    */
   resetHoverEffect(): void {
-    if (this.material instanceof THREE.MeshLambertMaterial
-      || this.material instanceof THREE.MeshBasicMaterial
-      || this.material instanceof MeshLineMaterial) {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
       const { highlighted, defaultColor, highlightingColor } = this;
 
       // Restore normal color (depends on highlighting status)
@@ -80,9 +93,11 @@ export default abstract class BaseMesh<
   }
 
   updateColor() {
-    if (this.material instanceof THREE.MeshLambertMaterial
-      || this.material instanceof THREE.MeshBasicMaterial
-      || this.material instanceof MeshLineMaterial) {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
       if (this.highlighted) {
         this.material.color = this.highlightingColor;
       } else {

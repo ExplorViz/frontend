@@ -25,7 +25,8 @@ export default class SettingsMenu extends UiMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildCameraMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.openMenu(this.menuFactory.buildCameraMenu()),
     });
     this.items.push(cameraButton);
     this.thumbpadTargets.push(cameraButton);

@@ -6,8 +6,13 @@ import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
 import { ColorScheme } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
-  ApplicationColorSettings, ApplicationSettingId, ApplicationSettings,
-  LandscapeColorSettings, LandscapeSettingId, LandscapeSettings, SettingGroup,
+  ApplicationColorSettings,
+  ApplicationSettingId,
+  ApplicationSettings,
+  LandscapeColorSettings,
+  LandscapeSettingId,
+  LandscapeSettings,
+  SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 
 interface Args {
@@ -25,7 +30,7 @@ export default class Settings extends Component<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  colorSchemes: { name: string, id: ColorScheme }[] = [
+  colorSchemes: { name: string; id: ColorScheme }[] = [
     { name: 'Default', id: 'default' },
     { name: 'Vision Impairment', id: 'impaired' },
     { name: 'Classic (Initial)', id: 'classic' },
@@ -35,7 +40,10 @@ export default class Settings extends Component<Args> {
   get applicationSettingsSortedByGroup() {
     const { applicationSettings } = this.userSettings;
 
-    const settingGroupToSettingIds: Record<SettingGroup, ApplicationSettingId[]> = {
+    const settingGroupToSettingIds: Record<
+      SettingGroup,
+      ApplicationSettingId[]
+    > = {
       'Hover Effects': [],
       Colors: [],
       Communication: [],
@@ -56,8 +64,9 @@ export default class Settings extends Component<Args> {
     for (settingGroupId in settingGroupToSettingIds) {
       const settingArray = settingGroupToSettingIds[settingGroupId];
       settingArray.sort(
-        (settingId1, settingId2) => applicationSettings[settingId1].orderNumber
-            - applicationSettings[settingId2].orderNumber,
+        (settingId1, settingId2) =>
+          applicationSettings[settingId1].orderNumber -
+          applicationSettings[settingId2].orderNumber
       );
     }
 
@@ -67,14 +76,15 @@ export default class Settings extends Component<Args> {
   get landscapeSettingsSortedByGroup() {
     const { landscapeSettings } = this.userSettings;
 
-    const settingGroupToSettingIds: Record<SettingGroup, LandscapeSettingId[]> = {
-      'Hover Effects': [],
-      Colors: [],
-      Communication: [],
-      Highlighting: [],
-      Popup: [],
-      Debugging: [],
-    };
+    const settingGroupToSettingIds: Record<SettingGroup, LandscapeSettingId[]> =
+      {
+        'Hover Effects': [],
+        Colors: [],
+        Communication: [],
+        Highlighting: [],
+        Popup: [],
+        Debugging: [],
+      };
 
     let settingId: keyof LandscapeSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
@@ -88,8 +98,9 @@ export default class Settings extends Component<Args> {
     for (settingGroupId in settingGroupToSettingIds) {
       const settingArray = settingGroupToSettingIds[settingGroupId];
       settingArray.sort(
-        (settingId1, settingId2) => landscapeSettings[settingId1].orderNumber
-            - landscapeSettings[settingId2].orderNumber,
+        (settingId1, settingId2) =>
+          landscapeSettings[settingId1].orderNumber -
+          landscapeSettings[settingId2].orderNumber
       );
     }
 
@@ -97,8 +108,13 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateRangeSetting(name: ApplicationSettingId | LandscapeSettingId, event?: Event) {
-    const input = event?.target ? (event.target as HTMLInputElement).valueAsNumber : undefined;
+  updateRangeSetting(
+    name: ApplicationSettingId | LandscapeSettingId,
+    event?: Event
+  ) {
+    const input = event?.target
+      ? (event.target as HTMLInputElement).valueAsNumber
+      : undefined;
 
     if (this.args.isLandscapeView) {
       const settingId = name as LandscapeSettingId;
@@ -140,7 +156,10 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateFlagSetting(name: ApplicationSettingId | LandscapeSettingId, value: boolean) {
+  updateFlagSetting(
+    name: ApplicationSettingId | LandscapeSettingId,
+    value: boolean
+  ) {
     if (this.args.isLandscapeView) {
       const settingId = name as LandscapeSettingId;
       try {
@@ -151,8 +170,7 @@ export default class Settings extends Component<Args> {
     } else {
       const settingId = name as ApplicationSettingId;
       try {
-        this.userSettings.updateApplicationSetting(settingId,
-          value);
+        this.userSettings.updateApplicationSetting(settingId, value);
       } catch (e) {
         AlertifyHandler.showAlertifyError(e.message);
       }
@@ -160,7 +178,10 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateColorSetting(name: ApplicationSettingId | LandscapeSettingId, value: string) {
+  updateColorSetting(
+    name: ApplicationSettingId | LandscapeSettingId,
+    value: string
+  ) {
     if (this.args.isLandscapeView) {
       const settingId = name as LandscapeSettingId;
       try {
@@ -190,15 +211,17 @@ export default class Settings extends Component<Args> {
     let settingId: keyof LandscapeColorSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in landscapeColors) {
-      this.configuration.landscapeColors[settingId]
-        .set(this.userSettings.landscapeSettings[settingId].value);
+      this.configuration.landscapeColors[settingId].set(
+        this.userSettings.landscapeSettings[settingId].value
+      );
     }
 
     let settingId2: keyof ApplicationColorSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId2 in applicationColors) {
-      this.configuration.applicationColors[settingId2]
-        .set(this.userSettings.applicationSettings[settingId2].value);
+      this.configuration.applicationColors[settingId2].set(
+        this.userSettings.applicationSettings[settingId2].value
+      );
     }
 
     this.args.updateColors?.();

@@ -11,7 +11,9 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import computeDrawableClassCommunication, { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import computeDrawableClassCommunication, {
+  DrawableClassCommunication,
+} from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
@@ -20,13 +22,13 @@ import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-rendere
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface NamedArgs {
-  readonly landscapeData: LandscapeData,
-  readonly graph: ForceGraph3DInstance,
+  readonly landscapeData: LandscapeData;
+  readonly graph: ForceGraph3DInstance;
 }
 
 interface Args {
-  positional: [],
-  named: NamedArgs,
+  positional: [];
+  named: NamedArgs;
 }
 
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
@@ -44,10 +46,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('vr-room-serializer')
+  @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
-  @service()
+  @service
   private worker!: any;
 
   private landscapeData!: LandscapeData;
@@ -62,20 +64,23 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: NamedArgs) {
+  modify(
+    _element: any,
+    _positionalArgs: any[],
+    { landscapeData, graph }: NamedArgs
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
 
     perform(this.handleUpdatedLandscapeData);
   }
 
-  @restartableTask*
-  handleUpdatedLandscapeData() {
+  @restartableTask *handleUpdatedLandscapeData() {
     yield Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData,
+      this.dynamicLandscapeData
     );
 
     // Use the updated landscape data to calculate application metrics.
@@ -89,14 +94,23 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
-        const applicationData = yield perform(this.updateApplicationData,
-          application, drawableClassCommunications);
+        const applicationData = yield perform(
+          this.updateApplicationData,
+          application,
+          drawableClassCommunications
+        );
 
         // create or update applicationObject3D
-        const app = yield perform(this.applicationRenderer.addApplicationTask, applicationData);
+        const app = yield perform(
+          this.applicationRenderer.addApplicationTask,
+          applicationData
+        );
 
         // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.findBy('id', applicationData.application.id) as GraphNode;
+        const graphNode = graphNodes.findBy(
+          'id',
+          applicationData.application.id
+        ) as GraphNode;
 
         const { x, z } = app.foundationMesh.scale;
         const collisionRadius = Math.hypot(x, z) / 2 + 3;
@@ -105,9 +119,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           graphNode.fx = graphNode.x;
           graphNode.fz = graphNode.z;
         } else {
-          graphNodes.push(
-            { id: applicationData.application.id, fy: 0, collisionRadius } as GraphNode,
-          );
+          graphNodes.push({
+            id: applicationData.application.id,
+            fy: 0,
+            collisionRadius,
+          } as GraphNode);
         }
 
         // create (invisible) links between apps on the same node
@@ -124,7 +140,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
 
     const interAppCommunications = drawableClassCommunications.filter(
-      (x) => x.sourceApp !== x.targetApp,
+      (x) => x.sourceApp !== x.targetApp
     );
     const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
     const communicationLinks = interAppCommunications.map((communication) => ({
@@ -158,15 +174,19 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.graph.graphData(gData);
   }
 
-  @task*
-  updateApplicationData(application: Application,
-    drawableClassCommunications: DrawableClassCommunication[]) {
+  @task *updateApplicationData(
+    application: Application,
+    drawableClassCommunications: DrawableClassCommunication[]
+  ) {
     const workerPayload = {
       structure: application,
       dynamic: this.dynamicLandscapeData,
     };
     const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
-    const heatmapMetrics = this.worker.postMessage('metrics-worker', workerPayload);
+    const heatmapMetrics = this.worker.postMessage(
+      'metrics-worker',
+      workerPayload
+    );
     const results = (yield all([cityLayout, heatmapMetrics])) as any[];
 
     let applicationData = this.applicationRepo.getById(application.id);
@@ -176,7 +196,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       applicationData = new ApplicationData(application, results[0]);
     }
     applicationData.drawableClassCommunications = calculateCommunications(
-      applicationData.application, drawableClassCommunications,
+      applicationData.application,
+      drawableClassCommunications
     );
     calculateHeatmap(applicationData.heatmapData, results[1]);
     this.applicationRepo.add(applicationData);

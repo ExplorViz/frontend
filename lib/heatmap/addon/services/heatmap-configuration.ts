@@ -12,9 +12,9 @@ import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-
 export type Metric = {
   name: string;
   description: string;
-  min: number,
-  max: number,
-  values: Map<string, number>
+  min: number;
+  max: number;
+  values: Map<string, number>;
 };
 
 export interface ApplicationHeatmapData {
@@ -25,7 +25,10 @@ export interface ApplicationHeatmapData {
   aggregatedMetricScores: Map<string, Metric>;
 }
 
-export type HeatmapMode = 'snapshotHeatmap' | 'aggregatedHeatmap' | 'windowedHeatmap';
+export type HeatmapMode =
+  | 'snapshotHeatmap'
+  | 'aggregatedHeatmap'
+  | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('repos/application-repository')
@@ -100,7 +103,10 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   updateActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (!this.currentApplication || this.currentApplication === applicationObject3D) {
+    if (
+      !this.currentApplication ||
+      this.currentApplication === applicationObject3D
+    ) {
       this.debug('Ayy?');
       this.currentApplication = applicationObject3D;
     }
@@ -110,7 +116,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     if (!this.currentApplication) {
       return undefined;
     }
-    const applicationData = this.applicationRepo.getById(this.currentApplication.dataModel.id);
+    const applicationData = this.applicationRepo.getById(
+      this.currentApplication.dataModel.id
+    );
     return applicationData?.heatmapData;
   }
 
@@ -120,7 +128,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     }
     let chosenMetric = null;
     const applicationHeatmapData = this.currentApplicationHeatmapData;
-    const latestClazzMetricScores = this.currentApplicationHeatmapData?.latestClazzMetricScores;
+    const latestClazzMetricScores =
+      this.currentApplicationHeatmapData?.latestClazzMetricScores;
     if (!applicationHeatmapData || !latestClazzMetricScores) {
       AlertifyHandler.showAlertifyError('No heatmap found');
       return undefined;
@@ -129,8 +138,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     switch (this.selectedMode) {
       case 'snapshotHeatmap':
         if (applicationHeatmapData.latestClazzMetricScores) {
-          chosenMetric = applicationHeatmapData.latestClazzMetricScores
-            .find((metric) => metric.name === this.selectedMetricName);
+          chosenMetric = applicationHeatmapData.latestClazzMetricScores.find(
+            (metric) => metric.name === this.selectedMetricName
+          );
           if (chosenMetric) {
             return chosenMetric;
           }
@@ -138,7 +148,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
         break;
       case 'aggregatedHeatmap':
         if (applicationHeatmapData.aggregatedMetricScores) {
-          chosenMetric = applicationHeatmapData.aggregatedMetricScores.get(this.selectedMetricName);
+          chosenMetric = applicationHeatmapData.aggregatedMetricScores.get(
+            this.selectedMetricName
+          );
           if (chosenMetric) {
             return chosenMetric;
           }
@@ -146,7 +158,9 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
         break;
       case 'windowedHeatmap':
         if (applicationHeatmapData.differenceMetricScores) {
-          chosenMetric = applicationHeatmapData.differenceMetricScores.get(this.selectedMetricName);
+          chosenMetric = applicationHeatmapData.differenceMetricScores.get(
+            this.selectedMetricName
+          );
           if (chosenMetric && chosenMetric[chosenMetric.length - 1]) {
             return chosenMetric[chosenMetric.length - 1];
           }
@@ -185,9 +199,10 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     const numOfMetrics = this.latestClazzMetricScores.length;
     if (numOfMetrics > 0) {
       const index = this.latestClazzMetricScores.findIndex(
-        (metric) => metric.name === this.selectedMetricName,
+        (metric) => metric.name === this.selectedMetricName
       );
-      this.selectedMetricName = this.latestClazzMetricScores[(index + 1) % numOfMetrics].name;
+      this.selectedMetricName =
+        this.latestClazzMetricScores[(index + 1) % numOfMetrics].name;
     }
   }
 

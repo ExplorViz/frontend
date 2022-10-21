@@ -3,21 +3,24 @@ import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
 
-module('Integration | Component | visualization/page-setup/timeline/plotly-timeline', function (hooks) {
-  setupRenderingTest(hooks);
+module(
+  'Integration | Component | visualization/page-setup/timeline/plotly-timeline',
+  function (hooks) {
+    setupRenderingTest(hooks);
 
-  test('it renders', async function (assert) {
-    // Set any properties with this.set('myProperty', 'value');
-    // Handle any actions with this.set('myAction', function(val) { ... });
+    test('it renders', async function (assert) {
+      // Set any properties with this.set('myProperty', 'value');
+      // Handle any actions with this.set('myAction', function(val) { ... });
 
-    await render(hbs`<Visualization::PageSetup::Timeline::PlotlyTimeline />`);
+      await render(hbs`<Visualization::PageSetup::Timeline::PlotlyTimeline />`);
 
-    const el: any = this.element;
+      const el: any = this.element;
 
-    if (el) {
-      assert.ok(el.textContent.trim().includes('No timestamps available!'));
-    } else {
-      assert.notOk('empty element', 'There was no element to test.');
-    }
-  });
-});
+      if (el) {
+        assert.ok(el.textContent.trim().includes('No timestamps available!'));
+      } else {
+        assert.notOk('empty element', 'There was no element to test.');
+      }
+    });
+  }
+);

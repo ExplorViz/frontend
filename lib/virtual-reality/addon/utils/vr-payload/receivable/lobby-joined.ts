@@ -3,11 +3,11 @@ export type LobbyJoinedResponse = {
 };
 
 export function isLobbyJoinedResponse(
-  response: any,
+  response: any
 ): response is LobbyJoinedResponse {
   return (
-    response !== null
-    && typeof response === 'object'
-    && typeof response.ticketId === 'string'
+    response !== null &&
+    typeof response === 'object' &&
+    typeof response.ticketId === 'string'
   );
 }

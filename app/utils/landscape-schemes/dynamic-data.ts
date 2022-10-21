@@ -3,8 +3,8 @@ import isObject from '../object-helpers';
 export interface Trace {
   landscapeToken: string;
   traceId: string;
-  startTime: number,
-  endTime: number,
+  startTime: number;
+  endTime: number;
   duration: number;
   overallRequestCount: number;
   traceCount: number;
@@ -16,8 +16,8 @@ export interface Span {
   spanId: string;
   parentSpanId: string;
   traceId: string;
-  startTime: number,
-  endTime: number,
+  startTime: number;
+  endTime: number;
   hashCode: string;
 }
 

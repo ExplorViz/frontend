@@ -1,7 +1,40 @@
-dist/**
-vendor/**
+# test files
+/tests/
 
+# resource
+/public/
+
+# types
+/types/
+
+# unconventional js
+/blueprints/*/files/
+/vendor/
+
+# compiled output
+/dist/
+/tmp/
+
+# dependencies
+/bower_components/
+/node_modules/
+
+# misc
+/coverage/
+!.*
+.*/
+.eslintcache
+
+# ember-try
+/.node_modules.ember-try/
+/bower.json.ember-try
+/npm-shrinkwrap.json.ember-try
+/package.json.ember-try
+/package-lock.json.ember-try
+/yarn.lock.ember-try
+
+# akr
 public/assets/web-workers/*
-
 testem.js
 yuidoc-packages.js
+.prettierrc.js

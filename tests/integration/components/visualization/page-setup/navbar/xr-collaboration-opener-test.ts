@@ -10,7 +10,9 @@ module('Integration | Component | xr-collaboration-opener', function (hooks) {
     // Set any properties with this.set('myProperty', 'value');
     // Handle any actions with this.set('myAction', function(val) { ... });
 
-    await render(hbs`<Visualization::PageSetup::Navbar::XrCollaborationOpener />`);
+    await render(
+      hbs`<Visualization::PageSetup::Navbar::XrCollaborationOpener />`
+    );
 
     const { textContent } = this.element;
 

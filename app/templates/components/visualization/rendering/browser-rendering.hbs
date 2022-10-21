@@ -1,20 +1,19 @@
-<div class="row h-100">
+<div class='row h-100'>
   <div
-    class="d-flex flex-column h-100 {{if @showDataSelection "col-8" "col-12"}}"
+    class='d-flex flex-column h-100 {{if @showDataSelection "col-8" "col-12"}}'
   >
     <div
-      id="rendering"
+      id='rendering'
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
       {{#if this.heatmapConf.heatmapActive}}
-        <HeatmapInfo
-          @updateMetric={{this.heatmapConf.updateMetric}}
-        />
+        <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
       {{/if}}
 
       <canvas
-        class="main-content-majority {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}"
+        class='main-content-majority
+          {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{sync-state}}
         {{interaction-modifier
           raycastObjects=this.raycastObjects
@@ -25,33 +24,25 @@
           mouseOut=this.handleMouseOut
           mouseStop=this.handleMouseStop
         }}
-        {{heatmap-renderer
-          camera=this.camera
-          scene=this.scene
-        }}
-        {{landscape-data-watcher
-          landscapeData=@landscapeData
-          graph=this.graph
-        }}
+        {{heatmap-renderer camera=this.camera scene=this.scene}}
+        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
         {{collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera
         }}
         {{did-insert this.canvasInserted}}
       >
-        <ContextMenu
-          @items={{this.rightClickMenuItems}}
-        />
+        <ContextMenu @items={{this.rightClickMenuItems}} />
       </canvas>
       {{#if this.loadNewLandscape.isRunning}}
-        <div
-          class="position-absolute mt-6 pt-5 ml-3 pointer-events-none"
-        >
-          <Visualization::Rendering::LoadingIndicator @text="Loading New Landscape" />
+        <div class='position-absolute mt-6 pt-5 ml-3 pointer-events-none'>
+          <Visualization::Rendering::LoadingIndicator
+            @text='Loading New Landscape'
+          />
         </div>
       {{/if}}
 
-      {{!-- popup(s) --}}
+      {{! popup(s) }}
       {{#each this.popupHandler.popupData as |d|}}
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
@@ -69,13 +60,13 @@
     </div>
   </div>
   {{#if @showDataSelection}}
-    <div class="col-4" id="dataselection">
-      <div class="mt-6 d-flex flex-row w-100" style="z-index: 90">
+    <div class='col-4' id='dataselection'>
+      <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >
-          <div class="explorviz-visualization-navbar">
-            <ul class="nav justify-content-center">
+          <div class='explorviz-visualization-navbar'>
+            <ul class='nav justify-content-center'>
               {{!-- <Visualization::PageSetup::Navbar::TraceOverview
                 @addComponent={{@addComponent}}
                 @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
@@ -91,10 +82,10 @@
             </ul>
           </div>
           {{#each @components as |componentName|}}
-            <div class="card sidebar-card mt-3 border-radius-0">
-              <div class="card-body d-flex flex-column">
-                {{#if (eq componentName "trace-selection")}}
-                  <h5 class="text-center">Trace Overview</h5>
+            <div class='card sidebar-card mt-3 border-radius-0'>
+              <div class='card-body d-flex flex-column'>
+                {{#if (eq componentName 'trace-selection')}}
+                  <h5 class='text-center'>Trace Overview</h5>
                   {{#if this.selectedApplicationObject3D}}
                     <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                       @highlightTrace={{this.highlightTrace}}
@@ -109,8 +100,8 @@
                     Please select an application to use the trace overview.
                   {{/if}}
                 {{/if}}
-                {{#if (eq componentName "app-settings")}}
-                  <h5 class="text-center">Settings</h5>
+                {{#if (eq componentName 'app-settings')}}
+                  <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
                     @isLandscapeView={{false}}
                     @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
@@ -119,8 +110,8 @@
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
-                {{#if (eq componentName "xr-collaboration")}}
-                  <h5 class="text-center">Collaboration</h5>
+                {{#if (eq componentName 'xr-collaboration')}}
+                  <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
                     @removeComponent={{@removeComponent}}
                   />

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import PlaneLayout from './plane-layout';
 
 /**
@@ -25,8 +25,8 @@ export default class MinMaxRectangle {
 
   get center() {
     return new THREE.Vector2(
-      this.min_x + ((this.max_x - this.min_x) / 2.0),
-      this.min_y + ((this.max_y - this.min_y) / 2.0),
+      this.min_x + (this.max_x - this.min_x) / 2.0,
+      this.min_y + (this.max_y - this.min_y) / 2.0
     );
   }
 

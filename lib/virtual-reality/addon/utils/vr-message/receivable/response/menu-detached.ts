@@ -7,9 +7,9 @@ export type MenuDetachedResponse = {
 
 export function isMenuDetachedResponse(msg: any): msg is MenuDetachedResponse {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === MENU_DETACHED_RESPONSE_EVENT
-    && typeof msg.objectId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === MENU_DETACHED_RESPONSE_EVENT &&
+    typeof msg.objectId === 'string'
   );
 }

@@ -7,13 +7,13 @@ export type SpectatingUpdateMessage = {
 };
 
 export function isSpectatingUpdateMessage(
-  msg: any,
+  msg: any
 ): msg is SpectatingUpdateMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === SPECTATING_UPDATE_EVENT
-    && typeof msg.isSpectating === 'boolean'
-    && (typeof msg.spectatedUser === 'string' || msg.spectatedUser === null)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === SPECTATING_UPDATE_EVENT &&
+    typeof msg.isSpectating === 'boolean' &&
+    (typeof msg.spectatedUser === 'string' || msg.spectatedUser === null)
   );
 }

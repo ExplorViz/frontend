@@ -1,5 +1,12 @@
-import { getClassMethodHashCodes, getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
-import { Class, Method, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  getClassMethodHashCodes,
+  getClassAncestorPackages,
+} from 'explorviz-frontend/utils/class-helpers';
+import {
+  Class,
+  Method,
+  Package,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | class-helpers', function () {
@@ -22,7 +29,8 @@ module('Unit | Utility | class-helpers', function () {
   });
 
   test('getClassAncestorPackages with two ancestor packages', function (assert) {
-    const testClass = getTestPackageWithOneParentAndOneClass().subPackages[0].classes[0];
+    const testClass =
+      getTestPackageWithOneParentAndOneClass().subPackages[0].classes[0];
     const ancestors = getClassAncestorPackages(testClass);
     assert.ok(ancestors.length === 2 && ancestors[0] !== ancestors[1]);
   });

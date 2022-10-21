@@ -31,7 +31,7 @@ export type SerialzedApp = {
 };
 
 export type SerializedLandscape = {
-  landscapeToken: string;
+  landscapeToken: string | undefined;
   timestamp: number;
 };
 

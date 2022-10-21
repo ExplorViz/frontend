@@ -1,5 +1,5 @@
-<div id="heatmap-legend-container" class="d-flex flex-column p-2">
-  <div id="legend-header">
+<div id='heatmap-legend-container' class='d-flex flex-column p-2'>
+  <div id='legend-header'>
     {{!--<div>
       <span id="legend-header-content">Heatmap</span>
       {{#if (eq this.heatmapConfiguration.selectedMode "aggregatedHeatmap")}}
@@ -25,42 +25,66 @@
 
     <div>
       <BsButton
-        @type={{if this.heatmapConfiguration.heatmapShared "success" "secondary"}}
+        @type={{if
+          this.heatmapConfiguration.heatmapShared
+          'success'
+          'secondary'
+        }}
         @onClick={{this.heatmapConfiguration.toggleShared}}
       >
-        {{svg-jar "share-android-16" class="octicon align-middle"}}
-        <BsTooltip @placement="top" @triggerEvents="hover">
-          Share heatmap with other users?
-          Green: Yes,
-          Grey: No
+        {{svg-jar 'share-android-16' class='octicon align-middle'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Share heatmap with other users? Green: Yes, Grey: No
         </BsTooltip>
       </BsButton>
-      <HelpTooltip @title="Select an application by clicking on its foundation" />
+      <HelpTooltip
+        @title='Select an application by clicking on its foundation'
+      />
     </div>
     <div>
-      <input id="collapsible" class="heatmap-legend-toggle" type="checkbox" checked>
-      <label for="collapsible" class="collapse-toggle-label" data-toggle="collapse" href="#heatmapCollapseContainer" aria-expanded="false" aria-controls="heatmapCollapseContainer"></label>
+      <input
+        id='collapsible'
+        class='heatmap-legend-toggle'
+        type='checkbox'
+        checked
+      />
+      <label
+        for='collapsible'
+        class='collapse-toggle-label'
+        data-toggle='collapse'
+        href='#heatmapCollapseContainer'
+        aria-expanded='false'
+        aria-controls='heatmapCollapseContainer'
+      ></label>
     </div>
   </div>
 
-  <div id="heatmapCollapseContainer" class="collapse show">
-    <div id="legend-subheader" class="mt-1" style="font-size: 0.75rem">
+  <div id='heatmapCollapseContainer' class='collapse show'>
+    <div id='legend-subheader' class='mt-1' style='font-size: 0.75rem'>
       {{this.subHeader}}
     </div>
-    <div class="d-flex flex-row mt-2">
+    <div class='d-flex flex-row mt-2'>
       {{#if this.heatmapConfiguration.currentApplication}}
-        <div id="heatmap-legend" {{did-insert this.didInsertLegend}}>
+        <div id='heatmap-legend' {{did-insert this.didInsertLegend}}>
           <canvas
-            id="legend-canvas"
-            height="100%"
+            id='legend-canvas'
+            height='100%'
             {{did-insert this.didInsertCanvas}}
           >
           </canvas>
         </div>
-        <div id="heatmap-legend-label">
-          <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.max}}</span>
-          <span class="heatmap-label">{{divide-and-round this.heatmapConfiguration.selectedMetric.max 2 0}}</span>
-          <span class="heatmap-label">{{this.heatmapConfiguration.selectedMetric.min}}</span>
+        <div id='heatmap-legend-label'>
+          <span
+            class='heatmap-label'
+          >{{this.heatmapConfiguration.selectedMetric.max}}</span>
+          <span class='heatmap-label'>{{divide-and-round
+              this.heatmapConfiguration.selectedMetric.max
+              2
+              0
+            }}</span>
+          <span
+            class='heatmap-label'
+          >{{this.heatmapConfiguration.selectedMetric.min}}</span>
         </div>
       {{else}}
         Please select an application by clicking on its foundation

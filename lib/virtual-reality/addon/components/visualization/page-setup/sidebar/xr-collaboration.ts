@@ -10,7 +10,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 
 interface XrCollaborationArgs {
-  removeComponent(componentPath: string): void
+  removeComponent(componentPath: string): void;
 }
 
 export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
@@ -37,11 +37,18 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   get users() {
     const users = [];
     if (this.localUser.color) {
-      users.push({ name: `${this.localUser.userName} (you)`, style: `color:#${this.localUser.color.getHexString()}` });
+      users.push({
+        name: `${this.localUser.userName} (you)`,
+        style: `color:#${this.localUser.color.getHexString()}`,
+      });
     }
-    const remoteUsers = Array.from(this.collaborationSession.getAllRemoteUsers()).map(
-      (user) => ({ name: user.userName, style: `color:#${user.color.getHexString()}`, id: user.userId }),
-    );
+    const remoteUsers = Array.from(
+      this.collaborationSession.getAllRemoteUsers()
+    ).map((user) => ({
+      name: user.userName,
+      style: `color:#${user.color.getHexString()}`,
+      id: user.userId,
+    }));
 
     return users.concat(remoteUsers);
   }

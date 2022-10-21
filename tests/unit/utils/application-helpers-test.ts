@@ -1,13 +1,21 @@
-import { getAllMethodHashCodesInApplication, applicationHasClass } from 'explorviz-frontend/utils/application-helpers';
 import {
-  Application, Class, Node, Package,
+  getAllMethodHashCodesInApplication,
+  applicationHasClass,
+} from 'explorviz-frontend/utils/application-helpers';
+import {
+  Application,
+  Class,
+  Node,
+  Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | application-helpers', function () {
   test('getAllMethodHashCodesInApplication', function (assert) {
     const testApplication = getTestNode().applications[0];
-    const methodHashSet = new Set(getAllMethodHashCodesInApplication(testApplication));
+    const methodHashSet = new Set(
+      getAllMethodHashCodesInApplication(testApplication)
+    );
     assert.ok(methodHashSet.size === 4);
   });
 
@@ -107,20 +115,24 @@ function getTestPackage1() {
   const testClass11: Class = {
     id: 'class11',
     name: 'class11',
-    methods: [{
-      name: 'method11',
-      hashCode: 'method11Hash',
-    }],
+    methods: [
+      {
+        name: 'method11',
+        hashCode: 'method11Hash',
+      },
+    ],
     parent: testPackage11,
   };
 
   const testClass12: Class = {
     id: 'class12',
     name: 'class12',
-    methods: [{
-      name: 'method12',
-      hashCode: 'method12Hash',
-    }],
+    methods: [
+      {
+        name: 'method12',
+        hashCode: 'method12Hash',
+      },
+    ],
     parent: testPackage11,
   };
 
@@ -129,10 +141,12 @@ function getTestPackage1() {
   const testClass13: Class = {
     id: 'class13',
     name: 'class13',
-    methods: [{
-      name: 'method13',
-      hashCode: 'method13Hash',
-    }],
+    methods: [
+      {
+        name: 'method13',
+        hashCode: 'method13Hash',
+      },
+    ],
     parent: subPackage11,
   };
 
@@ -162,10 +176,12 @@ function getTestPackage2() {
   const testClass21: Class = {
     id: 'class21',
     name: 'class21',
-    methods: [{
-      name: 'method21',
-      hashCode: 'method21Hash',
-    }],
+    methods: [
+      {
+        name: 'method21',
+        hashCode: 'method21Hash',
+      },
+    ],
     parent: subPackage21,
   };
 

@@ -21,31 +21,31 @@ export type SelfConnectedMessage = {
 
 function isInitialUser(user: any): user is InitialUser {
   return (
-    user !== null
-    && typeof user === 'object'
-    && typeof user.id === 'string'
-    && typeof user.name === 'string'
-    && isColor(user.color)
+    user !== null &&
+    typeof user === 'object' &&
+    typeof user.id === 'string' &&
+    typeof user.name === 'string' &&
+    isColor(user.color)
   );
 }
 
 function isInitialRemoteUser(remoteUser: any): remoteUser is InitialRemoteUser {
   return (
-    (isInitialUser(remoteUser) as boolean)
-    && isPosition(remoteUser.position)
-    && isQuaternion(remoteUser.quaternion)
-    && Array.isArray(remoteUser.controllers)
-    && remoteUser.controllers.every(isController)
+    (isInitialUser(remoteUser) as boolean) &&
+    isPosition(remoteUser.position) &&
+    isQuaternion(remoteUser.quaternion) &&
+    Array.isArray(remoteUser.controllers) &&
+    remoteUser.controllers.every(isController)
   );
 }
 
 export function isSelfConnectedMessage(msg: any): msg is SelfConnectedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === SELF_CONNECTED_EVENT
-    && isInitialUser(msg.self)
-    && Array.isArray(msg.users)
-    && msg.users.every(isInitialRemoteUser)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === SELF_CONNECTED_EVENT &&
+    isInitialUser(msg.self) &&
+    Array.isArray(msg.users) &&
+    msg.users.every(isInitialRemoteUser)
   );
 }

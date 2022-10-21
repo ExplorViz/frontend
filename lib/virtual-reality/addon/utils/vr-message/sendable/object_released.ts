@@ -6,12 +6,12 @@ export type ObjectReleasedMessage = {
 };
 
 export function isObjectReleasedMessage(
-  msg: any,
+  msg: any
 ): msg is ObjectReleasedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === OBJECT_RELEASED_EVENT
-    && typeof msg.objectId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === OBJECT_RELEASED_EVENT &&
+    typeof msg.objectId === 'string'
   );
 }

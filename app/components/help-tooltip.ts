@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 
 interface Args {
-  placement: string | undefined
+  placement: string | undefined;
 }
 
 export default class HelpTooltip extends Component<Args> {

@@ -18,6 +18,9 @@ module('Integration | Component | share-landscape', function (hooks) {
 
     await click('.button-svg-with-hover');
 
-    assert.equal(this.element.querySelector('.table-striped > tbody')?.childElementCount, 1);
+    assert.equal(
+      this.element.querySelector('.table-striped > tbody')?.childElementCount,
+      1
+    );
   });
 });

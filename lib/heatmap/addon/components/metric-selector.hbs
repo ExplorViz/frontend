@@ -1,11 +1,12 @@
 <PowerSelect
-  @options={{this.heatmapConfiguration.latestClazzMetricScores}}
-  @triggerClass="metric-selector"
+  @options={{this.metricNames}}
+  @triggerClass='metric-selector'
   @selected={{this.heatmapConfiguration.selectedMetric}}
-  @onchange={{@selectMetric}}
-  @placeholder="Select metric..."
+  @onChange={{@selectMetric}}
+  @placeholder='Select metric...'
   @searchEnabled={{false}}
-  @matchTriggerWidth={{false}} as |metric|
+  @matchTriggerWidth={{false}}
+  as |metric|
 >
   {{capitalize metric.name}}
   {{!-- <HelpTooltipRight @title={{metric.description}}/> --}}

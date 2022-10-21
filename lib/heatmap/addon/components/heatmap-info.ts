@@ -1,6 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { Metric } from 'heatmap/services/heatmap-configuration';
+import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 
 interface HeatmapInfoArgs {
   metrics: Metric[];
@@ -9,90 +10,79 @@ interface HeatmapInfoArgs {
 }
 
 export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
-  divElement!: HTMLElement;
+  element!: HTMLElement;
 
-  panDeltaX = 0;
-
-  panDeltaY = 0;
+  lastMousePosition: Position2D = {
+    x: 0,
+    y: 0,
+  };
 
   @action
-  setupDragElement(element: HTMLElement) {
-    this.divElement = element;
-
-    this.initializePanListener();
-
-    this.setupInitialPosition();
+  dragMouseDown(event: MouseEvent) {
+    event.preventDefault();
+    // get the mouse cursor position at startup:
+    this.lastMousePosition.x = event.clientX;
+    this.lastMousePosition.y = event.clientY;
+    document.onpointerup = this.closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onpointermove = this.elementDrag;
   }
 
-  initializePanListener() {
-    const mc = new Hammer(this.divElement);
-
-    mc.get('pan').set({ direction: Hammer.DIRECTION_ALL });
-
-    // Keep track of pan distance since pan start
-    mc.on('panstart', () => {
-      this.panDeltaX = 0;
-      this.panDeltaY = 0;
-    });
-
-    mc.on('panleft panright panup pandown', (ev) => {
-      // Do not interfer with metric selection
-      if (ev.target.className === 'string'
-        && ev.target.className.includes('ember-power-select')) return;
-
-      // Calculate positional difference since last pan event
-      const currentDeltaX = this.panDeltaX - ev.deltaX;
-      const currentDeltaY = this.panDeltaY - ev.deltaY;
-
-      this.handlePan(currentDeltaX, currentDeltaY);
-
-      this.panDeltaX = ev.deltaX;
-      this.panDeltaY = ev.deltaY;
-    });
+  // eslint-disable-next-line class-methods-use-this
+  closeDragElement() {
+    /* stop moving when mouse button is released: */
+    document.onpointerup = null;
+    document.onpointermove = null;
   }
 
-  setupInitialPosition() {
-    if (!this.divElement) return;
+  @action
+  elementDrag(event: MouseEvent) {
+    event.preventDefault();
+    // calculate the new cursor position:
+    const diffX = this.lastMousePosition.x - event.clientX;
+    const diffY = this.lastMousePosition.y - event.clientY;
+    this.lastMousePosition.x = event.clientX;
+    this.lastMousePosition.y = event.clientY;
+    // set the element's new position:
+    const containerDiv = this.element.parentElement as HTMLElement;
 
-    const containerDiv = this.divElement.parentElement as HTMLElement;
+    const popoverHeight = this.element.clientHeight;
+    const popoverWidth = this.element.clientWidth;
 
-    this.divElement.style.top = '100px';
-    this.divElement.style.left = `${containerDiv.clientWidth - this.divElement.clientWidth - 15}px`;
+    let newPositionX = this.element.offsetLeft - diffX;
+    let newPositionY = this.element.offsetTop - diffY;
+
+    if (newPositionX < 0) {
+      newPositionX = 0;
+    } else if (
+      containerDiv.clientWidth &&
+      newPositionX > containerDiv.clientWidth - popoverWidth
+    ) {
+      newPositionX = containerDiv.clientWidth - popoverWidth;
+    }
+
+    if (newPositionY < 0) {
+      newPositionY = 0;
+    } else if (
+      containerDiv.clientHeight &&
+      newPositionY > containerDiv.clientHeight - popoverHeight
+    ) {
+      newPositionY = containerDiv.clientHeight - popoverHeight;
+    }
+
+    this.element.style.top = `${newPositionY}px`;
+    this.element.style.left = `${newPositionX}px`;
   }
 
-  handlePan(deltaX: number, deltaY: number) {
-    const self = this;
+  @action
+  setPopupPosition(popoverDiv: HTMLDivElement) {
+    this.element = popoverDiv;
 
-    function xPositionInsideWindow(minX: number, maxX: number) {
-      return minX >= 0 && maxX <= window.innerWidth;
-    }
+    const containerDiv = this.element.parentElement as HTMLElement;
 
-    function yPositionInsideWindow(minY: number, maxY: number) {
-      return minY >= 0 && maxY <= window.innerHeight;
-    }
-
-    function moveElement(xOffset: number, yOffset: number) {
-      // Calculation of old and new coordinates
-      const oldMinX = self.divElement.offsetLeft;
-      const oldMaxX = oldMinX + self.divElement.clientWidth;
-      const oldMinY = self.divElement.offsetTop;
-      const oldMaxY = oldMinY + self.divElement.clientHeight;
-
-      const newMinX = oldMinX - xOffset;
-      const newMaxX = newMinX + self.divElement.clientWidth;
-      const newMinY = oldMinY - yOffset;
-      const newMaxY = newMinY + self.divElement.clientHeight;
-
-      // Set the element's new position:
-      if (!xPositionInsideWindow(oldMinX, oldMaxX) || xPositionInsideWindow(newMinX, newMaxX)) {
-        self.divElement.style.left = `${newMinX}px`;
-      }
-
-      if (!yPositionInsideWindow(oldMinY, oldMaxY) || yPositionInsideWindow(newMinY, newMaxY)) {
-        self.divElement.style.top = `${newMinY}px`;
-      }
-    }
-
-    moveElement(deltaX, deltaY);
+    this.element.style.top = '100px';
+    this.element.style.left = `${
+      containerDiv.clientWidth - this.element.clientWidth - 15
+    }px`;
   }
 }

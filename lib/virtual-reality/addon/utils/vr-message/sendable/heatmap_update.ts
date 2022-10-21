@@ -15,16 +15,14 @@ export type HeatmapUpdateMessage = {
   mode: string;
 };
 
-export function isHeatmapUpdateMessage(
-  msg: any,
-): msg is HeatmapUpdateMessage {
+export function isHeatmapUpdateMessage(msg: any): msg is HeatmapUpdateMessage {
   return (
-    msg !== null
-        && typeof msg === 'object'
-        && msg.event === HEATMAP_UPDATE_EVENT
-        && typeof msg.isActive === 'boolean'
-        && (typeof msg.applicationId === 'string' || msg.applicationId === null)
-        && (typeof msg.metric === 'string' || msg.metric === null)
-        && typeof msg.mode === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === HEATMAP_UPDATE_EVENT &&
+    typeof msg.isActive === 'boolean' &&
+    (typeof msg.applicationId === 'string' || msg.applicationId === null) &&
+    (typeof msg.metric === 'string' || msg.metric === null) &&
+    typeof msg.mode === 'string'
   );
 }

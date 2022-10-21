@@ -1,18 +1,22 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import AppCommunicationMesh from 'explorviz-frontend/view-objects/3d/landscape/app-communication-mesh';
 import { ApplicationCommunication } from './application-communication-computer';
 
 // Simple 2-dimensional point
-type Point = { x: number, y: number };
+type Point = { x: number; y: number };
 
 // Blueprint for a drawable application communication
 type Tile = {
-  startPoint: Point, endPoint: Point, positionZ: number, requestsCache: number,
-  lineThickness: number, pipeColor: THREE.Color
+  startPoint: Point;
+  endPoint: Point;
+  positionZ: number;
+  requestsCache: number;
+  lineThickness: number;
+  pipeColor: THREE.Color;
 };
 
 // Simplified Tile
-type TileWay = { startPoint: Point, endPoint: Point };
+type TileWay = { startPoint: Point; endPoint: Point };
 
 /**
  * Checks wheter two given 2-d-points are equal based on their x- and
@@ -25,7 +29,7 @@ function checkEqualityOfPoints(p1: Point, p2: Point) {
   const x = Math.abs(p1.x - p2.x) <= 0.01;
   const y = Math.abs(p1.y - p2.y) <= 0.01;
 
-  return (x && y);
+  return x && y;
 }
 
 /**
@@ -36,8 +40,10 @@ function checkEqualityOfPoints(p1: Point, p2: Point) {
  * @param tile Second Tile for comparison check
  */
 function isSameTile(this: TileWay, tile: any) {
-  return checkEqualityOfPoints(this.endPoint, tile.endPoint)
-    && checkEqualityOfPoints(this.startPoint, tile.startPoint);
+  return (
+    checkEqualityOfPoints(this.endPoint, tile.endPoint) &&
+    checkEqualityOfPoints(this.startPoint, tile.startPoint)
+  );
 }
 
 /**
@@ -48,8 +54,12 @@ function isSameTile(this: TileWay, tile: any) {
  * @param appCommunications Array of all application communications
  * @param color Desired color for the tiles
  */
-export function computeCommunicationTiles(appCommunications: ApplicationCommunication[],
-  modelIdToPoints: Map<string, Point[]>, color: THREE.Color, zOffset = 0.025) {
+export function computeCommunicationTiles(
+  appCommunications: ApplicationCommunication[],
+  modelIdToPoints: Map<string, Point[]>,
+  color: THREE.Color,
+  zOffset = 0.025
+) {
   const tiles: Tile[] = [];
   let tile: Tile;
 
@@ -102,7 +112,11 @@ export function computeCommunicationTiles(appCommunications: ApplicationCommunic
  * @param lowerThreshold Value which is used to define categories
  * @param upperThreshold Value which is used to define categories
  */
-function getCategoryFromValue(requests: number, lowerThreshold: number, upperThreshold: number) {
+function getCategoryFromValue(
+  requests: number,
+  lowerThreshold: number,
+  upperThreshold: number
+) {
   if (requests === 0) {
     return 0.0;
   }
@@ -129,7 +143,7 @@ function linearCategorization(requestMap: Map<number, number>) {
   let maxRequests = 1;
 
   requestMap.forEach((_category, requests) => {
-    maxRequests = (requests > maxRequests) ? requests : maxRequests;
+    maxRequests = requests > maxRequests ? requests : maxRequests;
   });
 
   requestMap.forEach((_category, requests) => {
@@ -147,7 +161,7 @@ function categorizeByThreshold(requestMap: Map<number, number>) {
   let maxRequests = 1; // Keep track of max known requests
 
   requestMap.forEach((_category, requests) => {
-    maxRequests = (requests > maxRequests) ? requests : maxRequests;
+    maxRequests = requests > maxRequests ? requests : maxRequests;
   });
 
   const lowerThreshold = maxRequests * (1 / 3);
@@ -155,7 +169,11 @@ function categorizeByThreshold(requestMap: Map<number, number>) {
   const upperThreshold = maxRequests * (2 / 3);
 
   requestMap.forEach((_category, requests) => {
-    const category = getCategoryFromValue(requests, lowerThreshold, upperThreshold);
+    const category = getCategoryFromValue(
+      requests,
+      lowerThreshold,
+      upperThreshold
+    );
     requestMap.set(requests, category);
   });
 }
@@ -184,8 +202,13 @@ function getCategories(requestMap: Map<number, number>, isLinear: boolean) {
  * @param parent Object to which communication lines are added
  * @param centerPoint Offset of landscape objects: Used to align communication
  */
-export function addCommunicationLineDrawing(tiles: Tile[], parent: THREE.Object3D,
-  centerPoint: THREE.Vector2, minSize = 0.04, scalar = 0.28) {
+export function addCommunicationLineDrawing(
+  tiles: Tile[],
+  parent: THREE.Object3D,
+  centerPoint: THREE.Vector2,
+  minSize = 0.04,
+  scalar = 0.28
+) {
   const requestsToCategory = new Map();
 
   // Initialize Category mapping with default value 0

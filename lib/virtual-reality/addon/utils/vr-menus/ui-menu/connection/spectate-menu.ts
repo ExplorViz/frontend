@@ -4,7 +4,11 @@ import SpectateUserService from 'virtual-reality/services/spectate-user';
 import VRController from 'virtual-reality/utils/vr-controller';
 import TextItem from '../../items/text-item';
 import DisableInputMenu from '../../ui-less-menu/disable-input-menu';
-import UiMenu, { DEFAULT_MENU_RESOLUTION, SIZE_RESOLUTION_FACTOR, UiMenuArgs } from '../../ui-menu';
+import UiMenu, {
+  DEFAULT_MENU_RESOLUTION,
+  SIZE_RESOLUTION_FACTOR,
+  UiMenuArgs,
+} from '../../ui-menu';
 
 export type SpectateMenuArgs = UiMenuArgs & {
   localUser: LocalUser;
@@ -50,7 +54,7 @@ export default class SpectateMenu extends UiMenu {
     geometry.translate(
       0,
       ((HEIGHT - DEFAULT_MENU_RESOLUTION) / 2) * SIZE_RESOLUTION_FACTOR,
-      0,
+      0
     );
     return geometry;
   }
@@ -60,9 +64,10 @@ export default class SpectateMenu extends UiMenu {
 
     // Disable input for the other controller.
     const controller = VRController.findController(this);
-    const otherController = controller === this.localUser.controller1
-      ? this.localUser.controller2
-      : this.localUser.controller1;
+    const otherController =
+      controller === this.localUser.controller1
+        ? this.localUser.controller2
+        : this.localUser.controller1;
     otherController?.menuGroup?.openMenu(this.disableInputMenu);
 
     // Activate spectating.

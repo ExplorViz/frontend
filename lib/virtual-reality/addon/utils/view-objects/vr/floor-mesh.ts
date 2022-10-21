@@ -1,8 +1,15 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { IntersectableObject } from '../interfaces/intersectable-object';
 
-export default class FloorMesh extends THREE.Mesh implements IntersectableObject {
-  constructor(width: number, length: number, path = 'images/materials/floor.jpg') {
+export default class FloorMesh
+  extends THREE.Mesh
+  implements IntersectableObject
+{
+  constructor(
+    width: number,
+    length: number,
+    path = 'images/materials/floor.jpg'
+  ) {
     super();
 
     /**

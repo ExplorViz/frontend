@@ -10,8 +10,10 @@ module('Unit | View Object | layout-models/box-layout', function (hooks) {
     const boxLayout = new BoxLayout();
     boxLayout.position = new THREE.Vector3(10, 20, 30);
 
-    const positionComponentsEqual = boxLayout.positionX === 10
-      && boxLayout.positionY === 20 && boxLayout.positionZ === 30;
+    const positionComponentsEqual =
+      boxLayout.positionX === 10 &&
+      boxLayout.positionY === 20 &&
+      boxLayout.positionZ === 30;
 
     assert.ok(positionComponentsEqual);
   });
@@ -25,8 +27,10 @@ module('Unit | View Object | layout-models/box-layout', function (hooks) {
 
     const centerPoint = boxLayout.center;
 
-    const centerIsCorrect = centerPoint.x === 60
-      && boxLayout.positionY === 120 && boxLayout.positionZ === 105;
+    const centerIsCorrect =
+      centerPoint.x === 60 &&
+      boxLayout.positionY === 120 &&
+      boxLayout.positionZ === 105;
 
     assert.ok(centerIsCorrect);
   });

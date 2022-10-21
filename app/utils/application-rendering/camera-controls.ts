@@ -1,7 +1,5 @@
 import gsap from 'gsap';
-import {
-  Box3, Object3D, PerspectiveCamera, Vector3,
-} from 'three';
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
 
 export default class CameraControls {
@@ -31,10 +29,13 @@ export default class CameraControls {
     box.getCenter(center);
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance = maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
+    const fitHeightDistance =
+      maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
     const fitWidthDistance = fitHeightDistance / this.camera.aspect;
-    const distance = 0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
-    const direction = this.controls.target.clone()
+    const distance =
+      0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
+    const direction = this.controls.target
+      .clone()
       .sub(this.camera.position)
       .normalize()
       .multiplyScalar(distance);

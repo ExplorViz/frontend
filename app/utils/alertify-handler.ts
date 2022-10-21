@@ -1,15 +1,20 @@
 import $ from 'jquery';
-// @ts-ignore until types for AlertifyJS are available
+// @ts-ignore: no types atm
 import alertify from 'alertifyjs';
 
-type AlertifyPosition = 'top-left' | 'top-center' | 'top-right' |
-'bottom-left' | 'bottom-center' | 'bottom-right';
+type AlertifyPosition =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
 
 /**
-* @class AlertifyHandler
-*
-* @module explorviz
-*/
+ * @class AlertifyHandler
+ *
+ * @module explorviz
+ */
 export default class AlertifyHandler {
   static alertActive = false;
 
@@ -57,7 +62,11 @@ export default class AlertifyHandler {
    * @param duration Duration in seconds for which the message should be displayed
    * @param cssClass Name of a CSS class which determines the appearance of the message
    */
-  static showAlertifyMessageWithDuration(message: string, duration: number, cssClass: string = 'message') {
+  static showAlertifyMessageWithDuration(
+    message: string,
+    duration: number,
+    cssClass: string = 'message'
+  ) {
     this.alertActive = true;
 
     alertify.notify(message, cssClass, duration, () => {

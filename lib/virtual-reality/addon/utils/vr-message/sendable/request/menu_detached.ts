@@ -18,14 +18,14 @@ export type MenuDetachedMessage = {
 
 export function isMenuDetachedMessage(msg: any): msg is MenuDetachedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === MENU_DETACHED_EVENT
-    && isNonce(msg.nonce)
-    && isEntityType(msg.entityType)
-    && typeof msg.detachId === 'string'
-    && isPosition(msg.position)
-    && isQuaternion(msg.quaternion)
-    && isScale(msg.scale)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === MENU_DETACHED_EVENT &&
+    isNonce(msg.nonce) &&
+    isEntityType(msg.entityType) &&
+    typeof msg.detachId === 'string' &&
+    isPosition(msg.position) &&
+    isQuaternion(msg.quaternion) &&
+    isScale(msg.scale)
   );
 }

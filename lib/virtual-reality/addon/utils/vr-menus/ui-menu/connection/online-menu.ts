@@ -74,7 +74,8 @@ export default class OnlineMenu extends ConnectionBaseMenu {
         width: 316,
         height: 50,
         fontSize: 28,
-        onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildSpectateMenu(user)),
+        onTriggerDown: () =>
+          this.menuGroup?.openMenu(this.menuFactory.buildSpectateMenu(user)),
       });
       this.remoteUserButtons.set(user.userId, remoteUserButton);
       this.items.push(remoteUserButton);
@@ -92,7 +93,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
     if (
       !this.arrayEquals(
         Array.from(this.collaborationSession.getAllRemoteUserIds()),
-        Array.from(this.remoteUserButtons.keys()),
+        Array.from(this.remoteUserButtons.keys())
       )
     ) {
       this.items.clear();

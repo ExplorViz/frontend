@@ -6,12 +6,12 @@ export type TimestampUpdateTimerMessage = {
 };
 
 export function isTimestampUpdateMessage(
-  msg: any,
+  msg: any
 ): msg is TimestampUpdateTimerMessage {
   return (
-    msg !== null
-        && typeof msg === 'object'
-        && msg.event === TIMESTAMP_UPDATE_TIMER_EVENT
-        && typeof msg.timestamp === 'number'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === TIMESTAMP_UPDATE_TIMER_EVENT &&
+    typeof msg.timestamp === 'number'
   );
 }

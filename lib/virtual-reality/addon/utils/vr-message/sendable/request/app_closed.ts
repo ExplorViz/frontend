@@ -10,10 +10,10 @@ export type AppClosedMessage = {
 
 export function isAppClosedMessage(msg: any): msg is AppClosedMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === APP_CLOSED_EVENT
-    && isNonce(msg.nonce)
-    && typeof msg.appId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === APP_CLOSED_EVENT &&
+    isNonce(msg.nonce) &&
+    typeof msg.appId === 'string'
   );
 }

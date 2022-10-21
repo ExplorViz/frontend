@@ -1,60 +1,57 @@
-<table
-  id="token-selection-table"
-  class="table table-striped"
->
+<table id='token-selection-table' class='table table-striped'>
   <thead>
     <tr>
-      <th scope="col" {{on "click" (fn this.sortBy "alias")}}>Alias</th>
-      <th scope="col" {{on "click" (fn this.sortBy "created")}}>Created</th>
-      <th scope="col"></th>
+      <th scope='col' {{on 'click' (fn this.sortBy 'alias')}}>Alias</th>
+      <th scope='col' {{on 'click' (fn this.sortBy 'created')}}>Created</th>
+      <th scope='col'></th>
     </tr>
   </thead>
   <tbody>
     {{#each
-      (sort-by (concat this.sortProperty ":" this.sortOrder) "value" @tokens)
-    as |token|
+      (sort-by (concat this.sortProperty ':' this.sortOrder) 'value' @tokens)
+      as |token|
     }}
       <tr
-        style={{if (eq @currentToken.value token.value) "background-color: #aecce1"}}
+        style={{if
+          (eq @currentToken.value token.value)
+          'background-color: #aecce1'
+        }}
       >
-        <th scope="row">{{token.alias}}</th>
-        <th scope="row">{{timestamp-to-date token.created "localString"}}</th>
-        <th scope="row">
-          <ul class="token-selection-icons">
+        <th scope='row'>{{token.alias}}</th>
+        <th scope='row'>{{timestamp-to-date token.created 'localString'}}</th>
+        <th scope='row'>
+          <ul class='token-selection-icons'>
             <li>
               <button
-                class="button-svg-with-hover"
-                type="button"
-                {{on "click" (fn @selectToken token)}}
+                class='button-svg-with-hover'
+                type='button'
+                {{on 'click' (fn @selectToken token)}}
               >
-                {{svg-jar "search-16" class="octicon align-middle"}}
-                <BsTooltip @placement="bottom" @triggerEvents="hover">
-                  Open visualization
+                {{svg-jar 'search-16' class='octicon align-middle'}}
+                <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                  Open Visualization
                 </BsTooltip>
               </button>
             </li>
             <li>
-              <AdditionalTokenInfo @token={{token}}/>
+              <AdditionalTokenInfo @token={{token}} />
             </li>
             {{#if (eq token.ownerId this.auth.user.sub)}}
               <li>
                 <button
-                  class="button-svg-with-hover"
-                  type="button"
-                  {{on "click" (fn @deleteToken token.value)}}
+                  class='button-svg-with-hover'
+                  type='button'
+                  {{on 'click' (fn @deleteToken token.value)}}
                 >
-                  {{svg-jar "trash-16" class="octicon align-middle"}}
-                  <BsTooltip @placement="bottom" @triggerEvents="hover">
+                  {{svg-jar 'trash-16' class='octicon align-middle'}}
+                  <BsTooltip @placement='bottom' @triggerEvents='hover'>
                     Delete token permanently
                   </BsTooltip>
                 </button>
               </li>
             {{/if}}
             <li>
-              <ShareLandscape
-                @token={{token}}
-                @reload={{@reload}}
-              />
+              <ShareLandscape @token={{token}} @reload={{@reload}} />
             </li>
           </ul>
         </th>

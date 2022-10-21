@@ -1,5 +1,10 @@
 #auth0-login-container {
-  background: radial-gradient(ellipse at bottom, #b0dfff 0%, #5796c1 35%, #00030a 100%);
+  background: radial-gradient(
+    ellipse at bottom,
+    #b0dfff 0%,
+    #5796c1 35%,
+    #00030a 100%
+  );
   height: 100%;
   opacity: 1;
   animation: fadeIn ease 1s;
@@ -14,7 +19,7 @@
 }
 
 .auth0-lock.auth0-lock .auth0-lock-cred-pane-internal-wrapper {
-  height: auto!important;
+  height: auto !important;
 }
 
 .auth0-lock.auth0-lock.auth0-lock-opened-in-frame {
@@ -25,5 +30,5 @@
 
 .fade-in {
   opacity: 100%;
-  transition: opacity 0.8s
+  transition: opacity 0.8s;
 }

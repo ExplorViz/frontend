@@ -1,5 +1,5 @@
 import Service from '@ember/service';
-import THREE from 'three';
+import * as THREE from 'three';
 import { ActionIconTextures } from 'virtual-reality/utils/view-objects/vr/action-icon';
 import { CloseIconTextures } from 'virtual-reality/utils/view-objects/vr/close-icon';
 

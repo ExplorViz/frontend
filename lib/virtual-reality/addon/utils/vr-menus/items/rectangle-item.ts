@@ -13,9 +13,7 @@ export default class RectangleItem extends Item {
 
   color: string;
 
-  constructor({
-    width, height, color, ...args
-  }: RectangleItemArgs) {
+  constructor({ width, height, color, ...args }: RectangleItemArgs) {
     super(args);
 
     this.width = width;

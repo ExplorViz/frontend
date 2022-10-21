@@ -8,9 +8,9 @@ export interface DetachableMenu extends BaseMenu {
 
 export function isDetachableMenu(menu: any): menu is DetachableMenu {
   return (
-    menu !== null
-    && typeof menu === 'object'
-    && typeof menu.getDetachId === 'function'
-    && typeof menu.getEntityType === 'function'
+    menu !== null &&
+    typeof menu === 'object' &&
+    typeof menu.getDetachId === 'function' &&
+    typeof menu.getEntityType === 'function'
   );
 }

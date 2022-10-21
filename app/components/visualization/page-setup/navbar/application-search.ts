@@ -4,9 +4,16 @@ import { action } from '@ember/object';
 import { isBlank } from '@ember/utils';
 import $ from 'jquery';
 import {
-  Application, Class, isClass, isPackage, Package,
+  Application,
+  Class,
+  isClass,
+  isPackage,
+  Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/utils/application-helpers';
 import { perform } from 'ember-concurrency-ts';
 import { TaskGenerator } from 'ember-concurrency';
 
@@ -15,11 +22,11 @@ interface SearchSeperator {
 }
 
 interface Args {
-  application: Application,
-  unhighlightAll(): void,
-  highlightModel(entity: Class | Package): void,
-  openParents(entity: Class | Package): void,
-  closeComponent(component: Package): void
+  application: Application;
+  unhighlightAll(): void;
+  highlightModel(entity: Class | Package): void;
+  openParents(entity: Class | Package): void;
+  closeComponent(component: Package): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
@@ -53,14 +60,18 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
   }
 
-  @restartableTask*
-  searchEntity(term: string): TaskGenerator<(Class | Package | SearchSeperator)[]> {
-    if (isBlank(term)) { return []; }
+  @restartableTask *searchEntity(
+    term: string
+  ): TaskGenerator<(Class | Package | SearchSeperator)[]> {
+    if (isBlank(term)) {
+      return [];
+    }
     return yield perform(this.getPossibleEntityNames, term);
   }
 
-  @task*
-  getPossibleEntityNames(name: string): TaskGenerator<(Class | Package | SearchSeperator)[]> {
+  @task *getPossibleEntityNames(
+    name: string
+  ): TaskGenerator<(Class | Package | SearchSeperator)[]> {
     const searchString = name.toLowerCase();
 
     const latestApp = this.args.application;
@@ -73,7 +84,10 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     const maxNumberOfCompNames = 20;
     let currentNumberOfCompNames = 0;
 
-    function searchEngineFindsHit(clazzNameToCheckAgainst: string, searchWord: string) {
+    function searchEngineFindsHit(
+      clazzNameToCheckAgainst: string,
+      searchWord: string
+    ) {
       if (searchString.startsWith('*')) {
         const searchName = searchWord.substring(1);
         return clazzNameToCheckAgainst.includes(searchName);

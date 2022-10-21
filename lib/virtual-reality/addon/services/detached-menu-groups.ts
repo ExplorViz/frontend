@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import THREE from 'three';
+import * as THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
 import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
@@ -10,13 +10,19 @@ import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/r
 import CloseIcon from '../utils/view-objects/vr/close-icon';
 import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
-import { isMenuDetachedResponse, MenuDetachedResponse } from '../utils/vr-message/receivable/response/menu-detached';
-import { isObjectClosedResponse, ObjectClosedResponse } from '../utils/vr-message/receivable/response/object-closed';
+import {
+  isMenuDetachedResponse,
+  MenuDetachedResponse,
+} from '../utils/vr-message/receivable/response/menu-detached';
+import {
+  isObjectClosedResponse,
+  ObjectClosedResponse,
+} from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
 import WebSocketService from './web-socket';
 
 export default class DetachedMenuGroupsService extends Service {
-  @service('vr-asset-repo')
+  @service('virtual-reality@vr-asset-repo')
   private assetRepo!: VrAssetRepository;
 
   @service('web-socket')
@@ -70,14 +76,20 @@ export default class DetachedMenuGroupsService extends Service {
     this.addDetachedMenuLocally(menu, null, null);
   }
 
-  shareDetachedMenu(menuGroup: DetachedMenuGroup, icon: ActionIcon): Promise<boolean> {
+  shareDetachedMenu(
+    menuGroup: DetachedMenuGroup,
+    icon: ActionIcon
+  ): Promise<boolean> {
     const menu = menuGroup.currentMenu as DetachableMenu;
     const position = new THREE.Vector3();
     menu.getWorldPosition(position);
 
     const quaternion = new THREE.Quaternion();
     menu.getWorldQuaternion(quaternion);
-    return this.webSocket.sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+    return this.webSocket.sendRespondableMessage<
+      MenuDetachedMessage,
+      MenuDetachedResponse
+    >(
       // Notify backend about detached menu.
       {
         event: 'menu_detached',
@@ -103,8 +115,9 @@ export default class DetachedMenuGroupsService extends Service {
           return false;
         },
         onOffline: () => {
+          // nothing to do
         },
-      },
+      }
     );
   }
 
@@ -119,7 +132,11 @@ export default class DetachedMenuGroupsService extends Service {
    * Adds a group for a detached menu to this container at the position and
    * with the same rotation and scale as the given menu.
    */
-  addDetachedMenuLocally(menu: DetachableMenu, menuId: string | null, userId: string | null) {
+  addDetachedMenuLocally(
+    menu: DetachableMenu,
+    menuId: string | null,
+    userId: string | null
+  ) {
     // Remember the position, rotation and scale of the detached menu.
     const position = new THREE.Vector3();
     const quaternion = new THREE.Quaternion();
@@ -164,7 +181,9 @@ export default class DetachedMenuGroupsService extends Service {
         onAction: () => {
           this.heatmapConf.toggleShared();
           if (this.heatmapConf.heatmapShared) {
-            shareIcon.material.color = new THREE.Color(this.collaborationSession.getColor(''));
+            shareIcon.material.color = new THREE.Color(
+              this.collaborationSession.getColor('')
+            );
           } else {
             shareIcon.material.color = new THREE.Color('white');
           }
@@ -240,7 +259,10 @@ export default class DetachedMenuGroupsService extends Service {
       return Promise.resolve(true);
     }
 
-    return this.webSocket.sendRespondableMessage<DetachedMenuClosedMessage, ObjectClosedResponse>(
+    return this.webSocket.sendRespondableMessage<
+      DetachedMenuClosedMessage,
+      ObjectClosedResponse
+    >(
       // Informs the backend that an detached menu was closed by this user.
       {
         event: 'detached_menu_closed',
@@ -259,7 +281,7 @@ export default class DetachedMenuGroupsService extends Service {
         onOffline: () => {
           this.removeDetachedMenuLocally(detachedMenuGroup);
         },
-      },
+      }
     );
   }
 

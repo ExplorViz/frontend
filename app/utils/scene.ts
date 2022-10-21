@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
 
 const FLOOR_SIZE = 1000;

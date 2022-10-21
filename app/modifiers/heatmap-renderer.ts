@@ -7,19 +7,25 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration, { Metric } from 'heatmap/services/heatmap-configuration';
-import applySimpleHeatOnFoundation, { addHeatmapHelperLine, computeHeatMapViewPos, removeHeatmapHelperLines } from 'heatmap/utils/heatmap-helper';
+import HeatmapConfiguration, {
+  Metric,
+} from 'heatmap/services/heatmap-configuration';
+import applySimpleHeatOnFoundation, {
+  addHeatmapHelperLine,
+  computeHeatMapViewPos,
+  removeHeatmapHelperLines,
+} from 'heatmap/utils/heatmap-helper';
 import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
-import THREE from 'three';
+import * as THREE from 'three';
 
 interface NamedArgs {
-  camera: THREE.Camera,
-  scene: THREE.Scene,
+  camera: THREE.Camera;
+  scene: THREE.Scene;
 }
 
 interface Args {
-  positional: [],
-  named: NamedArgs,
+  positional: [];
+  named: NamedArgs;
 }
 
 export default class HeatmapRenderer extends Modifier<Args> {
@@ -49,9 +55,11 @@ export default class HeatmapRenderer extends Modifier<Args> {
     // Avoid unwanted reflections in heatmap mode
     this.setSpotLightVisibilityInScene(this.metric === undefined);
 
-    if (this.lastApplicationObject3D
-      && (this.lastApplicationObject3D !== this.applicationObject3D
-        || !this.metric)) {
+    if (
+      this.lastApplicationObject3D &&
+      (this.lastApplicationObject3D !== this.applicationObject3D ||
+        !this.metric)
+    ) {
       this.debug(`Removing heatmap:${this.lastApplicationObject3D.id}`);
       this.removeHeatmap(this.lastApplicationObject3D);
       this.lastApplicationObject3D = undefined;
@@ -75,10 +83,10 @@ export default class HeatmapRenderer extends Modifier<Args> {
   }
 
   /**
-       * Sets all objects within the scene of type SpotLight to desired visibility
-       *
-       * @param isVisible Determines whether a spotlight is visible or not
-       */
+   * Sets all objects within the scene of type SpotLight to desired visibility
+   *
+   * @param isVisible Determines whether a spotlight is visible or not
+   */
   private setSpotLightVisibilityInScene(isVisible = true) {
     this.scene?.children.forEach((child) => {
       if (child instanceof THREE.DirectionalLight) {
@@ -87,8 +95,10 @@ export default class HeatmapRenderer extends Modifier<Args> {
     });
   }
 
-  @task*
-  applyHeatmap(applicationObject3D: ApplicationObject3D, selectedMetric: Metric) {
+  @task *applyHeatmap(
+    applicationObject3D: ApplicationObject3D,
+    selectedMetric: Metric
+  ) {
     applicationObject3D.setComponentMeshOpacity(0.1);
     applicationObject3D.setCommunicationOpacity(0.1);
 
@@ -101,9 +111,13 @@ export default class HeatmapRenderer extends Modifier<Args> {
     const canvas = document.createElement('canvas');
     canvas.width = foundationMesh.width;
     canvas.height = foundationMesh.depth;
-    const simpleHeatMap = simpleHeatmap(selectedMetric.max, canvas,
+    const simpleHeatMap = simpleHeatmap(
+      selectedMetric.max,
+      canvas,
       this.heatmapConf.getSimpleHeatGradient(),
-      this.heatmapConf.heatmapRadius, this.heatmapConf.blurRadius);
+      this.heatmapConf.heatmapRadius,
+      this.heatmapConf.blurRadius
+    );
 
     const foundationWorldPosition = new THREE.Vector3();
 
@@ -115,8 +129,13 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     boxMeshes.forEach((boxMesh) => {
       if (boxMesh instanceof ClazzMesh) {
-        this.heatmapClazzUpdate(applicationObject3D, boxMesh.dataModel, foundationMesh,
-          simpleHeatMap, selectedMetric);
+        this.heatmapClazzUpdate(
+          applicationObject3D,
+          boxMesh.dataModel,
+          foundationMesh,
+          simpleHeatMap,
+          selectedMetric
+        );
       }
     });
 
@@ -126,12 +145,18 @@ export default class HeatmapRenderer extends Modifier<Args> {
     this.debug('Applied heatmap');
   }
 
-  private heatmapClazzUpdate(applicationObject3D: ApplicationObject3D, clazz: Class,
-    foundationMesh: FoundationMesh, simpleHeatMap: any, selectedMetric: Metric) {
+  private heatmapClazzUpdate(
+    applicationObject3D: ApplicationObject3D,
+    clazz: Class,
+    foundationMesh: FoundationMesh,
+    simpleHeatMap: any,
+    selectedMetric: Metric
+  ) {
     // Calculate center point of the clazz floor. This is used for computing the corresponding
     // face on the foundation box.
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id) as
-      ClazzMesh | undefined;
+      | ClazzMesh
+      | undefined;
 
     if (!clazzMesh) {
       return;
@@ -158,13 +183,20 @@ export default class HeatmapRenderer extends Modifier<Args> {
     // Following the ray vector from the floor center get the intersection with the foundation.
     raycaster.set(clazzPos, rayVector.normalize());
 
-    const firstIntersection = raycaster.intersectObject(foundationMesh, false)[0];
+    const firstIntersection = raycaster.intersectObject(
+      foundationMesh,
+      false
+    )[0];
 
     const worldIntersectionPoint = firstIntersection.point.clone();
     applicationObject3D.worldToLocal(worldIntersectionPoint);
 
     if (this.heatmapConf.useHelperLines) {
-      addHeatmapHelperLine(applicationObject3D, clazzPos, worldIntersectionPoint);
+      addHeatmapHelperLine(
+        applicationObject3D,
+        clazzPos,
+        worldIntersectionPoint
+      );
     }
 
     // Compute color only for the first intersection point for consistency if one was found.
@@ -174,8 +206,11 @@ export default class HeatmapRenderer extends Modifier<Args> {
       if (selectedMode === 'aggregatedHeatmap') {
         simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
       } else {
-        simpleHeatMap.add([xPos, zPos,
-          heatmapValue + (this.heatmapConf.largestValue / 2)]);
+        simpleHeatMap.add([
+          xPos,
+          zPos,
+          heatmapValue + this.heatmapConf.largestValue / 2,
+        ]);
       }
     }
   }

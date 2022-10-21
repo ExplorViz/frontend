@@ -1,5 +1,5 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 import { IntersectableObject } from '../interfaces/intersectable-object';
 
@@ -57,7 +57,7 @@ export default class CloseIcon extends BaseMesh implements IntersectableObject {
     this.scale.set(
       1.0 / object.scale.x,
       1.0 / object.scale.y,
-      1.0 / object.scale.z,
+      1.0 / object.scale.z
     );
 
     // Reset rotation of the object temporarily such that the axis are aligned the world axis.

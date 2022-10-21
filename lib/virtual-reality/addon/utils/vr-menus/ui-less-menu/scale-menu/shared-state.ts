@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 
 export default class SharedScaleMenuState {

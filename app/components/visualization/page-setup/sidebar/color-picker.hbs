@@ -1,23 +1,16 @@
-{{#if @isLandscapeView}}
-  <div
-    id={{concat "cp-landscape-" @id}}
-    class="input-group justify-content-between"
-    {{did-insert (fn this.setupLandscapeColorpicker @id)}}
-  >
-    <span class="colorpicker-label">{{format-color-property @setting.displayName}}</span>
-    <span class="input-group-append colorpicker-input">
-      <span class="input-group-text colorpicker-input-addon"><i></i></span>
-    </span>
-  </div>
-{{else}}
-  <div
-    id={{concat "cp-application-" @id}}
-    class="input-group justify-content-between"
-    {{did-insert (fn this.setupApplicationColorpicker @id)}}
-  >
-    <span class="colorpicker-label">{{format-color-property @setting.displayName}}</span>
-    <span class="input-group-append colorpicker-input">
-      <span class="input-group-text colorpicker-input-addon"><i></i></span>
-    </span>
-  </div>
-{{/if}}
+<div
+  id={{concat 'cp-application-' @id}}
+  class='input-group justify-content-between'
+>
+  <span class='colorpicker-label'>{{format-color-property
+      @setting.displayName
+    }}</span>
+  <span class='input-group-append colorpicker-input'>
+    <span
+      class='input-group-text colorpicker-input-addon'
+      id={{concat 'cp-application-span' @id}}
+      {{did-insert (fn this.setupApplicationColorpicker @id)}}
+    >
+      <i></i></span>
+  </span>
+</div>

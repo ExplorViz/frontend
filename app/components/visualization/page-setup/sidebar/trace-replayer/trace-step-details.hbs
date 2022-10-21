@@ -1,65 +1,65 @@
-<h5 align="center">Trace Step Details</h5>
-<div class="mt-3 d-flex justify-content-between">
-  <table class="table table-striped">
+<h5 align='center'>Trace Step Details</h5>
+<div class='mt-3 d-flex justify-content-between'>
+  <table class='table table-striped'>
     <tbody>
-      <tr class="d-flex">
-        <th class="col-3">Operation Name</th>
-        <td class="col-9 container-word-wrap">{{@operationName}}</td>
+      <tr class='d-flex'>
+        <th class='col-3'>Operation Name</th>
+        <td class='col-9 container-word-wrap'>{{@operationName}}</td>
       </tr>
-      <tr class="d-flex">
-        <th class="col-3">Soure Clazz</th>
-        <td class="col-9 container-word-wrap">
+      <tr class='d-flex'>
+        <th class='col-3'>Soure Clazz</th>
+        <td class='col-9 container-word-wrap'>
           {{#if @sourceClass}}
             {{@sourceClass.name}}
             <BsButton
               @onClick={{fn @moveCameraTo @sourceClass}}
-              @type="button"
-              class="th-btn"
+              @type='button'
+              class='th-btn'
             >
-              {{svg-jar "eye-16" class="octicon align-middle"}}
+              {{svg-jar 'eye-16' class='octicon align-middle'}}
             </BsButton>
           {{/if}}
         </td>
       </tr>
-      <tr class="d-flex">
-        <th class="col-3">Target Clazz</th>
-        <td class="col-9 container-word-wrap">
+      <tr class='d-flex'>
+        <th class='col-3'>Target Clazz</th>
+        <td class='col-9 container-word-wrap'>
           {{#if @targetClass}}
             {{@targetClass.name}}
             <BsButton
               @onClick={{fn @moveCameraTo @targetClass}}
-              @type="button"
-              class="th-btn"
+              @type='button'
+              class='th-btn'
             >
-              {{svg-jar "eye-16" class="octicon align-middle"}}
+              {{svg-jar 'eye-16' class='octicon align-middle'}}
             </BsButton>
           {{/if}}
         </td>
       </tr>
-      <tr class="d-flex">
-        <th class="col-3">Soure Application</th>
-        <td class="col-9 container-word-wrap">
+      <tr class='d-flex'>
+        <th class='col-3'>Soure Application</th>
+        <td class='col-9 container-word-wrap'>
           {{@sourceApplicationName}}
         </td>
       </tr>
-      <tr class="d-flex">
-        <th class="col-3">Target Application</th>
-        <td class="col-9 container-word-wrap">
+      <tr class='d-flex'>
+        <th class='col-3'>Target Application</th>
+        <td class='col-9 container-word-wrap'>
           {{@targetApplicationName}}
         </td>
       </tr>
-      <tr class="d-flex">
-        <th class="col-3">
+      <tr class='d-flex'>
+        <th class='col-3'>
           Duration
           <BsButton
             @onClick={{this.toggleSpanDurationTimeUnit}}
-            class="th-btn"
+            class='th-btn'
             outline={{true}}
           >
             {{this.timeUnit}}
           </BsButton>
         </th>
-        <td class="col-9 container-word-wrap">
+        <td class='col-9 container-word-wrap'>
           {{format-number this.spanDuration this.timeUnit}}
         </td>
       </tr>

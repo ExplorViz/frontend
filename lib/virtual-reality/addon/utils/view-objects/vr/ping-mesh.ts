@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 
 export const PING_ANIMATION_CLIP = new THREE.AnimationClip(
   'ping-animation',
@@ -7,7 +7,7 @@ export const PING_ANIMATION_CLIP = new THREE.AnimationClip(
     new THREE.NumberKeyframeTrack('.scale[x]', [0.0, 0.5], [1.0, 2.6]),
     new THREE.NumberKeyframeTrack('.scale[y]', [0.0, 0.5], [1.0, 2.6]),
     new THREE.NumberKeyframeTrack('.scale[z]', [0.0, 0.5], [1.0, 2.6]),
-  ],
+  ]
 );
 
 const PING_RADIUS = 2.4;
@@ -31,7 +31,7 @@ export default class PingMesh extends THREE.Mesh {
     this.geometry = new THREE.SphereGeometry(
       PING_RADIUS,
       PING_SEGMENTS,
-      PING_SEGMENTS,
+      PING_SEGMENTS
     );
     this.material = new THREE.MeshBasicMaterial({ color });
     this.visible = false;

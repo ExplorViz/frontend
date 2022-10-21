@@ -8,12 +8,12 @@ export type UserControllerConnectMessage = {
 };
 
 export function isUserControllerConnectMessage(
-  msg: any,
+  msg: any
 ): msg is UserControllerConnectMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === USER_CONTROLLER_CONNECT_EVENT
-    && isController(msg.controller)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_CONTROLLER_CONNECT_EVENT &&
+    isController(msg.controller)
   );
 }

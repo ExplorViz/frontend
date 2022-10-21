@@ -2,12 +2,20 @@ import { action, computed } from '@ember/object';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import {
-  Span, Trace,
+  Span,
+  Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Class, Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Class,
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import {
-  calculateDuration, getSortedTraceSpans, sortTracesByDuration, sortTracesById,
+  calculateDuration,
+  getSortedTraceSpans,
+  sortTracesByDuration,
+  sortTracesById,
 } from 'explorviz-frontend/utils/trace-helpers';
 
 export type TimeUnit = 'ns' | 'ms' | 's';
@@ -35,7 +43,14 @@ export default class TraceSelection extends Component<Args> {
   @tracked
   filterTerm: string = '';
 
-  @computed('args.selectedTrace', 'firstClasses', 'lastClasses', 'sortBy', 'isSortedAsc', 'filterTerm')
+  @computed(
+    'args.selectedTrace',
+    'firstClasses',
+    'lastClasses',
+    'sortBy',
+    'isSortedAsc',
+    'filterTerm'
+  )
   get traces() {
     return this.filterAndSortTraces();
   }
@@ -47,10 +62,13 @@ export default class TraceSelection extends Component<Args> {
 
   @computed('args.applicationTraces')
   get firstClasses() {
-    const sortedSpanLists = this.args.applicationTraces
-      .map((trace) => getSortedTraceSpans(trace));
+    const sortedSpanLists = this.args.applicationTraces.map((trace) =>
+      getSortedTraceSpans(trace)
+    );
 
-    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(this.args.structureData);
+    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(
+      this.args.structureData
+    );
 
     const traceIdToFirstClassMap = new Map<string, Class>();
 
@@ -68,10 +86,13 @@ export default class TraceSelection extends Component<Args> {
 
   @computed('args.applicationTraces')
   get lastClasses() {
-    const sortedSpanLists = this.args.applicationTraces
-      .map((trace) => getSortedTraceSpans(trace));
+    const sortedSpanLists = this.args.applicationTraces.map((trace) =>
+      getSortedTraceSpans(trace)
+    );
 
-    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(this.args.structureData);
+    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(
+      this.args.structureData
+    );
 
     const traceIdToLastClassMap = new Map<string, Class>();
 
@@ -95,8 +116,7 @@ export default class TraceSelection extends Component<Args> {
     const filteredTraces: Trace[] = [];
     const filter = this.filterTerm;
     this.args.applicationTraces.forEach((trace) => {
-      if (filter === ''
-        || trace.traceId.toLowerCase().includes(filter)) {
+      if (filter === '' || trace.traceId.toLowerCase().includes(filter)) {
         filteredTraces.push(trace);
         return;
       }
@@ -104,8 +124,10 @@ export default class TraceSelection extends Component<Args> {
       const firstClass = this.firstClasses.get(trace.traceId);
       const lastClass = this.lastClasses.get(trace.traceId);
 
-      if ((firstClass && firstClass.name.toLowerCase().includes(filter))
-        || (lastClass && lastClass.name.toLowerCase().includes(filter))) {
+      if (
+        (firstClass && firstClass.name.toLowerCase().includes(filter)) ||
+        (lastClass && lastClass.name.toLowerCase().includes(filter))
+      ) {
         filteredTraces.push(trace);
       }
     });
@@ -167,7 +189,9 @@ export default class TraceSelection extends Component<Args> {
   @action
   filter(inputEvent: InputEvent) {
     // Case insensitive string filter
-    this.filterTerm = (inputEvent.target as HTMLInputElement).value.toLowerCase();
+    this.filterTerm = (
+      inputEvent.target as HTMLInputElement
+    ).value.toLowerCase();
   }
 
   @action

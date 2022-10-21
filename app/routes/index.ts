@@ -1,4 +1,5 @@
 import Route from '@ember/routing/route';
+import { inject as service } from '@ember/service';
 
 /**
  * TODO
@@ -7,8 +8,11 @@ import Route from '@ember/routing/route';
  * @extends Ember.Route
  */
 export default class IndexRoute extends Route {
+  @service('router')
+  router!: any;
+
   beforeModel(transition: any) {
     super.beforeModel(transition);
-    this.replaceWith('login');
+    this.router.replaceWith('login');
   }
 }

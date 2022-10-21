@@ -4,11 +4,12 @@
  */
 
 import {
-  Component, Constants as MotionControllerConstants, MotionController, VisualResponse,
+  Component,
+  Constants as MotionControllerConstants,
+  MotionController,
+  VisualResponse,
 } from '@webxr-input-profiles/motion-controllers';
-import {
-  Material, Mesh, Object3D,
-} from 'three';
+import { Material, Mesh, Object3D } from 'three';
 
 export type VisualResponseNodes = {
   visualResponse: VisualResponse;
@@ -27,7 +28,9 @@ export default class VrControllerModel extends Object3D {
 
   private _motionControllerPromise!: Promise<MotionController>;
 
-  private _onMotionControllerConnect: ((motionController: MotionController) => void) | null;
+  private _onMotionControllerConnect:
+    | ((motionController: MotionController) => void)
+    | null;
 
   private touchPointNodes: TouchPointNode[];
 
@@ -94,7 +97,7 @@ export default class VrControllerModel extends Object3D {
     this.envMap = envMap;
     this.traverse((child) => {
       if (child instanceof Mesh && child.material instanceof Material) {
-        // @ts-ignore
+        // @ts-ignore: ...
         child.material.envMap = this.envMap;
         child.material.needsUpdate = true;
       }
@@ -115,7 +118,7 @@ export default class VrControllerModel extends Object3D {
    * Polls data from the XRInputSource and updates the model's components to match
    * the real world data
    */
-  updateMatrixWorld(force: Boolean | undefined) {
+  updateMatrixWorld(force: boolean | undefined) {
     super.updateMatrixWorld.call(this, force);
 
     if (!this.motionController) return;
@@ -141,20 +144,20 @@ export default class VrControllerModel extends Object3D {
               minNode.quaternion.slerpQuaternions(
                 maxNode.quaternion,
                 valueNode.quaternion,
-                value,
+                value
               );
 
               valueNode.position.lerpVectors(
                 minNode.position,
                 maxNode.position,
-                value,
+                value
               );
             }
             break;
           default:
             break;
         }
-      },
+      }
     );
   }
 }

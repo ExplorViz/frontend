@@ -8,7 +8,7 @@ import { Class, Package } from './landscape-schemes/structure-data';
 
 /* eslint-disable no-underscore-dangle */
 
-type Coords = { x: number; y: number; z: number; };
+type Coords = { x: number; y: number; z: number };
 
 /**
  * Returns the first parent component which is open
@@ -17,7 +17,8 @@ type Coords = { x: number; y: number; z: number; };
  * @param component Component for which an open parent shall be returned
  */
 export function findFirstOpenOrLastClosedAncestorComponent(
-  app: ApplicationObject3D, component: Package,
+  app: ApplicationObject3D,
+  component: Package
 ): Package {
   const parentComponent = component.parent;
 
@@ -45,23 +46,32 @@ export function findFirstOpen(app: ApplicationObject3D, clazz: Class) {
 }
 
 export function linkPositionUpdate(
-  line: ClazzCommunicationMesh, _coords: { start: Coords, end: Coords }, link: GraphLink,
+  line: ClazzCommunicationMesh,
+  _coords: { start: Coords; end: Coords },
+  link: GraphLink
 ) {
   if (!link.communicationData) {
     return true;
   }
-  const drawableClassCommunication: DrawableClassCommunication = link.communicationData;
+  const drawableClassCommunication: DrawableClassCommunication =
+    link.communicationData;
 
   // source
   const sourceApp = link.source.__threeObj;
-  const sourceClass = findFirstOpen(sourceApp, drawableClassCommunication.sourceClass);
+  const sourceClass = findFirstOpen(
+    sourceApp,
+    drawableClassCommunication.sourceClass
+  );
   const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
   const start = sourceMesh.position.clone();
   sourceApp.localToWorld(start);
 
   // target
   const targetApp = link.target.__threeObj;
-  const targetClass = findFirstOpen(targetApp, drawableClassCommunication.targetClass);
+  const targetClass = findFirstOpen(
+    targetApp,
+    drawableClassCommunication.targetClass
+  );
   const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
   const end = targetMesh.position.clone();
   targetApp.localToWorld(end);

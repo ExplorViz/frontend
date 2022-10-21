@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRController from '../vr-controller';
 import { ControllerPose, Pose } from '../vr-message/sendable/user_positions';
 
@@ -33,7 +33,7 @@ export function getControllerPose(controller: VRController): ControllerPose {
 export function getPoses(
   camera: THREE.Camera,
   controller1: VRController | undefined,
-  controller2: VRController | undefined,
+  controller2: VRController | undefined
 ): VrPose {
   return {
     camera: getCameraPose(camera),

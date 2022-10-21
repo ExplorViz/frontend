@@ -8,12 +8,12 @@ export type UserControllerDisconnectMessage = {
 };
 
 export function isUserControllerDisconnectMessage(
-  msg: any,
+  msg: any
 ): msg is UserControllerDisconnectMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === USER_CONTROLLER_DISCONNECT_EVENT
-    && isControllerId(msg.controllerId)
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_CONTROLLER_DISCONNECT_EVENT &&
+    isControllerId(msg.controllerId)
   );
 }

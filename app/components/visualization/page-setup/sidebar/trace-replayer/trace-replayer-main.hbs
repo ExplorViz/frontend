@@ -1,12 +1,12 @@
-<h5 align="center">
+<h5 align='center'>
   Trace Replayer
   <BsButton
-    class="th-btn {{if this.isReplayAnimated "navbar-highlight red-hover"}}"
-    title={{if this.isReplayAnimated "Pause animation" "Resume animation"}}
+    class='th-btn {{if this.isReplayAnimated "navbar-highlight red-hover"}}'
+    title={{if this.isReplayAnimated 'Pause animation' 'Resume animation'}}
     @onClick={{this.toggleAnimation}}
-    @type="button"
+    @type='button'
   >
-    {{svg-jar "device-camera-video-16" class="octicon align-middle"}}
+    {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
   </BsButton>
 </h5>
 
@@ -17,7 +17,7 @@
   @traceStepCount={{this.traceSteps.length}}
 />
 
-<hr>
+<hr />
 
 <Visualization::PageSetup::Sidebar::TraceReplayer::TraceStepDetails
   @operationName={{this.operationName}}

@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import BaseMesh from './base-mesh';
 
 export default class LogoMesh extends BaseMesh {
@@ -8,7 +8,12 @@ export default class LogoMesh extends BaseMesh {
 
   height: number;
 
-  constructor(texture: THREE.Texture, width: number, height: number, defaultColor = new THREE.Color('white')) {
+  constructor(
+    texture: THREE.Texture,
+    width: number,
+    height: number,
+    defaultColor = new THREE.Color('white')
+  ) {
     super(defaultColor);
 
     this.texture = texture;

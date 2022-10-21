@@ -25,8 +25,7 @@ export default class VrButton extends Component<VrButtonArgs> {
   @action
   async updateVrStatus() {
     if ('xr' in navigator) {
-      // @ts-ignore
-      const supported = await navigator.xr.isSessionSupported('immersive-vr');
+      const supported = await navigator.xr?.isSessionSupported('immersive-vr');
       if (supported) {
         this.buttonText = 'Enter VR';
         this.vrSupported = true;
@@ -85,10 +84,9 @@ export default class VrButton extends Component<VrButtonArgs> {
 
     if (!this.currentSession) {
       const sessionInit = { optionalFeatures: ['local-floor'] };
-      // @ts-ignore
-      const session = await navigator.xr.requestSession(
+      const session = await navigator.xr?.requestSession(
         'immersive-vr',
-        sessionInit,
+        sessionInit
       );
       this.onSessionStarted(session);
     } else {

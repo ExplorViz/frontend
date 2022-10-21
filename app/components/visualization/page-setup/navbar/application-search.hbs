@@ -1,18 +1,19 @@
-<li class="nav-item ml-2" {{did-insert this.removePowerselectArrow}}>
+<li class='nav-item ml-2' {{did-insert this.removePowerselectArrow}}>
 
-  {{!-- CSS styling https://ember-power-select.com/cookbook/css-animations --}}
+  {{! CSS styling https://ember-power-select.com/cookbook/css-animations }}
 
-  {{!-- Maybe not the nicest option to use multiple select for single select
+  {{! Maybe not the nicest option to use multiple select for single select
         However, the search inside the trigger seems more intuitive
-    --}}
+    }}
   <PowerSelectMultiple
-    @triggerClass="bootstrap-theme-trigger form-control"
+    @triggerClass='bootstrap-theme-trigger form-control'
     @search={{perform this.searchEntity}}
     @searchMessage="Insert name or start with '*'"
-    @placeholder="Search Entity..."
-    @onchange={{this.onSelect}}
-    @loadingMessage="loading..."
-    @matchTriggerWidth={{false}} as |entity|
+    @placeholder='Search Entity...'
+    @onChange={{this.onSelect}}
+    @loadingMessage='loading...'
+    @matchTriggerWidth={{false}}
+    as |entity|
   >
     {{entity.name}}
   </PowerSelectMultiple>

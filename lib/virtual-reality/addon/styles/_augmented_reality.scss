@@ -6,7 +6,9 @@
 .ar-popover {
   position: relative;
   max-width: 276px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   font-style: normal;
   font-weight: 400;
   line-height: 1.5;
@@ -53,7 +55,7 @@
 
 .arSettingsGridItem {
   padding: 3vh;
-  border-top: dotted lightgray
+  border-top: dotted lightgray;
 }
 
 .arPresetGridItem {
@@ -105,9 +107,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-areas:
-            "r t"
-            "x p"
-            "l s";
+    'r t'
+    'x p'
+    'l s';
   grid-gap: var(--ar-button-padding);
   padding: var(--ar-button-padding);
 }
@@ -115,7 +117,6 @@
 .ar-right-button-container * {
   pointer-events: all;
 }
-
 
 .ar-button-svg {
   width: var(--ar-button-size);
@@ -138,9 +139,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-areas:
-            "- n"
-            "i m"
-            "h z";
+    '- n'
+    'i m'
+    'h z';
   grid-gap: var(--ar-button-padding);
   padding: var(--ar-button-padding);
 }
@@ -149,8 +150,8 @@
   pointer-events: all;
 }
 
-.right{
-  right: 0!important;
+.right {
+  right: 0 !important;
 }
 
 .room-list-item {

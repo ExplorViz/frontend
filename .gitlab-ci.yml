@@ -70,10 +70,10 @@ build-prod-noauth:
   tags:
     - exec-docker
   variables:
-    DOCKERHUB_TAG: "latest"
+    DOCKERHUB_TAG: 'latest'
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    entrypoint: ['']
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${DOCKERHUB_USER}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
@@ -91,7 +91,7 @@ deploy-dockerhub-dev:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
       variables:
-        DOCKERHUB_TAG: "dev"
+        DOCKERHUB_TAG: 'dev'
   after_script:
     - echo "DOCKERHUB_TAG=dev" >> build.env
   artifacts:
@@ -104,7 +104,7 @@ deploy-dockerhub-dev-noauth:
     - exec-docker
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    entrypoint: ['']
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "dev"'
   script:
@@ -113,27 +113,27 @@ deploy-dockerhub-dev-noauth:
     - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth
 
 retag-dockerhub-image:
-  stage: deploy:retagging    
+  stage: deploy:retagging
   tags:
     - exec-docker
   rules:
     - if: '$CI_PIPELINE_SOURCE != "schedule" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master") && $CI_PIPELINE_SOURCE == "push"'
   image:
     name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: [""]
+    entrypoint: ['']
   script:
     - crane auth login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD "index.docker.io"
     - crane cp $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 retag-dockerhub-image-noauth:
-  stage: deploy:retagging  
+  stage: deploy:retagging
   tags:
     - exec-docker
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "schedule"'
   image:
     name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: [""]
+    entrypoint: ['']
   script:
     - crane auth login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD "index.docker.io"
     - crane cp $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth $DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth-$CI_COMMIT_SHORT_SHA

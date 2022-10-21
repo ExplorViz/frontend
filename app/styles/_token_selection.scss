@@ -1,8 +1,9 @@
 #token-selection-table {
-  > tbody > tr, > thead > tr > th {
+  > tbody > tr,
+  > thead > tr > th {
     cursor: default;
   }
-  
+
   min-width: 400px;
   width: auto;
 }
@@ -13,7 +14,8 @@
 }
 
 #room-selection-table {
-  > tbody > tr, > thead > tr > th {
+  > tbody > tr,
+  > thead > tr > th {
     cursor: default;
   }
 

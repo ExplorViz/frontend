@@ -10,10 +10,10 @@ export type PingUpdateMessage = {
 
 export function isPingUpdateMessage(msg: any): msg is PingUpdateMessage {
   return (
-    msg !== null
-    && typeof msg === 'object'
-    && msg.event === PING_UPDATE_EVENT
-    && isControllerId(msg.controllerId)
-    && typeof msg.isPinging === 'boolean'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === PING_UPDATE_EVENT &&
+    isControllerId(msg.controllerId) &&
+    typeof msg.isPinging === 'boolean'
   );
 }

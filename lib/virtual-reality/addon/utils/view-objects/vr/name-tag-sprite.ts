@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import TextTexture from '../../vr-helpers/text-texture';
 
 const SIZE_PER_PIXEL = 1 / 500;
@@ -29,7 +29,7 @@ export default class NameTagSprite extends THREE.Sprite {
     this.scale.set(
       texture.image.width * SIZE_PER_PIXEL,
       texture.image.height * SIZE_PER_PIXEL,
-      1.0,
+      1.0
     );
   }
 }

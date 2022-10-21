@@ -1,10 +1,20 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { Span, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Class, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Span,
+  Trace,
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import {
+  Class,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
-import { getApplicationFromClass, getHashCodeToClassMap, spanIdToClass } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import {
+  getApplicationFromClass,
+  getHashCodeToClassMap,
+  spanIdToClass,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 interface Args {
   selectedTrace: Trace;
@@ -45,29 +55,45 @@ export default class TraceReplayerMain extends Component<Args> {
   }
 
   get sourceClass() {
-    const { currentTraceStep, args: { selectedTrace } } = this;
+    const {
+      currentTraceStep,
+      args: { selectedTrace },
+    } = this;
     if (selectedTrace && currentTraceStep) {
-      return spanIdToClass(this.args.structureData, selectedTrace, currentTraceStep.parentSpanId);
+      return spanIdToClass(
+        this.args.structureData,
+        selectedTrace,
+        currentTraceStep.parentSpanId
+      );
     }
     return undefined;
   }
 
   get sourceApplication() {
     return this.sourceClass
-      ? getApplicationFromClass(this.args.structureData, this.sourceClass) : undefined;
+      ? getApplicationFromClass(this.args.structureData, this.sourceClass)
+      : undefined;
   }
 
   get targetClass() {
-    const { currentTraceStep, args: { selectedTrace } } = this;
+    const {
+      currentTraceStep,
+      args: { selectedTrace },
+    } = this;
     if (selectedTrace && currentTraceStep) {
-      return spanIdToClass(this.args.structureData, selectedTrace, currentTraceStep.spanId);
+      return spanIdToClass(
+        this.args.structureData,
+        selectedTrace,
+        currentTraceStep.spanId
+      );
     }
     return undefined;
   }
 
   get targetApplication() {
     return this.targetClass
-      ? getApplicationFromClass(this.args.structureData, this.targetClass) : undefined;
+      ? getApplicationFromClass(this.args.structureData, this.targetClass)
+      : undefined;
   }
 
   get operationName() {
@@ -76,8 +102,9 @@ export default class TraceReplayerMain extends Component<Args> {
     if (this.currentTraceStep) {
       const clazz = hashCodeToClassMap.get(this.currentTraceStep.hashCode);
 
-      return clazz?.methods
-        .find((method) => method.hashCode === this.currentTraceStep?.hashCode)?.name;
+      return clazz?.methods.find(
+        (method) => method.hashCode === this.currentTraceStep?.hashCode
+      )?.name;
     }
     return undefined;
   }
@@ -94,8 +121,9 @@ export default class TraceReplayerMain extends Component<Args> {
       return;
     }
 
-    const currentTracePosition = this.traceSteps
-      .findIndex((span) => span === this.currentTraceStep);
+    const currentTracePosition = this.traceSteps.findIndex(
+      (span) => span === this.currentTraceStep
+    );
 
     if (currentTracePosition === -1) {
       return;
@@ -109,7 +137,10 @@ export default class TraceReplayerMain extends Component<Args> {
 
     this.currentTraceStep = this.traceSteps[nextStepPosition];
 
-    this.args.highlightTrace(this.args.selectedTrace, this.currentTraceStep.spanId);
+    this.args.highlightTrace(
+      this.args.selectedTrace,
+      this.currentTraceStep.spanId
+    );
 
     if (this.isReplayAnimated) {
       this.args.moveCameraTo(this.currentTraceStep);
@@ -123,8 +154,9 @@ export default class TraceReplayerMain extends Component<Args> {
       return;
     }
 
-    const currentTracePosition = this.traceSteps
-      .findIndex((span) => span === this.currentTraceStep);
+    const currentTracePosition = this.traceSteps.findIndex(
+      (span) => span === this.currentTraceStep
+    );
 
     if (currentTracePosition === -1) {
       return;
@@ -138,7 +170,10 @@ export default class TraceReplayerMain extends Component<Args> {
 
     this.currentTraceStep = this.traceSteps[previousStepPosition];
 
-    this.args.highlightTrace(this.args.selectedTrace, this.currentTraceStep.spanId);
+    this.args.highlightTrace(
+      this.args.selectedTrace,
+      this.currentTraceStep.spanId
+    );
 
     if (this.isReplayAnimated) {
       this.args.moveCameraTo(this.currentTraceStep);

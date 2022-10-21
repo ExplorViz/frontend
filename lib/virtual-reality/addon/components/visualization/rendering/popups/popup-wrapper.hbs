@@ -1,10 +1,16 @@
 {{#if @popupData}}
-  <div {{did-insert this.setupDragElement}} id="popupWrapper" class="foreground" style="position: absolute; cursor: move">
-    <div class="d-flex">
-      <BsButton class="ar-popup-close"
-        @type ="primary"
-        {{on "click" this.closePopup}}
-        {{on "touchstart" this.closePopup}}
+  <div
+    {{did-insert this.setupDragElement}}
+    id='popupWrapper'
+    class='foreground'
+    style='position: absolute; cursor: move'
+  >
+    <div class='d-flex'>
+      <BsButton
+        class='ar-popup-close'
+        @type='primary'
+        {{on 'click' this.closePopup}}
+        {{on 'touchstart' this.closePopup}}
       >
         X
       </BsButton>

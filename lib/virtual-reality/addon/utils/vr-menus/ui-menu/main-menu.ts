@@ -18,7 +18,8 @@ export default class MainMenu extends UiMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildConnectionMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.openMenu(this.menuFactory.buildConnectionMenu()),
     });
     this.items.push(connectionButton);
     this.thumbpadTargets.push(connectionButton);
@@ -29,7 +30,8 @@ export default class MainMenu extends UiMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildTimeMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.openMenu(this.menuFactory.buildTimeMenu()),
     });
     this.items.push(timeButton);
     this.thumbpadTargets.push(timeButton);
@@ -40,7 +42,8 @@ export default class MainMenu extends UiMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildSettingsMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.openMenu(this.menuFactory.buildSettingsMenu()),
     });
     this.items.push(settingsButton);
     this.thumbpadTargets.push(settingsButton);
@@ -51,7 +54,8 @@ export default class MainMenu extends UiMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.menuGroup?.openMenu(this.menuFactory.buildResetMenu()),
+      onTriggerDown: () =>
+        this.menuGroup?.openMenu(this.menuFactory.buildResetMenu()),
     });
     this.items.push(resetButton);
     this.thumbpadTargets.push(resetButton);

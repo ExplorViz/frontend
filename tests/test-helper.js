@@ -1,10 +1,12 @@
-import { setApplication, setResolver } from '@ember/test-helpers';
+import Application from 'explorviz-frontend/app';
+import config from 'explorviz-frontend/config/environment';
+import * as QUnit from 'qunit';
+import { setApplication } from '@ember/test-helpers';
+import { setup } from 'qunit-dom';
 import { start } from 'ember-qunit';
-import Application from '../app';
-import config from '../config/environment';
-import resolver from './helpers/resolver';
 
-setResolver(resolver);
 setApplication(Application.create(config.APP));
+
+setup(QUnit.assert);
 
 start();

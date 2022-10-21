@@ -4,14 +4,12 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 
-interface Args {}
-
 interface HeatmapMode {
   name: string;
   id: string;
 }
 
-export default class HeatmapSettings extends Component<Args> {
+export default class HeatmapSettings extends Component {
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
@@ -21,14 +19,20 @@ export default class HeatmapSettings extends Component<Args> {
   ];
 
   descriptions = {
-    heatmapMode: 'Aggregated Heatmap: The values of previous heatmaps are aggregated and added to the'
-      + ' current value. Windowed Heatmap: The metrics are shown as a difference to the previous heatmap.'
-      + ' The windowsize can be configured in the backend.',
-    helperLines: 'Show the helper lines to determine which point on the heatmap belongs to which class.',
-    shGradient: 'Configure the simple heat gradient. Use either rgb, hex or css-style format.',
-    ahGradient: 'Configure the array heat gradient. Use either rgb, hex or css-style format.',
-    opacityValue: 'Set the opacity of the package boxes. Choose a value between 0 and 1.',
-    showLegendValues: 'Select wether the raw heatmap values or their abstractions should be shown as label.',
+    heatmapMode:
+      'Aggregated Heatmap: The values of previous heatmaps are aggregated and added to the' +
+      ' current value. Windowed Heatmap: The metrics are shown as a difference to the previous heatmap.' +
+      ' The windowsize can be configured in the backend.',
+    helperLines:
+      'Show the helper lines to determine which point on the heatmap belongs to which class.',
+    shGradient:
+      'Configure the simple heat gradient. Use either rgb, hex or css-style format.',
+    ahGradient:
+      'Configure the array heat gradient. Use either rgb, hex or css-style format.',
+    opacityValue:
+      'Set the opacity of the package boxes. Choose a value between 0 and 1.',
+    showLegendValues:
+      'Select wether the raw heatmap values or their abstractions should be shown as label.',
     heatmapRadius: 'The size of each color point.',
     blurRadius: 'The radius at which the colors blur together.',
   };
@@ -41,7 +45,10 @@ export default class HeatmapSettings extends Component<Args> {
 
   constructor(owner: any, args: Args) {
     super(owner, args);
-    this.selectedMode = this.heatmapConf.selectedMode === 'aggregatedHeatmap' ? this.heatmapModes[0] : this.heatmapModes[1];
+    this.selectedMode =
+      this.heatmapConf.selectedMode === 'aggregatedHeatmap'
+        ? this.heatmapModes[0]
+        : this.heatmapModes[1];
   }
 
   @action

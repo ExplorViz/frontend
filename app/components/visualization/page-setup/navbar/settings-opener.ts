@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 
 interface Args {
-  addComponent(componentPath: string): void
+  addComponent(componentPath: string): void;
 }
 
 export default class VisualizationPageSetupNavbarSettingsOpener extends Component<Args> {

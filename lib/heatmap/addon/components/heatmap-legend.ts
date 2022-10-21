@@ -6,10 +6,10 @@ import { action } from '@ember/object';
 
 interface Args {
   descriptions?: {
-    aggregatedHeatmap: string,
-    windowedHeatmap: string,
-    snapshotHeatmap: string
-  },
+    aggregatedHeatmap: string;
+    windowedHeatmap: string;
+    snapshotHeatmap: string;
+  };
 }
 
 export default class HeatmapLegend extends Component<Args> {
@@ -23,11 +23,16 @@ export default class HeatmapLegend extends Component<Args> {
   labelCanvas!: HTMLCanvasElement;
 
   get descriptions() {
-    return this.args.descriptions ?? {
-      aggregatedHeatmap: 'Continuously aggregates metric scores by adding a part of the previous metric score to the new (visualized) value.',
-      windowedHeatmap: 'Visualizes the average for the selected metric considering the last ten scores.',
-      snapshotHeatmap: 'Visualizes the metric scores of the currently rendered snapshot.',
-    };
+    return (
+      this.args.descriptions ?? {
+        aggregatedHeatmap:
+          'Continuously aggregates metric scores by adding a part of the previous metric score to the new (visualized) value.',
+        windowedHeatmap:
+          'Visualizes the average for the selected metric considering the last ten scores.',
+        snapshotHeatmap:
+          'Visualizes the metric scores of the currently rendered snapshot.',
+      }
+    );
   }
 
   get subHeader() {

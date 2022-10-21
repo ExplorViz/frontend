@@ -5,7 +5,7 @@
 
 .nav-item-with-def-cursor {
   @extend .nav-item;
-  cursor: default!important;
+  cursor: default !important;
 }
 
 .navbar-highlight {
@@ -14,8 +14,8 @@
 
 .explorviz-visualization-navbar {
   @extend .bg-light;
-  @extend .pl-3;
-  @extend .pr-3;
+  @extend .pl-3 !optional;
+  @extend .pr-3 !optional;
   position: relative;
   z-index: 750;
   align-self: center;
@@ -36,7 +36,7 @@
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item {
   cursor: pointer;
-  transition: all .1s ease-in-out;
+  transition: all 0.1s ease-in-out;
   color: rgba(0, 0, 0, 0.5);
 }
 

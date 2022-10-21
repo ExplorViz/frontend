@@ -1,6 +1,6 @@
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
-import THREE from 'three';
+import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
 
@@ -11,8 +11,12 @@ export default class FoundationMesh extends BoxMesh {
 
   labelMesh: ComponentLabelMesh | null = null;
 
-  constructor(layout: BoxLayout, foundation: Application,
-    defaultColor: THREE.Color, highlightingColor: THREE.Color) {
+  constructor(
+    layout: BoxLayout,
+    foundation: Application,
+    defaultColor: THREE.Color,
+    highlightingColor: THREE.Color
+  ) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
@@ -24,7 +28,9 @@ export default class FoundationMesh extends BoxMesh {
   }
 
   setDefaultMaterial() {
-    const material = new THREE.MeshLambertMaterial({ color: this.defaultColor });
+    const material = new THREE.MeshLambertMaterial({
+      color: this.defaultColor,
+    });
     this.material = material;
   }
 }

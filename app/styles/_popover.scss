@@ -1,7 +1,7 @@
 @media (min-width: 576px) {
   .popover {
     cursor: move;
-    max-width: 550px!important;
+    max-width: 550px !important;
   }
 }
 
@@ -21,11 +21,11 @@
 }
 
 .popover[hover] {
-  background-color: #bbbbbb!important;
-  border-color: #eeeeee!important;
+  background-color: #bbbbbb !important;
+  border-color: #eeeeee !important;
 }
 
 .popover[hover] > .popover-header {
-  background-color: #999999!important;
-  border-color: #aaaaaa!important;
+  background-color: #999999 !important;
+  border-color: #aaaaaa !important;
 }

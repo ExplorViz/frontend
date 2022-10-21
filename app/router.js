@@ -2,13 +2,13 @@ import EmberRouter from '@ember/routing/router';
 import config from './config/environment';
 
 /**
-* Ember router for mapping "route" and respective "template".
-*
-* @class Router
-* @extends Ember.Router
-*
-* @module ember
-*/
+ * Ember router for mapping "route" and respective "template".
+ *
+ * @class Router
+ * @extends Ember.Router
+ *
+ * @module ember
+ */
 const Router = EmberRouter.extend({
   location: config.locationType,
   rootURL: config.rootURL,

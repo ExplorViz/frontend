@@ -14,27 +14,27 @@ declare const config: {
   locationType: string;
   rootURL: string;
   auth0: {
-    enabled: string,
-    clientId: string,
-    domain: string,
-    logoUrl: string,
-    callbackUrl: string,
-    logoutReturnUrl: string,
-    routeAfterLogin: string,
-    accessToken: string,
-    profile: Auth0UserProfile,
-  },
+    enabled: string;
+    clientId: string;
+    domain: string;
+    logoUrl: string;
+    callbackUrl: string;
+    logoutReturnUrl: string;
+    routeAfterLogin: string;
+    accessToken: string;
+    profile: Auth0UserProfile;
+  };
   backendAddresses: {
-    landscapeService: string,
-    traceService: string,
-    userService: string,
-    collaborativeService: string,
-    collaborationService: string,
-    collaborationSocketPath: string,
-  },
+    landscapeService: string;
+    traceService: string;
+    userService: string;
+    collaborativeService: string;
+    collaborationService: string;
+    collaborationSocketPath: string;
+  };
   version: {
-    versionTag: P_ENV.VERSION_TAG,
-  },
+    versionTag: P_ENV.VERSION_TAG;
+  };
   APP: any;
 };
 

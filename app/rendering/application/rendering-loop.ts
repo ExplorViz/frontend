@@ -9,11 +9,11 @@ import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 const clock = new Clock();
 
 interface Args {
-  camera: THREE.Camera,
-  scene: THREE.Scene,
-  renderer: THREE.WebGLRenderer,
-  updatables: any[],
-  zoomHandler?: ArZoomHandler,
+  camera: THREE.Camera;
+  scene: THREE.Scene;
+  renderer: THREE.WebGLRenderer;
+  updatables: any[];
+  zoomHandler?: ArZoomHandler;
 }
 
 export default class RenderingLoop {
@@ -45,7 +45,8 @@ export default class RenderingLoop {
 
   start() {
     this.renderer.setAnimationLoop((_timestamp, frame) => {
-      const { value: showFpsCounter } = this.userSettings.applicationSettings.showFpsCounter;
+      const { value: showFpsCounter } =
+        this.userSettings.applicationSettings.showFpsCounter;
       // const showFpsCounter = true;
 
       if (showFpsCounter && !this.threePerformance) {

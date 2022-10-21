@@ -60,7 +60,8 @@ export default class TextItem extends Item {
   }
 
   private measureText() {
-    if (!measurementContext) throw new Error(`failed to measure text: ${this.text}`);
+    if (!measurementContext)
+      throw new Error(`failed to measure text: ${this.text}`);
 
     measurementContext.font = this.font;
     measurementContext.textAlign = this.alignment;

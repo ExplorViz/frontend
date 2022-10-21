@@ -1,20 +1,24 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { Application, Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  Class,
+  Package,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ArSettings from 'virtual-reality/services/ar-settings';
 
 interface PopupWrapperArgs {
   popupData: {
-    id: number,
-    isPinned: boolean,
-    posX: number,
-    posY: number,
-    entity: Node | Application | Package | Class
+    id: number;
+    isPinned: boolean;
+    posX: number;
+    posY: number;
+    entity: Node | Application | Package | Class;
   };
-  keepPopupOpen(id: number): void
-  setPopupPosition(id: number, posX: number, posY: number): void
-  closePopup(id: number): void
+  keepPopupOpen(id: number): void;
+  setPopupPosition(id: number, posX: number, posY: number): void;
+  closePopup(id: number): void;
 }
 
 export default class PopupWrapper extends Component<PopupWrapperArgs> {
@@ -96,7 +100,11 @@ export default class PopupWrapper extends Component<PopupWrapperArgs> {
 
     const containerWidth = containerDiv.clientWidth;
 
-    if (popoverHeight === undefined || popoverWidth === undefined || containerWidth === undefined) {
+    if (
+      popoverHeight === undefined ||
+      popoverWidth === undefined ||
+      containerWidth === undefined
+    ) {
       return;
     }
 
@@ -117,7 +125,8 @@ export default class PopupWrapper extends Component<PopupWrapperArgs> {
     // position at right edge of canvas
     if (popupLeftPosition + popoverWidth > containerWidth) {
       const extraPopupMarginFromAtBottom = 5;
-      popupLeftPosition = containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
+      popupLeftPosition =
+        containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
     }
 
     // Prevent popup positioning left(outside) of rendering canvas =>
@@ -131,7 +140,11 @@ export default class PopupWrapper extends Component<PopupWrapperArgs> {
     popoverDiv.style.top = `${popupTopPosition}px`;
     popoverDiv.style.left = `${popupLeftPosition}px`;
 
-    this.args.setPopupPosition(this.args.popupData.id, popupLeftPosition, popupTopPosition);
+    this.args.setPopupPosition(
+      this.args.popupData.id,
+      popupLeftPosition,
+      popupTopPosition
+    );
   }
 
   handlePan(deltaX: number, deltaY: number) {
@@ -158,11 +171,17 @@ export default class PopupWrapper extends Component<PopupWrapperArgs> {
       const newMaxY = newMinY + self.divElement.clientHeight;
 
       // Set the element's new position:
-      if (!xPositionInsideWindow(oldMinX, oldMaxX) || xPositionInsideWindow(newMinX, newMaxX)) {
+      if (
+        !xPositionInsideWindow(oldMinX, oldMaxX) ||
+        xPositionInsideWindow(newMinX, newMaxX)
+      ) {
         self.divElement.style.left = `${newMinX}px`;
       }
 
-      if (!yPositionInsideWindow(oldMinY, oldMaxY) || yPositionInsideWindow(newMinY, newMaxY)) {
+      if (
+        !yPositionInsideWindow(oldMinY, oldMaxY) ||
+        yPositionInsideWindow(newMinY, newMaxY)
+      ) {
         self.divElement.style.top = `${newMinY}px`;
       }
 

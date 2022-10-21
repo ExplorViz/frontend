@@ -11,7 +11,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 interface RoomListArgs {
   tokens: LandscapeToken[];
   selectToken(token: LandscapeToken): void;
-
 }
 
 export default class RoomList extends Component<RoomListArgs> {
@@ -39,7 +38,10 @@ export default class RoomList extends Component<RoomListArgs> {
     rooms.forEach((room) => {
       room.alias = this.args.tokens.findBy('value', room.landscapeToken)?.alias;
     });
-    this.rooms = rooms.filter((room) => this.args.tokens.findBy('value', room.landscapeToken) !== undefined);
+    this.rooms = rooms.filter(
+      (room) =>
+        this.args.tokens.findBy('value', room.landscapeToken) !== undefined
+    );
   }
 
   @action

@@ -2,7 +2,8 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
-import THREE, { WebXRManager } from 'three';
+import * as THREE from 'three';
+import { WebXRManager } from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
@@ -54,14 +55,18 @@ export default class LocalUser extends Service.extend({
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     this.defaultCamera.position.set(0, 1, 2);
-    this.userGroup.add(this.defaultCamera);
+    if (this.xr?.isPresenting) {
+      return this.xr.getCamera();
+    } else {
+      this.userGroup.add(this.defaultCamera);
+    }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
   }
 
   get camera() {
     if (this.xr?.isPresenting) {
-      return this.xr.getCamera(this.defaultCamera);
+      return this.xr.getCamera();
     }
     return this.defaultCamera;
   }
@@ -123,21 +128,33 @@ export default class LocalUser extends Service.extend({
    *  the new position
    */
   teleportToPosition(
-    position: THREE.Vector3,
-    {
-      adaptCameraHeight = false,
-    }: {
-      adaptCameraHeight?: boolean;
-    } = {},
+    position: THREE.Vector3
+    //{
+    //  adaptCameraHeight = false,
+    //}: {
+    //  adaptCameraHeight?: boolean;
+    //} = {}
   ) {
-    if (!this.camera) return;
+    const worldPos = this.xr?.getCamera().getWorldPosition(new THREE.Vector3());
 
-    const cameraWorldPos = this.getCameraWorldPosition();
-    this.userGroup.position.x += position.x - cameraWorldPos.x;
-    if (adaptCameraHeight) {
-      this.userGroup.position.y += position.y - cameraWorldPos.y;
+    if (!(worldPos?.x || worldPos?.z)) {
+      return;
     }
-    this.userGroup.position.z += position.z - cameraWorldPos.z;
+
+    const offsetPosition = {
+      x: position.x - worldPos.x,
+      y: position.y,
+      z: position.z - worldPos.z,
+      w: 1,
+    };
+    const offsetRotation = new THREE.Quaternion();
+    const transform = new XRRigidTransform(offsetPosition, offsetRotation)
+      .inverse;
+    const teleportSpaceOffset = this.xr
+      ?.getReferenceSpace()
+      ?.getOffsetReferenceSpace(transform);
+
+    this.xr?.setReferenceSpace(teleportSpaceOffset);
   }
 
   getCameraWorldPosition() {
@@ -161,7 +178,7 @@ export default class LocalUser extends Service.extend({
       enableX = true,
       enableY = true,
       enableZ = true,
-    }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean },
+    }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
   ) {
     // Convert direction from the camera's object space to world coordinates.
     const distance = direction.length();
@@ -178,9 +195,7 @@ export default class LocalUser extends Service.extend({
     // Convert the direction back to object space before applying the translation.
     const localDirection = worldDirection
       .normalize()
-      .transformDirection(
-        this.userGroup.matrix.clone().invert(),
-      );
+      .transformDirection(this.userGroup.matrix.clone().invert());
     this.userGroup.translateOnAxis(localDirection, distance);
   }
 

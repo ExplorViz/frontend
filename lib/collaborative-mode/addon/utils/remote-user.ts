@@ -1,13 +1,20 @@
 import LocalUser from 'collaborative-mode/services/local-user';
-import THREE from 'three';
+import * as THREE from 'three';
 import NameTagSprite from 'virtual-reality/utils/view-objects/vr/name-tag-sprite';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';
 import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
 import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
-import { ControllerPose, Pose } from 'virtual-reality/utils/vr-message/sendable/user_positions';
-import { ControllerId, CONTROLLER_1_ID, CONTROLLER_2_ID } from 'virtual-reality/utils/vr-message/util/controller_id';
+import {
+  ControllerPose,
+  Pose,
+} from 'virtual-reality/utils/vr-message/sendable/user_positions';
+import {
+  ControllerId,
+  CONTROLLER_1_ID,
+  CONTROLLER_2_ID,
+} from 'virtual-reality/utils/vr-message/util/controller_id';
 import MousePing from './mouse-ping-helper';
 
 type Camera = {
@@ -105,13 +112,13 @@ export default class RemoteUser extends THREE.Object3D {
   async initController(
     controllerId: ControllerId,
     assetUrl: string,
-    initialPose: ControllerPose,
+    initialPose: ControllerPose
   ): Promise<void> {
     this.removeController(controllerId);
 
     // Load controller model.
     const model = await VrControllerModelFactory.INSTANCE.loadAssetScene(
-      assetUrl,
+      assetUrl
     );
     this.add(model);
 
@@ -198,9 +205,9 @@ export default class RemoteUser extends THREE.Object3D {
       if (controller) {
         const distance = controller.intersection
           ? controller.ray
-            .getWorldPosition(new THREE.Vector3())
-            .sub(controller.intersection)
-            .length()
+              .getWorldPosition(new THREE.Vector3())
+              .sub(controller.intersection)
+              .length()
           : DEFAULT_RAY_LENGTH;
         controller.ray.scale.z = distance;
       }
@@ -214,7 +221,7 @@ export default class RemoteUser extends THREE.Object3D {
    */
   updateController(
     controllerId: ControllerId,
-    { position, quaternion, intersection }: ControllerPose,
+    { position, quaternion, intersection }: ControllerPose
   ) {
     const controller = this.controllers[controllerId];
     if (!controller) return;
@@ -222,7 +229,8 @@ export default class RemoteUser extends THREE.Object3D {
     if (controller) {
       controller.model.position.fromArray(position);
       controller.model.quaternion.fromArray(quaternion);
-      controller.intersection = intersection && new THREE.Vector3().fromArray(intersection);
+      controller.intersection =
+        intersection && new THREE.Vector3().fromArray(intersection);
       controller.pingMesh.updateIntersection(controller.intersection);
     }
   }

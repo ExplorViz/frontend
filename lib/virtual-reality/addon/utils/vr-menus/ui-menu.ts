@@ -1,6 +1,8 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import VRControllerButtonBinding from '../vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from '../vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, {
+  thumbpadDirectionToVector2,
+} from '../vr-controller/vr-controller-thumbpad-binding';
 import { BaseMenuArgs } from './base-menu';
 import InteractiveMenu from './interactive-menu';
 import InteractiveItem from './items/interactive-item';
@@ -25,8 +27,8 @@ export default abstract class UiMenu extends InteractiveMenu {
   canvas!: HTMLCanvasElement;
 
   canvasMesh!: THREE.Mesh<
-  THREE.PlaneGeometry | THREE.BufferGeometry,
-  THREE.MeshBasicMaterial
+    THREE.PlaneGeometry | THREE.BufferGeometry,
+    THREE.MeshBasicMaterial
   >;
 
   resolution: { width: number; height: number };
@@ -81,7 +83,7 @@ export default abstract class UiMenu extends InteractiveMenu {
   makeBackgroundGeometry(): THREE.BufferGeometry {
     return new THREE.PlaneGeometry(
       this.resolution.width * SIZE_RESOLUTION_FACTOR,
-      this.resolution.height * SIZE_RESOLUTION_FACTOR,
+      this.resolution.height * SIZE_RESOLUTION_FACTOR
     );
   }
 
@@ -125,7 +127,12 @@ export default abstract class UiMenu extends InteractiveMenu {
    */
   redrawMenu() {
     const { canvas } = this;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < this.items.length; i++) {
@@ -160,9 +167,7 @@ export default abstract class UiMenu extends InteractiveMenu {
       const x = this.resolution.width * position.x;
       const y = this.resolution.height * (1.0 - position.y);
 
-      const {
-        minX, minY, maxX, maxY,
-      } = item.getBoundingBox();
+      const { minX, minY, maxX, maxY } = item.getBoundingBox();
 
       if (x >= minX && y >= minY && x <= maxX && y <= maxY) {
         return item as InteractiveItem;
@@ -259,7 +264,7 @@ export default abstract class UiMenu extends InteractiveMenu {
             this.activateItem(this.thumbpadTargets[index]);
           }
         },
-      },
+      }
     );
   }
 
@@ -279,7 +284,8 @@ export default abstract class UiMenu extends InteractiveMenu {
     if (this.thumbpadTargets.length === 0) return undefined;
     return new VRControllerButtonBinding('Select', {
       onButtonDown: () => {
-        if (this.activeTarget) this.activeTarget.onTriggerDown?.call(this.activeTarget);
+        if (this.activeTarget)
+          this.activeTarget.onTriggerDown?.call(this.activeTarget);
       },
     });
   }

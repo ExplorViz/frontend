@@ -1,19 +1,19 @@
-<div id="ar-heatmap-interaction-container">
+<div id='ar-heatmap-interaction-container'>
   {{#if this.heatmapConf.heatmapActive}}
     <BsButton
-      @type="success"
-      class="half-transparent"
-      {{ on "click" @toggleHeatmap }}
+      @type='success'
+      class='half-transparent'
+      {{on 'click' @toggleHeatmap}}
     >
-      {{svg-jar "flame-16" class="octicon align-middle ar-button-svg"}}
+      {{svg-jar 'flame-16' class='octicon align-middle ar-button-svg'}}
     </BsButton>
   {{else}}
     <BsButton
-      @type="primary"
-      class="half-transparent"
-      {{ on "click" @toggleHeatmap }}
+      @type='primary'
+      class='half-transparent'
+      {{on 'click' @toggleHeatmap}}
     >
-      {{svg-jar "flame-16" class="octicon align-middle ar-button-svg"}}
+      {{svg-jar 'flame-16' class='octicon align-middle ar-button-svg'}}
     </BsButton>
   {{/if}}
 </div>

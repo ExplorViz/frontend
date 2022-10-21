@@ -20,37 +20,38 @@ export default class Auth extends Service {
   constructor() {
     super(...arguments);
 
-    if (ENV.auth0.enabled === 'false') { // no-auth
+    if (ENV.auth0.enabled === 'false') {
+      // no-auth
       this.set('user', ENV.auth0.profile);
       this.set('accessToken', ENV.auth0.accessToken);
       return;
     }
 
-    this.lock = new Auth0Lock(
-      ENV.auth0.clientId,
-      ENV.auth0.domain,
-      {
-        auth: {
-          redirectUrl: ENV.auth0.callbackUrl,
-          audience: `https://${ENV.auth0.domain}/api/v2/`,
-          responseType: 'token',
-          params: {
-            scope: 'openid profile',
-          },
-          autoParseHash: true,
+    this.lock = new Auth0Lock(ENV.auth0.clientId, ENV.auth0.domain, {
+      auth: {
+        redirectUrl: ENV.auth0.callbackUrl,
+        audience: `https://${ENV.auth0.domain}/api/v2/`,
+        responseType: 'token',
+        params: {
+          scope: 'openid profile',
         },
-        container: 'auth0-login-container',
-        theme: {
-          logo: ENV.auth0.logoUrl,
-        },
-        closable: false,
-        languageDictionary: {
-          title: 'ExplorViz',
-        },
+        autoParseHash: true,
       },
-    );
+      container: 'auth0-login-container',
+      theme: {
+        logo: ENV.auth0.logoUrl,
+      },
+      closable: false,
+      languageDictionary: {
+        title: 'ExplorViz',
+      },
+    });
 
     this.lock.on('authenticated', (authResult) => {
+      console.log('clientId', ENV.auth0.clientId);
+      console.log('domain', ENV.auth0.domain);
+      console.log('Auth0 Lock', this.lock);
+      console.log('authResult', authResult);
       this.router.transitionTo(ENV.auth0.routeAfterLogin).then(async () => {
         await this.setUser(authResult.accessToken);
         this.set('accessToken', authResult.accessToken);
@@ -67,10 +68,10 @@ export default class Auth extends Service {
     if (!document.getElementById('auth0-login-container')) {
       return;
     }
-
     if (this.lock) {
       this.lock.show();
-    } else { // no-auth
+    } else {
+      // no-auth
       this.router.transitionTo(ENV.auth0.routeAfterLogin);
     }
   }
@@ -82,16 +83,20 @@ export default class Auth extends Service {
     // once we have a token, we are able to go get the users information
     return new Promise<Auth0UserProfile>((resolve, reject) => {
       if (this.lock) {
-        this.lock.getUserInfo(token, (_err: Auth0Error, profile: Auth0UserProfile) => {
-          if (_err) {
-            reject(_err);
-          } else {
-            this.debug('User set', profile);
-            this.set('user', profile);
-            resolve(profile);
+        this.lock.getUserInfo(
+          token,
+          (_err: Auth0Error, profile: Auth0UserProfile) => {
+            if (_err) {
+              reject(_err);
+            } else {
+              this.debug('User set', profile);
+              this.set('user', profile);
+              resolve(profile);
+            }
           }
-        });
-      } else { // no-auth
+        );
+      } else {
+        // no-auth
         this.set('user', ENV.auth0.profile);
         resolve(ENV.auth0.profile);
       }
@@ -106,7 +111,9 @@ export default class Auth extends Service {
     return new Promise((resolve, reject) => {
       if (this.lock) {
         this.lock.checkSession({}, async (err, authResult) => {
-          this.debug(authResult);
+          console.log('error', err);
+          console.log('authResult', authResult);
+          console.log('Alex lock', this.lock);
           if (err || authResult === undefined) {
             reject(err);
           } else {
@@ -119,7 +126,8 @@ export default class Auth extends Service {
             }
           }
         });
-      } else { // no-auth
+      } else {
+        // no-auth
         this.set('user', ENV.auth0.profile);
         this.set('accessToken', ENV.auth0.accessToken);
         resolve({});
@@ -138,7 +146,8 @@ export default class Auth extends Service {
         clientID: ENV.auth0.clientId,
         returnTo: ENV.auth0.logoutReturnUrl,
       });
-    } else { // no-auth
+    } else {
+      // no-auth
       this.router.transitionTo('/');
     }
   }
@@ -147,6 +156,6 @@ export default class Auth extends Service {
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'auth': Auth;
+    auth: Auth;
   }
 }

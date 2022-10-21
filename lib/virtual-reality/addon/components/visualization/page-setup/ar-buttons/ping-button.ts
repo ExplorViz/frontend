@@ -5,7 +5,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface PingButtonArgs {
-  handlePing(): void
+  handlePing(): void;
 }
 
 export default class PingButton extends Component<PingButtonArgs> {
@@ -17,7 +17,9 @@ export default class PingButton extends Component<PingButtonArgs> {
 
   @computed('collaborationSession.idToRemoteUser')
   get userIsAlone() {
-    const numberOfOtherUsers = Array.from(this.collaborationSession.getAllRemoteUsers()).length;
+    const numberOfOtherUsers = Array.from(
+      this.collaborationSession.getAllRemoteUsers()
+    ).length;
 
     return numberOfOtherUsers === 0;
   }

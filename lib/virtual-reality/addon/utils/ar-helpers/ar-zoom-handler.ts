@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
@@ -56,8 +56,8 @@ export default class ArZoomHandler {
     };
 
     const zoomOffset = {
-      x: zoomSize.x + zoomSize.x / 2 - (zoomSize.x / zoomLevel) / 2,
-      y: zoomSize.y + zoomSize.y / 2 - (zoomSize.y / zoomLevel) / 2,
+      x: zoomSize.x + zoomSize.x / 2 - zoomSize.x / zoomLevel / 2,
+      y: zoomSize.y + zoomSize.y / 2 - zoomSize.y / zoomLevel / 2,
     };
 
     this.zoomCamera.setViewOffset(
@@ -66,7 +66,7 @@ export default class ArZoomHandler {
       zoomOffset.x,
       zoomOffset.y,
       zoomSize.x / zoomLevel,
-      zoomSize.y / zoomLevel,
+      zoomSize.y / zoomLevel
     );
 
     renderer.setScissorTest(true);
@@ -75,7 +75,12 @@ export default class ArZoomHandler {
     this.zoomCamera.updateProjectionMatrix();
 
     // add border
-    renderer.setScissor(zoomPos.x - 4, zoomPos.y - 4, zoomSize.x * 2 + 8, zoomSize.y * 2 + 8);
+    renderer.setScissor(
+      zoomPos.x - 4,
+      zoomPos.y - 4,
+      zoomSize.x * 2 + 8,
+      zoomSize.y * 2 + 8
+    );
     renderer.setClearColor(0xffffff, 1); // border color
     renderer.clearColor(); // clear color buffer
 

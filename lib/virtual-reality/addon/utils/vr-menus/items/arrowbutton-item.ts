@@ -49,7 +49,7 @@ export default class ArrowbuttonItem extends InteractiveItem {
       this.position,
       this.width,
       this.height,
-      this.direction,
+      this.direction
     );
     ctx.restore();
   }
@@ -82,7 +82,7 @@ export default class ArrowbuttonItem extends InteractiveItem {
     from: { x: number; y: number },
     width: number,
     height: number,
-    direction: ArrowDirection,
+    direction: ArrowDirection
   ) {
     // eslint-disable-next-line default-case
     switch (direction) {

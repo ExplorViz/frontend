@@ -6,6 +6,4 @@ interface Args {
   onChange(value: boolean): void;
 }
 
-export default class FlagSetting extends Component<Args> {
-
-}
+export default class FlagSetting extends Component<Args> {}

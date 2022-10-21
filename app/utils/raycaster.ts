@@ -1,10 +1,14 @@
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import THREE from 'three';
+import * as THREE from 'three';
 
-export function defaultRaycastFilter(intersection: THREE.Intersection): boolean {
-  return !(intersection.object instanceof LabelMesh
-    || intersection.object instanceof LogoMesh);
+export function defaultRaycastFilter(
+  intersection: THREE.Intersection
+): boolean {
+  return !(
+    intersection.object instanceof LabelMesh ||
+    intersection.object instanceof LogoMesh
+  );
 }
 
 export default class Raycaster extends THREE.Raycaster {
@@ -16,17 +20,17 @@ export default class Raycaster extends THREE.Raycaster {
    * @param possibleObjects Objects to check for raycasting
    */
   raycasting(
-    coords: { x: number, y: number },
+    coords: { x: number; y: number },
     camera: THREE.Camera,
     possibleObjects: THREE.Object3D[],
-    raycastFilter?: ((object: THREE.Intersection) => boolean),
+    raycastFilter?: (object: THREE.Intersection) => boolean
   ) {
     this.setFromCamera(coords, camera);
 
     // Calculate objects intersecting the picking ray
     const intersections = this.intersectObjects(possibleObjects, true);
 
-    let visibleObjects = intersections.filter(((intersection) => {
+    let visibleObjects = intersections.filter((intersection) => {
       let { visible } = intersection.object;
 
       // Also traverse ancestors as given object could be invisible if a ancestor's
@@ -36,7 +40,7 @@ export default class Raycaster extends THREE.Raycaster {
       });
 
       return visible;
-    }));
+    });
 
     if (raycastFilter) {
       visibleObjects = visibleObjects.filter(raycastFilter);

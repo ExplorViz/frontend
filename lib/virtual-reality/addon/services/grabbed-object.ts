@@ -1,8 +1,11 @@
 import Service, { inject as service } from '@ember/service';
-import THREE from 'three';
+import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
-import { isObjectGrabbedResponse, ObjectGrabbedResponse } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
+import {
+  isObjectGrabbedResponse,
+  ObjectGrabbedResponse,
+} from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
 import { ObjectGrabbedMessage } from 'virtual-reality/utils/vr-message/sendable/request/object_grabbed';
 import WebSocketService from './web-socket';
 
@@ -47,7 +50,10 @@ export default class GrabbedObjectService extends Service {
     const objectId = object.getGrabId();
     if (!objectId) return Promise.resolve(true);
 
-    return this.webSocket.sendRespondableMessage<ObjectGrabbedMessage, ObjectGrabbedResponse>(
+    return this.webSocket.sendRespondableMessage<
+      ObjectGrabbedMessage,
+      ObjectGrabbedResponse
+    >(
       // Send object grab message.
       {
         event: 'object_grabbed',
@@ -58,7 +64,7 @@ export default class GrabbedObjectService extends Service {
       {
         responseType: isObjectGrabbedResponse,
         onResponse: (response: ObjectGrabbedResponse) => response.isSuccess,
-      },
+      }
     );
   }
 
@@ -79,12 +85,14 @@ export default class GrabbedObjectService extends Service {
 
     // If the object has not been grabbed before, ask the server whether we
     // are allowed to grab the object.
-    const request = this.grabRequests.get(object) || this.sendGrabRequest(object);
+    const request =
+      this.grabRequests.get(object) || this.sendGrabRequest(object);
     this.grabRequests.set(object, request);
 
     // Remember that the object has been grabbed successfully.
     const result = await request;
-    if (result && this.grabCounters.has(object)) this.grabbedObjects.add(object);
+    if (result && this.grabCounters.has(object))
+      this.grabbedObjects.add(object);
     return result;
   }
 

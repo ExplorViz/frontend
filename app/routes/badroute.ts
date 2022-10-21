@@ -1,4 +1,5 @@
 import Route from '@ember/routing/route';
+import { inject as service } from '@ember/service';
 
 /**
  * TODO
@@ -7,7 +8,10 @@ import Route from '@ember/routing/route';
  * @extends Ember.Route
  */
 export default class Badroute extends Route {
+  @service('router')
+  router!: any;
+
   redirect() {
-    this.replaceWith('index');
+    this.router.replaceWith('index');
   }
 }

@@ -20,6 +20,6 @@ export default class ConfigurationController extends Controller {
 declare module '@ember/controller' {
   // tslint:disable-next-line: interface-name
   interface Registry {
-    'configurationController': ConfigurationController;
+    configurationController: ConfigurationController;
   }
 }

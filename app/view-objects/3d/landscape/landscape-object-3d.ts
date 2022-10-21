@@ -1,7 +1,10 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import MinMaxRectangle from 'explorviz-frontend/view-objects/layout-models/min-max-rectangle';
 import PlaneLayout from 'explorviz-frontend/view-objects/layout-models/plane-layout';
-import { Node, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Node,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import NodeMesh from './node-mesh';
 import ApplicationMesh from './application-mesh';
 
@@ -55,7 +58,10 @@ export default class LandscapeObject3D extends THREE.Object3D {
 
   setOpacity(opacity: number) {
     this.getAllMeshes().forEach((mesh) => {
-      if (mesh instanceof THREE.Mesh && mesh.material instanceof THREE.Material) {
+      if (
+        mesh instanceof THREE.Mesh &&
+        mesh.material instanceof THREE.Material
+      ) {
         mesh.material.opacity = opacity;
       }
     });
@@ -136,7 +142,8 @@ export default class LandscapeObject3D extends THREE.Object3D {
     if (max <= 0) return;
 
     const appDimensions = new THREE.Box3().setFromObject(this);
-    const scalar = max / Math.max(...appDimensions.getSize(new THREE.Vector3()).toArray());
+    const scalar =
+      max / Math.max(...appDimensions.getSize(new THREE.Vector3()).toArray());
 
     this.scale.multiplyScalar(scalar);
   }
