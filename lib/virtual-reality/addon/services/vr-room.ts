@@ -46,6 +46,12 @@ export default class VrRoomService extends Service {
   }
 
   async createRoom(): Promise<RoomCreatedResponse> {
+    const payload = this.buildInitialRoomPayload();
+
+    if (!payload?.landscape.landscapeToken) {
+      throw new Error('invalid data');
+    }
+
     const url = `${collaborationService}/v2/vr/room`;
     const response = await fetch(url, {
       method: 'POST',
@@ -53,21 +59,26 @@ export default class VrRoomService extends Service {
         Authorization: `Bearer ${this.auth.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(this.buildInitialRoomPayload()),
+      body: JSON.stringify(payload),
     });
     const json = await response.json();
     if (isRoomCreatedResponse(json)) return json;
     throw new Error('invalid data');
   }
 
-  private buildInitialRoomPayload(): InitialRoomPayload {
+  private buildInitialRoomPayload(): InitialRoomPayload | undefined {
     // Serialize room and remove unsupported properties.
-    /* const room = this.roomSerializer.serializeRoom();
+    const room = this.roomSerializer.serializeRoom();
+
+    if (!room.landscape.landscapeToken) {
+      return;
+    }
+
     return {
       landscape: room.landscape,
-      openApps: room.openApps.map(({ highlightedComponents, ...app }) => app),
-      detachedMenus: room.detachedMenus.map(({ objectId, ...menu }) => menu),
-    };*/
+      openApps: room.openApps.map(({ ...app }) => app),
+      detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
+    };
   }
 
   async joinLobby(roomId: string): Promise<LobbyJoinedResponse> {

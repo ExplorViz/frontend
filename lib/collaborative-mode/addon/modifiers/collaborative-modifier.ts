@@ -46,7 +46,8 @@ interface IModifierArgs {
 }
 
 export default class CollaborativeModifierModifier extends Modifier<IModifierArgs> {
-  didInstall() {
+  constructor(owner: any, args: Args) {
+    super(owner, args);
     this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);

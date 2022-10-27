@@ -20,11 +20,8 @@ export type InitialRoomApp = {
 };
 
 export type InitialRoomLandscape = {
-  landscapeToken: string;
+  landscapeToken: string | undefined;
   timestamp: number;
-  position: Position;
-  quaternion: Quaternion;
-  scale: Scale;
 };
 
 export type InitialRoomPayload = {
