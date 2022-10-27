@@ -80,12 +80,16 @@ build-prod-noauth:
     - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG
 
 deploy-dockerhub-master:
+  dependencies:
+    - build-prod
   extends:
     - .deploy-to-dockerhub
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "master"'
 
 deploy-dockerhub-dev:
+  dependencies:
+    - build-prod
   extends:
     - .deploy-to-dockerhub
   rules:
@@ -99,6 +103,8 @@ deploy-dockerhub-dev:
       dotenv: build.env
 
 deploy-dockerhub-dev-noauth:
+  dependencies:
+    - build-prod-noauth
   stage: deploy:images
   tags:
     - exec-docker
