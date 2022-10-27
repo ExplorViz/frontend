@@ -61,7 +61,7 @@ build-prod-noauth:
   variables:
     VERSION_TAG: $CI_COMMIT_BRANCH-noauth-$CI_COMMIT_SHORT_SHA
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE != "schedule"'
   before_script:
     - export AUTH0_ENABLED=false
 
@@ -106,7 +106,7 @@ deploy-dockerhub-dev-noauth:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: ['']
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${DOCKERHUB_USER}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
@@ -130,7 +130,7 @@ retag-dockerhub-image-noauth:
   tags:
     - exec-docker
   rules:
-    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE != "schedule"'
   image:
     name: gcr.io/go-containerregistry/crane:debug
     entrypoint: ['']
