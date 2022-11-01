@@ -27,6 +27,7 @@ You will need the following things properly installed on your computer.
 - Copy configuration file: `cp .env .env-custom`
 - In `.env-custom`: change `AUTH0_ENABLED` to false.
 - Start application: `DOTENV=.env-custom ember s`
+- Start mocked backend: `cd .dev && docker compose up -d`
 - Open frontend at [http://localhost:4200](http://localhost:4200).
 
 ### Code Generators
