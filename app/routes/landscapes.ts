@@ -40,7 +40,12 @@ export default class Landscapes extends BaseRoute {
             reject();
           }
         })
-        .catch((e) => reject(e));
+        .catch(async (e) => {
+          // Wait 2 seconds since promise rejection re-triggers model() hook
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          reject(e);
+        });
     });
   }
 
