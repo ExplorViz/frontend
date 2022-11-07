@@ -15,7 +15,7 @@ export function getDefaultGradient() {
   };
 }
 
-export function simpleHeatmap(
+export default function simpleHeatmap(
   maximumValue: number,
   canvas: HTMLCanvasElement,
   gradient: any,

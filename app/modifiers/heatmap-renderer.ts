@@ -15,7 +15,7 @@ import applySimpleHeatOnFoundation, {
   computeHeatMapViewPos,
   removeHeatmapHelperLines,
 } from 'heatmap/utils/heatmap-helper';
-import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
+import simpleHeatmap from 'heatmap/utils/simple-heatmap';
 import * as THREE from 'three';
 
 interface NamedArgs {
