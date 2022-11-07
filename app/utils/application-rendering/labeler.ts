@@ -4,6 +4,7 @@ import ClazzLabelMesh from 'explorviz-frontend/view-objects/3d/application/clazz
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -53,7 +54,7 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
  */
 export function addBoxTextLabel(
   boxMesh: ComponentMesh | FoundationMesh,
-  font: THREE.Font,
+  font: Font,
   color: THREE.Color,
   minHeight = 1.5,
   minLength = 4,
@@ -86,7 +87,7 @@ export function addBoxTextLabel(
  */
 export function addClazzTextLabel(
   clazzMesh: ClazzMesh,
-  font: THREE.Font,
+  font: Font,
   color: THREE.Color,
   size = 0.75,
   replace = false

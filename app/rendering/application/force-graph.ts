@@ -35,8 +35,6 @@ export interface GraphLink {
   __lineObj: ClazzCommunicationMesh;
 }
 
-const PARTICLE_SPEED_MULTIPLIER = 0.001;
-
 export default class ForceGraph {
   debug = debugLogger('ForceGraph');
 
@@ -63,7 +61,7 @@ export default class ForceGraph {
     this.graph = new ThreeForceGraph()
       .graphData({ nodes: [], links: [] })
       .nodeThreeObject(
-        ({ id }) => this.applicationRenderer.getApplicationById(id)!
+        ({ id }) => this.applicationRenderer.getApplicationById(id as string)!
       )
       .warmupTicks(100)
       .linkColor(
@@ -87,7 +85,6 @@ export default class ForceGraph {
     // particles
     // .linkDirectionalParticles("value")
     // .linkDirectionalParticleWidth(0.6)
-    // .linkDirectionalParticleSpeed(this.particleSpeed)
 
     // forces
     this.graph.d3Force('collision')!.iterations(2);
@@ -101,16 +98,9 @@ export default class ForceGraph {
       });
     };
     this.graph.scale.setScalar(scale);
-    this.graph.getGrabId = () => {
-      'force-graph-grabbable';
-    };
   }
 
   tick() {
     this.graph.tickFrame();
-  }
-
-  private particleSpeed(link: GraphLink) {
-    return Math.sqrt(link.value) * PARTICLE_SPEED_MULTIPLIER;
   }
 }

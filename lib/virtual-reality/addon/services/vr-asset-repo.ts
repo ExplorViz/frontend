@@ -1,5 +1,6 @@
 import Service from '@ember/service';
 import * as THREE from 'three';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { ActionIconTextures } from 'virtual-reality/utils/view-objects/vr/action-icon';
 import { CloseIconTextures } from 'virtual-reality/utils/view-objects/vr/close-icon';
 
@@ -12,7 +13,7 @@ export default class VrAssetRepository extends Service {
 
   fireIconTextures!: ActionIconTextures;
 
-  font: THREE.Font | undefined;
+  font: Font | undefined;
 
   init() {
     super.init();
@@ -43,6 +44,6 @@ export default class VrAssetRepository extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'vr-asset-repo': VrAssetRepository;
+    'virtual-reality@vr-asset-repo': VrAssetRepository;
   }
 }

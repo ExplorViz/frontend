@@ -93,7 +93,7 @@ export default class ArRendering extends Component<Args> {
 
   popupHandler: PopupHandler;
 
-  currentSession: THREE.XRSession | null = null;
+  currentSession: XRSession | null = null;
 
   @tracked
   arZoomHandler: ArZoomHandler | undefined;
@@ -244,6 +244,11 @@ export default class ArRendering extends Component<Args> {
     // cannot be resized after session started
     this.resize();
 
+    if (!navigator.xr) {
+      console.error('XR not available in navigator.');
+      return;
+    }
+
     navigator.xr
       .requestSession('immersive-ar', {
         requiredFeatures: ['hit-test'],
@@ -361,7 +366,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   @action
-  async onSessionStarted(session: THREE.XRSession) {
+  async onSessionStarted(session: XRSession) {
     session.addEventListener('end', this.onSessionEnded);
 
     this.renderer.xr.setReferenceSpaceType('local');
@@ -645,7 +650,7 @@ export default class ArRendering extends Component<Args> {
 
   hoveredObject: EntityMesh | null = null;
 
-  tick(delta: number, frame: THREE.XRFrame) {
+  tick(delta: number, frame: XRFrame) {
     const intersection = this.raycastCenter();
     this.popupHandler.hover(intersection?.object);
     if (intersection) {

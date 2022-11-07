@@ -35,7 +35,7 @@ export default class ZoomMenu extends UiMenu {
 
     const worldSizeFactor = SIZE_RESOLUTION_FACTOR / 2;
     const radius = this.resolution.width * worldSizeFactor;
-    const geometry = new THREE.CircleBufferGeometry(radius, CIRCLE_SEGMENTS);
+    const geometry = new THREE.CircleGeometry(radius, CIRCLE_SEGMENTS);
     const material = new THREE.MeshBasicMaterial({ map: this.target.texture });
     const lens = new THREE.Mesh(geometry, material);
     lens.position.z = 0.001;

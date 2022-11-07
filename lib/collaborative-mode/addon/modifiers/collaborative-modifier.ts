@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { perform, taskFor } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
-import Modifier from 'ember-modifier';
+import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -46,8 +46,12 @@ interface IModifierArgs {
 }
 
 export default class CollaborativeModifierModifier extends Modifier<IModifierArgs> {
-  constructor(owner: any, args: Args) {
+  args: IModifierArgs;
+  element: unknown;
+
+  constructor(owner: unknown, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
+    this.args = args as IModifierArgs;
     this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);

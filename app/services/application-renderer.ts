@@ -32,6 +32,7 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -177,7 +178,7 @@ export default class ApplicationRenderer extends Service.extend({
    */
   addLabels(
     currentApplicationObject3D: CurrentApplicationObject3D,
-    font: THREE.Font,
+    font: Font,
     labelAll: boolean = false
   ) {
     const { clazzTextColor, componentTextColor, foundationTextColor } =

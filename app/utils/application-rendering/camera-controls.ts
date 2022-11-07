@@ -18,7 +18,7 @@ export default class CameraControls {
     controls.minDistance = 0.1;
     controls.maxDistance = 1000;
     controls.maxPolarAngle = Math.PI / 2;
-    controls.mouseButtons.MIDDLE = null;
+    controls.mouseButtons.MIDDLE = undefined;
     this.controls = controls;
   }
 

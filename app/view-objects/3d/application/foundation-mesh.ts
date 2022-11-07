@@ -4,8 +4,12 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
 
-export default class FoundationMesh extends BoxMesh {
-  geometry: THREE.BoxGeometry;
+export default class FoundationMesh<
+  TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
+  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material
+> extends BoxMesh<TGeometry, TMaterial> {
+  geometry: any;
+  material: any;
 
   dataModel: Application;
 

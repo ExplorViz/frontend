@@ -15,7 +15,7 @@ import applySimpleHeatOnFoundation, {
   computeHeatMapViewPos,
   removeHeatmapHelperLines,
 } from 'heatmap/utils/heatmap-helper';
-import { simpleHeatmap } from 'heatmap/utils/simple-heatmap';
+import simpleHeatmap from 'heatmap/utils/simple-heatmap';
 import * as THREE from 'three';
 
 interface NamedArgs {
@@ -48,7 +48,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     return this.heatmapConf.selectedMetric;
   }
 
-  modify(_element: any, _positionalArgs: any[], { camera, scene }: NamedArgs) {
+  modify(_element: any, _positionalArgs: any[], { camera, scene }: any) {
     this.scene = scene;
     this.camera = camera;
 

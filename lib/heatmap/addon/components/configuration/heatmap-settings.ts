@@ -3,6 +3,7 @@ import { inject as service } from '@ember/service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
+import { EmptyObject } from '@glimmer/component/-private/component';
 
 interface HeatmapMode {
   name: string;
@@ -43,7 +44,7 @@ export default class HeatmapSettings extends Component {
   @tracked
   showSimpleHeatSettings: boolean = false;
 
-  constructor(owner: any, args: Args) {
+  constructor(owner: any, args: EmptyObject) {
     super(owner, args);
     this.selectedMode =
       this.heatmapConf.selectedMode === 'aggregatedHeatmap'

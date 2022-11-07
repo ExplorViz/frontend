@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
 
 export default class ClazzLabelMesh extends LabelMesh {
   constructor(
-    font: THREE.Font,
+    font: Font,
     labelText: string,
     textColor = new THREE.Color('black'),
     size: number

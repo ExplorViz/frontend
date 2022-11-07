@@ -4,7 +4,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
-import { CameraControls } from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
@@ -90,8 +90,7 @@ export default class SpectateUserService extends Service {
     if (this.spectatedUser?.camera) {
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(
-          this.spectatedUser.camera.model.position,
-          { adaptCameraHeight: true }
+          this.spectatedUser.camera.model.position
         );
       } else {
         this.localUser.camera.position.copy(
@@ -158,7 +157,6 @@ export default class SpectateUserService extends Service {
     }
 
     // this.localUser.teleportToPosition(this.startPosition, {
-    //   adaptCameraHeight: true,
     // });
 
     // this.localUser.camera.position.copy(this.startPosition);

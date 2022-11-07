@@ -19,6 +19,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import {
   EntityMesh,
@@ -128,7 +129,9 @@ export default class HighlightingService extends Service.extend({
       .getOpenApplications()
       .forEach((applicationObject3D) => {
         const mesh = applicationObject3D.highlightedEntity;
-        this.highlightComponent(applicationObject3D, mesh);
+        if (mesh instanceof BaseMesh) {
+          this.highlightComponent(applicationObject3D, mesh);
+        }
       });
     this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
   }

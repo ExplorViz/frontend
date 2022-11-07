@@ -1,13 +1,14 @@
 import * as THREE from 'three';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import BaseMesh from './base-mesh';
 
 export default class LabelMesh extends BaseMesh {
   labelText: string;
 
-  font: THREE.Font;
+  font: Font;
 
   constructor(
-    font: THREE.Font,
+    font: Font,
     labelText: string,
     textColor = new THREE.Color('black')
   ) {

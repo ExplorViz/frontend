@@ -1,5 +1,4 @@
 import LocalUser from 'collaborative-mode/services/local-user';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
@@ -9,7 +8,6 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 export type ResetMenuArgs = UiMenuArgs & {
   localUser: LocalUser;
   online: boolean;
-  applicationRenderer: ApplicationRenderer;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
@@ -21,13 +19,11 @@ export default class ResetMenu extends UiMenu {
   constructor({
     localUser,
     online,
-    applicationRenderer,
     detachedMenuGroups,
     ...args
   }: ResetMenuArgs) {
     super(args);
     this.localUser = localUser;
-    this.applicationRenderer = applicationRenderer;
     this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
