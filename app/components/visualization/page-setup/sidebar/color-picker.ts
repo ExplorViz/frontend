@@ -67,7 +67,8 @@ export default class ColorPicker extends Component<Args> {
 
     picker.onChange = (color) => {
       element.style.background = color.rgbaString;
-      const inputColor = color.printHex();
+      const inputColor = color.hex.substring(0, 7);
+
       colorPickerObject.colorObject.set(inputColor);
       this.userSettings.updateApplicationSetting(
         colorPickerObject.colorName,

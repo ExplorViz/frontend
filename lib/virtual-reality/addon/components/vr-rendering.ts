@@ -26,9 +26,11 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
@@ -93,7 +95,7 @@ interface Args {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly selectedTimestampRecords: Timestamp[];
-  readonly font: THREE.Font;
+  readonly font: Font;
   applicationArgs: Map<string, AddApplicationArgs>;
 }
 
@@ -335,10 +337,11 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: FoundationMesh,
       triggerDown: (event) => {
+        const application = event.target.parent as ApplicationObject3D;
         if (this.heatmapConf.heatmapActive) {
-          this.heatmapConf.setActiveApplication(event.target.parent);
-        } else if (event.target.parent instanceof ApplicationObject3D) {
-          this.applicationRenderer.closeAllComponents(event.target.parent);
+          this.heatmapConf.setActiveApplication(application);
+        } else {
+          this.applicationRenderer.closeAllComponents(application);
         }
       },
     });

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
 import PlaneLabelMesh from 'explorviz-frontend/view-objects/3d/landscape/plane-label-mesh';
 import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 export default class Labeler {
   nodeLabelCache: Map<string, PlaneLabelMesh> = new Map();
@@ -21,7 +22,7 @@ export default class Labeler {
   addNodeTextLabel(
     nodeMesh: NodeMesh,
     text: string,
-    font: THREE.Font,
+    font: Font,
     color: THREE.Color,
     fontSize = 0.22,
     yOffset = 0.2
@@ -62,7 +63,7 @@ export default class Labeler {
   addApplicationTextLabel(
     applicationMesh: ApplicationMesh,
     text: string,
-    font: THREE.Font,
+    font: Font,
     color: THREE.Color,
     fontSize = 0.25,
     xOffset = 0.1
@@ -157,7 +158,7 @@ export default class Labeler {
    */
   static getLabel(
     labelCache: Map<string, PlaneLabelMesh>,
-    font: THREE.Font,
+    font: Font,
     text: string,
     size: number,
     color: THREE.Color

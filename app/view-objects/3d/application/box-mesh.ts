@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import BaseMesh from '../base-mesh';
 
-export default abstract class BoxMesh extends BaseMesh {
+export default abstract class BoxMesh<
+  TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
+  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material
+> extends BaseMesh<TGeometry, TMaterial> {
   layout: BoxLayout;
 
   constructor(

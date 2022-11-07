@@ -10,7 +10,7 @@ import {
 } from '../landscape-schemes/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import { removeHighlighting } from './highlighting';
-import { CameraControls } from './camera-controls';
+import CameraControls from './camera-controls';
 
 /**
  * Opens a given component mesh.

@@ -6,7 +6,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
-import Modifier from 'ember-modifier';
+import Modifier, { ArgsFor } from 'ember-modifier';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
@@ -97,7 +97,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   rendererResolutionMultiplier: number = 1;
 
-  modify(element: any, _positionalArgs: any[], args: NamedArgs) {
+  modify(element: any, _positionalArgs: any[], args: any) {
     this.namedArgs = args;
     if (args.rendererResolutionMultiplier) {
       this.rendererResolutionMultiplier = args.rendererResolutionMultiplier;
@@ -136,7 +136,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     return this.namedArgs.camera;
   }
 
-  constructor(owner: any, args: InteractionModifierArgs) {
+  constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
     super(owner, args);
     this.raycaster = new Raycaster();
   }

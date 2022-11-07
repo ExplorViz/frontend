@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
 import ComponentMesh from './component-mesh';
 import FoundationMesh from './foundation-mesh';
@@ -11,7 +12,7 @@ export default class ComponentLabelMesh extends LabelMesh {
 
   constructor(
     componentMesh: ComponentMesh | FoundationMesh,
-    font: THREE.Font,
+    font: Font,
     textColor = new THREE.Color('black'),
     minHeight = 1.5,
     minLength = 4

@@ -64,18 +64,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(
-    _element: any,
-    _positionalArgs: any[],
-    { landscapeData, graph }: NamedArgs
-  ) {
+  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
     this.landscapeData = landscapeData;
     this.graph = graph;
 
     perform(this.handleUpdatedLandscapeData);
   }
 
-  @restartableTask *handleUpdatedLandscapeData() {
+  @restartableTask *handleUpdatedLandscapeData(): Generator<any, any, any> {
     yield Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
@@ -177,7 +173,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @task *updateApplicationData(
     application: Application,
     drawableClassCommunications: DrawableClassCommunication[]
-  ) {
+  ): Generator<unknown, ApplicationData, unknown> {
     const workerPayload = {
       structure: application,
       dynamic: this.dynamicLandscapeData,

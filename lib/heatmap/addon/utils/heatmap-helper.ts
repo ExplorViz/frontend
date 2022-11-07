@@ -8,7 +8,6 @@ export default function applySimpleHeatOnFoundation(
 ) {
   const color = 'rgb(255, 255, 255)';
 
-  // @ts-ignore: ...
   foundationMesh.material = [];
 
   const sideMaterial = new THREE.MeshLambertMaterial({

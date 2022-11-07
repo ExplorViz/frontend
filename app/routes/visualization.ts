@@ -1,6 +1,5 @@
 import VisualizationController from 'explorviz-frontend/controllers/visualization';
-import * as THREE from 'three';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
@@ -45,7 +44,7 @@ export default class VisualizationRoute extends BaseRoute {
     return super.beforeModel();
   }
 
-  private async loadFont(): Promise<THREE.Font> {
+  private async loadFont(): Promise<Font> {
     return new Promise((resolve, reject) => {
       new FontLoader().load(
         // resource URL

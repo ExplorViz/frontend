@@ -2,7 +2,7 @@ import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
 import config from 'explorviz-frontend/config/environment';
-import Router from 'explorviz-frontend/router';
+import Router from '@ember/routing/router';
 
 /**
  * TODO

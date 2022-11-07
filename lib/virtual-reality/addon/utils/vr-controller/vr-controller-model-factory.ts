@@ -53,7 +53,7 @@ export default class VrControllerModelFactory {
           const touchPointNode = scene.getObjectByName(touchPointNodeName);
           if (touchPointNode) {
             // Attach a touch dot to the touchpad.
-            const sphereGeometry = new THREE.SphereBufferGeometry(0.001);
+            const sphereGeometry = new THREE.SphereGeometry(0.001);
             const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
             const sphere = new THREE.Mesh(sphereGeometry, material);
             touchPointNode.add(sphere);

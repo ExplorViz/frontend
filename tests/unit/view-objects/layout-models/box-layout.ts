@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
-import THREE from 'three';
+import * as THREE from 'three';
 
 module('Unit | View Object | layout-models/box-layout', function (hooks) {
   setupTest(hooks);

@@ -121,6 +121,6 @@ export default class VrRoomSerializer extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'vr-room-serializer': VrRoomSerializer;
+    'virtual-reality@vr-room-serializer': VrRoomSerializer;
   }
 }

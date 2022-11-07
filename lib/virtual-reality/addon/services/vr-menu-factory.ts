@@ -2,7 +2,6 @@ import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -51,9 +50,6 @@ export default class VrMenuFactoryService extends Service {
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
-
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -250,7 +246,6 @@ export default class VrMenuFactoryService extends Service {
     return new ResetMenu({
       localUser: this.localUser,
       online: this.collaborationSession.connectionStatus !== 'online',
-      applicationRenderer: this.applicationRenderer,
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,
     });

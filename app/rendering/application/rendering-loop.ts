@@ -82,7 +82,7 @@ export default class RenderingLoop {
     }
   }
 
-  tick(frame?: THREE.XRFrame) {
+  tick(frame?: XRFrame) {
     const delta = clock.getDelta();
     for (let i = 0; i < this.updatables.length; i++) {
       this.updatables[i].tick(delta, frame);

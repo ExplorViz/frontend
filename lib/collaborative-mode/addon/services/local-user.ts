@@ -62,6 +62,8 @@ export default class LocalUser extends Service.extend({
     }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
+
+    return undefined;
   }
 
   get camera() {
@@ -127,14 +129,7 @@ export default class LocalUser extends Service.extend({
    *  This method is used to adapt the users view to
    *  the new position
    */
-  teleportToPosition(
-    position: THREE.Vector3
-    //{
-    //  adaptCameraHeight = false,
-    //}: {
-    //  adaptCameraHeight?: boolean;
-    //} = {}
-  ) {
+  teleportToPosition(position: THREE.Vector3) {
     const worldPos = this.xr?.getCamera().getWorldPosition(new THREE.Vector3());
 
     if (!(worldPos?.x || worldPos?.z)) {
@@ -154,7 +149,7 @@ export default class LocalUser extends Service.extend({
       ?.getReferenceSpace()
       ?.getOffsetReferenceSpace(transform);
 
-    this.xr?.setReferenceSpace(teleportSpaceOffset);
+    if (teleportSpaceOffset) this.xr?.setReferenceSpace(teleportSpaceOffset);
   }
 
   getCameraWorldPosition() {

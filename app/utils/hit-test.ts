@@ -1,4 +1,4 @@
-let hitTestSource: any = null;
+let hitTestSource: unknown;
 let hitTestSourceRequested = false;
 
 export default function hitTest(
@@ -12,7 +12,8 @@ export default function hitTest(
 
     if (hitTestSourceRequested === false && session) {
       session.requestReferenceSpace('viewer').then((space) => {
-        session.requestHitTestSource({ space }).then((source) => {
+        // Note: requestHitTestSource() is experimental and has limited browser support
+        session.requestHitTestSource!({ space })?.then((source) => {
           hitTestSource = source;
         });
       });
