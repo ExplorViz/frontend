@@ -10,7 +10,7 @@ The <strong>specs</strong> folder contains .spec files. These are detailed state
 The <strong>tests</strong> folder contains the implementation file for the statements from the .spec files. The implementations are written in a langauge of your choice (here .js) in combination with the Taiko [API](https://docs.taiko.dev/api/reference/).
 
 <h1>Testing</h1>
-<p> To start all tests at once go to the <em>E2E-gauge</em> directory and use <strong>gauge run specs</strong> within the command line/terminal of VSC to start the test.
+<p> To start all tests at once go to the <em>E2E-gauge</em> directory and use <strong>gauge run specs</strong> or <strong>npm test</strong> within the cmd (or terminal of VSC) to start the test.
 <p> You can also run the tests individual. Go to the <em>specs</em> directory and use <strong>gauge run "name of spec".spec</strong> for the spec of your choice (e.g. <em>gauge run highlight.spec</em>).
 
 <h1>View Report</h1>
