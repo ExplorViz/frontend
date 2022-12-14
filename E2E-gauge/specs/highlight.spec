@@ -9,4 +9,4 @@ This is a context step that runs before every scenario
 	|Distributed Petclinic Sample|15.11.2017, 16:54:04|
 * Click button to dismiss timeline
 * Click on Element and take screenshot "testHighlight"
-Compare "testHighlight" screenshot with "exHighlight" screenshot
+* Compare "testHighlight" screenshot with "exHighlight" screenshot
