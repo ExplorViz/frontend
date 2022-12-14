@@ -2,6 +2,7 @@
 <p> This test uses Gauge and Taiko - therefore [Gauge](https://docs.gauge.org/getting_started/installing-gauge.html?os=windows&language=javascript&ide=vscode) needs to be installed.
 <p> Pixelmatch is used for screenshot comparson. It should be installed (as you can see in the <em>package.json</em>). If there is a problem install it with <strong>npm install pixelmatch</strong>.
 <p> install the node_modules, use <strong>npm i</strong> within the E2E-gauge directory
+<p> use <strong>docker compose up -d</strong> to start the software stack and the fron-end demo.
 
 <h1>Additional info</h1>
 Gauge has two important folders - <strong>specs</strong> and <strong>test</strong>. These two contain the files whichs are needed for the testruns.<br> 
