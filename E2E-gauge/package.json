@@ -1,0 +1,11 @@
+{
+  "name": "gauge-taiko-template",
+  "description": "Starter template for writing JavaScript tests for Gauge",
+  "scripts": {
+    "test": "gauge run specs/"
+  },
+  "dependencies": {
+    "pixelmatch": "^5.3.0",
+    "taiko": "latest"
+  }
+}
