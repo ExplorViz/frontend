@@ -4,7 +4,7 @@
 # 	docker run  --rm -it -v ${PWD}/reports:/gauge/reports gauge-taiko
 
 # This image uses the official node base image.
-FROM node
+FROM node:18-bullseye
  
 # The Taiko installation downloads and installs the chromium required to run the tests. 
 # However, we need the chromium dependencies installed in the environment. These days, most 
@@ -15,20 +15,23 @@ RUN apt-get update \
      && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
      && apt-get update \
      && apt-get install -y google-chrome-stable
+
  
 # Set a custom npm install location so that Gauge, Taiko and dependencies can be 
 # installed without root privileges
 ENV NPM_CONFIG_PREFIX=/home/gauge/.npm-packages
-ENV PATH="${NPM_CONFIG_PREFIX}/bin:${PATH}"
+ENV PATH=$PATH:/home/gauge/.npm-packages/bin
+
+# ENV PATH=$PATH:/home/node/.npm-global/bin
 
 # Add the Taiko browser arguments
 ENV TAIKO_BROWSER_ARGS=--no-sandbox,--start-maximized,--disable-dev-shm-usage
-ENV headless_chrome=true
+ENV headless_chrome=false
 ENV TAIKO_SKIP_DOCUMENTATION=true
 
 # Uncomment the lines below to use chrome bundled with this image
-#ENV TAIKO_SKIP_CHROMIUM_DOWNLOAD=true
-#ENV TAIKO_BROWSER_PATH=/usr/bin/google-chrome
+# ENV TAIKO_SKIP_CHROMIUM_DOWNLOAD=true
+# ENV TAIKO_BROWSER_PATH=/usr/bin/google-chrome
  
 # Set working directory
 WORKDIR /gauge
@@ -43,12 +46,14 @@ RUN groupadd -r gauge && useradd -r -g gauge -G audio,video gauge && \
  
 USER gauge
 
-# Install dependencies and plugins
-RUN npm install -g @getgauge/cli \
-    && npm install \
-    && gauge install \
-    && gauge install screenshot \
-    && gauge config check_updates false
+# Install dependencies and plugins 
+RUN npm install -g @getgauge/cli && \
+    npm i && \
+    gauge install && \
+    gauge install js && \
+    gauge install html-report &&  \
+    gauge install screenshot && \
+    gauge config check_updates false
 
 # Default command on running the image
 ENTRYPOINT ["npm", "test"]

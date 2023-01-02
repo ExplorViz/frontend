@@ -6,9 +6,9 @@ const pixelmatch = require('pixelmatch');
 const fs = require('fs');
 const assert = require('assert');
 const {
-    openBrowser, closeBrowser, goto, screenshot, click, evaluate, button, toRightOf, $, mouseAction, rightClick, highlight
+    openBrowser, closeBrowser, goto, screenshot, click, evaluate, button, toRightOf, $, mouseAction, rightClick, highlight, tableCell, listItem, title, openTab
 } = require('taiko');
-const headless = process.env.headless_chrome.toLowerCase() === 'true';
+// const headless = process.env.headless_chrome.toLowerCase() === 'true';
 
 
 beforeSuite(async () => await openBrowser( {
@@ -36,9 +36,40 @@ afterSuite(async () => {
 //     return path.basename(screenshotFilePath);
 // };
 
+step("debug", async function () {
+    const test_message = await evaluate(() => {
+        // const table = document.getElementById("token-selection-table")
+        // click(button(table.rows[2].cells[2][0]))
+        // for (const row of table.rows) {  
+        //     for (const cell of row.cells) {  
+        //         return cell.innerText
+        //     }
+        // }
+        console.log(document.getElementById("main-container").innerHTML);
+        return document.getElementById("main-container").innerHTML;
+    })
+    gauge.message(test_message);
+    const tit = await title();
+    gauge.message(tit);
+    gauge.screenshot();
+})
+
+step("Open Frontend-Demo application", async function () {
+    await goto("http://frontend:80");
+    // await goto("http://localhost:8080");
+});
+
+step("Open petclinic-example page", async function() {
+    await goto("http://localhost:18080");
+})
+
+step("Open Explorviz landscape", async function() {
+    await openTab("http://localhost:8080");
+})
+
 step("Click on <table>", async function (table) {
     for (var row of table.rows) {
-                 await click(button(toRightOf(row.cells[1])));
+                 await click(button({"class" : row.cells[2]}));
             }
 });
 
@@ -79,10 +110,6 @@ step("Move mouse to Element and take screenshot <screenshotFileName>", async (sc
 
     await mouseAction('move', {x: canvas_x, y:canvas_y});
     await screenshot({path: 'screenshots/test/' + screenshotFileName + '.png'});
-});
-
-step("Open Frontend-Demo application", async function () {
-    await goto("http://localhost:8080");
 });
 
 step("Right click and take screenshot <screenshotFileName>", async (screenshotFileName) => {

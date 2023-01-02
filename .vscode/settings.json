@@ -1,5 +1,14 @@
 {
-  "eslint.validate": ["javascript", "typescript"]
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "files.associations": {
+    "*.spec": "gauge",
+    "*.cpt": "gauge"
+  },
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 500
   //"editor.codeActionsOnSave": {
   //    "source.fixAll.eslint": true
   //},
