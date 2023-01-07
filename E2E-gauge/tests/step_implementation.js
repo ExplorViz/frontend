@@ -14,7 +14,7 @@ const {
 beforeSuite(async () => await openBrowser( {
     headless: true,
     observe: true,
-    observeTime: 1000,
+    observeTime: 2000,
     args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',
@@ -51,11 +51,13 @@ step("debug", async function () {
     gauge.message(test_message);
     const tit = await title();
     gauge.message(tit);
-    gauge.screenshot();
+    await screenshot({path: "/var/out/lol.png"})
 })
 
 step("Open Frontend-Demo application", async function () {
-    await goto("http://frontend:80");
+    await goto("http://explorviz-frontend:80/user/9000/token")
+    await screenshot({path: "/var/out/user9000.png"})
+    await goto("http://explorviz-frontend:80/login");
     // await goto("http://localhost:8080");
 });
 
@@ -68,6 +70,7 @@ step("Open Explorviz landscape", async function() {
 })
 
 step("Click on <table>", async function (table) {
+    await screenshot({path: "/var/out/clickon.png"})
     for (var row of table.rows) {
                  await click(button({"class" : row.cells[2]}));
             }
@@ -123,7 +126,6 @@ step("Right click and take screenshot <screenshotFileName>", async (screenshotFi
 
     await rightClick({x: canvas_x, y: canvas_y});
     await screenshot({path: 'screenshots/test/' + screenshotFileName + '.png'});
-
 })
 
 step("Compare <screenshotFileName1> screenshot with <screenshotFileName2> screenshot", async (screenshotFileName1, screenshotFileName2) => {

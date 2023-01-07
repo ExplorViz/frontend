@@ -34,6 +34,7 @@ ENV TAIKO_SKIP_DOCUMENTATION=true
 # ENV TAIKO_BROWSER_PATH=/usr/bin/google-chrome
  
 # Set working directory
+RUN mkdir -p /var/out
 WORKDIR /gauge
  
 # Copy the local working folder
