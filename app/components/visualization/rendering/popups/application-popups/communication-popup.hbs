@@ -62,8 +62,8 @@
                 {{drawableClassCommu.sourceApp.name}}
               </BsTooltip>
             {{/if}}
-            {{#if
-              (not (eq drawableClassCommu.sourceApp.id this.application.id))
+            {{#unless
+              (eq drawableClassCommu.sourceApp.id this.application.id)
             }}
               (<button
                 type='button'
@@ -75,7 +75,7 @@
               >
                 {{drawableClassCommu.sourceApp.name}}
               </button>)
-            {{/if}}
+            {{/unless}}
             {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
             {{#if (eq drawableClassCommu.targetApp.id this.application.id)}}
               <button
