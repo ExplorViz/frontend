@@ -59,10 +59,12 @@
     "ember-cli-build.js",
     "app",
     "config",
-    "tests",
     "types",
     "lib/collaborative-mode",
     "lib/virtual-reality",
     "lib/heatmap"
+  ],
+  "exclude": [
+    "tests/*"
   ]
 }

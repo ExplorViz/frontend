@@ -34,7 +34,7 @@ export default class SyncStateModifier extends Modifier {
 
   private state: Map<string, any> = new Map();
 
-  constructor(owner: unknown, args: any) {
+  constructor(owner: any, args: any) {
     super(owner, args);
     this.webSocket.on(HEATMAP_UPDATE_EVENT, this, this.onHeatmapUpdate);
     registerDestructor(this, cleanup);

@@ -1,3 +1,6 @@
+# test files
+/tests/
+
 # unconventional js
 /blueprints/*/files/
 /vendor/

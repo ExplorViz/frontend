@@ -49,7 +49,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   args: IModifierArgs;
   element: unknown;
 
-  constructor(owner: unknown, args: ArgsFor<IModifierArgs>) {
+  constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
     this.args = args as IModifierArgs;
     this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);

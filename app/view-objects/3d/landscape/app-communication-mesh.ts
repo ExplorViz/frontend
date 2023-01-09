@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MeshLine, MeshLineMaterial } from 'meshline';
+import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import BaseMesh from '../base-mesh';
 
 // Simple 2-dimensional point
@@ -46,7 +46,7 @@ export default class AppCommunicationMesh extends BaseMesh {
       secondVector.z,
     ];
 
-    const geometry = new MeshLine();
+    const geometry = new MeshLineGeometry();
     geometry.setPoints(points, () => tile.lineThickness);
     this.geometry = geometry;
 
