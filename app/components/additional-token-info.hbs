@@ -24,10 +24,10 @@
             <td>
               <CopyButton
                 class='button-svg-with-hover'
-                @clipboardText={{@token.value}}
-                @success={{this.onTokenIdCopied}}
+                @text={{@token.value}}
+                @onSuccess={{this.onTokenIdCopied}}
               >
-                {{svg-jar 'clippy-16' class='octicon align-middle'}}
+                {{svg-jar 'copy-16' class='octicon align-middle'}}
                 <BsTooltip @placement='bottom' @triggerEvents='hover'>
                   Copy id to clipboard
                 </BsTooltip>
@@ -41,10 +41,10 @@
               <td>
                 <CopyButton
                   class='button-svg-with-hover'
-                  @clipboardText={{@token.secret}}
-                  @success={{this.onTokenSecretCopied}}
+                  @text={{@token.secret}}
+                  @onSuccess={{this.onTokenSecretCopied}}
                 >
-                  {{svg-jar 'clippy-16' class='octicon align-middle'}}
+                  {{svg-jar 'copy-16' class='octicon align-middle'}}
                   <BsTooltip @placement='bottom' @triggerEvents='hover'>
                     Copy secret to clipboard
                   </BsTooltip>
