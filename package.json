@@ -162,6 +162,7 @@
     "rsvp": "^4.8.5",
     "sass": "^1.57.1",
     "simpleheat": "^0.4.0",
+    "socket.io-client": "^4.5.4",
     "stats.js": "^0.17.0",
     "three": "^0.148.0",
     "three-forcegraph": "^1.40.0",

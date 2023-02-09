@@ -39,6 +39,8 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import IDEApi from 'explorviz-frontend/services/ide-api';
+import { getApplicationObject3D } from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -113,6 +115,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  ideApi: IDEApi;
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -162,6 +166,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
+
+    // IDE API
+    this.ideApi = new IDEApi(this.handleSingleClickOnMesh, this.handleDoubleClickOnMesh, this.lookAtMesh)
+    
   }
 
   tick(delta: number) {
@@ -273,6 +281,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // controls
     this.cameraControls = new CameraControls(this.camera, this.canvas);
+
     this.spectateUserService.cameraControls = this.cameraControls;
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
@@ -300,12 +309,25 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection) {
-    if (intersection) {
+    this.debug("handleSingleClick")
+
+    
+    this.ideApi.trigger('jumpToLocation', intersection.object)
+    // let applObj3D = getApplicationObject3D();
+    // console.log(applObj3D)
+
+    // this.handleDoubleClickOnMesh(applObj3D.children[10]);
+    if (intersection) {  
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
     }
+  }
+
+  @action
+  lookAtMesh(mesh: THREE.Object3D) {
+    this.cameraControls.focusCameraOn(1, mesh);
   }
 
   @action

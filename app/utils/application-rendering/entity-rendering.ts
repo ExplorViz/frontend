@@ -14,6 +14,14 @@ import { Class, Package } from '../landscape-schemes/structure-data';
  * @param mesh Mesh which should be added to the application
  * @param applicationObject3D Object which contains all application meshes
  */
+
+let applObj3D: ApplicationObject3D[] = [];
+export function getApplicationObject3D() {
+
+  return applObj3D
+}
+
+
 export function addMeshToApplication(
   mesh: BoxMesh,
   applicationObject3D: ApplicationObject3D
@@ -30,8 +38,18 @@ export function addMeshToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
-
   applicationObject3D.add(mesh);
+  
+  // console.log(applicationObject3D.uuid)
+    
+  let currentUUIDIndex = applObj3D.findIndex(elem => elem.uuid === applicationObject3D.uuid);
+  if(currentUUIDIndex === -1) {
+    applObj3D.push(applicationObject3D)
+  }
+  else {
+    applObj3D[currentUUIDIndex] = applicationObject3D
+  }
+  // applObj3D = applicationObject3D
 }
 
 /**
