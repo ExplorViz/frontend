@@ -40,7 +40,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IDEApi from 'explorviz-frontend/services/ide-api';
-import { getApplicationObject3D } from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -168,7 +168,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.forceGraph = this.graph;
 
     // IDE API
-    this.ideApi = new IDEApi(this.handleSingleClickOnMesh, this.handleDoubleClickOnMesh, this.lookAtMesh)
+    this.ideApi = new IDEApi(this.handleSingleClickOnMesh, this.handleDoubleClickOnMesh, this.lookAtMesh, this.getVizData)
     
   }
 
@@ -308,11 +308,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  getVizData() {
+    return this.applicationRenderer.getOpenApplications()
+  }
+
+  @action
   handleSingleClick(intersection: THREE.Intersection) {
     this.debug("handleSingleClick")
 
     
     this.ideApi.trigger('jumpToLocation', intersection.object)
+    // this.ideApi.trigger('applicationData', )
     // let applObj3D = getApplicationObject3D();
     // console.log(applObj3D)
 

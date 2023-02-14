@@ -9,6 +9,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import { emitToBackend, IDEApiActions, IDEApiDest } from 'explorviz-frontend/services/ide-api';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication, {
@@ -168,6 +169,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
     this.graph.graphData(gData);
+
+    console.log("Test3")
+
+    emitToBackend(IDEApiDest.VizDo, {
+      action: IDEApiActions.GetVizData,
+      data: [],
+      meshId: "",
+      occurrenceID: -1,
+      fqn: ""
+    })
   }
 
   @task *updateApplicationData(

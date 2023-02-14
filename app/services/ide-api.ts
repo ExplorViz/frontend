@@ -4,7 +4,7 @@ import Evented from '@ember/object/evented';
 import { io } from "socket.io-client";
 
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { getApplicationObject3D } from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+
 
 import { Application, Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -13,16 +13,17 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 
+
 const httpSocket = "http://localhost:3000"
 const socket = io(httpSocket);
 
 
-enum IDEApiDest {
+export enum IDEApiDest {
   VizDo = "vizDo",
   IDEDo = "ideDo",
 }
 
-enum IDEApiActions {
+export enum IDEApiActions {
   SingleClickOnMesh = "singleClickOnMesh",
   DoubleClickOnMesh = "doubleClickOnMesh",
   ClickTimeline = "clickTimeLine",
@@ -55,17 +56,18 @@ export default class IDEApi extends Service.extend(Evented) {
   constructor(
     handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
     handleDoubleClickOnMesh: (mesh: THREE.Object3D) => void,
-    lookAtMesh: (mesh: THREE.Object3D) => void
+    lookAtMesh: (mesh: THREE.Object3D) => void,
+    getVizData: () => ApplicationObject3D[]
   ) {
     super();
 
     socket.on("vizDo", (data: IDEApiCall) => {
       let vizData: OrderTuple[] = []
-      console.log("vizdo")
-      getApplicationObject3D().forEach(element => {
+      // console.log("vizdo")
+      getVizData().forEach(element => {
         let temp = Open3dObjectsHelper(element);
         vizData.push(temp);
-        console.log(temp)
+        // console.log(temp)
       });
 
       socket.on("connect_error", (err) => {
@@ -85,7 +87,7 @@ export default class IDEApi extends Service.extend(Evented) {
           console.log("data: ", data)
 
           
-          OpenObject(handleDoubleClickOnMesh, data.fqn, data.occurrenceID, lookAtMesh)
+          OpenObject(handleDoubleClickOnMesh, data.fqn, data.occurrenceID, lookAtMesh, getVizData())
           // OpenObject(handleDoubleClickOnMesh,"petclinic-demo.org.springframework.samples.petclinic.owner")
           // recursivelyOpenObjects(handleDoubleClickOnMesh, "samples", Open3dObjectsHelper(applObj3D))
           // console.log(applObj3D)
@@ -95,8 +97,8 @@ export default class IDEApi extends Service.extend(Evented) {
 
           break;
         case "getVizData":
-          console.log("VizData: ")
-          console.log(vizData)
+          // console.log("VizData: ")
+          // console.log(vizData)
           // emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.GetVizData, data: [], meshId: "" })
           emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.GetVizData, data: vizData, meshId: "", fqn: "", occurrenceID: -1 })
           break;
@@ -108,7 +110,7 @@ export default class IDEApi extends Service.extend(Evented) {
 
     this.on('jumpToLocation', (object: THREE.Object3D<THREE.Event>) => {
       let vizData: OrderTuple[] = []
-      getApplicationObject3D().forEach(element => {
+      getVizData().forEach(element => {
         let temp = Open3dObjectsHelper(element);
         vizData.push(temp);
       });
@@ -119,9 +121,13 @@ export default class IDEApi extends Service.extend(Evented) {
       emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.JumpToLocation, data: vizData, meshId: getIdFromMesh(object), fqn: "", occurrenceID: -1 })
     })
 
+    this.on('applicationData', (appl: ApplicationObject3D[]) => {
+      console.log(appl)
+    })
+
     this.on('test2', () => {
       let vizData: OrderTuple[] = []
-      getApplicationObject3D().forEach(element => {
+      getVizData().forEach(element => {
         let temp = Open3dObjectsHelper(element);
         vizData.push(temp);
         console.log(temp)
@@ -226,8 +232,8 @@ function Open3dObjectsHelper(applObj3D: ApplicationObject3D): OrderTuple {
 
 }
 
-function OpenObject(doSomethingOnMesh: (mesh: THREE.Object3D) => void, fullQualifiedName: string, occurrenceID: number, lookAtMesh: (mesh: THREE.Object3D) => void) {
-  let appli3DObj = getApplicationObject3D();
+function OpenObject(doSomethingOnMesh: (mesh: THREE.Object3D) => void, fullQualifiedName: string, occurrenceID: number, lookAtMesh: (mesh: THREE.Object3D) => void, appli3DObj: ApplicationObject3D[]) {
+
   appli3DObj.forEach(element => {
     let orderTuple = Open3dObjectsHelper(element)
     resetFoundation(doSomethingOnMesh, element, orderTuple);
@@ -289,6 +295,7 @@ function isInParentOrder(po: ParentOrder, name: string) {
 
 }
 export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
+  console.log(socket)
   socket.emit(dest, apiCall)
 }
 
