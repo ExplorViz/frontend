@@ -3,6 +3,11 @@
   'newLandscapeData'
   this.receiveNewLandscapeData
 }}
+{{add-listener
+  this.landscapeListener
+  'newCodeData'
+  this.receiveNewCodeData
+}}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
 {{did-insert this.setupListeners}}
@@ -62,6 +67,7 @@
       {{else if this.allLandscapeDataExistsAndNotEmpty}}
         <Visualization::Rendering::BrowserRendering
           @landscapeData={{this.landscapeData}}
+          @classData={{this.classData}}
           @components={{this.components}}
           @removeComponent={{this.removeComponent}}
           @closeDataSelection={{this.closeDataSelection}}

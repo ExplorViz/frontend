@@ -27,6 +27,7 @@ declare const config: {
   backendAddresses: {
     landscapeService: string;
     traceService: string;
+    codeService: string;
     userService: string;
     collaborativeService: string;
     collaborationService: string;

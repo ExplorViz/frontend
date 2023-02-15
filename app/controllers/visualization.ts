@@ -18,6 +18,7 @@ import TimestampRepository, {
 } from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { ClassData } from 'explorviz-frontend/utils/landscape-schemes/code-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -103,6 +104,9 @@ export default class VisualizationController extends Controller {
   landscapeData: LandscapeData | null = null;
 
   @tracked
+  classData: ClassData | null = null;
+
+  @tracked
   visualizationPaused = false;
 
   @tracked
@@ -176,6 +180,14 @@ export default class VisualizationController extends Controller {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
     };
+  }
+
+  @action
+  receiveNewCodeData(classData: ClassData) {
+    this.debug('receiveNewCodeData');
+    if (!this.visualizationPaused) {
+      this.classData = classData;
+    }
   }
 
   @action

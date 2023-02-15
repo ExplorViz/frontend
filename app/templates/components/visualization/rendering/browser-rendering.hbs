@@ -25,7 +25,7 @@
           mouseStop=this.handleMouseStop
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+        {{landscape-data-watcher landscapeData=@landscapeData classData=@classData graph=this.graph}}
         {{collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera

@@ -1,25 +1,28 @@
 // Wait for the initial message event.
-self.addEventListener('message', function(e) {
-  const structureData = e.data.structure;
-  const dynamicData = e.data.dynamic;
-  
-  const cityLayout = applyBoxLayout(structureData, dynamicData);
-  postMessage(cityLayout);
-}, false);
-  
+self.addEventListener(
+  'message',
+  function (e) {
+    const structureData = e.data.structure;
+    const dynamicData = e.data.dynamic;
+    const classData = e.data.classData;
+
+    const cityLayout = applyBoxLayout(structureData, dynamicData, classData);
+    postMessage(cityLayout);
+  },
+  false
+);
+
 // Ping the Ember service to say that everything is ok.
 postMessage(true);
 
-
 /******* Define Layouter *******/
 
-function applyBoxLayout(application, allLandscapeTraces) {
-
+function applyBoxLayout(application, allLandscapeTraces, classData) {
   function getAllClazzesInApplication(application) {
     let allComponents = getAllComponentsInApplication(application);
 
     let allClazzes = [];
-    allComponents.forEach(component => {
+    allComponents.forEach((component) => {
       allClazzes.push(...component.classes);
     });
     return allClazzes;
@@ -57,7 +60,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
     depth: 1,
     positionX: 0,
     positionY: 0,
-    positionZ: 0
+    positionZ: 0,
   });
 
   getAllClazzesInApplication(application).forEach((clazz) => {
@@ -67,7 +70,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
       depth: 1,
       positionX: 0,
       positionY: 0,
-      positionZ: 0
+      positionZ: 0,
     });
     instanceCountMap.set(clazz.id, 0);
   });
@@ -79,7 +82,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
       depth: 1,
       positionX: 0,
       positionY: 0,
-      positionZ: 0
+      positionZ: 0,
     });
   });
 
@@ -110,7 +113,8 @@ function applyBoxLayout(application, allLandscapeTraces) {
       let childCompLayout = layoutMap.get(childComponent.id);
 
       childCompLayout.positionX += componentLayout.positionX;
-      childCompLayout.positionY += componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
+      childCompLayout.positionY +=
+        componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
       childCompLayout.positionZ += componentLayout.positionZ;
 
       setAbsoluteLayoutPosition(childComponent);
@@ -127,35 +131,38 @@ function applyBoxLayout(application, allLandscapeTraces) {
       let childCompLayout = layoutMap.get(childComponent.id);
 
       childCompLayout.positionX += componentLayout.positionX;
-      childCompLayout.positionY += componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
+      childCompLayout.positionY +=
+        componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
       childCompLayout.positionZ += componentLayout.positionZ;
 
       setAbsoluteLayoutPosition(childComponent);
     });
 
-
     clazzes.forEach((clazz) => {
       let clazzLayout = layoutMap.get(clazz.id);
 
       clazzLayout.positionX += componentLayout.positionX;
-      clazzLayout.positionY += componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
+      clazzLayout.positionY +=
+        componentLayout.positionY + OPENED_COMPONENT_HEIGHT;
       clazzLayout.positionZ += componentLayout.positionZ;
     });
   }
 
   function getHashCodeToClassMap(clazzes) {
-    const hashCodeToClassMap = new Map();    
-  
+    const hashCodeToClassMap = new Map();
+
     clazzes.forEach((clazz) => {
-      clazz.methods.forEach(({ hashCode }) => hashCodeToClassMap.set(hashCode, clazz));
+      clazz.methods.forEach(({ hashCode }) =>
+        hashCodeToClassMap.set(hashCode, clazz)
+      );
     });
-  
+
     return hashCodeToClassMap;
   }
 
   function getAllSpanHashCodesFromTraces(traceArray) {
     const hashCodes = [];
-    
+
     traceArray.forEach((trace) => {
       trace.spanList.forEach((span) => {
         hashCodes.push(span.hashCode);
@@ -165,7 +172,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
   }
 
   function calcClazzHeight(application, allLandscapeTraces) {
-
     const CLAZZ_SIZE_DEFAULT = 1.5;
     const CLAZZ_SIZE_EACH_STEP = 1.5;
 
@@ -176,18 +182,21 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
     const hashCodeToClassMap = getHashCodeToClassMap(clazzes);
 
-    const allMethodHashCodes = getAllSpanHashCodesFromTraces(allLandscapeTraces);
+    const allMethodHashCodes =
+      getAllSpanHashCodesFromTraces(allLandscapeTraces);
 
     for (let methodHashCode of allMethodHashCodes) {
       const classMatchingTraceHashCode = hashCodeToClassMap.get(methodHashCode);
 
-      if(classMatchingTraceHashCode === undefined) {
+      if (classMatchingTraceHashCode === undefined) {
         continue;
       }
 
-      const methodMatchingSpanHash = classMatchingTraceHashCode.methods.find((method) => method.hashCode === methodHashCode);
+      const methodMatchingSpanHash = classMatchingTraceHashCode.methods.find(
+        (method) => method.hashCode === methodHashCode
+      );
 
-      if(methodMatchingSpanHash === undefined) {
+      if (methodMatchingSpanHash === undefined) {
         continue;
       }
 
@@ -196,7 +205,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
       if (methodMatchingSpanHash.name === '<init>') {
         classMatchingTraceHashCode.instanceCount++;
       }
-
     }
 
     const instanceCountList = [];
@@ -211,11 +219,12 @@ function applyBoxLayout(application, allLandscapeTraces) {
     clazzes.forEach((clazz) => {
       const clazzLayout = layoutMap.get(clazz.id);
 
-      clazzLayout.height = (CLAZZ_SIZE_EACH_STEP * categories[clazz.instanceCount] + CLAZZ_SIZE_DEFAULT);
+      clazzLayout.height =
+        CLAZZ_SIZE_EACH_STEP * categories[clazz.instanceCount] +
+        CLAZZ_SIZE_DEFAULT;
       instanceCountMap.set(clazz.id, clazz.instanceCount);
     });
   }
-
 
   function getCategories(list, linear) {
     const result = [];
@@ -240,8 +249,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
         return result;
       }
       useLinear(listWithout0, list, result);
-    }
-    else {
+    } else {
       const listWithout0And1 = [];
 
       list.forEach((entry) => {
@@ -260,8 +268,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
     }
 
     return result;
-
-
 
     // inner helper functions
 
@@ -283,9 +289,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
         let categoryValue = getCategoryFromValues(entry, t1, t2);
         result[entry] = categoryValue;
       });
-
     }
-
 
     function getCategoryFromValues(value, t1, t2) {
       if (value === 0) {
@@ -302,7 +306,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
         return 4.0;
       }
     }
-
 
     function useLinear(listWithout0, list, result) {
       let max = 1;
@@ -325,9 +328,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
         const categoryValue = getCategoryFromLinearValues(entry, t1, t2, t3);
         result[entry] = categoryValue;
       });
-
     }
-
 
     function getCategoryFromLinearValues(value, t1, t2, t3) {
       if (value <= 0) {
@@ -342,11 +343,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
         return 6.5;
       }
     }
-
-
-
   } // END getCategories
-
 
   function getClazzList(component, clazzesArray) {
     const children = component.subPackages;
@@ -375,7 +372,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
     componentData.depth = -1.0;
   }
 
-
   function initNodes(component) {
     const children = component.subPackages;
     const clazzes = component.classes;
@@ -397,7 +393,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
     componentData.width = -1.0;
     componentData.depth = -1.0;
   }
-
 
   function getHeightOfComponent(component) {
     const floorHeight = 0.75 * 4.0;
@@ -461,7 +456,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
     layoutChildren(component);
   }
 
-
   function layoutChildren(component) {
     let tempList = [];
 
@@ -483,7 +477,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
     componentData.depth = segment.height;
   }
 
-
   function layoutGeneric(children) {
     const rootSegment = createRootSegment(children);
 
@@ -496,7 +489,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
       let e2Width = layoutMap.get(e2.id).width;
       const result = e1Width - e2Width;
 
-      if ((-0.00001 < result) && (result < 0.00001)) {
+      if (-0.00001 < result && result < 0.00001) {
         return e1.name.localeCompare(e2.name);
       }
 
@@ -509,11 +502,15 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
     children.forEach((child) => {
       let childData = layoutMap.get(child.id);
-      const childWidth = (childData.width + INSET_SPACE * 2);
-      const childHeight = (childData.depth + INSET_SPACE * 2);
+      const childWidth = childData.width + INSET_SPACE * 2;
+      const childHeight = childData.depth + INSET_SPACE * 2;
       childData.positionY = 0.0;
 
-      const foundSegment = insertFittingSegment(rootSegment, childWidth, childHeight);
+      const foundSegment = insertFittingSegment(
+        rootSegment,
+        childWidth,
+        childHeight
+      );
 
       if (foundSegment) {
         childData.positionX = foundSegment.startX + INSET_SPACE;
@@ -542,9 +539,12 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
     return rootSegment;
 
-
     function insertFittingSegment(rootSegment, toFitWidth, toFitHeight) {
-      if (!rootSegment.used && toFitWidth <= rootSegment.width && toFitHeight <= rootSegment.height) {
+      if (
+        !rootSegment.used &&
+        toFitWidth <= rootSegment.width &&
+        toFitHeight <= rootSegment.height
+      ) {
         const resultSegment = createLayoutSegment();
         rootSegment.upperRightChild = createLayoutSegment();
         rootSegment.lowerChild = createLayoutSegment();
@@ -577,17 +577,24 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
         rootSegment.used = true;
         return resultSegment;
-      }
-      else {
+      } else {
         let resultFromUpper = null;
         let resultFromLower = null;
 
         if (rootSegment.upperRightChild != null) {
-          resultFromUpper = insertFittingSegment(rootSegment.upperRightChild, toFitWidth, toFitHeight);
+          resultFromUpper = insertFittingSegment(
+            rootSegment.upperRightChild,
+            toFitWidth,
+            toFitHeight
+          );
         }
 
         if (rootSegment.lowerChild != null) {
-          resultFromLower = insertFittingSegment(rootSegment.lowerChild, toFitWidth, toFitHeight);
+          resultFromLower = insertFittingSegment(
+            rootSegment.lowerChild,
+            toFitWidth,
+            toFitHeight
+          );
         }
 
         if (resultFromUpper == null) {
@@ -612,9 +619,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
         }
       }
     }
-
   } // END layoutGeneric
-
 
   function createRootSegment(children) {
     let worstCaseWidth = 0.0;
@@ -625,7 +630,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
       worstCaseWidth += childData.width + INSET_SPACE * 2;
       worstCaseHeight += childData.depth + INSET_SPACE * 2;
     });
-
 
     const rootSegment = createLayoutSegment();
 
@@ -638,10 +642,8 @@ function applyBoxLayout(application, allLandscapeTraces) {
     return rootSegment;
   }
 
-
   function createLayoutSegment() {
-    const layoutSegment =
-    {
+    const layoutSegment = {
       parent: null,
       lowerChild: null,
       upperRightChild: null,
@@ -649,10 +651,9 @@ function applyBoxLayout(application, allLandscapeTraces) {
       startZ: 0,
       width: 1,
       height: 1,
-      used: false
+      used: false,
     };
 
     return layoutSegment;
   } // END createLayoutSegment
-
 }

@@ -17,12 +17,14 @@ import computeDrawableClassCommunication, {
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import { ClassData } from 'explorviz-frontend/utils/landscape-schemes/code-data';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
+  readonly classData: ClassData;
   readonly graph: ForceGraph3DInstance;
 }
 
@@ -54,6 +56,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private landscapeData!: LandscapeData;
 
+  private classData!: ClassData;
+
   private graph!: ForceGraph3DInstance;
 
   get structureLandscapeData() {
@@ -64,9 +68,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  modify(
+    _element: any,
+    _positionalArgs: any[],
+    { landscapeData, classData, graph }: any
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
+    this.classData = classData;
 
     perform(this.handleUpdatedLandscapeData);
   }
@@ -177,6 +186,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const workerPayload = {
       structure: application,
       dynamic: this.dynamicLandscapeData,
+      classData: this.classData,
     };
     const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
     const heatmapMetrics = this.worker.postMessage(

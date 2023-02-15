@@ -5,13 +5,14 @@ import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { ClassData } from 'explorviz-frontend/utils/landscape-schemes/code-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import ENV from 'explorviz-frontend/config/environment';
 import TimestampRepository from './repos/timestamp-repository';
 import Auth from './auth';
 import LandscapeTokenService from './landscape-token';
 
-const { landscapeService, traceService } = ENV.backendAddresses;
+const { landscapeService, traceService, codeService } = ENV.backendAddresses;
 
 export default class LandscapeListener extends Service.extend(Evented) {
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
@@ -23,6 +24,8 @@ export default class LandscapeListener extends Service.extend(Evented) {
   latestStructureData: StructureLandscapeData | null = null;
 
   latestDynamicData: DynamicLandscapeData | null = null;
+
+  latestCodeData: ClassData | null = null;
 
   debug = debugLogger();
 
@@ -46,10 +49,8 @@ export default class LandscapeListener extends Service.extend(Evented) {
     try {
       // request landscape data that is 60 seconds old
       // that way we can be sure, all traces are available
-      const [strucDataProm, dynamicDataProm] = await this.requestData(
-        endTime,
-        intervalInSeconds
-      );
+      const [strucDataProm, dynamicDataProm, codeDataProm] =
+        await this.requestData(endTime, intervalInSeconds);
 
       let structureData = null;
       if (strucDataProm.status === 'fulfilled') {
@@ -67,6 +68,12 @@ export default class LandscapeListener extends Service.extend(Evented) {
         this.set('latestDynamicData', []);
       }
 
+      if (codeDataProm.status === 'fulfilled') {
+        this.set('latestCodeData', codeDataProm.value);
+      } else {
+        this.set('latestCodeData', []);
+      }
+
       this.updateTimestampRepoAndTimeline(
         endTime,
         LandscapeListener.computeTotalRequests(this.latestDynamicData!)
@@ -77,6 +84,8 @@ export default class LandscapeListener extends Service.extend(Evented) {
         this.latestStructureData,
         this.latestDynamicData
       );
+
+      this.trigger('newCodeData', this.latestCodeData);
     } catch (e) {
       // landscape data could not be requested, try again?
     }
@@ -88,10 +97,12 @@ export default class LandscapeListener extends Service.extend(Evented) {
     const structureDataPromise =
       this.requestStructureData(/* startTime, endTime */);
     const dynamicDataPromise = this.requestDynamicData(startTime, endTime);
+    const codeDataPromise = this.requestCodeData();
 
     const landscapeData = Promise.allSettled([
       structureDataPromise,
       dynamicDataPromise,
+      codeDataPromise,
     ]);
 
     return landscapeData;
@@ -142,6 +153,32 @@ export default class LandscapeListener extends Service.extend(Evented) {
           if (response.ok) {
             const dynamicData = (await response.json()) as DynamicLandscapeData;
             resolve(dynamicData);
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  requestCodeData() {
+    return new Promise<ClassData>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${codeService}/v2/landscapes/${this.tokenService.token.value}/code`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+        }
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const codeData = (await response.json()) as ClassData;
+            resolve(codeData);
           } else {
             reject();
           }

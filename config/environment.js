@@ -51,6 +51,7 @@ module.exports = (environment) => {
     backendAddresses: {
       landscapeService: P_ENV.LANDSCAPE_SERV_URL,
       traceService: P_ENV.TRACE_SERV_URL,
+      codeService: P_ENV.CODE_SERV_URL,
       userService: P_ENV.USER_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
       collaborationSocketPath: P_ENV.COLLABORATION_SOCKET_PATH,
