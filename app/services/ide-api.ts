@@ -14,9 +14,18 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 
 
-const httpSocket = "http://localhost:3000"
-const socket = io(httpSocket);
+let httpSocket = "http://localhost:3000"
+// let httpSocket = ""
+let socket = io(httpSocket);
+let vizDataGlobal: OrderTuple[] = []
 
+export function restartAndSetSocket(newHttpSocket: string) {
+  httpSocket = newHttpSocket
+  socket.disconnect()
+
+  console.debug("Restarting socket with: ", newHttpSocket)
+  socket = io(newHttpSocket)
+}
 
 export enum IDEApiDest {
   VizDo = "vizDo",
@@ -24,11 +33,13 @@ export enum IDEApiDest {
 }
 
 export enum IDEApiActions {
+  Refresh = "refresh",
   SingleClickOnMesh = "singleClickOnMesh",
   DoubleClickOnMesh = "doubleClickOnMesh",
   ClickTimeline = "clickTimeLine",
   GetVizData = "getVizData",
-  JumpToLocation = "jumpToLocation"
+  JumpToLocation = "jumpToLocation",
+  JumpToMonitoringClass = "jumpToMonitoringClass"
 
 }
 
@@ -69,7 +80,7 @@ export default class IDEApi extends Service.extend(Evented) {
         vizData.push(temp);
         // console.log(temp)
       });
-
+      vizDataGlobal = vizData
       socket.on("connect_error", (err) => {
         console.log(`connect_error due to ${err.message}`);
       });
@@ -84,7 +95,7 @@ export default class IDEApi extends Service.extend(Evented) {
         case "doubleClickOnMesh":
           // handleDoubleClickOnMesh(applObj3D.children[1])
           // OpenObject(handleDoubleClickOnMesh, "sampleApplication")
-          console.log("data: ", data)
+          console.log("data: ", data.fqn)
 
           
           OpenObject(handleDoubleClickOnMesh, data.fqn, data.occurrenceID, lookAtMesh, getVizData())
@@ -116,9 +127,11 @@ export default class IDEApi extends Service.extend(Evented) {
       });
       // console.log(getApplicationObject3D())
 
-      // console.log(getIdFromMesh(object))
-
+      console.log("mesjhid", getIdFromMesh(object))
+      
       emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.JumpToLocation, data: vizData, meshId: getIdFromMesh(object), fqn: "", occurrenceID: -1 })
+      // emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.JumpToLocation, data: [], meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", fqn: "", occurrenceID: -1 })
+      
     })
 
     this.on('applicationData', (appl: ApplicationObject3D[]) => {
@@ -295,8 +308,18 @@ function isInParentOrder(po: ParentOrder, name: string) {
 
 }
 export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
-  console.log(socket)
+  // console.log(dest, apiCall, socket)
   socket.emit(dest, apiCall)
+}
+
+export function refreshVizData(action: IDEApiActions) {
+  socket.emit(action)
+}
+
+export function monitoringMockup() {
+  
+  // emitToBackend(IDEApiDest.VizDo, { action: IDEApiActions.DoubleClickOnMesh, fqn: "org.springframework.samples.petclinic.model.Person", data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", occurrenceID: 0 })
+  emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.JumpToLocation, data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", fqn: "", occurrenceID: -1 })
 }
 
 
