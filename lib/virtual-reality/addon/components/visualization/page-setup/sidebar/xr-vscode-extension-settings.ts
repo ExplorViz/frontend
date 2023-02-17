@@ -1,11 +1,7 @@
 import Component from '@glimmer/component';
-import { action, computed } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { action } from '@ember/object';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import {
-  emitToBackend,
-  IDEApiActions,
-  IDEApiDest,
   monitoringMockup,
   restartAndSetSocket,
 } from 'explorviz-frontend/services/ide-api';
@@ -21,7 +17,7 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
   constructor(owner: any, args: XrVscodeExtensionSettingsArgs) {
     super(owner, args);
 
-    this.loadIDESettings(false);
+    this.loadIDESettings();
   }
 
   @action
@@ -30,7 +26,7 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
   }
 
   @action
-  async loadIDESettings(alert = true) {
+  async loadIDESettings() {
     this.backendHTTP = 'http://localhost:3000';
     AlertifyHandler.showAlertifySuccess('Loading IDE Settings');
   }

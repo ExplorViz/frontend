@@ -65,7 +65,7 @@ type OrderTuple = {
 
 export default class IDEApi extends Service.extend(Evented) {
   constructor(
-    handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
+    //handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
     handleDoubleClickOnMesh: (mesh: THREE.Object3D) => void,
     lookAtMesh: (mesh: THREE.Object3D) => void,
     getVizData: () => ApplicationObject3D[]
@@ -73,15 +73,15 @@ export default class IDEApi extends Service.extend(Evented) {
     super();
 
     socket.on('vizDo', (data: IDEApiCall) => {
-      let vizData: OrderTuple[] = [];
+      const vizData: OrderTuple[] = [];
       // console.log("vizdo")
       getVizData().forEach((element) => {
-        let temp = Open3dObjectsHelper(element);
+        const temp = Open3dObjectsHelper(element);
         vizData.push(temp);
         // console.log(temp)
       });
       vizDataGlobal = vizData;
-      socket.on('connect_error', (err) => {
+      socket.on('connect_error', (err: any) => {
         console.log(`connect_error due to ${err.message}`);
       });
 
@@ -128,9 +128,9 @@ export default class IDEApi extends Service.extend(Evented) {
     });
 
     this.on('jumpToLocation', (object: THREE.Object3D<THREE.Event>) => {
-      let vizData: OrderTuple[] = [];
+      const vizData: OrderTuple[] = [];
       getVizData().forEach((element) => {
-        let temp = Open3dObjectsHelper(element);
+        const temp = Open3dObjectsHelper(element);
         vizData.push(temp);
       });
       // console.log(getApplicationObject3D())
@@ -152,9 +152,9 @@ export default class IDEApi extends Service.extend(Evented) {
     });
 
     this.on('test2', () => {
-      let vizData: OrderTuple[] = [];
+      const vizData: OrderTuple[] = [];
       getVizData().forEach((element) => {
-        let temp = Open3dObjectsHelper(element);
+        const temp = Open3dObjectsHelper(element);
         vizData.push(temp);
         console.log(temp);
       });
@@ -176,14 +176,14 @@ export default class IDEApi extends Service.extend(Evented) {
 }
 
 function getOrderedParents(dataModel: Application): ParentOrder {
-  let result: ParentOrder = {
+  const result: ParentOrder = {
     fqn: dataModel.name,
     childs: [],
     meshid: dataModel.id,
   };
-  let temp: ParentOrder[] = [];
+  const temp: ParentOrder[] = [];
   dataModel.packages.forEach((element) => {
-    let fqn = dataModel.name + '.' + element.name;
+    const fqn = dataModel.name + '.' + element.name;
     temp.push({
       fqn: fqn,
       childs: parentPackage(fqn, element.subPackages, element.classes),
@@ -214,13 +214,13 @@ function parentPackage(
   subpackages: Package[],
   classes: Class[]
 ): ParentOrder[] {
-  let temp: ParentOrder[] = [];
+  const temp: ParentOrder[] = [];
 
   if (subpackages.length === 0) {
     return parentClass(fqn, classes);
   }
   subpackages.forEach((element) => {
-    let newFqn = fqn + '.' + element.name;
+    const newFqn = fqn + '.' + element.name;
     temp.push({
       fqn: newFqn,
       childs: parentPackage(newFqn, element.subPackages, element.classes),
@@ -232,13 +232,13 @@ function parentPackage(
 }
 
 function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
-  let temp: ParentOrder[] = [];
+  const temp: ParentOrder[] = [];
   // console.log(classes)
   if (classes.length === 0) {
     return temp;
   }
   classes.forEach((element) => {
-    let newFqn = fqn + '.' + element.name;
+    const newFqn = fqn + '.' + element.name;
     // temp.push({ name: element.name, childs: element.methods })
     temp.push({ fqn: newFqn, childs: [], meshid: element.id });
   });
@@ -250,10 +250,10 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
   meshNames: string[];
   meshIds: string[];
 } {
-  let meshName: string = orderedParents.fqn;
-  let meshId: string = orderedParents.meshid;
+  const meshName: string = orderedParents.fqn;
+  const meshId: string = orderedParents.meshid;
 
-  let meshTemp = { meshNames: [meshName], meshIds: [meshId] };
+  const meshTemp = { meshNames: [meshName], meshIds: [meshId] };
 
   orderedParents.childs.forEach((element) => {
     meshTemp.meshNames = meshTemp.meshNames.concat(
@@ -267,10 +267,8 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
   return meshTemp;
 }
 function Open3dObjectsHelper(applObj3D: ApplicationObject3D): OrderTuple {
-  let childs = applObj3D.children;
-
-  let orderedParents = getOrderedParents(applObj3D.dataModel);
-  let meshNames = getFqnForMeshes(orderedParents);
+  const orderedParents = getOrderedParents(applObj3D.dataModel);
+  const meshNames = getFqnForMeshes(orderedParents);
 
   return { hierarchyModel: orderedParents, meshes: meshNames };
 }
@@ -283,9 +281,9 @@ function OpenObject(
   appli3DObj: ApplicationObject3D[]
 ) {
   appli3DObj.forEach((element) => {
-    let orderTuple = Open3dObjectsHelper(element);
+    const orderTuple = Open3dObjectsHelper(element);
     resetFoundation(doSomethingOnMesh, element, orderTuple);
-    let occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
+    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
     console.log(
       element.dataModel.name + occurrenceName + fullQualifiedName,
       orderTuple,
@@ -305,7 +303,7 @@ function resetFoundation(
   appli3DObj: ApplicationObject3D,
   orderTuple: OrderTuple
 ) {
-  let mesh =
+  const mesh =
     appli3DObj.children[
       orderTuple.meshes.meshNames.indexOf(orderTuple.hierarchyModel.fqn)
     ];
@@ -331,7 +329,7 @@ function recursivelyOpenObjects(
   // }
   else {
     orderTuple.hierarchyModel.childs.forEach((element) => {
-      let tempOrder: ParentOrder = {
+      const tempOrder: ParentOrder = {
         fqn: element.fqn,
         childs: element.childs,
         meshid: element.meshid,
@@ -397,7 +395,7 @@ export function monitoringMockup() {
   });
 }
 
-function getIdFromMesh(mesh: Object3D<Event>): string {
+function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {

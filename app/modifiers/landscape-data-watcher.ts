@@ -9,9 +9,8 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import IDEApi, {
+import {
   IDEApiActions,
-  IDEApiDest,
   refreshVizData,
 } from 'explorviz-frontend/services/ide-api';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
