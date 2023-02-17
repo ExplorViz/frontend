@@ -168,7 +168,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // IDE API
     this.ideApi = new IDEApi(
-      this.handleSingleClickOnMesh,
+      //this.handleSingleClickOnMesh,
       this.handleDoubleClickOnMesh,
       this.lookAtMesh,
       this.getVizData
