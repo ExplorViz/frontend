@@ -8,28 +8,27 @@
   <label>{{this.backendHTTP}}</label>
 </div>
 
-
 <BsButton
-      title='Connect'
-      {{on 'click' this.connectToIDE}}
-      @type='secondary'
-      @outline={{true}}
-    >
-      Connect IDE
+  title='Connect'
+  {{on 'click' this.connectToIDE}}
+  @type='secondary'
+  @outline={{true}}
+>
+  Connect IDE
 </BsButton>
 
-<br>
-<br>
+<br />
+<br />
 
 <BsButton
-      title='Monitoring Tool'
-      {{on 'click' this.monitoring}}
-      @type='secondary'
-      @outline={{true}}
-    >
-      Monitoring Tool
+  title='Monitoring Tool'
+  {{on 'click' this.monitoring}}
+  @type='secondary'
+  @outline={{true}}
+>
+  Monitoring Tool
 </BsButton>
-    
+
 {{!-- {{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
     <label class='bold'>Current Room: </label>

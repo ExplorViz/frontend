@@ -59,8 +59,6 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
     this.loadRooms(false);
   }
 
-
-
   @action
   hostRoom() {
     this.collaborationSession.hostRoom();

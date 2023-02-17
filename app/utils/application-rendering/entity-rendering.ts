@@ -31,10 +31,8 @@ export function addMeshToApplication(
 
   mesh.position.copy(centerPoint);
   applicationObject3D.add(mesh);
-  
+
   // console.log(applicationObject3D.uuid)
-    
- 
 
   // applObj3D = applicationObject3D
 }
