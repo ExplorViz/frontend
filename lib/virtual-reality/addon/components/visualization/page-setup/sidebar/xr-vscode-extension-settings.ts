@@ -5,10 +5,13 @@ import {
   monitoringMockup,
   restartAndSetSocket,
 } from 'explorviz-frontend/services/ide-api';
+import ENV from 'explorviz-frontend/config/environment';
 
 interface XrVscodeExtensionSettingsArgs {
   removeComponent(componentPath: string): void;
 }
+
+const { vsCodeService } = ENV.backendAddresses;
 
 export default class ArSettingsSelector extends Component<XrVscodeExtensionSettingsArgs> {
   // @service('collaboration')
@@ -27,7 +30,7 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
 
   @action
   async loadIDESettings() {
-    this.backendHTTP = 'http://localhost:3000';
+    this.backendHTTP = vsCodeService;
     AlertifyHandler.showAlertifySuccess('Loading IDE Settings');
   }
 

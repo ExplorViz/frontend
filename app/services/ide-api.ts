@@ -1,8 +1,7 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-
+import ENV from 'explorviz-frontend/config/environment';
 import { io } from 'socket.io-client';
-
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 
 import {
@@ -16,8 +15,9 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 
-let httpSocket = 'http://localhost:3000';
-// let httpSocket = ""
+const { vsCodeService } = ENV.backendAddresses;
+
+let httpSocket = vsCodeService;
 let socket = io(httpSocket);
 let vizDataGlobal: OrderTuple[] = [];
 
