@@ -10,6 +10,7 @@ import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph'
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import {
+  CommunicationLink,
   IDEApiActions,
   refreshVizData,
 } from 'explorviz-frontend/services/ide-api';
@@ -173,9 +174,23 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
     this.graph.graphData(gData);
 
-    console.log('Test3');
+    // console.log('Test3');
 
-    refreshVizData(IDEApiActions.Refresh);
+    // refreshVizData(IDEApiActions.Refresh, []);
+    let cls: CommunicationLink[] = []
+
+    communicationLinks.forEach(element => {
+      let tempCL: CommunicationLink = {
+        meshID: element.communicationData.id,
+        sourceMeshID: element.source.id,
+        targetMeshID: element.target.id
+      }
+      cls.push(tempCL)
+    });
+
+    // console.log("OG communicationLinks", communicationLinks)
+    // console.log("communicationLinks", cls)
+    refreshVizData(IDEApiActions.Refresh, cls);
     // emitToBackend(IDEApiDest.VizDo, {
     //   action: IDEApiActions.GetVizData,
     //   data: [],
