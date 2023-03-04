@@ -39,7 +39,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import IDEApi, { CommunicationLink } from 'explorviz-frontend/services/ide-api';
+import IDEApi, { CommunicationLink, VizDataRaw } from 'explorviz-frontend/services/ide-api';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 interface BrowserRenderingArgs {
@@ -311,10 +311,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop.start();
   }
 
-  @action
-  getVizData(foundationCommunicationLinks: CommunicationLink[]) {
-    const openApplications = this.applicationRenderer.getOpenApplications();
 
+  @action
+  getVizData(foundationCommunicationLinks: CommunicationLink[]): VizDataRaw {
+    const openApplications = this.applicationRenderer.getOpenApplications();
+    const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
     openApplications.forEach(element => {
       const application = element;
 
@@ -336,7 +337,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
               sourceMeshID: element.sourceApp.id,
               targetMeshID: element.targetApp.id
             }
-            foundationCommunicationLinks.push(tempCL)
+            communicationLinks.push(tempCL)
           }
           
         });
@@ -344,8 +345,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     });
 
-    console.log("communicationLinks", foundationCommunicationLinks)
-    return openApplications;
+    // console.log("communicationLinks", communicationLinks)
+    return {applicationObject3D: openApplications, communicationLinks: communicationLinks};
   }
 
   @action

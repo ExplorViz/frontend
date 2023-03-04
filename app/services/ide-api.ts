@@ -22,7 +22,7 @@ const { vsCodeService } = ENV.backendAddresses;
 
 let httpSocket = vsCodeService;
 let socket = io(httpSocket);
-let vizDataGlobal: OrderTuple[] = [];
+let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = []
 
 export function restartAndSetSocket(newHttpSocket: string) {
@@ -68,6 +68,11 @@ type IDEApiCall = {
   foundationCommunicationLinks: CommunicationLink[]
 };
 
+export type VizDataRaw = {
+    applicationObject3D: ApplicationObject3D[],
+    communicationLinks: CommunicationLink[]
+}
+
 type ParentOrder = {
   fqn: string;
   meshid: string;
@@ -85,19 +90,17 @@ export default class IDEApi extends Service.extend(Evented) {
     //handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
     handleDoubleClickOnMesh: (mesh: THREE.Object3D) => void,
     lookAtMesh: (mesh: THREE.Object3D) => void,
-    getVizData: (foundationCommunicationLinks: CommunicationLink[]) => ApplicationObject3D[]
+    getVizData: (foundationCommunicationLinks: CommunicationLink[]) => VizDataRaw
   ) {
     super();
 
     socket.on('vizDo', (data: IDEApiCall) => {
-      const vizData: OrderTuple[] = [];
+      const vizDataRaw = getVizData(data.foundationCommunicationLinks);
+      const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw)
+      
       // console.log("vizdo")
-      getVizData(data.foundationCommunicationLinks).forEach((element) => {
-        const temp = Open3dObjectsHelper(element);
-        vizData.push(temp);
-        // console.log(temp)
-      });
-      vizDataGlobal = vizData;
+      
+      vizDataOrderTupleGlobal = vizDataOrderTuple;
       foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
       socket.on('connect_error', (err: any) => {
@@ -120,7 +123,7 @@ export default class IDEApi extends Service.extend(Evented) {
             data.fqn,
             data.occurrenceID,
             lookAtMesh,
-            getVizData(data.foundationCommunicationLinks)
+            vizDataRaw
           );
           // OpenObject(handleDoubleClickOnMesh,"petclinic-demo.org.springframework.samples.petclinic.owner")
           // recursivelyOpenObjects(handleDoubleClickOnMesh, "samples", Open3dObjectsHelper(applObj3D))
@@ -135,7 +138,7 @@ export default class IDEApi extends Service.extend(Evented) {
           // emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.GetVizData, data: [], meshId: "" })
           emitToBackend(IDEApiDest.IDEDo, {
             action: IDEApiActions.GetVizData,
-            data: vizData,
+            data: vizDataOrderTuple,
             meshId: '',
             fqn: '',
             occurrenceID: -1,
@@ -149,18 +152,20 @@ export default class IDEApi extends Service.extend(Evented) {
     });
 
     this.on('jumpToLocation', (object: THREE.Object3D<THREE.Event>) => {
-      const vizData: OrderTuple[] = [];
-      getVizData(foundationCommunicationLinksGlobal).forEach((element) => {
-        const temp = Open3dObjectsHelper(element);
-        vizData.push(temp);
-      });
-      console.log(vizData)
+      const vizDataRaw: VizDataRaw = getVizData(foundationCommunicationLinksGlobal);
+      const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+
+      // vizData.applicationObject3D.forEach((element) => {
+      //   const temp = VizDataToOrderTuple(element);
+      //   vizDataOrderTuple.push(temp);
+      // });
+      // console.log(vizDataOrderTuple)
 
       console.log('mesjhid', getIdFromMesh(object));
 
       emitToBackend(IDEApiDest.IDEDo, {
         action: IDEApiActions.JumpToLocation,
-        data: vizData,
+        data: vizDataOrderTuple,
         meshId: getIdFromMesh(object),
         fqn: '',
         occurrenceID: -1,
@@ -174,22 +179,23 @@ export default class IDEApi extends Service.extend(Evented) {
     });
 
     this.on('test2', () => {
-      const vizData: OrderTuple[] = [];
-      getVizData(foundationCommunicationLinksGlobal).forEach((element) => {
-        const temp = Open3dObjectsHelper(element);
-        vizData.push(temp);
-        console.log(temp);
-      });
+      const vizDataRaw = getVizData(foundationCommunicationLinksGlobal);
+      const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+      // vizData.applicationObject3D.forEach((element) => {
+      //   const temp = VizDataToOrderTuple(element);
+      //   vizDataOrderTuple.push(temp);
+      //   console.log(temp);
+      // });
 
       emitToBackend(IDEApiDest.IDEDo, {
         action: IDEApiActions.GetVizData,
-        data: vizData,
+        data: vizDataOrderTuple,
         meshId: '',
         fqn: '',
         occurrenceID: -1,
         foundationCommunicationLinks: foundationCommunicationLinksGlobal
       });
-      console.log(vizData);
+      console.log(vizDataOrderTuple);
       // OpenObject(handleDoubleClickOnMesh, "samples")
 
       // console.log(Open3dObjectsHelper(getApplicationObject3D()[0]))
@@ -336,14 +342,21 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
 
   return meshTemp;
 }
-function Open3dObjectsHelper(applObj3D: ApplicationObject3D): OrderTuple {
+function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
   // console.log("applObj3D:", applObj3D.commIdToMesh)
-  const orderedParents = getOrderedParents(applObj3D.dataModel);
-  const meshNames = getFqnForMeshes(orderedParents);
+  const vizDataOrderTuple: OrderTuple[] = [];
+  vizData.applicationObject3D.forEach(element => {
+    // const temp = VizDataToOrderTuple(element)
+    // vizDataOrderTuple.push(temp);
+    const orderedParents = getOrderedParents(element.dataModel);
+    const meshes = getFqnForMeshes(orderedParents);
+    vizDataOrderTuple.push({hierarchyModel: orderedParents, meshes: meshes})
+  })
   // console.log(orderedParents)
   // console.log(meshNames)
+  console.log(vizDataOrderTuple, vizData.communicationLinks)
 
-  return { hierarchyModel: orderedParents, meshes: meshNames };
+  return vizDataOrderTuple;
 }
 
 function OpenObject(
@@ -351,38 +364,50 @@ function OpenObject(
   fullQualifiedName: string,
   occurrenceID: number,
   lookAtMesh: (mesh: THREE.Object3D) => void,
-  appli3DObj: ApplicationObject3D[]
+  vizData: VizDataRaw
 ) {
   // console.log(fullQualifiedName)
-  appli3DObj.forEach((element) => {
-    const orderTuple = Open3dObjectsHelper(element);
-    resetFoundation(doSomethingOnMesh, element, orderTuple);
-    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
-    console.log(
-      element.dataModel.name + occurrenceName + fullQualifiedName,
-      orderTuple,
-      element
-    );
-    recursivelyOpenObjects(
-      doSomethingOnMesh,
-      lookAtMesh,
-      element.dataModel.name + occurrenceName + fullQualifiedName,
-      orderTuple,
-      element
-    );
+  
+  const orderTuple: OrderTuple[] = VizDataToOrderTuple(vizData);
+
+  resetFoundation(doSomethingOnMesh, vizData.applicationObject3D, orderTuple);
+
+  vizData.applicationObject3D.forEach((element) => {
+    orderTuple.forEach(ot => {
+      const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
+      console.log(
+        element.dataModel.name + occurrenceName + fullQualifiedName,
+        ot,
+        element
+      );
+      recursivelyOpenObjects(
+        doSomethingOnMesh,
+        lookAtMesh,
+        element.dataModel.name + occurrenceName + fullQualifiedName,
+        ot,
+        element
+      );
+      
+    });
   });
 }
 function resetFoundation(
   doSomethingOnMesh: (mesh: THREE.Object3D) => void,
-  appli3DObj: ApplicationObject3D,
-  orderTuple: OrderTuple
+  appli3DObj: ApplicationObject3D[],
+  orderTuple: OrderTuple[]
 ) {
-  const mesh =
-    appli3DObj.children[
-    orderTuple.meshes.meshNames.indexOf(orderTuple.hierarchyModel.fqn)
-    ];
-  // console.log(appli3DObj);
-  doSomethingOnMesh(mesh);
+
+  appli3DObj.forEach(app3D => {
+    orderTuple.forEach(ot => {
+      const mesh =
+      app3D.children[
+        ot.meshes.meshNames.indexOf(ot.hierarchyModel.fqn)
+        ];
+      // console.log(appli3DObj);
+      doSomethingOnMesh(mesh);
+      
+    });
+  });
 }
 
 function recursivelyOpenObjects(
