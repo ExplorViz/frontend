@@ -170,7 +170,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // IDE API
     this.ideApi = new IDEApi(
       //this.handleSingleClickOnMesh,
-      this.handleDoubleClickOnMesh,
+      this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh,
       this.getVizData
     );
@@ -338,7 +338,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
               targetMeshID: meshIDs[1],
               methodName: meshIDs[2]
             }
-            communicationLinks.push(tempCL)
+            if(communicationLinks.findIndex(e => e.meshID == element.id) == -1) {
+              communicationLinks.push(tempCL)
+            }
           
           
         });
@@ -369,8 +371,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  lookAtMesh(mesh: THREE.Object3D) {
-    this.cameraControls.focusCameraOn(1, mesh);
+  lookAtMesh(meshId: string) {
+    let mesh = this.applicationRenderer.getMeshById(meshId)
+    if(mesh?.isObject3D) {
+      this.cameraControls.focusCameraOn(1, mesh);
+    }
   }
 
   @action
@@ -404,6 +409,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.updateLinks?.();
   }
 
+  @action
+  handleDoubleClickOnMeshIDEAPI(meshID: string) {
+    let mesh = this.applicationRenderer.getMeshById(meshID)
+    if(mesh?.isObject3D) {
+      this.handleDoubleClickOnMesh(mesh)
+    }
+  }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh) {
