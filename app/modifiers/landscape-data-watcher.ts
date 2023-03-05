@@ -180,10 +180,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     let cls: CommunicationLink[] = []
 
     communicationLinks.forEach(element => {
+      const meshIDs = element.communicationData.id.split("_")
       let tempCL: CommunicationLink = {
         meshID: element.communicationData.id,
-        sourceMeshID: element.source.id,
-        targetMeshID: element.target.id
+        sourceMeshID: meshIDs[0],
+        targetMeshID: meshIDs[1],
+        methodName: meshIDs[2]
       }
       cls.push(tempCL)
     });

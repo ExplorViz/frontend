@@ -57,15 +57,16 @@ export type CommunicationLink = {
     sourceMeshID: string;
     targetMeshID: string;
     meshID: string;
+    methodName: string
 }
 
-type IDEApiCall = {
+export type IDEApiCall = {
   action: IDEApiActions;
   data: OrderTuple[];
   meshId: string;
   occurrenceID: number;
   fqn: string;
-  foundationCommunicationLinks: CommunicationLink[]
+  foundationCommunicationLinks: CommunicationLink[];
 };
 
 export type VizDataRaw = {
@@ -116,7 +117,7 @@ export default class IDEApi extends Service.extend(Evented) {
         case 'doubleClickOnMesh':
           // handleDoubleClickOnMesh(applObj3D.children[1])
           // OpenObject(handleDoubleClickOnMesh, "sampleApplication")
-          console.log('data: ', data.fqn);
+          console.log('data: ', data.fqn, data.occurrenceID);
 
           OpenObject(
             handleDoubleClickOnMesh,
@@ -350,11 +351,13 @@ function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
     // vizDataOrderTuple.push(temp);
     const orderedParents = getOrderedParents(element.dataModel);
     const meshes = getFqnForMeshes(orderedParents);
-    vizDataOrderTuple.push({hierarchyModel: orderedParents, meshes: meshes})
+    let tempOT: OrderTuple = {hierarchyModel: orderedParents, meshes: meshes}
+    tempOT = addCommunicationLinksToOrderTuple(tempOT, vizData.communicationLinks)
+    vizDataOrderTuple.push(tempOT)
   })
   // console.log(orderedParents)
   // console.log(meshNames)
-  console.log(vizDataOrderTuple, vizData.communicationLinks)
+  console.log("vizDataOrderTuple", vizDataOrderTuple, vizData.communicationLinks)
 
   return vizDataOrderTuple;
 }
@@ -375,11 +378,11 @@ function OpenObject(
   vizData.applicationObject3D.forEach((element) => {
     orderTuple.forEach(ot => {
       const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
-      console.log(
-        element.dataModel.name + occurrenceName + fullQualifiedName,
-        ot,
-        element
-      );
+      // console.log(
+      //   element.dataModel.name + occurrenceName + fullQualifiedName,
+      //   ot,
+      //   element
+      // );
       recursivelyOpenObjects(
         doSomethingOnMesh,
         lookAtMesh,
@@ -526,3 +529,54 @@ function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
     return 'Not implemented';
   }
 }
+function addCommunicationLinksToOrderTuple(
+  ot: OrderTuple, 
+  communicationLinks: CommunicationLink[]
+  ): OrderTuple {
+
+  let tempOT = ot;
+
+  communicationLinks.forEach(cl => {
+    let communicationLinkFQNIndex = ot.meshes.meshIds.findIndex(e => e === cl.targetMeshID)
+    if(communicationLinkFQNIndex >= 0) {
+      let communicationLinkFQN = ot.meshes.meshNames[communicationLinkFQNIndex] + "." + cl.methodName;
+
+      tempOT.hierarchyModel = insertCommunicationInParentOrder(cl, communicationLinkFQN, tempOT.hierarchyModel)
+      tempOT.meshes.meshNames.push(communicationLinkFQN)
+      tempOT.meshes.meshIds.push(cl.meshID)
+    }
+  });
+
+  return tempOT
+}
+
+function insertCommunicationInParentOrder(cl: CommunicationLink, communicationLinkFQN: string, po: ParentOrder): ParentOrder {
+  
+  if(cl.targetMeshID == po.meshid) {
+    const newPO: ParentOrder = {
+      childs: [],
+      fqn: communicationLinkFQN,
+      meshid: cl.meshID,
+      methods: []
+    }
+    const tempPO = po;
+    tempPO.childs.push(newPO)
+    return tempPO
+  }
+  else {
+    let temp: ParentOrder[] = []
+    po.childs.forEach(element => {
+      temp.push(insertCommunicationInParentOrder(cl, communicationLinkFQN, element))
+
+    });
+    return {
+      fqn: po.fqn,
+      meshid: po.meshid,
+      methods: po.methods,
+      childs: temp
+    }
+    
+  }
+ 
+}
+

@@ -331,14 +331,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if(drawableClassCommunications && drawableClassCommunications.length != 0) {
         drawableClassCommunications.forEach(element => {
-          if(element.sourceApp && element.targetApp) {
+            const meshIDs = element.id.split("_")
             let tempCL: CommunicationLink = {
               meshID: element.id,
-              sourceMeshID: element.sourceApp.id,
-              targetMeshID: element.targetApp.id
+              sourceMeshID: meshIDs[0],
+              targetMeshID: meshIDs[1],
+              methodName: meshIDs[2]
             }
             communicationLinks.push(tempCL)
-          }
+          
           
         });
 
