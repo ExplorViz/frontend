@@ -39,8 +39,10 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import IDEApi, { CommunicationLink, VizDataRaw } from 'explorviz-frontend/services/ide-api';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import IDEApi, {
+  CommunicationLink,
+  VizDataRaw,
+} from 'explorviz-frontend/services/ide-api';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -138,6 +140,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   debug = debugLogger('BrowserRendering');
 
   constructor(owner: any, args: BrowserRenderingArgs) {
+    console.log('constructor');
     super(owner, args);
     this.debug('Constructor called');
     // scene
@@ -311,12 +314,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop.start();
   }
 
-
   @action
   getVizData(foundationCommunicationLinks: CommunicationLink[]): VizDataRaw {
     const openApplications = this.applicationRenderer.getOpenApplications();
-    const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
-    openApplications.forEach(element => {
+    const communicationLinks: CommunicationLink[] =
+      foundationCommunicationLinks;
+    openApplications.forEach((element) => {
       const application = element;
 
       const applicationData = this.applicationRepo.getById(
@@ -324,32 +327,37 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       );
 
       const drawableClassCommunications =
-        applicationData?.drawableClassCommunications
+        applicationData?.drawableClassCommunications;
 
       // console.log(drawableClassCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
-      if(drawableClassCommunications && drawableClassCommunications.length != 0) {
-        drawableClassCommunications.forEach(element => {
-            const meshIDs = element.id.split("_")
-            let tempCL: CommunicationLink = {
-              meshID: element.id,
-              sourceMeshID: meshIDs[0],
-              targetMeshID: meshIDs[1],
-              methodName: meshIDs[2]
-            }
-            if(communicationLinks.findIndex(e => e.meshID == element.id) == -1) {
-              communicationLinks.push(tempCL)
-            }
-          
-          
+      if (
+        drawableClassCommunications &&
+        drawableClassCommunications.length != 0
+      ) {
+        drawableClassCommunications.forEach((element) => {
+          const meshIDs = element.id.split('_');
+          let tempCL: CommunicationLink = {
+            meshID: element.id,
+            sourceMeshID: meshIDs[0],
+            targetMeshID: meshIDs[1],
+            methodName: meshIDs[2],
+          };
+          if (
+            communicationLinks.findIndex((e) => e.meshID == element.id) == -1
+          ) {
+            communicationLinks.push(tempCL);
+          }
         });
-
       }
     });
 
     // console.log("communicationLinks", communicationLinks)
-    return {applicationObject3D: openApplications, communicationLinks: communicationLinks};
+    return {
+      applicationObject3D: openApplications,
+      communicationLinks: communicationLinks,
+    };
   }
 
   @action
@@ -372,8 +380,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   lookAtMesh(meshId: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshId)
-    if(mesh?.isObject3D) {
+    let mesh = this.applicationRenderer.getMeshById(meshId);
+    if (mesh?.isObject3D) {
       this.cameraControls.focusCameraOn(1, mesh);
     }
   }
@@ -411,9 +419,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleDoubleClickOnMeshIDEAPI(meshID: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshID)
-    if(mesh?.isObject3D) {
-      this.handleDoubleClickOnMesh(mesh)
+    let mesh = this.applicationRenderer.getMeshById(meshID);
+    if (mesh?.isObject3D) {
+      this.handleDoubleClickOnMesh(mesh);
     }
   }
   @action
@@ -549,6 +557,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.applicationRenderer.cleanUpApplications();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
+
+    this.ideApi.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();

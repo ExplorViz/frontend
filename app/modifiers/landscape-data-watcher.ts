@@ -177,17 +177,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // console.log('Test3');
 
     // refreshVizData(IDEApiActions.Refresh, []);
-    let cls: CommunicationLink[] = []
+    let cls: CommunicationLink[] = [];
 
-    communicationLinks.forEach(element => {
-      const meshIDs = element.communicationData.id.split("_")
+    communicationLinks.forEach((element) => {
+      const meshIDs = element.communicationData.id.split('_');
       let tempCL: CommunicationLink = {
         meshID: element.communicationData.id,
         sourceMeshID: meshIDs[0],
         targetMeshID: meshIDs[1],
-        methodName: meshIDs[2]
-      }
-      cls.push(tempCL)
+        methodName: meshIDs[2],
+      };
+      cls.push(tempCL);
     });
 
     // console.log("OG communicationLinks", communicationLinks)
