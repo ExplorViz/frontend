@@ -1,8 +1,9 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import ENV from 'explorviz-frontend/config/environment';
 import { io } from 'socket.io-client';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import Auth from 'explorviz-frontend/services/auth';
 
 import {
   Application,
@@ -16,26 +17,6 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import debugLogger from 'ember-debug-logger';
-
-const { vsCodeService } = ENV.backendAddresses;
-
-let httpSocket = vsCodeService;
-let socket = io(httpSocket);
-// @ts-ignore value is set in listener function of websocket
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let vizDataOrderTupleGlobal: OrderTuple[] = [];
-let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
-
-let previousVizData: OrderTuple[] = [];
-
-const log = debugLogger('IDE-API');
-
-export function restartAndSetSocket(newHttpSocket: string) {
-  httpSocket = newHttpSocket;
-  socket.disconnect();
-  log('Restarting socket with: ', newHttpSocket);
-  socket = io(newHttpSocket);
-}
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -90,8 +71,31 @@ type OrderTuple = {
   meshes: { meshNames: string[]; meshIds: string[] };
 };
 
+const { vsCodeService } = ENV.backendAddresses;
+
+let httpSocket = vsCodeService;
+let socket = io(httpSocket);
+// @ts-ignore value is set in listener function of websocket
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let vizDataOrderTupleGlobal: OrderTuple[] = [];
+let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
+
+let previousVizData: OrderTuple[] = [];
+
+const log = debugLogger('IDE-API');
+
+export function restartAndSetSocket(newHttpSocket: string) {
+  httpSocket = newHttpSocket;
+  socket.disconnect();
+  log('Restarting socket with: ', newHttpSocket);
+  socket = io(newHttpSocket);
+}
+
 export default class IDEApi extends Service.extend(Evented) {
   //log = logLogger('IDE-API');
+
+  @service('auth')
+  auth!: Auth;
 
   constructor(
     //handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
@@ -105,9 +109,9 @@ export default class IDEApi extends Service.extend(Evented) {
 
     restartAndSetSocket(httpSocket);
 
-    socket.on('namespace', (data: any) => {
-      console.log('test');
-      console.log('socket', data);
+    socket.on('connect', () => {
+      //socket.emit('update-user-info', { userId: this.auth.user?.user_id });
+      socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
     socket.on('vizDo', (data: IDEApiCall) => {

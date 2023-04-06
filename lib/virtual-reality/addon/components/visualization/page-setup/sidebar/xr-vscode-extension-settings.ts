@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import {
-  monitoringMockup,
+  sendMonitoringData,
   restartAndSetSocket,
 } from 'explorviz-frontend/services/ide-api';
 import ENV from 'explorviz-frontend/config/environment';
@@ -16,6 +16,8 @@ const { vsCodeService } = ENV.backendAddresses;
 export default class ArSettingsSelector extends Component<XrVscodeExtensionSettingsArgs> {
   // @service('collaboration')
   private backendHTTP!: string;
+
+  private roomName!: string;
 
   constructor(owner: any, args: XrVscodeExtensionSettingsArgs) {
     super(owner, args);
@@ -38,7 +40,12 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
   monitoring() {
     console.log('monitoring');
 
-    monitoringMockup();
+    const payload = {
+      fqn: 'org.springframework.samples.petclinic.model.Person',
+      description: 'Test by akr',
+    };
+
+    sendMonitoringData([payload]);
     AlertifyHandler.showAlertifySuccess('Show Monitoring mockup');
   }
 
