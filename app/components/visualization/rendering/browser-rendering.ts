@@ -39,10 +39,6 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import IDEApi, {
-  CommunicationLink,
-  VizDataRaw,
-} from 'explorviz-frontend/services/ide-api';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -117,8 +113,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  ideApi: IDEApi;
-
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -169,14 +163,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
-
-    // IDE API
-    this.ideApi = new IDEApi(
-      //this.handleSingleClickOnMesh,
-      this.handleDoubleClickOnMeshIDEAPI,
-      this.lookAtMesh,
-      this.getVizData
-    );
   }
 
   tick(delta: number) {
@@ -338,7 +324,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       ) {
         drawableClassCommunications.forEach((element) => {
           const meshIDs = element.id.split('_');
-          let tempCL: CommunicationLink = {
+          const tempCL: CommunicationLink = {
             meshID: element.id,
             sourceMeshID: meshIDs[0],
             targetMeshID: meshIDs[1],
@@ -364,7 +350,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleSingleClick(intersection: THREE.Intersection) {
     this.debug('handleSingleClick');
 
-    this.ideApi.trigger('jumpToLocation', intersection.object);
+    //this.ideApi.trigger('jumpToLocation', intersection.object);
     // this.ideApi.trigger('applicationData', )
     // let applObj3D = getApplicationObject3D();
     // console.log(applObj3D)
@@ -380,7 +366,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   lookAtMesh(meshId: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshId);
+    const mesh = this.applicationRenderer.getMeshById(meshId);
     if (mesh?.isObject3D) {
       this.cameraControls.focusCameraOn(1, mesh);
     }
@@ -417,13 +403,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.updateLinks?.();
   }
 
-  @action
-  handleDoubleClickOnMeshIDEAPI(meshID: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshID);
-    if (mesh?.isObject3D) {
-      this.handleDoubleClickOnMesh(mesh);
-    }
-  }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh) {
@@ -557,8 +536,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.applicationRenderer.cleanUpApplications();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
-
-    this.ideApi.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();

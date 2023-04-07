@@ -30,6 +30,7 @@
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera
         }}
+        {{ide-interaction landscapeData=@landscapeData doubleClickOnMesh=this.handleDoubleClickOnMesh lookAtMesh=this.lookAtMesh}}
         {{did-insert this.canvasInserted}}
       >
         <ContextMenu @items={{this.rightClickMenuItems}} />
