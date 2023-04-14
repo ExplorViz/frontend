@@ -1,70 +1,26 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "target": "es2020",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noEmitOnError": false,
-    "noEmit": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    "baseUrl": ".",
-    "module": "es6",
     "skipLibCheck": true,
-    "paths": {
-      "explorviz-frontend/*": [
-        "app/*",
-        "lib/collaborative-mode/app/*",
-        "lib/heatmap/app/*",
-        "lib/virtual-reality/app/*"
-      ],
-      "explorviz-frontend/tests/*": ["tests/*"],
-      "collaborative-mode": ["lib/collaborative-mode/addon"],
-      "collaborative-mode/*": ["lib/collaborative-mode/addon/*"],
-      "collaborative-mode/test-support": [
-        "lib/collaborative-mode/addon-test-support"
-      ],
-      "collaborative-mode/test-support/*": [
-        "lib/collaborative-mode/addon-test-support/*"
-      ],
-      "heatmap": ["lib/heatmap/addon"],
-      "heatmap/*": ["lib/heatmap/addon/*"],
-      "heatmap/test-support": ["lib/heatmap/addon-test-support"],
-      "heatmap/test-support/*": ["lib/heatmap/addon-test-support/*"],
-      "virtual-reality": ["lib/virtual-reality/addon"],
-      "virtual-reality/*": ["lib/virtual-reality/addon/*"],
-      "virtual-reality/test-support": [
-        "lib/virtual-reality/addon-test-support"
-      ],
-      "virtual-reality/test-support/*": [
-        "lib/virtual-reality/addon-test-support/*"
-      ],
-      "*": ["types/*"]
-    }
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": [
-    ".eslintrc.js",
-    "**/.eslintrc.js",
-    ".template-lintrc.js",
-    "ember-cli-build.js",
-    "app",
-    "config",
-    "types",
-    "lib/collaborative-mode",
-    "lib/virtual-reality",
-    "lib/heatmap"
-  ],
-  "exclude": [
-    "tests/*"
+    "src"
   ]
 }
