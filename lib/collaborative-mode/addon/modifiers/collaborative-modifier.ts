@@ -1,4 +1,5 @@
 import { assert } from '@ember/debug';
+import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { perform, taskFor } from 'ember-concurrency-ts';
@@ -60,9 +61,14 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    registerDestructor(this, this.cleanup);
   }
 
-  willDestroy() {
+  cleanup = () => {
+    this.removeEventListener();
+  };
+
+  removeEventListener() {
     this.webSocket.off(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.off(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.off(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
