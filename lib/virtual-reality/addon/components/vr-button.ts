@@ -25,20 +25,18 @@ export default class VrButton extends Component<VrButtonArgs> {
   @action
   async updateVrStatus() {
     if ('xr' in navigator) {
-      const supported = await navigator.xr?.isSessionSupported('immersive-vr');
-      if (supported) {
+      this.vrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+
+      if (this.vrSupported) {
         this.buttonText = 'Enter VR';
-        this.vrSupported = true;
       } else if (window.isSecureContext === false) {
         this.buttonText = 'WEBXR NEEDS HTTPS';
-        this.vrSupported = false;
       } else {
         this.buttonText = 'WEBXR NOT AVAILABLE';
-        this.vrSupported = false;
       }
     } else {
       this.buttonText = 'WEBXR NOT SUPPORTED';
-      this.vrSupported = false;
     }
   }
 

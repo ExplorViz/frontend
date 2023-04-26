@@ -593,6 +593,13 @@ export default class VrRendering extends Component<Args> {
     this.debug('WebXRSession started');
     this.session = session;
     this.vrSessionActive = true;
+
+    session.addEventListener('inputsourceschange', (event) => {
+      console.log(event);
+      for (const inputSource of event.added) {
+        console.log('Input source:', inputSource);
+      }
+    });
   }
 
   @action
