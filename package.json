@@ -166,8 +166,7 @@
     "stats.js": "^0.17.0",
     "three": "^0.149.0",
     "three-forcegraph": "^1.41.4",
-    "vanilla-picker": "^2.12.1",
-    "webxr-polyfill": "^2.0.3"
+    "vanilla-picker": "^2.12.1"
   },
   "overrides": {
     "ember-cli-ifa": "~0.10.0"

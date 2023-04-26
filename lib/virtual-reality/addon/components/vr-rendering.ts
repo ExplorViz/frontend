@@ -76,7 +76,6 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import WebXRPolyfill from 'webxr-polyfill';
 import {
   UserControllerConnectMessage,
   USER_CONTROLLER_CONNECT_EVENT,
@@ -287,11 +286,6 @@ export default class VrRendering extends Component<Args> {
 
     this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.updatables.push(this.cameraControls);
-
-    const polyfill = new WebXRPolyfill();
-    if (polyfill) {
-      this.debug('Polyfill enabled');
-    }
   }
 
   /**

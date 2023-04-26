@@ -51,7 +51,7 @@ module.exports = (defaults) => {
 
   app.import('node_modules/crypto-js/crypto-js.js');
 
-  app.import('node_modules/webxr-polyfill/build/webxr-polyfill.min.js');
+  //app.import('node_modules/webxr-polyfill/build/webxr-polyfill.min.js');
   app.import('node_modules/elkjs/lib/elk-api.js');
 
   //return app.toTree();
