@@ -165,7 +165,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
-    description: "'Three.js Axes Helper",
+    description: 'Visualizes the three dimensional Cartesian coordinate system',
     isFlagSetting: true,
   },
   showLightHelper: {
@@ -173,7 +173,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Debugging',
     displayName: 'Show Light Helper',
-    description: "'Three.js Light Helper",
+    description: 'Visualizes the directional light',
     isFlagSetting: true,
   },
 };
