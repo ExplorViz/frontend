@@ -88,6 +88,7 @@ export default class RenderingLoop {
     if (this.threePerformance) {
       this.threePerformance.removePerformanceMeasurement();
       this.axesHelper = undefined;
+      this.lightHelper = undefined;
     }
   }
 
@@ -129,7 +130,6 @@ export default class RenderingLoop {
     } else if (!showAxesHelper && this.axesHelper) {
       this.scene.remove(this.axesHelper);
       this.axesHelper = undefined;
-      this.lightHelper = undefined;
     }
   }
 }
