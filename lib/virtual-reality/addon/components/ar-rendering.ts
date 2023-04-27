@@ -518,7 +518,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    perform(this.localUser.mousePing.ping, {
+    this.localUser.mousePing.ping.perform({
       parentObj,
       position: pingPosition,
     });

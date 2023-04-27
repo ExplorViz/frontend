@@ -4,7 +4,6 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
@@ -257,10 +256,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
-      perform(this.localUser.mousePing.ping, {
+
+      this.localUser.mousePing.ping.perform({
         parentObj,
         position: pingPosition,
       });
+
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
           parentObj.dataModel.id,
