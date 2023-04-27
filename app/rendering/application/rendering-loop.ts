@@ -22,6 +22,8 @@ export default class RenderingLoop {
 
   axesHelper: THREE.AxesHelper | undefined;
 
+  lightHelper: THREE.DirectionalLightHelper | undefined;
+
   debug = debugLogger('RenderingLoop');
 
   @service('user-settings')
@@ -64,6 +66,7 @@ export default class RenderingLoop {
       }
 
       this.handleAxesHelper();
+      this.handleLightHelper();
 
       // tell every animated object to tick forward one frame
       this.tick(frame);
@@ -95,6 +98,27 @@ export default class RenderingLoop {
     }
   }
 
+  private handleLightHelper() {
+    // Add Light Helper based on setting
+    const { value: showLightHelper } =
+      this.userSettings.applicationSettings.showLightHelper;
+    if (showLightHelper && !this.lightHelper) {
+      const light = this.scene.getObjectByName(
+        'DirectionalLight'
+      ) as THREE.DirectionalLight;
+
+      this.lightHelper = new THREE.DirectionalLightHelper(
+        light,
+        1,
+        new THREE.Color(0x000000)
+      );
+      this.scene.add(this.lightHelper);
+    } else if (!showLightHelper && this.lightHelper) {
+      this.scene.remove(this.lightHelper);
+      this.lightHelper = undefined;
+    }
+  }
+
   private handleAxesHelper() {
     // Add Axes Helper based on setting
     const { value: showAxesHelper } =
@@ -105,6 +129,7 @@ export default class RenderingLoop {
     } else if (!showAxesHelper && this.axesHelper) {
       this.scene.remove(this.axesHelper);
       this.axesHelper = undefined;
+      this.lightHelper = undefined;
     }
   }
 }

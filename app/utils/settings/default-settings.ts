@@ -168,6 +168,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: "'Three.js Axes Helper",
     isFlagSetting: true,
   },
+  showLightHelper: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show Light Helper',
+    description: "'Three.js Light Helper",
+    isFlagSetting: true,
+  },
 };
 
 export const defaultLanscapeSettings: LandscapeSettings = {
