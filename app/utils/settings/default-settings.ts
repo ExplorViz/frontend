@@ -160,6 +160,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: "'Frames Per Second' metrics in visualizations",
     isFlagSetting: true,
   },
+  showAxesHelper: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show Axes Helper',
+    description: "'Three.js Axes Helper",
+    isFlagSetting: true,
+  },
 };
 
 export const defaultLanscapeSettings: LandscapeSettings = {

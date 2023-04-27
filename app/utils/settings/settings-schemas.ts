@@ -46,7 +46,7 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationDebugSettingId = 'showFpsCounter';
+export type ApplicationDebugSettingId = 'showFpsCounter' | 'showAxesHelper';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
