@@ -1,6 +1,5 @@
 {
   "reject": [
-    "bootstrap",
-    "ember-concurrency"
+    "bootstrap" 
   ]
 }

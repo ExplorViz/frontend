@@ -2,7 +2,6 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -112,8 +111,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   async onAppOpened({
     originalMessage: { id, position, quaternion, scale },
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
-    perform(
-      this.applicationRenderer.openApplicationTask,
+    this.applicationRenderer.openApplicationTask.perform(
       id,
       {
         position: new THREE.Vector3(...position),
