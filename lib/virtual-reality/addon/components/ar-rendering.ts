@@ -5,7 +5,6 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -518,7 +517,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    perform(this.localUser.mousePing.ping, {
+    this.localUser.mousePing.ping.perform({
       parentObj,
       position: pingPosition,
     });
@@ -707,7 +706,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   private showApplication(appId: string) {
-    perform(this.applicationRenderer.openApplicationTask, appId);
+    this.applicationRenderer.openApplicationTask.perform(appId);
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {

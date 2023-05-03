@@ -25,6 +25,7 @@ export default class ComponentMesh extends BoxMesh {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
+    this.castShadow = true;
 
     this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
     this.material.transparent = true;

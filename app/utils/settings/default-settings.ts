@@ -160,6 +160,22 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: "'Frames Per Second' metrics in visualizations",
     isFlagSetting: true,
   },
+  showAxesHelper: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show Axes Helper',
+    description: 'Visualizes the three dimensional Cartesian coordinate system',
+    isFlagSetting: true,
+  },
+  showLightHelper: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show Light Helper',
+    description: 'Visualizes the directional light',
+    isFlagSetting: true,
+  },
 };
 
 export const defaultLanscapeSettings: LandscapeSettings = {

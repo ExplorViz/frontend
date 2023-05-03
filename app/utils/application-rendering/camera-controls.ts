@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 
 export default class CameraControls {
   private camera: PerspectiveCamera;

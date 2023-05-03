@@ -8,7 +8,11 @@ export function light(): THREE.AmbientLight {
 }
 
 export function directionalLight(): THREE.DirectionalLight {
-  return new THREE.DirectionalLight(0xffffff, 0.25);
+  const light = new THREE.DirectionalLight(0xffffff, 0.55);
+  light.name = 'DirectionalLight';
+  light.position.set(-5, 5, 5);
+  light.castShadow = true;
+  return light;
 }
 
 export function spotlight(): THREE.SpotLight {
@@ -30,7 +34,7 @@ export function skylight() {
 export function defaultScene() {
   const scene = new THREE.Scene();
   scene.add(light());
-  // scene.add(spotlight());
+  //scene.add(spotlight());
   scene.add(directionalLight());
   return scene;
 }
