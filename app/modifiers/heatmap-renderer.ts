@@ -1,6 +1,5 @@
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import { perform } from 'ember-concurrency-ts';
+import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -67,7 +66,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     if (this.applicationObject3D && this.metric) {
       this.lastApplicationObject3D = this.applicationObject3D;
-      perform(this.applyHeatmap, this.applicationObject3D, this.metric);
+      this.applyHeatmap.perform(this.applicationObject3D, this.metric);
     }
   }
 
@@ -95,55 +94,57 @@ export default class HeatmapRenderer extends Modifier<Args> {
     });
   }
 
-  @task *applyHeatmap(
-    applicationObject3D: ApplicationObject3D,
-    selectedMetric: Metric
-  ) {
-    applicationObject3D.setComponentMeshOpacity(0.1);
-    applicationObject3D.setCommunicationOpacity(0.1);
+  applyHeatmap = task(
+    async (
+      applicationObject3D: ApplicationObject3D,
+      selectedMetric: Metric
+    ) => {
+      applicationObject3D.setComponentMeshOpacity(0.1);
+      applicationObject3D.setCommunicationOpacity(0.1);
 
-    const { foundationMesh } = applicationObject3D;
+      const { foundationMesh } = applicationObject3D;
 
-    if (!(foundationMesh instanceof FoundationMesh)) {
-      return;
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = foundationMesh.width;
-    canvas.height = foundationMesh.depth;
-    const simpleHeatMap = simpleHeatmap(
-      selectedMetric.max,
-      canvas,
-      this.heatmapConf.getSimpleHeatGradient(),
-      this.heatmapConf.heatmapRadius,
-      this.heatmapConf.blurRadius
-    );
-
-    const foundationWorldPosition = new THREE.Vector3();
-
-    foundationMesh.getWorldPosition(foundationWorldPosition);
-
-    removeHeatmapHelperLines(applicationObject3D);
-
-    const boxMeshes = applicationObject3D.getBoxMeshes();
-
-    boxMeshes.forEach((boxMesh) => {
-      if (boxMesh instanceof ClazzMesh) {
-        this.heatmapClazzUpdate(
-          applicationObject3D,
-          boxMesh.dataModel,
-          foundationMesh,
-          simpleHeatMap,
-          selectedMetric
-        );
+      if (!(foundationMesh instanceof FoundationMesh)) {
+        return;
       }
-    });
 
-    simpleHeatMap.draw(0.0);
-    applySimpleHeatOnFoundation(foundationMesh, canvas);
+      const canvas = document.createElement('canvas');
+      canvas.width = foundationMesh.width;
+      canvas.height = foundationMesh.depth;
+      const simpleHeatMap = simpleHeatmap(
+        selectedMetric.max,
+        canvas,
+        this.heatmapConf.getSimpleHeatGradient(),
+        this.heatmapConf.heatmapRadius,
+        this.heatmapConf.blurRadius
+      );
 
-    this.debug('Applied heatmap');
-  }
+      const foundationWorldPosition = new THREE.Vector3();
+
+      foundationMesh.getWorldPosition(foundationWorldPosition);
+
+      removeHeatmapHelperLines(applicationObject3D);
+
+      const boxMeshes = applicationObject3D.getBoxMeshes();
+
+      boxMeshes.forEach((boxMesh) => {
+        if (boxMesh instanceof ClazzMesh) {
+          this.heatmapClazzUpdate(
+            applicationObject3D,
+            boxMesh.dataModel,
+            foundationMesh,
+            simpleHeatMap,
+            selectedMetric
+          );
+        }
+      });
+
+      simpleHeatMap.draw(0.0);
+      applySimpleHeatOnFoundation(foundationMesh, canvas);
+
+      this.debug('Applied heatmap');
+    }
+  );
 
   private heatmapClazzUpdate(
     applicationObject3D: ApplicationObject3D,

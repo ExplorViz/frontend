@@ -5,7 +5,6 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { perform } from 'ember-concurrency-ts';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -76,7 +75,6 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
 import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import WebXRPolyfill from 'webxr-polyfill';
 import {
   UserControllerConnectMessage,
   USER_CONTROLLER_CONNECT_EVENT,
@@ -287,11 +285,6 @@ export default class VrRendering extends Component<Args> {
 
     this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.updatables.push(this.cameraControls);
-
-    const polyfill = new WebXRPolyfill();
-    if (polyfill) {
-      this.debug('Polyfill enabled');
-    }
   }
 
   /**
@@ -593,6 +586,13 @@ export default class VrRendering extends Component<Args> {
     this.debug('WebXRSession started');
     this.session = session;
     this.vrSessionActive = true;
+
+    session.addEventListener('inputsourceschange', (event) => {
+      console.log(event);
+      for (const inputSource of event.added) {
+        console.log('Input source:', inputSource);
+      }
+    });
   }
 
   @action
@@ -987,7 +987,7 @@ export default class VrRendering extends Component<Args> {
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
-      perform(this.localUser.mousePing.ping, {
+      this.localUser.mousePing.ping.perform({
         parentObj,
         position: pingPosition,
       });

@@ -2,8 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { task } from 'ember-concurrency-decorators';
-import { perform } from 'ember-concurrency-ts';
+import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -221,80 +220,85 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  @task *addApplicationTask(
-    applicationData: ApplicationData,
-    addApplicationArgs: AddApplicationArgs = {}
-  ) {
-    const applicationModel = applicationData.application;
-    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
-      applicationData.layoutData
-    );
-
-    const isOpen = this.isApplicationOpen(applicationModel.id);
-    let currentApplicationObject3D = this.getApplicationById(
-      applicationModel.id
-    );
-
-    let layoutChanged = true;
-    if (currentApplicationObject3D) {
-      layoutChanged = boxLayoutMap !== currentApplicationObject3D.boxLayoutMap;
-
-      //layoutChanged =
-      //  JSON.stringify(boxLayoutMap) !==
-      //  JSON.stringify(currentApplicationObject3D.boxLayoutMap);
-      // if (layoutChanged) {
-      currentApplicationObject3D.dataModel = applicationModel;
-      currentApplicationObject3D.boxLayoutMap = boxLayoutMap;
-      // }
-    } else {
-      currentApplicationObject3D = new VrApplicationObject3D(
-        applicationModel,
-        boxLayoutMap
+  addApplicationTask = task(
+    async (
+      applicationData: ApplicationData,
+      addApplicationArgs: AddApplicationArgs = {}
+    ) => {
+      const applicationModel = applicationData.application;
+      const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
+        applicationData.layoutData
       );
-    }
 
-    const applicationState =
-      Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
-        ? this.saveApplicationState(currentApplicationObject3D)
-        : addApplicationArgs;
+      const isOpen = this.isApplicationOpen(applicationModel.id);
+      let currentApplicationObject3D = this.getApplicationById(
+        applicationModel.id
+      );
 
-    if (layoutChanged) {
-      this.cleanUpApplication(currentApplicationObject3D);
+      let layoutChanged = true;
+      if (currentApplicationObject3D) {
+        layoutChanged =
+          boxLayoutMap !== currentApplicationObject3D.boxLayoutMap;
 
-      // Add new meshes to application
-      EntityRendering.addFoundationAndChildrenToApplication(
+        //layoutChanged =
+        //  JSON.stringify(boxLayoutMap) !==
+        //  JSON.stringify(currentApplicationObject3D.boxLayoutMap);
+        // if (layoutChanged) {
+        currentApplicationObject3D.dataModel = applicationModel;
+        currentApplicationObject3D.boxLayoutMap = boxLayoutMap;
+        // }
+      } else {
+        currentApplicationObject3D = new VrApplicationObject3D(
+          applicationModel,
+          boxLayoutMap
+        );
+      }
+
+      const applicationState =
+        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+          ? this.saveApplicationState(currentApplicationObject3D)
+          : addApplicationArgs;
+
+      if (layoutChanged) {
+        this.cleanUpApplication(currentApplicationObject3D);
+
+        // Add new meshes to application
+        EntityRendering.addFoundationAndChildrenToApplication(
+          currentApplicationObject3D,
+          this.configuration.applicationColors
+        );
+      }
+
+      // Restore state of components highlighting
+      restoreComponentState(
         currentApplicationObject3D,
-        this.configuration.applicationColors
+        applicationState.openComponents
       );
+      this.addLabels(currentApplicationObject3D, this.font, false);
+
+      this.addCommunication(currentApplicationObject3D);
+
+      applicationState.highlightedComponents?.forEach(
+        (highlightedComponent) => {
+          this.highlightingService.hightlightComponentLocallyByTypeAndId(
+            currentApplicationObject3D!,
+            highlightedComponent
+          );
+        }
+      );
+      this.highlightingService.updateHighlighting(currentApplicationObject3D);
+
+      this.openApplicationsMap.set(
+        applicationModel.id,
+        currentApplicationObject3D
+      );
+      // this.heatmapConf.updateActiveApplication(currentApplicationObject3D);
+
+      currentApplicationObject3D.resetRotation();
+
+      return currentApplicationObject3D;
     }
-
-    // Restore state of components highlighting
-    restoreComponentState(
-      currentApplicationObject3D,
-      applicationState.openComponents
-    );
-    this.addLabels(currentApplicationObject3D, this.font, false);
-
-    this.addCommunication(currentApplicationObject3D);
-
-    applicationState.highlightedComponents?.forEach((highlightedComponent) => {
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        currentApplicationObject3D!,
-        highlightedComponent
-      );
-    });
-    this.highlightingService.updateHighlighting(currentApplicationObject3D);
-
-    this.openApplicationsMap.set(
-      applicationModel.id,
-      currentApplicationObject3D
-    );
-    // this.heatmapConf.updateActiveApplication(currentApplicationObject3D);
-
-    currentApplicationObject3D.resetRotation();
-
-    return currentApplicationObject3D;
-  }
+  );
 
   private cleanUpApplication(
     currentApplicationObject3D: CurrentApplicationObject3D
@@ -581,8 +585,7 @@ export default class ApplicationRenderer extends Service.extend({
     room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-        perform(
-          this.addApplicationTask,
+        this.addApplicationTask.perform(
           applicationData,
           serializedRoomToAddApplicationArgs(app)
         );

@@ -25,6 +25,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       color: defaultColor,
     });
     this.material.transparent = true;
+
+    this.castShadow = true;
   }
 
   /**

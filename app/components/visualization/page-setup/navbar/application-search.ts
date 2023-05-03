@@ -1,5 +1,4 @@
 import GlimmerComponent from '@glimmer/component';
-import { restartableTask, task } from 'ember-concurrency-decorators';
 import { action } from '@ember/object';
 import { isBlank } from '@ember/utils';
 import $ from 'jquery';
@@ -14,8 +13,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
-import { perform } from 'ember-concurrency-ts';
-import { TaskGenerator } from 'ember-concurrency';
+import { task } from 'ember-concurrency';
 
 interface SearchSeperator {
   name: string;
@@ -60,18 +58,16 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
   }
 
-  @restartableTask *searchEntity(
-    term: string
-  ): TaskGenerator<(Class | Package | SearchSeperator)[]> {
+  searchEntity = task({ restartable: true }, async (term: string) => {
     if (isBlank(term)) {
       return [];
     }
-    return yield perform(this.getPossibleEntityNames, term);
-  }
+    return await this.getPossibleEntityNames.perform(term);
+  });
 
-  @task *getPossibleEntityNames(
-    name: string
-  ): TaskGenerator<(Class | Package | SearchSeperator)[]> {
+  //TaskGenerator<(Class | Package | SearchSeperator)[]>
+
+  getPossibleEntityNames = task(async (name: string) => {
     const searchString = name.toLowerCase();
 
     const latestApp = this.args.application;
@@ -139,5 +135,5 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       }
     }
     return entities;
-  }
+  });
 }

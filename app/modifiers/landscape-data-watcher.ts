@@ -1,8 +1,6 @@
 import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
-import { all } from 'ember-concurrency';
-import { restartableTask, task } from 'ember-concurrency-decorators';
-import { perform } from 'ember-concurrency-ts';
+import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
@@ -68,11 +66,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.landscapeData = landscapeData;
     this.graph = graph;
 
-    perform(this.handleUpdatedLandscapeData);
+    this.handleUpdatedLandscapeData.perform();
   }
 
-  @restartableTask *handleUpdatedLandscapeData(): Generator<any, any, any> {
-    yield Promise.resolve();
+  handleUpdatedLandscapeData = task({ restartable: true }, async () => {
+    await Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
@@ -90,15 +88,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
-        const applicationData = yield perform(
-          this.updateApplicationData,
+        const applicationData = await this.updateApplicationData.perform(
           application,
           drawableClassCommunications
         );
 
         // create or update applicationObject3D
-        const app = yield perform(
-          this.applicationRenderer.addApplicationTask,
+        const app = await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
 
@@ -107,6 +103,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           'id',
           applicationData.application.id
         ) as GraphNode;
+
+        if (!app.foundationMesh) {
+          console.error('No foundation mesh, this should not happen');
+          return;
+        }
 
         const { x, z } = app.foundationMesh.scale;
         const collisionRadius = Math.hypot(x, z) / 2 + 3;
@@ -168,35 +169,40 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
     this.graph.graphData(gData);
-  }
+  });
 
-  @task *updateApplicationData(
-    application: Application,
-    drawableClassCommunications: DrawableClassCommunication[]
-  ): Generator<unknown, ApplicationData, unknown> {
-    const workerPayload = {
-      structure: application,
-      dynamic: this.dynamicLandscapeData,
-    };
-    const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
-    const heatmapMetrics = this.worker.postMessage(
-      'metrics-worker',
-      workerPayload
-    );
-    const results = (yield all([cityLayout, heatmapMetrics])) as any[];
+  updateApplicationData = task(
+    async (
+      application: Application,
+      drawableClassCommunications: DrawableClassCommunication[]
+    ) => {
+      const workerPayload = {
+        structure: application,
+        dynamic: this.dynamicLandscapeData,
+      };
+      const cityLayout = this.worker.postMessage(
+        'city-layouter',
+        workerPayload
+      );
+      const heatmapMetrics = this.worker.postMessage(
+        'metrics-worker',
+        workerPayload
+      );
+      const results = (await all([cityLayout, heatmapMetrics])) as any[];
 
-    let applicationData = this.applicationRepo.getById(application.id);
-    if (applicationData) {
-      applicationData.updateApplication(application, results[0]);
-    } else {
-      applicationData = new ApplicationData(application, results[0]);
+      let applicationData = this.applicationRepo.getById(application.id);
+      if (applicationData) {
+        applicationData.updateApplication(application, results[0]);
+      } else {
+        applicationData = new ApplicationData(application, results[0]);
+      }
+      applicationData.drawableClassCommunications = calculateCommunications(
+        applicationData.application,
+        drawableClassCommunications
+      );
+      calculateHeatmap(applicationData.heatmapData, results[1]);
+      this.applicationRepo.add(applicationData);
+      return applicationData;
     }
-    applicationData.drawableClassCommunications = calculateCommunications(
-      applicationData.application,
-      drawableClassCommunications
-    );
-    calculateHeatmap(applicationData.heatmapData, results[1]);
-    this.applicationRepo.add(applicationData);
-    return applicationData;
-  }
+  );
 }

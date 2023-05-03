@@ -25,7 +25,7 @@ export default class Raycaster extends THREE.Raycaster {
     possibleObjects: THREE.Object3D[],
     raycastFilter?: (object: THREE.Intersection) => boolean
   ) {
-    this.setFromCamera(coords, camera);
+    this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
 
     // Calculate objects intersecting the picking ray
     const intersections = this.intersectObjects(possibleObjects, true);
