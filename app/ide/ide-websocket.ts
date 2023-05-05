@@ -112,7 +112,13 @@ export default class IdeWebsocket {
     this.ideWebsocketFacade.on('ide-refresh-data', this.refreshVizData);
 
     socket.on('connect', () => {
-      socket.emit('update-user-info', { userId: this.auth.user?.nickname });
+      socket.emit(
+        'update-user-info',
+        { userId: this.auth.user?.nickname },
+        (roomName: string) => {
+          this.ideWebsocketFacade.roomName = roomName;
+        }
+      );
       //socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
