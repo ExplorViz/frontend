@@ -217,6 +217,8 @@ export default class VisualizationController extends Controller {
     if (this.landscapeListener.timer !== null) {
       this.debug('Stopping timer');
       clearTimeout(this.landscapeListener.timer);
+      this.landscapeListener.latestStructureJsonString = null;
+      this.landscapeListener.latestDynamicData = null;
     }
   }
 
