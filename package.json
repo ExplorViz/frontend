@@ -82,6 +82,7 @@
     "ember-math-helpers": "3.0.0",
     "ember-modal-dialog": "^4.1.0",
     "ember-page-title": "^7.0.0",
+    "ember-popper-modifier": "^3.0.0",
     "ember-power-select": "^7.0.0",
     "ember-print-this": "^2.0.0",
     "ember-qunit": "^6.2.0",

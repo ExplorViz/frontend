@@ -372,9 +372,9 @@ function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
 
 function OpenObject(
   doSomethingOnMesh: (meshID: string) => void,
-  fullQualifiedName: string,
-  occurrenceID: number,
-  lookAtMesh: (meshID: string) => void,
+  _fullQualifiedName: string,
+  _occurrenceID: number,
+  _lookAtMesh: (meshID: string) => void,
   vizData: VizDataRaw
 ) {
   // console.log(fullQualifiedName)
