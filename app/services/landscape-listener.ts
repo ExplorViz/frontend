@@ -21,6 +21,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
   @service('landscape-token') tokenService!: LandscapeTokenService;
 
   latestStructureData: StructureLandscapeData | null = null;
+  latestStructureJsonString: StructureLandscapeData | null = null;
 
   latestDynamicData: DynamicLandscapeData | null = null;
 
@@ -51,20 +52,39 @@ export default class LandscapeListener extends Service.extend(Evented) {
         intervalInSeconds
       );
 
+      let triggerUpdate = false;
+
       let structureData = null;
       if (strucDataProm.status === 'fulfilled') {
         structureData = strucDataProm.value;
 
-        this.set(
-          'latestStructureData',
-          preProcessAndEnhanceStructureLandscape(structureData)
-        );
+        if (
+          !this.latestStructureJsonString ||
+          JSON.stringify(this.latestStructureJsonString) !==
+            JSON.stringify(strucDataProm.value)
+        ) {
+          // preProcessAndEnhanceStructureLandscape introduces cycle to the original value, therefore no more JSON.stringify. Use different variable latestStructureJsonString to check if update is necessary
+
+          this.latestStructureData =
+            preProcessAndEnhanceStructureLandscape(structureData);
+
+          this.latestStructureJsonString = structureData;
+
+          triggerUpdate = true;
+        }
       }
 
       if (dynamicDataProm.status === 'fulfilled') {
-        this.set('latestDynamicData', dynamicDataProm.value);
+        if (
+          !this.latestDynamicData ||
+          JSON.stringify(this.latestDynamicData) !==
+            JSON.stringify(dynamicDataProm.value)
+        ) {
+          this.latestDynamicData = dynamicDataProm.value;
+          triggerUpdate = true;
+        }
       } else {
-        this.set('latestDynamicData', []);
+        this.latestDynamicData = [];
       }
 
       this.updateTimestampRepoAndTimeline(
@@ -72,11 +92,14 @@ export default class LandscapeListener extends Service.extend(Evented) {
         LandscapeListener.computeTotalRequests(this.latestDynamicData!)
       );
 
-      this.trigger(
-        'newLandscapeData',
-        this.latestStructureData,
-        this.latestDynamicData
-      );
+      if (triggerUpdate) {
+        this.debug('Trigger Data Update');
+        this.trigger(
+          'newLandscapeData',
+          this.latestStructureData,
+          this.latestDynamicData
+        );
+      }
     } catch (e) {
       // landscape data could not be requested, try again?
     }
