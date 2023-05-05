@@ -33,16 +33,16 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import IDEApi, {
+import IdeWebsocket, {
   CommunicationLink,
   VizDataRaw,
-} from 'explorviz-frontend/services/ide-api';
+} from 'explorviz-frontend/ide/ide-websocket';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -83,6 +83,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
 
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  private ideWebsocket: IdeWebsocket;
+
   @tracked
   readonly graph: ThreeForceGraph;
 
@@ -113,11 +118,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @tracked
   selectedApplicationId: string = '';
-
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
-
-  ideApi: IDEApi;
 
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
@@ -171,8 +171,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.forceGraph = this.graph;
 
     // IDE API
-    this.ideApi = new IDEApi(
+    this.ideWebsocket = new IdeWebsocket(
       //this.handleSingleClickOnMesh,
+      getOwner(this),
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh,
       this.getVizData
@@ -338,7 +339,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       ) {
         drawableClassCommunications.forEach((element) => {
           const meshIDs = element.id.split('_');
-          let tempCL: CommunicationLink = {
+          const tempCL: CommunicationLink = {
             meshID: element.id,
             sourceMeshID: meshIDs[0],
             targetMeshID: meshIDs[1],
@@ -364,12 +365,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleSingleClick(intersection: THREE.Intersection) {
     this.debug('handleSingleClick');
 
-    this.ideApi.trigger('jumpToLocation', intersection.object);
-    // this.ideApi.trigger('applicationData', )
-    // let applObj3D = getApplicationObject3D();
-    // console.log(applObj3D)
+    this.ideWebsocket.jumpToLocation(intersection.object);
 
-    // this.handleDoubleClickOnMesh(applObj3D.children[10]);
     if (intersection) {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
@@ -380,7 +377,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   lookAtMesh(meshId: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshId);
+    const mesh = this.applicationRenderer.getMeshById(meshId);
     if (mesh?.isObject3D) {
       this.cameraControls.focusCameraOn(1, mesh);
     }
@@ -419,7 +416,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleDoubleClickOnMeshIDEAPI(meshID: string) {
-    let mesh = this.applicationRenderer.getMeshById(meshID);
+    const mesh = this.applicationRenderer.getMeshById(meshID);
     if (mesh?.isObject3D) {
       this.handleDoubleClickOnMesh(mesh);
     }
@@ -558,7 +555,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.dispose();
     this.renderer.forceContextLoss();
 
-    this.ideApi.dispose();
+    this.ideWebsocket.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();

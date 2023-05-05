@@ -1,10 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import {
-  sendMonitoringData,
-  restartAndSetSocket,
-} from 'explorviz-frontend/services/ide-api';
+import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import ENV from 'explorviz-frontend/config/environment';
 
 interface XrVscodeExtensionSettingsArgs {
@@ -53,6 +50,6 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
   connectToIDE() {
     console.log('connectToIDE');
     AlertifyHandler.showAlertifyMessage('Connect to IDE');
-    restartAndSetSocket(this.backendHTTP);
+    //restartAndSetSocket(this.backendHTTP);
   }
 }

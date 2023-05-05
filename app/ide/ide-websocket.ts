@@ -1,15 +1,13 @@
-import Service, { inject as service } from '@ember/service';
-import Evented from '@ember/object/evented';
+import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { io } from 'socket.io-client';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import Auth from 'explorviz-frontend/services/auth';
-
+import { setOwner } from '@ember/application';
 import {
   Application,
   Class,
   Package,
-  Method,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -17,6 +15,7 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import debugLogger from 'ember-debug-logger';
+import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -82,40 +81,43 @@ let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
 let previousVizData: OrderTuple[] = [];
 
-const log = debugLogger('IDE-API');
+const log = debugLogger('ide-websocket');
 
-export function restartAndSetSocket(newHttpSocket: string) {
-  httpSocket = newHttpSocket;
-  socket.disconnect();
-  log('Restarting socket with: ', newHttpSocket);
-  socket = io(newHttpSocket);
-}
-
-export default class IDEApi extends Service.extend(Evented) {
-  //log = logLogger('IDE-API');
-
+export default class IdeWebsocket {
   @service('auth')
   auth!: Auth;
 
+  @service('ide-websocket-facade')
+  ideWebsocketFacade!: IdeWebsocketFacade;
+
+  handleDoubleClickOnMesh: (meshID: string) => void;
+  lookAtMesh: (meshID: string) => void;
+  getVizData: (foundationCommunicationLinks: CommunicationLink[]) => VizDataRaw;
+
   constructor(
-    //handleSingleClickOnMesh: (mesh: THREE.Object3D) => void,
+    owner: any,
     handleDoubleClickOnMesh: (meshID: string) => void,
     lookAtMesh: (meshID: string) => void,
     getVizData: (
       foundationCommunicationLinks: CommunicationLink[]
     ) => VizDataRaw
   ) {
-    super();
+    setOwner(this, owner);
+    this.restartAndSetSocket(httpSocket);
 
-    restartAndSetSocket(httpSocket);
+    this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
+    this.lookAtMesh = lookAtMesh;
+    this.getVizData = getVizData;
+
+    this.ideWebsocketFacade.on('ide-refresh-data', this.refreshVizData);
 
     socket.on('connect', () => {
-      //socket.emit('update-user-info', { userId: this.auth.user?.user_id });
-      socket.emit('update-user-info', { userId: 'explorviz-user' });
+      socket.emit('update-user-info', { userId: this.auth.user?.nickname });
+      //socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
     socket.on('vizDo', (data: IDEApiCall) => {
-      const vizDataRaw = getVizData(foundationCommunicationLinksGlobal);
+      const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
       // console.log("vizdo")
@@ -186,64 +188,40 @@ export default class IDEApi extends Service.extend(Evented) {
           break;
       }
     });
+  }
 
-    this.on('jumpToLocation', (object: THREE.Object3D<THREE.Event>) => {
-      const vizDataRaw: VizDataRaw = getVizData(
-        foundationCommunicationLinksGlobal
-      );
-      const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+    const vizDataRaw: VizDataRaw = this.getVizData(
+      foundationCommunicationLinksGlobal
+    );
+    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
-      // vizData.applicationObject3D.forEach((element) => {
-      //   const temp = VizDataToOrderTuple(element);
-      //   vizDataOrderTuple.push(temp);
-      // });
-      // console.log(vizDataOrderTuple)
-
-      //console.log('mesjhid', getIdFromMesh(object));
-
-      emitToBackend(IDEApiDest.IDEDo, {
-        action: IDEApiActions.JumpToLocation,
-        data: vizDataOrderTuple,
-        meshId: getIdFromMesh(object),
-        fqn: '',
-        occurrenceID: -1,
-        foundationCommunicationLinks: foundationCommunicationLinksGlobal,
-      });
-      // emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.JumpToLocation, data: [], meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", fqn: "", occurrenceID: -1 })
+    emitToBackend(IDEApiDest.IDEDo, {
+      action: IDEApiActions.JumpToLocation,
+      data: vizDataOrderTuple,
+      meshId: getIdFromMesh(object),
+      fqn: '',
+      occurrenceID: -1,
+      foundationCommunicationLinks: foundationCommunicationLinksGlobal,
     });
+  }
 
-    this.on('applicationData', (appl: ApplicationObject3D[]) => {
-      console.log(appl);
-    });
-
-    this.on('test2', () => {
-      const vizDataRaw = getVizData(foundationCommunicationLinksGlobal);
-      const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
-      // vizData.applicationObject3D.forEach((element) => {
-      //   const temp = VizDataToOrderTuple(element);
-      //   vizDataOrderTuple.push(temp);
-      //   console.log(temp);
-      // });
-
-      emitToBackend(IDEApiDest.IDEDo, {
-        action: IDEApiActions.GetVizData,
-        data: vizDataOrderTuple,
-        meshId: '',
-        fqn: '',
-        occurrenceID: -1,
-        foundationCommunicationLinks: foundationCommunicationLinksGlobal,
-      });
-      //console.log(vizDataOrderTuple);
-      // OpenObject(handleDoubleClickOnMesh, "samples")
-
-      // console.log(Open3dObjectsHelper(getApplicationObject3D()[0]))
-      console.log('_____TEST2______');
-    });
+  refreshVizData(cl: CommunicationLink[]) {
+    log('Send new data to ide');
+    foundationCommunicationLinksGlobal = cl;
+    socket.emit(IDEApiActions.Refresh, cl);
   }
 
   dispose() {
     log('Disconnecting socket');
     socket.disconnect();
+  }
+
+  restartAndSetSocket(newHttpSocket: string) {
+    httpSocket = newHttpSocket;
+    socket.disconnect();
+    log('Restarting socket with: ', newHttpSocket);
+    socket = io(newHttpSocket);
   }
 }
 
@@ -329,28 +307,6 @@ function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   return temp;
 }
 
-function parentMethod(fqn: string, methods: Method[]): ParentOrder[] {
-  const temp: ParentOrder[] = [];
-
-  if (methods.length === 0) {
-    return temp;
-  }
-  methods.forEach((element) => {
-    const newFqn = fqn + '.' + element.name;
-
-    let newPO: ParentOrder = {
-      childs: [],
-      methods: [],
-      fqn: newFqn,
-      meshid: element.hashCode + ' hashCode',
-    };
-
-    temp.push(newPO);
-  });
-  // console.log("methods: ", methods)
-  return temp;
-}
-
 function getFqnForMeshes(orderedParents: ParentOrder): {
   meshNames: string[];
   meshIds: string[];
@@ -425,25 +381,6 @@ function OpenObject(
   //  vizData.communicationLinks
   //);
   resetFoundation(doSomethingOnMesh, orderTuple);
-
-  // vizData.applicationObject3D.forEach((element) => {
-  orderTuple.forEach((ot) => {
-    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
-    // console.log(
-    //   element.dataModel.name + occurrenceName + fullQualifiedName,
-    //   ot,
-    //   element
-    // );
-    // console.log("element.dataModel.name", element.dataModel.name)
-    // console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
-    // recursivelyOpenObjects(
-    //   doSomethingOnMesh,
-    //   lookAtMesh,
-    //   ot.hierarchyModel.fqn + occurrenceName + fullQualifiedName,
-    //   ot
-    //);
-  });
-  // });
 }
 function resetFoundation(
   doSomethingOnMesh: (meshID: string) => void,
@@ -454,82 +391,9 @@ function resetFoundation(
   });
 }
 
-function recursivelyOpenObjects(
-  doSomethingOnMesh: (meshID: string) => void,
-  lookAtMesh: (meshID: string) => void,
-  toOpen: string,
-  orderTuple: OrderTuple
-) {
-  if (orderTuple.meshes.meshNames.indexOf(toOpen) === -1) {
-    // console.error(toOpen, ' mesh not Found', orderTuple.meshes.meshNames);
-  }
-  // else if (orderTuple.hierarchyModel.name === toOpen) {
-  //   doSomethingOnMesh(appli3DObj.children[orderTuple.meshNames.indexOf(toOpen)])
-  // }
-  // else if(orderTuple.hierarchyModel.childs.length === 0) {
-
-  // }
-  else {
-    orderTuple.hierarchyModel.childs.forEach((element) => {
-      const tempOrder: ParentOrder = {
-        fqn: element.fqn,
-        childs: element.childs,
-        meshid: element.meshid,
-        methods: [],
-      };
-      // console.log('DoSome:', element, isInParentOrder(element, toOpen));
-      if (element.methods.length != 0) {
-        console.log('Methods elem: ', element);
-      } else if (isInParentOrder(element, toOpen)) {
-        console.log('element.fqn', element.fqn);
-        doSomethingOnMesh(element.meshid);
-        if (toOpen == element.fqn) {
-          console.log('toOpen', toOpen);
-          console.log('element.fqn', element.fqn);
-          // console.log("appli3DObj.children", appli3DObj.children)
-          lookAtMesh(element.meshid);
-        }
-        recursivelyOpenObjects(doSomethingOnMesh, lookAtMesh, toOpen, {
-          hierarchyModel: tempOrder,
-          meshes: orderTuple.meshes,
-        });
-      }
-    });
-  }
-}
-
-function isInParentOrder(po: ParentOrder, name: string): boolean {
-  // console.log("parentOrder:", po, name)
-  if (po.fqn === name) {
-    return true;
-  } else if (po.childs.length === 0) {
-    return false;
-  }
-  let tempBool = false;
-  po.childs.forEach((element) => {
-    tempBool =
-      tempBool ||
-      isInParentOrder(
-        {
-          fqn: element.fqn,
-          childs: element.childs,
-          meshid: element.meshid,
-          methods: [],
-        },
-        name
-      );
-  });
-
-  return tempBool;
-}
 export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
   // console.log(dest, apiCall, socket)
   socket.emit(dest, apiCall);
-}
-
-export function refreshVizData(action: IDEApiActions, cl: CommunicationLink[]) {
-  foundationCommunicationLinksGlobal = cl;
-  socket.emit(action, cl);
 }
 
 export function sendMonitoringData(monitoringData: MonitoringData[]) {

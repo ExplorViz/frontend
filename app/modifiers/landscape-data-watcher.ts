@@ -7,11 +7,8 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import {
-  CommunicationLink,
-  IDEApiActions,
-  refreshVizData,
-} from 'explorviz-frontend/services/ide-api';
+import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
+import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication, {
@@ -51,6 +48,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
+
+  @service('ide-websocket-facade')
+  ideWebsocketFacade!: IdeWebsocketFacade;
 
   @service
   private worker!: any;
@@ -175,11 +175,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
     this.graph.graphData(gData);
 
-    // console.log('Test3');
-
-    // refreshVizData(IDEApiActions.Refresh, []);
+    // send new data to ide
     const cls: CommunicationLink[] = [];
-
     communicationLinks.forEach((element) => {
       const meshIDs = element.communicationData.id.split('_');
       const tempCL: CommunicationLink = {
@@ -190,17 +187,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       };
       cls.push(tempCL);
     });
-
-    // console.log("OG communicationLinks", communicationLinks)
-    // console.log("communicationLinks", cls)
-    refreshVizData(IDEApiActions.Refresh, cls);
-    // emitToBackend(IDEApiDest.VizDo, {
-    //   action: IDEApiActions.GetVizData,
-    //   data: [],
-    //   meshId: "",
-    //   occurrenceID: -1,
-    //   fqn: ""
-    // })
+    this.ideWebsocketFacade.refreshVizData(cls);
   });
 
   updateApplicationData = task(

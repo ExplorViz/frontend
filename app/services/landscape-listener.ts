@@ -212,6 +212,10 @@ export default class LandscapeListener extends Service.extend(Evented) {
 
     this.timestampRepo.triggerTimelineUpdate();
   }
+
+  cleanup() {
+    console.log('Cleanup was called');
+  }
 }
 
 declare module '@ember/service' {
