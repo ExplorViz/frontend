@@ -39,10 +39,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import IdeWebsocket, {
-  CommunicationLink,
-  VizDataRaw,
-} from 'explorviz-frontend/ide/ide-websocket';
+import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -172,11 +169,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // IDE API
     this.ideWebsocket = new IdeWebsocket(
-      //this.handleSingleClickOnMesh,
       getOwner(this),
       this.handleDoubleClickOnMeshIDEAPI,
-      this.lookAtMesh,
-      this.getVizData
+      this.lookAtMesh
     );
   }
 
@@ -313,52 +308,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       updatables: this.updatables,
     });
     this.renderingLoop.start();
-  }
-
-  @action
-  getVizData(foundationCommunicationLinks: CommunicationLink[]): VizDataRaw {
-    const openApplications = this.applicationRenderer.getOpenApplications();
-    const communicationLinks: CommunicationLink[] =
-      foundationCommunicationLinks;
-    openApplications.forEach((element) => {
-      const application = element;
-
-      const applicationData = this.applicationRepo.getById(
-        application.dataModel.id
-      );
-
-      const drawableClassCommunications =
-        applicationData?.drawableClassCommunications;
-
-      // console.log(drawableClassCommunications)
-
-      // Add Communication meshes inside the foundations to the foundation communicationLinks list
-      if (
-        drawableClassCommunications &&
-        drawableClassCommunications.length != 0
-      ) {
-        drawableClassCommunications.forEach((element) => {
-          const meshIDs = element.id.split('_');
-          const tempCL: CommunicationLink = {
-            meshID: element.id,
-            sourceMeshID: meshIDs[0],
-            targetMeshID: meshIDs[1],
-            methodName: meshIDs[2],
-          };
-          if (
-            communicationLinks.findIndex((e) => e.meshID == element.id) == -1
-          ) {
-            communicationLinks.push(tempCL);
-          }
-        });
-      }
-    });
-
-    // console.log("communicationLinks", communicationLinks)
-    return {
-      applicationObject3D: openApplications,
-      communicationLinks: communicationLinks,
-    };
   }
 
   @action

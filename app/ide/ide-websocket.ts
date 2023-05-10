@@ -16,6 +16,8 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -90,26 +92,30 @@ export default class IdeWebsocket {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
-  getVizData: (foundationCommunicationLinks: CommunicationLink[]) => VizDataRaw;
 
   constructor(
     owner: any,
     handleDoubleClickOnMesh: (meshID: string) => void,
-    lookAtMesh: (meshID: string) => void,
-    getVizData: (
-      foundationCommunicationLinks: CommunicationLink[]
-    ) => VizDataRaw
+    lookAtMesh: (meshID: string) => void
   ) {
     setOwner(this, owner);
     this.restartAndSetSocket(httpSocket);
 
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
-    this.getVizData = getVizData;
 
-    this.ideWebsocketFacade.on('ide-refresh-data', this.refreshVizData);
+    this.ideWebsocketFacade.on(
+      'ide-refresh-data',
+      this.refreshVizData.bind(this)
+    );
 
     socket.on('connect', () => {
       socket.emit(
@@ -196,6 +202,53 @@ export default class IdeWebsocket {
     });
   }
 
+  private getVizData(
+    foundationCommunicationLinks: CommunicationLink[]
+  ): VizDataRaw {
+    const openApplications = this.applicationRenderer.getOpenApplications();
+    const communicationLinks: CommunicationLink[] =
+      foundationCommunicationLinks;
+    openApplications.forEach((element) => {
+      const application = element;
+
+      const applicationData = this.applicationRepo.getById(
+        application.dataModel.id
+      );
+
+      const drawableClassCommunications =
+        applicationData?.drawableClassCommunications;
+
+      // console.log(drawableClassCommunications)
+
+      // Add Communication meshes inside the foundations to the foundation communicationLinks list
+      if (
+        drawableClassCommunications &&
+        drawableClassCommunications.length != 0
+      ) {
+        drawableClassCommunications.forEach((element) => {
+          const meshIDs = element.id.split('_');
+          const tempCL: CommunicationLink = {
+            meshID: element.id,
+            sourceMeshID: meshIDs[0],
+            targetMeshID: meshIDs[1],
+            methodName: meshIDs[2],
+          };
+          if (
+            communicationLinks.findIndex((e) => e.meshID == element.id) == -1
+          ) {
+            communicationLinks.push(tempCL);
+          }
+        });
+      }
+    });
+
+    // console.log("communicationLinks", communicationLinks)
+    return {
+      applicationObject3D: openApplications,
+      communicationLinks: communicationLinks,
+    };
+  }
+
   jumpToLocation(object: THREE.Object3D<THREE.Event>) {
     const vizDataRaw: VizDataRaw = this.getVizData(
       foundationCommunicationLinksGlobal
@@ -213,9 +266,22 @@ export default class IdeWebsocket {
   }
 
   refreshVizData(cl: CommunicationLink[]) {
-    log('Send new data to ide');
     foundationCommunicationLinksGlobal = cl;
-    socket.emit(IDEApiActions.Refresh, cl);
+
+    const vizDataRaw: VizDataRaw = this.getVizData(
+      foundationCommunicationLinksGlobal
+    );
+    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+
+    log('Send new data to ide');
+    emitToBackend(IDEApiDest.IDEDo, {
+      action: IDEApiActions.Refresh,
+      data: vizDataOrderTuple,
+      meshId: '',
+      fqn: '',
+      occurrenceID: -1,
+      foundationCommunicationLinks: foundationCommunicationLinksGlobal,
+    });
   }
 
   dispose() {
@@ -398,7 +464,6 @@ function resetFoundation(
 }
 
 export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
-  // console.log(dest, apiCall, socket)
   socket.emit(dest, apiCall);
 }
 
