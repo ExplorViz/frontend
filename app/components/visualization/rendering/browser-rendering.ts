@@ -312,13 +312,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClick(intersection: THREE.Intersection) {
-    this.debug('handleSingleClick');
-
-    this.ideWebsocket.jumpToLocation(intersection.object);
-
     if (intersection) {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
+      this.ideWebsocket.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
     }
