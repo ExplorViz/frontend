@@ -19,6 +19,7 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -129,12 +130,30 @@ export default class IdeWebsocket {
   }
 
   private setupSocketListeners() {
+    if (!socket) {
+      return;
+    }
+
+    socket!.on('disconnect', (err) => {
+      if (err === 'transport close') {
+        AlertifyHandler.showAlertifyError(
+          'IDE connection was unexpectedly closed. Will try to reconnect.'
+        );
+        this.ideWebsocketFacade.isConnected = false;
+      }
+    });
+
+    socket.on('reconnect', () => {
+      this.ideWebsocketFacade.isConnected = true;
+    });
+
     socket!.on('connect', () => {
       socket!.emit(
         'update-user-info',
         { userId: this.auth.user?.nickname },
         (roomName: string) => {
           this.ideWebsocketFacade.roomName = roomName;
+          this.ideWebsocketFacade.isConnected = true;
         }
       );
       //socket.emit('update-user-info', { userId: 'explorviz-user' });
@@ -151,6 +170,18 @@ export default class IdeWebsocket {
 
       socket!.on('connect_error', (err: any) => {
         console.log(`connect_error due to ${err.message}`);
+      });
+
+      socket!.on('reconnect_error', (error) => {
+        console.log(`error due to ${error.message}`);
+      });
+
+      socket!.on('reconnect_error', (error) => {
+        console.log(`error due to ${error.message}`);
+      });
+
+      socket!.on('reconnect_failed', () => {
+        console.log(`reconnect failed`);
       });
 
       switch (data.action) {
@@ -294,7 +325,7 @@ export default class IdeWebsocket {
   }
 
   refreshVizData(cl: CommunicationLink[]) {
-    if (!socket || socket.disconnected) {
+    if (!socket || (socket && socket.disconnected)) {
       return;
     }
 
@@ -320,6 +351,7 @@ export default class IdeWebsocket {
     log('Disconnecting socket');
     if (socket) {
       socket.disconnect();
+      this.ideWebsocketFacade.isConnected = false;
     }
   }
 
@@ -327,6 +359,7 @@ export default class IdeWebsocket {
     httpSocket = newHttpSocket;
     if (socket) {
       socket.disconnect();
+      this.ideWebsocketFacade.isConnected = false;
     }
     log('Restarting socket with: ', newHttpSocket);
     socket = io(newHttpSocket);

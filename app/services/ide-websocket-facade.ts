@@ -6,6 +6,8 @@ import { tracked } from '@glimmer/tracking';
 export default class IdeWebsocketFacade extends Service.extend(Evented) {
   @tracked roomName: string = 'undefined';
 
+  @tracked isConnected: boolean = false;
+
   refreshVizData(cl: CommunicationLink[]) {
     this.trigger('ide-refresh-data', cl);
   }
