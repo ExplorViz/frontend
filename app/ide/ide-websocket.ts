@@ -1,6 +1,6 @@
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
-import { io } from 'socket.io-client';
+import { Socket, io } from 'socket.io-client';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import Auth from 'explorviz-frontend/services/auth';
 import { setOwner } from '@ember/application';
@@ -18,6 +18,7 @@ import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { DefaultEventsMap } from '@socket.io/component-emitter';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -75,7 +76,7 @@ type OrderTuple = {
 const { vsCodeService } = ENV.backendAddresses;
 
 let httpSocket = vsCodeService;
-let socket = io(httpSocket);
+let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
 // @ts-ignore value is set in listener function of websocket
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
@@ -107,7 +108,6 @@ export default class IdeWebsocket {
     lookAtMesh: (meshID: string) => void
   ) {
     setOwner(this, owner);
-    this.restartAndSetSocket(httpSocket);
 
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
@@ -117,8 +117,20 @@ export default class IdeWebsocket {
       this.refreshVizData.bind(this)
     );
 
-    socket.on('connect', () => {
-      socket.emit(
+    this.ideWebsocketFacade.on(
+      'ide-restart-connection',
+      this.reInitialize.bind(this)
+    );
+  }
+
+  private reInitialize() {
+    this.restartAndSetSocket(httpSocket);
+    this.setupSocketListeners();
+  }
+
+  private setupSocketListeners() {
+    socket!.on('connect', () => {
+      socket!.emit(
         'update-user-info',
         { userId: this.auth.user?.nickname },
         (roomName: string) => {
@@ -128,16 +140,16 @@ export default class IdeWebsocket {
       //socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
-    socket.on('vizDo', (data: IDEApiCall) => {
+    socket!.on('vizDo', (data: IDEApiCall) => {
       const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
-      // console.log("vizdo")
+      console.log('vizdo');
 
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
-      socket.on('connect_error', (err: any) => {
+      socket!.on('connect_error', (err: any) => {
         console.log(`connect_error due to ${err.message}`);
       });
 
@@ -152,13 +164,7 @@ export default class IdeWebsocket {
           // OpenObject(handleDoubleClickOnMesh, "sampleApplication")
           console.log('data: ', data.fqn, data.occurrenceID, vizDataOrderTuple);
 
-          OpenObject(
-            handleDoubleClickOnMesh,
-            data.fqn,
-            data.occurrenceID,
-            lookAtMesh,
-            vizDataRaw
-          );
+          this.openObjects2(vizDataOrderTuple);
           // OpenObject(handleDoubleClickOnMesh,"petclinic-demo.org.springframework.samples.petclinic.owner")
           // recursivelyOpenObjects(handleDoubleClickOnMesh, "samples", Open3dObjectsHelper(applObj3D))
           // console.log(applObj3D)
@@ -199,6 +205,29 @@ export default class IdeWebsocket {
         default:
           break;
       }
+    });
+  }
+
+  private openObjects2(orderTuple: OrderTuple[]) {
+    //console.log(
+    //  'orderTuple in OpenObject: ',
+    //  orderTuple,
+    //  vizData.communicationLinks
+    //);
+    //resetFoundation(doSomethingOnMesh, orderTuple);
+
+    orderTuple.forEach((ot) => {
+      const meshId = ot.hierarchyModel.meshid;
+      const mesh = this.applicationRenderer.getMeshById(meshId);
+
+      this.handleDoubleClickOnMesh(meshId);
+
+      //console.log(isComponent mesh);
+
+      //for (const application of this.applicationRepo.getAll()) {
+      //  application.application.
+      // }
+      // this.applicationRenderer.openParents(mesh.get, 1);
     });
   }
 
@@ -254,7 +283,6 @@ export default class IdeWebsocket {
       foundationCommunicationLinksGlobal
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
-
     emitToBackend(IDEApiDest.IDEDo, {
       action: IDEApiActions.JumpToLocation,
       data: vizDataOrderTuple,
@@ -266,6 +294,10 @@ export default class IdeWebsocket {
   }
 
   refreshVizData(cl: CommunicationLink[]) {
+    if (!socket || socket.disconnected) {
+      return;
+    }
+
     foundationCommunicationLinksGlobal = cl;
 
     const vizDataRaw: VizDataRaw = this.getVizData(
@@ -286,12 +318,16 @@ export default class IdeWebsocket {
 
   dispose() {
     log('Disconnecting socket');
-    socket.disconnect();
+    if (socket) {
+      socket.disconnect();
+    }
   }
 
   restartAndSetSocket(newHttpSocket: string) {
     httpSocket = newHttpSocket;
-    socket.disconnect();
+    if (socket) {
+      socket.disconnect();
+    }
     log('Restarting socket with: ', newHttpSocket);
     socket = io(newHttpSocket);
   }
@@ -452,7 +488,15 @@ function OpenObject(
   //  orderTuple,
   //  vizData.communicationLinks
   //);
-  resetFoundation(doSomethingOnMesh, orderTuple);
+  //resetFoundation(doSomethingOnMesh, orderTuple);
+
+  const that = this;
+
+  orderTuple.forEach((ot) => {
+    const meshId = ot.hierarchyModel.meshid;
+    const mesh = that.applicationRenderer.getMeshById(meshId);
+    that.applicationRenderer.openParents(mesh);
+  });
 }
 function resetFoundation(
   doSomethingOnMesh: (meshID: string) => void,
@@ -464,13 +508,13 @@ function resetFoundation(
 }
 
 export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
-  socket.emit(dest, apiCall);
+  socket!.emit(dest, apiCall);
 }
 
 export function sendMonitoringData(monitoringData: MonitoringData[]) {
   // emitToBackend(IDEApiDest.VizDo, { action: IDEApiActions.DoubleClickOnMesh, fqn: "org.springframework.samples.petclinic.model.Person", data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", occurrenceID: 0 })
   console.log('monitroingData: ', monitoringData);
-  socket.emit(IDEApiDest.IDEDo, {
+  socket!.emit(IDEApiDest.IDEDo, {
     action: IDEApiActions.JumpToMonitoringClass,
     monitoringData: monitoringData,
   });

@@ -58,6 +58,6 @@ export default class ArSettingsSelector extends Component<XrVscodeExtensionSetti
   connectToIDE() {
     console.log('connectToIDE');
     AlertifyHandler.showAlertifyMessage('Connect to IDE');
-    //restartAndSetSocket(this.backendHTTP);
+    this.ideWebsocketFacade.restartConnection();
   }
 }
