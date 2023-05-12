@@ -310,6 +310,10 @@ export default class IdeWebsocket {
   }
 
   jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+    if (!socket || (socket && socket.disconnected)) {
+      return;
+    }
+
     const vizDataRaw: VizDataRaw = this.getVizData(
       foundationCommunicationLinksGlobal
     );
