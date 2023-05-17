@@ -34,6 +34,7 @@ import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
+import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -217,6 +218,12 @@ export default class VrMenuFactoryService extends Service {
       scaleMenu2: new ScaleMenu({ sharedState, menuFactory: this }),
     };
   }
+
+  buildSearchMenu() : SearchMenu {
+    return new SearchMenu({menuFactory: this});
+  }
+
+
 
   // #endregion TOOL MENUS
 
