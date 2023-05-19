@@ -83,8 +83,6 @@ let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
-let previousVizData: OrderTuple[] = [];
-
 const log = debugLogger('ide-websocket');
 
 export default class IdeWebsocket {
@@ -163,8 +161,6 @@ export default class IdeWebsocket {
       const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
-      console.log('vizdo');
-
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
@@ -186,79 +182,39 @@ export default class IdeWebsocket {
 
       switch (data.action) {
         case 'singleClickOnMesh':
-          // handleSingleClickOnMesh(applObj3D.children[29])
-          // recursivelyOpenObjects(handleSingleClickOnMesh, "explorviz", Open3dObjectsHelper(applObj3D))
-          // console.log(applObj3D.children[29])
           break;
+
         case 'doubleClickOnMesh':
-          // handleDoubleClickOnMesh(applObj3D.children[1])
-          // OpenObject(handleDoubleClickOnMesh, "sampleApplication")
-          console.log('data: ', data.fqn, data.occurrenceID, vizDataOrderTuple);
-
-          this.openObjects2(vizDataOrderTuple);
-          // OpenObject(handleDoubleClickOnMesh,"petclinic-demo.org.springframework.samples.petclinic.owner")
-          // recursivelyOpenObjects(handleDoubleClickOnMesh, "samples", Open3dObjectsHelper(applObj3D))
-          // console.log(applObj3D)
+          console.log('vizDataOrderTuple:', vizDataOrderTuple);
+          console.log('data: ', data);
+          //this.openObjects(vizDataOrderTuple, data.fqn);
+          OpenObject(
+            this.handleDoubleClickOnMesh,
+            data.fqn,
+            data.occurrenceID,
+            this.lookAtMesh,
+            vizDataRaw
+          );
 
           break;
+
         case 'clickTimeLine':
           break;
+
         case 'getVizData':
-          // console.log("VizData: ")
-          // console.log(vizData)
-          // emitToBackend(IDEApiDest.IDEDo, { action: IDEApiActions.GetVizData, data: [], meshId: "" })
-          if (previousVizData.length === 0) {
-            log('Initial payload');
-            emitToBackend(IDEApiDest.IDEDo, {
-              action: IDEApiActions.GetVizData,
-              data: vizDataOrderTuple,
-              meshId: '',
-              fqn: '',
-              occurrenceID: -1,
-              foundationCommunicationLinks: data.foundationCommunicationLinks,
-            });
-          } else if (
-            JSON.stringify(previousVizData) !==
-            JSON.stringify(vizDataOrderTuple)
-          ) {
-            log('Update');
-            emitToBackend(IDEApiDest.IDEDo, {
-              action: IDEApiActions.GetVizData,
-              data: vizDataOrderTuple,
-              meshId: '',
-              fqn: '',
-              occurrenceID: -1,
-              foundationCommunicationLinks: data.foundationCommunicationLinks,
-            });
-          }
-          previousVizData = vizDataOrderTuple;
+          emitToBackend(IDEApiDest.IDEDo, {
+            action: IDEApiActions.Refresh,
+            data: vizDataOrderTuple,
+            meshId: '',
+            fqn: '',
+            occurrenceID: -1,
+            foundationCommunicationLinks: data.foundationCommunicationLinks,
+          });
           break;
+
         default:
           break;
       }
-    });
-  }
-
-  private openObjects2(orderTuple: OrderTuple[]) {
-    //console.log(
-    //  'orderTuple in OpenObject: ',
-    //  orderTuple,
-    //  vizData.communicationLinks
-    //);
-    //resetFoundation(doSomethingOnMesh, orderTuple);
-
-    orderTuple.forEach((ot) => {
-      const meshId = ot.hierarchyModel.meshid;
-      const mesh = this.applicationRenderer.getMeshById(meshId);
-
-      this.handleDoubleClickOnMesh(meshId);
-
-      //console.log(isComponent mesh);
-
-      //for (const application of this.applicationRepo.getAll()) {
-      //  application.application.
-      // }
-      // this.applicationRenderer.openParents(mesh.get, 1);
     });
   }
 
@@ -386,19 +342,6 @@ function getOrderedParents(dataModel: Application): ParentOrder {
       meshid: element.id,
       methods: [],
     });
-
-    // if (element.classes.length !== 0) {
-    //   console.log("test")
-    //   temp.push({ name: fqn, childs: parentClass(fqn, element.classes) })
-    // }
-    // else if (element.subPackages.length !== 0) {
-    //   console.log(fqn)
-    //   temp.push({ name: fqn, childs: parentPackage(fqn, element.subPackages) })
-
-    // }
-    // else {
-    //   console.error("getOrderedParents miss a Case")
-    // }
   });
 
   result.childs = temp;
@@ -437,16 +380,12 @@ function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   }
   classes.forEach((element) => {
     const newFqn = fqn + '.' + element.name;
-    // console.log(newFqn, ": ", element.methods)
     temp.push({
       fqn: newFqn,
-      // childs: [],
       childs: [],
       meshid: element.id,
       methods: [],
-      // methods: parentMethod(newFqn, element.methods)
     });
-    // temp.push({ fqn: newFqn, childs: [], meshid: element.id });
   });
 
   return temp;
@@ -484,11 +423,8 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
   return meshTemp;
 }
 function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
-  // console.log("applObj3D:", applObj3D.commIdToMesh)
   const vizDataOrderTuple: OrderTuple[] = [];
   vizData.applicationObject3D.forEach((element) => {
-    // const temp = VizDataToOrderTuple(element)
-    // vizDataOrderTuple.push(temp);
     const orderedParents = getOrderedParents(element.dataModel);
     const meshes = getFqnForMeshes(orderedParents);
     let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
@@ -498,43 +434,89 @@ function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
     );
     vizDataOrderTuple.push(tempOT);
   });
-  // console.log(orderedParents)
-  // console.log(meshNames)
-  //console.log(
-  //  'vizDataOrderTuple',
-  //  vizDataOrderTuple,
-  //  vizData.communicationLinks
-  //);
-
   return vizDataOrderTuple;
 }
 
 function OpenObject(
   doSomethingOnMesh: (meshID: string) => void,
-  _fullQualifiedName: string,
-  _occurrenceID: number,
-  _lookAtMesh: (meshID: string) => void,
+  fullQualifiedName: string,
+  occurrenceID: number,
+  lookAtMesh: (meshID: string) => void,
   vizData: VizDataRaw
 ) {
-  // console.log(fullQualifiedName)
-
   const orderTuple: OrderTuple[] = VizDataToOrderTuple(vizData);
 
-  //console.log(
-  //  'orderTuple in OpenObject: ',
-  //  orderTuple,
-  //  vizData.communicationLinks
-  //);
-  //resetFoundation(doSomethingOnMesh, orderTuple);
-
-  const that = this;
+  resetFoundation(doSomethingOnMesh, orderTuple);
 
   orderTuple.forEach((ot) => {
-    const meshId = ot.hierarchyModel.meshid;
-    const mesh = that.applicationRenderer.getMeshById(meshId);
-    that.applicationRenderer.openParents(mesh);
+    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
+
+    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
+    recursivelyOpenObjects(
+      doSomethingOnMesh,
+      lookAtMesh,
+      ot.hierarchyModel.fqn + occurrenceName + fullQualifiedName,
+      ot
+    );
   });
 }
+
+function recursivelyOpenObjects(
+  doSomethingOnMesh: (meshID: string) => void,
+  lookAtMesh: (meshID: string) => void,
+  toOpen: string,
+  orderTuple: OrderTuple
+) {
+  if (orderTuple.meshes.meshNames.indexOf(toOpen) === -1) {
+    return;
+  }
+
+  orderTuple.hierarchyModel.childs.forEach((element) => {
+    const tempOrder: ParentOrder = {
+      fqn: element.fqn,
+      childs: element.childs,
+      meshid: element.meshid,
+      methods: [],
+    };
+    if (element.methods.length != 0) {
+      console.log('Methods elem: ', element);
+    } else if (isInParentOrder(element, toOpen)) {
+      doSomethingOnMesh(element.meshid);
+      if (toOpen == element.fqn) {
+        lookAtMesh(element.meshid);
+      }
+      recursivelyOpenObjects(doSomethingOnMesh, lookAtMesh, toOpen, {
+        hierarchyModel: tempOrder,
+        meshes: orderTuple.meshes,
+      });
+    }
+  });
+}
+
+function isInParentOrder(po: ParentOrder, name: string): boolean {
+  if (po.fqn === name) {
+    return true;
+  } else if (po.childs.length === 0) {
+    return false;
+  }
+  let tempBool = false;
+  po.childs.forEach((element) => {
+    tempBool =
+      tempBool ||
+      isInParentOrder(
+        {
+          fqn: element.fqn,
+          childs: element.childs,
+          meshid: element.meshid,
+          methods: [],
+        },
+        name
+      );
+  });
+
+  return tempBool;
+}
+
 function resetFoundation(
   doSomethingOnMesh: (meshID: string) => void,
   orderTuple: OrderTuple[]
