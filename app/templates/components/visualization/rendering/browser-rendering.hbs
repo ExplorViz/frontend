@@ -79,6 +79,9 @@
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
+              <Visualization::PageSetup::Navbar::RestructureOpener
+                @addComponent={{@addComponent}}
+              />
             </ul>
           </div>
           {{#each @components as |componentName|}}
@@ -113,6 +116,12 @@
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
+                    @removeComponent={{@removeComponent}}
+                  />
+                {{/if}}
+                {{#if (eq componentName 'restructure-landscape')}}
+                  <h5 class='text-center'>Restructure</h5>
+                  <Visualization::PageSetup::Sidebar::Restructure
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
