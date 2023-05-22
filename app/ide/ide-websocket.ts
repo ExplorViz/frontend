@@ -134,9 +134,6 @@ export default class IdeWebsocket {
 
     socket!.on('disconnect', (err) => {
       if (err === 'transport close') {
-        AlertifyHandler.showAlertifyError(
-          'IDE connection was unexpectedly closed. Will try to reconnect.'
-        );
         this.ideWebsocketFacade.isConnected = false;
       }
     });
@@ -157,28 +154,36 @@ export default class IdeWebsocket {
       //socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
+    socket!.on('connect_error', () => {
+      AlertifyHandler.showAlertifyMessageWithDurationAndClickCallback(
+        'IDE connection was unexpectedly closed. Will try to reconnect. <b><u>Click here to stop reconnection.</u></b>',
+        4,
+        () => {
+          console.log('hello from the other side');
+          socket?.disconnect();
+        },
+        'error'
+      );
+    });
+
+    socket!.on('reconnect_error', (error) => {
+      console.log(`error due to ${error.message}`);
+    });
+
+    socket!.on('reconnect_error', (error) => {
+      console.log(`error due to ${error.message}`);
+    });
+
+    socket!.on('reconnect_failed', () => {
+      console.log(`reconnect failed`);
+    });
+
     socket!.on('vizDo', (data: IDEApiCall) => {
       const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
-
-      socket!.on('connect_error', (err: any) => {
-        console.log(`connect_error due to ${err.message}`);
-      });
-
-      socket!.on('reconnect_error', (error) => {
-        console.log(`error due to ${error.message}`);
-      });
-
-      socket!.on('reconnect_error', (error) => {
-        console.log(`error due to ${error.message}`);
-      });
-
-      socket!.on('reconnect_failed', () => {
-        console.log(`reconnect failed`);
-      });
 
       switch (data.action) {
         case 'singleClickOnMesh':
