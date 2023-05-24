@@ -76,6 +76,7 @@ export default class TextItem extends Item {
     ctx.textAlign = this.alignment;
     ctx.textBaseline = this.baseline;
 
+
     ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;

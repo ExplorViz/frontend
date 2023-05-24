@@ -164,7 +164,7 @@
     "stats.js": "^0.17.0",
     "three": "^0.152.2",
     "three-forcegraph": "^1.41.9",
-    "three-mesh-ui": "^6.5.4",
+    "three-mesh-ui": "^6.5.4",    
     "vanilla-picker": "^2.12.1"
   },
   "overrides": {

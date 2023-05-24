@@ -10,6 +10,9 @@ import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';
 import TextItem from '../items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
+import ThreeMeshUI from 'three-mesh-ui';
+import * as THREE from 'three';
+import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 
 export type DetailInfoMenuArgs = UiMenuArgs & {
   object: EntityMesh;
@@ -22,6 +25,7 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
   private entryItems: Map<string, TextItem>;
 
   private applicationRepo: ApplicationRepository;
+  renderer: any;
 
   constructor({
     object,
@@ -72,28 +76,57 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
     });
     this.items.push(title);
 
+
     let offset = 100;
-    content.entries.forEach(({ key, value }) => {
-      const keyTextItem = new TextItem({
-        text: key,
-        color: '#ffffff',
-        fontSize: 26,
-        position: { x: 20, y: offset },
-      });
-      this.items.push(keyTextItem);
+    // content.entries.forEach(({ key, value }) => {
+    //   const keyTextItem = new TextItem({
+    //     text: key,
+    //     color: '#ffffff',
+    //     fontSize: 26,
+    //     position: { x: 20, y: offset },
+    //   });
+    //   this.items.push(keyTextItem);
 
-      const valueTextItem = new TextItem({
-        text: value,
-        color: '#ffffff',
-        fontSize: 26,
-        alignment: 'right',
-        position: { x: 768 - 20, y: offset },
-      });
-      this.items.push(valueTextItem);
-      this.entryItems.set(key, valueTextItem);
+    //   const valueTextItem = new TextItem({
+    //     text: value,
+    //     color: '#ffffff',
+    //     fontSize: 26,
+    //     alignment: 'right',
+    //     position: { x: 768 - 20, y: offset },
+    //   });
+    //   this.items.push(valueTextItem);
+    //   this.entryItems.set(key, valueTextItem);
 
-      offset += 70;
-    });
+    //   offset += 70;
+    // });
+
+    
+    const container = new ThreeMeshUI.Block( {
+      height: 0.5 , ///this.resolution.height,
+      width: 0.5, ///this.resolution.width,
+      padding: 0.05,
+      justifyContent: 'center',
+      backgroundOpacity: 1,
+      backgroundColor: new THREE.Color( 'grey' ),
+    } );
+
+
+    //this.menuFactory.renderer.localClippingEnabled = true;
+
+    this.add(container);
+
+    const container2 = new ThreeMeshUI.Block( {
+      height: 0.5 , ///this.resolution.height,
+      width: 0.5, ///this.resolution.width,
+      padding: 0.05,
+      justifyContent: 'center',
+      backgroundOpacity: 1,
+      backgroundColor: new THREE.Color( 'blue' ),
+      offset: 0.001
+    } );
+
+    container.add(container2);
+
 
     this.redrawMenu();
     // this.detachMenu();
@@ -102,15 +135,17 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
 
-    const content = composeContent(this.object, this.applicationRepo);
-    if (content) {
-      content.entries.forEach(({ key, value }) => {
-        this.entryItems.get(key)?.setText(value);
-      });
-      this.redrawMenu();
-    } else {
-      this.closeMenu();
-    }
+    ThreeMeshUI.update();
+
+    // const content = composeContent(this.object, this.applicationRepo);
+    // if (content) {
+    //   content.entries.forEach(({ key, value }) => {
+    //     this.entryItems.get(key)?.setText(value);
+    //   });
+    //   this.redrawMenu();
+    // } else {
+    //   this.closeMenu();
+    // }
   }
 
   makeTriggerButtonBinding() {
