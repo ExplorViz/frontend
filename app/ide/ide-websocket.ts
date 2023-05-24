@@ -327,7 +327,9 @@ export default class IdeWebsocket {
       this.ideWebsocketFacade.isConnected = false;
     }
     log('Restarting socket with: ', newHttpSocket);
-    socket = io(newHttpSocket);
+    socket = io(newHttpSocket, {
+      path: '/v2/ide/',
+    });
   }
 }
 
