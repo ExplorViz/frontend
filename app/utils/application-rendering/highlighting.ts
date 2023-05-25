@@ -119,7 +119,7 @@ export function highlight(
   // Now proceed to make unhighlighted entities transparent
 
   // All clazzes in application
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
   const allClazzesAsArray = getAllClassesInApplication(application);
   const allClazzes = new Set<Class>(allClazzesAsArray);
 
@@ -256,7 +256,7 @@ export function highlightTrace(
 
   // All clazzes in application
   const allClazzesAsArray = getAllClassesInApplication(
-    applicationObject3D.dataModel
+    applicationObject3D.data.application
   );
   const allClazzes = new Set<Class>(allClazzesAsArray);
 
@@ -408,7 +408,7 @@ export function updateHighlighting(
 
   if (applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
     const possiblyNewMeshInstance = applicationObject3D.getCommMeshByModelId(
-      applicationObject3D.highlightedEntity.dataModel.id
+      applicationObject3D.highlightedEntity.getModelId()
     );
 
     if (possiblyNewMeshInstance) {

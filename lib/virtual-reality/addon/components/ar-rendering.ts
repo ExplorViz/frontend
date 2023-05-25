@@ -525,7 +525,7 @@ export default class ArRendering extends Component<Args> {
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );
@@ -698,7 +698,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (object instanceof ApplicationMesh) {
-      this.showApplication(object.dataModel.id);
+      this.showApplication(object.getModelId());
       // Handle application hits
     } else if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);

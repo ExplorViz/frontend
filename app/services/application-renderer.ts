@@ -201,7 +201,7 @@ export default class ApplicationRenderer extends Service.extend({
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (application) {
-      this.openApplicationsMap.delete(application.dataModel.id);
+      this.openApplicationsMap.delete(application.getModelId());
       application.parent?.remove(application);
       application.children.forEach((child) => {
         if (child instanceof BaseMesh) {
@@ -244,12 +244,11 @@ export default class ApplicationRenderer extends Service.extend({
         //  JSON.stringify(boxLayoutMap) !==
         //  JSON.stringify(currentApplicationObject3D.boxLayoutMap);
         // if (layoutChanged) {
-        currentApplicationObject3D.dataModel = applicationModel;
         currentApplicationObject3D.boxLayoutMap = boxLayoutMap;
         // }
       } else {
         currentApplicationObject3D = new VrApplicationObject3D(
-          applicationModel,
+          applicationData,
           boxLayoutMap
         );
       }
@@ -307,22 +306,6 @@ export default class ApplicationRenderer extends Service.extend({
     removeHighlighting(currentApplicationObject3D);
   }
 
-  updateOrCreateApplication(
-    application: Application,
-    layoutMap: Map<string, LayoutData>
-  ) {
-    // Converting plain JSON layout data due to worker limitations
-    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(layoutMap);
-    const currentApplicationObject3D = this.getApplicationById(application.id);
-    if (currentApplicationObject3D) {
-      currentApplicationObject3D.dataModel = application;
-
-      currentApplicationObject3D.boxLayoutMap = boxLayoutMap;
-      return currentApplicationObject3D;
-    }
-    return new VrApplicationObject3D(application, boxLayoutMap);
-  }
-
   @action
   addCommunicationForAllApplications() {
     this.getOpenApplications().forEach((currentApplicationObject3D) => {
@@ -349,7 +332,7 @@ export default class ApplicationRenderer extends Service.extend({
   @action
   addCommunication(currentApplicationObject3D: CurrentApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(
-      currentApplicationObject3D.dataModel.id
+      currentApplicationObject3D.getModelId()
     );
     const drawableClassCommunications =
       applicationData?.drawableClassCommunications;
@@ -387,7 +370,7 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObjetc3D: CurrentApplicationObject3D
   ) {
     const applicationData = this.applicationRepo.getById(
-      applicationObjetc3D.dataModel.id
+      applicationObjetc3D.getModelId()
     );
     return applicationData?.drawableClassCommunications;
   }
@@ -434,8 +417,8 @@ export default class ApplicationRenderer extends Service.extend({
   ) {
     this.toggleComponentLocally(componentMesh, currentApplicationObject3D);
     this.sender.sendComponentUpdate(
-      currentApplicationObject3D.dataModel.id,
-      componentMesh.dataModel.id,
+      currentApplicationObject3D.getModelId(),
+      componentMesh.getModelId(),
       componentMesh.opened,
       false
     );
@@ -455,7 +438,7 @@ export default class ApplicationRenderer extends Service.extend({
   closeAllComponents(currentApplicationObject3D: CurrentApplicationObject3D) {
     this.closeAllComponentsLocally(currentApplicationObject3D);
     this.sender.sendComponentUpdate(
-      currentApplicationObject3D.dataModel.id,
+      currentApplicationObject3D.getModelId(),
       '',
       false,
       true
@@ -473,7 +456,7 @@ export default class ApplicationRenderer extends Service.extend({
   openAllComponents(currentApplicationObject3D: CurrentApplicationObject3D) {
     this.openAllComponentsLocally(currentApplicationObject3D);
     this.sender.sendComponentUpdate(
-      currentApplicationObject3D.dataModel.id,
+      currentApplicationObject3D.getModelId(),
       '',
       true,
       true
@@ -511,7 +494,7 @@ export default class ApplicationRenderer extends Service.extend({
     this.getOpenApplications().forEach((currentApplicationObject3D) => {
       currentApplicationObject3D.removeAllEntities();
       removeHighlighting(currentApplicationObject3D);
-      this.removeApplicationLocally(currentApplicationObject3D.dataModel.id);
+      this.removeApplicationLocally(currentApplicationObject3D.getModelId());
     });
   }
 

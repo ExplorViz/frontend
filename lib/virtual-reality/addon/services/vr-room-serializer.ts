@@ -64,7 +64,7 @@ export default class VrRoomSerializer extends Service {
 
   serializeApplication(application: ApplicationObject3D) {
     return {
-      id: application.dataModel.id,
+      id: application.getModelId(),
       position: application.position.toArray(),
       quaternion: application.quaternion.toArray(),
       scale: application.scale.toArray(),
@@ -83,10 +83,10 @@ export default class VrRoomSerializer extends Service {
     ) {
       return [
         {
-          appId: application.dataModel.id,
+          appId: application.getModelId(),
           userId: '1',
           entityType: highlightedEntity.constructor.name,
-          entityId: highlightedEntity.dataModel.id,
+          entityId: highlightedEntity.getModelId(),
           isHighlighted: true,
         },
       ];

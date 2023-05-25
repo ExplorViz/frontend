@@ -116,7 +116,7 @@ export function closeComponentMesh(
  * @param applicationObject3D Application object which contains the components
  */
 export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
 
   // Close each component
   application.packages.forEach((component) => {
@@ -153,7 +153,7 @@ export function openComponentsRecursively(
  * @param applicationObject3D Application object which contains the components
  */
 export function openAllComponents(applicationObject3D: ApplicationObject3D) {
-  applicationObject3D.dataModel.packages.forEach((child) => {
+  applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
       openComponentMesh(mesh, applicationObject3D);
@@ -229,7 +229,7 @@ export function applyDefaultApplicationLayout(
 
   applyComponentLayout(
     applicationObject3D,
-    applicationObject3D.dataModel.packages
+    applicationObject3D.data.application.packages
   );
 }
 
@@ -256,7 +256,7 @@ export function moveCameraTo(
       return;
     }
 
-    const { dataModel: application } = applicationObject3D;
+    const { application } = applicationObject3D.data;
 
     const sourceClass = spanIdToClass(
       application,

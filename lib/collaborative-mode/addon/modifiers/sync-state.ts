@@ -43,7 +43,7 @@ export default class SyncStateModifier extends Modifier {
   modify() {
     if (this.heatmapConf.currentApplication && this.heatmapConf.heatmapShared) {
       this.send(HEATMAP_UPDATE_EVENT, {
-        applicationId: this.heatmapConf.currentApplication.dataModel.id,
+        applicationId: this.heatmapConf.currentApplication.getModelId(),
         metric: this.heatmapConf.selectedMetricName,
         mode: this.heatmapConf.selectedMode,
         isActive: this.heatmapConf.heatmapActive,

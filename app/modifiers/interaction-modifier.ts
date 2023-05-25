@@ -264,7 +264,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );

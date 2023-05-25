@@ -97,7 +97,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const { id } = drawableClazzComm;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-      applicationObject3D.dataModel,
+      applicationObject3D.data.application,
       [drawableClazzComm],
       false,
       id

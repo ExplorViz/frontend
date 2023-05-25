@@ -34,6 +34,10 @@ export default class ApplicationMesh extends PlaneMesh {
     }
   }
 
+  getModelId() {
+    return this.dataModel.id;
+  }
+
   setToDefaultPosition(centerPoint: THREE.Vector2) {
     const centerX =
       this.layout.positionX + this.layout.width / 2 - centerPoint.x;

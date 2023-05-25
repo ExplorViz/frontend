@@ -37,4 +37,8 @@ export default class FoundationMesh<
     });
     this.material = material;
   }
+
+  getModelId() {
+    return this.dataModel.id;
+  }
 }
