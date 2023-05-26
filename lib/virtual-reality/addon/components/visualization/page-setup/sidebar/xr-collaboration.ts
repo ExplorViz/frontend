@@ -60,11 +60,6 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   }
 
   @action
-  close() {
-    this.args.removeComponent('xr-collaboration');
-  }
-
-  @action
   hostRoom() {
     this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');

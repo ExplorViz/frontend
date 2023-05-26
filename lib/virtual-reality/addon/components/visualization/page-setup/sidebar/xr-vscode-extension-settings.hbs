@@ -1,0 +1,42 @@
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
+</div>
+
+{{#if this.ideWebsocketFacade.isConnected}}
+  <div>    
+      <label class='bold'>Room name:</label>
+      <label>{{this.ideWebsocketFacade.roomName}}</label>  
+    <CopyButton
+      class='button-svg-with-hover'
+      @text={{this.ideWebsocketFacade.roomName}}
+      @onSuccess={{this.onRoomNameCopied}}
+    >
+      {{svg-jar 'copy-16' class='octicon align-middle'}}
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+        Copy room name to clipboard
+      </BsTooltip>
+    </CopyButton>
+  </div>
+{{/if}}
+
+<BsButton
+  title='Connect'
+  {{on 'click' this.connectToIDE}}
+  @type='secondary'
+  @outline={{true}}
+>
+  Connect IDE
+</BsButton>
+
+<br />
+<br />
+{{!--
+<BsButton
+  title='Monitoring Tool'
+  {{on 'click' this.monitoring}}
+  @type='secondary'
+  @outline={{true}}
+>
+  Monitoring Tool
+</BsButton>
+ --}}

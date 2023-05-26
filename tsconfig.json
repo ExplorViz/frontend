@@ -64,7 +64,5 @@
     "lib/virtual-reality",
     "lib/heatmap"
   ],
-  "exclude": [
-    "tests/*"
-  ]
+  "exclude": ["tests/*"]
 }
