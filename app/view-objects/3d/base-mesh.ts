@@ -88,7 +88,6 @@ export default abstract class BaseMesh<
 
       // Restore normal color (depends on highlighting status)
       this.material.color = highlighted ? highlightingColor : defaultColor;
-
     }
     this.isHovered = false;
   }
@@ -151,11 +150,9 @@ export default abstract class BaseMesh<
     });
   }
 
-  set scaleAll(all: number){
+  set scaleAll(all: number){ 
     this.scale.x += all;
     this.scale.y += all;
     this.scale.z += all;
-  }
-
-
+  } 
 }
