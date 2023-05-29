@@ -309,9 +309,9 @@ export default class VrRendering extends Component<Args> {
     // When any base mash is hovered, highlight it.
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
-      hover: (event) => 
+      hover: (event) =>
         event.target.applyHoverEffect(1.1, this.localUser.visualizationMode),
-      resetHover: (event) => 
+      resetHover: (event) =>
         event.target.resetHoverEffect(this.localUser.visualizationMode),
     });
 
