@@ -289,7 +289,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return true;
   }
 
-  applyHoverEffect(colorShift?: number, mode?: VisualizationMode ): void {
+  applyHoverEffect(colorShift?: number, mode?: VisualizationMode): void {
     if (mode === 'vr' && this.isHovered === false) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
