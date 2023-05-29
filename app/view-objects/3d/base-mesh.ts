@@ -150,9 +150,9 @@ export default abstract class BaseMesh<
     });
   }
 
-  set scaleAll(all: number){ 
+  set scaleAll(all: number) {
     this.scale.x += all;
     this.scale.y += all;
     this.scale.z += all;
-  } 
+  }
 }
