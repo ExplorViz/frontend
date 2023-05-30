@@ -23,15 +23,12 @@ import {
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import CurrentApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -172,32 +169,6 @@ export default class ApplicationRenderer extends Service.extend({
     return Array.from(this.openApplicationsMap.values());
   }
 
-  /**
-   * Adds labels to all box meshes of a given application
-   */
-  addLabels(
-    currentApplicationObject3D: CurrentApplicationObject3D,
-    font: Font,
-    labelAll: boolean = false
-  ) {
-    const { clazzTextColor, componentTextColor, foundationTextColor } =
-      this.configuration.applicationColors;
-
-    currentApplicationObject3D.getBoxMeshes().forEach((mesh) => {
-      // Labeling is time-consuming. Thus, label only visible meshes incrementally
-      // as opposed to labeling all meshes up front (as done in application-rendering).
-      if (labelAll || mesh.visible) {
-        if (mesh instanceof ClazzMesh) {
-          Labeler.addClazzTextLabel(mesh, font, clazzTextColor);
-        } else if (mesh instanceof ComponentMesh) {
-          Labeler.addBoxTextLabel(mesh, font, componentTextColor);
-        } else if (mesh instanceof FoundationMesh) {
-          Labeler.addBoxTextLabel(mesh, font, foundationTextColor);
-        }
-      }
-    });
-  }
-
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (application) {
@@ -273,7 +244,13 @@ export default class ApplicationRenderer extends Service.extend({
         currentApplicationObject3D,
         applicationState.openComponents
       );
-      this.addLabels(currentApplicationObject3D, this.font, false);
+
+      // Add labels to application
+      Labeler.addApplicationLabels(
+        currentApplicationObject3D,
+        this.font,
+        this.configuration.applicationColors
+      );
 
       this.addCommunication(currentApplicationObject3D);
 
@@ -360,7 +337,11 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       this.highlightingService.updateHighlighting(currentApplicationObject3D);
     }
-    this.addLabels(currentApplicationObject3D, this.font, false);
+    Labeler.addApplicationLabels(
+      currentApplicationObject3D,
+      this.font,
+      this.configuration.applicationColors
+    );
     this.updateLinks?.();
   }
 
@@ -389,26 +370,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   isApplicationOpen(id: string): boolean {
     return this.openApplicationsMap.has(id);
-  }
-
-  getCommunicationMeshById(id: string) {
-    const openApplications = this.getOpenApplications();
-    for (let i = 0; i < openApplications.length; i++) {
-      const application = openApplications[i];
-      const mesh = application.getCommMeshByModelId(id);
-      if (mesh) return mesh;
-    }
-    return null;
-  }
-
-  getBoxMeshByModelId(id: string) {
-    const openApplications = this.getOpenApplications();
-    for (let i = 0; i < openApplications.length; i++) {
-      const application = openApplications[i];
-      const mesh = application.getBoxMeshbyModelId(id);
-      if (mesh) return mesh;
-    }
-    return null;
   }
 
   toggleComponent(
@@ -576,12 +537,21 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  getMeshById(meshId: string): BaseMesh | undefined {
+  getMeshById(meshId: string) {
     return (
-      this.getBoxMeshByModelId(meshId) ||
-      this.getCommunicationMeshById(meshId) ||
+      this.getMeshInApplicationById(meshId) ||
       this.linkRenderer.getLinkById(meshId)
     );
+  }
+
+  getMeshInApplicationById(meshId: string): BaseMesh | undefined {
+    let meshInApplication;
+    for (const application of this.openApplications) {
+      meshInApplication = application.getMeshById(meshId);
+      if (meshInApplication) break;
+    }
+
+    return meshInApplication;
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
