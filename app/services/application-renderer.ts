@@ -149,7 +149,7 @@ export default class ApplicationRenderer extends Service.extend({
     return this.openApplicationsMap.has(id);
   }
 
-  // #endregion getter
+  // #endregion getters
 
   addApplicationTask = task(
     async (
