@@ -1,7 +1,6 @@
 // #region imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
@@ -119,13 +118,6 @@ export default class ApplicationRenderer extends Service.extend({
   private openApplicationsMap: Map<string, CurrentApplicationObject3D>;
 
   readonly appCommRendering: CommunicationRendering;
-
-  @tracked
-  updatables: any[] = [];
-
-  initCallback?: (
-    currentApplicationObject3D: CurrentApplicationObject3D
-  ) => void;
 
   // #endregion fields
 
@@ -308,22 +300,26 @@ export default class ApplicationRenderer extends Service.extend({
   updateApplicationObject3DAfterUpdate(
     currentApplicationObject3D: CurrentApplicationObject3D
   ) {
+    // Render communication
     if (
       this.localUser.visualizationMode !== 'ar' ||
       this.arSettings.renderCommunication
     ) {
       this.addCommunication(currentApplicationObject3D);
     }
-    if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      removeHighlighting(currentApplicationObject3D);
-    } else {
+    // Update highlighting
+    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
       this.highlightingService.updateHighlighting(currentApplicationObject3D);
+    } else {
+      removeHighlighting(currentApplicationObject3D);
     }
+    // Update labels
     Labeler.addApplicationLabels(
       currentApplicationObject3D,
       this.font,
       this.configuration.applicationColors
     );
+    // Update links
     this.updateLinks?.();
   }
 
@@ -405,17 +401,25 @@ export default class ApplicationRenderer extends Service.extend({
 
   // #region utility methods
 
-  restore(room: SerializedVrRoom) {
-    this.removeApplicationsLocally();
-    room.openApps.forEach((app) => {
-      const applicationData = this.applicationRepo.getById(app.id);
-      if (applicationData) {
-        this.addApplicationTask.perform(
-          applicationData,
-          serializedRoomToAddApplicationArgs(app)
-        );
-      }
-    });
+  openAllComponents(currentApplicationObject3D: CurrentApplicationObject3D) {
+    this.openAllComponentsLocally(currentApplicationObject3D);
+    this.sender.sendComponentUpdate(
+      currentApplicationObject3D.getModelId(),
+      '',
+      true,
+      true
+    );
+  }
+
+  toggleComponentLocally(
+    componentMesh: ComponentMesh,
+    currentApplicationObject3D: CurrentApplicationObject3D
+  ) {
+    EntityManipulation.toggleComponentMeshState(
+      componentMesh,
+      currentApplicationObject3D
+    );
+    this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
   }
 
   toggleComponent(
@@ -431,14 +435,19 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
-  toggleComponentLocally(
-    componentMesh: ComponentMesh,
+  openAllComponentsLocally(
     currentApplicationObject3D: CurrentApplicationObject3D
   ) {
-    EntityManipulation.toggleComponentMeshState(
-      componentMesh,
-      currentApplicationObject3D
-    );
+    EntityManipulation.openAllComponents(currentApplicationObject3D);
+
+    this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
+  }
+
+  closeAllComponentsLocally(
+    currentApplicationObject3D: CurrentApplicationObject3D
+  ) {
+    EntityManipulation.closeAllComponents(currentApplicationObject3D);
+
     this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
   }
 
@@ -452,30 +461,6 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
-  closeAllComponentsLocally(
-    currentApplicationObject3D: CurrentApplicationObject3D
-  ) {
-    EntityManipulation.closeAllComponents(currentApplicationObject3D);
-
-    this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
-  }
-
-  openAllComponents(currentApplicationObject3D: CurrentApplicationObject3D) {
-    this.openAllComponentsLocally(currentApplicationObject3D);
-    this.sender.sendComponentUpdate(
-      currentApplicationObject3D.getModelId(),
-      '',
-      true,
-      true
-    );
-  }
-
-  resetAndAddToScene(updateables: any[]) {
-    this.initCallback = undefined;
-    this.updatables = updateables;
-    this.openApplicationsMap.clear();
-  }
-
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (!application) return;
@@ -483,6 +468,12 @@ export default class ApplicationRenderer extends Service.extend({
     application.parent?.remove(application);
     application.removeAllEntities();
     this.openApplicationsMap.delete(application.getModelId());
+  }
+
+  removeApplicationsLocally() {
+    this.getOpenApplications().forEach((application) => {
+      this.removeApplicationLocally(application.getModelId());
+    });
   }
 
   private saveApplicationState(
@@ -494,12 +485,17 @@ export default class ApplicationRenderer extends Service.extend({
     return serializedRoomToAddApplicationArgs(serializedApp);
   }
 
-  openAllComponentsLocally(
-    currentApplicationObject3D: CurrentApplicationObject3D
-  ) {
-    EntityManipulation.openAllComponents(currentApplicationObject3D);
-
-    this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
+  restore(room: SerializedVrRoom) {
+    this.removeApplicationsLocally();
+    room.openApps.forEach((app) => {
+      const applicationData = this.applicationRepo.getById(app.id);
+      if (applicationData) {
+        this.addApplicationTask.perform(
+          applicationData,
+          serializedRoomToAddApplicationArgs(app)
+        );
+      }
+    });
   }
 
   updateCommunication() {
@@ -511,12 +507,6 @@ export default class ApplicationRenderer extends Service.extend({
       } else {
         application.removeAllCommunication();
       }
-    });
-  }
-
-  removeApplicationsLocally() {
-    this.getOpenApplications().forEach((application) => {
-      this.removeApplicationLocally(application.getModelId());
     });
   }
 

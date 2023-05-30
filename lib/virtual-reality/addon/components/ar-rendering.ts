@@ -185,7 +185,6 @@ export default class ArRendering extends Component<Args> {
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
 
-    // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     this.toastMessage.init();
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
