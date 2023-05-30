@@ -88,6 +88,8 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from '../utils/vr-message/util/controller_id';
+import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-button';
+import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 
 interface Args {
   readonly id: string;
@@ -366,6 +368,32 @@ export default class VrRendering extends Component<Args> {
       hover: (event) => event.target.hover(event.intersection),
       resetHover: (event) => event.target.resetHoverEffect(),
     });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: ScrollUpButton,
+      triggerPress: (event) => event.target.triggerPress(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: ScrollDownButton,
+      triggerPress: (event) => event.target.triggerPress(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+    });
+
+    // this.primaryInputManager.addInputHandler({
+    //   targetType: DetailInfoScrollarea,
+    //   triggerPress: (event) => event.target.triggerPress(event.intersection),
+    //   hover: (event) => event.target.applyHover(),
+    //   resetHover: (event) => event.target.resetHover(),
+    //   triggerDown: (event) => event.target.triggerDown(event.intersection),
+    //   triggerUp: (event) => event.target.triggerUp(),
+    // });
+
+
+
   }
 
   private initSecondaryInput() {

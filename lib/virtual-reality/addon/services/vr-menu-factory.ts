@@ -197,7 +197,7 @@ export default class VrMenuFactoryService extends Service {
       object,
       menuFactory: this,
       applicationRepo: this.applicationRepo,
-      //backgroundColor: '#777777',
+      renderer: this.renderer
     });
   }
 
