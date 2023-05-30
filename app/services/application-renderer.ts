@@ -24,7 +24,6 @@ import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscap
 import CurrentApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -169,19 +168,6 @@ export default class ApplicationRenderer extends Service.extend({
     return Array.from(this.openApplicationsMap.values());
   }
 
-  removeApplicationLocally(applicationId: string) {
-    const application = this.getApplicationById(applicationId);
-    if (application) {
-      this.openApplicationsMap.delete(application.getModelId());
-      application.parent?.remove(application);
-      application.children.forEach((child) => {
-        if (child instanceof BaseMesh) {
-          child.disposeRecursively();
-        }
-      });
-    }
-  }
-
   private saveApplicationState(
     currentApplicationObject3D: CurrentApplicationObject3D
   ): AddApplicationArgs {
@@ -230,7 +216,7 @@ export default class ApplicationRenderer extends Service.extend({
           : addApplicationArgs;
 
       if (layoutChanged) {
-        this.cleanUpApplication(currentApplicationObject3D);
+        currentApplicationObject3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
@@ -275,13 +261,6 @@ export default class ApplicationRenderer extends Service.extend({
       return currentApplicationObject3D;
     }
   );
-
-  private cleanUpApplication(
-    currentApplicationObject3D: CurrentApplicationObject3D
-  ) {
-    currentApplicationObject3D.removeAllEntities();
-    removeHighlighting(currentApplicationObject3D);
-  }
 
   @action
   addCommunicationForAllApplications() {
@@ -451,14 +430,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  cleanUpApplications() {
-    this.getOpenApplications().forEach((currentApplicationObject3D) => {
-      currentApplicationObject3D.removeAllEntities();
-      removeHighlighting(currentApplicationObject3D);
-      this.removeApplicationLocally(currentApplicationObject3D.getModelId());
-    });
-  }
-
   /**
    * Toggles the visualization of communication lines.
    */
@@ -525,7 +496,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   restore(room: SerializedVrRoom) {
-    this.cleanUpApplications();
+    this.removeApplicationsLocally();
     room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
@@ -537,28 +508,19 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  getMeshById(meshId: string) {
-    return (
-      this.getMeshInApplicationById(meshId) ||
-      this.linkRenderer.getLinkById(meshId)
-    );
+  removeApplicationLocally(applicationId: string) {
+    const application = this.getApplicationById(applicationId);
+    if (!application) return;
+
+    application.parent?.remove(application);
+    application.removeAllEntities();
+    this.openApplicationsMap.delete(application.getModelId());
   }
 
-  getMeshInApplicationById(meshId: string): BaseMesh | undefined {
-    let meshInApplication;
-    for (const application of this.openApplications) {
-      meshInApplication = application.getMeshById(meshId);
-      if (meshInApplication) break;
-    }
-
-    return meshInApplication;
-  }
-
-  getGraphPosition(mesh: THREE.Object3D) {
-    const worldPosition = new THREE.Vector3();
-    mesh.getWorldPosition(worldPosition);
-    this.forceGraph.worldToLocal(worldPosition);
-    return worldPosition;
+  removeApplicationsLocally() {
+    this.getOpenApplications().forEach((application) => {
+      this.removeApplicationLocally(application.getModelId());
+    });
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

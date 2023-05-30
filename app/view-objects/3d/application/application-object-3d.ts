@@ -390,5 +390,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
       mesh.deleteFromParent();
     });
     this.resetMeshReferences();
+    this.highlightedEntity = null;
   }
 }
