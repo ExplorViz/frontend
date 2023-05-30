@@ -21,7 +21,7 @@ export type SerializedHighlightedComponent = {
   isHighlighted: boolean;
 };
 
-export type SerialzedApp = {
+export type SerializedApp = {
   id: string;
   position: Position;
   quaternion: Quaternion;
@@ -37,6 +37,6 @@ export type SerializedLandscape = {
 
 export type SerializedVrRoom = {
   landscape: SerializedLandscape;
-  openApps: SerialzedApp[];
+  openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
 };

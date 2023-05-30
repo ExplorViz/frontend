@@ -154,7 +154,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
     if (serializedRoom) {
-      this.applicationRenderer.restore(serializedRoom);
+      this.applicationRenderer.restoreFromSerialization(serializedRoom);
       // TODO is it necessary to wait?
       this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
       this.roomSerializer.serializedRoom = undefined;

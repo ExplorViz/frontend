@@ -32,10 +32,7 @@ import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import {
-  SerializedVrRoom,
-  SerialzedApp,
-} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import HighlightingService, {
   HightlightComponentArgs,
@@ -46,27 +43,6 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 // #endregion imports
-
-// #region serialization
-function serializedRoomToAddApplicationArgs(app: SerialzedApp) {
-  return {
-    position: new THREE.Vector3(...app.position),
-    quaternion: new THREE.Quaternion(...app.quaternion),
-    scale: new THREE.Vector3(...app.scale),
-    openComponents: new Set(app.openComponents),
-    highlightedComponents: app.highlightedComponents.map(
-      (highlightedComponent) => ({
-        entityType: highlightedComponent.entityType,
-        entityId: highlightedComponent.entityId,
-        // color: this.remoteUsers.lookupRemoteUserById(
-        //     highlightedComponent.userId,
-        // )?.color,
-      })
-    ),
-  };
-}
-
-// #endregion serialization
 
 export default class ApplicationRenderer extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -205,7 +181,9 @@ export default class ApplicationRenderer extends Service.extend({
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
-          ? this.saveApplicationState(currentApplicationObject3D)
+          ? this.roomSerializer.serializeToAddApplicationArgs(
+              currentApplicationObject3D
+            )
           : addApplicationArgs;
 
       if (layoutChanged) {
@@ -247,6 +225,7 @@ export default class ApplicationRenderer extends Service.extend({
         applicationModel.id,
         currentApplicationObject3D
       );
+
       // this.heatmapConf.updateActiveApplication(currentApplicationObject3D);
 
       currentApplicationObject3D.resetRotation();
@@ -374,10 +353,6 @@ export default class ApplicationRenderer extends Service.extend({
     }
     // eslint-disable-next-line @typescript-eslint/no-shadow
     function getAllAncestorComponents(entity: Package | Class): Package[] {
-      // if (isClass(entity)) {
-      //  return getAllAncestorComponents(entity.parent);
-      // }
-
       if (entity.parent === undefined) {
         return [];
       }
@@ -461,6 +436,18 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
+  updateCommunication() {
+    this.getOpenApplications().forEach((application) => {
+      const drawableComm = this.getDrawableClassCommunications(application)!;
+
+      if (this.arSettings.renderCommunication) {
+        this.appCommRendering.addCommunication(application, drawableComm);
+      } else {
+        application.removeAllCommunication();
+      }
+    });
+  }
+
   removeApplicationLocally(applicationId: string) {
     const application = this.getApplicationById(applicationId);
     if (!application) return;
@@ -476,36 +463,16 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  private saveApplicationState(
-    currentApplicationObject3D: CurrentApplicationObject3D
-  ): AddApplicationArgs {
-    const serializedApp = this.roomSerializer.serializeApplication(
-      currentApplicationObject3D
-    );
-    return serializedRoomToAddApplicationArgs(serializedApp);
-  }
-
-  restore(room: SerializedVrRoom) {
+  restoreFromSerialization(room: SerializedVrRoom) {
     this.removeApplicationsLocally();
+
     room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
         this.addApplicationTask.perform(
           applicationData,
-          serializedRoomToAddApplicationArgs(app)
+          this.roomSerializer.serializeToAddApplicationArgs(app)
         );
-      }
-    });
-  }
-
-  updateCommunication() {
-    this.getOpenApplications().forEach((application) => {
-      const drawableComm = this.getDrawableClassCommunications(application)!;
-
-      if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application, drawableComm);
-      } else {
-        application.removeAllCommunication();
       }
     });
   }
