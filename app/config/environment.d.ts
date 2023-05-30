@@ -28,6 +28,7 @@ declare const config: {
     landscapeService: string;
     traceService: string;
     userService: string;
+    vsCodeService: string;
     collaborativeService: string;
     collaborationService: string;
     collaborationSocketPath: string;

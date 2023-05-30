@@ -1,5 +1,3 @@
 {
-  "reject": [
-    "bootstrap" 
-  ]
+  "reject": ["bootstrap"]
 }
