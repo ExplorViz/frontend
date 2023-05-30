@@ -95,4 +95,9 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
       this.spectateUserService.deactivate();
     }
   }
+
+  @action
+  close() {
+    this.args.removeComponent('xr-collaboration');
+  }
 }
