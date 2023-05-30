@@ -3,9 +3,9 @@
 </div>
 
 {{#if this.ideWebsocketFacade.isConnected}}
-  <div>    
-      <label class='bold'>Room name:</label>
-      <label>{{this.ideWebsocketFacade.roomName}}</label>  
+  <div>
+    <label class='bold'>Room name:</label>
+    <label>{{this.ideWebsocketFacade.roomName}}</label>
     <CopyButton
       class='button-svg-with-hover'
       @text={{this.ideWebsocketFacade.roomName}}
