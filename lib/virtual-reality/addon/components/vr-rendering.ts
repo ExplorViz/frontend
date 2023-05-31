@@ -90,6 +90,7 @@ import {
 } from '../utils/vr-message/util/controller_id';
 import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-button';
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
+import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 
 interface Args {
   readonly id: string;
@@ -383,14 +384,14 @@ export default class VrRendering extends Component<Args> {
       resetHover: (event) => event.target.resetHover(),
     });
 
-    // this.primaryInputManager.addInputHandler({
-    //   targetType: DetailInfoScrollarea,
-    //   triggerPress: (event) => event.target.triggerPress(event.intersection),
-    //   hover: (event) => event.target.applyHover(),
-    //   resetHover: (event) => event.target.resetHover(),
-    //   triggerDown: (event) => event.target.triggerDown(event.intersection),
-    //   triggerUp: (event) => event.target.triggerUp(),
-    // });
+    this.primaryInputManager.addInputHandler({
+      targetType: DetailInfoScrollarea,
+      triggerPress: (event) => event.target.triggerPress(event.intersection),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+      triggerDown: (event) => event.target.triggerDown(event.intersection),
+      triggerUp: (event) => event.target.triggerUp(),
+    });
 
 
 

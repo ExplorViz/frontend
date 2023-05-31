@@ -2,6 +2,7 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 import VRController from 'virtual-reality/utils/vr-controller';
 import { IntersectableObject } from '../interfaces/intersectable-object';
+import { BLOCK_OPTIONS_CONTAINER } from 'virtual-reality/utils/vr-menus/ui-menu/detail-info-menu';
 
 export type CloseIconTextures = {
   defaultTexture: THREE.Texture;
@@ -67,8 +68,8 @@ export default class CloseIcon extends BaseMesh implements IntersectableObject {
 
     // Get size of the object.
     const boundingBox = new THREE.Box3().setFromObject(object);
-    const width = boundingBox.max.x - boundingBox.min.x;
-    const height = boundingBox.max.y - boundingBox.min.y;
+    const width =  BLOCK_OPTIONS_CONTAINER.width //older version (doesn't fit anymore): boundingBox.max.x - boundingBox.min.x;
+    const height = BLOCK_OPTIONS_CONTAINER.height //older version (doesn't fit anymore): boundingBox.max.y - boundingBox.min.y;
     const depth = boundingBox.max.z - boundingBox.min.z;
 
     // Restore rotation.

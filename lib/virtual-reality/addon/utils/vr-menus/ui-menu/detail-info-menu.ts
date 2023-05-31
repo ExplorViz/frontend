@@ -16,9 +16,21 @@ export type DetailInfoScrollableMenuArgs = BaseMenuArgs & {
     renderer: THREE.WebGLRenderer;
 };
 
-const BLOCK_OPTIONS = {
+export const BLOCK_OPTIONS_CONTAINER = {
+  width: 0.65,
+  height: 0.65,
   fontFamily: '/images/keyboard/custom-msdf.json',
   fontTexture: '/images/keyboard/custom.png',
+}
+
+export const BLOCK_OPTIONS_TITLE = {
+    width: BLOCK_OPTIONS_CONTAINER.width,
+    height: 0.1,
+}
+
+export const BLOCK_OPTIONS_INFO = {
+  width: BLOCK_OPTIONS_CONTAINER.width - BLOCK_OPTIONS_TITLE.width,
+  height: BLOCK_OPTIONS_CONTAINER.height - BLOCK_OPTIONS_TITLE.height
 }
 
 
@@ -67,10 +79,10 @@ export default class DetailInfoMenu extends InteractiveMenu implements Detachabl
         }
 
         this.container = new ThreeMeshUI.Block({
-          width: 0.65,
-          height: 0.65,
-          fontFamily: BLOCK_OPTIONS.fontFamily,
-          fontTexture: BLOCK_OPTIONS.fontTexture,
+          width: BLOCK_OPTIONS_CONTAINER.width,
+          height: BLOCK_OPTIONS_CONTAINER.height,
+          fontFamily: BLOCK_OPTIONS_CONTAINER.fontFamily,
+          fontTexture: BLOCK_OPTIONS_CONTAINER.fontTexture,
           fontSize: 0.03,
           justifyContent: 'start',
           backgroundColor: new THREE.Color('#777777'),
@@ -80,8 +92,8 @@ export default class DetailInfoMenu extends InteractiveMenu implements Detachabl
         this.add(this.container);
 
         const titleBlock = new ThreeMeshUI.Block({
-          width: 0.65,
-          height: 0.1,
+          width: BLOCK_OPTIONS_TITLE.width,
+          height: BLOCK_OPTIONS_TITLE.height,
           justifyContent: 'center',
           textAlign: 'center',
           offset: 0.02,
@@ -96,19 +108,19 @@ export default class DetailInfoMenu extends InteractiveMenu implements Detachabl
         this.container.add(titleBlock);
 
 
-        this.informationText = `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-         Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-         Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse`; 
+        // this.informationText = `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+        //  Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+        //  Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse`; 
 
-        //  content.entries.forEach(({ key, value }) => {
-        //     this.informationText += key + " " + value + "\n"; 
-        // });
+         content.entries.forEach(({ key, value }) => {
+            this.informationText += key + " " + value + "\n\n"; 
+        });
 
         this.informationBlock = new DetailInfoMesh(this.informationText, {
-            width: 0.65,
-            height: 0.55,
+            width: BLOCK_OPTIONS_INFO.width,
+            height: BLOCK_OPTIONS_INFO.height,
             backgroundOpacity: 0,
-            hiddenOverflow: true,
+            hiddenOverflow: false,
             offset: 0.001,
           });
 

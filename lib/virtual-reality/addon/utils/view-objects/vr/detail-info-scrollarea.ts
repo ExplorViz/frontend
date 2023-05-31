@@ -64,13 +64,13 @@ export default class DetailInfoScrollarea extends ThreeMeshUI.Block implements I
         if(this.isHovered) return;
         
         this.isHovered = true;
-        this.set({backgroundOpacity: 1});
+        this.set({backgroundOpacity: 0.4});
     }
 
     resetHover(){
         this.isHovered = false;
         this.isTriggered = false;
-        this.set({backgroundOpacity: 0.8});
+        this.set({backgroundOpacity: 0});
     }
 
 
