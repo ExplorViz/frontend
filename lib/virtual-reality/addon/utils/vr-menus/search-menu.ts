@@ -1,8 +1,9 @@
+// @ts-ignore
 import UiMenu, { UiMenuArgs } from './ui-menu';
-import TitleItem from './items/title-item';
 import ThreeMeshUI from 'three-mesh-ui';
 
 import * as THREE from 'three';
+import InteractiveMenu from './interactive-menu';
 
 
 
@@ -18,11 +19,15 @@ const colors = {
 	selected: 0x109c5d
 };
 
-export default class SearchMenu extends UiMenu {
+const objsToTest = [];
+
+export default class SearchMenu extends InteractiveMenu {
 
     userText : ThreeMeshUI.Text;
+    keyboard! : ThreeMeshUI.Keyboard;
+    
 
-    constructor({...args} : SearchMenuArgs){
+    constructor({...args /*, list of non UIMenuArgs */ } : SearchMenuArgs){
         super(args);
 
         this.userText = new ThreeMeshUI.Text({
@@ -32,18 +37,11 @@ export default class SearchMenu extends UiMenu {
             
             //new ThreeMeshUI.Text( { content: '' , fontSize: 0.055} );
 
-        const textItem = new TitleItem({
-            text: 'Search',
-            position: { x: 256, y: 20 },
-        });
-
-        this.items.push(textItem);
+    
 
 
          this.makeUI();
-
-
-         this.redrawMenu();
+         this.makeKeyboard();
     }
 
     //TODO: source of function
@@ -86,6 +84,108 @@ export default class SearchMenu extends UiMenu {
         } ).add( this.userText );
     
         textPanel.add( title, textField );
+    }
+
+    makeKeyboard() {
+
+        this.keyboard = new ThreeMeshUI.Keyboard( {
+            language: 'de',
+            fontFamily: '/images/keyboard/Roboto-msdf.json', //FontJSON,
+            fontTexture: '/images/keyboard/Roboto-msdf.png', //FontImage,
+            fontSize: 0.035, // fontSize will propagate to the keys blocks
+            backgroundColor: new THREE.Color( colors.keyboardBack ),
+            backgroundOpacity: 1,
+            backspaceTexture: '/images/keyboard/backspace.png',
+            shiftTexture: '/images/keyboard/shift.png',
+            enterTexture: '/images/keyboard/enter.png',
+        } );
+    
+        this.keyboard.position.set( 0, 0.78, +1 );
+        this.keyboard.rotation.x = -0.55;
+        this.add( this.keyboard );
+    
+    
+        this.keyboard.keys.forEach( ( key ) => {
+    
+            objsToTest.push( key );
+    
+            key.setupState( {
+                state: 'idle',
+                attributes: {
+                    offset: 0,
+                    backgroundColor: new THREE.Color( colors.button ),
+                    backgroundOpacity: 1
+                }
+            } );
+    
+            key.setupState( {
+                state: 'hovered',
+                attributes: {
+                    offset: 0,
+                    backgroundColor: new THREE.Color( colors.hovered ),
+                    backgroundOpacity: 1
+                }
+            } );
+    
+            key.setupState( {
+                state: 'selected',
+                attributes: {
+                    offset: -0.009,
+                    backgroundColor: new THREE.Color( colors.selected ),
+                    backgroundOpacity: 1
+                },
+                // triggered when the user clicked on a keyboard's key
+                onSet: () => {
+    
+                    // if the key have a command (eg: 'backspace', 'switch', 'enter'...)
+                    // special actions are taken
+                    if ( key.info.command ) {
+    
+                        switch ( key.info.command ) {
+    
+                            // switch between panels
+                            case 'switch' :
+                                this.keyboard.setNextPanel();
+                                break;
+    
+                            // switch between panel charsets (eg: russian/english)
+                            case 'switch-set' :
+                                this.keyboard.setNextCharset();
+                                break;
+    
+                            case 'enter' :
+                                this.userText.set( { content: this.userText.content + '\n' } );
+                                break;
+    
+                            case 'space' :
+                                userText.set( { content: this.userText.content + ' ' } );
+                                break;
+    
+                            case 'backspace' :
+                                if ( !this.userText.content.length ) break;
+                                this.userText.set( {
+                                    content: this.userText.content.substring( 0, this.userText.content.length - 1 ) || ''
+                                } );
+                                break;
+    
+                            case 'shift' :
+                                this.keyboard.toggleCase();
+                                break;
+    
+                        }
+    
+                        // print a glyph, if any
+                    } else if ( key.info.input ) {
+    
+                        this.userText.set( { content: userText.content + key.info.input } );
+    
+                    }
+    
+                }
+            } );
+    
+        } );
+    
     }
 
 
