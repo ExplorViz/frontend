@@ -11,5 +11,8 @@ sed -i "s#change-frontend-host-name#$FRONTEND_HOST_NAME#g" /usr/share/nginx/html
 sed -i "s#change-auth0-logo-url#$AUTH0_LOGO_URL#g" /usr/share/nginx/html/index.html
 sed -i "s#change-auth0-callback-url#$AUTH0_CALLBACK_URL#g" /usr/share/nginx/html/index.html
 sed -i "s#change-auth0-logout-url#$AUTH0_LOGOUT_URL#g" /usr/share/nginx/html/index.html
+if [[ -z "${NO_AUTH_USER_NICKNAME}" ]]; then
+  sed -i "s#JOHNNY#$NO_AUTH_USER_NICKNAME#g" /usr/share/nginx/html/index.html
+fi
 
 exec "$@"
