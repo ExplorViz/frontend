@@ -2,6 +2,8 @@
   display: flex;
   @extend .flex-row;
   height: 100%;
+  position: absolute;
+  right: 0;
 }
 
 #colorHeader {
