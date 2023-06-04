@@ -40,6 +40,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
+import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -84,6 +85,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private collaborationSession!: CollaborationSession;
 
   private ideWebsocket: IdeWebsocket;
+
+  private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
   readonly graph: ThreeForceGraph;
@@ -167,8 +170,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
 
-    // IDE API
+    // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
+      getOwner(this),
+      this.handleDoubleClickOnMeshIDEAPI,
+      this.lookAtMesh
+    );
+
+    // IDE Cross Communication
+    this.ideCrossCommunication = new IdeCrossCommunication(
       getOwner(this),
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh
@@ -316,6 +326,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
       this.ideWebsocket.jumpToLocation(intersection.object);
+      this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
     }
@@ -502,6 +513,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.forceContextLoss();
 
     this.ideWebsocket.dispose();
+    this.ideCrossCommunication.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();
