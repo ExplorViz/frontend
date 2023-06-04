@@ -110,9 +110,9 @@ export default class IdeCrossCommunication {
 
   private setupCrossOriginListener() {
     window.addEventListener(
-      'vizDo',
+      'message',
       (event: IdeCrossCommunicationEvent) => {
-        //if (event.origin !== "http://example.org:8080") return;
+        //if (event.origin !== "http://localhost:4200") return;
 
         const data = event.data;
 
