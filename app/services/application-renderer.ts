@@ -39,6 +39,7 @@ import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -129,11 +130,35 @@ export default class ApplicationRenderer extends Service.extend({
     return getApplicationInLandscapeById(this.structureLandscapeData, id);
   }
 
+  getBoxMeshByModelId(id: string) {
+    for (const application of this.getOpenApplications()) {
+      const mesh = application.getBoxMeshbyModelId(id);
+      if (mesh) return mesh;
+    }
+    return null;
+  }
+
+  getCommunicationMeshById(id: string) {
+    for (const application of this.getOpenApplications()) {
+      const mesh = application.getCommMeshByModelId(id);
+      if (mesh) return mesh;
+    }
+    return null;
+  }
+
   getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(
       applicationObjetc3D.getModelId()
     );
     return applicationData?.drawableClassCommunications;
+  }
+
+  getMeshById(meshId: string): BaseMesh | undefined {
+    return (
+      this.getBoxMeshByModelId(meshId) ||
+      this.getCommunicationMeshById(meshId) ||
+      this.linkRenderer.getLinkById(meshId)
+    );
   }
 
   getOpenApplications(): ApplicationObject3D[] {
@@ -428,7 +453,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   forEachOpenApplication(forEachFunction: (app: ApplicationObject3D) => void) {
     this.getOpenApplications().forEach((application) => {
-      forEachFunction(application);
+      forEachFunction.call(this, application);
     });
   }
 
