@@ -169,7 +169,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const applicationId = openApplicationsIds[i];
         const applicationData = this.applicationRepo.getById(applicationId);
         if (!applicationData) {
-          this.applicationRenderer.removeApplicationLocally(applicationId);
+          this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
     }

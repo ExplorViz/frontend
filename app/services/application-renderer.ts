@@ -254,25 +254,13 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunicationForAllApplications() {
-    this.getOpenApplications().forEach((currentApplicationObject3D) => {
-      this.addCommunication(currentApplicationObject3D);
-    });
+    this.forEachOpenApplication(this.addCommunication);
     this.updateLinks?.();
   }
 
   @action
   removeCommunicationForAllApplications() {
-    this.getOpenApplications().forEach((currentApplicationObject3D) => {
-      // Remove highlighting if highlighted communication is no longer visible
-      if (
-        currentApplicationObject3D.highlightedEntity instanceof
-        ClazzCommunicationMesh
-      ) {
-        removeHighlighting(currentApplicationObject3D);
-      }
-
-      currentApplicationObject3D.removeAllCommunication();
-    });
+    this.forEachOpenApplication(this.removeCommunication);
   }
 
   @action
@@ -306,9 +294,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   openAllComponentsOfAllApplications() {
-    this.getOpenApplications().forEach((currentApplicationObject3D) => {
-      this.openAllComponents(currentApplicationObject3D);
-    });
+    this.forEachOpenApplication(this.openAllComponents);
   }
 
   /**
@@ -369,6 +355,7 @@ export default class ApplicationRenderer extends Service.extend({
         openComponentMesh(ancestorMesh, currentApplicationObject3D);
       }
     });
+
     this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
   }
 
@@ -448,23 +435,35 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  removeApplicationLocally(applicationId: string) {
-    const application = this.getApplicationById(applicationId);
-    if (!application) return;
-
+  removeApplicationLocally(application: CurrentApplicationObject3D) {
     application.parent?.remove(application);
     application.removeAllEntities();
     this.openApplicationsMap.delete(application.getModelId());
   }
 
-  removeApplicationsLocally() {
+  removeApplicationLocallyById(applicationId: string) {
+    const application = this.getApplicationById(applicationId);
+    application && this.removeApplicationLocally(application);
+  }
+
+  removeCommunication(application: CurrentApplicationObject3D) {
+    if (application.highlightedEntity instanceof ClazzCommunicationMesh) {
+      removeHighlighting(application);
+    }
+
+    application.removeAllCommunication();
+  }
+
+  forEachOpenApplication(
+    forEachFunction: (app: CurrentApplicationObject3D) => void
+  ) {
     this.getOpenApplications().forEach((application) => {
-      this.removeApplicationLocally(application.getModelId());
+      forEachFunction(application);
     });
   }
 
   restoreFromSerialization(room: SerializedVrRoom) {
-    this.removeApplicationsLocally();
+    this.forEachOpenApplication(this.removeApplicationLocally);
 
     room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
