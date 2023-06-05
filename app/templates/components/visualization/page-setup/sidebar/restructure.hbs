@@ -1,0 +1,29 @@
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
+</div>
+
+<div>
+
+  <div class='ml-3'>
+    <div class='d-flex justify-content-between'>
+      <label class='bold'>Restructure Mode: </label>
+      <div class='d-flex align-self-center'>
+        <XToggle
+          class='mr-4'
+          @theme='skewed'
+          @value={{this.restructureMode}}
+          @onToggle={{this.toggleRestructureMode}}
+        />
+      </div>
+    </div>
+  </div>
+
+  {{#if this.restructureMode}}
+    <div class='ml-3'>
+      <div class='d-flex justify-content-between'>
+        <label class='bold'>Generate Meshes: </label>
+      </div>
+    </div>
+  {{/if}}
+
+</div>

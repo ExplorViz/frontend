@@ -168,6 +168,14 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  @action
+  restructureLandscape(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    this.updateLandscape(structureData, dynamicData);
+  }
+
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData

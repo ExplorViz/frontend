@@ -1,7 +1,17 @@
 <h3 class='popover-header'>
-  <div
-    class='text-center text-break font-weight-bold pl-1'
-  >{{@application.name}}</div>
+  {{#if this.landscapeRestructure.restructureMode}}
+    <div class='text-center text-break font-weight-bold pl-1'>
+      {{#if this.isEditing}}
+        <Input @value={{@application.name}} @enter={{this.save}} @focus-out={{this.save}} />
+      {{else}}
+        <div {{on "click" this.edit}}>{{@application.name}}</div>
+      {{/if}}
+    </div>
+  {{else}}
+    <div class='text-center text-break font-weight-bold pl-1'>
+      {{@application.name}}
+    </div> 
+  {{/if}}
 </h3>
 <div class='popover-body'>
   <table class='w-100'>

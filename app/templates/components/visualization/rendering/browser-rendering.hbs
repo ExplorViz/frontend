@@ -122,6 +122,11 @@
                 {{#if (eq componentName 'restructure-landscape')}}
                   <h5 class='text-center'>Restructure</h5>
                   <Visualization::PageSetup::Sidebar::Restructure
+                    @landscapeData={{@landscapeData}}
+                    @restructureLandscape={{@restructureLandscape}}
+                    @visualizationPaused={{@visualizationPaused}}
+                    @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
+                    @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}

@@ -1,6 +1,9 @@
 import Component from '@glimmer/component';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { inject as service } from '@ember/service';
+import { action } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
@@ -22,6 +25,29 @@ export default class ClazzPopup extends Component<Args> {
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
+
+  @tracked
+  isEditing = false;
+
+  @tracked
+  tempName = "";
+
+  @action
+  edit() {
+    if(this.landscapeRestructure.restructureMode) {
+      this.isEditing = true;
+      this.tempName = this.name;
+    }
+  }
+
+  @action
+  save() {
+    this.isEditing = false;
+    this.args.clazz.name = this.tempName;
+  }
 
   get name() {
     return this.args.clazz.name;
