@@ -13,6 +13,37 @@ import { removeHighlighting } from './highlighting';
 import CameraControls from './camera-controls';
 
 /**
+ * Given a package or class, returns a list of all ancestor components.
+ *
+ * @param entity Package or class of which the ancestors shall be returned (entity is not included in the list)
+ */
+export function getAllAncestorComponents(entity: Package | Class): Package[] {
+  if (entity.parent === undefined) {
+    return [];
+  }
+
+  return [entity.parent, ...getAllAncestorComponents(entity.parent)];
+}
+
+/**
+ * Opens all components which are given in a list.
+ *
+ * @param components List of components which shall be opened
+ * @param application Parent application object of the components
+ */
+export function openComponentsByList(
+  components: Package[],
+  application: ApplicationObject3D
+) {
+  components.forEach((component) => {
+    const ancestorMesh = application.getBoxMeshbyModelId(component.id);
+    if (ancestorMesh instanceof ComponentMesh) {
+      openComponentMesh(ancestorMesh, application);
+    }
+  });
+}
+
+/**
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened

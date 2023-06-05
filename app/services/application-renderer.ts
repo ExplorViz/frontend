@@ -7,10 +7,7 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import {
-  openComponentMesh,
-  restoreComponentState,
-} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
@@ -337,24 +334,11 @@ export default class ApplicationRenderer extends Service.extend({
     if (!currentApplicationObject3D) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    function getAllAncestorComponents(entity: Package | Class): Package[] {
-      if (entity.parent === undefined) {
-        return [];
-      }
 
-      return [entity.parent, ...getAllAncestorComponents(entity.parent)];
-    }
-
-    const ancestors = getAllAncestorComponents(entity);
-    ancestors.forEach((anc) => {
-      const ancestorMesh = currentApplicationObject3D.getBoxMeshbyModelId(
-        anc.id
-      );
-      if (ancestorMesh instanceof ComponentMesh) {
-        openComponentMesh(ancestorMesh, currentApplicationObject3D);
-      }
-    });
+    EntityManipulation.openComponentsByList(
+      EntityManipulation.getAllAncestorComponents(entity),
+      currentApplicationObject3D
+    );
 
     this.updateApplicationObject3DAfterUpdate(currentApplicationObject3D);
   }
