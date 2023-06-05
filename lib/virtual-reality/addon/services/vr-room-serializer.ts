@@ -94,6 +94,7 @@ export default class VrRoomSerializer extends Service {
         (highlightedComponent) => ({
           entityType: highlightedComponent.entityType,
           entityId: highlightedComponent.entityId,
+          color: new THREE.Color().fromArray(highlightedComponent.color),
         })
       ),
     };
@@ -114,6 +115,7 @@ export default class VrRoomSerializer extends Service {
           entityType: highlightedEntity.constructor.name,
           entityId: highlightedEntity.getModelId(),
           isHighlighted: true,
+          color: highlightedEntity.highlightingColor.toArray(),
         },
       ];
     }

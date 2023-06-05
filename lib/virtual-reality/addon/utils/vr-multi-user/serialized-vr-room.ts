@@ -19,6 +19,7 @@ export type SerializedHighlightedComponent = {
   entityType: string;
   entityId: string;
   isHighlighted: boolean;
+  color: number[];
 };
 
 export type SerializedApp = {
