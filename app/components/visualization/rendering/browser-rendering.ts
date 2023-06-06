@@ -113,6 +113,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   initDone: boolean = false;
 
+  latestMouseMoveTimestamp = 0;
+
+  // 500ms delay before showing popups (to prevent flickering)
+  POPUP_DELAY = 500;
+
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
 
@@ -397,7 +402,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection) {
-    // this.runOrRestartMouseMovementTimer();
+    this.latestMouseMoveTimestamp = Date.now();
+
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
@@ -463,12 +469,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
     if (intersection) {
-      this.popupHandler.addPopup({
-        mesh: intersection.object,
-        position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
-        hovered: true,
-      });
+      setTimeout(() => {
+        // Wait a specified time without mouse movement instead of showing popup immediately
+        if (Date.now() - this.latestMouseMoveTimestamp > this.POPUP_DELAY) {
+          this.popupHandler.addPopup({
+            mesh: intersection.object,
+            position: mouseOnCanvas,
+            replace: !this.appSettings.enableCustomPopupPosition.value,
+            hovered: true,
+          });
+        }
+      }, this.POPUP_DELAY);
     }
   }
 
