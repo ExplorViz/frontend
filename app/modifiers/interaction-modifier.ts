@@ -104,7 +104,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   DOUBLE_CLICK_TIME_MS = 500;
 
   // Determines which euclidean distance in one tick is needed to count as a pan action
-  PAN_THRESHOLD = 0.3;
+  PAN_THRESHOLD = 0.75;
 
   modify(element: any, _positionalArgs: any[], args: any) {
     this.namedArgs = args;
@@ -215,8 +215,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     } else if (
       event.button === 2 &&
       this.pointers.length === 1 &&
-      !this.selectedObject &&
-      event.timeStamp - this.pointers[0].timeStamp < 220
+      event.timeStamp - this.latestPanTimestamp > 200
     ) {
       this.dispatchOpenMenuEvent(event);
     }
