@@ -203,17 +203,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onClickEventsingleClickUp(event: PointerEvent) {
     const intersectedViewObj = this.raycast(event);
 
-    // Avoid click event at end of pan action, 200ms of idle time should be enough
-    if (event.timeStamp - this.latestPanTimestamp < 200) {
-      return;
-    }
-
     if ((event.altKey && event.button === 0) || event.button === 1) {
       this.ping(intersectedViewObj);
     } else if (
       event.button === 0 &&
       this.pointers.length === 1 &&
-      !this.longPressTriggered
+      !this.longPressTriggered &&
+      event.timeStamp - this.latestPanTimestamp > 200
     ) {
       this.onLeftClick(event, intersectedViewObj);
     } else if (
