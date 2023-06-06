@@ -77,7 +77,7 @@ export default class CommunicationRendering {
   ) {
     if (!this.configuration.isCommRendered) return;
 
-    const application = applicationObject3D.dataModel;
+    const application = applicationObject3D.data.application;
     const applicationLayout = applicationObject3D.boxLayoutMap.get(
       application.id
     );

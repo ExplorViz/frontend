@@ -33,4 +33,8 @@ export default class ComponentMesh extends BoxMesh {
     this.geometry = geometry;
     this.dataModel = component;
   }
+
+  getModelId() {
+    return this.dataModel.id;
+  }
 }

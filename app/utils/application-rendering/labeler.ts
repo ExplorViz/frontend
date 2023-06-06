@@ -5,6 +5,8 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { ApplicationColors } from 'explorviz-frontend/services/configuration';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -39,6 +41,32 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
   } else {
     label.position.x = 0;
   }
+}
+
+export function addApplicationLabels(
+  application: ApplicationObject3D,
+  font: Font,
+  colors: ApplicationColors,
+  labelAll: boolean = false
+) {
+  /**
+   * Adds labels to all box meshes of a given application
+   */
+  const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
+
+  application.getBoxMeshes().forEach((mesh) => {
+    // Labeling is time-consuming. Thus, label only visible meshes incrementally
+    // as opposed to labeling all meshes up front (as done in application-rendering).
+    if (labelAll || mesh.visible) {
+      if (mesh instanceof ClazzMesh) {
+        addClazzTextLabel(mesh, font, clazzTextColor);
+      } else if (mesh instanceof ComponentMesh) {
+        addBoxTextLabel(mesh, font, componentTextColor);
+      } else if (mesh instanceof FoundationMesh) {
+        addBoxTextLabel(mesh, font, foundationTextColor);
+      }
+    }
+  });
 }
 
 /**

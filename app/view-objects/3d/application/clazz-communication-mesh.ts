@@ -29,6 +29,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.castShadow = true;
   }
 
+  getModelId() {
+    return this.dataModel.id;
+  }
+
   /**
    * Turns the mesh and its arrows transparent, if value in [0,1). Fully transparent at 0.0
    *

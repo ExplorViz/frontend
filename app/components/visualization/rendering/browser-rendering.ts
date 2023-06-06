@@ -245,9 +245,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  resetView() {
-    this.cameraControls.focusCameraOn(
-      1.2,
+  async resetView() {
+    this.cameraControls.resetCameraFocusOn(
+      1.0,
       ...this.applicationRenderer.getOpenApplications()
     );
   }
@@ -355,7 +355,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
-      // this.cameraControls.focusCameraOn(1, mesh);
     }
   }
 
@@ -368,7 +367,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
-      this.selectedApplicationId = applicationObject3D.dataModel.id;
+      this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
     // applicationObject3D.position.y = 10;

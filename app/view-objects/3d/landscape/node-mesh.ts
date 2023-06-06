@@ -34,6 +34,10 @@ export default class NodeMesh extends PlaneMesh {
     }
   }
 
+  getModelId() {
+    return this.dataModel.id;
+  }
+
   /**
    * Returns the display name for the node, which is either the node's
    * name, ip address or parent's name.
