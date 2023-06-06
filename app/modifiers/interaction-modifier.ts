@@ -86,7 +86,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   longPressTimer!: NodeJS.Timeout;
 
-  pointerDownCounter: number = 0;
+  mouseClickCounter: number = 0;
 
   didSetup = false;
 
@@ -95,6 +95,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   canvas!: HTMLCanvasElement;
 
   rendererResolutionMultiplier: number = 1;
+
+  // Timestamps in milliseconds differentiate between click and pan actions
+  latestSingleClickTimestamp = 0;
+  latestPanTimestamp = 0;
+
+  // 500ms is a default double click time, e.g. in Windows
+  DOUBLE_CLICK_TIME_MS = 500;
+
+  // Determines which euclidean distance in one tick is needed to count as a pan action
+  PAN_THRESHOLD = 0.3;
 
   modify(element: any, _positionalArgs: any[], args: any) {
     this.namedArgs = args;
@@ -155,8 +165,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   onPointerMove(event: PointerEvent) {
+    if (
+      event.timeStamp - this.latestSingleClickTimestamp >
+      this.DOUBLE_CLICK_TIME_MS
+    ) {
+      this.mouseClickCounter = 0;
+    }
+
     this.isMouseOnCanvas = true;
-    this.pointerDownCounter = 0;
 
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.onTouchMove(event);
@@ -186,6 +202,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @action
   onClickEventsingleClickUp(event: PointerEvent) {
     const intersectedViewObj = this.raycast(event);
+
+    // Avoid click event at end of pan action, 200ms of idle time should be enough
+    if (event.timeStamp - this.latestPanTimestamp < 200) {
+      return;
+    }
 
     if ((event.altKey && event.button === 0) || event.button === 1) {
       this.ping(intersectedViewObj);
@@ -233,18 +254,19 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
-    console.log('Pointer Down:', this.pointerDownCounter);
+    this.mouseClickCounter++;
 
     // Counter could be zero when mouse is in motion or one when mouse has stopped
-    if (this.pointerDownCounter <= 1) {
+    if (this.mouseClickCounter === 1) {
+      this.latestSingleClickTimestamp = event.timeStamp;
       this.timer = setTimeout(() => {
-        this.pointerDownCounter = 0;
+        this.mouseClickCounter = 0;
         this.namedArgs.singleClick?.(intersectedViewObj);
-      }, 300);
+      }, this.DOUBLE_CLICK_TIME_MS);
     }
 
-    if (this.pointerDownCounter > 1) {
-      this.pointerDownCounter = 0;
+    if (this.mouseClickCounter > 1) {
+      this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
   }
@@ -386,7 +408,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handleRotateStart();
     } else if (event.button === 0 && this.pointers.length === 1) {
       this.dispatchCloseMenuEvent(event);
-      this.pointerDownCounter += 1;
       this.handlePanStart(event);
       if (event.pointerType === 'touch') {
         this.longPressStart.set(event.clientX, event.clientY);
@@ -437,6 +458,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       .multiplyScalar(this.panSpeed);
     this.namedArgs.pan?.(this.selectedObject, this.panDelta.x, this.panDelta.y);
     this.panStart.copy(this.panEnd);
+
+    // Register pan action to avoid unwanted triggering of click events
+    if (this.panDelta.length() > this.PAN_THRESHOLD) {
+      this.latestPanTimestamp = event.timeStamp;
+    }
   }
 
   trackPointer(event: PointerEvent) {
