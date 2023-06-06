@@ -47,10 +47,12 @@ export default class DetailInfoMenu
   private renderer: THREE.WebGLRenderer;
 
   private container?: ThreeMeshUI.Block;
-  private informationBlock?: ThreeMeshUI.Block;
+  private informationBlock?: DetailInfoMesh;
 
   private informationText: string = '';
   private firstTime: boolean = true;
+
+  private entries: { key: string; value: string }[] | undefined;
 
   constructor({
     object,
@@ -75,10 +77,13 @@ export default class DetailInfoMenu
 
   createMenu() {
     const content = composeContent(this.object, this.applicationRepo);
+
     if (!content) {
       this.closeMenu();
       return;
     }
+
+    this.entries = content.entries;
 
     this.container = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
@@ -125,8 +130,7 @@ export default class DetailInfoMenu
       offset: 0.001,
     });
 
-    //informationBlockWrapper.add(this.informationBlock);
-    this.container.add(this.informationBlock /*Wrapper*/);
+    this.container.add(this.informationBlock);
 
     this.firstTime = false;
   }
@@ -141,21 +145,38 @@ export default class DetailInfoMenu
 
   onCloseMenu(): void {
     super.onCloseMenu();
-
-    //this.firstTime = true;
+    this.firstTime = true;
   }
 
+  // TODO: Live-Update. Vermutung: this.applicationRepo spuckt immer die selben Entries raus, weshalb es hier nie zu einem Update kommt. Eventuell bei onUpdateMenu einen ApplicationRepo als Parameter hinzufügen und beim Aufruf mitgeben wie im Constructor?
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
 
     const content = composeContent(this.object, this.applicationRepo);
     if (content) {
+      const isEqual = (a: typeof this.entries, b: typeof content.entries) =>
+        a &&
+        a.length === b.length &&
+        a.every(
+          (element, index) =>
+            element.key === b[index].key && element.value === b[index].value
+        );
+
+      if (isEqual(this.entries, content.entries)) {
+        console.log('is equal');
+        return;
+      }
+
+      console.log('is not equal');
+
+      this.informationText = '';
       content.entries.forEach(({ key, value }) => {
-        // maybe just do this when content.entries is indeed different from previous one (for that we need to store the previous one and update it to the newer one if it is indeed different)
-        // this.informationText += key + " " + value + "\n";
-        // change content
+        this.informationText += key + ' ' + value + '\n\n';
       });
+
+      const textBlock = this.informationBlock?.textBlock;
+      textBlock?.set({ content: this.informationText });
     } else {
       this.closeMenu();
     }
@@ -194,92 +215,4 @@ export default class DetailInfoMenu
       },
     });
   }
-
-  // makeTextPanel() {
-
-  //     const title = new ThreeMeshUI.Block( {
-  //         height: 0.2,
-  //         width: 1.2,
-  //         fontSize: 0.09,
-  //         justifyContent: 'center',
-  //         fontFamily: '/images/keyboard/Roboto-msdf.json',
-  //         fontTexture: '/images/keyboard/Roboto-msdf.png',
-  //         backgroundColor: new THREE.Color( 'blue' ),
-  //         backgroundOpacity: 0.2
-  //     } ).add(
-  //         new ThreeMeshUI.Text( { content:  } )
-  //     );
-
-  //     //title.position.set( 0, 0.8, -2 );
-  //     this.add( title );
-
-  //     // !!! BEWARE !!!
-  //     // three-mesh-ui uses three.js local clipping to hide overflows, so don't
-  //     // forget to enable local clipping with renderer.localClippingEnabled = true;
-
-  //     this.container = new ThreeMeshUI.Block( {
-  //         height: 0.7,
-  //         width: 0.6,
-  //         padding: 0.05,
-  //         justifyContent: 'center',
-  //         backgroundOpacity: 1,
-  //         backgroundColor: new THREE.Color( 'grey' )
-  //     } );
-
-  //     this.container.setupState( {
-  //         state: 'hidden-on',
-  //         attributes: { hiddenOverflow: true }
-  //     } );
-
-  //     this.container.setupState( {
-  //         state: 'hidden-off',
-  //         attributes: { hiddenOverflow: false }
-  //     } );
-
-  //     this.container.setState( 'hidden-on' );
-
-  //     this.container.position.z = 0.00001;
-  //     //this.container.rotation.x = -0.55;
-
-  //     this.add( this.container );
-
-  //     //
-
-  //     this.textContainer = new ThreeMeshUI.Block( {
-  //         width: 1,
-  //         height: 1,
-  //         padding: 0.09,
-  //         backgroundColor: new THREE.Color( 'blue' ),
-  //         backgroundOpacity: 0.2,
-  //         justifyContent: 'center'
-  //     } );
-
-  //     this.container.add( this.textContainer );
-
-  //     //
-
-  //     const text = new ThreeMeshUI.Text( {
-  //         content: 'hiddenOverflow '.repeat( 28 ),
-  //         fontSize: 0.054,
-  //         fontFamily: '/images/keyboard/Roboto-msdf.json',
-  //         fontTexture: '/images/keyboard/Roboto-msdf.png',
-  //     } );
-
-  //     this.textContainer.add( text );
-
-  //     setInterval( () => {
-
-  //         if ( this.container.currentState === 'hidden-on' ) {
-
-  //             this.container.setState( 'hidden-off' );
-
-  //         } else {
-
-  //             this.container.setState( 'hidden-on' );
-
-  //         }
-
-  //     }, 1500 );
-
-  // }
 }

@@ -1,7 +1,8 @@
-// @ts-ignore
+// @ts-ignore because three mesh ui's typescript support is not fully matured
 import ThreeMeshUI from 'three-mesh-ui';
 import ScrollUpButton from './scroll-up-button';
 import ScrollDownButton from './scroll-down-button';
+
 import DetailInfoScrollarea from './detail-info-scrollarea';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
@@ -60,5 +61,9 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     textBlock.add(this.text);
     textBlockBlock.add(textBlock);
     this.add(textBlockBlock);
+  }
+
+  public get textBlock(): ThreeMeshUI.Text {
+    return this.text;
   }
 }
