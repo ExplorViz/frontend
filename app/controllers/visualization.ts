@@ -11,6 +11,7 @@ import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, {
@@ -58,6 +59,8 @@ export const earthTexture = new THREE.TextureLoader().load(
  */
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
+
+  @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
 
@@ -169,7 +172,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  restructureLandscape(
+  restructureLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {

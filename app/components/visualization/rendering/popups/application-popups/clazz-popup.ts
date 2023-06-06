@@ -33,11 +33,11 @@ export default class ClazzPopup extends Component<Args> {
   isEditing = false;
 
   @tracked
-  tempName = "";
+  tempName = '';
 
   @action
   edit() {
-    if(this.landscapeRestructure.restructureMode) {
+    if (this.landscapeRestructure.restructureMode) {
       this.isEditing = true;
       this.tempName = this.name;
     }

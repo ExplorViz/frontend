@@ -4,6 +4,7 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
+{{add-listener this.landscapeRestructure 'restructureLandscapeData' this.restructureLandscapeData}}
 
 {{did-insert this.setupListeners}}
 

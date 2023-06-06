@@ -10,7 +10,6 @@ interface Args {
 }
 
 export default class ComponentPopup extends GlimmerComponent<Args> {
-  
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -18,11 +17,11 @@ export default class ComponentPopup extends GlimmerComponent<Args> {
   isEditing = false;
 
   @tracked
-  tempName = "";
+  tempName = '';
 
   @action
   edit() {
-    if(this.landscapeRestructure.restructureMode) {
+    if (this.landscapeRestructure.restructureMode) {
       this.isEditing = true;
       this.tempName = this.name;
     }

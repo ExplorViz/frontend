@@ -12,29 +12,27 @@ import {
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 
-
 interface VisualizationPageSetupSidebarRestructureArgs {
-    landscapeData: LandscapeData;
-    restructureLandscape: (
-      structureData: StructureLandscapeData,
-      dynamicData: DynamicLandscapeData
-    ) => void;
-    visualizationPaused: boolean;
-    toggleVisualizationUpdating: () => void;
-    resetLandscapeListenerPolling: () => void;
-    removeComponent(componentPath: string): void;
+  landscapeData: LandscapeData;
+  restructureLandscape: (
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) => void;
+  visualizationPaused: boolean;
+  toggleVisualizationUpdating: () => void;
+  resetLandscapeListenerPolling: () => void;
+  removeComponent(componentPath: string): void;
 }
 
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
-
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
-  @tracked
-  landscapeData: LandscapeData | null = null;
+  //@tracked
+  //landscapeData: LandscapeData | null = null;
 
   @tracked
   restructureMode: boolean = false;
@@ -48,36 +46,20 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   toggleRestructureMode() {
     this.restructureMode = this.landscapeRestructure.toggleRestructureMode();
     if (this.restructureMode) {
-        console.log(this.args.landscapeData);
-        this.landscapeData = this.args.landscapeData;
-        const applications: Application = {
-          id: '123',
-          name: 'My Empty Application',
-          language: 'JavaScript',
-          instanceId: 'Node.js',
-          parent:
-            this.landscapeData.structureLandscapeData.nodes[0].applications[0]
-              .parent,
-          packages: [],
-        };
-        this.landscapeData.structureLandscapeData.nodes[0].applications[0] =
-          applications;
-        const land = this.landscapeData;
-  
-        this.args.resetLandscapeListenerPolling();
-        if (!this.args.visualizationPaused) {
-          this.args.toggleVisualizationUpdating();
-        }
-        this.args.restructureLandscape(
-          land.structureLandscapeData,
-          land.dynamicLandscapeData
-        );
-        AlertifyHandler.showAlertifyMessage('Restructure Mode enabled');
-      } else {
-        if (this.args.visualizationPaused) {
-          this.args.toggleVisualizationUpdating();
-        }
-        AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
+      console.log(this.args.landscapeData);
+      this.landscapeRestructure.setLandscapeData(this.args.landscapeData);
+
+      this.args.resetLandscapeListenerPolling();
+      if (!this.args.visualizationPaused) {
+        this.args.toggleVisualizationUpdating();
       }
+
+      AlertifyHandler.showAlertifyMessage('Restructure Mode enabled');
+    } else {
+      if (this.args.visualizationPaused) {
+        this.args.toggleVisualizationUpdating();
+      }
+      AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
     }
   }
+}

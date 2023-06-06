@@ -1,4 +1,5 @@
 import Component from '@glimmer/component';
+import { next } from '@ember/runloop';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
@@ -14,7 +15,6 @@ interface Args {
 }
 
 export default class ApplicationPopup extends Component<Args> {
-
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -22,11 +22,11 @@ export default class ApplicationPopup extends Component<Args> {
   isEditing = false;
 
   @tracked
-  tempName = "";
+  tempName = this.args.application.name;
 
   @action
   edit() {
-    if(this.landscapeRestructure.restructureMode) {
+    if (this.landscapeRestructure.restructureMode) {
       this.isEditing = true;
       this.tempName = this.args.application.name;
     }
@@ -34,8 +34,11 @@ export default class ApplicationPopup extends Component<Args> {
 
   @action
   save() {
-    this.isEditing = false;
-    this.args.application.name = this.tempName;
+    this.landscapeRestructure.updateApplicationName(
+      this.tempName,
+      this.args.application.id
+    );
+    next(() => this.isEditing = false);
   }
 
   get clazzCount() {

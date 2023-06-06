@@ -88,7 +88,8 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
-    event.preventDefault();
+    //this line makes it impossible to interact with input fields
+    //event.preventDefault();
     // get the mouse cursor position at startup:
     this.lastMousePosition.x = event.clientX;
     this.lastMousePosition.y = event.clientY;
