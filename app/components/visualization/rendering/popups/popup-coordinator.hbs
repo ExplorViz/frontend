@@ -6,13 +6,15 @@
   {{on 'pointerout' this.onPointerOut}}
   {{did-insert this.setPopupPosition}}
   hover={{@popupData.hovered}}
-  {{style color=this.highlightingColorStyle}}
 >
 
   {{#if @popupData.isPinned}}
-    <div class='inline' {{style color='#212529'}}>
+        <BsButton @type='success' disabled="true">
       {{svg-jar 'pin-16' class='octicon align-right'}}
-    </div>
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Pin popup.
+      </BsTooltip>
+    </BsButton>
   {{else}}
     <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
       {{svg-jar 'pin-16' class='octicon align-right'}}
@@ -45,6 +47,7 @@
     </BsTooltip>
   </BsButton>
   <BsButton
+    id='popup-close-button'
     style='float: right;'
     @type='secondary'
     @onClick={{fn @removePopup @popupData.entity.id}}
