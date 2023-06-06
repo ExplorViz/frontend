@@ -13,16 +13,12 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 import * as THREE from 'three';
 import {
-  APPLICATION_ENTITY_TYPE,
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
-  NODE_ENTITY_TYPE,
 } from '../vr-message/util/entity_type';
 
 export type DetailedInfo = {
@@ -66,46 +62,6 @@ function trimString(
 }
 
 // #endregion HELPER
-
-// #region LANDSCAPE CONTENT COMPOSER
-
-function composeNodeContent(nodeMesh: NodeMesh) {
-  const nodeModel = nodeMesh.dataModel;
-
-  const content: DetailedInfo = {
-    title: nodeMesh.getDisplayName(),
-    entries: [],
-  };
-
-  content.entries.push({
-    key: '# Applications: ',
-    value: trimString(`${nodeModel.applications.length}`, 40),
-  });
-
-  return content;
-}
-
-function composeApplicationContent(applicationMesh: ApplicationMesh) {
-  const application = applicationMesh.dataModel;
-
-  const content: DetailedInfo = {
-    title: trimString(application.name, 40),
-    entries: [],
-  };
-
-  content.entries.push({
-    key: 'Instance ID: ',
-    value: trimString(application.id, 40),
-  });
-  content.entries.push({
-    key: 'Language: ',
-    value: trimString(application.language, 40),
-  });
-
-  return content;
-}
-
-// #endregion LANDSCAPE CONTENT COMPOSER
 
 // #region APPLICATION CONTENT COMPOSER
 
@@ -289,13 +245,8 @@ export default function composeContent(
 ) {
   let content: DetailedInfo | null = null;
 
-  // Landscape Content
-  if (object instanceof NodeMesh) {
-    content = composeNodeContent(object);
-  } else if (object instanceof ApplicationMesh) {
-    content = composeApplicationContent(object);
-    // Application Content
-  } else if (object instanceof ComponentMesh) {
+  // Meshes of Applications
+  if (object instanceof ComponentMesh) {
     content = composeComponentContent(object);
   } else if (object instanceof ClazzMesh) {
     content = composeClazzContent(object, applicationRepo);
@@ -309,8 +260,6 @@ export default function composeContent(
 }
 
 export type EntityMesh =
-  | NodeMesh
-  | ApplicationMesh
   | ComponentMesh
   | ClazzMesh
   | ClazzCommunicationMesh
@@ -318,8 +267,6 @@ export type EntityMesh =
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
-    object instanceof NodeMesh ||
-    object instanceof ApplicationMesh ||
     object instanceof ComponentMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
@@ -333,12 +280,6 @@ export function getIdOfEntity(entity: EntityMesh): string {
 }
 
 export function getTypeOfEntity(entity: EntityMesh): EntityType {
-  if (entity instanceof NodeMesh) {
-    return NODE_ENTITY_TYPE;
-  }
-  if (entity instanceof ApplicationMesh) {
-    return APPLICATION_ENTITY_TYPE;
-  }
   if (entity instanceof ComponentMesh) {
     return COMPONENT_ENTITY_TYPE;
   }
