@@ -68,8 +68,8 @@ export default class CloseIcon extends BaseMesh implements IntersectableObject {
 
     // Get size of the object.
     const boundingBox = new THREE.Box3().setFromObject(object);
-    const width =  BLOCK_OPTIONS_CONTAINER.width //older version (doesn't fit anymore): boundingBox.max.x - boundingBox.min.x;
-    const height = BLOCK_OPTIONS_CONTAINER.height //older version (doesn't fit anymore): boundingBox.max.y - boundingBox.min.y;
+    const width = BLOCK_OPTIONS_CONTAINER.width; //older version (doesn't fit anymore): boundingBox.max.x - boundingBox.min.x;
+    const height = BLOCK_OPTIONS_CONTAINER.height; //older version (doesn't fit anymore): boundingBox.max.y - boundingBox.min.y;
     const depth = boundingBox.max.z - boundingBox.min.z;
 
     // Restore rotation.

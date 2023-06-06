@@ -1,11 +1,10 @@
-version: "3.5"
+version: '3.5'
 services:
-
   collaboration-service:
     container_name: collaboration-service
     image: explorviz/collaboration-service-jvm:latest
     ports:
-    - ${COLLABORATION_PORT}:4444
+      - ${COLLABORATION_PORT}:4444
     environment:
       - EXPLORVIZ_LOG_LVL=DEBUG
 

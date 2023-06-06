@@ -76,7 +76,6 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
     });
     this.items.push(title);
 
-
     let offset = 100;
     // content.entries.forEach(({ key, value }) => {
     //   const keyTextItem = new TextItem({
@@ -100,33 +99,30 @@ export default class DetailInfoMenu extends UiMenu implements DetachableMenu {
     //   offset += 70;
     // });
 
-    
-    const container = new ThreeMeshUI.Block( {
-      height: 0.5 , ///this.resolution.height,
+    const container = new ThreeMeshUI.Block({
+      height: 0.5, ///this.resolution.height,
       width: 0.5, ///this.resolution.width,
       padding: 0.05,
       justifyContent: 'center',
       backgroundOpacity: 1,
-      backgroundColor: new THREE.Color( 'grey' ),
-    } );
-
+      backgroundColor: new THREE.Color('grey'),
+    });
 
     //this.menuFactory.renderer.localClippingEnabled = true;
 
     this.add(container);
 
-    const container2 = new ThreeMeshUI.Block( {
-      height: 0.5 , ///this.resolution.height,
+    const container2 = new ThreeMeshUI.Block({
+      height: 0.5, ///this.resolution.height,
       width: 0.5, ///this.resolution.width,
       padding: 0.05,
       justifyContent: 'center',
       backgroundOpacity: 1,
-      backgroundColor: new THREE.Color( 'blue' ),
-      offset: 0.001
-    } );
+      backgroundColor: new THREE.Color('blue'),
+      offset: 0.001,
+    });
 
     container.add(container2);
-
 
     this.redrawMenu();
     // this.detachMenu();
