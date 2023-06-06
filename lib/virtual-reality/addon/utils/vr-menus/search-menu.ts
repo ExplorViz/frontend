@@ -4,12 +4,20 @@ import ThreeMeshUI from 'three-mesh-ui';
 
 import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
+import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
 
 
 
 export type SearchMenuArgs = UiMenuArgs; /*& {
     ...
 };*/
+
+const BLOCK_OPTIONS_CONTAINER = {
+    width: 0.8,
+    height: 0.8,
+    fontFamily: '/images/keyboard/custom-msdf.json',
+    fontTexture: '/images/keyboard/custom.png',
+  }
 
 const colors = {
 	keyboardBack: 0x858585,
@@ -23,6 +31,7 @@ const objsToTest = [];
 
 export default class SearchMenu extends InteractiveMenu {
 
+    container! : ThreeMeshUI.Block;
     userText : ThreeMeshUI.Text;
     keyboard! : ThreeMeshUI.Keyboard;
     
@@ -47,40 +56,44 @@ export default class SearchMenu extends InteractiveMenu {
     //TODO: source of function
     makeUI() {
 
-        const container = new THREE.Group();
-        container.position.set( 0, 1.4, -1.2 );
-        container.rotation.x = -0.15;
-        this.add( container );
+        this.container = new ThreeMeshUI.Block({
+            width: BLOCK_OPTIONS_CONTAINER.width,
+            height: BLOCK_OPTIONS_CONTAINER.height,
+            fontFamily: BLOCK_OPTIONS_CONTAINER.fontFamily,
+            fontTexture: BLOCK_OPTIONS_CONTAINER.fontTexture,
+            fontSize: 0.03,
+            justifyContent: 'start',
+            backgroundColor: new THREE.Color('red'),
+            backgroundOpacity: 0.6,
+          });
+
+        this.add( this.container );
     
         const textPanel = new ThreeMeshUI.Block( {
-            fontFamily: '/images/keyboard/Roboto-msdf.json', //FontJSON,
-            fontTexture: '/images/keyboard/Roboto-msdf.png', //FontImage,
-            width: 1,
-            height: 0.35,
-            backgroundColor: new THREE.Color( colors.panelBack ),
-            backgroundOpacity: 1
+            width: BLOCK_OPTIONS_CONTAINER.width,
+            height: 0.2,
+            backgroundColor: new THREE.Color( 'blue' ),
         } );
     
-        textPanel.position.set( 0, 0.85, 0 );
-        container.add( textPanel );
+        this.container.add( textPanel );
     
         const title = new ThreeMeshUI.Block( {
-            width: 1,
+            width:  BLOCK_OPTIONS_CONTAINER.width,
             height: 0.1,
-            justifyContent: 'center',
             fontSize: 0.045,
-            backgroundOpacity: 0
+            justifyContent: 'center',
+            backgroundColor: new THREE.Color( 'green' ),
         } ).add(
             new ThreeMeshUI.Text( { content: 'Type some text on the keyboard' } )
         );
     
     
         const textField = new ThreeMeshUI.Block( {
-            width: 1,
-            height: 0.4,
+            width:  BLOCK_OPTIONS_CONTAINER.width,
+            height: 0.1,
             fontSize: 0.033,
             padding: 0.02,
-            backgroundOpacity: 0
+            backgroundColor: new THREE.Color( 'yellow' ),
         } ).add( this.userText );
     
         textPanel.add( title, textField );
@@ -88,7 +101,8 @@ export default class SearchMenu extends InteractiveMenu {
 
     makeKeyboard() {
 
-        this.keyboard = new ThreeMeshUI.Keyboard( {
+        this.keyboard = new KeyboardMesh( {
+            userText: this.userText,
             language: 'de',
             fontFamily: '/images/keyboard/Roboto-msdf.json', //FontJSON,
             fontTexture: '/images/keyboard/Roboto-msdf.png', //FontImage,
@@ -100,9 +114,8 @@ export default class SearchMenu extends InteractiveMenu {
             enterTexture: '/images/keyboard/enter.png',
         } );
     
-        this.keyboard.position.set( 0, 0.78, +1 );
-        this.keyboard.rotation.x = -0.55;
-        this.add( this.keyboard );
+       
+        this.container.add( this.keyboard );
     
     
         this.keyboard.keys.forEach( ( key ) => {
