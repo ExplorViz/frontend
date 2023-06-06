@@ -233,7 +233,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
-    if (this.pointerDownCounter === 1) {
+    console.log('Pointer Down:', this.pointerDownCounter);
+
+    // Counter could be zero when mouse is in motion or one when mouse has stopped
+    if (this.pointerDownCounter <= 1) {
       this.timer = setTimeout(() => {
         this.pointerDownCounter = 0;
         this.namedArgs.singleClick?.(intersectedViewObj);
