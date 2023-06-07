@@ -218,7 +218,7 @@ export default class DetachedMenuGroupsService extends Service {
       });
       shareIcon.addToObject(detachedMenuGroup);
       // shareIcon.position.y -= 0.04;
-       shareIcon.position.x -= 0.15;
+      shareIcon.position.x -= 0.15;
 
       color = this.collaborationSession.getColor('');
       // highlight icon
@@ -230,7 +230,7 @@ export default class DetachedMenuGroupsService extends Service {
       });
       highlightIcon.addToObject(detachedMenuGroup);
       // highlightIcon.position.y -= 0.04;
-         highlightIcon.position.x -= 0.25;
+      highlightIcon.position.x -= 0.25;
     }
 
     // Apply same position, rotation and scale as detached menu.

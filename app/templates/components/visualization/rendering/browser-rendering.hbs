@@ -79,6 +79,9 @@
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
+              <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
+                @addComponent={{@addComponent}}
+              />
             </ul>
           </div>
           {{#each @components as |componentName|}}
@@ -113,6 +116,12 @@
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
+                    @removeComponent={{@removeComponent}}
+                  />
+                {{/if}}
+                {{#if (eq componentName 'xr-vscode-extension-settings')}}
+                  <h5 class='text-center'>VSCode Extension Settings</h5>
+                  <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}

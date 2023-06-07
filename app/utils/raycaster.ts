@@ -1,3 +1,4 @@
+import ThreeMeshUI from 'three-mesh-ui';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import * as THREE from 'three';
@@ -7,7 +8,8 @@ export function defaultRaycastFilter(
 ): boolean {
   return !(
     intersection.object instanceof LabelMesh ||
-    intersection.object instanceof LogoMesh
+    intersection.object instanceof LogoMesh ||
+    intersection.object instanceof ThreeMeshUI.Text
   );
 }
 

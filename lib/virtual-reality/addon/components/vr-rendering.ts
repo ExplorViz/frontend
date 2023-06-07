@@ -312,8 +312,10 @@ export default class VrRendering extends Component<Args> {
     // When any base mash is hovered, highlight it.
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
-      hover: (event) => event.target.applyHoverEffect(1.1, this.localUser.visualizationMode),
-      resetHover: (event) => event.target.resetHoverEffect(this.localUser.visualizationMode),
+      hover: (event) =>
+        event.target.applyHoverEffect(1.1, this.localUser.visualizationMode),
+      resetHover: (event) =>
+        event.target.resetHoverEffect(this.localUser.visualizationMode),
     });
 
     // When a component of an application is clicked, open it.
@@ -392,9 +394,6 @@ export default class VrRendering extends Component<Args> {
       triggerDown: (event) => event.target.triggerDown(event.intersection),
       triggerUp: (event) => event.target.triggerUp(),
     });
-
-
-
   }
 
   private initSecondaryInput() {

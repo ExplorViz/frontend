@@ -12,9 +12,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
 
-  curveHeight : number = 0.0;
+  curveHeight: number = 0.0;
 
-  applicationCenter : THREE.Vector3 = new THREE.Vector3();
+  applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
   constructor(
     layout: CommunicationLayout,
@@ -289,8 +289,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return true;
   }
 
-  applyHoverEffect(colorShift?: number, mode?: VisualizationMode ): void {
-    if(mode === 'vr' && this.isHovered === false){
+  applyHoverEffect(colorShift?: number, mode?: VisualizationMode): void {
+    if (mode === 'vr' && this.isHovered === false) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
@@ -299,12 +299,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   resetHoverEffect(mode?: VisualizationMode): void {
-    if(mode === 'vr' && this.isHovered){
+    if (mode === 'vr' && this.isHovered) {
       this.layout.lineThickness /= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.resetHoverEffect();
     }
   }
-
 }

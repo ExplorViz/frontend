@@ -197,7 +197,7 @@ export default class VrMenuFactoryService extends Service {
       object,
       menuFactory: this,
       applicationRepo: this.applicationRepo,
-      renderer: this.renderer
+      renderer: this.renderer,
     });
   }
 
@@ -220,11 +220,9 @@ export default class VrMenuFactoryService extends Service {
     };
   }
 
-  buildSearchMenu() : SearchMenu {
-    return new SearchMenu({menuFactory: this});
+  buildSearchMenu(): SearchMenu {
+    return new SearchMenu({ menuFactory: this });
   }
-
-
 
   // #endregion TOOL MENUS
 
