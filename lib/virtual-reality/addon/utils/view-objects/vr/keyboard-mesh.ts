@@ -112,5 +112,8 @@ export default class KeyboardMesh
     return true;
   }
 
-  applyHover(intersection: THREE.Intersection) {}
+  applyHover(intersection: THREE.Intersection) {
+    
+
+  }
 }

@@ -9,8 +9,16 @@ export function defaultRaycastFilter(
   return !(
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
-    intersection.object instanceof ThreeMeshUI.Text
+    isChildOfText(intersection)
   );
+}
+
+function isChildOfText(intersection: THREE.Intersection){
+  let isChild = false;
+  intersection.object.traverseAncestors((ancestor) => {
+    if (ancestor instanceof ThreeMeshUI.Text) isChild = true;
+  });
+  return isChild;
 }
 
 export default class Raycaster extends THREE.Raycaster {
