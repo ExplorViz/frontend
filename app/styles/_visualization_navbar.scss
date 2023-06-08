@@ -1,6 +1,7 @@
 .nav-link-with-cursor {
   @extend .nav-link;
   cursor: pointer;
+  user-select: none
 }
 
 .nav-item-with-def-cursor {
