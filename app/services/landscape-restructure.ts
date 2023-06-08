@@ -2,8 +2,9 @@ import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { setApplicationInLandscapeById, setApplicationName } from 'explorviz-frontend/utils/restructure-helper';
+import { setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { isApplication, isClass, isPackage, isNode, isMethod } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { equal } from 'assert';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -24,20 +25,39 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   updateApplicationName(name: string, id: string) {
-    
     if (this.landscapeData?.structureLandscapeData) {
-      let application = setApplicationName(this.landscapeData.structureLandscapeData, id, name)
-      if (application) {
-        this.landscapeData.structureLandscapeData = setApplicationInLandscapeById(this.landscapeData.structureLandscapeData, id, application)
-        this.trigger(
-          'restructureLandscapeData',
-          this.landscapeData.structureLandscapeData,
-          this.landscapeData.dynamicLandscapeData
-        );
-        console.log(application);
-      } else console.log('No Application with ID: ' + id + ' found!');
-    }
+      this.landscapeData.structureLandscapeData = setApplicationNameInLandscapeById(this.landscapeData.structureLandscapeData, id, name)
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+      console.log();
+    } else console.log('No Application with ID: ' + id + ' found!');
   }
+
+  updatePackageName(name: string, id: string) {
+    if(this.landscapeData?.structureLandscapeData) {
+      this.landscapeData.structureLandscapeData = setPackageNameById(this.landscapeData.structureLandscapeData, id, name)
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    } else console.log('No Package with ID: ' + id + ' found!')
+  }
+
+  updateClassName(name: string, id: string, appId: string) {
+    if(this.landscapeData?.structureLandscapeData) {
+      this.landscapeData.structureLandscapeData = setClassNameById(this.landscapeData.structureLandscapeData, appId, id, name);
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    } else console.log('No Class with ID: ' + id + ' found!')
+  }
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

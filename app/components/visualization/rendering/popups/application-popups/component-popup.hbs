@@ -1,18 +1,6 @@
-<h3 class='popover-header'>
-  {{#if this.landscapeRestructure.restructureMode}}
-    <div class='text-center text-break font-weight-bold pl-1'>
-      {{#if this.isEditing}}
-        <Input @value={{this.name}} @enter={{this.save}} {{on "focusout" this.save}} />
-      {{else}}
-        <div {{on "click" this.edit}}>{{this.name}}</div>
-      {{/if}}
-    </div>
-  {{else}}
-    <div class='text-center text-break font-weight-bold pl-1'>
-      {{this.name}}
-    </div> 
-  {{/if}}
-</h3>
+<Visualization::Rendering::Popups::Interactable-Properties::InteractiveHeader
+  @entity={{@component}}
+/>
 <div class='popover-body'>
   <table class='w-100'>
     <tbody>

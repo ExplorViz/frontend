@@ -1,6 +1,4 @@
 import GlimmerComponent from '@glimmer/component';
-import { action } from '@ember/object';
-import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -12,26 +10,6 @@ interface Args {
 export default class ComponentPopup extends GlimmerComponent<Args> {
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
-
-  @tracked
-  isEditing = false;
-
-  @tracked
-  tempName = '';
-
-  @action
-  edit() {
-    if (this.landscapeRestructure.restructureMode) {
-      this.isEditing = true;
-      this.tempName = this.name;
-    }
-  }
-
-  @action
-  save() {
-    this.isEditing = false;
-    this.args.component.name = this.tempName;
-  }
 
   get name() {
     return this.args.component.name;
