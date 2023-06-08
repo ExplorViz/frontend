@@ -1,7 +1,7 @@
-import ThreeMeshUI from 'three-mesh-ui';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import * as THREE from 'three';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
@@ -13,7 +13,7 @@ export function defaultRaycastFilter(
   );
 }
 
-function isChildOfText(intersection: THREE.Intersection){
+function isChildOfText(intersection: THREE.Intersection) {
   let isChild = false;
   intersection.object.traverseAncestors((ancestor) => {
     if (ancestor instanceof ThreeMeshUI.Text) isChild = true;

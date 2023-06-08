@@ -1,4 +1,3 @@
-import ThreeMeshUI from 'three-mesh-ui';
 import { setOwner } from '@ember/application';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import composeContent, {
@@ -6,6 +5,7 @@ import composeContent, {
   getIdOfEntity,
   getTypeOfEntity,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from '../interactive-menu';
 import { DetachableMenu } from '../detachable-menu';
 import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
@@ -18,6 +18,7 @@ import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-me
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
   object: EntityMesh;
+  // applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -44,9 +45,11 @@ export default class DetailInfoMenu
 {
   private object: EntityMesh;
 
-  @service('lib/virtual-reality/addon/services/repos/application-repository')
+  //@service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
-  
+
+  //private applicationRepo: ApplicationRepository;
+
   private renderer: THREE.WebGLRenderer;
 
   private container?: ThreeMeshUI.Block;
@@ -60,12 +63,14 @@ export default class DetailInfoMenu
   constructor({
     owner,
     object,
+    // applicationRepo,
     renderer,
     ...args
   }: DetailInfoMenuArgs) {
     super(args);
     setOwner(this, owner);
     this.object = object;
+    // this.applicationRepo = applicationRepo;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
   }
@@ -215,7 +220,8 @@ export default class DetailInfoMenu
     });
   }
 }
-function service(arg0: string): (target: DetailInfoMenu, propertyKey: "applicationRepo") => void {
+function service(
+  arg0: string
+): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
   throw new Error('Function not implemented.');
 }
-

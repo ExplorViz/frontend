@@ -1,6 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import ThreeMeshUI from 'three-mesh-ui';
 import { IntersectableObject } from '../interfaces/intersectable-object';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export default class ScrollUpButton
   extends ThreeMeshUI.Block

@@ -1,7 +1,6 @@
 // @ts-ignore
-import UiMenu, { UiMenuArgs } from './ui-menu';
 import ThreeMeshUI from 'three-mesh-ui';
-
+import UiMenu, { UiMenuArgs } from './ui-menu';
 import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
 import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
@@ -29,7 +28,7 @@ const objsToTest = [];
 
 export default class SearchMenu extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
-  userText: ThreeMeshUI.Text;
+  userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
 
   constructor({ ...args /*, list of non UIMenuArgs */ }: SearchMenuArgs) {

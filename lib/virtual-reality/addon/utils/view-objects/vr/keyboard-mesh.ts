@@ -1,11 +1,23 @@
 // @ts-ignore
-import ThreeMeshUI from 'three-mesh-ui';
-import { IntersectableObject } from '../interfaces/intersectable-object';
+import {
+  IntersectableObject,
+  isIntersectableObject,
+} from '../interfaces/intersectable-object';
 import * as THREE from 'three';
+import ThreeMeshUI from 'three-mesh-ui';
+import VRController from 'virtual-reality/utils/vr-controller';
 
 export type KeyboardMeshArgs = ThreeMeshUI.KeyboardOptions & {
   userText: ThreeMeshUI.Text;
 };
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
 
 const objsToTest = [];
 
@@ -46,7 +58,7 @@ export default class KeyboardMesh
         state: 'hovered',
         attributes: {
           offset: 0,
-          backgroundColor: new THREE.Color(colors.hovered),
+          backgroundColor: new THREE.Color(/*colors.hovered*/ 'beige'),
           backgroundOpacity: 1,
         },
       });
@@ -79,7 +91,7 @@ export default class KeyboardMesh
                 break;
 
               case 'space':
-                userText.set({ content: this.userText.content + ' ' });
+                this.userText.set({ content: this.userText.content + ' ' });
                 break;
 
               case 'backspace':
@@ -100,11 +112,71 @@ export default class KeyboardMesh
 
             // print a glyph, if any
           } else if (key.info.input) {
-            this.userText.set({ content: userText.content + key.info.input });
+            this.userText.set({
+              content: this.userText.content + key.info.input,
+            });
           }
         },
       });
     });
+  }
+
+  pressButton(raycaster: THREE.Raycaster) {
+    const intersect = this.raycast(raycaster);
+
+    if (intersect && intersect.object.isUI) {
+      if (intersect.object.currentState === 'hovered') {
+        // Component.setState internally call component.set with the options you defined in component.setupState
+        if (intersect.object.states['selected'])
+          intersect.object.setState('selected');
+      }
+    }
+  }
+
+  hoverOrUnhoverButton(raycaster: THREE.Raycaster) {
+    // Find closest intersecting object
+    const intersect = this.raycast(raycaster);
+
+    if (intersect && intersect.object.isUI) {
+      // Component.setState internally call component.set with the options you defined in component.setupState
+      if (intersect.object.states['hovered'])
+        intersect.object.setState('hovered');
+    }
+
+    // Update non-targeted buttons state
+
+    objsToTest.forEach((obj) => {
+      if ((!intersect || obj !== intersect.object) && obj.isUI) {
+        // Component.setState internally call component.set with the options you defined in component.setupState
+        if (obj.states['idle']) obj.setState('idle');
+      }
+    });
+  }
+
+  raycast(raycaster: THREE.Raycaster) {
+    return objsToTest.reduce((closestIntersection, obj) => {
+      if (!this.getObjectById(obj.id)) {
+        return closestIntersection;
+      }
+
+      const intersection = raycaster.intersectObject(obj, true);
+
+      // if intersection is an empty array, we skip
+      if (!intersection[0]) return closestIntersection;
+
+      // if this intersection is closer than any previous intersection, we keep it
+      if (
+        !closestIntersection ||
+        intersection[0].distance < closestIntersection.distance
+      ) {
+        // Make sure to return the UI object, and not one of its children (text, frame...)
+        intersection[0].object = obj;
+
+        return intersection[0];
+      }
+
+      return closestIntersection;
+    }, null);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -112,8 +184,18 @@ export default class KeyboardMesh
     return true;
   }
 
-  applyHover(intersection: THREE.Intersection) {
-    
+  applyHover(controller: VRController | null) {
+    const raycaster = controller?.raycaster;
+    if (raycaster) this.hoverOrUnhoverButton(raycaster);
+  }
 
+  resetHover(controller: VRController | null) {
+    const raycaster = controller?.raycaster;
+    if (raycaster) this.hoverOrUnhoverButton(raycaster);
+  }
+
+  triggerDown(controller: VRController | null) {
+    const raycaster = controller?.raycaster;
+    if (raycaster) this.pressButton(raycaster);
   }
 }
