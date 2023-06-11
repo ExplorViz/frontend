@@ -1,14 +1,16 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
-import { isApplication, isClass, isPackage, isNode, isMethod } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { equal } from 'assert';
+import ApplicationRenderer from './application-renderer';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
 }) {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+  
   @tracked
   public restructureMode: boolean = false;
 
@@ -56,6 +58,16 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.dynamicLandscapeData
       );
     } else console.log('No Class with ID: ' + id + ' found!')
+  }
+
+  addFoundation() {
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
   }
 
 }

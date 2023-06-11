@@ -4,9 +4,10 @@
 
 <div>
 
+  <h6 class="mb-3 mt-3"><strong>Restructure Mode</strong></h6>
   <div class='ml-3'>
     <div class='d-flex justify-content-between'>
-      <label class='bold'>Restructure Mode: </label>
+      <label>Enable Restructure Mode: </label>
       <div class='d-flex align-self-center'>
         <XToggle
           class='mr-4'
@@ -19,11 +20,41 @@
   </div>
 
   {{#if this.restructureMode}}
+    <h6 class="mb-3 mt-3"><strong>Entity</strong></h6>
     <div class='ml-3'>
       <div class='d-flex justify-content-between'>
-        <label class='bold'>Generate Meshes: </label>
+        <BsButton
+          title='Foundation'
+          {{on 'click' this.createFoundation}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Foundation
+        </BsButton>
       </div>
-    </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Package'
+          {{on 'click' this.createFoundation}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Package
+        </BsButton>
+      </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Class'
+          {{on 'click' this.createFoundation}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Class
+        </BsButton>
+      </div>
+    </div> 
   {{/if}}
 
 </div>

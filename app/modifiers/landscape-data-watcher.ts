@@ -1,5 +1,6 @@
 import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
+import { error } from 'console';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
@@ -65,7 +66,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
     this.landscapeData = landscapeData;
     this.graph = graph;
-
+    
     this.handleUpdatedLandscapeData.perform();
   }
 

@@ -7,6 +7,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import {
   Application,
+  Node,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
@@ -61,5 +62,35 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       }
       AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
     }
+  }
+
+  @action
+  createFoundation() {
+    
+    // Erstellen Sie eine vorläufige Struktur für den Node.
+    let myNode: Partial<Node> = {
+      id: 'node1',
+      ipAddress: '192.168.1.1',
+      hostName: 'my-node',
+    };
+
+    const myApplication: Application = {
+      id: 'app1',
+      name: 'My Application',
+      language: 'JavaScript',
+      instanceId: 'instance1',
+      parent: myNode as Node, // Hier setzen wir den vorläufigen Node als Elternknoten.
+      packages: [], // Keine Packages für diese Anwendung.
+    };
+
+    // Jetzt können wir die Anwendung und die vollständigen Details zum Node hinzufügen.
+    myNode = {
+      ...myNode,
+      applications: [myApplication], // Fügen Sie die Anwendung zum Node hinzu.
+    };
+
+    this.landscapeRestructure.landscapeData?.structureLandscapeData.nodes.push(myNode as Node);
+    this.landscapeRestructure.addFoundation();
+    AlertifyHandler.showAlertifyMessage("Foundation created");
   }
 }
