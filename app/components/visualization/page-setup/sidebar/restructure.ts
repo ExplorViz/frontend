@@ -67,7 +67,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @action
   createFoundation() {
     
-    // Erstellen Sie eine vorläufige Struktur für den Node.
     let myNode: Partial<Node> = {
       id: 'node1',
       ipAddress: '192.168.1.1',
@@ -79,14 +78,13 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       name: 'My Application',
       language: 'JavaScript',
       instanceId: 'instance1',
-      parent: myNode as Node, // Hier setzen wir den vorläufigen Node als Elternknoten.
-      packages: [], // Keine Packages für diese Anwendung.
+      parent: myNode as Node,
+      packages: [],
     };
 
-    // Jetzt können wir die Anwendung und die vollständigen Details zum Node hinzufügen.
     myNode = {
       ...myNode,
-      applications: [myApplication], // Fügen Sie die Anwendung zum Node hinzu.
+      applications: [myApplication],
     };
 
     this.landscapeRestructure.landscapeData?.structureLandscapeData.nodes.push(myNode as Node);

@@ -50,6 +50,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
+    console.log(this);
     this.dataModel = application;
     this.boxLayoutMap = boxLayoutMap;
   }

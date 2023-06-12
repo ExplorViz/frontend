@@ -2,7 +2,7 @@
   {{#if this.landscapeRestructure.restructureMode}}
     <div class='text-center text-break font-weight-bold pl-1'>
       {{#if this.isEditing}}
-        <Input @value={{this.name}} @enter={{this.save}} {{on "focusout" this.save}} />
+        <Input aria-label="name" @value={{this.name}} @enter={{this.save}} {{on "focusout" this.save}} />
       {{else}}
         <div {{on "click" this.edit}}>{{this.name}}</div>
       {{/if}}
