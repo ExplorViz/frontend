@@ -1,7 +1,6 @@
 // @ts-ignore
 import {
   IntersectableObject,
-  isIntersectableObject,
 } from '../interfaces/intersectable-object';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
@@ -10,14 +9,6 @@ import VRController from 'virtual-reality/utils/vr-controller';
 export type KeyboardMeshArgs = ThreeMeshUI.KeyboardOptions & {
   userText: ThreeMeshUI.Text;
 };
-
-function sleep(milliseconds) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
-}
 
 const objsToTest = [];
 
@@ -58,7 +49,7 @@ export default class KeyboardMesh
         state: 'hovered',
         attributes: {
           offset: 0,
-          backgroundColor: new THREE.Color(/*colors.hovered*/ 'beige'),
+          backgroundColor: new THREE.Color(colors.hovered),
           backgroundOpacity: 1,
         },
       });

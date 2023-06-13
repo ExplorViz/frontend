@@ -4,10 +4,11 @@ import UiMenu, { UiMenuArgs } from './ui-menu';
 import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
 import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
-export type SearchMenuArgs = UiMenuArgs; /*& {
-    ...
-};*/
+export type SearchMenuArgs = UiMenuArgs & {
+    applicationRepo: ApplicationRepository
+};
 
 const BLOCK_OPTIONS_CONTAINER = {
   width: 0.8,
@@ -30,10 +31,11 @@ export default class SearchMenu extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
+  applicationRepo: ApplicationRepository;
 
-  constructor({ ...args /*, list of non UIMenuArgs */ }: SearchMenuArgs) {
+  constructor({ applicationRepo, ...args }: SearchMenuArgs) {
     super(args);
-
+    this.applicationRepo = applicationRepo;
     //new ThreeMeshUI.Text( { content: '' , fontSize: 0.055} );
 
     this.makeUI();
@@ -70,7 +72,19 @@ export default class SearchMenu extends InteractiveMenu {
       backgroundColor: new THREE.Color('green'),
     }).add(new ThreeMeshUI.Text({ content: 'Type some text on the keyboard' }));
 
-    this.userText = new ThreeMeshUI.Text({ content: 'Text to be displayed' });
+
+
+    // TODO:
+    // ApplicationObject3D wichtige Klasse. Sie beinhaltet alle Meshes, auf die wir Zugreifen können wenn wir die ID haben
+    // application-renderer kann uns Zugriff auf alle ApplicationObjects3D gewähren. Wenn wir also filtern, können wir auf das jeweilige Objekt zugreifen
+    // Eventuell mit RegEx arbeiten
+    for (let value of this.applicationRepo.getAll()) {
+      console.log(value);
+      console.log('---------!!!!-------');
+  }
+
+
+    this.userText = new ThreeMeshUI.Text({ content: '' });
 
     const textField = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,

@@ -223,7 +223,9 @@ export default class VrMenuFactoryService extends Service {
   }
 
   buildSearchMenu(): SearchMenu {
-    return new SearchMenu({ menuFactory: this });
+    return new SearchMenu({ 
+      applicationRepo: this.applicationRepo,
+      menuFactory: this });
   }
 
   // #endregion TOOL MENUS
