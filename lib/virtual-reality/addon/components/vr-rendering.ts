@@ -393,8 +393,8 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: DetailInfoScrollarea,
       triggerPress: (event) => event.target.triggerPress(event.intersection),
-      hover: (event) => event.target.applyHover(),
-      resetHover: (event) => event.target.resetHover(),
+      hover: (event) => event.target.applyHover(event.controller, this),
+      resetHover: (event) => event.target.resetHover(event.controller),
       triggerDown: (event) => event.target.triggerDown(event.intersection),
       triggerUp: (event) => event.target.triggerUp(),
     });
@@ -900,7 +900,7 @@ export default class VrRendering extends Component<Args> {
     });
   }
 
-  private grabIntersectedObject(controller: VRController) {
+  private grabIntersectedObject(controller: VRController) { 
     if (!controller.intersectedObject || !controller.ray) return;
 
     let current: THREE.Object3D | null = controller.intersectedObject.object;

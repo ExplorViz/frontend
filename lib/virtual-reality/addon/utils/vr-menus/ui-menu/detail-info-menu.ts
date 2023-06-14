@@ -12,8 +12,9 @@ import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
 import { BaseMenuArgs } from '../base-menu';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
-import VRControllerThumbpadBinding from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
+import VRController from 'virtual-reality/utils/vr-controller';
 
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -57,6 +58,8 @@ export default class DetailInfoMenu
 
   private informationText: string = '';
   private firstTime: boolean = true;
+
+  private textBlock : ThreeMeshUI.Text | undefined
 
   private entries: { key: string; value: string }[] | undefined;
 
@@ -126,7 +129,7 @@ export default class DetailInfoMenu
       this.informationText += key + ' ' + value + '\n\n';
     });
 
-    this.informationBlock = new DetailInfoMesh(this.informationText, {
+    this.informationBlock = new DetailInfoMesh(this.informationText, this.menuFactory, {
       width: BLOCK_OPTIONS_INFO.width,
       height: BLOCK_OPTIONS_INFO.height,
       backgroundOpacity: 0,
@@ -191,26 +194,39 @@ export default class DetailInfoMenu
    */
   makeThumbpadBinding() {
     return new VRControllerThumbpadBinding(
-      { labelUp: 'Scroll up', labelDown: 'Scroll down' },
-      //{ labelUp: 'Scroll up', labelDown: 'Scroll down' },
+      { labelUp: 'Scroll up', 
+      labelDown: 'Scroll down', 
+    },
       {
-        // onThumbpadDown: (_controller, axes) => {
-        // const direction = VRControllerThumbpadBinding.getDirection(axes);
-        // const vector = thumbpadDirectionToVector2(direction);
-        // const offset = vector.toArray()[1]; // vertical part
-        // if (offset !== 0) {
-        //   if(this.informationBlock){
-        //     this.informationBlock.position.y += offset * 0.01;
-        //   }
-        //   // Get index of currently selected item or if no item is selected,
-        //   // get `0` if the user wants to select the previous (i.e., if
-        //   // `offset = -1`) or `-1` if the user want to select the next item
-        //   // (i.e., if `offset = 1`).
-        // }
-        //},
+        onThumbpadTouch: (controller: VRController, axes:number[]) => {
+         controller.updateIntersectedObject();
+         if (!controller.intersectedObject) return;
+
+         if(this.informationBlock){
+
+         
+         const textBlock = this.informationBlock.textBlock;
+         const initialY = textBlock.y;
+
+        const direction = VRControllerThumbpadBinding.getDirection(axes);
+        const vector = thumbpadDirectionToVector2(direction);
+        const offset = vector.toArray()[1]; // vertical part
+        if (offset !== 0) {
+            //up
+            if(offset === -1&& textBlock.position.y >0){
+              textBlock.position.y +=  offset * 0.01;
+            }
+            //down
+            if(offset === 1 ){
+              textBlock.position.y +=  offset * 0.01;
+            }
+          }
+         }
+        },
       }
     );
   }
+
 
   makeTriggerButtonBinding() {
     return new VRControllerButtonBinding('Detach', {

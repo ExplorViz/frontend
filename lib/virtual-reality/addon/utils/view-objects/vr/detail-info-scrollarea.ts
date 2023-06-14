@@ -1,6 +1,9 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
+import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import { IntersectableObject } from '../interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
+import VRController from 'virtual-reality/utils/vr-controller';
+import VrRendering from 'virtual-reality/components/vr-rendering';
 
 export default class DetailInfoScrollarea
   extends ThreeMeshUI.Block
@@ -8,15 +11,18 @@ export default class DetailInfoScrollarea
 {
   isHovered: boolean = false;
   isTriggered: boolean = false;
+  isAuxiliaryCreated: boolean = false;
   text: ThreeMeshUI.Text;
+  menuFactory: VrMenuFactoryService;
 
   readonly initialY: number;
   cx!: number;
   cy!: number;
 
-  constructor(text: ThreeMeshUI.Text, options: ThreeMeshUI.BlockOptions) {
+  constructor(text: ThreeMeshUI.Text, menuFactory: VrMenuFactoryService, options: ThreeMeshUI.BlockOptions) {
     super(options);
     this.text = text;
+    this.menuFactory = menuFactory;
     this.initialY = this.text.position.y;
   }
 
@@ -54,16 +60,28 @@ export default class DetailInfoScrollarea
     }
   }
 
-  applyHover() {
-    if (this.isHovered) return;
-
-    this.isHovered = true;
+  applyHover(controller: VRController | null, renderer: VrRendering) {
     this.set({ backgroundOpacity: 0.4 });
+
+    if(!controller?.gripIsPressed) {
+    const auxiliaryMenu = this.menuFactory.buildAuxiliaryMenu(this.text, controller, renderer, this);
+    if(!this.isAuxiliaryCreated){
+      controller?.menuGroup.openMenu(auxiliaryMenu);
+      this.isAuxiliaryCreated = true;
+    }
   }
 
-  resetHover() {
-    this.isHovered = false;
+  }
+
+  resetHover(controller: VRController | null) {
     this.isTriggered = false;
     this.set({ backgroundOpacity: 0 });
+
+    if(this.isAuxiliaryCreated){
+      controller?.menuGroup.closeMenu();
+      this.isAuxiliaryCreated = false;
+    }
+
+
   }
 }
