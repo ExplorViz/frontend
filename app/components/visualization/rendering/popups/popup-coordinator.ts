@@ -70,7 +70,7 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   highlight() {
-    this.highlightingService.highlightById(this.args.popupData.entity.id);
+    this.highlightingService.highlight(this.args.popupData.mesh);
   }
 
   get highlightingColorStyle() {

@@ -40,6 +40,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
+import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -85,6 +86,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private ideWebsocket: IdeWebsocket;
 
+  private ideCrossCommunication: IdeCrossCommunication;
+
   @tracked
   readonly graph: ThreeForceGraph;
 
@@ -109,6 +112,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   cameraControls!: CameraControls;
 
   initDone: boolean = false;
+
+  latestMouseMoveTimestamp = 0;
+
+  // 500ms delay before showing popups (to prevent flickering)
+  POPUP_DELAY = 500;
 
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
@@ -167,8 +175,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
 
-    // IDE API
+    // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
+      getOwner(this),
+      this.handleDoubleClickOnMeshIDEAPI,
+      this.lookAtMesh
+    );
+
+    // IDE Cross Communication
+    this.ideCrossCommunication = new IdeCrossCommunication(
       getOwner(this),
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh
@@ -230,9 +245,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  resetView() {
-    this.cameraControls.focusCameraOn(
-      1.2,
+  async resetView() {
+    this.cameraControls.resetCameraFocusOn(
+      1.0,
       ...this.applicationRenderer.getOpenApplications()
     );
   }
@@ -316,6 +331,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
       this.ideWebsocket.jumpToLocation(intersection.object);
+      this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
     }
@@ -339,7 +355,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
-      // this.cameraControls.focusCameraOn(1, mesh);
     }
   }
 
@@ -352,7 +367,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
-      this.selectedApplicationId = applicationObject3D.dataModel.id;
+      this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
     // applicationObject3D.position.y = 10;
@@ -386,7 +401,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection) {
-    // this.runOrRestartMouseMovementTimer();
+    this.latestMouseMoveTimestamp = Date.now();
+
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
@@ -452,12 +468,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
     if (intersection) {
-      this.popupHandler.addPopup({
-        mesh: intersection.object,
-        position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
-        hovered: true,
-      });
+      setTimeout(() => {
+        // Wait a specified time without mouse movement instead of showing popup immediately
+        if (Date.now() - this.latestMouseMoveTimestamp > this.POPUP_DELAY) {
+          this.popupHandler.addPopup({
+            mesh: intersection.object,
+            position: mouseOnCanvas,
+            replace: !this.appSettings.enableCustomPopupPosition.value,
+            hovered: true,
+          });
+        }
+      }, this.POPUP_DELAY);
     }
   }
 
@@ -502,6 +523,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.forceContextLoss();
 
     this.ideWebsocket.dispose();
+    this.ideCrossCommunication.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();

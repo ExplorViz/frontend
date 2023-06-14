@@ -73,7 +73,7 @@ export function addComponentAndChildrenToScene(
   applicationColors: ApplicationColors,
   componentLevel = 1
 ) {
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
   const componentLayout = applicationObject3D.getBoxLayout(component.id);
   const applicationLayout = applicationObject3D.getBoxLayout(application.id);
 
@@ -145,7 +145,7 @@ export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
   applicationColors: ApplicationColors
 ) {
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
   const applicationLayout = applicationObject3D.layout;
 
   if (!applicationLayout) {

@@ -1030,7 +1030,7 @@ export default class VrRendering extends Component<Args> {
       });
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );

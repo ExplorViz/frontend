@@ -64,7 +64,7 @@ export default class PopupHandler {
   @action
   sharePopup(popup: PopupData) {
     const { mesh } = popup;
-    const entityId = mesh.dataModel.id;
+    const entityId = mesh.getModelId();
     const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
     worldPosition.y += 0.3;
 
@@ -98,7 +98,7 @@ export default class PopupHandler {
 
   @action
   pinPopup(popup: PopupData) {
-    this.pinPopupLocally(popup.mesh.dataModel.id);
+    this.pinPopupLocally(popup.mesh.getModelId());
   }
 
   @action
@@ -154,7 +154,7 @@ export default class PopupHandler {
   hover(mesh?: THREE.Object3D) {
     if (isEntityMesh(mesh)) {
       this.popupData.forEach((pd) => {
-        pd.hovered = pd.entity.id === mesh.dataModel.id;
+        pd.hovered = pd.entity.id === mesh.getModelId();
       });
     } else {
       this.popupData.forEach((pd) => {
@@ -187,7 +187,7 @@ export default class PopupHandler {
         mouseY: position.y,
         entity: mesh.dataModel,
         mesh,
-        applicationId: (mesh.parent as ApplicationObject3D).dataModel?.id,
+        applicationId: (mesh.parent as ApplicationObject3D).getModelId(),
         menuId: menuId || null,
         isPinned: pinned || false,
         sharedBy: sharedBy || '',
