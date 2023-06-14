@@ -3,14 +3,17 @@ import ScrollUpButton from './scroll-up-button';
 import ScrollDownButton from './scroll-down-button';
 import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from './detail-info-scrollarea';
+import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
   content: string;
+  menuFactory: VrMenuFactoryService;
   text: ThreeMeshUI.Text;
 
-  constructor(content: string, options: ThreeMeshUI.BlockOptions) {
+  constructor(content: string, menuFactory: VrMenuFactoryService, options: ThreeMeshUI.BlockOptions) {
     super({ ...options, justifyContent: 'start' }); // make sure we have justifyContent: 'start'
     this.content = content;
+    this.menuFactory = menuFactory;
     const textBlockBlock = new ThreeMeshUI.Block({
       width: 0.65,
       height: 0.45,
@@ -22,7 +25,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       content: this.content,
       backgroundOpacity: 0,
     });
-    const textBlock = new DetailInfoScrollarea(this.text, {
+    const textBlock = new DetailInfoScrollarea(this.text, this.menuFactory, {
       height: 0.45,
       width: 0.65,
       backgroundOpacity: 0,

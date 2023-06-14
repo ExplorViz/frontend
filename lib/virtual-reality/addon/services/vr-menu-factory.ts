@@ -36,6 +36,11 @@ import DetachedMenuGroupsService from './detached-menu-groups';
 import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
 import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
+import { AuxiliaryScrollMenu } from 'virtual-reality/utils/vr-menus/ui-menu/auxiliary-scroll-menu';
+import ThreeMeshUI from 'three-mesh-ui';
+import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
+import VRController from 'virtual-reality/utils/vr-controller';
+import VrRendering from 'virtual-reality/components/vr-rendering';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -202,6 +207,19 @@ export default class VrMenuFactoryService extends Service {
       menuFactory: this,
     });
   }
+
+  buildAuxiliaryMenu(text: ThreeMeshUI.Text, /*scrollArea: DetailInfoScrollarea,*/ controller: VRController | null, renderer: VrRendering, object: DetailInfoScrollarea ): AuxiliaryScrollMenu {
+    return new AuxiliaryScrollMenu({
+      text: text,
+      /*scrollArea: scrollArea,*/
+      controller: controller,
+      renderer: renderer,
+      object: object,
+      menuFactory: this,
+    });
+  }
+
+
 
   buildGrabMenu(grabbedObject: GrabbableObject): GrabMenu {
     return new GrabMenu({

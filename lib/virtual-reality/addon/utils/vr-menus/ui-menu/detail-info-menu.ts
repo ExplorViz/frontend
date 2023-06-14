@@ -129,7 +129,7 @@ export default class DetailInfoMenu
       this.informationText += key + ' ' + value + '\n\n';
     });
 
-    this.informationBlock = new DetailInfoMesh(this.informationText, {
+    this.informationBlock = new DetailInfoMesh(this.informationText, this.menuFactory, {
       width: BLOCK_OPTIONS_INFO.width,
       height: BLOCK_OPTIONS_INFO.height,
       backgroundOpacity: 0,
@@ -220,7 +220,6 @@ export default class DetailInfoMenu
             if(offset === 1 ){
               textBlock.position.y +=  offset * 0.01;
             }
-            console.log(textBlock.position.y);
           }
          }
         },
@@ -240,5 +239,6 @@ export default class DetailInfoMenu
 function service(
   arg0: string
 ): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
-  throw new Error('Function not implemented.');
+  return () => {};
+ // throw new Error('Function not implemented.');
 }
