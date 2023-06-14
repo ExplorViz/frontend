@@ -36,6 +36,9 @@ declare const config: {
   version: {
     versionTag: P_ENV.VERSION_TAG;
   };
+  mode: {
+    tokenToShow: string;
+  };
   APP: any;
 };
 

@@ -145,7 +145,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   debug = debugLogger('BrowserRendering');
 
   constructor(owner: any, args: BrowserRenderingArgs) {
-    console.log('constructor');
     super(owner, args);
     this.debug('Constructor called');
     // scene

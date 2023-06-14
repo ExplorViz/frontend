@@ -59,6 +59,9 @@ module.exports = (environment) => {
     version: {
       versionTag: P_ENV.VERSION_TAG,
     },
+    mode: {
+      tokenToShow: P_ENV.ONLY_SHOW_TOKEN,
+    },
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created

@@ -8,14 +8,16 @@
     alt='ExplorViz'
     draggable='false'
   />
-  {{#if this.tokenService.token}}
-    <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-      <LinkTo @route='landscapes' class='d-flex-center'>
-        {{svg-jar 'key-16' class='octicon'}}
-        <span>{{this.tokenService.token.alias}}</span>
-      </LinkTo>
-    </div>
-  {{/if}}
+  {{#unless this.isSingleLandscapeMode}}
+    {{#if this.tokenService.token}}
+      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
+        <LinkTo @route='landscapes' class='d-flex-center'>
+          {{svg-jar 'key-16' class='octicon'}}
+          <span>{{this.tokenService.token.alias}}</span>
+        </LinkTo>
+      </div>
+    {{/if}}
+  {{/unless}}
   <div id='navbar-user-options' class='btn-group pointer-events-all'>
     <BsDropdown @closeOnMenuClick={{false}} as |dd|>
       <dd.toggle class='d-flex align-items-center navbar-user-button'>
