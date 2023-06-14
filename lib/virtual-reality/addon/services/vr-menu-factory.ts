@@ -197,7 +197,7 @@ export default class VrMenuFactoryService extends Service {
     return new DetailInfoMenu({
       owner: getOwner(this),
       object: object,
-      //applicationRepo: this.applicationRepo,
+      applicationRepo: this.applicationRepo,
       renderer: this.renderer,
       menuFactory: this,
     });

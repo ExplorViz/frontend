@@ -18,7 +18,7 @@ import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-me
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
   object: EntityMesh;
-  // applicationRepo: ApplicationRepository;
+  applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -46,9 +46,9 @@ export default class DetailInfoMenu
   private object: EntityMesh;
 
   //@service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  //applicationRepo!: ApplicationRepository;
 
-  //private applicationRepo: ApplicationRepository;
+  private applicationRepo: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
 
@@ -63,14 +63,14 @@ export default class DetailInfoMenu
   constructor({
     owner,
     object,
-    // applicationRepo,
+    applicationRepo,
     renderer,
     ...args
   }: DetailInfoMenuArgs) {
     super(args);
     setOwner(this, owner);
     this.object = object;
-    // this.applicationRepo = applicationRepo;
+    this.applicationRepo = applicationRepo;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
   }
@@ -220,8 +220,9 @@ export default class DetailInfoMenu
     });
   }
 }
-function service(
-  arg0: string
-): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
-  throw new Error('Function not implemented.');
-}
+// function service(
+//   arg0: string
+// ): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
+//   return (target, propertyKey) => {};
+//   //throw new Error('Function not implemented.');
+// }

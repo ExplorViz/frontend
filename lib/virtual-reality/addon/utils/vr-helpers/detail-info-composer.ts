@@ -238,11 +238,11 @@ function composeDrawableClazzCommunicationContent(
     // Call hierarchy
     content.entries.push({
       key: 'Src / Tgt Class:',
-      value: `${/*trimString(*/ drawableCommu.sourceClass.name /*, 20)*/} -> ${
-        /*trimString(*/
-        drawableCommu.targetClass.name /*,
+      value: `${trimString( drawableCommu.sourceClass.name, 20)} -> ${
+        trimString(
+        drawableCommu.targetClass.name ,
         20
-    )*/
+    )
       }`,
     });
 
@@ -251,7 +251,7 @@ function composeDrawableClazzCommunicationContent(
       content.entries.push({
         key: 'Src / Tgt App:',
         value: `${trimString(drawableCommu.sourceApp?.name, 20)} -> ${
-          /*trimString(*/ drawableCommu.targetApp?.name /*, 20)*/
+          trimString( drawableCommu.targetApp?.name , 20)
         }`,
       });
     }

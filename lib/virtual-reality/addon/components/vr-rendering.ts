@@ -92,6 +92,7 @@ import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 
 interface Args {
   readonly id: string;
@@ -313,10 +314,12 @@ export default class VrRendering extends Component<Args> {
     // When any base mash is hovered, highlight it.
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
-      hover: (event) =>
-        event.target.applyHoverEffect(1.1, this.localUser.visualizationMode),
-      resetHover: (event) =>
-        event.target.resetHoverEffect(this.localUser.visualizationMode),
+      hover: (event) => {
+        if (!(event.intersection.object instanceof ClazzMesh) && !(event.intersection.object instanceof ClazzCommunicationMesh)) { // prevents BaseMesh and ClazzMesh/ClazzCommunicationMesh fighting over applying the hover-effect since ClazzMesh/ClazzCommunicationMesh is a subclass of BaseMesh
+        event.target.applyHoverEffect()}},
+      resetHover: (event) =>{
+        if (!(event.intersection.object instanceof ClazzMesh) && !(event.intersection.object instanceof ClazzCommunicationMesh)) {
+        event.target.resetHoverEffect()}},
     });
 
     // When a component of an application is clicked, open it.
@@ -440,6 +443,21 @@ export default class VrRendering extends Component<Args> {
           this.highlightingService.highlight(event.intersection.object);
         }
       },
+      hover: (event) => {
+        if (event.intersection.object instanceof ClazzCommunicationMesh) {
+        event.target.applyHoverEffect(this.localUser.visualizationMode)}},
+      resetHover: (event) => {
+        if (event.intersection.object instanceof ClazzCommunicationMesh) {
+        event.target.resetHoverEffect(this.localUser.visualizationMode)}},
+    });
+
+    this.secondaryInputManager.addInputHandler({
+      targetType: ClazzMesh,
+      hover: (event) => /*{
+      if (event.intersection.object instanceof ClazzMesh) {*/
+        event.target.applyHoverEffect(this.localUser.visualizationMode)/*}}*/,
+      resetHover: (event) => /*{ if (event.intersection.object instanceof ClazzMesh) {*/
+        event.target.resetHoverEffect(this.localUser.visualizationMode)/*}}*/,
     });
   }
 

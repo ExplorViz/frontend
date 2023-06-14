@@ -3,7 +3,7 @@ import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
-import VisualizationMode from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -293,21 +293,26 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return true;
   }
 
-  applyHoverEffect(colorShift?: number, mode?: VisualizationMode): void {
-    if (mode === 'vr' && this.isHovered === false) {
+
+  applyHoverEffect(arg?: VisualizationMode | number): void {
+    if (arg === 'vr' && this.isHovered === false) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
+    }else if(typeof arg === 'number' && this.isHovered === false){
+      super.applyHoverEffect(arg);
     }
   }
 
   resetHoverEffect(mode?: VisualizationMode): void {
-    if (mode === 'vr' && this.isHovered) {
-      this.layout.lineThickness /= 5;
-      this.geometry.dispose();
-      this.render(this.applicationCenter, this.curveHeight);
+    if(this.isHovered){
       super.resetHoverEffect();
+      if (mode === 'vr') {
+        this.layout.lineThickness /= 5;
+        this.geometry.dispose();
+        this.render(this.applicationCenter, this.curveHeight);
+      }
     }
   }
 }

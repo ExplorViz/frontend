@@ -58,7 +58,7 @@ export default abstract class BaseMesh<
    *
    * @param colorShift Specifies color shift: <1 is darker and >1 is lighter
    */
-  applyHoverEffect(colorShift = 1.1, mode = 'browser'): void {
+  applyHoverEffect(colorShift = 1.1): void {
     if (this.isHovered) return;
 
     // Calculate and apply brighter color to material ('hover effect')
@@ -78,7 +78,7 @@ export default abstract class BaseMesh<
   /**
    * Restores original color of mesh which had a hover effect
    */
-  resetHoverEffect(mode = 'browser'): void {
+  resetHoverEffect(): void {
     if (
       this.material instanceof THREE.MeshLambertMaterial ||
       this.material instanceof THREE.MeshBasicMaterial ||

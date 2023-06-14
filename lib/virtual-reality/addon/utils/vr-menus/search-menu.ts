@@ -1,6 +1,6 @@
 // @ts-ignore
 import ThreeMeshUI from 'three-mesh-ui';
-import UiMenu, { UiMenuArgs } from './ui-menu';
+import { UiMenuArgs } from './ui-menu';
 import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
 import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
