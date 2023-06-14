@@ -1,10 +1,11 @@
-import ThreeMeshUI from 'three-mesh-ui';
+import { setOwner } from '@ember/application';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import composeContent, {
   EntityMesh,
   getIdOfEntity,
   getTypeOfEntity,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from '../interactive-menu';
 import { DetachableMenu } from '../detachable-menu';
 import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
@@ -15,9 +16,10 @@ import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from 'virtual
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
 import VRController from 'virtual-reality/utils/vr-controller';
 
-export type DetailInfoScrollableMenuArgs = BaseMenuArgs & {
+export type DetailInfoMenuArgs = BaseMenuArgs & {
+  owner: any;
   object: EntityMesh;
-  applicationRepo: ApplicationRepository;
+  // applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -44,7 +46,11 @@ export default class DetailInfoMenu
 {
   private object: EntityMesh;
 
-  private applicationRepo: ApplicationRepository;
+  //@service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
+  //private applicationRepo: ApplicationRepository;
+
   private renderer: THREE.WebGLRenderer;
 
   private container?: ThreeMeshUI.Block;
@@ -58,14 +64,16 @@ export default class DetailInfoMenu
   private entries: { key: string; value: string }[] | undefined;
 
   constructor({
+    owner,
     object,
-    applicationRepo,
+    // applicationRepo,
     renderer,
     ...args
-  }: DetailInfoScrollableMenuArgs) {
+  }: DetailInfoMenuArgs) {
     super(args);
+    setOwner(this, owner);
     this.object = object;
-    this.applicationRepo = applicationRepo;
+    // this.applicationRepo = applicationRepo;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
   }
@@ -116,10 +124,6 @@ export default class DetailInfoMenu
 
     titleBlock.add(title);
     this.container.add(titleBlock);
-
-    // this.informationText = `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-    //  Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-    //  Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse`;
 
     content.entries.forEach(({ key, value }) => {
       this.informationText += key + ' ' + value + '\n\n';
@@ -232,4 +236,9 @@ export default class DetailInfoMenu
       },
     });
   }
+}
+function service(
+  arg0: string
+): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
+  throw new Error('Function not implemented.');
 }

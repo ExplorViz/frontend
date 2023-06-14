@@ -1,3 +1,4 @@
+import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
 import VRController from '../vr-controller';
 
 export type VrInputEvent<T> = {
@@ -132,12 +133,14 @@ export default class VrInputManager {
     const result = new Map();
     this.inputHandlers.forEach((handler) => {
       let target: THREE.Object3D | null = intersection.object;
+
       // @ts-ignore Typescript has issues dealing with generics
       while (target && !(target instanceof handler.targetType)) {
         target = target.parent;
       }
       if (target) result.set(handler, target);
     });
+
     return result;
   }
 }

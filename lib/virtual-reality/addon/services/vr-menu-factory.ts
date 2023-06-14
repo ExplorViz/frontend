@@ -1,3 +1,4 @@
+import { getOwner } from '@ember/application';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
@@ -194,10 +195,11 @@ export default class VrMenuFactoryService extends Service {
 
   buildInfoMenu(object: EntityMesh): DetailInfoMenu {
     return new DetailInfoMenu({
-      object,
-      menuFactory: this,
-      applicationRepo: this.applicationRepo,
+      owner: getOwner(this),
+      object: object,
+      //applicationRepo: this.applicationRepo,
       renderer: this.renderer,
+      menuFactory: this,
     });
   }
 
@@ -221,7 +223,9 @@ export default class VrMenuFactoryService extends Service {
   }
 
   buildSearchMenu(): SearchMenu {
-    return new SearchMenu({ menuFactory: this });
+    return new SearchMenu({ 
+      applicationRepo: this.applicationRepo,
+      menuFactory: this });
   }
 
   // #endregion TOOL MENUS

@@ -91,6 +91,7 @@ import {
 import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-button';
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
+import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 
 interface Args {
   readonly id: string;
@@ -393,6 +394,14 @@ export default class VrRendering extends Component<Args> {
       resetHover: (event) => event.target.resetHover(),
       triggerDown: (event) => event.target.triggerDown(event.intersection),
       triggerUp: (event) => event.target.triggerUp(),
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: KeyboardMesh,
+      triggerDown: (event) => event.target.triggerDown(event.controller),
+      hover: (event) => event.target.applyHover(event.controller),
+      resetHover: (event) => event.target.resetHover(event.controller),
+      //TODO: triggerPress which works only for backspace
     });
   }
 
