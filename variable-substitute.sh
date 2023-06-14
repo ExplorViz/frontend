@@ -21,7 +21,10 @@ sed -i "s#change-auth0-callback-url#$AUTH0_CALLBACK_URL#g" /usr/share/nginx/html
 
 sed -i "s#change-auth0-logout-url#$AUTH0_LOGOUT_URL#g" /usr/share/nginx/html/index.html
 
-DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:JOHNNY}"
+DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:-JOHNNY}"
 sed -i "s#JOHNNY#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
+
+DEFAULT_TOKEN="${ONLY_SHOW_TOKEN:-}"
+sed -i "s#change-token#$DEFAULT_TOKEN#g" /usr/share/nginx/html/index.html
 
 exec "$@"

@@ -1,3 +1,4 @@
+import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -191,6 +192,12 @@ export default class VisualizationController extends Controller {
   @action
   openLandscapeView() {
     this.switchToMode('browser');
+  }
+
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
   }
 
   get showAR() {
