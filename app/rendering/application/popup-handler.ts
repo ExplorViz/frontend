@@ -7,6 +7,7 @@ import PopupData from 'explorviz-frontend/components/visualization/rendering/pop
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import {
@@ -187,7 +188,9 @@ export default class PopupHandler {
         mouseY: position.y,
         entity: mesh.dataModel,
         mesh,
-        applicationId: (mesh.parent as ApplicationObject3D).getModelId(),
+        applicationId: (
+          mesh.parent as ApplicationObject3D | GrabbableForceGraph
+        ).getModelId(),
         menuId: menuId || null,
         isPinned: pinned || false,
         sharedBy: sharedBy || '',
