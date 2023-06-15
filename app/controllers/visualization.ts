@@ -134,11 +134,15 @@ export default class VisualizationController extends Controller {
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(
-      TIMESTAMP_UPDATE_TIMER_EVENT,
-      this,
-      this.onTimestampUpdateTimer
-    );
+
+    if (!this.isSingleLandscapeMode) {
+      this.webSocket.on(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+
     this.timestampService.on(
       TIMESTAMP_UPDATE_EVENT,
       this,
