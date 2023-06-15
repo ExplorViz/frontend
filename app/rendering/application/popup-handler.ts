@@ -182,50 +182,50 @@ export default class PopupHandler {
     sharedBy?: string;
     hovered?: boolean;
   }) {
-    if (isEntityMesh(mesh)) {
-      const newPopup = new PopupData({
-        mouseX: position.x,
-        mouseY: position.y,
-        entity: mesh.dataModel,
-        mesh,
-        applicationId: (
-          mesh.parent as ApplicationObject3D | GrabbableForceGraph
-        ).getModelId(),
-        menuId: menuId || null,
-        isPinned: pinned || false,
-        sharedBy: sharedBy || '',
-        hovered: hovered || false,
-      });
+    if (!isEntityMesh(mesh)) {
+      return;
+    }
 
-      if (replace) {
-        this.popupData = [newPopup];
+    const newPopup = new PopupData({
+      mouseX: position.x,
+      mouseY: position.y,
+      wasMoved: false,
+      entity: mesh.dataModel,
+      mesh,
+      applicationId: (
+        mesh.parent as ApplicationObject3D | GrabbableForceGraph
+      ).getModelId(),
+      menuId: menuId || null,
+      isPinned: pinned || false,
+      sharedBy: sharedBy || '',
+      hovered: hovered || false,
+    });
+
+    if (replace) {
+      this.popupData = [newPopup];
+    } else {
+      const popupAlreadyExists = this.popupData.find(
+        (pd) => pd.entity.id === newPopup.entity.id
+      );
+      if (popupAlreadyExists) {
+        return;
+      }
+
+      const unpinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
+
+      if (unpinnedPopupIndex === -1) {
+        this.popupData = [...this.popupData, newPopup];
       } else {
-        const popupAlreadyExists = this.popupData.find(
-          (pd) => pd.entity.id === newPopup.entity.id
-        );
-        if (popupAlreadyExists) {
-          // this.pinPopupLocally(newPopup.entity.id, newPopup.menuId);
-          return;
-        }
-        while (
-          this.popupData.any(
-            (pd) =>
-              pd.mouseX === newPopup.mouseX && pd.mouseY === newPopup.mouseY
-          )
-        ) {
-          newPopup.mouseX += 20;
-          newPopup.mouseY += 20;
-        }
+        const unpinnedPopup = this.popupData[unpinnedPopupIndex];
+        // Replace unpinned popup
+        this.popupData[unpinnedPopupIndex] = newPopup;
+        this.popupData = [...this.popupData];
 
-        const notPinnedPopupIndex = this.popupData.findIndex(
-          (pd) => !pd.isPinned
-        );
-
-        if (notPinnedPopupIndex === -1) {
-          this.popupData = [...this.popupData, newPopup];
-        } else {
-          this.popupData[notPinnedPopupIndex] = newPopup;
-          this.popupData = [...this.popupData];
+        // Place new popup at same position of previously moved popup
+        if (unpinnedPopup.wasMoved) {
+          newPopup.mouseX = unpinnedPopup.mouseX;
+          newPopup.mouseY = unpinnedPopup.mouseY;
+          newPopup.wasMoved = true;
         }
       }
     }
