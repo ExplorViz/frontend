@@ -45,17 +45,24 @@ export default class ComponentLabelMesh extends LabelMesh {
       geometry.computeBoundingBox();
       const boxDimensions = new THREE.Vector3();
       geometry.boundingBox?.getSize(boxDimensions);
+      console.log(boxDimensions);
       return { x: boxDimensions.x, y: boxDimensions.y, z: boxDimensions.z };
     }
 
     const parentScale = componentMesh.scale;
-
     const parentAspectRatio = parentScale.x / parentScale.z;
+
+    console.log("parentScale:");
+    console.log(parentScale);
+    console.log(parentScale.x + " / " + parentScale.z + " = " + parentAspectRatio);
 
     // Adjust desired text size with possible scaling
     const textSize = (2.0 / parentScale.x) * parentAspectRatio * scalar;
     // Text should look like it is written on the parent's box (no height required)
     const textHeight = 0.0;
+
+    console.log("(2.0 / " + parentScale.x + ") * " + parentAspectRatio +
+    " * " + scalar + " = " + textSize);
 
     this.geometry = new TextGeometry(labelText, {
       font: this.font,
@@ -64,11 +71,14 @@ export default class ComponentLabelMesh extends LabelMesh {
       curveSegments: 1,
     });
 
+    console.log(this.geometry.attributes.position);
+
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       // depthTest: false,
     });
 
+    console.log(this.geometry);
     const textDimensions = computeBoxSize(this.geometry);
     const textWidth = textDimensions.x;
 
