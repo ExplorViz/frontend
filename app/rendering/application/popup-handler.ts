@@ -64,6 +64,8 @@ export default class PopupHandler {
 
   @action
   sharePopup(popup: PopupData) {
+    this.updateMeshReference(popup);
+
     const { mesh } = popup;
     const entityId = mesh.getModelId();
     const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
@@ -249,6 +251,17 @@ export default class PopupHandler {
     originalMessage: { menuId },
   }: ForwardedMessage<DetachedMenuClosedMessage>): void {
     this.popupData = this.popupData.filter((pd) => pd.menuId !== menuId);
+  }
+
+  /**
+   * Updates mesh reference of popup with given ID in popup data.
+   */
+  @action
+  updateMeshReference(popup: PopupData) {
+    const mesh = this.applicationRenderer.getMeshById(popup.entity.id);
+    if (isEntityMesh(mesh)) {
+      popup.mesh = mesh;
+    }
   }
 
   willDestroy() {
