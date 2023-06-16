@@ -1,3 +1,5 @@
+import ENV from 'explorviz-frontend/config/environment';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { setOwner } from '@ember/application';
 import { Clock } from 'three';
 import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
@@ -28,6 +30,9 @@ export default class RenderingLoop {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   camera: THREE.Camera;
 
@@ -79,6 +84,17 @@ export default class RenderingLoop {
       }
       if (this.threePerformance) {
         this.threePerformance.stats.end();
+      }
+
+      // re-join collab if necessary
+      if (
+        this.collaborationSession.connectionStatus === 'offline' &&
+        ENV.mode.tokenToShow &&
+        ENV.mode.tokenToShow !== 'change token' &&
+        ENV.mode.collabRoomToJoin &&
+        ENV.mode.collabRoomToJoin !== 'change-collab-room'
+      ) {
+        this.collaborationSession.joinRoom(ENV.mode.collabRoomToJoin);
       }
     });
   }

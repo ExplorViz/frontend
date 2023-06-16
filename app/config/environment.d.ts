@@ -38,6 +38,7 @@ declare const config: {
   };
   mode: {
     tokenToShow: string;
+    collabRoomToJoin: string;
   };
   APP: any;
 };

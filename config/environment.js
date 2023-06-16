@@ -61,6 +61,7 @@ module.exports = (environment) => {
     },
     mode: {
       tokenToShow: P_ENV.ONLY_SHOW_TOKEN,
+      collabRoomToJoin: P_ENV.JOIN_COLLAB_ROOM,
     },
     APP: {
       // Here you can pass flags/options to your application instance
