@@ -75,6 +75,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     this.highlightingService.highlight(this.args.popupData.mesh);
   }
 
+  // Not used at the moment since mesh reference is not kept updated for collab
   get highlightingColorStyle() {
     if (this.args.popupData.mesh.highlighted) {
       const hexColor =
