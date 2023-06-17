@@ -214,11 +214,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
+      //{ title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
+      // { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
-      { title: 'Enter AR', action: this.args.switchToAR },
-      { title: 'Enter VR', action: this.args.switchToVR },
+      // { title: 'Enter AR', action: this.args.switchToAR },
+      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 

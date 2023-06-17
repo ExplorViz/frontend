@@ -1,15 +1,15 @@
 export type ColorScheme = 'default' | 'classic' | 'dark' | 'impaired';
 
 export const defaultApplicationColors = {
-  foundationColor: '#d2d2d2', // grey
-  componentOddColor: '#65c97e', // lime green
-  componentEvenColor: '#3c8db0', // desaturated cyan
-  clazzColor: '#a7cffb', // light pastel blue
-  highlightedEntityColor: '#ff5151', // pastel red
+  foundationColor: '#c7c7c7', // light grey
+  componentOddColor: '#015a6e', // deep teal
+  componentEvenColor: '#0096be', // light blue
+  clazzColor: '#000000', // white
+  highlightedEntityColor: '#ff0000', // red
   componentTextColor: '#ffffff', // white
   clazzTextColor: '#ffffff', // white
   foundationTextColor: '#000000', // black
-  communicationColor: '#d6d48b', // dark grey
+  communicationColor: '#f49100', // orange
   communicationArrowColor: '#000000', // black
   backgroundColor: '#ffffff', // white
 };
@@ -50,7 +50,7 @@ export const visuallyImpairedApplicationColors = {
   foundationColor: '#c7c7c7', // light grey
   componentOddColor: '#015a6e', // deep teal
   componentEvenColor: '#0096be', // light blue
-  clazzColor: '#f7f7f7', // white
+  clazzColor: '#000000', // white
   highlightedEntityColor: '#ff0000', // red
   componentTextColor: '#ffffff', // white
   clazzTextColor: '#ffffff', // white

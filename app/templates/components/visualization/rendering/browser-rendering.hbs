@@ -72,15 +72,19 @@
                 @visualizationPaused={{@visualizationPaused}}
                 @dynamicData={{@landscapeData.dynamicLandscapeData}}
               /> --}}
+              {{!--
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @addComponent={{@addComponent}}
               />
+              --}}
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
+              {{!--
               <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
                 @addComponent={{@addComponent}}
               />
+              --}}
             </ul>
           </div>
           {{#each @components as |componentName|}}
