@@ -10,7 +10,11 @@ export default class GrabbableForceGraph
   }
 
   getGrabId() {
-    return 'force-graph-grabbable';
+    return this.getModelId();
+  }
+
+  getModelId() {
+    return 'three-force-graph';
   }
 
   canBeIntersected() {
