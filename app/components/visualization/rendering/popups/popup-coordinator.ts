@@ -22,6 +22,7 @@ interface IArgs {
   removePopup(entityId: string): void;
   pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
+  updateMeshReference(popup: PopupData): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
@@ -70,9 +71,11 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   highlight() {
+    this.args.updateMeshReference(this.args.popupData);
     this.highlightingService.highlight(this.args.popupData.mesh);
   }
 
+  // Not used at the moment since mesh reference is not kept updated for collab
   get highlightingColorStyle() {
     if (this.args.popupData.mesh.highlighted) {
       const hexColor =

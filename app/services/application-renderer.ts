@@ -153,6 +153,13 @@ export default class ApplicationRenderer extends Service.extend({
     return applicationData?.drawableClassCommunications;
   }
 
+  getGraphPosition(mesh: THREE.Object3D) {
+    const worldPosition = new THREE.Vector3();
+    mesh.getWorldPosition(worldPosition);
+    this.forceGraph.worldToLocal(worldPosition);
+    return worldPosition;
+  }
+
   getMeshById(meshId: string): BaseMesh | undefined {
     return (
       this.getBoxMeshByModelId(meshId) ||
