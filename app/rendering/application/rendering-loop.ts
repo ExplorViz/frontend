@@ -44,6 +44,8 @@ export default class RenderingLoop {
 
   zoomHandler?: ArZoomHandler;
 
+  collabJoinTimer: any;
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
@@ -87,16 +89,23 @@ export default class RenderingLoop {
       }
 
       // re-join collab if necessary
-      if (
-        this.collaborationSession.connectionStatus === 'offline' &&
-        ENV.mode.tokenToShow &&
-        ENV.mode.tokenToShow !== 'change token' &&
-        ENV.mode.collabRoomToJoin &&
-        ENV.mode.collabRoomToJoin !== 'change-collab-room'
-      ) {
-        this.collaborationSession.joinRoom(ENV.mode.collabRoomToJoin);
+      if (this.collabJoinTimer == null) {
+        this.collabJoinTimer = setTimeout(this.joinCollabRoom.bind(this), 5000);
       }
     });
+  }
+
+  joinCollabRoom() {
+    if (
+      this.collaborationSession.connectionStatus === 'offline' &&
+      ENV.mode.tokenToShow &&
+      ENV.mode.tokenToShow !== 'change token' &&
+      ENV.mode.collabRoomToJoin &&
+      ENV.mode.collabRoomToJoin !== 'change-collab-room'
+    ) {
+      this.collaborationSession.joinRoom(ENV.mode.collabRoomToJoin);
+      this.collabJoinTimer = null;
+    }
   }
 
   stop() {

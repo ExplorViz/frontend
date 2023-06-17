@@ -27,4 +27,7 @@ sed -i "s#JOHNNY#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
 DEFAULT_TOKEN="${ONLY_SHOW_TOKEN:-}"
 sed -i "s#change-token#$DEFAULT_TOKEN#g" /usr/share/nginx/html/index.html
 
+DEFAULT_COLLAB_ROOM="${JOIN_COLLAB_ROOM:-}"
+sed -i "s#change-collab-room#$DEFAULT_COLLAB_ROOM#g" /usr/share/nginx/html/index.html
+
 exec "$@"
