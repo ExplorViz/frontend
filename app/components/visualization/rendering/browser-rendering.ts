@@ -24,7 +24,10 @@ import {
   Span,
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Class,
+  isPackage,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -324,8 +327,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
-      this.ideWebsocket.jumpToLocation(intersection.object);
-      this.ideCrossCommunication.jumpToLocation(intersection.object);
+
+      const dataModel = (intersection.object as any).dataModel;
+
+      if (dataModel && !isPackage(dataModel)) {
+        this.ideWebsocket.jumpToLocation(intersection.object);
+        this.ideCrossCommunication.jumpToLocation(intersection.object);
+      }
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
     }
