@@ -4,7 +4,7 @@ export const defaultApplicationColors = {
   foundationColor: '#c7c7c7', // light grey
   componentOddColor: '#015a6e', // deep teal
   componentEvenColor: '#0096be', // light blue
-  clazzColor: '#000000', // white
+  clazzColor: '#ffffff', // white
   highlightedEntityColor: '#ff0000', // red
   componentTextColor: '#ffffff', // white
   clazzTextColor: '#ffffff', // white

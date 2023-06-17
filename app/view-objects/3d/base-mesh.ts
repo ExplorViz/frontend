@@ -58,7 +58,7 @@ export default abstract class BaseMesh<
    *
    * @param colorShift Specifies color shift: <1 is darker and >1 is lighter
    */
-  applyHoverEffect(colorShift = 1.1): void {
+  applyHoverEffect(colorShift = 0.5): void {
     if (this.isHovered) return;
 
     // Calculate and apply brighter color to material ('hover effect')
