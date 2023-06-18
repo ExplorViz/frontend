@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { addPackageToApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
@@ -16,6 +16,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @tracked
   public landscapeData: LandscapeData | null = null;
+
+  @tracked
+  highlightedMeshes: Map<string, THREE.Mesh> = new Map();
 
   toggleRestructureMode() {
     return (this.restructureMode = !this.restructureMode);
@@ -61,6 +64,19 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   addFoundation() {
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
+  }
+
+  addApp() {
+    let highlightedMesh = this.highlightedMeshes.entries().next().value;
+    addPackageToApplication(highlightedMesh[1].dataModel);
+    console.log(highlightedMesh[1].dataModel);
     if(this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',

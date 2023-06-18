@@ -1,6 +1,5 @@
-import { Package } from "@embroider/core";
 import { getAllClassesInApplication, getAllPackagesInApplication } from "./application-helpers";
-import { StructureLandscapeData } from "./landscape-schemes/structure-data";
+import { StructureLandscapeData, Package, Class } from "./landscape-schemes/structure-data";
 import { getApplicationInLandscapeById } from "./landscape-structure-helpers";
 
 export function setApplicationNameInLandscapeById(
@@ -51,5 +50,24 @@ export function setClassNameById(
     }
   }
   return landscapeStructure
+}
+
+export function addPackageToApplication(pckg: Package) {
+  const newPckg: Package = {
+    id: 'newPackage',
+    name: 'newPackage1',
+    subPackages: [],
+    classes: [],
+  };
+
+  const newClass: Class = {
+    id: 'class123',
+    name: 'My Class23',
+    methods: [],
+    parent: newPckg
+  };
+
+  newPckg.classes.push(newClass);
+  pckg.subPackages.push(newPckg);
 }
 

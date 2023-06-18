@@ -26,6 +26,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
+import LandscapeRestructure from './landscape-restructure';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -86,6 +87,9 @@ export default class HighlightingService extends Service.extend({
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure
 
   debug = debugLogger('HighlightingService');
 
@@ -268,6 +272,14 @@ export default class HighlightingService extends Service.extend({
         color || this.configuration.applicationColors.highlightedEntityColor
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
+
+      // Using highlightedMeshes to be able to restructure them 
+      if(mesh.highlighted) {
+        this.landscapeRestructure.highlightedMeshes.set(mesh.dataModel.id, mesh);
+      } else {
+        this.landscapeRestructure.highlightedMeshes.delete(mesh.dataModel.id);
+      }
+
       this.linkRenderer.getAllLinks().forEach((link) => {
         const linkCommunication = link.dataModel.drawableClassCommus[0];
         const targetAppId = linkCommunication?.targetApp?.id;
