@@ -1,5 +1,6 @@
+import { count } from "console";
 import { getAllClassesInApplication, getAllPackagesInApplication } from "./application-helpers";
-import { StructureLandscapeData, Package, Class } from "./landscape-schemes/structure-data";
+import { StructureLandscapeData, Node, Application, Package, Class } from "./landscape-schemes/structure-data";
 import { getApplicationInLandscapeById } from "./landscape-structure-helpers";
 
 export function setApplicationNameInLandscapeById(
@@ -52,22 +53,75 @@ export function setClassNameById(
   return landscapeStructure
 }
 
-export function addPackageToApplication(pckg: Package) {
+export function addFoundationToLandscape(landscapeStructure: StructureLandscapeData, counter: number) {
+  let myNode: Partial<Node> = {
+      id: 'newNode' + counter,
+      ipAddress: '192.168.1.' + counter,
+      hostName: 'new Node' + counter,
+    };
+
+    const myApplication: Application = {
+      id: 'newApp' + counter,
+      name: 'New Application',
+      language: 'JavaScript',
+      instanceId: 'newAppId' + counter,
+      parent: myNode as Node,
+      packages: [],
+    };
+
+    const myPackage: Package = {
+      id: 'newPackage' + counter,
+      name: 'new Package',
+      subPackages: [],
+      classes: [],
+    };
+
+    const myClass: Class = {
+      id: 'newCLass' + counter,
+      name: 'New Class',
+      methods: [],
+      parent: myPackage,
+    };
+
+    myPackage.classes.push(myClass);
+
+    myApplication.packages.push(myPackage);
+
+    myNode = {
+      ...myNode,
+      applications: [myApplication],
+    };
+
+    landscapeStructure.nodes.push(myNode as Node);
+}
+
+export function addPackageToApplication(pckg: Package, counter: number) {
   const newPckg: Package = {
-    id: 'newPackage',
-    name: 'newPackage1',
+    id: 'newPackage' + counter,
+    name: 'New Package',
     subPackages: [],
     classes: [],
   };
 
   const newClass: Class = {
-    id: 'class123',
-    name: 'My Class23',
+    id: 'newPackageClass' + counter,
+    name: 'New Package/Class',
     methods: [],
     parent: newPckg
   };
 
   newPckg.classes.push(newClass);
   pckg.subPackages.push(newPckg);
+}
+
+export function addClassToApplication(pckg: Package, counter: number) {
+  const newClass: Class = {
+    id: 'newClass' + counter,
+    name: 'New Class',
+    methods: [],
+    parent: pckg
+  };
+
+  pckg.classes.push(newClass);
 }
 

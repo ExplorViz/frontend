@@ -138,6 +138,7 @@ export default class HighlightingService extends Service.extend({
         }
       });
     this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
+    this.landscapeRestructure.highlightedMeshes.clear();
   }
 
   updateHighlighting(
@@ -249,6 +250,7 @@ export default class HighlightingService extends Service.extend({
 
   removeHighlightingLocally(application: ApplicationObject3D) {
     Highlighting.removeHighlighting(application);
+    this.landscapeRestructure.highlightedMeshes.clear();
   }
 
   hightlightComponentLocallyByTypeAndId(
@@ -276,8 +278,10 @@ export default class HighlightingService extends Service.extend({
       // Using highlightedMeshes to be able to restructure them 
       if(mesh.highlighted) {
         this.landscapeRestructure.highlightedMeshes.set(mesh.dataModel.id, mesh);
+        console.log(this.landscapeRestructure.highlightedMeshes);
       } else {
         this.landscapeRestructure.highlightedMeshes.delete(mesh.dataModel.id);
+        console.log(this.landscapeRestructure.highlightedMeshes);
       }
 
       this.linkRenderer.getAllLinks().forEach((link) => {

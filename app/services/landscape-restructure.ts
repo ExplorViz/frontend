@@ -2,8 +2,9 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { addPackageToApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
+import internal from 'stream';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -19,6 +20,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @tracked
   highlightedMeshes: Map<string, THREE.Mesh> = new Map();
+
+  @tracked
+  newMeshCounter: number = 1;
 
   toggleRestructureMode() {
     return (this.restructureMode = !this.restructureMode);
@@ -65,17 +69,19 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   addFoundation() {
     if(this.landscapeData?.structureLandscapeData) {
+      addFoundationToLandscape(this.landscapeData?.structureLandscapeData, this.newMeshCounter)
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
         this.landscapeData.dynamicLandscapeData
       );
     }
+    this.newMeshCounter++;
   }
 
-  addApp() {
+  addPackage() {
     let highlightedMesh = this.highlightedMeshes.entries().next().value;
-    addPackageToApplication(highlightedMesh[1].dataModel);
+    addPackageToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
     console.log(highlightedMesh[1].dataModel);
     if(this.landscapeData?.structureLandscapeData) {
       this.trigger(
@@ -84,6 +90,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.dynamicLandscapeData
       );
     }
+    this.newMeshCounter++;
+  }
+
+  addClass() {
+    let highlightedMesh = this.highlightedMeshes.entries().next().value;
+    addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
+    console.log(highlightedMesh[1].dataModel);
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      )
+    }
+    this.newMeshCounter++;
   }
 
 }

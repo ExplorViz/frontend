@@ -25,7 +25,7 @@
       <div class='d-flex justify-content-between'>
         <BsButton
           title='Foundation'
-          {{on 'click' this.createFoundation}}
+          {{on 'click' this.addFoundation}}
           @type='secondary'
           @outline={{true}}
         >
@@ -36,7 +36,7 @@
       <div class='d-flex justify-content-between'>
         <BsButton
           title='Package'
-          {{on 'click' this.createApp}}
+          {{on 'click' this.addPackage}}
           @type='secondary'
           @outline={{true}}
         >
@@ -47,7 +47,7 @@
       <div class='d-flex justify-content-between'>
         <BsButton
           title='Class'
-          {{on 'click' this.createApp2}}
+          {{on 'click' this.addClass}}
           @type='secondary'
           @outline={{true}}
         >
