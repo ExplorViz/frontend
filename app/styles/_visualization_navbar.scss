@@ -29,6 +29,8 @@
   padding-left: 0;
   display: flex;
   flex-direction: row;
+  user-select: none; /* supported by Chrome and Opera */
+  -webkit-user-select: none; /* Safari */
 }
 
 .explorviz-visualization-navbar > ul > li {
