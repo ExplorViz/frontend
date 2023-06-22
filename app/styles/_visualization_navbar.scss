@@ -47,3 +47,10 @@
   color: rgb(85 126 187 / 95%);
   transform: scale(1.1);
 }
+
+.toggle-sidebar-button {
+  position: absolute;
+  right: 3rem;
+  top: 1rem;
+  z-index: 200
+}

@@ -238,6 +238,15 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  toggleDataSelection() {
+    if (this.showDataSelection) {
+      this.closeDataSelection();
+    } else {
+      this.openDataSelection();
+    }
+  }
+
+  @action
   closeDataSelection() {
     this.debug('closeDataSelection');
     this.showDataSelection = false;
