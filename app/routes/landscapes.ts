@@ -7,10 +7,14 @@ import { action } from '@ember/object';
 import BaseRoute from './base-route';
 
 const { userService } = ENV.backendAddresses;
+const { tokenToShow } = ENV.mode;
 
 export default class Landscapes extends BaseRoute {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('router')
+  router!: any;
 
   @action
   refreshRoute() {
@@ -18,6 +22,10 @@ export default class Landscapes extends BaseRoute {
   }
 
   async model() {
+    if (tokenToShow && tokenToShow !== 'change-token') {
+      this.router.transitionTo('visualization');
+    }
+
     let uId = this.auth.user?.sub;
 
     if (!uId) {

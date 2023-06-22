@@ -176,7 +176,7 @@ export default class IdeCrossCommunication {
       const application = element;
 
       const applicationData = this.applicationRepo.getById(
-        application.dataModel.id
+        application.getModelId()
       );
 
       const drawableClassCommunications =
@@ -351,7 +351,7 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
 function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
   const vizDataOrderTuple: OrderTuple[] = [];
   vizData.applicationObject3D.forEach((element) => {
-    const orderedParents = getOrderedParents(element.dataModel);
+    const orderedParents = getOrderedParents(element.data.application);
     const meshes = getFqnForMeshes(orderedParents);
     let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
     tempOT = addCommunicationLinksToOrderTuple(

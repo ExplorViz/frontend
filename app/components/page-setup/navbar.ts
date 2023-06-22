@@ -17,6 +17,12 @@ export default class Navbar extends Component {
     this.auth.logout();
   }
 
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
+  }
+
   get versionTag() {
     return ENV.version.versionTag;
   }

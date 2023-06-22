@@ -1,3 +1,4 @@
+import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -133,11 +134,15 @@ export default class VisualizationController extends Controller {
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(
-      TIMESTAMP_UPDATE_TIMER_EVENT,
-      this,
-      this.onTimestampUpdateTimer
-    );
+
+    if (!this.isSingleLandscapeMode) {
+      this.webSocket.on(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+
     this.timestampService.on(
       TIMESTAMP_UPDATE_EVENT,
       this,
@@ -191,6 +196,12 @@ export default class VisualizationController extends Controller {
   @action
   openLandscapeView() {
     this.switchToMode('browser');
+  }
+
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
   }
 
   get showAR() {

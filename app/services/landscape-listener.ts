@@ -99,6 +99,14 @@ export default class LandscapeListener extends Service.extend(Evented) {
           this.latestStructureData,
           this.latestDynamicData
         );
+
+        if (
+          ENV.mode.tokenToShow &&
+          ENV.mode.tokenToShow !== 'change-token' &&
+          this.timer
+        ) {
+          clearTimeout(this.timer);
+        }
       }
     } catch (e) {
       // landscape data could not be requested, try again?
