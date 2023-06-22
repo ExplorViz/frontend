@@ -105,41 +105,37 @@
 </div>
 {{! timeline }}
 
-{{#unless this.isSingleLandscapeMode}}
-  {{#unless this.showAR}}
-    {{#unless this.showVR}}
-      <div id='timeline-content'>
-        <BsButton
-          @onClick={{this.toggleTimeline}}
-          @type='secondary'
-          @outline={{true}}
-          class='btn-timeline'
-          title={{if this.showTimeline 'Hide Timeline' 'Show Timeline'}}
-        >
-          {{#unless this.showTimeline}}
-            <span class='pr-1'>Show Timeline</span>
-          {{/unless}}
-          {{svg-jar
-            'chevron-up-16'
-            id='hidetimeline-icon'
-            class=(if
-              this.showTimeline
-              'octicon align-middle hidetimeline-icon-down'
-              'octicon align-middle'
-            )
-          }}
-        </BsButton>
-        <div
-          id='timeline'
-          class='timeline {{unless this.showTimeline "timelinehide"}}'
-        >
-          <Visualization::PageSetup::Timeline::PlotlyTimeline
-            @timestamps={{this.timelineTimestamps}}
-            @clicked={{this.timelineClicked}}
-            @setChildReference={{this.getTimelineReference}}
-          />
-        </div>
-      </div>
-    {{/unless}}
-  {{/unless}}
-{{/unless}}
+{{#if this.showTimeline}}
+  <div id='timeline-content'>
+    <BsButton
+      @onClick={{this.toggleTimeline}}
+      @type='secondary'
+      @outline={{true}}
+      class='btn-timeline'
+      title={{if this.isTimelineActive 'Hide Timeline' 'Show Timeline'}}
+    >
+      {{#unless this.isTimelineActive}}
+        <span class='pr-1'>Show Timeline</span>
+      {{/unless}}
+      {{svg-jar
+        'chevron-up-16'
+        id='hidetimeline-icon'
+        class=(if
+          this.isTimelineActive
+          'octicon align-middle hidetimeline-icon-down'
+          'octicon align-middle'
+        )
+      }}
+    </BsButton>
+    <div
+      id='timeline'
+      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+    >
+      <Visualization::PageSetup::Timeline::PlotlyTimeline
+        @timestamps={{this.timelineTimestamps}}
+        @clicked={{this.timelineClicked}}
+        @setChildReference={{this.getTimelineReference}}
+      />
+    </div>
+  </div>
+{{/if}}

@@ -98,7 +98,7 @@ export default class VisualizationController extends Controller {
   components: string[] = [];
 
   @tracked
-  showTimeline: boolean = true;
+  isTimelineActive: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -128,6 +128,10 @@ export default class VisualizationController extends Controller {
       this.landscapeData !== null &&
       this.landscapeData.structureLandscapeData.nodes.length > 0
     );
+  }
+
+  get showTimeline() {
+    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
   }
 
   @action
@@ -310,7 +314,7 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleTimeline() {
-    this.showTimeline = !this.showTimeline;
+    this.isTimelineActive = !this.isTimelineActive;
   }
 
   @action
