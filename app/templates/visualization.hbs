@@ -6,16 +6,6 @@
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
 {{did-insert this.setupListeners}}
-
-<div class="toggle-sidebar-button">
-  <BsButton
-    @onClick={{this.toggleDataSelection}}
-    class='th-btn'
-    @outline={{true}}
-  >
-    {{svg-jar 'gear-16' class='octicon align-middle'}}
-  </BsButton>
-</div>
 <div id='vizspace' {{sync-state}}>
   {{#if this.showAR}}
     <ArRendering

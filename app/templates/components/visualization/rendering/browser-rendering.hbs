@@ -5,62 +5,76 @@
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
-      {{#if this.heatmapConf.heatmapActive}}
-        <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
-      {{/if}}
+    {{#unless @showDataSelection}}
+      <div class='sidebar-open-button foreground mt-6'>
+        <BsButton
+          id='arSettingsOpener'
+          @onClick={{@openDataSelection}}
+          @type='secondary'
+          @outline={{true}}
+          title='Settings'
+        >
+          {{svg-jar 'gear-16' class='octicon align-middle'}}
+        </BsButton>
+      </div>
+    {{/unless}}
 
-      <canvas
-        class='main-content-majority
-          {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
-        {{sync-state}}
-        {{interaction-modifier
-          raycastObjects=this.raycastObjects
-          camera=this.localUser.camera
-          singleClick=this.handleSingleClick
-          doubleClick=this.handleDoubleClick
-          mouseMove=this.handleMouseMove
-          mouseOut=this.handleMouseOut
-          mouseStop=this.handleMouseStop
-        }}
-        {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
-        {{collaborative-modifier
-          raycastObject3D=this.raycastObjects
-          camera=this.localUser.camera
-        }}
-        {{did-insert this.canvasInserted}}
-      >
-        <ContextMenu @items={{this.rightClickMenuItems}} />
-      </canvas>
-      {{#if this.loadNewLandscape.isRunning}}
-        <div class='position-absolute mt-6 pt-5 ml-3 pointer-events-none'>
-          <Visualization::Rendering::LoadingIndicator
-            @text='Loading New Landscape'
-          />
-        </div>
-      {{/if}}
+    {{#if this.heatmapConf.heatmapActive}}
+      <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
+    {{/if}}
 
-      {{! popup(s) }}
-      {{#each this.popupHandler.popupData as |d|}}
-        <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
-          @popupData={{d}}
-          @pinPopup={{this.popupHandler.pinPopup}}
-          @sharePopup={{this.popupHandler.sharePopup}}
-          @updateMeshReference={{this.popupHandler.updateMeshReference}}
-          @removePopup={{this.removePopup}}
-          @structureData={{@landscapeData.structureLandscapeData}}
-          @showApplication={{this.showApplication}}
-          @highlightModel={{this.applicationRenderer.highlightModel}}
-          @openParents={{this.applicationRenderer.openParents}}
+    <canvas
+      class='main-content-majority
+        {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
+      {{sync-state}}
+      {{interaction-modifier
+        raycastObjects=this.raycastObjects
+        camera=this.localUser.camera
+        singleClick=this.handleSingleClick
+        doubleClick=this.handleDoubleClick
+        mouseMove=this.handleMouseMove
+        mouseOut=this.handleMouseOut
+        mouseStop=this.handleMouseStop
+      }}
+      {{heatmap-renderer camera=this.camera scene=this.scene}}
+      {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+      {{collaborative-modifier
+        raycastObject3D=this.raycastObjects
+        camera=this.localUser.camera
+      }}
+      {{did-insert this.canvasInserted}}
+    >
+      <ContextMenu @items={{this.rightClickMenuItems}} />
+    </canvas>
+    {{#if this.loadNewLandscape.isRunning}}
+      <div class='position-absolute mt-6 pt-5 ml-3 pointer-events-none'>
+        <Visualization::Rendering::LoadingIndicator
+          @text='Loading New Landscape'
         />
-      {{/each}}
+      </div>
+    {{/if}}
+
+    {{! popup(s) }}
+    {{#each this.popupHandler.popupData as |d|}}
+      <Visualization::Rendering::Popups::PopupCoordinator
+        @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
+        @popupData={{d}}
+        @pinPopup={{this.popupHandler.pinPopup}}
+        @sharePopup={{this.popupHandler.sharePopup}}
+        @updateMeshReference={{this.popupHandler.updateMeshReference}}
+        @removePopup={{this.removePopup}}
+        @structureData={{@landscapeData.structureLandscapeData}}
+        @showApplication={{this.showApplication}}
+        @highlightModel={{this.applicationRenderer.highlightModel}}
+        @openParents={{this.applicationRenderer.openParents}}
+      />
+    {{/each}}
 
     </div>
   </div>
   {{#if @showDataSelection}}
-    <div class='col-4' id='dataselection'>
-      <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
+    <div class='position-absolute right col-4' id='dataselection'>
+    <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >

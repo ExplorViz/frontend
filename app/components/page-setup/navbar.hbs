@@ -1,6 +1,6 @@
 <div
   class='p-3 disable-select pointer-events-none'
-  style='position: absolute; width: 100vw; z-index: 100;'
+  style='position: absolute; width: 100vw; z-index: 1000;'
 >
   <img
     style='height: 30px; float: left'
@@ -22,11 +22,7 @@
     <BsDropdown @closeOnMenuClick={{false}} as |dd|>
       <dd.toggle class='d-flex align-items-center navbar-user-button'>
         {{! template-lint-disable require-valid-alt-text }}
-        <img
-          id='avatar'
-          class='pointer-events-none'
-          src={{this.auth.user.picture}}
-        />
+        {{svg-jar 'person-16' class='octicon'}}
         <span class='caret ml-1'></span>
       </dd.toggle>
       <dd.menu @align='right' class='ml-3 mr-3 ml-md-0 mr-md-0' as |ddm|>
