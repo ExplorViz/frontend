@@ -93,6 +93,7 @@ import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-butt
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 
 interface Args {
   readonly id: string;
@@ -405,6 +406,13 @@ export default class VrRendering extends Component<Args> {
       hover: (event) => event.target.applyHover(event.controller),
       resetHover: (event) => event.target.resetHover(event.controller),
       //TODO: triggerPress which works only for backspace
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: SearchListItem,
+      triggerDown: (event) => event.target.triggerDown(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
     });
   }
 

@@ -243,6 +243,7 @@ export default class VrMenuFactoryService extends Service {
   buildSearchMenu(): SearchMenu {
     return new SearchMenu({ 
       applicationRepo: this.applicationRepo,
+      renderer: this.renderer,
       menuFactory: this });
   }
 
