@@ -5,11 +5,10 @@ import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
 import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { Application, Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { Package } from '@embroider/core';
 import SearchList from '../view-objects/vr/search-list';
 import VRController from '../vr-controller';
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from '../vr-controller/vr-controller-thumbpad-binding';
+import { Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 export type SearchMenuArgs = UiMenuArgs & {
     applicationRepo: ApplicationRepository;
@@ -36,8 +35,6 @@ const colors = {
   selected: 0x109c5d,
 };
 
-const objsToTest = [];
-
 export default class SearchMenu extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
@@ -48,15 +45,13 @@ export default class SearchMenu extends InteractiveMenu {
   searchListContainer!: ThreeMeshUI.Block;
   keyboardContainer!: ThreeMeshUI.Block;
   searchList!: SearchList;
-  currentSelectedListItem: number = 0;
-  currentTopItem: number = 0;
-  // searchListContainerBottomPos!: number;
+  _isNewInput: boolean = false;
 
   constructor({ applicationRepo, renderer, ...args }: SearchMenuArgs) {
     super(args);
     this.applicationRepo = applicationRepo;
     this.renderer = renderer;
-    //new ThreeMeshUI.Text( { content: '' , fontSize: 0.055} );
+    this.renderer.localClippingEnabled = true;
     this.makeUI();
     this.makeKeyboard();
   }
@@ -78,7 +73,6 @@ export default class SearchMenu extends InteractiveMenu {
     const textPanel = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
       height: 0.2,
-      //backgroundColor: new THREE.Color('blue'),
       offset: 0.001,
       backgroundOpacity: 0,
     });
@@ -124,17 +118,9 @@ export default class SearchMenu extends InteractiveMenu {
     this.searchListContainer.add(this.searchList);
     this.container.add(this.searchListContainer);
 
-    // this.keyboardContainer = new ThreeMeshUI.Block({
-    //   width: BLOCK_OPTIONS_CONTAINER.width,
-    //   height: 0.5,
-    //   offset: 0.05,
-    //   //backgroundOpacity: 0,
-    // });
-    // this.container.add(this.keyboardContainer);
-
-    this.renderer.localClippingEnabled = true;
     this.container.position.y += 0.09;
     this.container.position.z -= 0.1;
+
   }
 
   makeKeyboard() {
@@ -149,21 +135,20 @@ export default class SearchMenu extends InteractiveMenu {
       backspaceTexture: '/images/keyboard/backspace.png',
       shiftTexture: '/images/keyboard/shift.png',
       enterTexture: '/images/keyboard/enter.png',
-      //offset: 0.05,
     });
 
-    //this.keyboardContainer.add(this.keyboard);
-    //this.container.add(this.keyboard);
     this.keyboard.rotation.x = -0.55;
     this.add(this.keyboard);
 
   }
 
   private searchComponents(searchWord : string, object: any, appName: string){
-    let res : {name?: string, id?: string, arrays: any[][]} = {arrays: []};
+    const res : {name?: string, id?: string, objects: any[]} = {objects: []};
+    const REGEXP_SPECIAL_CHAR = /[\!\#\$\%\^\&\*\)\(\+\=\.\<\>\{\}\[\]\:\;\'\"\|\~\`\_\-]/g;
+    const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
 
     if(object.hasOwnProperty('name') && typeof object['name'] === 'string'){ //TODO: escape searchWord for regexp symbols
-        if( new RegExp(searchWord, 'i').test(object.name) && searchWord.length !== 0 /*object['name'].substring(0, searchWord.length).toLowerCase() === searchWord.toLowerCase()*/){
+        if( new RegExp(escapedSearchWord, 'i').test(object.name) && searchWord.length !== 0){ //object['name'].substring(0, searchWord.length).toLowerCase() === searchWord.toLowerCase()
           if(object.hasOwnProperty('id')){
             res.id = object['id'];
             let object2 = object;
@@ -180,16 +165,29 @@ export default class SearchMenu extends InteractiveMenu {
         }
     }
 
-    if(object.hasOwnProperty('packages') && typeof object['packages'] === 'object' && object['packages'].length > 0){
-        res.arrays.push(object['packages']);
+    if(object.hasOwnProperty('packages') /*&& typeof object['packages'] === 'object' &&*/){
+      object['packages'].forEach( element => {
+        console.log("PUSHE PACKAGE: " + element.name);
+        res.objects.push(element);
+      });
+       // res.arrays.push(object['packages']);
     }
 
-    if(object.hasOwnProperty('subpackages') && typeof object['subpackages'] === 'object' && object['subpackages'].length > 0){
-        res.arrays.push(object['subpackages']);
+    if(object.hasOwnProperty('subPackages') /*&& typeof object['subpackages'] === 'object' &&*/){
+    
+      object['subPackages'].forEach( element => {
+        console.log("PUSHE SUBPACKAGES: " + element.name);
+        res.objects.push(element);
+      });
+        //res.arrays.push(object['subPackages']);
     }
 
-    if(object.hasOwnProperty('classes') && typeof object['classes'] === 'object' && object['classes'].length > 0){
-        res.arrays.push(object['classes']);
+    if(object.hasOwnProperty('classes') /*&& typeof object['classes'] === 'object' &&*/){
+      object['classes'].forEach( element => {
+        console.log("PUSHE CLASSES: " + element.name);
+        res.objects.push(element);
+      });
+       // res.arrays.push(object['classes']);
     }
 
     return res;
@@ -207,22 +205,20 @@ export default class SearchMenu extends InteractiveMenu {
     const resObj = new Map<string,string>();
     for (const applicationData of this.applicationRepo.getAll()) {
       const application = applicationData.application;
+      console.log(application);
       const res = this.searchComponents(searchWord, application, application.name); 
       if(res.name && res.id){
         resObj.set(res.name, res.id);
       }
 
-      while(res.arrays.length > 0){
-        const arr = res.arrays.pop();
-        if(arr){ // typescript somehow can't infer that from while condition
-        arr.forEach(element => {
-          let res2 = this.searchComponents(searchWord, element, application.name);
-          if(res2.name && res2.id){
-            resObj.set(res2.name, res2.id);
-          }
-          res.arrays.concat(res2.arrays);
-        });
-      }
+      while(res.objects.length > 0){
+        const object = res.objects.pop();
+         //console.log(object);
+        let res2 = this.searchComponents(searchWord, object, application.name);
+        if(res2.name && res2.id){
+          resObj.set(res2.name, res2.id);
+        }
+        res.objects = res.objects.concat(res2.objects);
       }
   }
     return resObj;
@@ -230,6 +226,9 @@ export default class SearchMenu extends InteractiveMenu {
 
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
+
+    if(this.isNewInput){
+    this.isNewInput = false;
 
     let isEqual = false;
     const tmpMap = this.search(this.userText.content);
@@ -252,13 +251,21 @@ export default class SearchMenu extends InteractiveMenu {
       this.searchList = new SearchList({items: this.map, width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, offset: 0.001,
         backgroundOpacity: 0,});
       this.searchListContainer.add(this.searchList);
-     // this.currentSelectedListItem = 0;
-      //this.searchList.applyHover(this.currentSelectedListItem);
     }
+  }
     ThreeMeshUI.update();
 
   }
 
+  public get isNewInput(){
+    return this._isNewInput;
+  }
+
+  public set isNewInput(flag){
+    this._isNewInput = flag;
+  }
+
+  
 
 
 

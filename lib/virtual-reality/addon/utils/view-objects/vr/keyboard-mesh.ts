@@ -5,6 +5,7 @@ import {
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 import VRController from 'virtual-reality/utils/vr-controller';
+import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
 
 export type KeyboardMeshArgs = ThreeMeshUI.KeyboardOptions & {
   userText: ThreeMeshUI.Text;
@@ -17,7 +18,7 @@ const colors = {
   panelBack: 0x262626,
   button: 0x363636,
   hovered: 0x1c1c1c,
-  selected: 0x109c5d,
+  selected: 0xffffff,//0x109c5d,
 };
 
 export default class KeyboardMesh
@@ -78,7 +79,7 @@ export default class KeyboardMesh
                 break;
 
               case 'enter':
-                this.userText.set({ content: this.userText.content + '\n' });
+                //this.userText.set({ content: this.userText.content + '\n' }); // not needed since search is interactive
                 break;
 
               case 'space':
@@ -106,6 +107,9 @@ export default class KeyboardMesh
             this.userText.set({
               content: this.userText.content + key.info.input,
             });
+          }
+          if(this.parent instanceof SearchMenu){
+            this.parent.isNewInput = true;
           }
         },
       });
