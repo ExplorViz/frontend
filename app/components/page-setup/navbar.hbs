@@ -19,50 +19,57 @@
     {{/if}}
   {{/unless}}
   <div id='navbar-user-options' class='btn-group pointer-events-all'>
-    <BsDropdown @closeOnMenuClick={{false}} as |dd|>
-      <dd.toggle class='d-flex align-items-center navbar-user-button'>
-        {{! template-lint-disable require-valid-alt-text }}
+    <div class='btn-group'>
+      <button
+        type='button'
+        class='dropdown-toggle navbar-user-button'
+        data-toggle='dropdown'
+        aria-expanded='false'
+      >
         {{svg-jar 'person-16' class='octicon'}}
-        <span class='caret ml-1'></span>
-      </dd.toggle>
-      <dd.menu @align='right' class='ml-3 mr-3 ml-md-0 mr-md-0' as |ddm|>
-        <div class='dropdown-header'>
-          <div><strong
-              class='truncate-text'
-            >{{this.auth.user.nickname}}</strong></div>
-          <span class='truncate-text'>{{this.auth.user.sub}}</span>
-        </div>
-        <ddm.divider />
-        {{#if this.tokenService.token}}
-          <ddm.item>
-            <ddm.link-to
-              class='truncate-text d-flex-center d-md-none'
-              @route='landscapes'
-              {{on 'click' dd.closeDropdown}}
-            >
-              {{svg-jar 'key-16' class='octicon'}}
-              <span>{{this.tokenService.token.alias}}</span>
-            </ddm.link-to>
-          </ddm.item>
-          <ddm.divider class='d-md-none' />
-        {{/if}}
-        <ddm.item>
+      </button>
+
+      <ul class='dropdown-menu dropdown-menu-right'>
+        <li>
+          <div class='dropdown-header'>
+            <div><strong class='truncate-text'>{{svg-jar
+                  'person-16'
+                  class='octicon'
+                }}
+                {{this.auth.user.nickname}}</strong></div>
+            <span class='truncate-text'>{{svg-jar
+                'id-badge-16'
+                class='octicon'
+              }}
+              {{this.auth.user.sub}}</span>
+          </div></li>
+        <li>
+          <button
+            class='dropdown-item'
+            type='button'
+            {{on 'click' this.goToLandscapeSelection}}
+          >
+            {{svg-jar 'key-16' class='octicon'}}
+            {{this.tokenService.token.alias}}
+          </button>
+        </li>
+        <li>
           <button
             class='dropdown-item'
             type='button'
             {{on 'click' this.logout}}
           >
+            {{svg-jar 'sign-out-16' class='octicon'}}
             Logout
           </button>
-        </ddm.item>
-        <ddm.divider class='d-md-none' />
-        <ddm.item>
+        </li>
+        <li><hr class='dropdown-divider' /></li>
+        <li>
           <div class='dropdown-item disabled'>
             Version:
             {{this.versionTag}}
-          </div>
-        </ddm.item>
-      </dd.menu>
-    </BsDropdown>
+          </div></li>
+      </ul>
+    </div>
   </div>
 </div>
