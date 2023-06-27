@@ -5,6 +5,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import internal from 'stream';
+import { Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -93,6 +94,18 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
+  addPackageFromPopup(pckg: Package) {
+    addPackageToApplication(pckg, this.newMeshCounter);
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
+    this.newMeshCounter++;
+  }
+
   addClass() {
     let highlightedMesh = this.highlightedMeshes.entries().next().value;
     addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
@@ -105,6 +118,30 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       )
     }
     this.newMeshCounter++;
+  }
+
+  addClassFromPopup(pckg: Package) {
+    addClassToApplication(pckg, this.newMeshCounter);
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      )
+    }
+    this.newMeshCounter++;
+  }
+
+  deleteFoundation() {
+
+  }
+
+  deletePackage() {
+
+  }
+
+  deleteClass() {
+
   }
 
 }

@@ -1,0 +1,19 @@
+<hr> 
+<BsButton @type='success' {{on 'click' this.addMesh}}>
+    {{svg-jar this.iconName class='octicon align-right'}}
+    <BsTooltip @placement='top' @triggerEvents='hover'>
+        Add Mesh
+    </BsTooltip>
+</BsButton>
+<BsButton @type='info' {{on 'click' this.addClass}}>
+    {{svg-jar this.iconName class='octicon align-right'}}
+    <BsTooltip @placement='top' @triggerEvents='hover'>
+        Add Class
+    </BsTooltip>
+</BsButton>
+<BsButton @type='danger'>
+    {{svg-jar this.iconName class='octicon align-right'}}
+    <BsTooltip @placement='top' @triggerEvents='hover'>
+        Delete Mesh
+    </BsTooltip>
+</BsButton>
