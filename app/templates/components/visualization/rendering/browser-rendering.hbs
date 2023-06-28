@@ -77,6 +77,9 @@
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @addComponent={{@addComponent}}
               />
+              <Visualization::PageSetup::Navbar::SynchronisationOpener
+                @addComponent={{@addComponent}}
+              />
               <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
                 @addComponent={{@addComponent}}
               />
@@ -114,6 +117,12 @@
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
+                    @removeComponent={{@removeComponent}}
+                  />
+                {{/if}}
+                {{#if (eq componentName 'synchronisation')}}
+                  <h5 class='text-center'>Synchronisation</h5>
+                  <Visualization::PageSetup::Sidebar::Synchronisation
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
