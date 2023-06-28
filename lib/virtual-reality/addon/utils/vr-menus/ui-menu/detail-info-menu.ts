@@ -150,7 +150,7 @@ export default class DetailInfoMenu
     this.firstTime = true;
   }
 
-  // TODO: Live-Update. Vermutung: this.applicationRepo spuckt immer die selben Entries raus, weshalb es hier nie zu einem Update kommt. Eventuell bei onUpdateMenu einen ApplicationRepo als Parameter hinzufügen und beim Aufruf mitgeben wie im Constructor?
+  // TODO: this.applicationRepo always outputs the same values => no live update (see increasing landscape application example)
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();

@@ -1,19 +1,20 @@
 // @ts-ignore
+import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
+import { inject as service } from '@ember/service';
 import { UiMenuArgs } from './ui-menu';
 import * as THREE from 'three';
 import InteractiveMenu from './interactive-menu';
 import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import SearchList from '../view-objects/vr/search-list';
 import VRController from '../vr-controller';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from '../vr-controller/vr-controller-thumbpad-binding';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
-  applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -40,11 +41,13 @@ const colors = {
 };
 
 export default class SearchMenu extends InteractiveMenu {
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
   owner: any;
-  applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
   map!: Map<string, searchItemVal>;
   searchListContainer!: ThreeMeshUI.Block;
@@ -52,10 +55,10 @@ export default class SearchMenu extends InteractiveMenu {
   searchList!: SearchList;
   _isNewInput: boolean = false;
 
-  constructor({ owner, applicationRepo, renderer, ...args }: SearchMenuArgs) {
+  constructor({ owner, renderer, ...args }: SearchMenuArgs) {
     super(args);
     this.owner = owner;
-    this.applicationRepo = applicationRepo;
+    setOwner(this, owner);
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
     this.makeUI();
