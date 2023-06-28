@@ -94,6 +94,8 @@ import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-i
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
+import ApplicationData from 'explorviz-frontend/utils/application-data';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 interface Args {
   readonly id: string;
@@ -862,9 +864,9 @@ export default class VrRendering extends Component<Args> {
 
       bButton: new VRControllerButtonBinding('Ping', {
         onButtonDown: (controller) => {
-          if (controller.intersectedObject) {
-            this.ping(controller.intersectedObject);
-          }
+           if (controller.intersectedObject) {
+             this.ping(controller.intersectedObject);
+           }
         },
       }),
 
@@ -1162,4 +1164,18 @@ export default class VrRendering extends Component<Args> {
   }
 
   // #endregion HANDLING MESSAGES
+
+  resetView(){
+    this.detachedMenuGroups.removeAllDetachedMenusLocally();
+    let p = new THREE.Vector3(0,0,0);
+    this.localUser.teleportToPosition(p);
+    this.applicationRenderer.getOpenApplications().forEach(applicationObjec => {
+        this.applicationRenderer.closeAllComponents(applicationObjec);
+        applicationObjec.resetRotation();                       
+    });
+    this.graph.position.set(0,0,0);
+    this.graph.rotation.x = Math.PI / 180 ;
+    this.graph.rotation.y = Math.PI / 180 ;
+    this.graph.rotation.z = Math.PI / 180 ;
+  }
 }
