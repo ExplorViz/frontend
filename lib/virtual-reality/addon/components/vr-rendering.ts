@@ -1187,7 +1187,7 @@ export default class VrRendering extends Component<Args> {
 
   resetView() {
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
-    let p = new THREE.Vector3(0, 0, 0);
+    const p = new THREE.Vector3(0, 0, 0);
     this.localUser.teleportToPosition(p);
     this.applicationRenderer
       .getOpenApplications()

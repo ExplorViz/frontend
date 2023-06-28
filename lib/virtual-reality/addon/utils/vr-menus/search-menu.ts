@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore because three mesh ui's typescript support is not fully matured
 import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
@@ -159,22 +159,24 @@ export default class SearchMenu extends InteractiveMenu {
 
   private searchComponents(searchWord: string, object: any, appName: string) {
     const res: { name?: string; id?: string; objects: any[] } = { objects: [] };
-    const REGEXP_SPECIAL_CHAR =
-      /[\!\#\$\%\^\&\*\)\(\+\=\.\<\>\{\}\[\]\:\;\'\"\|\~\`\_\-]/g;
+    const REGEXP_SPECIAL_CHAR = /[?!#$%^&*)(+=.<>{}[\]:;'"|~`_-]/g;
     const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
 
-    if (object.hasOwnProperty('name') && typeof object['name'] === 'string') {
+    if (
+      {}.hasOwnProperty.call(object, 'name') &&
+      typeof object['name'] === 'string'
+    ) {
       if (
         new RegExp(escapedSearchWord, 'i').test(object.name) &&
         searchWord.length !== 0
       ) {
-        if (object.hasOwnProperty('id')) {
+        if ({}.hasOwnProperty.call(object, 'id')) {
           res.id = object['id'];
           let object2 = object;
           let tempName = object2.name;
           while (
-            object2.hasOwnProperty('parent') &&
-            object2.parent.hasOwnProperty('name')
+            {}.hasOwnProperty.call(object2, 'parent') &&
+            {}.hasOwnProperty.call(object2.parent, 'name')
           ) {
             object2 = object2.parent;
             tempName = object2.name + '.' + tempName;
@@ -186,7 +188,8 @@ export default class SearchMenu extends InteractiveMenu {
     }
 
     if (
-      object.hasOwnProperty(
+      {}.hasOwnProperty.call(
+        object,
         'packages'
       ) /*&& typeof object['packages'] === 'object' &&*/
     ) {
@@ -196,7 +199,8 @@ export default class SearchMenu extends InteractiveMenu {
     }
 
     if (
-      object.hasOwnProperty(
+      {}.hasOwnProperty.call(
+        object,
         'subPackages'
       ) /*&& typeof object['subpackages'] === 'object' &&*/
     ) {
@@ -206,7 +210,8 @@ export default class SearchMenu extends InteractiveMenu {
     }
 
     if (
-      object.hasOwnProperty(
+      {}.hasOwnProperty.call(
+        object,
         'classes'
       ) /*&& typeof object['classes'] === 'object' &&*/
     ) {
@@ -233,7 +238,11 @@ export default class SearchMenu extends InteractiveMenu {
 
       while (res.objects.length > 0) {
         const object = res.objects.pop();
-        let res2 = this.searchComponents(searchWord, object, application.name);
+        const res2 = this.searchComponents(
+          searchWord,
+          object,
+          application.name
+        );
         if (res2.name && res2.id) {
           resObj.set(res2.name, { id: res2.id, applicationId: application.id });
         }

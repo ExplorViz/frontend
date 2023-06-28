@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from '../interfaces/intersectable-object';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';

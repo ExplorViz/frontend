@@ -1,3 +1,4 @@
+// @ts-ignore because three mesh ui's typescript support is not fully matured
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
