@@ -223,6 +223,9 @@ export default class VrRendering extends Component<Args> {
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
 
+    //added because we cannot access the service directly in our classes (we don't know how to fix it yet)
+    this.menuFactory.applicationRenderer = this.applicationRenderer;
+
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
   }

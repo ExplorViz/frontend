@@ -8,12 +8,16 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import SearchList from '../view-objects/vr/search-list';
 import VRController from '../vr-controller';
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from '../vr-controller/vr-controller-thumbpad-binding';
-import { Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type SearchMenuArgs = UiMenuArgs & {
+    owner: any,
     applicationRepo: ApplicationRepository;
     renderer: THREE.WebGLRenderer;
+    applicationRenderer: ApplicationRenderer; 
 };
+
+export type searchItemVal = {id: string, applicationId: string};
 
 const BLOCK_OPTIONS_CONTAINER = {
   width: 0.8,
@@ -39,18 +43,22 @@ export default class SearchMenu extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
+  owner: any;
   applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
-  map!: Map<string,string>;
+  applicationRenderer: ApplicationRenderer;
+  map!: Map<string,searchItemVal>;
   searchListContainer!: ThreeMeshUI.Block;
   keyboardContainer!: ThreeMeshUI.Block;
   searchList!: SearchList;
   _isNewInput: boolean = false;
 
-  constructor({ applicationRepo, renderer, ...args }: SearchMenuArgs) {
+  constructor({ owner, applicationRepo, renderer, applicationRenderer, ...args }: SearchMenuArgs) {
     super(args);
+    this.owner = owner;
     this.applicationRepo = applicationRepo;
     this.renderer = renderer;
+    this.applicationRenderer = applicationRenderer;
     this.renderer.localClippingEnabled = true;
     this.makeUI();
     this.makeKeyboard();
@@ -109,7 +117,9 @@ export default class SearchMenu extends InteractiveMenu {
       backgroundOpacity: 0.6,
     });
     this.searchList = new SearchList({
+      owner: this.owner,
       items: this.map, 
+      applicationRenderer: this.applicationRenderer,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, 
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, 
       offset: 0.001,
@@ -147,7 +157,7 @@ export default class SearchMenu extends InteractiveMenu {
     const REGEXP_SPECIAL_CHAR = /[\!\#\$\%\^\&\*\)\(\+\=\.\<\>\{\}\[\]\:\;\'\"\|\~\`\_\-]/g;
     const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
 
-    if(object.hasOwnProperty('name') && typeof object['name'] === 'string'){ //TODO: escape searchWord for regexp symbols
+    if(object.hasOwnProperty('name') && typeof object['name'] === 'string'){
         if( new RegExp(escapedSearchWord, 'i').test(object.name) && searchWord.length !== 0){ //object['name'].substring(0, searchWord.length).toLowerCase() === searchWord.toLowerCase()
           if(object.hasOwnProperty('id')){
             res.id = object['id'];
@@ -167,33 +177,27 @@ export default class SearchMenu extends InteractiveMenu {
 
     if(object.hasOwnProperty('packages') /*&& typeof object['packages'] === 'object' &&*/){
       object['packages'].forEach( element => {
-        console.log("PUSHE PACKAGE: " + element.name);
         res.objects.push(element);
       });
-       // res.arrays.push(object['packages']);
     }
 
     if(object.hasOwnProperty('subPackages') /*&& typeof object['subpackages'] === 'object' &&*/){
     
       object['subPackages'].forEach( element => {
-        console.log("PUSHE SUBPACKAGES: " + element.name);
         res.objects.push(element);
       });
-        //res.arrays.push(object['subPackages']);
     }
 
     if(object.hasOwnProperty('classes') /*&& typeof object['classes'] === 'object' &&*/){
       object['classes'].forEach( element => {
-        console.log("PUSHE CLASSES: " + element.name);
         res.objects.push(element);
       });
-       // res.arrays.push(object['classes']);
     }
 
     return res;
   }
 
-  private search(searchWord: string) : Map<string,string>{
+  private search(searchWord: string) : Map<string,searchItemVal>{
 
     
     // TODO:
@@ -202,21 +206,20 @@ export default class SearchMenu extends InteractiveMenu {
     // application-renderer kann uns Zugriff auf alle ApplicationObjects3D gewähren. Wenn wir also filtern, können wir auf das jeweilige Objekt zugreifen
     // Eventuell mit RegEx arbeiten
 
-    const resObj = new Map<string,string>();
+    const resObj = new Map<string,searchItemVal>();
     for (const applicationData of this.applicationRepo.getAll()) {
       const application = applicationData.application;
       console.log(application);
       const res = this.searchComponents(searchWord, application, application.name); 
       if(res.name && res.id){
-        resObj.set(res.name, res.id);
+        resObj.set(res.name, {id: res.id, applicationId: application.id});
       }
 
       while(res.objects.length > 0){
         const object = res.objects.pop();
-         //console.log(object);
         let res2 = this.searchComponents(searchWord, object, application.name);
         if(res2.name && res2.id){
-          resObj.set(res2.name, res2.id);
+          resObj.set(res2.name, {id: res2.id, applicationId: application.id});
         }
         res.objects = res.objects.concat(res2.objects);
       }
@@ -248,7 +251,7 @@ export default class SearchMenu extends InteractiveMenu {
       this.map = tmpMap;
       this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
       this.searchListContainer.remove(this.searchList);
-      this.searchList = new SearchList({items: this.map, width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, offset: 0.001,
+      this.searchList = new SearchList({owner: this.owner, items: this.map, applicationRenderer: this.applicationRenderer,  width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, offset: 0.001,
         backgroundOpacity: 0,});
       this.searchListContainer.add(this.searchList);
     }
@@ -277,41 +280,7 @@ export default class SearchMenu extends InteractiveMenu {
     { labelUp: 'Scroll up', 
     labelDown: 'Scroll down', 
   },
-    {
-      // onThumbpadDown: (controller, axes) => {
-      //   console.log("ThumbpadDown");
-
-      //   const direction = VRControllerThumbpadBinding.getDirection(axes);
-      //   const vector = thumbpadDirectionToVector2(direction);
-      //   const offset = vector.toArray()[1]; // vertical part
-
-      //   if(this.searchList && this.map.size > 0){
-      //     const n = this.map.size;
-      //     this.searchList.resetHover(this.currentSelectedListItem);
-      //     if (offset !== 0) {
-      //       //up
-      //       if(offset === -1){
-      //         //this.earchList.position.y +=  offset * 0.01;
-      //         this.currentSelectedListItem = (this.currentSelectedListItem + 1) % n;
-
-      //         const YPosTopItem = this.searchList.getPositionY(this.currentTopItem);
-      //         const YPosCurrentItem = this.searchList.getPositionY(this.currentSelectedListItem);
-      //         console.log("TOP ITEM Y: " + YPosTopItem);
-      //         console.log("CURRENT ITEM Y: " + YPosCurrentItem);
-      //         if(Math.abs(YPosTopItem - YPosCurrentItem) > BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height){
-      //           console.log("WEIT AUSEINANDER OMG");
-      //         }
-      //       }
-      //       //down
-      //       if(offset === 1 ){
-      //         //this.searchList.position.y +=  offset * 0.01;
-      //         this.currentSelectedListItem = (((this.currentSelectedListItem - 1) % n) + n) % n; // in Typescript % is doesn't behave like the mathematical definition of modulo so we have to adapt in case of negative numbers
-      //       }
-      //     }
-      //     this.searchList.applyHover(this.currentSelectedListItem);
-      //   }
-      // },
-     
+    {    
       onThumbpadTouch: (controller: VRController, axes:number[]) => {
       // controller.updateIntersectedObject();
        //if (!controller.intersectedObject) return;

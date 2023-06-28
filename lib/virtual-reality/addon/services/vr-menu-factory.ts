@@ -41,6 +41,7 @@ import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import VRController from 'virtual-reality/utils/vr-controller';
 import VrRendering from 'virtual-reality/components/vr-rendering';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -77,6 +78,8 @@ export default class VrMenuFactoryService extends Service {
   scene!: THREE.Scene;
 
   renderer!: THREE.WebGLRenderer;
+
+  applicationRenderer!: ApplicationRenderer; // added because somehow we cannot access that service in our classes so we have to hand it manually over the constructor chains
 
   buildMainMenu(): MainMenu {
     return new MainMenu({ menuFactory: this });
@@ -242,8 +245,10 @@ export default class VrMenuFactoryService extends Service {
 
   buildSearchMenu(): SearchMenu {
     return new SearchMenu({ 
+      owner: getOwner(this),
       applicationRepo: this.applicationRepo,
       renderer: this.renderer,
+      applicationRenderer: this.applicationRenderer,
       menuFactory: this });
   }
 
