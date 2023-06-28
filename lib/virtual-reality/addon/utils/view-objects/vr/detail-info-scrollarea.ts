@@ -11,10 +11,10 @@ export default class DetailInfoScrollarea
 {
   isHovered: boolean = false;
   isTriggered: boolean = false;
-  isAuxiliaryCreated: boolean = false;
   text: ThreeMeshUI.Text;
   menuFactory: VrMenuFactoryService;
-
+  controllerIdToAuxiliaryMenuOpenFlag: Map<string, boolean>;
+  controllerIdToIntersection: Map<string, THREE.Intersection>;
   readonly initialY: number;
   cx!: number;
   cy!: number;
@@ -23,6 +23,8 @@ export default class DetailInfoScrollarea
     super(options);
     this.text = text;
     this.menuFactory = menuFactory;
+    this.controllerIdToAuxiliaryMenuOpenFlag = new Map<string,boolean>();
+    this.controllerIdToIntersection = new Map<string, THREE.Intersection>();
     this.initialY = this.text.position.y;
   }
 
@@ -32,6 +34,9 @@ export default class DetailInfoScrollarea
   }
 
   triggerDown(intersection: THREE.Intersection) {
+
+    console.log("triggerDown gecheckt");
+
     if (intersection.uv) {
       if (this.isTriggered) return;
 
@@ -47,6 +52,7 @@ export default class DetailInfoScrollarea
   }
 
   triggerPress(intersection: THREE.Intersection) {
+    console.log("triggerPress gecheckt");
     if (this.isTriggered && intersection.uv) {
       const y = intersection.uv.y;
       const yDiff = y - this.cy;
@@ -60,28 +66,46 @@ export default class DetailInfoScrollarea
     }
   }
 
-  applyHover(controller: VRController | null, renderer: VrRendering) {
+  applyHover(controller: VRController | null, intersection: THREE.Intersection, renderer: VrRendering) {
     this.set({ backgroundOpacity: 0.4 });
 
-    if(!controller?.gripIsPressed) {
-    const auxiliaryMenu = this.menuFactory.buildAuxiliaryMenu(this.text, controller, renderer, this);
-    if(!this.isAuxiliaryCreated){
-      controller?.menuGroup.openMenu(auxiliaryMenu);
-      this.isAuxiliaryCreated = true;
+
+    if(controller){
+
+    const gamepadId = controller.gamepadId;
+    const gamepadIndex = controller.gamepadIndex;
+
+    const controllerId: string = gamepadId + gamepadIndex;
+
+    this.controllerIdToIntersection.set(controllerId, intersection);
+
+
+    if(!controller.gripIsPressed && !controller.triggerIsPressed) {
+    if(!this.controllerIdToAuxiliaryMenuOpenFlag.get(controllerId)){
+      const auxiliaryMenu = this.menuFactory.buildAuxiliaryMenu(this, controller, renderer);
+      controller.menuGroup.openMenu(auxiliaryMenu);
+      this.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId,true);
     }
   }
-
+    }
   }
 
   resetHover(controller: VRController | null) {
     this.isTriggered = false;
     this.set({ backgroundOpacity: 0 });
 
-    if(this.isAuxiliaryCreated){
-      controller?.menuGroup.closeMenu();
-      this.isAuxiliaryCreated = false;
-    }
+    if(controller){
 
+      const gamepadId = controller.gamepadId;
+      const gamepadIndex = controller.gamepadIndex;
+  
+      const controllerId: string = gamepadId + gamepadIndex;
+
+    if(this.controllerIdToAuxiliaryMenuOpenFlag.get(controllerId)){
+      controller.menuGroup.closeMenu();
+      this.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId,false);
+    }
+  }
 
   }
 }

@@ -14,7 +14,6 @@ export type SearchListItemArgs = ThreeMeshUI.BlockOptions & {
     text: string,
     meshId: string,
     applicationId: string,
-    applicationRenderer: ApplicationRenderer,
 }
 
 export default class SearchListItem
@@ -23,20 +22,18 @@ export default class SearchListItem
 {
 
   @service('application-renderer')
-  applicationRenderer2!: ApplicationRenderer;
+  applicationRenderer!: ApplicationRenderer;
 
   isHovered = false;
   text: string;
   meshId: string;
   applicationId: string;
-  applicationRenderer: ApplicationRenderer;
 
   constructor({owner, text, meshId, applicationId, applicationRenderer, ...options} : SearchListItemArgs) {
     super({...options, hiddenOverflow: true,});
     this.text = text;
     this.meshId = meshId;
     this.applicationId = applicationId;
-    this.applicationRenderer = applicationRenderer;
     setOwner(this, owner);
     const itemText = new ThreeMeshUI.Text({ content: text });
     this.add(itemText);
@@ -48,13 +45,10 @@ export default class SearchListItem
   }
 
   triggerDown() {
-    console.log(this.text + " pressed with id " + this.meshId);
-    console.log(this.applicationId);
-
-    const mesh = this.applicationRenderer2.getBoxMeshByModelId(this.meshId);
-    const application = this.applicationRenderer2.getApplicationById(this.applicationId);
+    const mesh = this.applicationRenderer.getBoxMeshByModelId(this.meshId);
+    const application = this.applicationRenderer.getApplicationById(this.applicationId);
     if(application){
-      this.applicationRenderer2.openAllComponents(application);
+      this.applicationRenderer.openAllComponents(application);
       mesh?.highlight();
     }
   }

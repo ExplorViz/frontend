@@ -1,33 +1,26 @@
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from "virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding";
 import BaseMenu, { BaseMenuArgs } from "../base-menu";
 import VRController from "virtual-reality/utils/vr-controller";
-import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from "virtual-reality/utils/view-objects/vr/detail-info-scrollarea";
 import VRControllerButtonBinding from "virtual-reality/utils/vr-controller/vr-controller-button-binding";
 import VrRendering from "virtual-reality/components/vr-rendering";
 
 
 export type AuxiliaryScrollMenuArgs = BaseMenuArgs & {
-    text: ThreeMeshUI.Text,
-    controller: VRController | null,
+  object: DetailInfoScrollarea, 
+  controller: VRController, 
     renderer: VrRendering,
-    object: DetailInfoScrollarea
   };
 
 // This Menu is built just to define the controller thumbpad bindings when hovering the ScrollArea
 export class AuxiliaryScrollMenu extends BaseMenu {
-    text : ThreeMeshUI.Text;
-    controller!: VRController | null;
-    renderer : VrRendering;
     object: DetailInfoScrollarea;
+    controller: VRController;
+    renderer : VrRendering;
 
-    constructor({text, controller, renderer, object, ...args} : AuxiliaryScrollMenuArgs){
+    constructor({object, controller, renderer, ...args} : AuxiliaryScrollMenuArgs){
         super(args);
-        this.text = text;
-        if(controller){
-          this.controller = controller;
-        }
-
+        this.controller = controller;
         this.renderer = renderer;
         this.object = object;
     }
@@ -50,7 +43,7 @@ export class AuxiliaryScrollMenu extends BaseMenu {
          controller.updateIntersectedObject();
          if (!controller.intersectedObject) return;
          
-         const textBlock = this.text;
+         const textBlock = this.object.text;
 
         const direction = VRControllerThumbpadBinding.getDirection(axes);
         const vector = thumbpadDirectionToVector2(direction);
@@ -74,19 +67,38 @@ export class AuxiliaryScrollMenu extends BaseMenu {
   makeGripButtonBinding() {
     return new VRControllerButtonBinding('', {
       onButtonPress: () => {
-        this.object.isAuxiliaryCreated = false;
-       // this.controller?.gripIsPressed = true;
-        //this.controller?.updateIntersectedObject();
+
+        const gamepadId = this.controller.gamepadId;
+        const gamepadIndex = this.controller.gamepadIndex;
+        const controllerId: string = gamepadId + gamepadIndex;
+
+        this.object.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId, false);
+
         this.closeMenu();
         if(this.controller){
             this.renderer['grabIntersectedObject'](this.controller); // intentional escape hatch. Dirty, but gets the job done.
-            //this.controller.updateIntersectedObject();
-            //this.controller.isHovered = true;
         }
 
       },
     });
   }
+
+  makeTriggerButtonBinding(): VRControllerButtonBinding<number> | undefined {
+    return new VRControllerButtonBinding('', {
+      onButtonPress: () => {
+        const gamepadId = this.controller.gamepadId;
+        const gamepadIndex = this.controller.gamepadIndex;
+        const controllerId: string = gamepadId + gamepadIndex;
+
+        this.object.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId, false);
+        const intersection = this.object.controllerIdToIntersection.get(controllerId);
+        this.object.triggerDown(intersection!); // note that the button press action only gets registered in this auxiliary menu here so we have to "cheat"
+        this.closeMenu();
+      },
+  });
+  }
+
+
 
 
 

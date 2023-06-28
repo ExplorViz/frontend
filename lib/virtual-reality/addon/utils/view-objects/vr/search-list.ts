@@ -1,12 +1,10 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import SearchListItem, { BLOCK_OPTIONS_LIST_ITEM } from './search-list-item';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { searchItemVal } from 'virtual-reality/utils/vr-menus/search-menu';
 
 export type SearchListArgs = ThreeMeshUI.BlockOptions & {
     owner: any,
     items: Map<string,searchItemVal>,
-    applicationRenderer: ApplicationRenderer,
 }
 
 export default class SearchList
@@ -14,16 +12,14 @@ export default class SearchList
 {
   owner: any;
   items: Map<string, searchItemVal>;
-  applicationRenderer: ApplicationRenderer;
 
   constructor({owner, items, applicationRenderer, ...options} : SearchListArgs) {
     super(options);
     this.owner = owner;
     this.items = items;
-    this.applicationRenderer = applicationRenderer;
     this.items.forEach((val,key)=>{
       const listItemOptions = {width: options.width, height: BLOCK_OPTIONS_LIST_ITEM.height, offset: 0.001, backgroundOpacity: 0,  };
-      const item = new SearchListItem({owner: this.owner, text: key, meshId: val.id, applicationId: val.applicationId, applicationRenderer: this.applicationRenderer, ...listItemOptions});
+      const item = new SearchListItem({owner: this.owner, text: key, meshId: val.id, applicationId: val.applicationId, ...listItemOptions});
       this.add(item);
     });
   }

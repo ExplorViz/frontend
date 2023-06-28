@@ -1,4 +1,5 @@
 import { setOwner } from '@ember/application';
+import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import composeContent, {
   EntityMesh,
@@ -19,7 +20,6 @@ import VRController from 'virtual-reality/utils/vr-controller';
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
   object: EntityMesh;
-  applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -46,10 +46,9 @@ export default class DetailInfoMenu
 {
   private object: EntityMesh;
 
-  //@service('repos/application-repository')
-  //applicationRepo!: ApplicationRepository;
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
 
-  private applicationRepo: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
 
@@ -59,21 +58,17 @@ export default class DetailInfoMenu
   private informationText: string = '';
   private firstTime: boolean = true;
 
-  private textBlock : ThreeMeshUI.Text | undefined
-
   private entries: { key: string; value: string }[] | undefined;
 
   constructor({
     owner,
     object,
-    applicationRepo,
     renderer,
     ...args
   }: DetailInfoMenuArgs) {
     super(args);
     setOwner(this, owner);
     this.object = object;
-    this.applicationRepo = applicationRepo;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
   }
@@ -206,7 +201,6 @@ export default class DetailInfoMenu
 
          
          const textBlock = this.informationBlock.textBlock;
-         const initialY = textBlock.y;
 
         const direction = VRControllerThumbpadBinding.getDirection(axes);
         const vector = thumbpadDirectionToVector2(direction);
@@ -236,9 +230,3 @@ export default class DetailInfoMenu
     });
   }
 }
-// function service(
-//   arg0: string
-// ): (target: DetailInfoMenu, propertyKey: 'applicationRepo') => void {
-//   return (target, propertyKey) => {};
-//   //throw new Error('Function not implemented.');
-// }

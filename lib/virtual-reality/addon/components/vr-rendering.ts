@@ -223,9 +223,6 @@ export default class VrRendering extends Component<Args> {
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
 
-    //added because we cannot access the service directly in our classes (we don't know how to fix it yet)
-    this.menuFactory.applicationRenderer = this.applicationRenderer;
-
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
   }
@@ -397,10 +394,10 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: DetailInfoScrollarea,
       triggerPress: (event) => event.target.triggerPress(event.intersection),
-      hover: (event) => event.target.applyHover(event.controller, this),
+      hover: (event) => event.target.applyHover(event.controller, event.intersection, this),
       resetHover: (event) => event.target.resetHover(event.controller),
       triggerDown: (event) => event.target.triggerDown(event.intersection),
-      triggerUp: (event) => event.target.triggerUp(),
+      triggerUp: (event) => event.target.triggerUp(), 
     });
 
     this.primaryInputManager.addInputHandler({

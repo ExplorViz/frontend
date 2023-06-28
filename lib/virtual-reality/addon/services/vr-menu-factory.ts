@@ -37,11 +37,9 @@ import SpectateUserService from './spectate-user';
 import VrRoomService from './vr-room';
 import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
 import { AuxiliaryScrollMenu } from 'virtual-reality/utils/vr-menus/ui-menu/auxiliary-scroll-menu';
-import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
-import VRController from 'virtual-reality/utils/vr-controller';
 import VrRendering from 'virtual-reality/components/vr-rendering';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import VRController from 'virtual-reality/utils/vr-controller';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -78,8 +76,6 @@ export default class VrMenuFactoryService extends Service {
   scene!: THREE.Scene;
 
   renderer!: THREE.WebGLRenderer;
-
-  applicationRenderer!: ApplicationRenderer; // added because somehow we cannot access that service in our classes so we have to hand it manually over the constructor chains
 
   buildMainMenu(): MainMenu {
     return new MainMenu({ menuFactory: this });
@@ -205,19 +201,16 @@ export default class VrMenuFactoryService extends Service {
     return new DetailInfoMenu({
       owner: getOwner(this),
       object: object,
-      applicationRepo: this.applicationRepo,
       renderer: this.renderer,
       menuFactory: this,
     });
   }
 
-  buildAuxiliaryMenu(text: ThreeMeshUI.Text, /*scrollArea: DetailInfoScrollarea,*/ controller: VRController | null, renderer: VrRendering, object: DetailInfoScrollarea ): AuxiliaryScrollMenu {
+  buildAuxiliaryMenu(object: DetailInfoScrollarea, controller: VRController, renderer: VrRendering ): AuxiliaryScrollMenu {
     return new AuxiliaryScrollMenu({
-      text: text,
-      /*scrollArea: scrollArea,*/
+      object: object,
       controller: controller,
       renderer: renderer,
-      object: object,
       menuFactory: this,
     });
   }
@@ -248,7 +241,6 @@ export default class VrMenuFactoryService extends Service {
       owner: getOwner(this),
       applicationRepo: this.applicationRepo,
       renderer: this.renderer,
-      applicationRenderer: this.applicationRenderer,
       menuFactory: this });
   }
 

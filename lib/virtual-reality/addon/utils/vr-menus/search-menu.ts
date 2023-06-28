@@ -8,13 +8,11 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import SearchList from '../view-objects/vr/search-list';
 import VRController from '../vr-controller';
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from '../vr-controller/vr-controller-thumbpad-binding';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type SearchMenuArgs = UiMenuArgs & {
     owner: any,
-    applicationRepo: ApplicationRepository;
-    renderer: THREE.WebGLRenderer;
-    applicationRenderer: ApplicationRenderer; 
+    applicationRepo: ApplicationRepository,
+    renderer: THREE.WebGLRenderer,
 };
 
 export type searchItemVal = {id: string, applicationId: string};
@@ -46,19 +44,17 @@ export default class SearchMenu extends InteractiveMenu {
   owner: any;
   applicationRepo: ApplicationRepository;
   renderer: THREE.WebGLRenderer;
-  applicationRenderer: ApplicationRenderer;
   map!: Map<string,searchItemVal>;
   searchListContainer!: ThreeMeshUI.Block;
   keyboardContainer!: ThreeMeshUI.Block;
   searchList!: SearchList;
   _isNewInput: boolean = false;
 
-  constructor({ owner, applicationRepo, renderer, applicationRenderer, ...args }: SearchMenuArgs) {
+  constructor({ owner, applicationRepo, renderer, ...args }: SearchMenuArgs) {
     super(args);
     this.owner = owner;
     this.applicationRepo = applicationRepo;
     this.renderer = renderer;
-    this.applicationRenderer = applicationRenderer;
     this.renderer.localClippingEnabled = true;
     this.makeUI();
     this.makeKeyboard();
@@ -93,7 +89,7 @@ export default class SearchMenu extends InteractiveMenu {
       fontSize: 0.045,
       justifyContent: 'center',
       offset: 0.02,
-    }).add(new ThreeMeshUI.Text({ content: 'Type some text on the keyboard' }));
+    }).add(new ThreeMeshUI.Text({ content: 'Type in the component you are looking for' }));
     this.userText = new ThreeMeshUI.Text({ content: '', fontColor: new THREE.Color('black') });
 
     const textField = new ThreeMeshUI.Block({
@@ -119,7 +115,6 @@ export default class SearchMenu extends InteractiveMenu {
     this.searchList = new SearchList({
       owner: this.owner,
       items: this.map, 
-      applicationRenderer: this.applicationRenderer,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, 
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, 
       offset: 0.001,
@@ -158,7 +153,7 @@ export default class SearchMenu extends InteractiveMenu {
     const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
 
     if(object.hasOwnProperty('name') && typeof object['name'] === 'string'){
-        if( new RegExp(escapedSearchWord, 'i').test(object.name) && searchWord.length !== 0){ //object['name'].substring(0, searchWord.length).toLowerCase() === searchWord.toLowerCase()
+        if( new RegExp(escapedSearchWord, 'i').test(object.name) && searchWord.length !== 0){
           if(object.hasOwnProperty('id')){
             res.id = object['id'];
             let object2 = object;
@@ -199,17 +194,9 @@ export default class SearchMenu extends InteractiveMenu {
 
   private search(searchWord: string) : Map<string,searchItemVal>{
 
-    
-    // TODO:
-    // ApplicationRenderer gewährt uns Möglichkeit auf einen Zugriff auf ApplicationObject3D
-    // ApplicationObject3D wichtige Klasse. Sie beinhaltet alle Meshes, auf die wir Zugreifen können wenn wir die ID haben
-    // application-renderer kann uns Zugriff auf alle ApplicationObjects3D gewähren. Wenn wir also filtern, können wir auf das jeweilige Objekt zugreifen
-    // Eventuell mit RegEx arbeiten
-
     const resObj = new Map<string,searchItemVal>();
     for (const applicationData of this.applicationRepo.getAll()) {
       const application = applicationData.application;
-      console.log(application);
       const res = this.searchComponents(searchWord, application, application.name); 
       if(res.name && res.id){
         resObj.set(res.name, {id: res.id, applicationId: application.id});
@@ -251,7 +238,7 @@ export default class SearchMenu extends InteractiveMenu {
       this.map = tmpMap;
       this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
       this.searchListContainer.remove(this.searchList);
-      this.searchList = new SearchList({owner: this.owner, items: this.map, applicationRenderer: this.applicationRenderer,  width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, offset: 0.001,
+      this.searchList = new SearchList({owner: this.owner, items: this.map, width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width, height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height, offset: 0.001,
         backgroundOpacity: 0,});
       this.searchListContainer.add(this.searchList);
     }
@@ -284,8 +271,6 @@ export default class SearchMenu extends InteractiveMenu {
       onThumbpadTouch: (controller: VRController, axes:number[]) => {
       // controller.updateIntersectedObject();
        //if (!controller.intersectedObject) return;
-
-      // console.log("THUMBAD TOUCH");
 
        if(this.searchList && this.map.size > 0){
 
