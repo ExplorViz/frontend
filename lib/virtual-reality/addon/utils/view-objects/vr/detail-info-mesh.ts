@@ -10,7 +10,11 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
   menuFactory: VrMenuFactoryService;
   text: ThreeMeshUI.Text;
 
-  constructor(content: string, menuFactory: VrMenuFactoryService, options: ThreeMeshUI.BlockOptions) {
+  constructor(
+    content: string,
+    menuFactory: VrMenuFactoryService,
+    options: ThreeMeshUI.BlockOptions
+  ) {
     super({ ...options, justifyContent: 'start' }); // make sure we have justifyContent: 'start'
     this.content = content;
     this.menuFactory = menuFactory;

@@ -13,7 +13,9 @@ import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
 import { BaseMenuArgs } from '../base-menu';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
-import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, {
+  thumbpadDirectionToVector2,
+} from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
 import VRController from 'virtual-reality/utils/vr-controller';
 
@@ -49,7 +51,6 @@ export default class DetailInfoMenu
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-
   private renderer: THREE.WebGLRenderer;
 
   private container?: ThreeMeshUI.Block;
@@ -60,12 +61,7 @@ export default class DetailInfoMenu
 
   private entries: { key: string; value: string }[] | undefined;
 
-  constructor({
-    owner,
-    object,
-    renderer,
-    ...args
-  }: DetailInfoMenuArgs) {
+  constructor({ owner, object, renderer, ...args }: DetailInfoMenuArgs) {
     super(args);
     setOwner(this, owner);
     this.object = object;
@@ -124,13 +120,17 @@ export default class DetailInfoMenu
       this.informationText += key + ' ' + value + '\n\n';
     });
 
-    this.informationBlock = new DetailInfoMesh(this.informationText, this.menuFactory, {
-      width: BLOCK_OPTIONS_INFO.width,
-      height: BLOCK_OPTIONS_INFO.height,
-      backgroundOpacity: 0,
-      hiddenOverflow: false,
-      offset: 0.001,
-    });
+    this.informationBlock = new DetailInfoMesh(
+      this.informationText,
+      this.menuFactory,
+      {
+        width: BLOCK_OPTIONS_INFO.width,
+        height: BLOCK_OPTIONS_INFO.height,
+        backgroundOpacity: 0,
+        hiddenOverflow: false,
+        offset: 0.001,
+      }
+    );
 
     this.container.add(this.informationBlock);
 
@@ -189,38 +189,33 @@ export default class DetailInfoMenu
    */
   makeThumbpadBinding() {
     return new VRControllerThumbpadBinding(
-      { labelUp: 'Scroll up', 
-      labelDown: 'Scroll down', 
-    },
+      { labelUp: 'Scroll up', labelDown: 'Scroll down' },
       {
-        onThumbpadTouch: (controller: VRController, axes:number[]) => {
-         controller.updateIntersectedObject();
-         if (!controller.intersectedObject) return;
+        onThumbpadTouch: (controller: VRController, axes: number[]) => {
+          controller.updateIntersectedObject();
+          if (!controller.intersectedObject) return;
 
-         if(this.informationBlock){
+          if (this.informationBlock) {
+            const textBlock = this.informationBlock.textBlock;
 
-         
-         const textBlock = this.informationBlock.textBlock;
-
-        const direction = VRControllerThumbpadBinding.getDirection(axes);
-        const vector = thumbpadDirectionToVector2(direction);
-        const offset = vector.toArray()[1]; // vertical part
-        if (offset !== 0) {
-            //up
-            if(offset === -1&& textBlock.position.y >0){
-              textBlock.position.y +=  offset * 0.01;
-            }
-            //down
-            if(offset === 1 ){
-              textBlock.position.y +=  offset * 0.01;
+            const direction = VRControllerThumbpadBinding.getDirection(axes);
+            const vector = thumbpadDirectionToVector2(direction);
+            const offset = vector.toArray()[1]; // vertical part
+            if (offset !== 0) {
+              //up
+              if (offset === -1 && textBlock.position.y > 0) {
+                textBlock.position.y += offset * 0.01;
+              }
+              //down
+              if (offset === 1) {
+                textBlock.position.y += offset * 0.01;
+              }
             }
           }
-         }
         },
       }
     );
   }
-
 
   makeTriggerButtonBinding() {
     return new VRControllerButtonBinding('Detach', {

@@ -206,7 +206,11 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildAuxiliaryMenu(object: DetailInfoScrollarea, controller: VRController, renderer: VrRendering ): AuxiliaryScrollMenu {
+  buildAuxiliaryMenu(
+    object: DetailInfoScrollarea,
+    controller: VRController,
+    renderer: VrRendering
+  ): AuxiliaryScrollMenu {
     return new AuxiliaryScrollMenu({
       object: object,
       controller: controller,
@@ -214,8 +218,6 @@ export default class VrMenuFactoryService extends Service {
       menuFactory: this,
     });
   }
-
-
 
   buildGrabMenu(grabbedObject: GrabbableObject): GrabMenu {
     return new GrabMenu({
@@ -237,11 +239,12 @@ export default class VrMenuFactoryService extends Service {
   }
 
   buildSearchMenu(): SearchMenu {
-    return new SearchMenu({ 
+    return new SearchMenu({
       owner: getOwner(this),
       applicationRepo: this.applicationRepo,
       renderer: this.renderer,
-      menuFactory: this });
+      menuFactory: this,
+    });
   }
 
   // #endregion TOOL MENUS

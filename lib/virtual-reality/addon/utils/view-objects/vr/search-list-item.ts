@@ -6,21 +6,20 @@ import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
-    height: 0.08,
+  height: 0.08,
 };
 
 export type SearchListItemArgs = ThreeMeshUI.BlockOptions & {
-    owner: any,
-    text: string,
-    meshId: string,
-    applicationId: string,
-}
+  owner: any;
+  text: string;
+  meshId: string;
+  applicationId: string;
+};
 
 export default class SearchListItem
   extends ThreeMeshUI.Block
   implements IntersectableObject
 {
-
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -29,8 +28,15 @@ export default class SearchListItem
   meshId: string;
   applicationId: string;
 
-  constructor({owner, text, meshId, applicationId, applicationRenderer, ...options} : SearchListItemArgs) {
-    super({...options, hiddenOverflow: true,});
+  constructor({
+    owner,
+    text,
+    meshId,
+    applicationId,
+    applicationRenderer,
+    ...options
+  }: SearchListItemArgs) {
+    super({ ...options, hiddenOverflow: true });
     this.text = text;
     this.meshId = meshId;
     this.applicationId = applicationId;
@@ -46,8 +52,10 @@ export default class SearchListItem
 
   triggerDown() {
     const mesh = this.applicationRenderer.getBoxMeshByModelId(this.meshId);
-    const application = this.applicationRenderer.getApplicationById(this.applicationId);
-    if(application){
+    const application = this.applicationRenderer.getApplicationById(
+      this.applicationId
+    );
+    if (application) {
       this.applicationRenderer.openAllComponents(application);
       mesh?.highlight();
     }
@@ -57,11 +65,11 @@ export default class SearchListItem
     if (this.isHovered) return;
 
     this.isHovered = true;
-    this.set({ backgroundOpacity: 0.4});
+    this.set({ backgroundOpacity: 0.4 });
   }
 
   resetHover() {
     this.isHovered = false;
-    this.set({ backgroundOpacity: 0});
+    this.set({ backgroundOpacity: 0 });
   }
 }

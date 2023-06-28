@@ -1,7 +1,5 @@
 // @ts-ignore
-import {
-  IntersectableObject,
-} from '../interfaces/intersectable-object';
+import { IntersectableObject } from '../interfaces/intersectable-object';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 import VRController from 'virtual-reality/utils/vr-controller';
@@ -18,7 +16,7 @@ const colors = {
   panelBack: 0x262626,
   button: 0x363636,
   hovered: 0x1c1c1c,
-  selected: 0xffffff,//0x109c5d,
+  selected: 0xffffff, //0x109c5d,
 };
 
 export default class KeyboardMesh
@@ -108,7 +106,7 @@ export default class KeyboardMesh
               content: this.userText.content + key.info.input,
             });
           }
-          if(this.parent instanceof SearchMenu){
+          if (this.parent instanceof SearchMenu) {
             this.parent.isNewInput = true;
           }
         },

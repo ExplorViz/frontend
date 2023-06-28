@@ -293,20 +293,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return true;
   }
 
-
   applyHoverEffect(arg?: VisualizationMode | number): void {
     if (arg === 'vr' && this.isHovered === false) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
-    }else if(typeof arg === 'number' && this.isHovered === false){
+    } else if (typeof arg === 'number' && this.isHovered === false) {
       super.applyHoverEffect(arg);
     }
   }
 
   resetHoverEffect(mode?: VisualizationMode): void {
-    if(this.isHovered){
+    if (this.isHovered) {
       super.resetHoverEffect();
       if (mode === 'vr') {
         this.layout.lineThickness /= 5;

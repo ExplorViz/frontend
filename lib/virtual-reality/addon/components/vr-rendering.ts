@@ -318,11 +318,22 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
       hover: (event) => {
-        if (!(event.intersection.object instanceof ClazzMesh) && !(event.intersection.object instanceof ClazzCommunicationMesh)) { // prevents BaseMesh and ClazzMesh/ClazzCommunicationMesh fighting over applying the hover-effect since ClazzMesh/ClazzCommunicationMesh is a subclass of BaseMesh
-        event.target.applyHoverEffect()}},
-      resetHover: (event) =>{
-        if (!(event.intersection.object instanceof ClazzMesh) && !(event.intersection.object instanceof ClazzCommunicationMesh)) {
-        event.target.resetHoverEffect()}},
+        if (
+          !(event.intersection.object instanceof ClazzMesh) &&
+          !(event.intersection.object instanceof ClazzCommunicationMesh)
+        ) {
+          // prevents BaseMesh and ClazzMesh/ClazzCommunicationMesh fighting over applying the hover-effect since ClazzMesh/ClazzCommunicationMesh is a subclass of BaseMesh
+          event.target.applyHoverEffect();
+        }
+      },
+      resetHover: (event) => {
+        if (
+          !(event.intersection.object instanceof ClazzMesh) &&
+          !(event.intersection.object instanceof ClazzCommunicationMesh)
+        ) {
+          event.target.resetHoverEffect();
+        }
+      },
     });
 
     // When a component of an application is clicked, open it.
@@ -396,10 +407,11 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: DetailInfoScrollarea,
       triggerPress: (event) => event.target.triggerPress(event.intersection),
-      hover: (event) => event.target.applyHover(event.controller, event.intersection, this),
+      hover: (event) =>
+        event.target.applyHover(event.controller, event.intersection, this),
       resetHover: (event) => event.target.resetHover(event.controller),
       triggerDown: (event) => event.target.triggerDown(event.intersection),
-      triggerUp: (event) => event.target.triggerUp(), 
+      triggerUp: (event) => event.target.triggerUp(),
     });
 
     this.primaryInputManager.addInputHandler({
@@ -455,19 +467,27 @@ export default class VrRendering extends Component<Args> {
       },
       hover: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-        event.target.applyHoverEffect(this.localUser.visualizationMode)}},
+          event.target.applyHoverEffect(this.localUser.visualizationMode);
+        }
+      },
       resetHover: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-        event.target.resetHoverEffect(this.localUser.visualizationMode)}},
+          event.target.resetHoverEffect(this.localUser.visualizationMode);
+        }
+      },
     });
 
     this.secondaryInputManager.addInputHandler({
       targetType: ClazzMesh,
-      hover: (event) => /*{
+      hover: (
+        event /*{
       if (event.intersection.object instanceof ClazzMesh) {*/
-        event.target.applyHoverEffect(this.localUser.visualizationMode)/*}}*/,
-      resetHover: (event) => /*{ if (event.intersection.object instanceof ClazzMesh) {*/
-        event.target.resetHoverEffect(this.localUser.visualizationMode)/*}}*/,
+      ) =>
+        event.target.applyHoverEffect(this.localUser.visualizationMode) /*}}*/,
+      resetHover: (
+        event /*{ if (event.intersection.object instanceof ClazzMesh) {*/
+      ) =>
+        event.target.resetHoverEffect(this.localUser.visualizationMode) /*}}*/,
     });
   }
 
@@ -864,9 +884,9 @@ export default class VrRendering extends Component<Args> {
 
       bButton: new VRControllerButtonBinding('Ping', {
         onButtonDown: (controller) => {
-           if (controller.intersectedObject) {
-             this.ping(controller.intersectedObject);
-           }
+          if (controller.intersectedObject) {
+            this.ping(controller.intersectedObject);
+          }
         },
       }),
 
@@ -910,7 +930,7 @@ export default class VrRendering extends Component<Args> {
     });
   }
 
-  private grabIntersectedObject(controller: VRController) { 
+  private grabIntersectedObject(controller: VRController) {
     if (!controller.intersectedObject || !controller.ray) return;
 
     let current: THREE.Object3D | null = controller.intersectedObject.object;
@@ -1165,17 +1185,19 @@ export default class VrRendering extends Component<Args> {
 
   // #endregion HANDLING MESSAGES
 
-  resetView(){
+  resetView() {
     this.detachedMenuGroups.removeAllDetachedMenusLocally();
-    let p = new THREE.Vector3(0,0,0);
+    let p = new THREE.Vector3(0, 0, 0);
     this.localUser.teleportToPosition(p);
-    this.applicationRenderer.getOpenApplications().forEach(applicationObjec => {
+    this.applicationRenderer
+      .getOpenApplications()
+      .forEach((applicationObjec) => {
         this.applicationRenderer.closeAllComponents(applicationObjec);
-        applicationObjec.resetRotation();                       
-    });
-    this.graph.position.set(0,0,0);
-    this.graph.rotation.x = Math.PI / 180 ;
-    this.graph.rotation.y = Math.PI / 180 ;
-    this.graph.rotation.z = Math.PI / 180 ;
+        applicationObjec.resetRotation();
+      });
+    this.graph.position.set(0, 0, 0);
+    this.graph.rotation.x = Math.PI / 180;
+    this.graph.rotation.y = Math.PI / 180;
+    this.graph.rotation.z = Math.PI / 180;
   }
 }
