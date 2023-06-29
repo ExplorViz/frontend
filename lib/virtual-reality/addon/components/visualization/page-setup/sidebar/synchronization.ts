@@ -92,7 +92,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   }
 
   @action
-  spectate(id: string) {
+  synchronize(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
       this.synchronizeService.activate(remoteUser);
@@ -103,6 +103,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
 
   @action
   close() {
-    this.args.removeComponent('synchronization');
+    this.args.removeComponent('synchronize');
   }
 }
