@@ -7,13 +7,13 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SynchronizeService from 'virtual-reality/services/synchronize';
 
-interface SynchronisationArgs {
+interface SynchronizationArgs {
   removeComponent(componentPath: string): void;
 }
 
-export default class ArSettingsSelector extends Component<SynchronisationArgs> {
+export default class Synchronization extends Component<SynchronizationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -27,8 +27,8 @@ export default class ArSettingsSelector extends Component<SynchronisationArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  @service('synchronize')
+  private synchronizeService!: SynchronizeService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -53,7 +53,7 @@ export default class ArSettingsSelector extends Component<SynchronisationArgs> {
     return users.concat(remoteUsers);
   }
 
-  constructor(owner: any, args: SynchronisationArgs) {
+  constructor(owner: any, args: SynchronizationArgs) {
     super(owner, args);
 
     this.loadRooms(false);
@@ -61,6 +61,9 @@ export default class ArSettingsSelector extends Component<SynchronisationArgs> {
 
   @action
   hostRoom() {
+    console.log('When hosted: collaboration session', this.collaborationSession);
+    console.log('When hosted: local user', this.localUser);
+
     this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');
   }
@@ -82,6 +85,8 @@ export default class ArSettingsSelector extends Component<SynchronisationArgs> {
 
   @action
   joinRoom(room: RoomListRecord) {
+    console.log('When joined: collaboration session', this.collaborationSession);
+    console.log('When joined: local user', this.localUser);
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
   }
@@ -90,14 +95,14 @@ export default class ArSettingsSelector extends Component<SynchronisationArgs> {
   spectate(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
-      this.spectateUserService.activate(remoteUser);
+      this.synchronizeService.activate(remoteUser);
     } else {
-      this.spectateUserService.deactivate();
+      this.synchronizeService.deactivate();
     }
   }
 
   @action
   close() {
-    this.args.removeComponent('synchronisation');
+    this.args.removeComponent('synchronization');
   }
 }

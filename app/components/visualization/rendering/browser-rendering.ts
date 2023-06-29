@@ -35,6 +35,7 @@ import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SynchronizeService from 'virtual-reality/services/synchronize';
 import {
   EntityMesh,
   isEntityMesh,
@@ -74,6 +75,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
+
+  @service('synchronize')
+  private synchronizeService!: SynchronizeService;
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
@@ -145,7 +149,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   debug = debugLogger('BrowserRendering');
 
   constructor(owner: any, args: BrowserRenderingArgs) {
-    console.log('constructor');
+
     super(owner, args);
     this.debug('Constructor called');
     // scene
@@ -153,12 +157,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
     // camera
-    // this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-    //   75,
-    //   1.0,
-    //   0.1,
-    //   100
-    // );
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      1.0,
+      0.1,
+      100
+    );
     this.camera.position.set(0, 10, 0);
 
     this.applicationRenderer.getOpenApplications().clear();
@@ -168,9 +172,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
+    
+    console.log(this.synchronizeService);
 
     // spectate
     this.updatables.push(this.spectateUserService);
+    // synchronize
+    this.updatables.push(this.synchronizeService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
@@ -301,6 +309,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.cameraControls = new CameraControls(this.camera, this.canvas);
 
     this.spectateUserService.cameraControls = this.cameraControls;
+    this.synchronizeService.cameraControls = this.cameraControls;
+
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');

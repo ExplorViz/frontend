@@ -3,7 +3,7 @@ import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
 
-module('Integration | Component | synchronisation-opener', function (hooks) {
+module('Integration | Component | synchronization-opener', function (hooks) {
   setupRenderingTest(hooks);
 
   test('it renders', async function (assert) {
@@ -11,7 +11,7 @@ module('Integration | Component | synchronisation-opener', function (hooks) {
     // Handle any actions with this.set('myAction', function(val) { ... });
 
     await render(
-      hbs`<Visualization::PageSetup::Navbar::SynchronisationOpener />`
+      hbs`<Visualization::PageSetup::Navbar::SynchronizationOpener />`
     );
 
     const { textContent } = this.element;
@@ -19,7 +19,7 @@ module('Integration | Component | synchronisation-opener', function (hooks) {
     if (textContent === null) {
       assert.ok(null, 'no text content');
     } else {
-      assert.equal(textContent.trim(), 'Synchronisation');
+      assert.equal(textContent.trim(), 'Synchronization');
     }
   });
 });
