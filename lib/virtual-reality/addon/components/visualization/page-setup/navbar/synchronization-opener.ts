@@ -1,13 +1,14 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 
-interface SynchronizationOpenerArgs {
+interface ArSettingsOpenerArgs {
   addComponent(componentPath: string): void;
 }
 
-export default class SynchronizationOpener extends Component<SynchronizationOpenerArgs > {
+export default class ArSettingsOpener extends Component<ArSettingsOpenerArgs > {
   @action
   showSynchronization() {
+    console.log("synchronization component added");
     this.args.addComponent('synchronization');
   }
 }

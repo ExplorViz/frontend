@@ -178,7 +178,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // spectate
     this.updatables.push(this.spectateUserService);
     // synchronize
-    this.updatables.push(this.synchronizeService);
+    // this.updatables.push(this.synchronizeService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
@@ -309,7 +309,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.cameraControls = new CameraControls(this.camera, this.canvas);
 
     this.spectateUserService.cameraControls = this.cameraControls;
-    this.synchronizeService.cameraControls = this.cameraControls;
+    // this.synchronizeService.cameraControls = this.cameraControls;
 
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {

@@ -50,6 +50,7 @@ export default class SynchronizeService extends Service {
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
   init() {
+    console.log("syncrhonize-service.ts init()");
     super.init();
 
     this.debug('Initializing collaboration session');

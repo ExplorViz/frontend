@@ -8,12 +8,13 @@ import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SynchronizeService from 'virtual-reality/services/synchronize';
+import SpectateUserService from 'virtual-reality/services/spectate-user';
 
 interface SynchronizationArgs {
   removeComponent(componentPath: string): void;
 }
 
-export default class Synchronization extends Component<SynchronizationArgs> {
+export default class ArSettingsSelector extends Component<SynchronizationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -30,8 +31,13 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
+  @service('spectate-user')
+  private spectateUserService!: SpectateUserService;
+
   @tracked
   rooms: RoomListRecord[] = [];
+
+  deviceCount = 0;
 
   @computed('collaborationSession.idToRemoteUser')
   get users() {
@@ -89,20 +95,21 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     console.log('When joined: local user', this.localUser);
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
+    this.deviceCount += 1;
   }
 
   @action
   synchronize(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
-      this.synchronizeService.activate(remoteUser);
+      this.spectateUserService.activate(remoteUser, this.deviceCount);
     } else {
-      this.synchronizeService.deactivate();
+      this.spectateUserService.deactivate();
     }
   }
 
   @action
   close() {
-    this.args.removeComponent('synchronize');
+    this.args.removeComponent('synchronization');
   }
 }

@@ -88,13 +88,18 @@ export default class SpectateUserService extends Service {
    */
   tick() {
     if (this.spectatedUser?.camera) {
+      let position = this.spectatedUser.camera.model.position;
+      position = new THREE.Vector3(position.x - 1.5, position.y, position.z);
+
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(
-          this.spectatedUser.camera.model.position
+          // this.spectatedUser.camera.model.position
+          position
         );
       } else {
         this.localUser.camera.position.copy(
-          this.spectatedUser.camera.model.position
+          position
+          // this.spectatedUser.camera.model.position
         );
         this.localUser.camera.quaternion.copy(
           this.spectatedUser.camera.model.quaternion
@@ -121,7 +126,11 @@ export default class SpectateUserService extends Service {
    * Switches our user into spectator mode
    * @param {number} userId The id of the user to be spectated
    */
-  activate(remoteUser: RemoteUser) {
+  activate(remoteUser: RemoteUser, deviceCount: number) {
+    console.log('Is spectated: ' , remoteUser);
+    console.log('Is spectating: ' , this.localUser);
+    console.log('Device count: ' , deviceCount);
+
     // this.startPosition.copy(this.localUser.getCameraWorldPosition());
     this.startQuaternion.copy(this.localUser.camera.quaternion);
     this.spectatedUser = remoteUser;

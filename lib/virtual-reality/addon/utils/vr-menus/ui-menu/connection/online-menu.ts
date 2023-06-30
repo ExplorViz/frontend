@@ -16,6 +16,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
   private disconnectButton?: TextbuttonItem;
 
   constructor({ spectateUserService, ...args }: OnlineMenuArgs) {
+    console.log(spectateUserService);
     super(args);
 
     this.remoteUserButtons = new Map<string, TextbuttonItem>();
