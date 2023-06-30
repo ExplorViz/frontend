@@ -90,7 +90,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   spectate(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
-      this.spectateUserService.activate(remoteUser, 0);
+      this.spectateUserService.activate(remoteUser);
     } else {
       this.spectateUserService.deactivate();
     }

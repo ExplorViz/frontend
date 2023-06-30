@@ -47,7 +47,6 @@ export default class SynchronizeService extends Service {
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
   init() {
-    console.log("syncrhonize-service.ts init()");
     super.init();
 
     this.debug('Initializing collaboration session');
@@ -90,13 +89,9 @@ export default class SynchronizeService extends Service {
       position = new THREE.Vector3(position.x - 1.5, position.y, position.z);
 
       if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(
-          position
-        );
+        this.localUser.teleportToPosition(position);
       } else {
-        this.localUser.camera.position.copy(
-          position
-        );
+        this.localUser.camera.position.copy(position);
         this.localUser.camera.quaternion.copy(
           this.spectatedUser.camera.model.quaternion
         );
@@ -122,10 +117,11 @@ export default class SynchronizeService extends Service {
    * Switches our user into spectator mode
    * @param {number} userId The id of the user to be spectated
    */
-  activate(remoteUser: RemoteUser) {
-    console.log('Is spectated: ' , remoteUser);
-    console.log('Is spectating: ' , this.localUser);
-    
+  activate(remoteUser: RemoteUser, deviceCount: number) {
+    console.log('Is spectated: ', remoteUser);
+    console.log('Is spectating: ', this.localUser);
+    console.log('Device count: ', deviceCount);
+
     this.startQuaternion.copy(this.localUser.camera.quaternion);
     this.spectatedUser = remoteUser;
 
@@ -158,12 +154,7 @@ export default class SynchronizeService extends Service {
       this.localUser.controller2.setToDefaultAppearance();
     }
 
-    // this.localUser.teleportToPosition(this.startPosition, {
-    // });
-
-    // this.localUser.camera.position.copy(this.startPosition);
     this.localUser.camera.quaternion.copy(this.startQuaternion);
-    // this.spectatedUser.setHmdVisible(true);
     this.spectatedUser = null;
 
     this.sender.sendSpectatingUpdate(this.isActive, null);
@@ -230,6 +221,6 @@ export default class SynchronizeService extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'synchronize': SynchronizeService;
+    synchronize: SynchronizeService;
   }
 }

@@ -118,6 +118,7 @@
     "edition": "octane"
   },
   "dependencies": {
+    "-": "^0.0.1",
     "@embroider/compat": "^2.1.1",
     "@embroider/core": "^2.1.1",
     "@embroider/webpack": "^2.1.1",
@@ -135,7 +136,6 @@
     "dotenv": "^16.0.3",
     "elkjs": "^0.8.2",
     "ember-ajax": "^5.1.2",
-    "ember-cli": "^4.12.1",
     "ember-cli-babel": "^7.26.11",
     "ember-cli-clipboard": "^1.0.0",
     "ember-cli-htmlbars": "^6.2.0",

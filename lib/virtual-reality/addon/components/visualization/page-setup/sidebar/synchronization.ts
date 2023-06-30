@@ -8,7 +8,7 @@ import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SynchronizeService from 'virtual-reality/services/synchronize';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 interface SynchronizationArgs {
   removeComponent(componentPath: string): void;
@@ -34,6 +34,9 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
   @tracked
   rooms: RoomListRecord[] = [];
 
+  @service('synchronization-session')
+  private synchronizationSession!: SynchronizationSession;
+  
   @computed('collaborationSession.idToRemoteUser')
   get users() {
     const users = [];
@@ -62,9 +65,6 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
 
   @action
   hostRoom() {
-    console.log('When hosted: collaboration session', this.collaborationSession);
-    console.log('When hosted: local user', this.localUser);
-
     this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');
   }
@@ -86,17 +86,22 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
 
   @action
   joinRoom(room: RoomListRecord) {
-    console.log('When joined: collaboration session', this.collaborationSession);
-    console.log('When joined: local user', this.localUser);
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
+
+    console.log(
+      'When joined: collaboration session',
+      this.collaborationSession
+    );
+    console.log('When joined: local user', this.localUser);
   }
 
   @action
   synchronize(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
+    this.synchronizationSession.deviceCount = this.collaborationSession.remoteUserGroup.children.length;
     if (remoteUser) {
-      this.synchronizeService.activate(remoteUser);
+      this.synchronizeService.activate(remoteUser, this.synchronizationSession.deviceCount);
     } else {
       this.synchronizeService.deactivate();
     }

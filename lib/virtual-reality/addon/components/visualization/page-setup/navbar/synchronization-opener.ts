@@ -5,10 +5,10 @@ interface ArSettingsOpenerArgs {
   addComponent(componentPath: string): void;
 }
 
-export default class ArSettingsOpener extends Component<ArSettingsOpenerArgs > {
+export default class ArSettingsOpener extends Component<ArSettingsOpenerArgs> {
   @action
   showSynchronization() {
-    console.log("synchronization component added");
+    console.log('synchronization component added');
     this.args.addComponent('synchronization');
   }
 }

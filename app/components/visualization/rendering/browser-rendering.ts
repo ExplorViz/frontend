@@ -149,7 +149,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   debug = debugLogger('BrowserRendering');
 
   constructor(owner: any, args: BrowserRenderingArgs) {
-
     super(owner, args);
     this.debug('Constructor called');
     // scene
@@ -172,7 +171,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
-    
+
     console.log(this.synchronizeService);
 
     // spectate

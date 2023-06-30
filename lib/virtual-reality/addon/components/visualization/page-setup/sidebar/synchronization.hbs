@@ -1,3 +1,12 @@
+{{!-- #TODO:
+##########################################################################################
+Functions to provide in window:
+1) Start Synchronization: When 2 or 5 Instances are connected
+2) Stop Synchronization
+3) Informations about session, devices?
+##########################################################################################
+--}}
+
 <div class='sidebar-component-close' {{on 'click' this.close}}>
   {{svg-jar 'x-16' class='octicon'}}
 </div>
@@ -10,24 +19,17 @@
 
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
-    <label class='bold'>Current Room: </label>
-
-    <label>{{this.collaborationSession.currentRoomId}}</label>
+    <label class='bold'>Current Configuration Environment: </label>
+    <label>ARENA2</label>
   </div>
 
-  <label class='bold'>Users</label>
+  <label class='bold'>Connected Devices</label>
 
   <ul>
     {{#each this.users as |user|}}
       <li style={{html-safe user.style}}>
-        <div
-          class='nav-link-with-cursor'
-          title='Synchronize'
-          {{on 'click' (fn this.synchronize user.id)}}
-        >
-          {{user.name}}
-          {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
-        </div>
+        {{user.name}}
+        {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
       </li>
     {{/each}}
   </ul>
@@ -39,7 +41,7 @@
     <label class='bold'>Rooms</label>
 
     <BsButton
-      title='Reload Rooms'
+      title='Synchronize Devices'
       {{on 'click' this.loadRooms}}
       @type='secondary'
       @outline={{true}}
