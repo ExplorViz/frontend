@@ -31,13 +31,8 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
-  @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
-
   @tracked
   rooms: RoomListRecord[] = [];
-
-  deviceCount = 0;
 
   @computed('collaborationSession.idToRemoteUser')
   get users() {
@@ -95,16 +90,15 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
     console.log('When joined: local user', this.localUser);
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
-    this.deviceCount += 1;
   }
 
   @action
   synchronize(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
-      this.spectateUserService.activate(remoteUser, this.deviceCount);
+      this.synchronizeService.activate(remoteUser);
     } else {
-      this.spectateUserService.deactivate();
+      this.synchronizeService.deactivate();
     }
   }
 

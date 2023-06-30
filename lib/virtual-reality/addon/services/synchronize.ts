@@ -44,9 +44,6 @@ export default class SynchronizeService extends Service {
 
   private spectatingUsers: Set<string> = new Set<string>();
 
-  // use this for VR?
-  // private startPosition: THREE.Vector3 = new THREE.Vector3();
-
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
   init() {
@@ -89,13 +86,16 @@ export default class SynchronizeService extends Service {
    */
   tick() {
     if (this.spectatedUser?.camera) {
+      let position = this.spectatedUser.camera.model.position;
+      position = new THREE.Vector3(position.x - 1.5, position.y, position.z);
+
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(
-          this.spectatedUser.camera.model.position
+          position
         );
       } else {
         this.localUser.camera.position.copy(
-          this.spectatedUser.camera.model.position
+          position
         );
         this.localUser.camera.quaternion.copy(
           this.spectatedUser.camera.model.quaternion
@@ -124,10 +124,8 @@ export default class SynchronizeService extends Service {
    */
   activate(remoteUser: RemoteUser) {
     console.log('Is spectated: ' , remoteUser);
-    console.log('Is spectating (localUser???): ' , this.localUser);
-    console.log('Is spectating (group): ' , this.spectatingUsers);
+    console.log('Is spectating: ' , this.localUser);
     
-    // this.startPosition.copy(this.localUser.getCameraWorldPosition());
     this.startQuaternion.copy(this.localUser.camera.quaternion);
     this.spectatedUser = remoteUser;
 
@@ -141,7 +139,6 @@ export default class SynchronizeService extends Service {
       this.cameraControls.enabled = false;
     }
 
-    // remoteUser.setHmdVisible(false);
     this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId);
   }
 
