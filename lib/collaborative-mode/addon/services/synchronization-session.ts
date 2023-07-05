@@ -1,5 +1,4 @@
 import Service, { inject as service } from '@ember/service';
-import { observer } from '@ember/object';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import SynchronizeService from 'virtual-reality/services/synchronize';
