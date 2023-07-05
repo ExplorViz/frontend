@@ -8,7 +8,6 @@ interface ArSettingsOpenerArgs {
 export default class ArSettingsOpener extends Component<ArSettingsOpenerArgs> {
   @action
   showSynchronization() {
-    console.log('synchronization component added');
     this.args.addComponent('synchronization');
   }
 }

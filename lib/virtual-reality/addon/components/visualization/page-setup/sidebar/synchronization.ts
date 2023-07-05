@@ -14,7 +14,7 @@ interface SynchronizationArgs {
   removeComponent(componentPath: string): void;
 }
 
-export default class ArSettingsSelector extends Component<SynchronizationArgs> {
+export default class Synchronization extends Component<SynchronizationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -65,6 +65,7 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
 
   @action
   hostRoom() {
+    this.synchronizationSession.isMain = true;
     this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');
   }
@@ -86,22 +87,17 @@ export default class ArSettingsSelector extends Component<SynchronizationArgs> {
 
   @action
   joinRoom(room: RoomListRecord) {
+    this.synchronizationSession.isMain = false;
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
-
-    console.log(
-      'When joined: collaboration session',
-      this.collaborationSession
-    );
-    console.log('When joined: local user', this.localUser);
+    console.log('joining room in syn: ' , this.synchronizationSession);
   }
 
   @action
   synchronize(id: string) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
-    this.synchronizationSession.deviceCount = this.collaborationSession.remoteUserGroup.children.length;
     if (remoteUser) {
-      this.synchronizeService.activate(remoteUser, this.synchronizationSession.deviceCount);
+      this.synchronizeService.activate(remoteUser);
     } else {
       this.synchronizeService.deactivate();
     }

@@ -34,6 +34,7 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+import SynchronizationSession from './synchronization-session';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -62,6 +63,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('synchronization-session')
+  private synchronizationSession!: SynchronizationSession;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -252,6 +256,7 @@ export default class CollaborationSession extends Service.extend({
 
   async hostRoom() {
     if (!this.isConnecting) {
+      console.log('hosting room in cs: ' , this.synchronizationSession);
       this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom();

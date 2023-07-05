@@ -24,12 +24,17 @@ Functions to provide in window:
   </div>
 
   <label class='bold'>Connected Devices</label>
-
   <ul>
     {{#each this.users as |user|}}
       <li style={{html-safe user.style}}>
-        {{user.name}}
-        {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
+        <div
+          class='nav-link-with-cursor'
+          title='Synchronize'
+          {{on 'click' (fn this.synchronize user.id)}}
+        >
+          {{user.name}}
+          {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
+        </div>
       </li>
     {{/each}}
   </ul>

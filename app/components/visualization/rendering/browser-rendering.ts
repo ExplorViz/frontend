@@ -172,8 +172,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(forceGraph);
     this.updatables.push(this);
 
-    console.log(this.synchronizeService);
-
     // spectate
     this.updatables.push(this.spectateUserService);
     // synchronize

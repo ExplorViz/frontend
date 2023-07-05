@@ -117,11 +117,7 @@ export default class SynchronizeService extends Service {
    * Switches our user into spectator mode
    * @param {number} userId The id of the user to be spectated
    */
-  activate(remoteUser: RemoteUser, deviceCount: number) {
-    console.log('Is spectated: ', remoteUser);
-    console.log('Is spectating: ', this.localUser);
-    console.log('Device count: ', deviceCount);
-
+  activate(remoteUser: RemoteUser) {
     this.startQuaternion.copy(this.localUser.camera.quaternion);
     this.spectatedUser = remoteUser;
 
