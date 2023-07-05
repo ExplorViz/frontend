@@ -92,3 +92,19 @@
 .sidebar-card {
   background-color: rgba(rgb(255, 255, 255), 0.95) !important;
 }
+
+.sidebar-open-button {
+  position: absolute;
+  height: fit-content;
+  left: calc(100vw - 60px);
+}
+
+.sidebar-button {
+  opacity: 0.5;
+}
+
+#sidebarButtonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

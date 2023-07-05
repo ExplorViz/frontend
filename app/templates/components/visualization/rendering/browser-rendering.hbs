@@ -5,6 +5,20 @@
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
+      {{#unless @showDataSelection}}
+        <div class='sidebar-open-button foreground mt-6'>
+          <BsButton
+            id='arSettingsOpener'
+            @onClick={{@openDataSelection}}
+            @type='secondary'
+            @outline={{true}}
+            title='Settings'
+          >
+            {{svg-jar 'gear-16' class='octicon align-middle'}}
+          </BsButton>
+        </div>
+      {{/unless}}
+
       {{#if this.heatmapConf.heatmapActive}}
         <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
       {{/if}}
@@ -59,7 +73,7 @@
     </div>
   </div>
   {{#if @showDataSelection}}
-    <div class='col-4' id='dataselection'>
+    <div class='position-absolute right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
@@ -67,24 +81,24 @@
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               {{!-- <Visualization::PageSetup::Navbar::TraceOverview
-                @addComponent={{@addComponent}}
+                @toggleSidebarComponent={{@toggleSidebarComponent}}
                 @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
                 @visualizationPaused={{@visualizationPaused}}
                 @dynamicData={{@landscapeData.dynamicLandscapeData}}
               /> --}}
               <Visualization::PageSetup::Navbar::SettingsOpener
-                @addComponent={{@addComponent}}
+                @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
-                @addComponent={{@addComponent}}
+                @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
-                @addComponent={{@addComponent}}
+                @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
             </ul>
           </div>
           {{#each @components as |componentName|}}
-            <div class='card sidebar-card mt-3 border-radius-0'>
+            <div class='card sidebar-card mt-3'>
               <div class='card-body d-flex flex-column'>
                 {{#if (eq componentName 'trace-selection')}}
                   <h5 class='text-center'>Trace Overview</h5>
