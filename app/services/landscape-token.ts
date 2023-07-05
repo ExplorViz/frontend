@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import ENV from 'explorviz-frontend/config/environment';
 import Service from '@ember/service';
 
 export type LandscapeToken = {
@@ -10,6 +11,8 @@ export type LandscapeToken = {
   value: string;
 };
 
+const tokenToShow = ENV.mode.tokenToShow;
+
 export default class LandscapeTokenService extends Service {
   token: LandscapeToken | null = null;
 
@@ -20,16 +23,28 @@ export default class LandscapeTokenService extends Service {
   }
 
   restoreToken() {
-    const currentLandscapeTokenJSON = localStorage.getItem(
-      'currentLandscapeToken'
-    );
+    let parsedToken;
 
-    if (currentLandscapeTokenJSON === null) {
-      this.set('token', null);
-      return;
+    if (tokenToShow && tokenToShow !== 'change-token') {
+      parsedToken = {
+        value: tokenToShow,
+        ownerId: 'github|123456',
+        created: 1589876888000,
+        alias: '',
+        sharedUsersIds: [],
+      };
+    } else {
+      const currentLandscapeTokenJSON = localStorage.getItem(
+        'currentLandscapeToken'
+      );
+
+      if (currentLandscapeTokenJSON === null) {
+        this.set('token', null);
+        return;
+      }
+
+      parsedToken = JSON.parse(currentLandscapeTokenJSON);
     }
-
-    const parsedToken = JSON.parse(currentLandscapeTokenJSON);
 
     if (this.isValidToken(parsedToken)) {
       this.set('token', parsedToken);
