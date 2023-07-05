@@ -1184,5 +1184,4 @@ export default class VrRendering extends Component<Args> {
   }
 
   // #endregion HANDLING MESSAGES
-
 }

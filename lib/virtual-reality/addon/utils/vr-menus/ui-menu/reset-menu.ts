@@ -15,22 +15,15 @@ export type ResetMenuArgs = UiMenuArgs & {
 };
 
 export default class ResetMenu extends UiMenu {
-  
   @service('local-user')
   localUser!: LocalUser;
-  
+
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-
   private detachedMenuGroups: DetachedMenuGroupsService;
 
-  constructor({
-    owner,
-    online,
-    detachedMenuGroups,
-    ...args
-  }: ResetMenuArgs) {
+  constructor({ owner, online, detachedMenuGroups, ...args }: ResetMenuArgs) {
     super(args);
     setOwner(this, owner);
     this.detachedMenuGroups = detachedMenuGroups;
@@ -103,20 +96,21 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    this.applicationRenderer.getOpenApplications().forEach((applicationObjec) => {
-      this.applicationRenderer.closeAllComponents(applicationObjec);
-    });
-    
+    this.applicationRenderer
+      .getOpenApplications()
+      .forEach((applicationObjec) => {
+        this.applicationRenderer.closeAllComponents(applicationObjec);
+      });
   }
 
   private resetLandscape() {
-    const applicationGraph = this.applicationRenderer.getOpenApplications()[0].parent;
-    if(applicationGraph){
+    const applicationGraph =
+      this.applicationRenderer.getOpenApplications()[0].parent;
+    if (applicationGraph) {
       applicationGraph.position.set(0, 0, 0);
       applicationGraph.rotation.x = Math.PI / 180;
       applicationGraph.rotation.y = Math.PI / 180;
       applicationGraph.rotation.z = Math.PI / 180;
     }
   }
-
 }
