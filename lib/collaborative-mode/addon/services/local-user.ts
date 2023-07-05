@@ -208,7 +208,7 @@ export default class LocalUser extends Service.extend({
    * This method is used to adapt the users view to the initial position
    */
   resetPositionAndRotation() {
-    this.userGroup.position.set(0, 0, 0);
+    this.teleportToPosition(new THREE.Vector3(0,0,0));
     this.defaultCamera.rotation.set(0, 0, 0);
   }
 

@@ -1185,19 +1185,4 @@ export default class VrRendering extends Component<Args> {
 
   // #endregion HANDLING MESSAGES
 
-  resetView() {
-    this.detachedMenuGroups.removeAllDetachedMenusLocally();
-    const p = new THREE.Vector3(0, 0, 0);
-    this.localUser.teleportToPosition(p);
-    this.applicationRenderer
-      .getOpenApplications()
-      .forEach((applicationObjec) => {
-        this.applicationRenderer.closeAllComponents(applicationObjec);
-        applicationObjec.resetRotation();
-      });
-    this.graph.position.set(0, 0, 0);
-    this.graph.rotation.x = Math.PI / 180;
-    this.graph.rotation.y = Math.PI / 180;
-    this.graph.rotation.z = Math.PI / 180;
-  }
 }

@@ -272,7 +272,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildResetMenu(): ResetMenu {
     return new ResetMenu({
-      localUser: this.localUser,
+      owner: getOwner(this),
       online: this.collaborationSession.connectionStatus !== 'online',
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,
