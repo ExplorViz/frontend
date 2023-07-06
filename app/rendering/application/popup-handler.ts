@@ -3,6 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
+import PerformanceLogger from 'collaborative-mode/services/performance-logger';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -41,6 +42,9 @@ export default class PopupHandler {
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('performance-logger')
+  private performanceLogger!: PerformanceLogger;
 
   @tracked
   popupData: PopupData[] = [];
@@ -228,7 +232,7 @@ export default class PopupHandler {
     }
   }
 
-  onMenuDetached({ objectId, userId, detachId }: MenuDetachedForwardMessage) {
+  onMenuDetached({ objectId, userId, detachId }: MenuDetachedForwardMessage, timerId: number) {
     const mesh = this.applicationRenderer.getMeshById(detachId);
     if (mesh) {
       this.addPopup({
@@ -239,13 +243,15 @@ export default class PopupHandler {
         menuId: objectId,
       });
     }
+    this.performanceLogger.stop(timerId);
   }
 
   @action
   onMenuClosed({
     originalMessage: { menuId },
-  }: ForwardedMessage<DetachedMenuClosedMessage>): void {
+  }: ForwardedMessage<DetachedMenuClosedMessage>, timerId: number): void {
     this.popupData = this.popupData.filter((pd) => pd.menuId !== menuId);
+    this.performanceLogger.stop(timerId);
   }
 
   willDestroy() {

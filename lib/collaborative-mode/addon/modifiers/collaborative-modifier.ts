@@ -2,6 +2,7 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import PerformanceLogger from 'collaborative-mode/services/performance-logger';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -92,6 +93,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
+  @service('performance-logger')
+  private performanceLogger!: PerformanceLogger;
+
   get canvas(): HTMLCanvasElement {
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
@@ -123,8 +127,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }
 
   onComponentUpdate({
-    originalMessage: { isFoundation, appId, isOpened, componentId },
-  }: ForwardedMessage<ComponentUpdateMessage>): void {
+    originalMessage: { isFoundation, appId, isOpened, componentId},
+  }: ForwardedMessage<ComponentUpdateMessage>, timerId: number): void {
     const applicationObject3D =
       this.applicationRenderer.getApplicationById(appId);
     if (!applicationObject3D) return;
@@ -143,12 +147,13 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         applicationObject3D
       );
     }
+    this.performanceLogger.stop(timerId);
   }
 
   onHighlightingUpdate({
     userId,
     originalMessage: { isHighlighted, appId, entityType, entityId },
-  }: ForwardedMessage<HighlightingUpdateMessage>): void {
+  }: ForwardedMessage<HighlightingUpdateMessage>, timerId: number): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
 
@@ -173,12 +178,13 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     } else {
       this.highlightingService.removeHighlightingLocally(application);
     }
+    this.performanceLogger.stop(timerId);
   }
 
   onMousePingUpdate({
     userId,
     originalMessage: { modelId, position },
-  }: ForwardedMessage<MousePingUpdateMessage>): void {
+  }: ForwardedMessage<MousePingUpdateMessage>, timerId: number): void {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
@@ -191,5 +197,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         position: point,
       });
     }
+    this.performanceLogger.stop(timerId);
   }
 }

@@ -34,6 +34,7 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+import PerformanceLogger from './performance-logger';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -62,6 +63,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('performance-logger')
+  private performanceLogger!: PerformanceLogger;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -300,13 +304,14 @@ export default class CollaborationSession extends Service.extend({
   onUserPositions({
     userId,
     originalMessage: { camera, controller1, controller2 },
-  }: ForwardedMessage<UserPositionsMessage>): void {
+  }: ForwardedMessage<UserPositionsMessage>, timerId: number): void {
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
     if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
+    this.performanceLogger.stop(timerId);
   }
 }
 
