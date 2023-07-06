@@ -90,12 +90,14 @@ export default class SynchronizeService extends Service {
   tick() {
     if (this.spectatedUser?.camera) {
       let position = this.spectatedUser.camera.model.position;
-      position = new THREE.Vector3(position.x - 1.5, position.y, position.z);
+      let quaternion = this.spectatedUser.camera.model.quaternion;
+      this.synchronizationSession.mainPosition.copy(position);
+      this.synchronizationSession.mainQuaternion.copy(quaternion);
 
       if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(position);
+        this.localUser.teleportToPosition(this.synchronizationSession.position);
       } else {
-        this.localUser.camera.position.copy(position);
+        this.localUser.camera.position.copy(this.synchronizationSession.position);
         this.localUser.camera.quaternion.copy(
           this.spectatedUser.camera.model.quaternion
         );
