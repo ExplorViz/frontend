@@ -19,6 +19,7 @@ import {
   SPECTATING_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -31,6 +32,9 @@ export default class SynchronizeService extends Service {
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
+
+  @service('synchronization-session')
+  synchronizationSession!: SynchronizationSession;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -182,11 +186,11 @@ export default class SynchronizeService extends Service {
     let text = '';
     if (isSpectating && spectatedUser === this.localUser.userId) {
       this.addSpectatingUser(userId);
-      text = 'is now spectating you';
+      text = 'is now synchronized to you';
     } else if (isSpectating) {
-      text = 'is now spectating';
+      text = 'is now synchronized to you';
     } else {
-      text = 'stopped spectating';
+      text = 'stopped being synchronized to you';
       this.removeSpectatingUser(userId);
     }
     this.toastMessage.message({

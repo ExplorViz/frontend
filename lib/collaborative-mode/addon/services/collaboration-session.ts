@@ -166,6 +166,9 @@ export default class CollaborationSession extends Service.extend({
       this.addRemoteUser(remoteUser);
     });
 
+    this.synchronizationSession.deviceId = users.length;
+    console.log(this.synchronizationSession);
+
     this.connectionStatus = 'online';
     // Initialize local user.
     this.localUser.connected({

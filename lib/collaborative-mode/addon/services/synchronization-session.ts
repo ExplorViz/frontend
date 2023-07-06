@@ -5,9 +5,6 @@ import SynchronizeService from 'virtual-reality/services/synchronize';
 
 export default class SynchronizationSession extends Service {
 
-  // Controlinstance of the connected devices assoziated with this colaboration session
-  private _isMain!: boolean;
-  
   @service('local-user')
   private localUser!: LocalUser;
 
@@ -16,17 +13,29 @@ export default class SynchronizationSession extends Service {
 
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
+
+  // Controlinstance of the connected devices
+  private isMain!: boolean;
+
+  // The id of the connected device
+  private _deviceId!: number;
   
   // The current configuration of the connected device assoziated with this synchronization session
   private configuration! : any;
 
-  set isMain(v: boolean) {
-    this._isMain = v;
-    this.configuration = this.configure(this._isMain);
+  set deviceId(n : number) {
+    this._deviceId = n;
+    this.isMain = n == 0;
+    this.configuration = this.configure(this.isMain);
   }
 
+  /** Configure device if it's a synchronizing device.
+   * 
+   * @param main 
+   * @returns 
+   */
   configure(main: boolean) {
-    return main ? "no configuration" : "projector configuration";
+    return main ? "no configuration" : "projector " + this._deviceId + " configuration";
   }
 
 }

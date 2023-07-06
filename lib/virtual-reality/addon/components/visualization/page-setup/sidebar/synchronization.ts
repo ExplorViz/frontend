@@ -65,7 +65,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
 
   @action
   hostRoom() {
-    this.synchronizationSession.isMain = true;
     this.collaborationSession.hostRoom();
     AlertifyHandler.showAlertifySuccess('Hosting new Room.');
   }
@@ -87,10 +86,8 @@ export default class Synchronization extends Component<SynchronizationArgs> {
 
   @action
   joinRoom(room: RoomListRecord) {
-    this.synchronizationSession.isMain = false;
     AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     this.collaborationSession.joinRoom(room.roomId);
-    console.log('joining room in syn: ' , this.synchronizationSession);
   }
 
   @action
