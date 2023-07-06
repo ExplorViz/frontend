@@ -59,5 +59,18 @@
     {{else}}
       There are no tokens linked to your account at the moment.
     {{/each}}
+    <tr>
+      <td colspan='3' class='p-1'>
+        <div class='d-flex flex-row justify-content-center'>
+          <BsButton
+            @type='primary'
+            class='align-self-center pt-2 px-3'
+            {{on 'click' @openTokenCreationModal}}
+          >
+            {{svg-jar 'plus-16' class='octicon'}}
+          </BsButton>
+        </div>
+      </td>
+    </tr>
   </tbody>
 </table>
