@@ -164,10 +164,12 @@ export default class CollaborationSession extends Service.extend({
         quaternion: userData.quaternion,
       });
       this.addRemoteUser(remoteUser);
+
+      
+
     });
 
     this.synchronizationSession.deviceId = users.length;
-    console.log(this.synchronizationSession);
 
     this.connectionStatus = 'online';
     // Initialize local user.

@@ -42,11 +42,11 @@ export default class SynchronizeService extends Service {
   @service('toast-message')
   toastMessage!: ToastMessage;
 
-  spectatedUser: RemoteUser | null = null;
+  main: RemoteUser | null = null;
 
   cameraControls: CameraControls | null = null;
 
-  private spectatingUsers: Set<string> = new Set<string>();
+  private projectors: Set<string> = new Set<string>();
 
   private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
@@ -66,20 +66,20 @@ export default class SynchronizeService extends Service {
   }
 
   private reset() {
-    this.spectatingUsers.clear();
-    this.spectatedUser = null;
+    this.projectors.clear();
+    this.main = null;
   }
 
-  private addSpectatingUser(id: string) {
-    this.spectatingUsers.add(id);
+  private addProjector(id: string) {
+    this.projectors.add(id);
   }
 
-  private removeSpectatingUser(id: string) {
-    this.spectatingUsers.delete(id);
+  private removeProjector(id: string) {
+    this.projectors.delete(id);
   }
 
-  get isActive() {
-    return this.spectatedUser !== null;
+  get isSynchronizing() {
+    return this.main !== null;
   }
 
   lastPose?: VrPose;
@@ -88,21 +88,25 @@ export default class SynchronizeService extends Service {
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
   tick() {
-    if (this.spectatedUser?.camera) {
-      let position = this.spectatedUser.camera.model.position;
-      let quaternion = this.spectatedUser.camera.model.quaternion;
-      this.synchronizationSession.mainPosition.copy(position);
-      this.synchronizationSession.mainQuaternion.copy(quaternion);
+    if (this.main?.camera) {
+      this.synchronizationSession.mainCamera = this.main.camera;
+      console.log('service: ', this.main.camera.model.position);
+      console.log('session main: ', this.synchronizationSession._mainPosition);
+      console.log('session projector: ', this.synchronizationSession.get('position'));
+      console.log('service: ', this.main.camera.model.quaternion);
+      console.log('session main: ', this.synchronizationSession._mainQuaternion);
+      console.log('session projector: ', this.synchronizationSession.get('quaternion'));
+      console.log('');
 
       if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(this.synchronizationSession.position);
+        this.localUser.teleportToPosition(this.synchronizationSession.get('position'));
       } else {
-        this.localUser.camera.position.copy(this.synchronizationSession.position);
+        this.localUser.camera.position.copy(this.synchronizationSession.get('position'));
         this.localUser.camera.quaternion.copy(
-          this.spectatedUser.camera.model.quaternion
+          this.synchronizationSession.get('quaternion')
         );
       }
-    } else if (this.spectatingUsers.size > 0) {
+    } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,
         this.localUser.controller1,
@@ -125,8 +129,8 @@ export default class SynchronizeService extends Service {
    */
   activate(remoteUser: RemoteUser) {
     this.startQuaternion.copy(this.localUser.camera.quaternion);
-    this.spectatedUser = remoteUser;
-
+    this.main = remoteUser;
+    
     if (this.localUser.controller1) {
       this.localUser.controller1.setToSpectatingAppearance();
     }
@@ -137,7 +141,7 @@ export default class SynchronizeService extends Service {
       this.cameraControls.enabled = false;
     }
 
-    this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId);
+    this.sender.sendSpectatingUpdate(this.isSynchronizing, remoteUser.userId);
   }
 
   /**
@@ -147,7 +151,7 @@ export default class SynchronizeService extends Service {
     if (this.cameraControls) {
       this.cameraControls.enabled = true;
     }
-    if (!this.spectatedUser) return;
+    if (!this.main) return;
 
     if (this.localUser.controller1) {
       this.localUser.controller1.setToDefaultAppearance();
@@ -157,15 +161,15 @@ export default class SynchronizeService extends Service {
     }
 
     this.localUser.camera.quaternion.copy(this.startQuaternion);
-    this.spectatedUser = null;
+    this.main = null;
 
-    this.sender.sendSpectatingUpdate(this.isActive, null);
+    this.sender.sendSpectatingUpdate(this.isSynchronizing, null);
   }
 
   private onUserDisconnect({ id }: UserDisconnectedMessage) {
-    this.removeSpectatingUser(id);
+    this.removeProjector(id);
 
-    if (this.spectatedUser?.userId === id) {
+    if (this.main?.userId === id) {
       this.deactivate();
     }
   }
@@ -187,13 +191,13 @@ export default class SynchronizeService extends Service {
     const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
     let text = '';
     if (isSpectating && spectatedUser === this.localUser.userId) {
-      this.addSpectatingUser(userId);
+      this.addProjector(userId);
       text = 'is now synchronized to you';
     } else if (isSpectating) {
       text = 'is now synchronized to you';
     } else {
       text = 'stopped being synchronized to you';
-      this.removeSpectatingUser(userId);
+      this.removeProjector(userId);
     }
     this.toastMessage.message({
       title: remoteUser.userName,
@@ -205,15 +209,15 @@ export default class SynchronizeService extends Service {
 
   private setRemoteUserSpectatingById(
     userId: string,
-    isSpectating: boolean
+    isProjector: boolean
   ): RemoteUser | undefined {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
-      remoteUser.state = isSpectating ? 'spectating' : 'online';
-      remoteUser.setVisible(!isSpectating);
+      remoteUser.state = isProjector ? 'synchronized' : 'not synchronized';
+      remoteUser.setVisible(!isProjector);
 
       // If we spectated the remote user before, stop spectating.
-      if (isSpectating && this.spectatedUser?.userId === remoteUser.userId) {
+      if (isProjector && this.main?.userId === remoteUser.userId) {
         this.deactivate();
       }
     }

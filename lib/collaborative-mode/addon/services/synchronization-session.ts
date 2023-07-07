@@ -4,6 +4,10 @@ import CollaborationSession from './collaboration-session';
 import SynchronizeService from 'virtual-reality/services/synchronize';
 import * as THREE from 'three';
 
+type Camera = {
+  model: THREE.Object3D;
+};
+
 export default class SynchronizationSession extends Service {
 
   @service('local-user')
@@ -17,14 +21,17 @@ export default class SynchronizationSession extends Service {
 
   // Controlinstance of the connected devices
   private isMain!: boolean;
-  private _mainPosition!: THREE.Vector3;
-  private _mainQuaternion!: THREE.Quaternion;
+  _mainPosition!: THREE.Vector3;
+  _mainQuaternion!: THREE.Quaternion;
+  private _mainCamera!: Camera;
 
   // The id of the connected device
   private _deviceId!: number;
   
   private _position! : THREE.Vector3;
   private _quaternion! : THREE.Quaternion;
+
+  private synchronized = false;
 
   set deviceId(n : number) {
     this._deviceId = n;
@@ -57,14 +64,32 @@ export default class SynchronizationSession extends Service {
   }
 
   /** MAIN CONFIGS */
-  set mainPosition(p : THREE.Vector3) {
-    this._mainPosition = p;
-    this._position.setX(this._mainPosition.x - 1.7); 
+  set mainCamera(c : Camera) {
+    this._mainCamera = c;
+    this._mainPosition = c.model.position;
+    this._mainQuaternion = c.model.quaternion;
+
+    this._position = new THREE.Object3D<Event>().position;
+    this._position.x = this._mainPosition.x - 1;
+    this._position.y = this._mainPosition.y;
+    this._position.z = this._mainPosition.z;
+
+    this.quaternion = new THREE.Object3D<Event>().quaternion;
+    this.quaternion.x = this._mainQuaternion.x;
+    this.quaternion.y = this._mainQuaternion.y;
+    this.quaternion.z = this._mainQuaternion.z;
+    this.quaternion.w = this._mainQuaternion.w;
   }
 
-  set mainQuaternion(q : THREE.Quaternion) {
-    this._mainQuaternion = q;
-  }
+  // set mainPosition(p : THREE.Vector3) {
+  //   this._mainPosition = p;
+  //   this._position = this._mainPosition;
+  // }
+
+  // set mainQuaternion(q : THREE.Quaternion) {
+  //   this._mainQuaternion = q;
+  //   this._quaternion = this._mainQuaternion;
+  // }
 
 }
 
