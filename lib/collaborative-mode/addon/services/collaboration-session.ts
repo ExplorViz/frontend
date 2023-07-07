@@ -164,9 +164,6 @@ export default class CollaborationSession extends Service.extend({
         quaternion: userData.quaternion,
       });
       this.addRemoteUser(remoteUser);
-
-      
-
     });
 
     this.synchronizationSession.deviceId = users.length;
@@ -261,7 +258,7 @@ export default class CollaborationSession extends Service.extend({
 
   async hostRoom() {
     if (!this.isConnecting) {
-      console.log('hosting room in cs: ' , this.synchronizationSession);
+      console.log('hosting room in cs: ', this.synchronizationSession);
       this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom();

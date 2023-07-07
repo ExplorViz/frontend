@@ -36,16 +36,21 @@ export default class Synchronization extends Component<SynchronizationArgs> {
 
   @service('synchronization-session')
   private synchronizationSession!: SynchronizationSession;
-  
+
   @computed('collaborationSession.idToRemoteUser')
   get users() {
     const users = [];
+    const tempName =
+      this.synchronizationSession.deviceId === 0
+        ? 'Main'
+        : 'Projector ' + this.synchronizationSession.deviceId;
     if (this.localUser.color) {
       users.push({
-        name: `${this.localUser.userName} (you)`,
+        name: tempName,
         style: `color:#${this.localUser.color.getHexString()}`,
       });
     }
+
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => ({

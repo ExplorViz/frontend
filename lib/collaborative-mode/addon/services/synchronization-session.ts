@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
@@ -9,7 +10,6 @@ type Camera = {
 };
 
 export default class SynchronizationSession extends Service {
-
   @service('local-user')
   private localUser!: LocalUser;
 
@@ -27,31 +27,26 @@ export default class SynchronizationSession extends Service {
 
   // The id of the connected device
   private _deviceId!: number;
-  
-  private _position! : THREE.Vector3;
-  private _quaternion! : THREE.Quaternion;
+  private _position!: THREE.Vector3;
+  private _quaternion!: THREE.Quaternion;
 
   private synchronized = false;
 
-  set deviceId(n : number) {
+  set deviceId(n: number) {
     this._deviceId = n;
     this.isMain = n == 0;
-    
-    this._mainPosition = new THREE.Vector3(0, 0, 0);
-    this._mainQuaternion = new THREE.Quaternion(0, 0, 0, 1);
-
-    this._position = new THREE.Vector3(0, 0, 0);
-    this._quaternion = new THREE.Quaternion(0, 0, 0, 1);
   }
 
-  // position = new THREE.Vector3(position.x - 1.7, position.y, position.z);
+  get deviceId() {
+    return this._deviceId;
+  }
 
   /** SYNCHRONIZATION DEVICE CONFIGS  */
-  set position(p : THREE.Vector3) {
+  set position(p: THREE.Vector3) {
     this._position = p;
   }
 
-  set quaternion(q : THREE.Quaternion) {
+  set quaternion(q: THREE.Quaternion) {
     this._quaternion = q;
   }
 
@@ -64,13 +59,19 @@ export default class SynchronizationSession extends Service {
   }
 
   /** MAIN CONFIGS */
-  set mainCamera(c : Camera) {
+  set mainCamera(c: Camera) {
     this._mainCamera = c;
     this._mainPosition = c.model.position;
     this._mainQuaternion = c.model.quaternion;
 
+    // For remote user names we should create another remoteUserGroup for synchronization to match names with deviceId.
+    this.localUser.userName = this.isMain
+      ? 'Main'
+      : 'Projector ' + this._deviceId;
+
+    // VERTICALLY SYNCHRONIZING
     this._position = new THREE.Object3D<Event>().position;
-    this._position.x = this._mainPosition.x - 1;
+    this._position.x = this._mainPosition.x;
     this._position.y = this._mainPosition.y;
     this._position.z = this._mainPosition.z;
 
@@ -79,6 +80,18 @@ export default class SynchronizationSession extends Service {
     this.quaternion.y = this._mainQuaternion.y;
     this.quaternion.z = this._mainQuaternion.z;
     this.quaternion.w = this._mainQuaternion.w;
+
+    this.twoDvertSync();
+  }
+
+  twoDvertSync() {
+    if (this._deviceId == 1) {
+      this._position.x = -0.7984811349679097;
+    }
+
+    if (this._deviceId == 2) {
+      this._position.x = 0.8018120252990186;
+    }
   }
 
   // set mainPosition(p : THREE.Vector3) {
@@ -90,7 +103,6 @@ export default class SynchronizationSession extends Service {
   //   this._mainQuaternion = q;
   //   this._quaternion = this._mainQuaternion;
   // }
-
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
@@ -98,4 +110,7 @@ declare module '@ember/service' {
   interface Registry {
     'synchronization-session': SynchronizationSession;
   }
+}
+function dVertSync() {
+  throw new Error('Function not implemented.');
 }
