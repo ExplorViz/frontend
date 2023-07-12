@@ -89,39 +89,21 @@ export default class SynchronizeService extends Service {
    */
   tick() {
     if (this.main?.camera) {
+      // deep copy
+      // this.synchronizationSession.mainCamera = JSON.parse(
+      //   JSON.stringify(this.main.camera)
+      // );
+
       this.synchronizationSession.mainCamera = this.main.camera;
 
-      // How to get correct position/rotation in 3D space?
-      const worldPosition = new THREE.Vector3(
-        this.main.camera.model.position.x,
-        this.main.camera.model.position.y,
-        this.main.camera.model.position.z
-      );
-
-      console.log('service: ', this.main.camera.model.position);
-      console.log('session main: ', this.synchronizationSession._mainPosition);
-      console.log('session projector: ', this.synchronizationSession.position);
-      console.log('service: ', this.main.camera.model.quaternion);
-      console.log(
-        'session main: ',
-        this.synchronizationSession._mainQuaternion
-      );
-      console.log(
-        'session projector: ',
-        this.synchronizationSession.quaternion
-      );
-      console.log('');
-
       if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(
-          this.synchronizationSession.get('position')
-        );
+        this.localUser.teleportToPosition(this.synchronizationSession.position);
       } else {
         this.localUser.camera.position.copy(
-          this.synchronizationSession.get('position')
+          this.synchronizationSession.position
         );
         this.localUser.camera.quaternion.copy(
-          this.synchronizationSession.get('quaternion')
+          this.synchronizationSession.quaternion
         );
       }
     } else if (this.projectors.size > 0) {

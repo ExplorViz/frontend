@@ -23,14 +23,11 @@ export default class SynchronizationSession extends Service {
   private isMain!: boolean;
   _mainPosition!: THREE.Vector3;
   _mainQuaternion!: THREE.Quaternion;
-  private _mainCamera!: Camera;
 
   // The id of the connected device
   private _deviceId!: number;
   private _position!: THREE.Vector3;
   private _quaternion!: THREE.Quaternion;
-
-  private synchronized = false;
 
   set deviceId(n: number) {
     this._deviceId = n;
@@ -60,7 +57,6 @@ export default class SynchronizationSession extends Service {
 
   /** MAIN CONFIGS */
   set mainCamera(c: Camera) {
-    this._mainCamera = c;
     this._mainPosition = c.model.position;
     this._mainQuaternion = c.model.quaternion;
 
@@ -70,27 +66,56 @@ export default class SynchronizationSession extends Service {
       : 'Projector ' + this._deviceId;
 
     // VERTICALLY SYNCHRONIZING
-    this._position = new THREE.Object3D<Event>().position;
-    this._position.x = this._mainPosition.x;
-    this._position.y = this._mainPosition.y;
-    this._position.z = this._mainPosition.z;
+    this._position = c.model.position;
+    this._quaternion = c.model.quaternion;
 
-    this.quaternion = new THREE.Object3D<Event>().quaternion;
-    this.quaternion.x = this._mainQuaternion.x;
-    this.quaternion.y = this._mainQuaternion.y;
-    this.quaternion.z = this._mainQuaternion.z;
-    this.quaternion.w = this._mainQuaternion.w;
-
-    this.twoDvertSync();
+    this.twoDvertSync(c);
   }
 
-  twoDvertSync() {
+  twoDvertSync(c: Camera) {
+    ///// Calculate horizontal FOV /////
+    // Convert vertical FOV to radians
+    const vFOVrad = (this.localUser.camera.fov * Math.PI) / 180;
+
+    // Calculate the horizontal FOV using trigonometry
+    const hFOV =
+      2 * Math.atan(Math.tan(vFOVrad / 2) * this.localUser.camera.aspect);
+
+    // Convert horizontal FOV back to degrees
+    const hFOVdeg = (hFOV * 180) / Math.PI;
+
+    const up = new THREE.Vector3(0, 1, 0); // Or your scene's up direction
+
     if (this._deviceId == 1) {
-      this._position.x = -0.7984811349679097;
+      const leftVector = new THREE.Vector3(-1, 0, 0).applyQuaternion(
+        this._mainQuaternion
+      );
+
+      this._position = this._mainPosition
+        .clone()
+        .add(leftVector.multiplyScalar(1.6)); // 0.8 is the x-distance between the two cameras
+
+      console.log('Position', this._position);
+      console.log('Quaternion', this._quaternion);
+
+      // this._position.x = -0.7984811349679097;
     }
 
     if (this._deviceId == 2) {
-      this._position.x = 0.8018120252990186;
+      const testQuaternion = this._mainQuaternion.clone();
+
+      const rightVector = new THREE.Vector3(1, 0, 0).applyQuaternion(
+        testQuaternion
+      );
+
+      this._position = this._mainPosition
+        .clone()
+        .add(rightVector.multiplyScalar(1.6));
+
+      console.log('Position', this._position);
+      console.log('Quaternion', this._quaternion);
+
+      // this._position.x = 0.8018120252990186;
     }
   }
 
@@ -110,7 +135,4 @@ declare module '@ember/service' {
   interface Registry {
     'synchronization-session': SynchronizationSession;
   }
-}
-function dVertSync() {
-  throw new Error('Function not implemented.');
 }

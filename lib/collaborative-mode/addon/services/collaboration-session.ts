@@ -79,7 +79,6 @@ export default class CollaborationSession extends Service.extend({
 
   init() {
     super.init();
-
     this.debug('Initializing collaboration session');
     this.webSocket.on(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
