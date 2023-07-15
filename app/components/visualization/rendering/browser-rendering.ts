@@ -162,7 +162,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       0.1,
       100
     );
-    this.camera.position.set(5, 5, 5);
+    this.camera.position.set(0, 1, 0);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -377,7 +377,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
-    // applicationObject3D.position.y = 10;
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }

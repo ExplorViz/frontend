@@ -4,6 +4,7 @@ import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import SynchronizeService from 'virtual-reality/services/synchronize';
 import * as THREE from 'three';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 type Camera = {
   model: THREE.Object3D;
@@ -13,21 +14,21 @@ export default class SynchronizationSession extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
 
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
   // Controlinstance of the connected devices
   private isMain!: boolean;
-  _mainPosition!: THREE.Vector3;
-  _mainQuaternion!: THREE.Quaternion;
+
+  lastPosition?: THREE.Vector3;
 
   // The id of the connected device
   private _deviceId!: number;
-  private _position!: THREE.Vector3;
-  private _quaternion!: THREE.Quaternion;
+  position!: THREE.Vector3;
+  quaternion!: THREE.Quaternion;
 
   set deviceId(n: number) {
     this._deviceId = n;
@@ -38,96 +39,43 @@ export default class SynchronizationSession extends Service {
     return this._deviceId;
   }
 
-  /** SYNCHRONIZATION DEVICE CONFIGS  */
-  set position(p: THREE.Vector3) {
-    this._position = p;
-  }
-
-  set quaternion(q: THREE.Quaternion) {
-    this._quaternion = q;
-  }
-
-  get position() {
-    return this._position;
-  }
-
-  get quaternion() {
-    return this._quaternion;
-  }
-
   /** MAIN CONFIGS */
-  set mainCamera(c: Camera) {
-    this._mainPosition = c.model.position;
-    this._mainQuaternion = c.model.quaternion;
-
+  setCamera(c: Camera) {
     // For remote user names we should create another remoteUserGroup for synchronization to match names with deviceId.
     this.localUser.userName = this.isMain
       ? 'Main'
       : 'Projector ' + this._deviceId;
 
-    // VERTICALLY SYNCHRONIZING
-    this._position = c.model.position;
-    this._quaternion = c.model.quaternion;
-
-    this.twoDvertSync(c);
+    // If position before tick is the same as now, we don't need to configure
+    // if (this.lastPosition != c.model.position) {
+    this.adapt(c, this._deviceId);
+    // }
   }
 
-  twoDvertSync(c: Camera) {
-    ///// Calculate horizontal FOV /////
+  // To change specific projector adress id
+  adapt(c: Camera, id: number) {
+    const aspect = this.localUser.camera.aspect;
+    const vFov = this.localUser.camera.fov;
+
+    const rightSight = new THREE.Vector3(1, 0, 0).applyQuaternion(
+      c.model.quaternion
+    );
+
     // Convert vertical FOV to radians
-    const vFOVrad = (this.localUser.camera.fov * Math.PI) / 180;
+    const vFovrad = (vFov * Math.PI) / 180;
 
     // Calculate the horizontal FOV using trigonometry
-    const hFOV =
-      2 * Math.atan(Math.tan(vFOVrad / 2) * this.localUser.camera.aspect);
+    const hFov = 2 * Math.atan(Math.tan(vFovrad / 2) * aspect);
+    const distance = Math.tan(hFov / 2);
 
-    // Convert horizontal FOV back to degrees
-    const hFOVdeg = (hFOV * 180) / Math.PI;
+    this.position = c.model.position
+      .clone()
+      .add(rightSight.multiplyScalar(distance));
 
-    const up = new THREE.Vector3(0, 1, 0); // Or your scene's up direction
+    this.quaternion = c.model.quaternion;
 
-    if (this._deviceId == 1) {
-      const leftVector = new THREE.Vector3(-1, 0, 0).applyQuaternion(
-        this._mainQuaternion
-      );
-
-      this._position = this._mainPosition
-        .clone()
-        .add(leftVector.multiplyScalar(1.6)); // 0.8 is the x-distance between the two cameras
-
-      console.log('Position', this._position);
-      console.log('Quaternion', this._quaternion);
-
-      // this._position.x = -0.7984811349679097;
-    }
-
-    if (this._deviceId == 2) {
-      const testQuaternion = this._mainQuaternion.clone();
-
-      const rightVector = new THREE.Vector3(1, 0, 0).applyQuaternion(
-        testQuaternion
-      );
-
-      this._position = this._mainPosition
-        .clone()
-        .add(rightVector.multiplyScalar(1.6));
-
-      console.log('Position', this._position);
-      console.log('Quaternion', this._quaternion);
-
-      // this._position.x = 0.8018120252990186;
-    }
+    // this.lastPosition = c.model.position;
   }
-
-  // set mainPosition(p : THREE.Vector3) {
-  //   this._mainPosition = p;
-  //   this._position = this._mainPosition;
-  // }
-
-  // set mainQuaternion(q : THREE.Quaternion) {
-  //   this._mainQuaternion = q;
-  //   this._quaternion = this._mainQuaternion;
-  // }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

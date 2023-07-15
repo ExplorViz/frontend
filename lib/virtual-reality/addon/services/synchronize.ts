@@ -20,12 +20,16 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -94,7 +98,25 @@ export default class SynchronizeService extends Service {
       //   JSON.stringify(this.main.camera)
       // );
 
-      this.synchronizationSession.mainCamera = this.main.camera;
+      this.synchronizationSession.setCamera(this.main.camera);
+
+      // const tempBox = this.cameraControls?.getBoxForSelection(
+      //   ...this.applicationRenderer
+      //     .getOpenApplications()
+      //     .map((a) => a.children[0])
+      // );
+
+      // console.log(
+      //   ...this.applicationRenderer
+      //     .getOpenApplications()
+      //     .map((a) => a.children[0])
+      // );
+
+      // console.log(this.applicationRenderer.getOpenApplications());
+      // console.log(tempBox?.distanceToPoint(this.main.camera.model.position));
+      // console.log(
+      //   tempBox?.distanceToPoint(this.synchronizationSession.position)
+      // );
 
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(this.synchronizationSession.position);
@@ -106,6 +128,7 @@ export default class SynchronizeService extends Service {
           this.synchronizationSession.quaternion
         );
       }
+      console.log(this.localUser.camera.position);
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,

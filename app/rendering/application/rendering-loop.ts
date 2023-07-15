@@ -50,9 +50,6 @@ export default class RenderingLoop {
 
   start() {
     this.renderer.setAnimationLoop((_timestamp, frame) => {
-      console.log(this.camera.position);
-      console.log(this.camera.quaternion);
-
       const { value: showFpsCounter } =
         this.userSettings.applicationSettings.showFpsCounter;
 
