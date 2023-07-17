@@ -77,8 +77,10 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   }
 
   @action
-  onClick() {
+  onClick(event: Event) {
     this.focusedClicks += 1;
+    // Prevent click on table row which would trigger to open the visualization
+    event.stopPropagation();
   }
 
   sendModifyAccess(tokenId: string, userId: string, method: string) {

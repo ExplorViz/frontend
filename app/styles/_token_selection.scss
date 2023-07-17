@@ -1,9 +1,4 @@
 #token-selection-table {
-  > tbody > tr,
-  > thead > tr > th {
-    cursor: default;
-  }
-
   min-width: 400px;
   width: auto;
 }
@@ -46,6 +41,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.token-selection-row {
+  cursor: pointer;
 }
 
 .token-selection-icons {

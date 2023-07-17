@@ -37,7 +37,9 @@ export default class AdditionalTokenInfo extends Component<Args> {
   }
 
   @action
-  onClick() {
+  onClick(event: Event) {
     this.focusedClicks += 1;
+    // Prevent click on table row which would trigger to open the visualization
+    event.stopPropagation();
   }
 }
