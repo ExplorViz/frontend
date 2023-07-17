@@ -5,40 +5,30 @@
         <th scope='col'>Name</th>
         <th scope='col'>Users</th>
         <th scope='col'>Landscape</th>
-        <th scope='col'></th>
+        <th scope='col'>Token</th>
       </tr>
     </thead>
     <tbody>
       {{#each this.rooms as |room|}}
-        <tr>
+        <tr
+          {{on 'click' (fn this.joinRoom room)}}
+          title='Join Room'
+          class='room-entry'
+        >
           <th scope='row'>{{room.roomName}}</th>
           <th scope='row'>{{room.size}}</th>
           <th scope='row'>
             {{#if room.alias}}
               {{room.alias}}
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Token:
-                {{room.landscapeToken}}
-              </BsTooltip>
             {{else}}
               {{room.landscapeToken}}
             {{/if}}
           </th>
-          <th scope='row'>
-            <ul class='token-selection-icons'>
-              <li>
-                <button
-                  class='button-svg-with-hover'
-                  type='button'
-                  {{on 'click' (fn this.joinRoom room)}}
-                >
-                  {{svg-jar 'search-16' class='octicon align-middle'}}
-                  <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Join room and open visualization
-                  </BsTooltip>
-                </button>
-              </li>
-            </ul>
+          <th scope='row' class='room-token'>
+            {{room.landscapeToken}}
+            <BsTooltip @placement='bottom' @triggerEvents='hover'>
+              {{room.landscapeToken}}
+            </BsTooltip>
           </th>
         </tr>
       {{else}}

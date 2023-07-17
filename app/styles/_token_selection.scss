@@ -8,21 +8,6 @@
   transition: all 0.1s ease-in-out;
 }
 
-#room-selection-table {
-  > tbody > tr,
-  > thead > tr > th {
-    cursor: default;
-  }
-
-  min-width: 400px;
-  width: auto;
-}
-
-#room-selection-table > tbody > tr:hover {
-  background-color: #bfbfbf;
-  transition: all 0.1s ease-in-out;
-}
-
 .button-svg-with-hover {
   all: unset;
 }
