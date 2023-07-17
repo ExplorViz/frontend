@@ -1,10 +1,17 @@
 <div id='colorPresets' class='dropdown'>
-  <button class='button-svg-with-hover' type='button'>
+  <a
+    class='button-svg-with-hover'
+    type='button'
+    tabindex='0'
+    href='#'
+    {{on 'focusout' this.hidePopover}}
+    {{on 'click' this.onClick}}
+  >
     {{svg-jar 'info-16' class='octicon align-middle'}}
     <BsTooltip @placement='bottom' @triggerEvents='hover'>
       Show additional info
     </BsTooltip>
-    <BsPopover @title='Additional Info'>
+    <BsPopover id={{this.id}} @title={{@token.alias}}>
       <table class='table table-striped' style='width: 100%'>
         <tbody>
           <tr>
@@ -55,5 +62,5 @@
         </tbody>
       </table>
     </BsPopover>
-  </button>
+  </a>
 </div>

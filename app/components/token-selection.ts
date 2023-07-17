@@ -7,6 +7,7 @@ import Auth from 'explorviz-frontend/services/auth';
 
 interface Args {
   tokens: LandscapeToken[];
+  openTokenCreationModal(): void;
   selectToken(token: LandscapeToken): void;
   deleteToken(tokenId: string): Promise<undefined>;
   reload(): void;
