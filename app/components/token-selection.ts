@@ -36,9 +36,4 @@ export default class TokenSelection extends Component<Args> {
       this.sortProperty = property;
     }
   }
-
-  @action
-  test() {
-    console.log('test');
-  }
 }

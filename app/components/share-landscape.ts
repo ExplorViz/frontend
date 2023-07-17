@@ -18,6 +18,8 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   @service('auth')
   auth!: Auth;
 
+  focusedClicks = 0;
+
   @tracked
   username: string = '';
 
@@ -63,6 +65,20 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     } catch (e) {
       AlertifyHandler.showAlertifySuccess(e.message);
     }
+  }
+
+  @action
+  hidePopover(event: Event) {
+    // Clicks enable us to differentiate between opened and closed popovers
+    if (this.focusedClicks % 2 === 1) {
+      event.target?.dispatchEvent(new Event('click'));
+    }
+    this.focusedClicks = 0;
+  }
+
+  @action
+  onClick() {
+    this.focusedClicks += 1;
   }
 
   sendModifyAccess(tokenId: string, userId: string, method: string) {
