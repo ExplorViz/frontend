@@ -25,18 +25,6 @@
         <th scope='row'>
           <ul class='token-selection-icons'>
             <li>
-              <button
-                class='button-svg-with-hover'
-                type='button'
-                {{on 'click' (fn @selectToken token)}}
-              >
-                {{svg-jar 'search-16' class='octicon align-middle'}}
-                <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                  Open Visualization
-                </BsTooltip>
-              </button>
-            </li>
-            <li>
               <AdditionalTokenInfo @token={{token}} />
             </li>
             {{#if (eq token.ownerId this.auth.user.sub)}}
