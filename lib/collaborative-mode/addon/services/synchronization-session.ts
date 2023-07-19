@@ -20,25 +20,64 @@ export default class SynchronizationSession extends Service {
       ? 'Main'
       : 'Projector ' + this.deviceId;
 
-    // this.localUser.camera.projectionMatrix.elements[8] =
-    //   this.deviceId === 1 ? -1 : 1;
-
     const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 2);
     const height = tanFOV * this.localUser.camera.near;
     const width = height * this.localUser.camera.aspect;
-    const temp = JSON.parse(
-      JSON.stringify(this.localUser.camera.projectionMatrix)
-    );
-    console.log(temp);
-    this.localUser.camera.projectionMatrix.makePerspective(
-      -width / 2, // left
-      0, // right
-      height / 2, // top
-      0, // bottom
-      this.localUser.camera.near,
-      this.localUser.camera.far
-    );
-    console.log(this.localUser.camera.projectionMatrix);
+
+    switch (this.deviceId) {
+      case 1: // bottom left
+        this.localUser.camera.projectionMatrix.makePerspective(
+          -width / 2, // left
+          0, // right
+          0, // top
+          -height / 2, // bottom
+          this.localUser.camera.near / 4,
+          this.localUser.camera.far / 4
+        );
+        break;
+      case 2: // top left
+        this.localUser.camera.projectionMatrix.makePerspective(
+          -width / 2, // left
+          0, // right
+          height / 2, // top
+          0, // bottom
+          this.localUser.camera.near / 4,
+          this.localUser.camera.far / 4
+        );
+        break;
+      case 3: // top right
+        this.localUser.camera.projectionMatrix.makePerspective(
+          0, // left
+          width / 2, // right
+          height / 2, // top
+          0, // bottom
+          this.localUser.camera.near / 4,
+          this.localUser.camera.far / 4
+        );
+        break;
+      case 4: // bottom right
+        this.localUser.camera.projectionMatrix.makePerspective(
+          0, // left
+          width / 2, // right
+          0, // top
+          -height / 2, // bottom
+          this.localUser.camera.near / 4,
+          this.localUser.camera.far / 4
+        );
+        break;
+      case 5: //middle
+        this.localUser.camera.projectionMatrix.makePerspective(
+          -width / 2, // left
+          width / 2, // right
+          height / 2, // top
+          -height / 2, // bottom
+          this.localUser.camera.near / 4,
+          this.localUser.camera.far / 4
+        );
+        break;
+      default:
+        break;
+    }
   }
 }
 
