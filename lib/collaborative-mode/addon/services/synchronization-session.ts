@@ -1,5 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
+import * as THREE from 'three';
 
 export default class SynchronizationSession extends Service {
   @service('local-user')
@@ -20,8 +21,37 @@ export default class SynchronizationSession extends Service {
       ? 'Main'
       : 'Projector ' + this.deviceId;
 
-    this.localUser.camera.projectionMatrix.elements[8] =
-      this.deviceId === 1 ? -1 : 1;
+    // this.localUser.camera.projectionMatrix.elements[8] =
+    //   this.deviceId === 1 ? -1 : 1;
+
+    this.localUser.camera.projectionMatrix.elements[8] = -1;
+
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+
+    // Assume matrix has been previously set
+    this.localUser.camera.projectionMatrix.decompose(
+      position,
+      quaternion,
+      scale
+    );
+
+    this.localUser.camera.position.copy(position);
+    this.localUser.camera.quaternion.copy(quaternion);
+    this.localUser.camera.scale.copy(scale);
+
+    // this.localUser.camera.projectionMatrix.elements[7] = 1;
+
+    // this.localUser.camera.projectionMatrix.makePerspective(
+    //   -window.innerWidth / 4, // left
+    //   window.innerWidth / 4, // right
+    //   window.innerHeight / 2, // top
+    //   0, // bottom
+    //   this.localUser.camera.near,
+    //   this.localUser.camera.far
+    // );
+    // this.localUser.camera.updateProjectionMatrix();
   }
 }
 
