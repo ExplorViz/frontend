@@ -92,13 +92,10 @@ export default class SynchronizeService extends Service {
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
   tick() {
-    console.log(this.localUser.camera.projectionMatrix);
     if (this.main?.camera) {
-      console.log(this.main.localUser.camera.projectionMatrix);
       this.synchronizationSession.setCamera();
 
       if (this.localUser.xr?.isPresenting) {
-        // this.localUser.teleportToPosition(this.synchronizationSession.position);
         this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {
         this.localUser.camera.position.copy(this.main.camera.model.position);
