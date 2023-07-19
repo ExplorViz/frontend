@@ -162,7 +162,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       0.1,
       100
     );
-    this.camera.position.set(0, 1, 0);
+    this.camera.position.set(5, 5, 5);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
