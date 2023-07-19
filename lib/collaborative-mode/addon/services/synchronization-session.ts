@@ -56,34 +56,26 @@ export default class SynchronizationSession extends Service {
   adapt(c: Camera, id: number) {
     const aspect = this.localUser.camera.aspect;
     const vFov = this.localUser.camera.fov;
-
     // Convert vertical FOV to radians
     const vFovrad = (vFov * Math.PI) / 180;
-
     // Calculate the horizontal FOV using trigonometry
     const hFov = 2 * Math.atan(Math.tan(vFovrad / 2) * aspect);
     const distance = Math.tan(hFov / 2);
-
     const mainPosition = c.model.position.clone();
-
     // Store the original position
     const originalPosition = new THREE.Vector3();
     c.model.getWorldPosition(originalPosition);
-
     // Create a vector representing the right direction
     const right = new THREE.Vector3(1, 0, 0);
     right.applyQuaternion(c.model.quaternion);
-
     // Calculate the new position by subtracting the shift to the right from the object's position
     const newPosition = new THREE.Vector3().subVectors(
       mainPosition,
       right.multiplyScalar(distance)
     );
-
     // Update the camera's position
     this.position.copy(newPosition);
     this.quaternion.copy(c.model.quaternion);
-
     // this.lastPosition = c.model.position;
   }
 }

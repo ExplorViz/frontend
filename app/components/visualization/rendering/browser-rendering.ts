@@ -155,7 +155,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene = defaultScene();
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
-    // camera
+    // // camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       80,
       1.0,

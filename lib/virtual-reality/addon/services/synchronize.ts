@@ -82,7 +82,7 @@ export default class SynchronizeService extends Service {
     this.projectors.delete(id);
   }
 
-  get isSynchronizing() {
+  get isSynchronized() {
     return this.main !== null;
   }
 
@@ -92,58 +92,19 @@ export default class SynchronizeService extends Service {
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
   tick() {
+    console.log(this.localUser.camera.projectionMatrix);
     if (this.main?.camera) {
-      // deep copy
-      // this.synchronizationSession.mainCamera = JSON.parse(
-      //   JSON.stringify(this.main.camera)
-      // );
-
-      this.synchronizationSession.setCamera(this.main.camera);
-
-      // const tempBox = this.cameraControls?.getBoxForSelection(
-      //   ...this.applicationRenderer
-      //     .getOpenApplications()
-      //     .map((a) => a.children[0])
-      // );
-
-      // console.log(
-      //   ...this.applicationRenderer
-      //     .getOpenApplications()
-      //     .map((a) => a.children[0])
-      // );
-
-      // console.log(this.applicationRenderer.getOpenApplications());
-      // console.log(tempBox?.distanceToPoint(this.main.camera.model.position));
-      // console.log(
-      //   tempBox?.distanceToPoint(this.synchronizationSession.position)
-      // );
+      console.log(this.main.localUser.camera.projectionMatrix);
+      this.localUser.camera.projectionMatrix.elements[8] = 1;
 
       if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(this.synchronizationSession.position);
+        // this.localUser.teleportToPosition(this.synchronizationSession.position);
+        this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {
-        this.localUser.camera.position.copy(
-          this.synchronizationSession.position
-        );
+        this.localUser.camera.position.copy(this.main.camera.model.position);
         this.localUser.camera.quaternion.copy(
-          this.synchronizationSession.quaternion
+          this.main.camera.model.quaternion
         );
-
-        const originalPosition = new THREE.Vector3();
-        this.main.camera.model.getWorldPosition(originalPosition);
-        console.log('localUser position', this.localUser.camera.position);
-        console.log('localUser quaternion', this.localUser.camera.quaternion);
-        // Make the camera look at the original point
-        this.localUser.camera.lookAt(originalPosition);
-        console.log(
-          'localUser position after lookat',
-          this.localUser.camera.position
-        );
-        console.log(
-          'localUser quaternion after lookat',
-          this.localUser.camera.quaternion
-        );
-        console.log('camera up local user', this.localUser.camera.up);
-        console.log('camera up main', this.main.camera.model.up);
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
@@ -180,7 +141,7 @@ export default class SynchronizeService extends Service {
       this.cameraControls.enabled = false;
     }
 
-    this.sender.sendSpectatingUpdate(this.isSynchronizing, remoteUser.userId);
+    this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }
 
   /**
@@ -202,7 +163,7 @@ export default class SynchronizeService extends Service {
     this.localUser.camera.quaternion.copy(this.startQuaternion);
     this.main = null;
 
-    this.sender.sendSpectatingUpdate(this.isSynchronizing, null);
+    this.sender.sendSpectatingUpdate(this.isSynchronized, null);
   }
 
   private onUserDisconnect({ id }: UserDisconnectedMessage) {
