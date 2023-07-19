@@ -27,8 +27,8 @@ export default class SynchronizationSession extends Service {
 
   // The id of the connected device
   private _deviceId!: number;
-  position!: THREE.Vector3;
-  quaternion!: THREE.Quaternion;
+  position: THREE.Vector3 = new THREE.Vector3();
+  quaternion: THREE.Quaternion = new THREE.Quaternion();
 
   set deviceId(n: number) {
     this._deviceId = n;
@@ -57,10 +57,6 @@ export default class SynchronizationSession extends Service {
     const aspect = this.localUser.camera.aspect;
     const vFov = this.localUser.camera.fov;
 
-    const rightSight = new THREE.Vector3(1, 0, 0).applyQuaternion(
-      c.model.quaternion
-    );
-
     // Convert vertical FOV to radians
     const vFovrad = (vFov * Math.PI) / 180;
 
@@ -68,11 +64,25 @@ export default class SynchronizationSession extends Service {
     const hFov = 2 * Math.atan(Math.tan(vFovrad / 2) * aspect);
     const distance = Math.tan(hFov / 2);
 
-    this.position = c.model.position
-      .clone()
-      .add(rightSight.multiplyScalar(distance));
+    const mainPosition = c.model.position.clone();
 
-    this.quaternion = c.model.quaternion;
+    // Store the original position
+    const originalPosition = new THREE.Vector3();
+    c.model.getWorldPosition(originalPosition);
+
+    // Create a vector representing the right direction
+    const right = new THREE.Vector3(1, 0, 0);
+    right.applyQuaternion(c.model.quaternion);
+
+    // Calculate the new position by subtracting the shift to the right from the object's position
+    const newPosition = new THREE.Vector3().subVectors(
+      mainPosition,
+      right.multiplyScalar(distance)
+    );
+
+    // Update the camera's position
+    this.position.copy(newPosition);
+    this.quaternion.copy(c.model.quaternion);
 
     // this.lastPosition = c.model.position;
   }

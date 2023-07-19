@@ -127,8 +127,24 @@ export default class SynchronizeService extends Service {
         this.localUser.camera.quaternion.copy(
           this.synchronizationSession.quaternion
         );
+
+        const originalPosition = new THREE.Vector3();
+        this.main.camera.model.getWorldPosition(originalPosition);
+        console.log('localUser position', this.localUser.camera.position);
+        console.log('localUser quaternion', this.localUser.camera.quaternion);
+        // Make the camera look at the original point
+        this.localUser.camera.lookAt(originalPosition);
+        console.log(
+          'localUser position after lookat',
+          this.localUser.camera.position
+        );
+        console.log(
+          'localUser quaternion after lookat',
+          this.localUser.camera.quaternion
+        );
+        console.log('camera up local user', this.localUser.camera.up);
+        console.log('camera up main', this.main.camera.model.up);
       }
-      console.log(this.localUser.camera.position);
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
         this.localUser.camera,
