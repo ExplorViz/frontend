@@ -92,7 +92,10 @@ export default class VisualizationController extends Controller {
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  showDataSelection = false;
+  showSettingsSidebar = false;
+
+  @tracked
+  showToolsSidebar = false;
 
   @tracked
   components: string[] = [];
@@ -240,14 +243,20 @@ export default class VisualizationController extends Controller {
   @action
   closeDataSelection() {
     this.debug('closeDataSelection');
-    this.showDataSelection = false;
+    this.showSettingsSidebar = false;
     this.components = [];
   }
 
   @action
-  openDataSelection() {
-    this.debug('openDataSelection');
-    this.showDataSelection = true;
+  openSettingsSidebar() {
+    this.debug('openSettingsSidebar');
+    this.showSettingsSidebar = true;
+  }
+
+  @action
+  openToolsSidebar() {
+    this.debug('openToolsSidebar');
+    this.showToolsSidebar = true;
   }
 
   @action

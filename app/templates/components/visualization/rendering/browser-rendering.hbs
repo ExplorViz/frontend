@@ -5,11 +5,22 @@
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
-      {{#unless @showDataSelection}}
+      {{#unless @showSettingsSidebar}}
         <div class='sidebar-open-button foreground mt-6'>
           <BsButton
-            id='arSettingsOpener'
-            @onClick={{@openDataSelection}}
+            id='toolsOpener'
+            @onClick={{@openToolsSidebar}}
+            @type='secondary'
+            @outline={{true}}
+            title='Settings'
+          >
+            {{svg-jar 'tools-16' class='octicon align-middle'}}
+          </BsButton>
+        </div>
+        <div class='sidebar-open-button foreground mt-8'>
+          <BsButton
+            id='settingsOpener'
+            @onClick={{@openSettingsSidebar}}
             @type='secondary'
             @outline={{true}}
             title='Settings'
@@ -72,7 +83,7 @@
 
     </div>
   </div>
-  {{#if @showDataSelection}}
+  {{#if @showSettingsSidebar}}
     <div class='position-absolute right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::DataSelection

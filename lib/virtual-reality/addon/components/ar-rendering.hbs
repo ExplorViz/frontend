@@ -23,7 +23,7 @@
         />
       {{/if}}
 
-      {{#unless @showDataSelection}}
+      {{#unless @showSettingsSidebar}}
         <div class='ar-right-relative foreground mt-6'>
           <BsButton
             id='arSettingsOpener'
@@ -171,7 +171,7 @@
 
     </div>
   </div>
-  {{#if @showDataSelection}}
+  {{#if @showSettingsSidebar}}
     <div class='position-absolute right col-8' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100'>
         <Visualization::PageSetup::Sidebar::DataSelection
