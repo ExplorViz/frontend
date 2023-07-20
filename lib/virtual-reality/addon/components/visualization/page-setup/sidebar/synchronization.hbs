@@ -20,7 +20,10 @@ Functions to provide in window:
     <label class='bold'>Current Configuration Environment: </label>
     <label>Testing</label>
   </div>
-
+  <div>
+    <input type="file" id="file-upload" accept=".txt,.json" {{on 'change' this.handleFileUpload}}>
+  </div>
+     
   <label class='bold'>Connected Devices</label>
   <ul>
     {{#each this.users as |user|}}

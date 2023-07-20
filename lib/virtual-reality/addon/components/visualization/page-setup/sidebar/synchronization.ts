@@ -126,6 +126,41 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   }
 
   @action
+  handleFileUpload(event?: Event) {
+    if (
+      !event ||
+      !(event.target instanceof HTMLInputElement) ||
+      !event.target.files ||
+      event.target.files.length === 0
+    ) {
+      // handle error case
+      console.error('No file selected');
+      return;
+    }
+    const file = event.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const content = reader.result;
+        // do something with the content of the file
+        console.log(content);
+
+        if (typeof content === 'string') {
+          this.synchronizationSession.setCount(parseInt(content));
+        }
+      };
+
+      if (file.type === 'application/json') {
+        reader.readAsText(file); //.json
+      } else {
+        reader.readAsText(file); //.txt
+      }
+    }
+  }
+
+  @action
   close() {
     this.args.removeComponent('synchronization');
   }

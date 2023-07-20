@@ -11,6 +11,14 @@ export default class SynchronizationSession extends Service {
   // The id of the connected device
   deviceId!: number;
 
+  // TestUpload attribute
+  numberDevices?: number;
+
+  setCount(n: number) {
+    this.numberDevices = n;
+    console.log(this.numberDevices);
+  }
+
   /** MAIN CONFIGS */
   setCamera() {
     this.isMain = this.deviceId === 0;
