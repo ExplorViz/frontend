@@ -31,8 +31,8 @@ export default class SynchronizationSession extends Service {
           0, // right
           0, // top
           -height / 2, // bottom
-          this.localUser.camera.near / 4,
-          this.localUser.camera.far / 4
+          this.localUser.camera.near / 2,
+          this.localUser.camera.far / 2
         );
         break;
       case 2: // top left
@@ -41,8 +41,8 @@ export default class SynchronizationSession extends Service {
           0, // right
           height / 2, // top
           0, // bottom
-          this.localUser.camera.near / 4,
-          this.localUser.camera.far / 4
+          this.localUser.camera.near / 2,
+          this.localUser.camera.far / 2
         );
         break;
       case 3: // top right
@@ -51,8 +51,8 @@ export default class SynchronizationSession extends Service {
           width / 2, // right
           height / 2, // top
           0, // bottom
-          this.localUser.camera.near / 4,
-          this.localUser.camera.far / 4
+          this.localUser.camera.near / 2,
+          this.localUser.camera.far / 2
         );
         break;
       case 4: // bottom right
@@ -61,8 +61,8 @@ export default class SynchronizationSession extends Service {
           width / 2, // right
           0, // top
           -height / 2, // bottom
-          this.localUser.camera.near / 4,
-          this.localUser.camera.far / 4
+          this.localUser.camera.near / 2,
+          this.localUser.camera.far / 2
         );
         break;
       case 5: //middle
@@ -71,8 +71,8 @@ export default class SynchronizationSession extends Service {
           width / 2, // right
           height / 2, // top
           -height / 2, // bottom
-          this.localUser.camera.near / 4,
-          this.localUser.camera.far / 4
+          this.localUser.camera.near / 2,
+          this.localUser.camera.far / 2
         );
         break;
       default:

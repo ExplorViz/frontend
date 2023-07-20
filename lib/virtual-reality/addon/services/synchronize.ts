@@ -95,6 +95,8 @@ export default class SynchronizeService extends Service {
     if (this.main?.camera) {
       this.synchronizationSession.setCamera();
 
+      console.log(this.projectors);
+
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {

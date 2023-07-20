@@ -54,7 +54,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => ({
-      name: user.userName,
+      name: this.getProjectorName(user.color.getHexString()),
       style: `color:#${user.color.getHexString()}`,
       id: user.userId,
     }));
@@ -103,6 +103,26 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     } else {
       this.synchronizeService.deactivate();
     }
+  }
+
+  getProjectorName(color: string): string {
+    const projectorName: string = (() => {
+      switch (color) {
+        case '00d4fd':
+          return 'Projector 1';
+        case 'ea00ea':
+          return 'Projector 2';
+        case '00eadf':
+          return 'Projector 3';
+        case 'eee900':
+          return 'Projector 4';
+        case 'dfbbee':
+          return 'Projector 5';
+        default:
+          return 'Main';
+      }
+    })();
+    return projectorName;
   }
 
   @action

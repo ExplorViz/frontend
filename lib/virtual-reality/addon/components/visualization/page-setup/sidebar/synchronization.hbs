@@ -18,7 +18,7 @@ Functions to provide in window:
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
     <label class='bold'>Current Configuration Environment: </label>
-    <label>ARENA2</label>
+    <label>Testing</label>
   </div>
 
   <label class='bold'>Connected Devices</label>
@@ -44,7 +44,7 @@ Functions to provide in window:
     <label class='bold'>Rooms</label>
 
     <BsButton
-      title='Synchronize Devices'
+      title='Reload Rooms'
       {{on 'click' this.loadRooms}}
       @type='secondary'
       @outline={{true}}
