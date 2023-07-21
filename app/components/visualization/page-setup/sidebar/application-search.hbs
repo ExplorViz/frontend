@@ -1,0 +1,22 @@
+{{! template-lint-disable simple-unless }}
+<div class='sidebar-component-close' {{on 'click' this.close}}>
+  {{svg-jar 'x-16' class='octicon'}}
+</div>
+{{! CSS styling https://ember-power-select.com/cookbook/css-animations }}
+
+{{! Maybe not the nicest option to use multiple select for single select
+      However, the search inside the trigger seems more intuitive
+  }}
+<PowerSelectMultiple
+  {{did-insert this.removePowerselectArrow}}
+  @triggerClass='bootstrap-theme-trigger form-control'
+  @search={{perform this.searchEntity}}
+  @searchMessage="Insert name or start with '*'"
+  @placeholder='Search Entity...'
+  @onChange={{this.onSelect}}
+  @loadingMessage='loading...'
+  @matchTriggerWidth={{false}}
+  as |entity|
+>
+  {{entity.name}}
+</PowerSelectMultiple>

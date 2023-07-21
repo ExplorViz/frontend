@@ -5,8 +5,8 @@
       {{did-insert this.outerDivInserted}}
       {{did-resize this.resize debounce=100}}
     >
-      {{#unless @showSettingsSidebar}}
-        <div class='sidebar-open-button foreground mt-6'>
+      {{#unless @showToolsSidebar}}
+        <div class='sidebar-tools-button foreground mt-6'>
           <BsButton
             id='toolsOpener'
             @onClick={{@openToolsSidebar}}
@@ -17,7 +17,9 @@
             {{svg-jar 'tools-16' class='octicon align-middle'}}
           </BsButton>
         </div>
-        <div class='sidebar-open-button foreground mt-8'>
+      {{/unless}}
+      {{#unless @showSettingsSidebar}}
+        <div class='sidebar-open-button foreground mt-6'>
           <BsButton
             id='settingsOpener'
             @onClick={{@openSettingsSidebar}}
@@ -83,6 +85,34 @@
 
     </div>
   </div>
+  {{#if @showToolsSidebar}}
+    <div class='position-absolute left col-4' id='toolselection'>
+      <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
+        <Visualization::PageSetup::Sidebar::ToolSelection
+          @closeToolSelection={{@closeToolsSidebar}}
+        >
+          <div class='explorviz-visualization-navbar'>
+            <ul class='nav justify-content-center'>
+              <Visualization::PageSetup::Navbar::ApplicationSearchOpener
+                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              />
+            </ul>
+          </div>
+          {{#each @componentsToolsSidebar as |componentName|}}
+            <div class='card sidebar-card mt-3'>
+              <div class='card-body d-flex flex-column'>
+                {{#if (eq componentName 'application-search')}}
+                  <h5 class='text-center'>Application Search</h5>
+                  <Visualization::PageSetup::Sidebar::ApplicationSearch
+                  />
+                {{/if}}
+              </div>
+            </div>
+          {{/each}}
+        </Visualization::PageSetup::Sidebar::ToolSelection>
+      </div>
+    </div>
+  {{/if}}
   {{#if @showSettingsSidebar}}
     <div class='position-absolute right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
@@ -92,19 +122,19 @@
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               {{!-- <Visualization::PageSetup::Navbar::TraceOverview
-                @toggleSidebarComponent={{@toggleSidebarComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
                 @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
                 @visualizationPaused={{@visualizationPaused}}
                 @dynamicData={{@landscapeData.dynamicLandscapeData}}
               /> --}}
               <Visualization::PageSetup::Navbar::SettingsOpener
-                @toggleSidebarComponent={{@toggleSidebarComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
-                @toggleSidebarComponent={{@toggleSidebarComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
-                @toggleSidebarComponent={{@toggleSidebarComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>
           </div>

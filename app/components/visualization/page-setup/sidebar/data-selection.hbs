@@ -8,7 +8,11 @@
   >
     {{svg-jar 'x-16' class='octicon align-middle'}}
   </button>
-  <Visualization::PageSetup::Sidebar::SidebarResizer />
+  <Visualization::PageSetup::Sidebar::SidebarResizer
+     @buttonName='sidebarDragButton'
+     @containerName='sidebarButtonContainer'
+     @sidebarName='dataselection'
+  ></Visualization::PageSetup::Sidebar::SidebarResizer>
 </div>
 <EmberScrollable>
   <div class='pr-3 pl-3 pb-3'>

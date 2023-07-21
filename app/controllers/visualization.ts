@@ -101,6 +101,9 @@ export default class VisualizationController extends Controller {
   components: string[] = [];
 
   @tracked
+  componentsToolsSidebar: string[] = [];
+
+  @tracked
   isTimelineActive: boolean = true;
 
   @tracked
@@ -248,6 +251,13 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.componentsToolsSidebar = [];
+  }
+
+  @action
   openSettingsSidebar() {
     this.debug('openSettingsSidebar');
     this.showSettingsSidebar = true;
@@ -260,7 +270,16 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  toggleSidebarComponent(component: string) {
+  toggleToolsSidebarComponent(component: string) {
+    if (this.componentsToolsSidebar.includes(component)) {
+      this.removeComponent(component);
+    } else {
+      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+    }
+  }
+
+  @action
+  toggleSettingsSidebarComponent(component: string) {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {

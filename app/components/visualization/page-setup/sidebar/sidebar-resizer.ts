@@ -1,11 +1,20 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 
-export default class SidebarResizer extends Component {
+interface SidebarArgs {
+  readonly buttonName: string;
+  readonly containerName: string;
+  readonly sidebarName: string;
+  readonly expandToRight: boolean;
+}
+
+export default class SidebarResizer extends Component<SidebarArgs> {
+  sidebarName!: string;
+
   @action
   setup() {
-    const dragButton = document.getElementById('sidebarDragButton');
-    const buttonContainer = document.getElementById('sidebarButtonContainer');
+    const dragButton = document.getElementById(this.args.buttonName);
+    const buttonContainer = document.getElementById(this.args.containerName);
 
     if (dragButton) {
       this.dragElement(dragButton);
@@ -16,8 +25,11 @@ export default class SidebarResizer extends Component {
   }
 
   dragElement(resizeButton: HTMLElement) {
+    const sidebarName = this.args.sidebarName;
+    const expandToRight = this.args.expandToRight;
+
     function setSidebarWidth(widthInPercent: number) {
-      const sidebar = document.getElementById('dataselection');
+      const sidebar = document.getElementById(sidebarName);
 
       if (sidebar && widthInPercent > 20) {
         sidebar.style.maxWidth = `${widthInPercent}%`;
@@ -25,9 +37,16 @@ export default class SidebarResizer extends Component {
     }
 
     function handleDragInput(targetX: number) {
-      const buttonOffset = 30;
-      const widthInPercent =
-        100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+      let widthInPercent: number;
+
+      if (expandToRight) {
+        const buttonOffset = 30;
+        widthInPercent = ((targetX + buttonOffset) / window.innerWidth) * 100;
+      } else {
+        const buttonOffset = 30;
+        widthInPercent =
+          100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+      }
 
       setSidebarWidth(widthInPercent);
     }

@@ -58,6 +58,11 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
   }
 
+  @action
+  close() {
+    console.log('close');
+  }
+
   searchEntity = task({ restartable: true }, async (term: string) => {
     if (isBlank(term)) {
       return [];

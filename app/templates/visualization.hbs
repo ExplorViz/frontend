@@ -13,7 +13,7 @@
       @landscapeData={{this.landscapeData}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @openLandscapeView={{this.openLandscapeView}}
-      @toggleSidebarComponent={{this.toggleSidebarComponent}}
+      @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
       @components={{this.components}}
@@ -62,12 +62,16 @@
         <Visualization::Rendering::BrowserRendering
           @landscapeData={{this.landscapeData}}
           @components={{this.components}}
+          @componentsToolsSidebar={{this.componentsToolsSidebar}}
           @removeComponent={{this.removeComponent}}
           @closeDataSelection={{this.closeDataSelection}}
+          @closeToolsSidebar={{this.closeToolsSidebar}}
           @openSettingsSidebar={{this.openSettingsSidebar}}
           @openToolsSidebar={{this.openToolsSidebar}}
           @showSettingsSidebar={{this.showSettingsSidebar}}
-          @toggleSidebarComponent={{this.toggleSidebarComponent}}
+          @showToolsSidebar={{this.showToolsSidebar}}
+          @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
+          @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
           @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
           @visualizationPaused={{this.visualizationPaused}}
           @switchToAR={{this.switchToAR}}
