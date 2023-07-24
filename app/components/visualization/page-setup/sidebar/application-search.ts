@@ -9,15 +9,9 @@ import {
   isPackage,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/utils/application-helpers';
 import { task } from 'ember-concurrency';
-
-interface SearchSeperator {
-  name: string;
-}
+import { inject as service } from '@ember/service';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 interface Args {
   application: Application;
@@ -28,6 +22,9 @@ interface Args {
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
   componentLabel = '-- Components --';
 
   clazzLabel = '-- Classes --';
@@ -70,75 +67,33 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     return await this.getPossibleEntityNames.perform(term);
   });
 
-  //TaskGenerator<(Class | Package | SearchSeperator)[]>
-
   getPossibleEntityNames = task(async (name: string) => {
     const searchString = name.toLowerCase();
 
-    const latestApp = this.args.application;
+    let allEntities: any[] = [];
 
-    // re-calculate since there might be an update to the app (e.g. new class)
-    const components = getAllPackagesInApplication(latestApp);
-    const clazzes = getAllClassesInApplication(latestApp);
-    const entities = [];
+    const applications = this.applicationRepo.getAll();
 
-    const maxNumberOfCompNames = 20;
-    let currentNumberOfCompNames = 0;
-
-    function searchEngineFindsHit(
-      clazzNameToCheckAgainst: string,
-      searchWord: string
-    ) {
-      if (searchString.startsWith('*')) {
-        const searchName = searchWord.substring(1);
-        return clazzNameToCheckAgainst.includes(searchName);
-      }
-      return clazzNameToCheckAgainst.startsWith(searchWord);
+    for (const application of applications) {
+      allEntities = allEntities.concat(application.flatData);
     }
 
-    let isComponentLabelSet = false;
+    //console.log(allEntities);
 
-    for (let i = 0; i < components.length; i++) {
-      if (currentNumberOfCompNames === maxNumberOfCompNames) {
-        break;
+    const returnValue: any[] = [];
+
+    // TODO use selectedItemComponent
+    // https://ember-power-select.com/docs/the-trigger
+
+    allEntities.forEach((entity) => {
+      if (entity.fqn.toLowerCase().includes(searchString)) {
+        //entity.fqn = entity.fqn.replace(searchString, `${searchString}`);
+        returnValue.push(entity);
       }
+    });
 
-      const component = components[i];
+    //console.log(returnValue);
 
-      const componentName = component.name.toLowerCase();
-      if (searchEngineFindsHit(componentName, searchString)) {
-        if (!isComponentLabelSet) {
-          isComponentLabelSet = true;
-          entities.push({ name: this.componentLabel } as SearchSeperator);
-        }
-        entities.push(component);
-        currentNumberOfCompNames++;
-      }
-    }
-
-    const maxNumberOfClazzNames = 20;
-    let currentNumberOfClazzNames = 0;
-
-    let isClazzLabelSet = false;
-
-    for (let i = 0; i < clazzes.length; i++) {
-      if (currentNumberOfClazzNames === maxNumberOfClazzNames) {
-        break;
-      }
-
-      const clazz = clazzes[i];
-
-      const clazzName = clazz.name.toLowerCase();
-      if (searchEngineFindsHit(clazzName, searchString)) {
-        if (!isClazzLabelSet) {
-          isClazzLabelSet = true;
-          entities.push({ name: this.clazzLabel } as SearchSeperator);
-        }
-
-        entities.push(clazz);
-        currentNumberOfClazzNames++;
-      }
-    }
-    return entities;
+    return returnValue;
   });
 }

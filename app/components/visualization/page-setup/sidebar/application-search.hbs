@@ -7,16 +7,18 @@
 {{! Maybe not the nicest option to use multiple select for single select
       However, the search inside the trigger seems more intuitive
   }}
-<PowerSelectMultiple
+
+<PowerSelect
   {{did-insert this.removePowerselectArrow}}
   @triggerClass='bootstrap-theme-trigger form-control'
+  @searchEnabled={{true}}
   @search={{perform this.searchEntity}}
-  @searchMessage="Insert name or start with '*'"
+  @searchMessage="Insert substring..."
   @placeholder='Search Entity...'
   @onChange={{this.onSelect}}
   @loadingMessage='loading...'
   @matchTriggerWidth={{false}}
   as |entity|
 >
-  {{entity.name}}
-</PowerSelectMultiple>
+  {{entity.fqn}}
+</PowerSelect>
