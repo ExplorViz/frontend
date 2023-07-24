@@ -3,16 +3,22 @@ import Service from '@ember/service';
 export default class PerformanceLogger extends Service.extend({
   }) {
 
+    private DELAY_OF_PERF_LOGS: number = 180000;
+
     private timers: Map<number, number> = new Map();
 
-    private counter: number = 0;
+    private nextId: number = 0;
+
+    private executionTimes: number[] = [];
 
     init() {
         super.init();
+
+        this.logPerformance();
     }
 
     private nextTimerId(): number {
-        return ++this.counter;
+        return ++this.nextId;
     }
 
     start(): number {
@@ -23,10 +29,27 @@ export default class PerformanceLogger extends Service.extend({
 
     stop(timerId: number) {
         if (this.timers.has(timerId)) {
-            var timestamp = this.timers.get(timerId);
-            if (timestamp) console.log("Execution Time: " + ( performance.now() - timestamp));
+            const timestamp = this.timers.get(timerId);
+            const stopTime = performance.now();
+            if (timestamp) this.executionTimes.push(stopTime - timestamp);
         }
     }
 
+    async logPerformance() {
+        console.log("Log Performance")
+        while(true) {
+            await this.sleep(this.DELAY_OF_PERF_LOGS);
+            const executionTimesCopy = [...this.executionTimes];
+            const averageExecutionTime = executionTimesCopy.reduce((partialSum, a) => partialSum + a, 0) / executionTimesCopy.length
+            console.log("Execution Time: " + averageExecutionTime + " ms");
+
+        }
+    }
+
+    sleep(ms: number) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    }
 
   }
