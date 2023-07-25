@@ -26,7 +26,7 @@ linting:
   before_script:
     - npm install
   script:
-    - node --versiion
+    - node --version
     - npm --version
     - npm run lint
 
