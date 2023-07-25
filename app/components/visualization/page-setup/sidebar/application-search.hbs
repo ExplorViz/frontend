@@ -12,6 +12,7 @@
   {{did-insert this.removePowerselectArrow}}
   @triggerClass='bootstrap-theme-trigger form-control'
   @searchEnabled={{true}}
+  @selected={{this.entity}}
   @search={{perform this.searchEntity}}
   @searchMessage="Insert substring..."
   @placeholder='Search Entity...'
@@ -20,5 +21,5 @@
   @matchTriggerWidth={{false}}
   as |entity|
 >
-  {{entity.fqn}}
+  {{this.formatEntry entity.fqn}}
 </PowerSelect>

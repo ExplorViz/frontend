@@ -12,6 +12,8 @@ import {
 import { task } from 'ember-concurrency';
 import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { htmlSafe } from '@ember/template';
+import { tracked } from '@glimmer/tracking';
 
 interface Args {
   application: Application;
@@ -29,6 +31,19 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   clazzLabel = '-- Classes --';
 
+  @tracked
+  searchString: string = '';
+
+  @action
+  formatEntry(potentialResult: string) {
+    return htmlSafe(
+      potentialResult.replace(
+        new RegExp(this.searchString, 'gi'),
+        `<strong>$&</strong>`
+      )
+    );
+  }
+
   @action
   /* eslint-disable-next-line class-methods-use-this */
   removePowerselectArrow() {
@@ -37,9 +52,11 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   @action
   onSelect(emberPowerSelectObject: unknown[]) {
-    if (emberPowerSelectObject.length < 1) {
-      return;
-    }
+    //if (emberPowerSelectObject.length < 1) {
+    //  return;
+    //}
+
+    console.log('onselect', emberPowerSelectObject);
 
     const model = emberPowerSelectObject[0];
 
@@ -64,6 +81,8 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     if (isBlank(term)) {
       return [];
     }
+    this.searchString = term;
+
     return await this.getPossibleEntityNames.perform(term);
   });
 
@@ -78,22 +97,21 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       allEntities = allEntities.concat(application.flatData);
     }
 
-    //console.log(allEntities);
-
     const returnValue: any[] = [];
 
     // TODO use selectedItemComponent
     // https://ember-power-select.com/docs/the-trigger
 
-    allEntities.forEach((entity) => {
+    for (let i = 0; i < allEntities.length; i++) {
+      if (i === 10) {
+        break;
+      }
+      const entity = allEntities[i];
       if (entity.fqn.toLowerCase().includes(searchString)) {
         //entity.fqn = entity.fqn.replace(searchString, `${searchString}`);
         returnValue.push(entity);
       }
-    });
-
-    //console.log(returnValue);
-
+    }
     return returnValue;
   });
 }
