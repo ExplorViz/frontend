@@ -25,28 +25,14 @@ export default class SpectateViewMenu
 
     headsetCamera!: THREE.Camera;
 
+    private firstTime : boolean = true;
+
 
     constructor( {renderer, scene, headsetCamera, ...args} : SpectateViewMenuArgs){
         super(args);
         this.renderer = renderer;
         this.scene = scene;
         this.headsetCamera = headsetCamera;
-
-
-        const res = new THREE.Vector2();
-        this.renderer.getSize(res);
-        
-        this.target = new THREE.WebGLRenderTarget(
-            res.width,
-            res.height
-            );
-
-        const worldSizeFactor = SIZE_RESOLUTION_FACTOR;
-        const geometry = new THREE.PlaneGeometry(res.width * worldSizeFactor, res.height * worldSizeFactor);
-        const material = new THREE.MeshBasicMaterial({ color: 'red'/*map: this.target.texture*/ });
-        const plane = new THREE.Mesh(geometry, material);
-        plane.position.z = 0.001;
-        this.add(plane);
 
     }
 
@@ -62,6 +48,10 @@ export default class SpectateViewMenu
 
       onOpenMenu() {
         super.onOpenMenu();
+        if(this.firstTime){
+          this.createPlane();
+        }
+
       }
 
       onUpdateMenu(delta: number) {
@@ -71,8 +61,27 @@ export default class SpectateViewMenu
 
       onCloseMenu(): void {
         super.onCloseMenu();
+        this.firstTime = true;
       }
 
+      private createPlane(){
+        const res = new THREE.Vector2();
+        this.renderer.getSize(res);
+        
+        this.target = new THREE.WebGLRenderTarget(
+            res.width,
+            res.height
+            );
+
+        const worldSizeFactor = SIZE_RESOLUTION_FACTOR;
+        const geometry = new THREE.PlaneGeometry(res.width * worldSizeFactor, res.height * worldSizeFactor);
+        const material = new THREE.MeshBasicMaterial({ color: 'red'/*map: this.target.texture*/ });
+        const plane = new THREE.Mesh(geometry, material);
+        plane.position.z = 0.001;
+        this.add(plane);
+
+        this.firstTime = false;
+      }
 
       private renderView(){
         const oldTarget = this.renderer.getRenderTarget();
