@@ -35,14 +35,25 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
   @tracked
   searchString: string = '';
 
+  @tracked
+  selected: string[] = [];
+
   @action
   formatEntry(potentialResult: string) {
-    return htmlSafe(
-      potentialResult.replace(
-        new RegExp(this.searchString, 'gi'),
-        `<strong>$&</strong>`
-      )
-    );
+    if (this.selected && this.selected.length < 0) {
+      return this.selected;
+    }
+
+    if (potentialResult) {
+      return htmlSafe(
+        potentialResult.replace(
+          new RegExp(this.searchString, 'gi'),
+          `<strong>$&</strong>`
+        )
+      );
+    }
+
+    return this.selected;
   }
 
   @action
@@ -53,11 +64,13 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   @action
   onSelect(emberPowerSelectObject: unknown[]) {
-    //if (emberPowerSelectObject.length < 1) {
-    //  return;
-    //}
+    if (emberPowerSelectObject.length < 1) {
+      return;
+    }
 
-    console.log('onselect', emberPowerSelectObject);
+    this.selected = [...this.selected, emberPowerSelectObject[0]];
+
+    console.log('onselect', this.selected);
 
     const model = emberPowerSelectObject[0];
 

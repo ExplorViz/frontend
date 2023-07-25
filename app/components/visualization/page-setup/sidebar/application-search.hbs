@@ -8,18 +8,18 @@
       However, the search inside the trigger seems more intuitive
   }}
 
-<PowerSelect
+<PowerSelectMultiple
   {{did-insert this.removePowerselectArrow}}
-  @triggerClass='bootstrap-theme-trigger form-control'
+  @selected={{this.selected}}
+  @selectedItemComponent={{component "visualization/page-setup/sidebar/application-search-selected-item"}}
+  @onChange={{this.onSelect}}
   @searchEnabled={{true}}
-  @selected={{this.entity}}
   @search={{perform this.searchEntity}}
   @searchMessage='Insert substring...'
-  @placeholder='Search Entity...'
-  @onChange={{this.onSelect}}
+  @placeholder='Search Entity...'  
   @loadingMessage='loading...'
   @matchTriggerWidth={{false}}
   as |entity|
 >
   {{this.formatEntry entity.fqn}}
-</PowerSelect>
+</PowerSelectMultiple>
