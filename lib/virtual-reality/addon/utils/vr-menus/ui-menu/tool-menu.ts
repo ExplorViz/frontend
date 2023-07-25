@@ -95,6 +95,13 @@ export default class ToolMenu extends InteractiveMenu {
         this.menuGroup?.replaceMenu(this.menuFactory.buildSearchMenu()),
     });
 
+    this.addTool({
+      label: 'SpectateViewMenu',
+      icon: 'search',
+      action: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildSpectateViewMenu()),
+    });
+
     this.selectTool(this.defaultToolIndex, { enableAnimation: false });
   }
 

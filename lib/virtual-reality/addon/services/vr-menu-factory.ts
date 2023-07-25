@@ -40,6 +40,7 @@ import { AuxiliaryScrollMenu } from 'virtual-reality/utils/vr-menus/ui-menu/auxi
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import VrRendering from 'virtual-reality/components/vr-rendering';
 import VRController from 'virtual-reality/utils/vr-controller';
+import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -242,6 +243,15 @@ export default class VrMenuFactoryService extends Service {
     return new SearchMenu({
       owner: getOwner(this),
       renderer: this.renderer,
+      menuFactory: this,
+    });
+  }
+
+  buildSpectateViewMenu(): SpectateViewMenu {
+    return new SpectateViewMenu({
+      renderer: this.renderer,
+      scene: this.scene,
+      headsetCamera: this.localUser.camera,
       menuFactory: this,
     });
   }
