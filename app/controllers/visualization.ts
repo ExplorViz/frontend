@@ -272,7 +272,7 @@ export default class VisualizationController extends Controller {
   @action
   toggleToolsSidebarComponent(component: string) {
     if (this.componentsToolsSidebar.includes(component)) {
-      this.removeComponent(component);
+      this.removeToolsSidebarComponent(component);
     } else {
       this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
     }
@@ -299,6 +299,21 @@ export default class VisualizationController extends Controller {
       const components = [...this.components];
       components.splice(index, 1);
       this.components = components;
+    }
+  }
+
+  @action
+  removeToolsSidebarComponent(path: string) {
+    if (this.componentsToolsSidebar.length === 0) {
+      return;
+    }
+
+    const index = this.componentsToolsSidebar.indexOf(path);
+    // Remove existing sidebar component
+    if (index !== -1) {
+      const componentsToolsSidebar = [...this.componentsToolsSidebar];
+      componentsToolsSidebar.splice(index, 1);
+      this.componentsToolsSidebar = componentsToolsSidebar;
     }
   }
 

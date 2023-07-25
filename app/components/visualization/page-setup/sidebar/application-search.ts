@@ -21,6 +21,7 @@ interface Args {
   highlightModel(entity: Class | Package): void;
   openParents(entity: Class | Package): void;
   closeComponent(component: Package): void;
+  removeToolsSidebarComponent(nameOfComponent: string): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
@@ -74,7 +75,7 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   @action
   close() {
-    console.log('close');
+    this.args.removeToolsSidebarComponent('application-search');
   }
 
   searchEntity = task({ restartable: true }, async (term: string) => {
@@ -103,7 +104,7 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     // https://ember-power-select.com/docs/the-trigger
 
     for (let i = 0; i < allEntities.length; i++) {
-      if (i === 10) {
+      if (returnValue.length === 10) {
         break;
       }
       const entity = allEntities[i];
