@@ -105,26 +105,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     }
   }
 
-  getProjectorName(color: string): string {
-    const projectorName: string = (() => {
-      switch (color) {
-        case '00d4fd':
-          return 'Projector 1';
-        case 'ea00ea':
-          return 'Projector 2';
-        case '00eadf':
-          return 'Projector 3';
-        case 'eee900':
-          return 'Projector 4';
-        case 'dfbbee':
-          return 'Projector 5';
-        default:
-          return 'Main';
-      }
-    })();
-    return projectorName;
-  }
-
   @action
   handleFileUpload(event?: Event) {
     if (
@@ -158,6 +138,32 @@ export default class Synchronization extends Component<SynchronizationArgs> {
         reader.readAsText(file); //.txt
       }
     }
+  }
+
+  @action
+  addUser() {
+    // Use window.open method to open a new browser tab/window
+    window.open('http://localhost:4200/', '_blank');
+  }
+
+  getProjectorName(color: string): string {
+    const projectorName: string = (() => {
+      switch (color) {
+        case '00d4fd':
+          return 'Projector 1';
+        case 'ea00ea':
+          return 'Projector 2';
+        case '00eadf':
+          return 'Projector 3';
+        case 'eee900':
+          return 'Projector 4';
+        case 'dfbbee':
+          return 'Projector 5';
+        default:
+          return 'Main';
+      }
+    })();
+    return projectorName;
   }
 
   @action

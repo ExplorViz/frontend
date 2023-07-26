@@ -11,8 +11,15 @@ Functions to provide in window:
 
 <div>
   <label class='bold'>Status: </label>
-
   <label>{{this.collaborationSession.connectionStatus}}</label>
+  <BsButton
+    title='Add User'
+    {{on 'click' this.addUser}}
+    @type='primary'
+    @outline={{true}}
+  >
+    Add User
+  </BsButton>
 </div>
 
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
@@ -21,8 +28,9 @@ Functions to provide in window:
     <label>Testing</label>
   </div>
   <div>
-    <input type="file" id="file-upload" accept=".txt,.json" {{on 'change' this.handleFileUpload}}>
+    <input class='syncPadding' type="file" id="file-upload" accept=".txt,.json" {{on 'change' this.handleFileUpload}}>
   </div>
+
      
   <label class='bold'>Connected Devices</label>
   <ul>

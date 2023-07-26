@@ -118,6 +118,10 @@
   pointer-events: all;
 }
 
+.syncPadding {
+  padding-bottom: 15px;
+}
+
 .ar-button-svg {
   width: var(--ar-button-size);
   height: var(--ar-button-size);
