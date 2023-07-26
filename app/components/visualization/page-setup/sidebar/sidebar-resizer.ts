@@ -1,12 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
-import ArSettings from 'virtual-reality/services/ar-settings';
 
 export default class SidebarResizer extends Component {
-  @service('ar-settings')
-  private settings!: ArSettings;
-
   @action
   setup() {
     const dragButton = document.getElementById('sidebarDragButton');
@@ -21,14 +16,11 @@ export default class SidebarResizer extends Component {
   }
 
   dragElement(resizeButton: HTMLElement) {
-    const self = this;
-
     function setSidebarWidth(widthInPercent: number) {
       const sidebar = document.getElementById('dataselection');
 
       if (sidebar && widthInPercent > 20) {
         sidebar.style.maxWidth = `${widthInPercent}%`;
-        self.settings.sidebarWidthInPercent = widthInPercent;
       }
     }
 
@@ -92,9 +84,5 @@ export default class SidebarResizer extends Component {
 
     resizeButton.onmousedown = dragMouseDown;
     resizeButton.ontouchstart = dragTouchDown;
-
-    if (this.settings.sidebarWidthInPercent) {
-      setSidebarWidth(this.settings.sidebarWidthInPercent);
-    }
   }
 }

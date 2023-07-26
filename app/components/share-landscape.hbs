@@ -1,5 +1,10 @@
 <div id='colorPresets' class='dropdown'>
-  <button class='button-svg-with-hover' type='button'>
+  <button
+    class='button-svg-with-hover'
+    type='button'
+    {{on 'focusout' this.hidePopover}}
+    {{on 'click' this.onClick}}
+  >
     {{svg-jar 'share-android-16' class='octicon align-middle'}}
     <BsTooltip @placement='bottom' @triggerEvents='hover'>
       Manage access to token

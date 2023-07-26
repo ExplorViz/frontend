@@ -22,6 +22,7 @@ interface IArgs {
   removePopup(entityId: string): void;
   pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
+  updateMeshReference(popup: PopupData): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
@@ -70,9 +71,11 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   highlight() {
+    this.args.updateMeshReference(this.args.popupData);
     this.highlightingService.highlight(this.args.popupData.mesh);
   }
 
+  // Not used at the moment since mesh reference is not kept updated for collab
   get highlightingColorStyle() {
     if (this.args.popupData.mesh.highlighted) {
       const hexColor =
@@ -99,13 +102,18 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   elementDrag(event: MouseEvent) {
+    this.args.popupData.wasMoved = true;
+
     event.preventDefault();
-    // calculate the new cursor position:
+    // Calculate delta of cursor position:
     const diffX = this.lastMousePosition.x - event.clientX;
     const diffY = this.lastMousePosition.y - event.clientY;
+
+    // Store latest mouse position for next delta calulation
     this.lastMousePosition.x = event.clientX;
     this.lastMousePosition.y = event.clientY;
-    // set the element's new position:
+
+    // Set the element's new position:
     const containerDiv = this.element.parentElement as HTMLElement;
 
     const popoverHeight = this.element.clientHeight;
@@ -114,6 +122,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     let newPositionX = this.element.offsetLeft - diffX;
     let newPositionY = this.element.offsetTop - diffY;
 
+    // Prevent popup position outside of rendering canvas in x-direction
     if (newPositionX < 0) {
       newPositionX = 0;
     } else if (
@@ -123,6 +132,7 @@ export default class PopupCoordinator extends Component<IArgs> {
       newPositionX = containerDiv.clientWidth - popoverWidth;
     }
 
+    // Prevent popup position outside of rendering canvas in y-direction
     if (newPositionY < 0) {
       newPositionY = 0;
     } else if (
@@ -132,12 +142,9 @@ export default class PopupCoordinator extends Component<IArgs> {
       newPositionY = containerDiv.clientHeight - popoverHeight;
     }
 
-    if (!this.args.popupData.isPinned) {
-      this.configuration.popupPosition = {
-        x: newPositionX,
-        y: newPositionY,
-      };
-    }
+    // Update stored popup position relative to new position
+    this.args.popupData.mouseX -= this.element.offsetLeft - newPositionX;
+    this.args.popupData.mouseY -= this.element.offsetTop - newPositionY;
 
     this.element.style.top = `${newPositionY}px`;
     this.element.style.left = `${newPositionX}px`;

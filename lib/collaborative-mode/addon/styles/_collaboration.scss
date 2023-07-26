@@ -1,0 +1,21 @@
+#room-selection-table {
+    min-width: 400px;
+    width: auto;
+  }
+  
+#room-selection-table > tbody > tr:hover {
+    background-color: #bfbfbf;
+    transition: all 0.1s ease-in-out;
+}
+
+.room-entry {
+    cursor: pointer;
+}
+
+.room-token {
+    display:block;
+    width: 100px;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

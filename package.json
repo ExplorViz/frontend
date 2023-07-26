@@ -173,9 +173,9 @@
   },
   "ember-addon": {
     "paths": [
-      "lib/virtual-reality",
+      "lib/collaborative-mode",
       "lib/heatmap",
-      "lib/collaborative-mode"
+      "lib/virtual-reality"
     ]
   }
 }

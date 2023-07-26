@@ -1,3 +1,4 @@
+import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -97,7 +98,7 @@ export default class VisualizationController extends Controller {
   components: string[] = [];
 
   @tracked
-  showTimeline: boolean = true;
+  isTimelineActive: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -129,15 +130,23 @@ export default class VisualizationController extends Controller {
     );
   }
 
+  get showTimeline() {
+    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+  }
+
   @action
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(
-      TIMESTAMP_UPDATE_TIMER_EVENT,
-      this,
-      this.onTimestampUpdateTimer
-    );
+
+    if (!this.isSingleLandscapeMode) {
+      this.webSocket.on(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+
     this.timestampService.on(
       TIMESTAMP_UPDATE_EVENT,
       this,
@@ -193,6 +202,12 @@ export default class VisualizationController extends Controller {
     this.switchToMode('browser');
   }
 
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
+  }
+
   get showAR() {
     return this.localUser.visualizationMode === 'ar';
   }
@@ -236,16 +251,12 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  addComponent(component: string) {
-    this.debug('addComponent');
+  toggleSidebarComponent(component: string) {
     if (this.components.includes(component)) {
-      // remove it and readd it in the code below,
-      // so it again appears on top inside the sidebar
-      // This will not reset the component
       this.removeComponent(component);
+    } else {
+      this.components = [component, ...this.components];
     }
-
-    this.components = [component, ...this.components];
   }
 
   @action
@@ -303,7 +314,7 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleTimeline() {
-    this.showTimeline = !this.showTimeline;
+    this.isTimelineActive = !this.isTimelineActive;
   }
 
   @action
