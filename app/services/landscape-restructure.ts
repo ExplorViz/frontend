@@ -2,10 +2,10 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, addSubPackageToPackage, removeApplication, removeClassFromPackage, removePackageFromApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import internal from 'stream';
-import { Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -94,8 +94,20 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  addPackageFromPopup(pckg: Package) {
-    addPackageToApplication(pckg, this.newMeshCounter);
+  addSubPackageFromPopup(pckg: Package) {
+    addSubPackageToPackage(pckg, this.newMeshCounter);
+    if(this.landscapeData?.structureLandscapeData) {
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
+    this.newMeshCounter++;
+  }
+
+  addPackageFromPopup(app: Application) {
+    addPackageToApplication(app, this.newMeshCounter);
     if(this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
@@ -132,16 +144,43 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  deleteFoundation() {
-
+  deleteAppFromPopup(app: Application) {
+    if(this.landscapeData?.structureLandscapeData) {
+      removeApplication(this.landscapeData?.structureLandscapeData, app);
+      if(this.landscapeData?.structureLandscapeData) {
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        )
+      }
+    }
   }
 
-  deletePackage() {
-
+  deletePackageFromPopup(pckg: Package) {
+    if(this.landscapeData?.structureLandscapeData) {
+      removePackageFromApplication(pckg);
+      if(this.landscapeData?.structureLandscapeData) {
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        )
+      }
+    }
   }
 
-  deleteClass() {
-
+  deleteClassFromPopup(clazz: Class) {
+    if(this.landscapeData?.structureLandscapeData) {
+      removeClassFromPackage(clazz);
+      if(this.landscapeData?.structureLandscapeData) {
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        )
+      }
+    }
   }
 
 }

@@ -18,20 +18,41 @@ export default class EditMesh extends Component<Args> {
     @tracked 
     iconName = 'pin-16';
 
+    get isEntityApplication() {
+        return isApplication(this.args.entity);
+    }
+
+    get isEntityPackage() {
+        return isPackage(this.args.entity);
+    }
+
+    get isEntityClass() {
+        return isClass(this.args.entity);
+    }
+
     @action
-    addMesh() {
-        if(isPackage(this.args.entity))
+    addPackage() {
+        console.log(this.args.entity);
+        if(this.isEntityApplication)
             this.landscapeRestructure.addPackageFromPopup(this.args.entity);
+        else if(this.isEntityPackage)
+            this.landscapeRestructure.addSubPackageFromPopup(this.args.entity);
     }
 
     @action
     addClass() {
-        if(isPackage(this.args.entity))
+        if(this.isEntityPackage)
             this.landscapeRestructure.addClassFromPopup(this.args.entity);
     }
 
     @action
     deleteMesh() {
+        if(this.isEntityApplication)
+            this.landscapeRestructure.deleteAppFromPopup(this.args.entity);
+        else if(this.isEntityPackage)
+            this.landscapeRestructure.deletePackageFromPopup(this.args.entity);
+        else if(this.isEntityClass)
+            this.landscapeRestructure.deleteClassFromPopup(this.args.entity);
 
     }
     

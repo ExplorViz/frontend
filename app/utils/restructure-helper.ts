@@ -54,10 +54,11 @@ export function setClassNameById(
 }
 
 export function addFoundationToLandscape(landscapeStructure: StructureLandscapeData, counter: number) {
-  let myNode: Partial<Node> = {
+  let myNode: Node = {
       id: 'newNode' + counter,
       ipAddress: '192.168.1.' + counter,
       hostName: 'new Node' + counter,
+      applications: []
     };
 
     const myApplication: Application = {
@@ -87,15 +88,12 @@ export function addFoundationToLandscape(landscapeStructure: StructureLandscapeD
 
     myApplication.packages.push(myPackage);
 
-    myNode = {
-      ...myNode,
-      applications: [myApplication],
-    };
+    myNode.applications.push(myApplication);
 
     landscapeStructure.nodes.push(myNode as Node);
 }
 
-export function addPackageToApplication(pckg: Package, counter: number) {
+export function addSubPackageToPackage(pckg: Package, counter: number) {
   const newPckg: Package = {
     id: 'newPackage' + counter,
     name: 'New Package',
@@ -114,6 +112,25 @@ export function addPackageToApplication(pckg: Package, counter: number) {
   pckg.subPackages.push(newPckg);
 }
 
+export function addPackageToApplication(app: Application, counter: number) {
+  const newPckg: Package = {
+    id: 'newPackage' + counter,
+    name: 'New Package',
+    subPackages: [],
+    classes: [],
+  };
+
+  const newClass: Class = {
+    id: 'newPackageClass' + counter,
+    name: 'New Package/Class',
+    methods: [],
+    parent: newPckg
+  };
+
+  newPckg.classes.push(newClass);
+  app.packages.push(newPckg);
+}
+
 export function addClassToApplication(pckg: Package, counter: number) {
   const newClass: Class = {
     id: 'newClass' + counter,
@@ -123,5 +140,31 @@ export function addClassToApplication(pckg: Package, counter: number) {
   };
 
   pckg.classes.push(newClass);
+}
+
+export function removeApplication(landscapeStructure: StructureLandscapeData, app: Application) {
+  
+  var parentNode = app.parent;
+  console.log("parent: ");
+  console.log(parentNode);
+  //parentNode.applications = parentNode.applications.filter(appl => appl.id != app.id);
+  landscapeStructure.nodes = landscapeStructure.nodes.filter(node => node.id != parentNode.id);
+  app.packages = [];
+}
+
+export function removePackageFromApplication(pckg: Package) {
+  var parentPackage = pckg.parent;
+  console.log("parent: ");
+  console.log(parentPackage);
+  if(parentPackage)
+    parentPackage.subPackages = parentPackage.subPackages.filter(packg => packg.id != pckg.id);
+}
+
+export function removeClassFromPackage(clazz: Class) {
+  var parentPackage = clazz.parent;
+  console.log("parent: ");
+  console.log(parentPackage);
+  if(parentPackage)
+    parentPackage.classes = parentPackage.classes.filter(clzz => clzz.id != clazz.id);
 }
 

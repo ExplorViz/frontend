@@ -1,19 +1,41 @@
 <hr> 
-<BsButton @type='success' {{on 'click' this.addMesh}}>
-    {{svg-jar this.iconName class='octicon align-right'}}
-    <BsTooltip @placement='top' @triggerEvents='hover'>
-        Add Mesh
-    </BsTooltip>
-</BsButton>
-<BsButton @type='info' {{on 'click' this.addClass}}>
-    {{svg-jar this.iconName class='octicon align-right'}}
-    <BsTooltip @placement='top' @triggerEvents='hover'>
-        Add Class
-    </BsTooltip>
-</BsButton>
-<BsButton @type='danger'>
-    {{svg-jar this.iconName class='octicon align-right'}}
-    <BsTooltip @placement='top' @triggerEvents='hover'>
-        Delete Mesh
-    </BsTooltip>
-</BsButton>
+{{#if this.isEntityPackage}}
+    <BsButton @type='success' {{on 'click' this.addPackage}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Add Package
+        </BsTooltip>
+    </BsButton>
+    <BsButton @type='info' {{on 'click' this.addClass}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Add Class
+        </BsTooltip>
+    </BsButton>
+    <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Delete
+        </BsTooltip>
+    </BsButton>
+{{else if this.isEntityApplication}}
+    <BsButton @type='success' {{on 'click' this.addPackage}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Add Package
+        </BsTooltip>
+    </BsButton>
+    <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Delete
+        </BsTooltip>
+    </BsButton>
+{{else if this.isEntityClass}}
+    <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
+        {{svg-jar this.iconName class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+            Delete
+        </BsTooltip>
+    </BsButton>
+{{/if}}
