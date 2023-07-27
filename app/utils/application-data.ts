@@ -12,7 +12,7 @@ export default class ApplicationData {
 
   layoutData: Map<string, LayoutData>;
 
-  flatData: any;
+  flatData: Map<string, any>;
 
   @tracked
   heatmapData: ApplicationHeatmapData;
@@ -22,7 +22,7 @@ export default class ApplicationData {
   constructor(
     application: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: any
+    flatData: Map<string, any>
   ) {
     this.application = application;
     this.layoutData = layoutData;
@@ -39,7 +39,7 @@ export default class ApplicationData {
   updateApplication(
     newApplication: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: any
+    flatData: Map<string, any>
   ) {
     this.application = newApplication;
     this.layoutData = layoutData;

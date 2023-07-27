@@ -38,32 +38,40 @@ function calculateFlatData(application, allLandscapeTraces) {
   function calculateStaticData(application) {
     const topLevelPackages = application.packages;
 
-    let returnValue = [];
+    let returnValue = new Map();
 
     for (const node of topLevelPackages) {
-      returnValue = returnValue.concat(collectFqns(node));
+      returnValue = new Map([...returnValue, ...collectFqns(node)]);
     }
 
     return returnValue;
 
     function collectFqns(node, parentFqn) {
-      let namesList = [];
+      let flatDataMap = new Map();
 
       const currentName = parentFqn ? parentFqn + '.' + node.name : node.name;
 
       node.classes.forEach((clazz) => {
-        namesList.push({
-          fqn: `${currentName}.${clazz.name}`,
-          className: `${clazz.name}`,
-          applicationName: `${application.name}`,
+        clazz.methods.forEach((method) => {
+          flatDataMap.set(method.hashCode, {
+            fqn: `${currentName}.${clazz.name}`,
+            className: `${clazz.name}`,
+            applicationName: `${application.name}`,
+            applicationModelId: `${application.id}`,
+            methodName: method.name,
+            hashCode: method.hashCode,
+            modelId: clazz.id,
+          });
         });
       });
 
       node.subPackages.forEach((subPack) => {
-        namesList = namesList.concat(collectFqns(subPack, currentName));
+        flatDataMap = new Map([
+          ...flatDataMap,
+          ...collectFqns(subPack, currentName),
+        ]);
       });
-
-      return namesList;
+      return flatDataMap;
     }
   }
 }

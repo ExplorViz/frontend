@@ -2,31 +2,28 @@ import GlimmerComponent from '@glimmer/component';
 import { action } from '@ember/object';
 import { isBlank } from '@ember/utils';
 import $ from 'jquery';
-import {
-  Application,
-  Class,
-  isClass,
-  isPackage,
-  Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { task } from 'ember-concurrency';
 import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import {
+  getAllAncestorComponents,
+  openComponentsByList,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 
 interface Args {
-  application: Application;
-  unhighlightAll(): void;
-  highlightModel(entity: Class | Package): void;
-  openParents(entity: Class | Package): void;
-  closeComponent(component: Package): void;
   removeToolsSidebarComponent(nameOfComponent: string): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service
+  applicationRenderer!: ApplicationRenderer;
 
   componentLabel = '-- Components --';
 
@@ -63,26 +60,38 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
   }
 
   @action
-  onSelect(emberPowerSelectObject: unknown[]) {
+  onSelect(emberPowerSelectObject: any[]) {
     if (emberPowerSelectObject.length < 1) {
+      this.selected = [];
       return;
     }
 
-    this.selected = [...this.selected, emberPowerSelectObject[0]];
+    this.selected = [...emberPowerSelectObject];
 
-    console.log('onselect', this.selected);
+    const firstEntity = emberPowerSelectObject[0];
 
-    const model = emberPowerSelectObject[0];
+    console.log('onselect', firstEntity.modelId);
 
-    if (isClass(model)) {
-      this.args.unhighlightAll();
-      this.args.openParents(model);
-      this.args.highlightModel(model);
-    } else if (isPackage(model)) {
-      this.args.unhighlightAll();
-      this.args.openParents(model);
-      this.args.closeComponent(model);
-      this.args.highlightModel(model);
+    const clazzModel = (
+      this.applicationRenderer.getBoxMeshByModelId(
+        firstEntity.modelId
+      ) as ClazzMesh
+    ).dataModel;
+
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
+      firstEntity.applicationModelId
+    );
+
+    if (applicationObject3D) {
+      openComponentsByList(
+        getAllAncestorComponents(clazzModel),
+        applicationObject3D
+      );
+
+      this.applicationRenderer.highlightModel(
+        clazzModel,
+        firstEntity.applicationModelId
+      );
     }
   }
 
@@ -103,29 +112,30 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
   getPossibleEntityNames = task(async (name: string) => {
     const searchString = name.toLowerCase();
 
-    let allEntities: any[] = [];
+    let allEntities: Map<string, any> = new Map();
 
     const applications = this.applicationRepo.getAll();
 
     for (const application of applications) {
-      allEntities = allEntities.concat(application.flatData);
+      allEntities = new Map([...allEntities, ...application.flatData]);
     }
 
     const returnValue: any[] = [];
 
-    // TODO use selectedItemComponent
-    // https://ember-power-select.com/docs/the-trigger
+    const entriesArray = Array.from(allEntities.entries());
 
-    for (let i = 0; i < allEntities.length; i++) {
+    for (let i = 0; i < entriesArray.length; i++) {
+      const [, value] = entriesArray[i];
+
       if (returnValue.length === 10) {
         break;
       }
-      const entity = allEntities[i];
-      if (entity.fqn.toLowerCase().includes(searchString)) {
-        //entity.fqn = entity.fqn.replace(searchString, `${searchString}`);
-        returnValue.push(entity);
+
+      if (value.fqn.toLowerCase().includes(searchString)) {
+        returnValue.push(value);
       }
     }
+
     return returnValue;
   });
 }
