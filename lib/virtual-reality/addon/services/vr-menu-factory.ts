@@ -252,6 +252,7 @@ export default class VrMenuFactoryService extends Service {
       renderer: this.renderer,
       scene: this.scene,
       headsetCamera: this.localUser.camera,
+      applicationRepo: this.applicationRepo,
       menuFactory: this,
     });
   }

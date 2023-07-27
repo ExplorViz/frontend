@@ -4,6 +4,7 @@ import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-compo
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'virtual-reality/utils/vr-message/util/entity_type';
 
 export default class DetachedMenuRenderer extends Service.extend({}) {
   @service('vr-menu-factory')
@@ -23,8 +24,20 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
   }
 
   restoreMenu(detachedMenu: SerializedDetachedMenu) {
-    const object = this.applicationRenderer.getMeshById(detachedMenu.entityId);
-    if (isEntityMesh(object)) {
+
+    if(detachedMenu.entityType === SPECTATE_VIEW_ENTITY_TYPE){
+      const menu = this.menuFactory.buildSpectateViewMenu();
+      menu.position.fromArray(detachedMenu.position);
+      menu.quaternion.fromArray(detachedMenu.quaternion);
+      menu.scale.fromArray(detachedMenu.scale);
+      this.detachedMenuGroups.addDetachedMenuLocally(
+        menu,
+        detachedMenu.objectId,
+        detachedMenu.userId
+      );
+    }else {
+      const object = this.applicationRenderer.getMeshById(detachedMenu.entityId);
+      if (isEntityMesh(object)) {
       const menu = this.menuFactory.buildInfoMenu(object);
       menu.position.fromArray(detachedMenu.position);
       menu.quaternion.fromArray(detachedMenu.quaternion);
@@ -35,6 +48,8 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
         detachedMenu.userId
       );
     }
+    }
+
   }
 }
 

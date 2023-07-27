@@ -4,6 +4,7 @@ import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VRController from 'virtual-reality/utils/vr-controller';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
@@ -13,6 +14,9 @@ export default class LocalUser extends Service.extend({
 }) {
   @service('configuration')
   configuration!: Configuration;
+
+  @service('vr-message-sender')
+  sender!: VrMessageSender;
 
   userId!: string;
 
@@ -75,6 +79,38 @@ export default class LocalUser extends Service.extend({
 
   tick(delta: number) {
     this.animationMixer.update(delta);
+
+    if(this.visualizationMode === "vr"){
+      this.sendPositions();
+    }
+  }
+
+  sendPositions(){
+
+    if(this.controller1?.position && this.controller2?.position){
+
+      this.sender.sendPoseUpdate(
+        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
+        { position: this.controller1?.position.toArray(), quaternion: this.controller1?.quaternion.toArray() , intersection: this.controller1?.intersectedObject?.point.toArray() ? this.controller1?.intersectedObject?.point.toArray() : null },
+        { position: this.controller2?.position.toArray() , quaternion: this.controller2?.quaternion.toArray() , intersection: this.controller2?.intersectedObject?.point.toArray() ? this.controller2?.intersectedObject?.point.toArray() : null  },
+      );
+    }else if(this.controller1?.position){
+
+      this.sender.sendPoseUpdate(
+        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
+        { position: this.controller1?.position.toArray(), quaternion: this.controller1?.quaternion.toArray() , intersection: this.controller1?.intersectedObject?.point.toArray() ? this.controller1?.intersectedObject?.point.toArray() : null },
+      );
+
+    }else if(this.controller2?.position){
+
+      this.sender.sendPoseUpdate(
+        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
+        { position: this.controller2?.position.toArray() , quaternion: this.controller2?.quaternion.toArray() , intersection: this.controller2?.intersectedObject?.point.toArray() ? this.controller2?.intersectedObject?.point.toArray() : null  },
+      );
+    }else{
+      this.sender.sendPoseUpdate({ position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() });
+    }
+
   }
 
   connected({

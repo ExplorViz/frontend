@@ -5,11 +5,14 @@ import { BaseMenuArgs } from "../../base-menu";
 import * as THREE from "three";
 import { SIZE_RESOLUTION_FACTOR } from "../../ui-menu";
 import VRControllerButtonBinding from "virtual-reality/utils/vr-controller/vr-controller-button-binding";
+import { getIdOfEntity } from "virtual-reality/utils/vr-helpers/detail-info-composer";
+import ApplicationRepository from "explorviz-frontend/services/repos/application-repository";
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
     headsetCamera: THREE.Camera;
+    applicationRepo: ApplicationRepository;
   };
 
 export default class SpectateViewMenu
@@ -25,21 +28,24 @@ export default class SpectateViewMenu
 
     headsetCamera!: THREE.Camera;
 
+    applicationRepo!: ApplicationRepository;
+
     private firstTime : boolean = true;
 
 
-    constructor( {renderer, scene, headsetCamera, ...args} : SpectateViewMenuArgs){
+    constructor( {renderer, scene, headsetCamera, applicationRepo, ...args} : SpectateViewMenuArgs){
         super(args);
         this.renderer = renderer;
         this.scene = scene;
         this.headsetCamera = headsetCamera;
+        this.applicationRepo = applicationRepo; // TODO remove
 
     }
 
 
     getDetachId(): string {
-        return 'spectate-view-menu';
-      }
+      return this.id.toString();
+    }
     
       getEntityType(): EntityType {
         return 'spectate-view-menu';
@@ -75,7 +81,7 @@ export default class SpectateViewMenu
 
         const worldSizeFactor = SIZE_RESOLUTION_FACTOR;
         const geometry = new THREE.PlaneGeometry(res.width * worldSizeFactor, res.height * worldSizeFactor);
-        const material = new THREE.MeshBasicMaterial({ color: 'red'/*map: this.target.texture*/ });
+        const material = new THREE.MeshBasicMaterial({ map: this.target.texture });
         const plane = new THREE.Mesh(geometry, material);
         plane.position.z = 0.001;
         this.add(plane);
