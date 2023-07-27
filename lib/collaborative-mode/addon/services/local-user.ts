@@ -86,31 +86,11 @@ export default class LocalUser extends Service.extend({
   }
 
   sendPositions(){
-
-    if(this.controller1?.position && this.controller2?.position){
-
-      this.sender.sendPoseUpdate(
-        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
-        { position: this.controller1?.position.toArray(), quaternion: this.controller1?.quaternion.toArray() , intersection: this.controller1?.intersectedObject?.point.toArray() ? this.controller1?.intersectedObject?.point.toArray() : null },
-        { position: this.controller2?.position.toArray() , quaternion: this.controller2?.quaternion.toArray() , intersection: this.controller2?.intersectedObject?.point.toArray() ? this.controller2?.intersectedObject?.point.toArray() : null  },
-      );
-    }else if(this.controller1?.position){
-
-      this.sender.sendPoseUpdate(
-        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
-        { position: this.controller1?.position.toArray(), quaternion: this.controller1?.quaternion.toArray() , intersection: this.controller1?.intersectedObject?.point.toArray() ? this.controller1?.intersectedObject?.point.toArray() : null },
-      );
-
-    }else if(this.controller2?.position){
-
-      this.sender.sendPoseUpdate(
-        { position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() },
-        { position: this.controller2?.position.toArray() , quaternion: this.controller2?.quaternion.toArray() , intersection: this.controller2?.intersectedObject?.point.toArray() ? this.controller2?.intersectedObject?.point.toArray() : null  },
-      );
-    }else{
-      this.sender.sendPoseUpdate({ position: this.defaultCamera.position.toArray(), quaternion: this.defaultCamera.quaternion.toArray() });
-    }
-
+    this.sender.sendPoseUpdate(
+      { position: this.camera.position.toArray(), quaternion: this.camera.quaternion.toArray() },
+      { position: [1,1,1], quaternion: [0,0,0,1] , intersection: null },
+      undefined//{ position: [1,1,1], quaternion: [0,0,0,1] , intersection: null },
+    );
   }
 
   connected({
