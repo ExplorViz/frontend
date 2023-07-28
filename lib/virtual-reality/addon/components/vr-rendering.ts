@@ -96,6 +96,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 
 interface Args {
   readonly id: string;
@@ -424,6 +425,13 @@ export default class VrRendering extends Component<Args> {
 
     this.primaryInputManager.addInputHandler({
       targetType: SearchListItem,
+      triggerDown: (event) => event.target.triggerDown(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: UserListItem,
       triggerDown: (event) => event.target.triggerDown(),
       hover: (event) => event.target.applyHover(),
       resetHover: (event) => event.target.resetHover(),

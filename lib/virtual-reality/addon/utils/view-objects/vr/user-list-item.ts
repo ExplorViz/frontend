@@ -11,6 +11,7 @@ export const BLOCK_OPTIONS_LIST_ITEM = {
 
 export type UserListItemArgs = ThreeMeshUI.BlockOptions & {
   owner: any;
+  userName: string;
   userId: string;
 };
 
@@ -22,18 +23,20 @@ export default class UserListItem
   collaborationSession!: CollaborationSession;
 
   isHovered = false;
+  userName: string;
   userId: string;
 
 
   constructor({
     owner,
+    userName,
     userId,
     ...options
   }: UserListItemArgs) {
     super({ ...options, hiddenOverflow: true });
     setOwner(this, owner);
+    this.userName = userName;
     this.userId = userId;
-    const userName = this.collaborationSession.lookupRemoteUserById(this.userId)?.userName;
     const itemText = new ThreeMeshUI.Text({ content: userName });
     this.add(itemText);
   }
@@ -45,7 +48,8 @@ export default class UserListItem
 
   triggerDown() {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(this.userId);
-    // TODO: öffne detachable view
+    // TODO: Rufe methode in online-menu2 auf
+
   }
 
   applyHover() {

@@ -192,6 +192,10 @@ export default class RemoteUser extends THREE.Object3D {
     }
   }
 
+  getVisualizationMode() : string {
+    return this.localUser.visualizationMode;
+  }
+
   /**
    * Updates the the remote user once per frame.
    *

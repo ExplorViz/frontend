@@ -9,55 +9,56 @@ import { UiMenuArgs } from '../../ui-menu';
 import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import VRController from 'virtual-reality/utils/vr-controller';
 import InteractiveMenu from '../../interactive-menu';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export type UserMenuArgs = UiMenuArgs & {
   owner: any;
   renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
 };
 
 const BLOCK_OPTIONS_CONTAINER = {
-  width: 0.8,
-  height: 1.2,
+  width: 0.4,
+  height: 0.5,
   fontFamily: '/images/keyboard/custom-msdf.json',
   fontTexture: '/images/keyboard/custom.png',
 };
 
 const BLOCK_OPTIONS_SEARCHLIST_CONTAINER = {
   width: BLOCK_OPTIONS_CONTAINER.width,
-  height: 0.3,
-};
-
-const colors = {
-  keyboardBack: 0x858585,
-  panelBack: 0x262626,
-  button: 0x363636,
-  hovered: 0x1c1c1c,
-  selected: 0x109c5d,
+  height: BLOCK_OPTIONS_CONTAINER.height,
 };
 
 export default class OnlineMenu2 extends InteractiveMenu {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
+
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   owner: any;
-  renderer: THREE.WebGLRenderer;
+  renderer!: THREE.WebGLRenderer;
+  scene!: THREE.Scene; 
   remoteUsers!: Set<string>;
   userListContainer!: ThreeMeshUI.Block;
-  keyboardContainer!: ThreeMeshUI.Block;
   userList!: UserList;
 
-  constructor({ owner, renderer, ...args }: UserMenuArgs) {
+  constructor({ owner, renderer, scene, ...args }: UserMenuArgs) {
     super(args);
     this.owner = owner;
     setOwner(this, owner);
     this.renderer = renderer;
+    this.scene = scene;
     this.renderer.localClippingEnabled = true;
+
     this.makeUI();
   }
 
-  makeUI() {
+  makeUI(){
+
     this.container = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
       height: BLOCK_OPTIONS_CONTAINER.height,
@@ -70,8 +71,24 @@ export default class OnlineMenu2 extends InteractiveMenu {
     });
 
     this.add(this.container);
-   
+
+    const titleBlock = new ThreeMeshUI.Block({
+      width: BLOCK_OPTIONS_CONTAINER.width,
+      height: 0.05,
+      justifyContent: 'center',
+      textAlign: 'center',
+      offset: 0.02,
+    });
+
+    const title = new ThreeMeshUI.Text({
+      content: "Viewer FOV",
+      fontColor: new THREE.Color('#ffffff'),
+    });
+
+    titleBlock.add(title);
+
     this.remoteUsers = new Set<string>(this.collaborationSession.getAllRemoteUserIds());
+
     this.userListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
@@ -80,6 +97,13 @@ export default class OnlineMenu2 extends InteractiveMenu {
       backgroundColor: new THREE.Color('#777777'),
       backgroundOpacity: 0.6,
     });
+
+    this.container.add(this.userListContainer);
+    this.userListContainer.add(titleBlock);
+    this.updateUI();
+  }
+
+  updateUI() {
     this.userList = new UserList({
       owner: this.owner,
       users: this.remoteUsers,
@@ -89,15 +113,34 @@ export default class OnlineMenu2 extends InteractiveMenu {
       backgroundOpacity: 0,
     });
     this.userListContainer.add(this.userList);
-    this.container.add(this.userListContainer);
-
-    this.container.position.y += 0.09;
-    this.container.position.z -= 0.1;
   }
   
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
+
+    if (
+      !this.arrayEquals(
+        Array.from(this.collaborationSession.getAllRemoteUserIds()),
+        Array.from(this.remoteUsers)//this.remoteUserButtons.keys())
+      )
+    ) {
+      this.remoteUsers = new Set<string>(this.collaborationSession.getAllRemoteUserIds());
+
+      this.userListContainer.remove(this.userList);
+      this.userList.clear();
+      this.updateUI();
+    }
+  }
+  
+
+  private arrayEquals(a: string[], b: string[]) {
+    return a.length === b.length && a.every((val, index) => val === b[index]);
+  }
+
+
+  openSpectateViewMenu(userId: string){
+    this.menuGroup?.replaceMenu(this.menuFactory.buildSpectateViewMenu(userId));
   }
 
   /**

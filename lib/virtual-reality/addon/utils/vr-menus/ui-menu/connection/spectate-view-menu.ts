@@ -2,17 +2,18 @@ import { EntityType } from "virtual-reality/utils/vr-message/util/entity_type";
 import { DetachableMenu } from "../../detachable-menu";
 import InteractiveMenu from "../../interactive-menu";
 import { BaseMenuArgs } from "../../base-menu";
+import { inject as service } from '@ember/service';
 import * as THREE from "three";
 import { SIZE_RESOLUTION_FACTOR } from "../../ui-menu";
 import VRControllerButtonBinding from "virtual-reality/utils/vr-controller/vr-controller-button-binding";
-import { getIdOfEntity } from "virtual-reality/utils/vr-helpers/detail-info-composer";
-import ApplicationRepository from "explorviz-frontend/services/repos/application-repository";
+import CollaborationSession from "collaborative-mode/services/collaboration-session";
+import { setOwner } from '@ember/application';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
+    owner: any;
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
-    headsetCamera: THREE.Camera;
-    applicationRepo: ApplicationRepository;
+    userId: string;
   };
 
 export default class SpectateViewMenu
@@ -20,28 +21,51 @@ export default class SpectateViewMenu
   implements DetachableMenu
 {
 
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
+
     target!: THREE.WebGLRenderTarget;
 
     renderer!: THREE.WebGLRenderer;
 
     scene!: THREE.Scene;
 
-    headsetCamera!: THREE.Camera;
+    userId!: string;
 
-    applicationRepo!: ApplicationRepository;
+    headsetCamera!: THREE.Camera;
 
     private firstTime : boolean = true;
 
 
-    constructor( {renderer, scene, headsetCamera, applicationRepo, ...args} : SpectateViewMenuArgs){
+    constructor( {owner, renderer, scene, userId, ...args} : SpectateViewMenuArgs){
         super(args);
+        setOwner(this, owner);
         this.renderer = renderer;
         this.scene = scene;
-        this.headsetCamera = headsetCamera;
-        this.applicationRepo = applicationRepo; // TODO remove
-
+        this.userId = userId;
+        this.headsetCamera = new THREE.PerspectiveCamera(); 
     }
 
+   private isVisualizationModeVr() : boolean {
+      return (this.collaborationSession.lookupRemoteUserById(this.userId)?.getVisualizationMode() === "vr");
+    }
+
+
+    private updatePositions(){
+      const cameraModel = this.collaborationSession.lookupRemoteUserById(this.userId)?.camera?.model;
+
+      if(!cameraModel) return;
+
+      const cameraPosition = cameraModel.position;
+      const cameraQuaternion = cameraModel?.quaternion;
+
+      this.headsetCamera.position.copy(cameraPosition);
+      this.headsetCamera.quaternion.copy(cameraQuaternion);
+    }
+
+    private printError(){
+      //TODO: clear content and replace with error text
+    }
 
     getDetachId(): string {
       return this.id.toString();
@@ -62,7 +86,11 @@ export default class SpectateViewMenu
 
       onUpdateMenu(delta: number) {
         super.onUpdateMenu(delta);
-        this.renderView();
+
+        if(this.isVisualizationModeVr()){
+          this.updatePositions();
+          this.renderView();
+        }
       }
 
       onCloseMenu(): void {

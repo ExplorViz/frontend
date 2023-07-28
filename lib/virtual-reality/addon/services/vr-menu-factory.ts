@@ -150,10 +150,10 @@ export default class VrMenuFactoryService extends Service {
     return new OnlineMenu2({
       owner: getOwner(this),
       renderer: this.renderer,
+      scene: this.scene,
       menuFactory: this,
     });
   }
-
 
   buildJoinMenu(): JoinMenu {
     return new JoinMenu({
@@ -257,12 +257,12 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildSpectateViewMenu(): SpectateViewMenu {
+  buildSpectateViewMenu(userId : string): SpectateViewMenu {
     return new SpectateViewMenu({
+      owner: getOwner(this),
       renderer: this.renderer,
       scene: this.scene,
-      headsetCamera: this.localUser.camera,
-      applicationRepo: this.applicationRepo,
+      userId: userId,
       menuFactory: this,
     });
   }
