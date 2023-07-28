@@ -4,7 +4,9 @@ import UserListItem, { BLOCK_OPTIONS_LIST_ITEM } from './user-list-item';
 import LocalUser from 'collaborative-mode/services/local-user';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { setOwner } from '@ember/application';
+import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 export type UserListArgs = ThreeMeshUI.BlockOptions & {
+  menu: OnlineMenu2;
   owner: any;
   users: Set<string>;
 };
@@ -17,15 +19,18 @@ export default class UserList extends ThreeMeshUI.Block {
   @service('local-user')
   localUser!: LocalUser;
   
+  menu: OnlineMenu2;
   owner: any;
   users: Set<string>;
 
   constructor({
+    menu,
     owner,
     users,
     ...options
   }: UserListArgs) {
     super(options);
+    this.menu = menu;
     this.owner = owner;
     setOwner(this, owner);
     this.users = users;
@@ -43,6 +48,7 @@ export default class UserList extends ThreeMeshUI.Block {
     const userId = this.localUser.userId;
 
     const firstItem = new UserListItem({
+      menu: this.menu,
       owner: this.owner,
       userName: userName + " (YOU)",
       userId: userId,
@@ -53,6 +59,7 @@ export default class UserList extends ThreeMeshUI.Block {
     this.users.forEach((userId) => {
       const userName = this.collaborationSession.lookupRemoteUserById(userId)?.userName;
       const item = new UserListItem({
+        menu: this.menu,
         owner: this.owner,
         userName: userName || "unknown",
         userId: userId,

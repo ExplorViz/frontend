@@ -105,6 +105,7 @@ export default class OnlineMenu2 extends InteractiveMenu {
 
   updateUI() {
     this.userList = new UserList({
+      menu: this,
       owner: this.owner,
       users: this.remoteUsers,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,

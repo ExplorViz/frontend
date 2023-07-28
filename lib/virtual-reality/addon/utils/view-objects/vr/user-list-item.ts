@@ -4,12 +4,14 @@ import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,
 };
 
 export type UserListItemArgs = ThreeMeshUI.BlockOptions & {
+  menu: OnlineMenu2;
   owner: any;
   userName: string;
   userId: string;
@@ -23,17 +25,21 @@ export default class UserListItem
   collaborationSession!: CollaborationSession;
 
   isHovered = false;
+
+  menu: OnlineMenu2;
   userName: string;
   userId: string;
 
 
   constructor({
+    menu,
     owner,
     userName,
     userId,
     ...options
   }: UserListItemArgs) {
     super({ ...options, hiddenOverflow: true });
+    this.menu = menu;
     setOwner(this, owner);
     this.userName = userName;
     this.userId = userId;
@@ -47,9 +53,7 @@ export default class UserListItem
   }
 
   triggerDown() {
-    const remoteUser = this.collaborationSession.lookupRemoteUserById(this.userId);
-    // TODO: Rufe methode in online-menu2 auf
-
+    this.menu.openSpectateViewMenu(this.userId);
   }
 
   applyHover() {
