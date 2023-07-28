@@ -132,6 +132,7 @@ export default class CollaborationSession extends Service.extend({
     return this.idToRemoteUser.values();
   }
 
+
   lookupRemoteUserById(userId: string): RemoteUser | undefined {
     return this.idToRemoteUser.get(userId);
   }

@@ -179,7 +179,7 @@ export default class VrRendering extends Component<Args> {
 
   private willDestroyController: AbortController = new AbortController();
 
-  private mouseIntersection: THREE.Intersection | null = null;
+  private mouseIntersection: THREE.Intersection | undefined = undefined;
 
   private renderer!: THREE.WebGLRenderer;
 
@@ -993,14 +993,14 @@ export default class VrRendering extends Component<Args> {
   }
 
   @action
-  handleMouseMove(intersection: THREE.Intersection | null) {
+  handleMouseMove(intersection: THREE.Intersection | undefined) {
     if (this.vrSessionActive) return;
     this.mouseIntersection = intersection;
     this.handleHover(intersection, null);
   }
 
   private handleHover(
-    intersection: THREE.Intersection | null,
+    intersection: THREE.Intersection | undefined,
     controller: VRController | null
   ) {
     if (intersection) {

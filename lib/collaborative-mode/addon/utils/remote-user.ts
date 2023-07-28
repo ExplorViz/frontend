@@ -23,7 +23,7 @@ type Camera = {
 
 type Controller = {
   assetUrl: string;
-  intersection: THREE.Vector3 | null;
+  intersection: THREE.Vector3 | undefined;
   model: THREE.Object3D;
   ray: RayMesh;
   pingMesh: PingMesh;
@@ -142,7 +142,7 @@ export default class RemoteUser extends THREE.Object3D {
       assetUrl,
       position: new THREE.Vector3(),
       quaternion: new THREE.Quaternion(),
-      intersection: null,
+      intersection: undefined,
       model,
       ray,
       pingMesh,
@@ -231,6 +231,7 @@ export default class RemoteUser extends THREE.Object3D {
       controller.model.quaternion.fromArray(quaternion);
       controller.intersection =
         intersection && new THREE.Vector3().fromArray(intersection);
+
       controller.pingMesh.updateIntersection(controller.intersection);
     }
   }

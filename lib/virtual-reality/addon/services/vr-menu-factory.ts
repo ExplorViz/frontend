@@ -41,6 +41,7 @@ import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-i
 import VrRendering from 'virtual-reality/components/vr-rendering';
 import VRController from 'virtual-reality/utils/vr-controller';
 import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
+import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -144,6 +145,15 @@ export default class VrMenuFactoryService extends Service {
       menuFactory: this,
     });
   }
+
+  buildOnlineMenu2(): OnlineMenu2 {
+    return new OnlineMenu2({
+      owner: getOwner(this),
+      renderer: this.renderer,
+      menuFactory: this,
+    });
+  }
+
 
   buildJoinMenu(): JoinMenu {
     return new JoinMenu({

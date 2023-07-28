@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { WebXRManager } from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VRController from 'virtual-reality/utils/vr-controller';
+import { getPoses } from 'virtual-reality/utils/vr-helpers/vr-poses';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -86,11 +87,8 @@ export default class LocalUser extends Service.extend({
   }
 
   sendPositions(){
-    this.sender.sendPoseUpdate(
-      { position: this.camera.position.toArray(), quaternion: this.camera.quaternion.toArray() },
-      { position: [1,1,1], quaternion: [0,0,0,1] , intersection: null },
-      undefined//{ position: [1,1,1], quaternion: [0,0,0,1] , intersection: null },
-    );
+    const { camera, controller1, controller2 } = getPoses(this.defaultCamera, this.controller1, this.controller2);
+    this.sender.sendPoseUpdate(camera, controller1, controller2);
   }
 
   connected({

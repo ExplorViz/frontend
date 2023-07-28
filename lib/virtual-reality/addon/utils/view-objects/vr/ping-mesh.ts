@@ -60,7 +60,7 @@ export default class PingMesh extends THREE.Mesh {
     this.visible = false;
   }
 
-  updateIntersection(intersection: THREE.Vector3 | null) {
+  updateIntersection(intersection: THREE.Vector3 | undefined) {
     if (intersection) {
       this.position.copy(intersection);
       this.startAnimation();
