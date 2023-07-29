@@ -302,7 +302,6 @@ export default class CollaborationSession extends Service.extend({
     userId,
     originalMessage: { camera, controller1, controller2 },
   }: ForwardedMessage<UserPositionsMessage>): void {
-    console.log(userId);
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) return;
 
