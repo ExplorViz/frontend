@@ -8,6 +8,7 @@ import { SIZE_RESOLUTION_FACTOR } from "../../ui-menu";
 import VRControllerButtonBinding from "virtual-reality/utils/vr-controller/vr-controller-button-binding";
 import CollaborationSession from "collaborative-mode/services/collaboration-session";
 import { setOwner } from '@ember/application';
+import LocalUser from "collaborative-mode/services/local-user";
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
     owner: any;
@@ -24,6 +25,9 @@ export default class SpectateViewMenu
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('local-user')
+  localUser!: LocalUser;
+  
     target!: THREE.WebGLRenderTarget;
 
     renderer!: THREE.WebGLRenderer;
@@ -47,20 +51,26 @@ export default class SpectateViewMenu
     }
 
    private isVisualizationModeVr() : boolean {
+       if (this.localUser.userId === this.userId){
+        return this.localUser.visualizationMode === "vr";
+       }
       return (this.collaborationSession.lookupRemoteUserById(this.userId)?.getVisualizationMode() === "vr");
     }
 
 
     private updatePositions(){
       const cameraModel = this.collaborationSession.lookupRemoteUserById(this.userId)?.camera?.model;
+      if(this.localUser.userId === this.userId) { 
+        this.headsetCamera = (this.localUser.camera as THREE.WebXRArrayCamera).cameras[0];
+       } 
+        else {  
+          if(!cameraModel) return;
+          const cameraPosition = cameraModel.position;
+          const cameraQuaternion = cameraModel.quaternion;
 
-      if(!cameraModel) return;
-
-      const cameraPosition = cameraModel.position;
-      const cameraQuaternion = cameraModel?.quaternion;
-
-      this.headsetCamera.position.copy(cameraPosition);
-      this.headsetCamera.quaternion.copy(cameraQuaternion);
+          this.headsetCamera.position.copy(cameraPosition);
+          this.headsetCamera.quaternion.copy(cameraQuaternion);
+        }
     }
 
     private printError(){
@@ -111,7 +121,15 @@ export default class SpectateViewMenu
         const geometry = new THREE.PlaneGeometry(res.width * worldSizeFactor, res.height * worldSizeFactor);
         const material = new THREE.MeshBasicMaterial({ map: this.target.texture });
         const plane = new THREE.Mesh(geometry, material);
-        plane.position.z = 0.001;
+
+        const backgroundPlaneGeometry = new THREE.PlaneGeometry(res.width * worldSizeFactor + 0.25, res.height * worldSizeFactor + 0.25);
+        const backgroundPlaneMaterial = new THREE.MeshBasicMaterial({ color: 'black' });
+        const backgroundPlane = new THREE.Mesh(backgroundPlaneGeometry, backgroundPlaneMaterial);
+        plane.position.z = 0.005;
+        plane.add(backgroundPlane);
+        backgroundPlane.position.z -= 0.005;
+
+
         this.add(plane);
 
         this.firstTime = false;
