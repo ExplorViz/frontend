@@ -98,7 +98,7 @@ export default class VisualizationController extends Controller {
   components: string[] = [];
 
   @tracked
-  showTimeline: boolean = true;
+  isTimelineActive: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -128,6 +128,10 @@ export default class VisualizationController extends Controller {
       this.landscapeData !== null &&
       this.landscapeData.structureLandscapeData.nodes.length > 0
     );
+  }
+
+  get showTimeline() {
+    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
   }
 
   @action
@@ -247,16 +251,12 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  addComponent(component: string) {
-    this.debug('addComponent');
+  toggleSidebarComponent(component: string) {
     if (this.components.includes(component)) {
-      // remove it and readd it in the code below,
-      // so it again appears on top inside the sidebar
-      // This will not reset the component
       this.removeComponent(component);
+    } else {
+      this.components = [component, ...this.components];
     }
-
-    this.components = [component, ...this.components];
   }
 
   @action
@@ -314,7 +314,7 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleTimeline() {
-    this.showTimeline = !this.showTimeline;
+    this.isTimelineActive = !this.isTimelineActive;
   }
 
   @action

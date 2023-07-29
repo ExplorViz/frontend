@@ -47,7 +47,7 @@ interface Args {
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
-  addComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
   closeDataSelection(): void;

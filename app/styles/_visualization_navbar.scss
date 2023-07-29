@@ -1,6 +1,7 @@
 .nav-link-with-cursor {
   @extend .nav-link;
   cursor: pointer;
+  user-select: none
 }
 
 .nav-item-with-def-cursor {
@@ -21,6 +22,7 @@
   align-self: center;
   background-color: #dbdbdb;
   width: 100%;
+  border-radius: 0.25rem;
 }
 
 .explorviz-visualization-navbar > ul {
@@ -28,6 +30,8 @@
   padding-left: 0;
   display: flex;
   flex-direction: row;
+  user-select: none; /* supported by Chrome and Opera */
+  -webkit-user-select: none; /* Safari */
 }
 
 .explorviz-visualization-navbar > ul > li {
