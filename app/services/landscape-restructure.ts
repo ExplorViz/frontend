@@ -17,6 +17,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   public restructureMode: boolean = false;
 
   @tracked
+  clipboard: string = "";
+
+  @tracked
   public landscapeData: LandscapeData | null = null;
 
   @tracked

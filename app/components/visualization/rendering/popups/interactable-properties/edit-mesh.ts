@@ -55,5 +55,15 @@ export default class EditMesh extends Component<Args> {
             this.landscapeRestructure.deleteClassFromPopup(this.args.entity);
 
     }
+
+    @action
+    cutMesh() {
+
+    }
+
+    @action
+    insertMesh() {
+        
+    }
     
 }
