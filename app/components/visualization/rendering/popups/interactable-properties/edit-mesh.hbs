@@ -24,12 +24,14 @@
             Cut
         </BsTooltip>
     </BsButton>
-    <BsButton @type='light' {{on 'click' this.insertMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
-        <BsTooltip @placement='top' @triggerEvents='hover'>
-            Insert
-        </BsTooltip>
-    </BsButton>
+    {{#if this.isInsertable}}
+        <BsButton @type='light' {{on 'click' this.insertMesh}}>
+            {{svg-jar this.iconName class='octicon align-right'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+                Insert
+            </BsTooltip>
+        </BsButton>
+    {{/if}}
 {{else if this.isEntityApplication}}
     <BsButton @type='success' {{on 'click' this.addPackage}}>
         {{svg-jar this.iconName class='octicon align-right'}}
@@ -43,6 +45,14 @@
             Delete
         </BsTooltip>
     </BsButton>
+    {{#if this.isInsertable}}
+        <BsButton @type='light' {{on 'click' this.insertMesh}}>
+            {{svg-jar this.iconName class='octicon align-right'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+                Insert
+            </BsTooltip>
+        </BsButton>
+    {{/if}}
 {{else if this.isEntityClass}}
     <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
         {{svg-jar this.iconName class='octicon align-right'}}
@@ -50,16 +60,10 @@
             Delete
         </BsTooltip>
     </BsButton>
-    <BsButton @type='danger' {{on 'click' this.cutMesh}}>
+    <BsButton @type='dark' {{on 'click' this.cutMesh}}>
         {{svg-jar this.iconName class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Cut
-        </BsTooltip>
-    </BsButton>
-    <BsButton @type='danger' {{on 'click' this.insertMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
-        <BsTooltip @placement='top' @triggerEvents='hover'>
-            Insert
         </BsTooltip>
     </BsButton>
 {{/if}}

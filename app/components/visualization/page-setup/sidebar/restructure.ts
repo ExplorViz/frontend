@@ -36,12 +36,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
+  @tracked
+  clipboard: string = "";
   //@tracked
   //landscapeData: LandscapeData | null = null;
 
   @tracked
   restructureMode: boolean = false;
 
+  get clip_board() {
+    return this.landscapeRestructure.clipboard;
+  }
+  
   @action
   close() {
     this.args.removeComponent('restructure-landscape');
@@ -66,6 +72,12 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       }
       AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
     }
+  }
+
+
+  @action
+  resetClipboardBtn() {
+    this.landscapeRestructure.resetClipboard();
   }
 
   @action

@@ -27,6 +27,27 @@ export function getApplicationInLandscapeById(
   )[0];
 }
 
+export function getApplicationFromPackage(
+  landscapeStructure: StructureLandscapeData,
+  packageId: string
+): Application | undefined {
+  let matchingApplication: Application | undefined;
+
+  landscapeStructure.nodes.forEach((node) => {
+    node.applications.forEach((application) => {
+      const possibleMatch = application.packages.find(
+        (packg) => packg.id === packageId
+      );
+
+      if (possibleMatch) {
+        matchingApplication = application;
+      }
+    });
+  });
+
+  return matchingApplication;
+}
+
 export function getApplicationFromClass(
   structureData: StructureLandscapeData,
   clazz: Class

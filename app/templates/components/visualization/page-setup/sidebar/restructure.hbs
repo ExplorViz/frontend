@@ -58,8 +58,8 @@
 
     <h6 class="mb-3 mt-3"><strong>Clipboard</strong></h6>
     <div class="d-flex justify-content-between">
-      <input class="form-control mr-2" disabled>
-      <button class="btn btn-light" title="Reset Clipboard"></button>
+      <input class="form-control mr-2"  value={{this.clip_board}} disabled>
+      <button class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
     </div>
   {{/if}}
 

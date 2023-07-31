@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, addSubPackageToPackage, removeApplication, removeClassFromPackage, removePackageFromApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, addSubPackageToPackage, cutAndInsertPackageOrClass, removeApplication, removeClassFromPackage, removePackageFromApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import internal from 'stream';
 import { Application, Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -17,9 +17,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   public restructureMode: boolean = false;
 
   @tracked
-  clipboard: string = "";
-
-  @tracked
   public landscapeData: LandscapeData | null = null;
 
   @tracked
@@ -27,6 +24,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @tracked
   newMeshCounter: number = 1;
+
+  @tracked
+  clipboard: string = "";
+
+  @tracked
+  clippedMesh: Package | Class | null = null;
 
   toggleRestructureMode() {
     return (this.restructureMode = !this.restructureMode);
@@ -162,7 +165,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   deletePackageFromPopup(pckg: Package) {
     if(this.landscapeData?.structureLandscapeData) {
-      removePackageFromApplication(pckg);
+      removePackageFromApplication(this.landscapeData.structureLandscapeData, pckg);
       if(this.landscapeData?.structureLandscapeData) {
         this.trigger(
           'restructureLandscapeData',
@@ -186,6 +189,34 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
+  cutPackageFromPopup(pckg: Package) {
+    this.clipboard = pckg.name;
+    this.clippedMesh = pckg;
+  }
+
+  cutClassFromPopup(clazz: Class) {
+    this.clipboard = clazz.name;
+    this.clippedMesh = clazz;
+  }
+
+  resetClipboard() {
+    this.clipboard = "";
+    this.clippedMesh = null;
+  }
+
+  insertPackageOrClassFromPopup(pckg: Package) {
+    if(this.landscapeData?.structureLandscapeData) {
+      cutAndInsertPackageOrClass(this.clippedMesh, pckg, this.landscapeData.structureLandscapeData);
+      this.resetClipboard();
+      if(this.landscapeData?.structureLandscapeData) {
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        )
+      }
+    }
+  }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

@@ -4,6 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { isApplication, isClass, isPackage } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Package } from '@embroider/core';
 
 interface Args {
     entity : any;
@@ -28,6 +29,19 @@ export default class EditMesh extends Component<Args> {
 
     get isEntityClass() {
         return isClass(this.args.entity);
+    }
+
+    get isInsertable(): boolean {
+        if(!this.landscapeRestructure.clippedMesh)
+            return false;
+        
+        const isClippedMeshPackage = isPackage(this.landscapeRestructure.clippedMesh);
+        const isEntityApplicationOrPackage = isApplication(this.args.entity) || isPackage(this.args.entity);
+
+        const isClippedMeshClass = isClass(this.landscapeRestructure.clippedMesh);
+        const isEntityPackage = isPackage(this.args.entity);
+
+        return (isClippedMeshPackage && isEntityApplicationOrPackage) || (isClippedMeshClass && isEntityPackage);
     }
 
     @action
@@ -58,12 +72,14 @@ export default class EditMesh extends Component<Args> {
 
     @action
     cutMesh() {
-
+        if(this.isEntityPackage)
+            this.landscapeRestructure.cutPackageFromPopup(this.args.entity);
+        else if(this.isEntityClass)
+            this.landscapeRestructure.cutClassFromPopup(this.args.entity);
     }
 
     @action
     insertMesh() {
-        
-    }
-    
+        this.landscapeRestructure.insertPackageOrClassFromPopup(this.args.entity);
+    }    
 }
