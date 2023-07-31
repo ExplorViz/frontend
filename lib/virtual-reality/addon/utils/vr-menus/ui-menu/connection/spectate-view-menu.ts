@@ -122,7 +122,7 @@ export default class SpectateViewMenu
         const material = new THREE.MeshBasicMaterial({ map: this.target.texture });
         const plane = new THREE.Mesh(geometry, material);
 
-        const backgroundPlaneGeometry = new THREE.PlaneGeometry(res.width * worldSizeFactor + 0.25, res.height * worldSizeFactor + 0.25);
+        const backgroundPlaneGeometry = new THREE.PlaneGeometry(res.width * worldSizeFactor + 0.05, res.height * worldSizeFactor + 0.05);
         const backgroundPlaneMaterial = new THREE.MeshBasicMaterial({ color: 'black' });
         const backgroundPlane = new THREE.Mesh(backgroundPlaneGeometry, backgroundPlaneMaterial);
         plane.position.z = 0.005;

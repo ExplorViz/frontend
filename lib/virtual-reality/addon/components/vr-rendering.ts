@@ -97,6 +97,7 @@ import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-it
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
+import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 
 interface Args {
   readonly id: string;
@@ -243,6 +244,7 @@ export default class VrRendering extends Component<Args> {
     this.initSecondaryInput();
     this.initControllers();
     this.initWebSocket();
+    
   }
 
   /**
@@ -545,6 +547,8 @@ export default class VrRendering extends Component<Args> {
     controller.eventCallbacks.disconnected = () =>
       this.onControllerDisconnected(controller);
 
+    
+
     // Add hover event listeners.
     controller.eventCallbacks.updateIntersectedObject = () => {
       this.handleHover(controller.intersectedObject, controller);
@@ -578,6 +582,9 @@ export default class VrRendering extends Component<Args> {
       this,
       this.onDetachedMenuClosed
     );
+    this.webSocket.on(JOIN_VR_EVENT, this, this.onJoinVr);
+
+    this.sender.sendJoinVr();
   }
 
   // #endregion INITIALIZATION
@@ -607,6 +614,7 @@ export default class VrRendering extends Component<Args> {
       this,
       this.onDetachedMenuClosed
     );
+    this.webSocket.off(JOIN_VR_EVENT, this, this.onJoinVr);
 
     this.renderingLoop.stop();
     // Reset rendering.
@@ -844,6 +852,9 @@ export default class VrRendering extends Component<Args> {
 
     this.sender.sendControllerConnect(controller);
   }
+
+
+
 
   private onControllerDisconnected(controller: VRController) {
     // Close all open menus of the disconnected controller.
@@ -1143,6 +1154,11 @@ export default class VrRendering extends Component<Args> {
     if (remoteUser) {
       remoteUser.removeController(controllerId);
     }
+  }
+
+  onJoinVr( message : ForwardedMessage<JoinVrMessage>): void {
+    if(this.localUser.controller1) this.sender.sendControllerConnect(this.localUser.controller1);
+    if(this.localUser.controller2) this.sender.sendControllerConnect(this.localUser.controller2);
   }
 
   onObjectMoved({

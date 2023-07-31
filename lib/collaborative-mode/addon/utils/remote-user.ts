@@ -227,6 +227,9 @@ export default class RemoteUser extends THREE.Object3D {
     controllerId: ControllerId,
     { position, quaternion, intersection }: ControllerPose
   ) {
+
+
+
     const controller = this.controllers[controllerId];
     if (!controller) return;
 

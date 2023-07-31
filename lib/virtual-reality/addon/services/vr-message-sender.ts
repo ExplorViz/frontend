@@ -21,11 +21,15 @@ import {
   UserPositionsMessage,
 } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
   private webSocket!: WebSocketService;
 
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
   /**
    * Gets the next request identifier.
    *
@@ -41,12 +45,12 @@ export default class VrMessageSender extends Service {
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined
   ) {
-    this.webSocket.send<UserPositionsMessage>({
-      event: 'user_positions',
-      controller1,
-      controller2,
-      camera,
-    });
+    // this.webSocket.send<UserPositionsMessage>({
+    //   event: 'user_positions',
+    //   controller1,
+    //   controller2,
+    //   camera,
+    // });
   }
 
   /**
@@ -157,6 +161,12 @@ export default class VrMessageSender extends Service {
         controllerId: controller.gamepadIndex,
         ...getControllerPose(controller),
       },
+    });
+  }
+
+  async sendJoinVr(){
+    this.webSocket.send<JoinVrMessage>({
+      event: 'join_vr',
     });
   }
 

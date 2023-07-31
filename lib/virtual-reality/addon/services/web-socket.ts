@@ -5,6 +5,8 @@ import ENV from 'explorviz-frontend/config/environment';
 import { Nonce } from 'virtual-reality/utils/vr-message/util/nonce';
 import { RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response';
 import { FORWARDED_EVENT } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { USER_CONTROLLER_CONNECT_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_controller_connect';
+import VrMessageSender from './vr-message-sender';
 
 type ResponseHandler<T> = (msg: T) => void;
 

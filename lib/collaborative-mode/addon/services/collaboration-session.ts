@@ -34,6 +34,7 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -187,7 +188,7 @@ export default class CollaborationSession extends Service.extend({
       quaternion,
     });
     this.addRemoteUser(remoteUser);
-
+    
     this.toastMessage.message({
       title: 'User connected',
       text: remoteUser.userName,
