@@ -5,6 +5,7 @@ import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/seri
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
 import { SPECTATE_VIEW_ENTITY_TYPE } from 'virtual-reality/utils/vr-message/util/entity_type';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export default class DetachedMenuRenderer extends Service.extend({}) {
   @service('vr-menu-factory')
@@ -16,6 +17,10 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
+
   restore(detachedMenus: SerializedDetachedMenu[]) {
     // Initialize detached menus.
     detachedMenus.forEach((detachedMenu) => {
@@ -23,32 +28,24 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
     });
   }
 
-  restoreMenu(detachedMenu: SerializedDetachedMenu) {
+  restoreMenu(detachedMenu: SerializedDetachedMenu) { // TODO: VR TESTEN
 
-    if(detachedMenu.entityType === SPECTATE_VIEW_ENTITY_TYPE){
-      const menu = this.menuFactory.buildSpectateViewMenu();
-      menu.position.fromArray(detachedMenu.position);
-      menu.quaternion.fromArray(detachedMenu.quaternion);
-      menu.scale.fromArray(detachedMenu.scale);
-      this.detachedMenuGroups.addDetachedMenuLocally(
-        menu,
-        detachedMenu.objectId,
-        detachedMenu.userId
-      );
-    }else {
+    if(!(detachedMenu.entityType === SPECTATE_VIEW_ENTITY_TYPE)){
       const object = this.applicationRenderer.getMeshById(detachedMenu.entityId);
+      
       if (isEntityMesh(object)) {
-      const menu = this.menuFactory.buildInfoMenu(object);
-      menu.position.fromArray(detachedMenu.position);
-      menu.quaternion.fromArray(detachedMenu.quaternion);
-      menu.scale.fromArray(detachedMenu.scale);
-      this.detachedMenuGroups.addDetachedMenuLocally(
-        menu,
-        detachedMenu.objectId,
-        detachedMenu.userId
-      );
+        const menu = this.menuFactory.buildInfoMenu(object);
+        menu.position.fromArray(detachedMenu.position);
+        menu.quaternion.fromArray(detachedMenu.quaternion);
+        menu.scale.fromArray(detachedMenu.scale);
+        this.detachedMenuGroups.addDetachedMenuLocally(
+          menu,
+          detachedMenu.objectId,
+          detachedMenu.userId
+        );
+      }
     }
-    }
+    
 
   }
 }

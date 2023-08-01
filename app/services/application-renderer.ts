@@ -168,6 +168,19 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
+  /**
+   * Returns application id of the application which contains the mesh with the given id, if existend. Else undefined.
+   *
+   * @param id The mesh's id to lookup
+   */
+  getApplicationIdByMeshId(meshId: string){
+    for (const application of this.getOpenApplications()) {
+      const mesh = application.getMeshById(meshId);
+      if (mesh) return application.getModelId();
+    }
+    return undefined;
+  }
+
   getOpenApplications(): ApplicationObject3D[] {
     return Array.from(this.openApplicationsMap.values());
   }

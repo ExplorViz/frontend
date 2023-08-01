@@ -38,6 +38,8 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { SerializedApp, SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -85,6 +87,9 @@ export default class VisualizationController extends Controller {
 
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -391,13 +396,18 @@ export default class VisualizationController extends Controller {
   // user handling end
   async onInitialLandscape({
     landscape,
+    openApps,
+    detachedMenus
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-    //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
+    this.roomSerializer.serializedRoom = { landscape: landscape, openApps: (openApps as SerializedApp[]), detachedMenus: (detachedMenus as SerializedDetachedMenu[]) };
+    this.applicationRenderer.restoreFromSerialization(this.roomSerializer.serializedRoom);
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
+
+
   }
 
   async onTimestampUpdate({

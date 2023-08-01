@@ -161,7 +161,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
       // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus); //TODO: this only in vr mode
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;

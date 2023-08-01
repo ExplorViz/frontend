@@ -94,8 +94,6 @@ import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-i
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 
@@ -510,6 +508,7 @@ export default class VrRendering extends Component<Args> {
     this.localUser.setController2(
       this.initController({ gamepadIndex: CONTROLLER_2_ID })
     );
+    this.sender.sendJoinVr();
   }
 
   private initController({
@@ -584,7 +583,7 @@ export default class VrRendering extends Component<Args> {
     );
     this.webSocket.on(JOIN_VR_EVENT, this, this.onJoinVr);
 
-    this.sender.sendJoinVr();
+   // this.sender.sendJoinVr();
   }
 
   // #endregion INITIALIZATION
