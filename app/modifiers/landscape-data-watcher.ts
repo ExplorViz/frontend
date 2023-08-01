@@ -20,6 +20,8 @@ import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import { serialize } from 'v8';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -51,6 +53,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service
   private worker!: any;
@@ -161,7 +166,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
       // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus); //TODO: this only in vr mode
+      
+
+      if(this.localUser.visualizationMode === 'vr'){
+        this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      }else if(this.localUser.visualizationMode === 'browser'){
+        //restore(serializedRoom.detachedMenus); // browser popups not restorable?
+      }
+
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
