@@ -1,2 +1,9 @@
+{{!-- {{did-insert}}: This modifier is called when the element it is applied to is inserted into the DOM. 
+In your code, it's calling the startSynchronization getter when the element is inserted, 
+and since that getter returns a function, that function is then invoked.
+
+{{did-update}}: This modifier is called whenever the component's arguments are updated. 
+In your code, it's calling the startSynchronization getter whenever the component's arguments change, 
+and again, since that getter returns a function, that function is then invoked. --}}
 {{did-insert this.startSynchronization}}
 {{did-update this.startSynchronization}}

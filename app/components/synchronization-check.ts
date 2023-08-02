@@ -29,6 +29,7 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
 
   get startSynchronization() {
     return () => {
+      this.collaborationSession.hostRoom();
       this.routeToVisualization(this.token);
     };
   }

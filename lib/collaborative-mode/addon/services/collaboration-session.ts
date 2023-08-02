@@ -260,7 +260,9 @@ export default class CollaborationSession extends Service.extend({
       this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom();
-        this.synchronizationSession.roomId = response.roomId;
+
+        console.log(response);
+
         this.joinRoom(response.roomId, { checkConnectionStatus: false });
       } catch (e: any) {
         this.connectionStatus = 'offline';
