@@ -27,10 +27,10 @@ export default class Landscapes extends Controller {
   @tracked
   tokenAlias: string = '';
 
-  @tracked
-  queryParams = ['synchronization'];
-  @tracked
-  synchronization = 'false';
+  // @tracked
+  // queryParams = ['synchronization'];
+  // @tracked
+  // synchronization = 'false';
 
   @action
   openTokenCreationModal() {

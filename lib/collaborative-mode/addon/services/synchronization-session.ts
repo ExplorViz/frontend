@@ -14,6 +14,8 @@ export default class SynchronizationSession extends Service {
   // TestUpload attribute
   numberDevices?: number;
 
+  roomId!: string;
+
   setCount(n: number) {
     this.numberDevices = n;
     console.log(this.numberDevices);

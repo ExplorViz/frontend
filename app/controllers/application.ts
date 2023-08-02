@@ -1,6 +1,7 @@
 import Controller from '@ember/controller';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
+import { tracked } from '@glimmer/tracking';
 
 /**
  * TODO
@@ -13,6 +14,11 @@ import Auth from 'explorviz-frontend/services/auth';
  */
 export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
+
+  @tracked
+  queryParams = ['synchronization'];
+  @tracked
+  synchronization = 'false';
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
