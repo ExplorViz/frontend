@@ -13,7 +13,7 @@ This repository contains ExplorViz' frontend component. Below you can find instr
 You will need the following things properly installed on your computer.
 
 - [Git](https://git-scm.com/)
-- [Node.js 16](https://nodejs.org/) (with npm)
+- [Node.js 16](https://nodejs.org/) (with npm 8.13.2 or higher)
 - [Ember CLI](https://cli.emberjs.com/release/)
 
 ### Installation
