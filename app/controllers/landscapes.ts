@@ -28,9 +28,9 @@ export default class Landscapes extends Controller {
   tokenAlias: string = '';
 
   @tracked
-  queryParams = ['testQueryParameter'];
+  queryParams = ['synchronization'];
   @tracked
-  testQueryParameter = 'Testing Query Parameters';
+  synchronization = 'false';
 
   @action
   openTokenCreationModal() {

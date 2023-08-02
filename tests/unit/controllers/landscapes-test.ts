@@ -15,15 +15,10 @@ module('Unit | Controller | landscapes', function (hooks) {
     const controller = this.owner.lookup('controller:landscapes') as landscapes;
 
     // Check the default values
-    assert.equal(controller.testQueryParameter, 'Testing Query Parameters');
-    // Log the default values
-    console.log('Category:', controller.testQueryParameter);
-
+    assert.equal(controller.synchronization, 'false');
     // Modify the tracked properties
-    controller.testQueryParameter= 'Modified !!!!111oneeleven';
-    // Log the updated values
-    console.log('Updated Category:', controller.testQueryParameter);
+    controller.synchronization = 'true';
     // Check the updated values
-    assert.equal(controller.testQueryParameter, 'Modified !!!!111oneeleven');
+    assert.equal(controller.synchronization, 'true');
   });
 });
