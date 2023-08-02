@@ -130,7 +130,7 @@ function composeClazzContent(
   }
   // TODO refactor, duplicated from clazz-popup
   const currentApplicationHeatmapData = applicationRepo.getById(
-    application.dataModel.id
+    application.getModelId()
   )?.heatmapData;
 
   const content: DetailedInfo = {
@@ -143,7 +143,7 @@ function composeClazzContent(
     metrics.forEach((metric) => {
       content.entries.push({
         key: metric.name,
-        value: String(metric.values.get(clazzMesh.dataModel.id)),
+        value: String(metric.values.get(clazzMesh.getModelId())),
       });
     });
   }

@@ -9,24 +9,29 @@
 @import '_login';
 @import '_right_click_menu';
 @import '_popover';
-// located in lib/virtual-reality/addon/style
+// located in lib/virtual-reality/addon/styles
 @import '_augmented_reality';
 // located in lib/virtual-reality/addon/styles
 @import '_virtual_reality';
 
+
 // located in lib/heatmap/addon/styles
 @import '_heatmap';
+// located in lib/collaborative_mode/addon/styles
+@import '_collaboration.scss';
 @import 'ember-bootstrap/bootstrap';
 @import 'ember-right-click-menu';
 @import 'ember-power-select/themes/bootstrap';
 @import 'ember-power-select';
 
 .disable-select {
-  user-select: none; /* supported by Chrome and Opera */
+  user-select: none; /* supported by most browsers */
   -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+button {
+  user-select: none; /* supported by most browsers */
+  -webkit-user-select: none; /* Safari */
 }
 
 h1,

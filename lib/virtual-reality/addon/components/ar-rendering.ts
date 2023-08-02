@@ -45,7 +45,7 @@ interface Args {
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
-  addComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
   openDataSelection(): void;
   closeDataSelection(): void;
@@ -183,7 +183,6 @@ export default class ArRendering extends Component<Args> {
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
 
-    // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     this.toastMessage.init();
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
@@ -520,7 +519,7 @@ export default class ArRendering extends Component<Args> {
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );

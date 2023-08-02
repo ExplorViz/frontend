@@ -7,6 +7,7 @@ import PopupData from 'explorviz-frontend/components/visualization/rendering/pop
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import {
@@ -63,8 +64,10 @@ export default class PopupHandler {
 
   @action
   sharePopup(popup: PopupData) {
+    this.updateMeshReference(popup);
+
     const { mesh } = popup;
-    const entityId = mesh.dataModel.id;
+    const entityId = mesh.getModelId();
     const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
     worldPosition.y += 0.3;
 
@@ -98,7 +101,7 @@ export default class PopupHandler {
 
   @action
   pinPopup(popup: PopupData) {
-    this.pinPopupLocally(popup.mesh.dataModel.id);
+    this.pinPopupLocally(popup.mesh.getModelId());
   }
 
   @action
@@ -154,7 +157,7 @@ export default class PopupHandler {
   hover(mesh?: THREE.Object3D) {
     if (isEntityMesh(mesh)) {
       this.popupData.forEach((pd) => {
-        pd.hovered = pd.entity.id === mesh.dataModel.id;
+        pd.hovered = pd.entity.id === mesh.getModelId();
       });
     } else {
       this.popupData.forEach((pd) => {
@@ -181,48 +184,50 @@ export default class PopupHandler {
     sharedBy?: string;
     hovered?: boolean;
   }) {
-    if (isEntityMesh(mesh)) {
-      const newPopup = new PopupData({
-        mouseX: position.x,
-        mouseY: position.y,
-        entity: mesh.dataModel,
-        mesh,
-        applicationId: (mesh.parent as ApplicationObject3D).dataModel?.id,
-        menuId: menuId || null,
-        isPinned: pinned || false,
-        sharedBy: sharedBy || '',
-        hovered: hovered || false,
-      });
+    if (!isEntityMesh(mesh)) {
+      return;
+    }
 
-      if (replace) {
-        this.popupData = [newPopup];
+    const newPopup = new PopupData({
+      mouseX: position.x,
+      mouseY: position.y,
+      wasMoved: false,
+      entity: mesh.dataModel,
+      mesh,
+      applicationId: (
+        mesh.parent as ApplicationObject3D | GrabbableForceGraph
+      ).getModelId(),
+      menuId: menuId || null,
+      isPinned: pinned || false,
+      sharedBy: sharedBy || '',
+      hovered: hovered || false,
+    });
+
+    if (replace) {
+      this.popupData = [newPopup];
+    } else {
+      const popupAlreadyExists = this.popupData.find(
+        (pd) => pd.entity.id === newPopup.entity.id
+      );
+      if (popupAlreadyExists) {
+        return;
+      }
+
+      const unpinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
+
+      if (unpinnedPopupIndex === -1) {
+        this.popupData = [...this.popupData, newPopup];
       } else {
-        const popupAlreadyExists = this.popupData.find(
-          (pd) => pd.entity.id === newPopup.entity.id
-        );
-        if (popupAlreadyExists) {
-          // this.pinPopupLocally(newPopup.entity.id, newPopup.menuId);
-          return;
-        }
-        while (
-          this.popupData.any(
-            (pd) =>
-              pd.mouseX === newPopup.mouseX && pd.mouseY === newPopup.mouseY
-          )
-        ) {
-          newPopup.mouseX += 20;
-          newPopup.mouseY += 20;
-        }
+        const unpinnedPopup = this.popupData[unpinnedPopupIndex];
+        // Replace unpinned popup
+        this.popupData[unpinnedPopupIndex] = newPopup;
+        this.popupData = [...this.popupData];
 
-        const notPinnedPopupIndex = this.popupData.findIndex(
-          (pd) => !pd.isPinned
-        );
-
-        if (notPinnedPopupIndex === -1) {
-          this.popupData = [...this.popupData, newPopup];
-        } else {
-          this.popupData[notPinnedPopupIndex] = newPopup;
-          this.popupData = [...this.popupData];
+        // Place new popup at same position of previously moved popup
+        if (unpinnedPopup.wasMoved) {
+          newPopup.mouseX = unpinnedPopup.mouseX;
+          newPopup.mouseY = unpinnedPopup.mouseY;
+          newPopup.wasMoved = true;
         }
       }
     }
@@ -246,6 +251,17 @@ export default class PopupHandler {
     originalMessage: { menuId },
   }: ForwardedMessage<DetachedMenuClosedMessage>): void {
     this.popupData = this.popupData.filter((pd) => pd.menuId !== menuId);
+  }
+
+  /**
+   * Updates mesh reference of popup with given ID in popup data.
+   */
+  @action
+  updateMeshReference(popup: PopupData) {
+    const mesh = this.applicationRenderer.getMeshById(popup.entity.id);
+    if (isEntityMesh(mesh)) {
+      popup.mesh = mesh;
+    }
   }
 
   willDestroy() {

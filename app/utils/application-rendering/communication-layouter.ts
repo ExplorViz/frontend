@@ -69,7 +69,7 @@ export default function applyCommunicationLayout(
   boxLayoutMap: Map<string, BoxLayout>,
   drawableClassCommunications: DrawableClassCommunication[]
 ) {
-  const application = applicationObject3D.dataModel;
+  const { application } = applicationObject3D.data;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
   // HELPER FUNCTIONS

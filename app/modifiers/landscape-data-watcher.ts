@@ -159,7 +159,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
     if (serializedRoom) {
-      this.applicationRenderer.restore(serializedRoom);
+      this.applicationRenderer.restoreFromSerialization(serializedRoom);
       // TODO is it necessary to wait?
       this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
       this.roomSerializer.serializedRoom = undefined;
@@ -169,7 +169,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const applicationId = openApplicationsIds[i];
         const applicationData = this.applicationRepo.getById(applicationId);
         if (!applicationData) {
-          this.applicationRenderer.removeApplicationLocally(applicationId);
+          this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
     }

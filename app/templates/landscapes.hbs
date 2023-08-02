@@ -2,6 +2,7 @@
   <h4 class='text-center mt-4 mb-3'>Select Software Landscape</h4>
   <div class='d-flex flex-row justify-content-center overflow-auto'>
     <TokenSelection
+      @openTokenCreationModal={{this.openTokenCreationModal}}
       @selectToken={{this.selectToken}}
       @tokens={{@model}}
       @currentToken={{this.tokenService.token}}
@@ -9,13 +10,6 @@
       @reload={{this.reload}}
     />
   </div>
-  <BsButton
-    @type='primary'
-    class='align-self-center pt-2 px-3'
-    @onClick={{this.openTokenCreationModal}}
-  >
-    {{svg-jar 'plus-16' class='octicon'}}
-  </BsButton>
   <h4 class='text-center mt-2 mb-3'>Open Sessions</h4>
   <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
 </div>
