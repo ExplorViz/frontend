@@ -17,14 +17,15 @@ import {
 import { getAllClassesInApplication } from '../application-helpers';
 import { getClassesInPackage } from '../package-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
-import { Span, Trace } from '../landscape-schemes/dynamic-data';
+import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 /**
  * Restores default color and transparency for all application meshes
  *
  * @param applicationObject3D Application mesh of which the highlighting should be removed
  */
-export function removeHighlighting(applicationObject3D: ApplicationObject3D) {
+export function removeAllHighlighting(applicationObject3D: ApplicationObject3D) {
   const meshes = applicationObject3D.getAllMeshes();
 
   meshes.forEach((mesh) => {
@@ -91,18 +92,22 @@ export function turnComponentAndAncestorsTransparent(
 export function highlight(
   mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
   applicationObject3D: ApplicationObject3D,
+  applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
+  allLinks: ClazzCommunicationMesh[],
   opacity: number,
-  toggleHighlighting = true
+  toggleHighlighting = true,
+  // consideredClazzes = [], // so we do not turn already "selected" classes transparent
 ) {
+
   // Reset highlighting if highlighted mesh is clicked
   if (mesh.highlighted && toggleHighlighting) {
-    removeHighlighting(applicationObject3D);
+    removeAllHighlighting(applicationObject3D);
     return;
   }
 
   // Reset highlighting
-  removeHighlighting(applicationObject3D);
+  //removeAllHighlighting(applicationObject3D); // TODO: auskommentiert wäre für Strg + Mausklick 
   const model =
     mesh.dataModel instanceof ClazzCommuMeshDataModel
       ? mesh.dataModel.drawableClassCommus.firstObject
@@ -114,14 +119,18 @@ export function highlight(
 
   // Highlight the entity itself
   mesh.highlight();
-  applicationObject3D.highlightedEntity = mesh;
+  applicationObject3D.highlightedEntity = [];
+  (applicationObject3D.highlightedEntity as BaseMesh[]).push(mesh);
 
   // Now proceed to make unhighlighted entities transparent
 
-  // All clazzes in application
-  const application = applicationObject3D.data.application;
-  const allClazzesAsArray = getAllClassesInApplication(application);
-  const allClazzes = new Set<Class>(allClazzesAsArray);
+  // All clazzes from all applications
+  let allClazzesArray: Class[] = []; 
+  for(let application of applicationObject3DList){
+    const allClazzesAsArray = getAllClassesInApplication(application.data.application);
+    allClazzesArray = [...allClazzesArray, ...allClazzesAsArray];
+  }
+  const allClazzes = new Set<Class>(allClazzesArray);
 
   // Get all clazzes in current component
   const containedClazzes = new Set<Class>();
@@ -141,9 +150,13 @@ export function highlight(
     return;
   }
 
-  const allInvolvedClazzes = new Set<Class>(containedClazzes);
 
+  let allInvolvedClazzes = new Set<Class>(containedClazzes);
+
+
+    
   communication.forEach((comm) => {
+
     const { sourceClass, targetClass, id } = comm;
 
     const containedClazzesArray = Array.from(containedClazzes);
@@ -161,27 +174,32 @@ export function highlight(
       allInvolvedClazzes.add(sourceClass);
       // Hide communication which is not directly connected to highlighted entity
     } else if (
-      !containedClazzesArray.findBy('id', sourceClass.id) ||
-      !containedClazzesArray.findBy('id', targetClass.id)
+      !containedClazzesArray.findBy('id', sourceClass.id) && 
+      !containedClazzesArray.findBy('id', targetClass.id) &&
+      !isDrawableClassCommunication(model)
     ) {
-      const commMesh = applicationObject3D.getCommMeshByModelId(id);
-      if (commMesh) {
-        commMesh.turnTransparent(opacity);
+
+      for(let link of allLinks){
+        if(link.getModelId() === id){
+          link.turnTransparent(opacity);
+          break;
+        }
       }
-      // communication is self-looped and not equal to the highlighted one, i.e. model
+      // communication is not equal to the highlighted one, i.e. model
     } else if (
       isDrawableClassCommunication(model) &&
-      sourceClass.id === targetClass.id &&
       model !== comm
     ) {
-      const commMesh = applicationObject3D.getCommMeshByModelId(id);
-      if (commMesh) {
-        commMesh.turnTransparent(opacity);
+      for(let link of allLinks){
+        if(link.getModelId() === id)
+          link.turnTransparent(opacity);
+          break;
       }
     }
   });
 
   const allInvolvedClazzesArray = Array.from(allInvolvedClazzes);
+
   const nonInvolvedClazzes = new Set(
     [...allClazzes].filter((x) => !allInvolvedClazzesArray.findBy('id', x.id))
   );
@@ -194,25 +212,33 @@ export function highlight(
 
   // Turn non involved clazzes transparent
   nonInvolvedClazzes.forEach((clazz) => {
-    const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(
-      clazz.parent.id
-    );
+    let clazzMesh, componentMesh;
+    for(let application of applicationObject3DList){
+      clazzMesh = application.getBoxMeshbyModelId(clazz.id);
+      componentMesh = application.getBoxMeshbyModelId(
+        clazz.parent.id
+      );
 
-    if (
-      clazzMesh instanceof ClazzMesh &&
-      componentMesh instanceof ComponentMesh &&
-      componentMesh.opened
-    ) {
-      clazzMesh.turnTransparent(opacity);
+      if (
+        clazzMesh instanceof ClazzMesh &&
+        componentMesh instanceof ComponentMesh
+      ) {
+        if(componentMesh.opened)
+          clazzMesh.turnTransparent(opacity);
+
+        turnComponentAndAncestorsTransparent(
+          clazz.parent,
+          application,
+          componentSet,
+          opacity
+        );
+        break;
+      }
     }
-    turnComponentAndAncestorsTransparent(
-      clazz.parent,
-      applicationObject3D,
-      componentSet,
-      opacity
-    );
+    
+    
   });
+
 }
 
 /**
@@ -224,12 +250,14 @@ export function highlight(
 export function highlightModel(
   entity: Package | Class,
   applicationObject3D: ApplicationObject3D,
+  applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
+  allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
   const mesh = applicationObject3D.getBoxMeshbyModelId(entity.id);
   if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh) {
-    highlight(mesh, applicationObject3D, communication, opacity);
+    highlight(mesh, applicationObject3D,applicationObject3DList,communication,allLinks,opacity);
   }
 }
 
@@ -248,7 +276,7 @@ export function highlightTrace(
   landscapeStructureData: StructureLandscapeData,
   opacity: number
 ) {
-  removeHighlighting(applicationObject3D);
+  removeAllHighlighting(applicationObject3D);
 
   applicationObject3D.highlightedEntity = trace;
 
@@ -399,6 +427,7 @@ export function highlightTrace(
  */
 export function updateHighlighting(
   applicationObject3D: ApplicationObject3D,
+  applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
   opacity: number
 ) {
@@ -406,31 +435,40 @@ export function updateHighlighting(
     return;
   }
 
-  if (applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh) {
-    const possiblyNewMeshInstance = applicationObject3D.getCommMeshByModelId(
-      applicationObject3D.highlightedEntity.getModelId()
-    );
+  if (applicationObject3D.highlightedEntity && !(isTrace(applicationObject3D.highlightedEntity))) {
 
-    if (possiblyNewMeshInstance) {
-      applicationObject3D.highlightedEntity = possiblyNewMeshInstance;
-    } else {
-      // communication mesh no longer visible
-      removeHighlighting(applicationObject3D);
-    }
-  }
+    const meshList = applicationObject3D.highlightedEntity;
+    
+    meshList.forEach(mesh => {
 
-  // Re-run highlighting for entity
-  if (
-    applicationObject3D.highlightedEntity instanceof ClazzMesh ||
-    applicationObject3D.highlightedEntity instanceof ComponentMesh ||
-    applicationObject3D.highlightedEntity instanceof ClazzCommunicationMesh
-  ) {
-    highlight(
-      applicationObject3D.highlightedEntity,
-      applicationObject3D,
-      communication,
-      opacity,
-      false
-    );
+      if (mesh instanceof ClazzCommunicationMesh){
+        const possiblyNewMeshInstance = applicationObject3D.getCommMeshByModelId(
+          mesh.getModelId()
+        );
+    
+        if (possiblyNewMeshInstance) {
+          mesh = possiblyNewMeshInstance;
+        } else {
+          // communication mesh no longer visible
+          removeAllHighlighting(applicationObject3D);
+        }
+      }
+
+      // Re-run highlighting for entity
+      if (
+        mesh instanceof ClazzMesh ||
+        mesh instanceof ComponentMesh ||
+        mesh instanceof ClazzCommunicationMesh
+      ) {
+        highlight(
+          mesh,
+          applicationObject3D,
+          applicationObject3DList,
+          communication,
+          opacity,
+          false
+        );
+      }
+    });
   }
 }

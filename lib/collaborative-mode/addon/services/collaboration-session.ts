@@ -35,6 +35,7 @@ import {
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -63,6 +64,11 @@ export default class CollaborationSession extends Service.extend({
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -213,6 +219,7 @@ export default class CollaborationSession extends Service.extend({
         time: 3.0,
       });
     }
+    //TODO: applicationrendere function aufrufen
   }
 
   onSelfDisconnected(event?: any) {

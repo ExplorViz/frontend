@@ -9,7 +9,7 @@ import {
   Span,
 } from '../landscape-schemes/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
-import { removeHighlighting } from './highlighting';
+import { removeAllHighlighting } from './highlighting';
 import CameraControls from './camera-controls';
 
 /**
@@ -123,7 +123,7 @@ export function closeComponentMesh(
       }
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
-        removeHighlighting(applicationObject3D);
+        removeAllHighlighting(applicationObject3D);
       }
     }
   });
@@ -135,7 +135,7 @@ export function closeComponentMesh(
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
-        removeHighlighting(applicationObject3D);
+        removeAllHighlighting(applicationObject3D);
       }
     }
   });

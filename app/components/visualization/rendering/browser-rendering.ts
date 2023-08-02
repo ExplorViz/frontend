@@ -43,8 +43,6 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
-import { APPLICATION_ENTITY_TYPE, CLASS_COMMUNICATION_ENTITY_TYPE, CLASS_ENTITY_TYPE, COMPONENT_ENTITY_TYPE, NODE_ENTITY_TYPE } from 'virtual-reality/utils/vr-message/util/entity_type';
-import NodeMesh from 'explorviz-frontend/view-objects/3d/landscape/node-mesh';
 
 interface BrowserRenderingArgs {
   readonly id: string;

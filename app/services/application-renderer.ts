@@ -9,7 +9,7 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -312,7 +312,7 @@ export default class ApplicationRenderer extends Service.extend({
     if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
       this.highlightingService.updateHighlighting(applicationObject3D);
     } else {
-      removeHighlighting(applicationObject3D);
+      removeAllHighlighting(applicationObject3D);
     }
     // Update labels
     Labeler.addApplicationLabels(
@@ -465,7 +465,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   removeCommunication(application: ApplicationObject3D) {
     if (application.highlightedEntity instanceof ClazzCommunicationMesh) {
-      removeHighlighting(application);
+      removeAllHighlighting(application);
     }
 
     application.removeAllCommunication();

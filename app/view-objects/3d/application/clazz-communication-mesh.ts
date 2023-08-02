@@ -47,6 +47,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     super.turnTransparent(opacity);
     this.children.forEach((childObject) => {
       if (childObject instanceof CommunicationArrowMesh) {
+        console.log("SourceApp: " + childObject.dataModel.sourceApp?.name);
+        console.log("TargetApp: " + childObject.dataModel.targetApp?.name);
         childObject.turnTransparent(opacity);
       }
     });

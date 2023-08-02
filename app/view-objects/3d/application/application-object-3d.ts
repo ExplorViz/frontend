@@ -45,7 +45,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   animationMixer: THREE.AnimationMixer | undefined;
 
   @tracked
-  highlightedEntity: BaseMesh | Trace | null = null;
+  highlightedEntity: BaseMesh[] | Trace | null = null; // In collab session multiple user can highlight one application
 
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();
