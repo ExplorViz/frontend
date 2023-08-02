@@ -27,6 +27,11 @@ export default class Landscapes extends Controller {
   @tracked
   tokenAlias: string = '';
 
+  @tracked
+  queryParams = ['testQueryParameter'];
+  @tracked
+  testQueryParameter = 'Testing Query Parameters';
+
   @action
   openTokenCreationModal() {
     this.tokenCreationModalIsOpen = true;
