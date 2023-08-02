@@ -16,9 +16,9 @@ export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
 
   @tracked
-  queryParams = ['synchronization'];
+  queryParams = ['lsToken'];
   @tracked
-  synchronization = 'false';
+  lsToken = '0';
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
