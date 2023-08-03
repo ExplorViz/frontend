@@ -5,14 +5,15 @@ import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import VrRoomService from 'virtual-reality/services/vr-room';
 
-interface SynchronizationCheckArgs {
+interface SynchronizationStartArgs {
   lsToken: string;
   deviceId: number;
   roomId: string;
 }
 
-export default class SynchronizationCheck extends Component<SynchronizationCheckArgs> {
+export default class SynchronizationStart extends Component<SynchronizationStartArgs> {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
@@ -25,23 +26,17 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
   @service('synchronization-session')
   private synchronizationSession!: SynchronizationSession;
 
-  token = {
-    alias: 'Fibonacci Sample',
-    created: 1551631224242,
-    ownerId: 'github|123456',
-    sharedUsersIds: [],
-    value: '17844195-6144-4254-a17b-0f7fb49adb0a',
-  };
+  @service('vr-room')
+  private roomService!: VrRoomService;
 
-  get setUpSynchronization() {
+  get startSynchronization() {
     return () => {
-      this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
-      this.routeToVisualization(this.token);
+      this.hostRoom();
     };
   }
 
-  routeToVisualization(token: LandscapeToken) {
-    this.tokenService.setToken(token);
-    this.router.transitionTo('visualization');
+  async hostRoom() {
+    const response = this.roomService.createRoom();
+    console.log(response);
   }
 }
