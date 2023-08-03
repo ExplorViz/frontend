@@ -31,7 +31,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   get startSynchronization() {
     return () => {
-      this.hostRoom();
+      // this.hostRoom();
     };
   }
 

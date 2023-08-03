@@ -28,4 +28,5 @@ export type InitialRoomPayload = {
   landscape: InitialRoomLandscape;
   openApps: InitialRoomApp[];
   detachedMenus: InitialRoomDetachedMenu[];
+  roomId: string | undefined;
 };
