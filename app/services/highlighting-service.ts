@@ -5,7 +5,6 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { Trace, isTrace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
@@ -77,9 +76,6 @@ export default class HighlightingService extends Service.extend({
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
-
-  @service('repos/application-repository')
-  private applicationRepo!: ApplicationRepository;
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
@@ -230,6 +226,7 @@ export default class HighlightingService extends Service.extend({
   highlight(mesh: EntityMesh) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
+      
       this.highlightComponent(parent, mesh);
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, this.localUser.color);
@@ -300,7 +297,7 @@ export default class HighlightingService extends Service.extend({
   hightlightComponentLocallyByTypeAndId(
     application: ApplicationObject3D,
     { entityId, color }: HightlightComponentArgs
-  ) {
+  ) { 
     const mesh = application.getMeshById(entityId);
     if (mesh && isHighlightableMesh(mesh)) {
       this.hightlightMesh(application, mesh, color);
