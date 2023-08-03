@@ -299,7 +299,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.focusCameraOn(
+          this.cameraControls.resetCameraFocusOn(
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
