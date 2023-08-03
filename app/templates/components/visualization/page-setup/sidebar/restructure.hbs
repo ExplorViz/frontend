@@ -56,10 +56,46 @@
       </div>
     </div>
 
+    <h6 class="mb-3 mt-3"><strong>Communication</strong></h6>
+    <div class='ml-3'>
+      <label>Method name:</label>
+      <div class="d-flex justify-content-between">
+        <input class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
+      </div>
+      <ul></ul>
+      <label>Source Class:</label>
+      <div class="d-flex justify-content-between">
+        <input class="form-control mr-2"  value={{this.sourceClass}} disabled>
+        <button class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}></button>
+        <button class="btn btn-light" title="Reset Source Class" onclick={{this.resetSourceClass}}></button>
+      </div>
+      <ul></ul>
+      <label>Target Class:</label>
+      <div class="d-flex justify-content-between">
+        <input class="form-control mr-2"  value={{this.targetClass}} disabled>
+        <button class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}></button>
+        <button class="btn btn-light" title="Reset Target Class" onclick={{this.resetTargetClass}}></button>
+      </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Create Communication between Source and Target Class'
+          {{on 'click' this.createCommunication}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.communicationBtnDisabled}}
+        >
+          Generate Communication
+        </BsButton>
+      </div>
+    </div>
+
     <h6 class="mb-3 mt-3"><strong>Clipboard</strong></h6>
-    <div class="d-flex justify-content-between">
-      <input class="form-control mr-2"  value={{this.clip_board}} disabled>
-      <button class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
+    <div class="ml-3">
+      <div class="d-flex justify-content-between">
+        <input class="form-control mr-2"  value={{this.clip_board}} disabled>
+        <button class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
+      </div>
     </div>
   {{/if}}
 

@@ -7,6 +7,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication, {
@@ -47,6 +48,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
+
   @service
   private worker!: any;
 
@@ -74,7 +78,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData
+      this.dynamicLandscapeData,
+      this.landscapeRestructure.restructureMode,
+      this.landscapeRestructure.classCommunication
     );
 
     // Use the updated landscape data to calculate application metrics.

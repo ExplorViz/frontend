@@ -2,17 +2,19 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { addClassToApplication, addFoundationToLandscape, addPackageToApplication, addSubPackageToPackage, cutAndInsertPackageOrClass, removeApplication, removeClassFromPackage, removePackageFromApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
+import { addClassToApplication, addFoundationToLandscape, addMethodToClass, addPackageToApplication, addSubPackageToPackage, cutAndInsertPackage, cutAndInsertClass, removeApplication, removeClassFromPackage, removePackageFromApplication, setApplicationNameInLandscapeById, setClassNameById, setPackageNameById } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import internal from 'stream';
-import { Application, Class, Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Package, isClass, isPackage } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { getApplicationFromClass } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
 }) {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-  
+
   @tracked
   public restructureMode: boolean = false;
 
@@ -31,6 +33,45 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   clippedMesh: Package | Class | null = null;
 
+  @tracked
+  classCommunication: DrawableClassCommunication[] = [];
+
+  sourceClass: Class | null = null;
+
+  targetClass: Class | null = null;
+
+  setSourceOrTargetClass(type: string) {
+    if (type == "source" && isClass(this.clippedMesh))
+      this.sourceClass = this.clippedMesh;
+    else if (type == "target" && isClass(this.clippedMesh))
+      this.targetClass = this.clippedMesh;
+  }
+
+  createCommunication(methodName: string) {
+    if(this.sourceClass && this.targetClass && this.landscapeData?.structureLandscapeData){
+      const sourceApp = getApplicationFromClass(this.landscapeData.structureLandscapeData, this.sourceClass);
+      const targetApp = getApplicationFromClass(this.landscapeData.structureLandscapeData, this.targetClass);
+      addMethodToClass(this.sourceClass, methodName);
+      const classCommunication: DrawableClassCommunication = 
+      {
+        id: this.sourceClass.name + " => " + this.targetClass.name,
+        totalRequests: 1,
+        sourceClass: this.sourceClass,
+        targetClass: this.targetClass,
+        operationName: methodName,
+        sourceApp: sourceApp,
+        targetApp: targetApp
+      };
+      this.classCommunication.push(classCommunication);
+      console.log(this.classCommunication);
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
+  }
+
   toggleRestructureMode() {
     return (this.restructureMode = !this.restructureMode);
   }
@@ -42,19 +83,18 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   updateApplicationName(name: string, id: string) {
     if (this.landscapeData?.structureLandscapeData) {
-      this.landscapeData.structureLandscapeData = setApplicationNameInLandscapeById(this.landscapeData.structureLandscapeData, id, name)
+      setApplicationNameInLandscapeById(this.landscapeData.structureLandscapeData, id, name)
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
         this.landscapeData.dynamicLandscapeData
       );
-      console.log();
     } else console.log('No Application with ID: ' + id + ' found!');
   }
 
   updatePackageName(name: string, id: string) {
-    if(this.landscapeData?.structureLandscapeData) {
-      this.landscapeData.structureLandscapeData = setPackageNameById(this.landscapeData.structureLandscapeData, id, name)
+    if (this.landscapeData?.structureLandscapeData) {
+      setPackageNameById(this.landscapeData.structureLandscapeData, id, name)
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -64,8 +104,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   updateClassName(name: string, id: string, appId: string) {
-    if(this.landscapeData?.structureLandscapeData) {
-      this.landscapeData.structureLandscapeData = setClassNameById(this.landscapeData.structureLandscapeData, appId, id, name);
+    if (this.landscapeData?.structureLandscapeData) {
+      setClassNameById(this.landscapeData.structureLandscapeData, appId, id, name);
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -75,7 +115,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   addFoundation() {
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       addFoundationToLandscape(this.landscapeData?.structureLandscapeData, this.newMeshCounter)
       this.trigger(
         'restructureLandscapeData',
@@ -90,7 +130,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     let highlightedMesh = this.highlightedMeshes.entries().next().value;
     addPackageToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
     console.log(highlightedMesh[1].dataModel);
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -102,7 +142,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   addSubPackageFromPopup(pckg: Package) {
     addSubPackageToPackage(pckg, this.newMeshCounter);
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -114,7 +154,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   addPackageFromPopup(app: Application) {
     addPackageToApplication(app, this.newMeshCounter);
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -128,7 +168,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     let highlightedMesh = this.highlightedMeshes.entries().next().value;
     addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
     console.log(highlightedMesh[1].dataModel);
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -140,7 +180,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   addClassFromPopup(pckg: Package) {
     addClassToApplication(pckg, this.newMeshCounter);
-    if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -151,9 +191,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   deleteAppFromPopup(app: Application) {
-    if(this.landscapeData?.structureLandscapeData) {
-      removeApplication(this.landscapeData?.structureLandscapeData, app);
-      if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
+      let wrapper = {comms: this.classCommunication};
+      removeApplication(this.landscapeData?.structureLandscapeData, wrapper, app, false);
+      this.classCommunication = wrapper.comms;
+      if (this.landscapeData?.structureLandscapeData) {
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -164,9 +206,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   deletePackageFromPopup(pckg: Package) {
-    if(this.landscapeData?.structureLandscapeData) {
-      removePackageFromApplication(this.landscapeData.structureLandscapeData, pckg);
-      if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
+      let wrapper = {comms: this.classCommunication};
+      removePackageFromApplication(this.landscapeData.structureLandscapeData, wrapper, pckg, false);
+      this.classCommunication = wrapper.comms;
+      if (this.landscapeData?.structureLandscapeData) {
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -177,9 +221,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   deleteClassFromPopup(clazz: Class) {
-    if(this.landscapeData?.structureLandscapeData) {
-      removeClassFromPackage(clazz);
-      if(this.landscapeData?.structureLandscapeData) {
+    if (this.landscapeData?.structureLandscapeData) {
+      console.log("delete");
+      let wrapper = {comms: this.classCommunication};
+      removeClassFromPackage(this.landscapeData.structureLandscapeData, wrapper, clazz, false);
+      this.classCommunication = wrapper.comms;
+      console.log(this.classCommunication);
+      if (this.landscapeData?.structureLandscapeData) {
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -205,10 +253,16 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   insertPackageOrClassFromPopup(pckg: Package) {
-    if(this.landscapeData?.structureLandscapeData) {
-      cutAndInsertPackageOrClass(this.clippedMesh, pckg, this.landscapeData.structureLandscapeData);
+    if (this.landscapeData?.structureLandscapeData) {
+      let wrapper = {comms: this.classCommunication};
+      if(isPackage(this.clippedMesh))
+        cutAndInsertPackage(this.landscapeData.structureLandscapeData, this.clippedMesh, pckg, wrapper);
+      else if(isClass(this.clippedMesh))
+        cutAndInsertClass(this.landscapeData.structureLandscapeData, this.clippedMesh, pckg, wrapper);
+      console.log(wrapper.comms);
+      this.classCommunication = wrapper.comms;
       this.resetClipboard();
-      if(this.landscapeData?.structureLandscapeData) {
+      if (this.landscapeData?.structureLandscapeData) {
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
