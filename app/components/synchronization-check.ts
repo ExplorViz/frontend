@@ -4,9 +4,12 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 interface SynchronizationCheckArgs {
   lsToken: string;
+  deviceId: number;
+  roomId: string;
 }
 
 export default class SynchronizationCheck extends Component<SynchronizationCheckArgs> {
@@ -19,6 +22,9 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @service('synchronization-session')
+  private synchronizationSession!: SynchronizationSession;
+
   token = {
     alias: 'Fibonacci Sample',
     created: 1551631224242,
@@ -29,7 +35,7 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
 
   get startSynchronization() {
     return () => {
-      this.collaborationSession.hostRoom();
+      this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
       this.routeToVisualization(this.token);
     };
   }

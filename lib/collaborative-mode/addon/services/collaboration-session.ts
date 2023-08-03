@@ -64,9 +64,6 @@ export default class CollaborationSession extends Service.extend({
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
-
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group();
@@ -164,8 +161,6 @@ export default class CollaborationSession extends Service.extend({
       });
       this.addRemoteUser(remoteUser);
     });
-
-    this.synchronizationSession.deviceId = users.length;
 
     this.connectionStatus = 'online';
     // Initialize local user.

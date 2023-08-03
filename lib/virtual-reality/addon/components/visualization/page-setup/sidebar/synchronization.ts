@@ -40,24 +40,24 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   @computed('collaborationSession.idToRemoteUser')
   get users() {
     const users = [];
-    const tempName =
-      this.synchronizationSession.deviceId === 0
-        ? 'Main'
-        : 'Projector ' + this.synchronizationSession.deviceId;
     if (this.localUser.color) {
       users.push({
-        name: tempName,
+        name: `${
+          this.synchronizationSession.deviceId == 0
+            ? 'Main'
+            : 'Projector ' + this.synchronizationSession.deviceId
+        } (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
       });
     }
-
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => ({
-      name: this.getProjectorName(user.color.getHexString()),
+      name: user.userName,
       style: `color:#${user.color.getHexString()}`,
       id: user.userId,
     }));
+    console.log(remoteUsers);
 
     return users.concat(remoteUsers);
   }
@@ -65,6 +65,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   constructor(owner: any, args: SynchronizationArgs) {
     super(owner, args);
 
+    console.log('Component created');
     this.loadRooms(false);
   }
 
@@ -144,26 +145,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   addUser() {
     // Use window.open method to open a new browser tab/window
     window.open('http://localhost:4200/', '_blank');
-  }
-
-  getProjectorName(color: string): string {
-    const projectorName: string = (() => {
-      switch (color) {
-        case '00d4fd':
-          return 'Projector 1';
-        case 'ea00ea':
-          return 'Projector 2';
-        case '00eadf':
-          return 'Projector 3';
-        case 'eee900':
-          return 'Projector 4';
-        case 'dfbbee':
-          return 'Projector 5';
-        default:
-          return 'Main';
-      }
-    })();
-    return projectorName;
   }
 
   @action

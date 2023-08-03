@@ -21,6 +21,11 @@ export default class SynchronizationSession extends Service {
     console.log(this.numberDevices);
   }
 
+  setUp(rId: string, dId: number) {
+    this.roomId = rId;
+    this.deviceId = dId;
+  }
+
   /** MAIN CONFIGS */
   setCamera() {
     this.isMain = this.deviceId === 0;

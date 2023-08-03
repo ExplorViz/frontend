@@ -16,9 +16,13 @@ export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
 
   @tracked
-  queryParams = ['lsToken'];
+  queryParams = ['lsToken', 'deviceId', 'roomId'];
   @tracked
-  lsToken = '0';
+  lsToken = '';
+  @tracked
+  deviceId = -1;
+  @tracked
+  roomId = '';
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
