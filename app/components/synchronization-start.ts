@@ -1,9 +1,7 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LandscapeTokenService, {
-  LandscapeToken,
-} from 'explorviz-frontend/services/landscape-token';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import VrRoomService from 'virtual-reality/services/vr-room';
 
@@ -23,15 +21,12 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
-  @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
-
   @service('vr-room')
   private roomService!: VrRoomService;
 
   get startSynchronization() {
     return () => {
-      // this.hostRoom();
+      this.collaborationSession.hostRoom();
     };
   }
 

@@ -18,6 +18,7 @@ import {
 } from '../utils/vr-payload/receivable/room-list';
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import VrRoomSerializer from './vr-room-serializer';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 const { collaborationService } = ENV.backendAddresses;
 
@@ -30,6 +31,9 @@ export default class VrRoomService extends Service {
 
   @service('virtual-reality@vr-room-serializer')
   private roomSerializer!: VrRoomSerializer;
+
+  @service('synchronization-session')
+  synchronizationSession!: SynchronizationSession;
 
   async listRooms(): Promise<RoomListRecord[]> {
     const url = `${collaborationService}/v2/vr/rooms`;
@@ -78,7 +82,7 @@ export default class VrRoomService extends Service {
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
-      roomId: 'Synchronization',
+      roomId: this.synchronizationSession.roomId,
     };
   }
 
