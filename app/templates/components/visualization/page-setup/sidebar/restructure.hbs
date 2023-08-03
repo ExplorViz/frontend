@@ -58,24 +58,29 @@
 
     <h6 class="mb-3 mt-3"><strong>Communication</strong></h6>
     <div class='ml-3'>
-      <label>Method name:</label>
-      <div class="d-flex justify-content-between">
-        <input class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
-      </div>
+      <label>Method name:
+        <div class="d-flex justify-content-between">
+          <input class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
+        </div>
+      </label>
       <ul></ul>
-      <label>Source Class:</label>
-      <div class="d-flex justify-content-between">
-        <input class="form-control mr-2"  value={{this.sourceClass}} disabled>
-        <button class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}></button>
-        <button class="btn btn-light" title="Reset Source Class" onclick={{this.resetSourceClass}}></button>
-      </div>
+      <label>Source Class:
+        <div class="d-flex justify-content-between">
+          <input class="form-control mr-2"  value={{this.sourceClass}} disabled>
+          <button type="button" class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}></button>
+          <button type="button" class="btn btn-light" title="Reset Source Class" onclick={{this.resetSourceClass}}></button>
+        </div>
+      </label>
+      
       <ul></ul>
-      <label>Target Class:</label>
-      <div class="d-flex justify-content-between">
-        <input class="form-control mr-2"  value={{this.targetClass}} disabled>
-        <button class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}></button>
-        <button class="btn btn-light" title="Reset Target Class" onclick={{this.resetTargetClass}}></button>
-      </div>
+      <label>Target Class:
+        <div class="d-flex justify-content-between">
+          <input class="form-control mr-2"  value={{this.targetClass}} disabled>
+          <button type="button" class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}></button>
+          <button type="button" class="btn btn-light" title="Reset Target Class" onclick={{this.resetTargetClass}}></button>
+        </div>
+      </label>
+      
       <ul></ul>
       <div class='d-flex justify-content-between'>
         <BsButton
@@ -92,10 +97,12 @@
 
     <h6 class="mb-3 mt-3"><strong>Clipboard</strong></h6>
     <div class="ml-3">
-      <div class="d-flex justify-content-between">
-        <input class="form-control mr-2"  value={{this.clip_board}} disabled>
-        <button class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
-      </div>
+      <label>
+        <div class="d-flex justify-content-between">
+          <input class="form-control mr-2"  value={{this.clip_board}} disabled>
+          <button type="button" class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
+        </div>
+      </label>
     </div>
   {{/if}}
 

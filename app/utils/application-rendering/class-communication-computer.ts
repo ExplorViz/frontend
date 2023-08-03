@@ -132,14 +132,14 @@ export default function computeDrawableClassCommunication(
     }
   );
 
-  let drawableClassCommunications = [
+  const drawableClassCommunications = [
     ...aggregatedDrawableClassCommunications.values(),
   ];
 
-  if(restructureMode && classCommunication){
+  if (restructureMode && classCommunication) {
     classCommunication.forEach((comm) => {
       drawableClassCommunications.push(comm);
-    })
+    });
   }
 
   return drawableClassCommunications;

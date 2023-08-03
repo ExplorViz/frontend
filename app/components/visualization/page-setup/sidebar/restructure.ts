@@ -5,10 +5,12 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { StructureLandscapeData, isClass } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  StructureLandscapeData,
+  isClass,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import sha256 from 'crypto-js/sha256';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -30,16 +32,16 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   landscapeRestructure!: LandscapeRestructure;
 
   @tracked
-  clipboard: string = "";
+  clipboard: string = '';
 
   @tracked
-  methodName: string = "";
-  
-  @tracked
-  sourceClass: string = "";
+  methodName: string = '';
 
   @tracked
-  targetClass: string = "";
+  sourceClass: string = '';
+
+  @tracked
+  targetClass: string = '';
 
   @tracked
   restructureMode: boolean = false;
@@ -79,44 +81,47 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   addSourceClassFromClipboard() {
-    if(isClass(this.landscapeRestructure.clippedMesh)){
+    if (isClass(this.landscapeRestructure.clippedMesh)) {
       this.sourceClass = this.clip_board;
       this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass("source");
+      this.landscapeRestructure.setSourceOrTargetClass('source');
     }
   }
 
   @action
   addTargetClassFromClipboard() {
-    if(isClass(this.landscapeRestructure.clippedMesh)){
+    if (isClass(this.landscapeRestructure.clippedMesh)) {
       this.targetClass = this.clip_board;
       this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass("target");
+      this.landscapeRestructure.setSourceOrTargetClass('target');
     }
   }
 
   @action
   updateMethodName(event: InputEvent) {
-    const target = event.target as HTMLInputElement
+    const target = event.target as HTMLInputElement;
     this.methodName = target.value;
     this.canCreateCommunication();
   }
 
   @action
   resetSourceClass() {
-    this.sourceClass = "";
+    this.sourceClass = '';
     this.canCreateCommunication();
   }
 
   @action
   resetTargetClass() {
-    this.targetClass = "";
+    this.targetClass = '';
     this.canCreateCommunication();
   }
 
   @action
   canCreateCommunication() {
-    this.communicationBtnDisabled = this.methodName === "" || this.sourceClass === "" || this.targetClass === "";
+    this.communicationBtnDisabled =
+      this.methodName === '' ||
+      this.sourceClass === '' ||
+      this.targetClass === '';
   }
 
   @action

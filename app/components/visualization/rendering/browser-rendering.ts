@@ -152,6 +152,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    console.log('forcegraph:');
+    console.log(forceGraph.graph);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
@@ -320,6 +322,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
       // this.cameraControls.focusCameraOn(1, mesh);
     }
+    console.log('forcegraph:');
+    console.log(this.graph);
   }
 
   @action

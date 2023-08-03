@@ -89,7 +89,7 @@ export default class HighlightingService extends Service.extend({
   linkRenderer!: LinkRenderer;
 
   @service('landscape-restructure')
-  landscapeRestructure!: LandscapeRestructure
+  landscapeRestructure!: LandscapeRestructure;
 
   debug = debugLogger('HighlightingService');
 
@@ -275,9 +275,12 @@ export default class HighlightingService extends Service.extend({
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
 
-      // Using highlightedMeshes to be able to restructure them 
-      if(mesh.highlighted) {
-        this.landscapeRestructure.highlightedMeshes.set(mesh.dataModel.id, mesh);
+      // Using highlightedMeshes to be able to restructure them
+      if (mesh.highlighted) {
+        this.landscapeRestructure.highlightedMeshes.set(
+          mesh.dataModel.id,
+          mesh
+        );
         console.log(this.landscapeRestructure.highlightedMeshes);
       } else {
         this.landscapeRestructure.highlightedMeshes.delete(mesh.dataModel.id);

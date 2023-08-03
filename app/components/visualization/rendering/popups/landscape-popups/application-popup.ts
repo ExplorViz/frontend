@@ -13,7 +13,7 @@ interface Args {
 
 export default class ApplicationPopup extends Component<Args> {
   @service('landscape-restructure')
-    landscapeRestructure!: LandscapeRestructure;
+  landscapeRestructure!: LandscapeRestructure;
 
   get clazzCount() {
     return getAllClassesInApplication(this.args.application).length;

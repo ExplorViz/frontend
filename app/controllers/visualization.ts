@@ -176,9 +176,8 @@ export default class VisualizationController extends Controller {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
-    console.log("repo:");
+    console.log('repo:');
     console.log(this.applicationRepo);
-    this.applicationRepo.clear();
     this.updateLandscape(structureData, dynamicData);
   }
 
