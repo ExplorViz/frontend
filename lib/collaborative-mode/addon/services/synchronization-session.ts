@@ -1,9 +1,13 @@
 import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
+import CollaborationSession from './collaboration-session';
 
 export default class SynchronizationSession extends Service {
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('collaboration-session')
+  collaborationSession!: CollaborationSession;
 
   // Controlinstance of the connected devices
   private isMain: boolean = false;
@@ -24,6 +28,7 @@ export default class SynchronizationSession extends Service {
   setUp(rId: string, dId: number) {
     this.roomId = rId;
     this.deviceId = dId;
+    // this.collaborationSession.hostRoom();
   }
 
   /** MAIN CONFIGS */

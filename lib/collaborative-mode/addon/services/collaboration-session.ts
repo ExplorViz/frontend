@@ -34,7 +34,6 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
-import { schedule } from '@ember/runloop';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -252,17 +251,12 @@ export default class CollaborationSession extends Service.extend({
 
   async hostRoom() {
     if (!this.isConnecting) {
-      schedule('afterRender', this, () => {
-        this.connectionStatus = 'connecting';
-      });
-
+      this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom();
         this.joinRoom(response.roomId, { checkConnectionStatus: false });
       } catch (e: any) {
-        schedule('afterRender', this, () => {
-          this.connectionStatus = 'offline';
-        });
+        this.connectionStatus = 'offline';
         AlertifyHandler.showAlertifyError(
           'Cannot reach Collaboration-Service.'
         );

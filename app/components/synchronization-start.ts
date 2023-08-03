@@ -26,7 +26,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   get startSynchronization() {
     return () => {
-      this.collaborationSession.hostRoom();
+      // this.collaborationSession.hostRoom();
     };
   }
 

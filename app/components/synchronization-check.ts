@@ -5,6 +5,9 @@ import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import { task } from 'ember-concurrency';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import VrRoomService from 'virtual-reality/services/vr-room';
 
 interface SynchronizationCheckArgs {
   lsToken: string;
@@ -25,6 +28,9 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
   @service('synchronization-session')
   private synchronizationSession!: SynchronizationSession;
 
+  @service('vr-room')
+  private roomService!: VrRoomService;
+
   token = {
     alias: 'Fibonacci Sample',
     created: 1551631224242,
@@ -35,6 +41,7 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
 
   get setUpSynchronization() {
     return () => {
+      this.hostRoomTask.perform();
       this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
       this.routeToVisualization(this.token);
     };
@@ -44,4 +51,8 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
     this.tokenService.setToken(token);
     this.router.transitionTo('visualization');
   }
+
+  hostRoomTask = task({ enqueue: true }, async () => {
+    this.roomService.createRoom();
+  });
 }
