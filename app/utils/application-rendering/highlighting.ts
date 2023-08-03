@@ -429,6 +429,7 @@ export function updateHighlighting(
   applicationObject3D: ApplicationObject3D,
   applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
+  allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
   if (!applicationObject3D.highlightedEntity) {
@@ -465,6 +466,7 @@ export function updateHighlighting(
           applicationObject3D,
           applicationObject3DList,
           communication,
+          allLinks,
           opacity,
           false
         );

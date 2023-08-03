@@ -105,14 +105,6 @@ export default class HighlightingService extends Service.extend({
     return `color:#${hexColor}`;
   }
 
-  private getDrawableClassCommunications(
-    applicationObjetc3D: ApplicationObject3D
-  ) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObjetc3D.getModelId()
-    );
-    return applicationData?.drawableClassCommunications;
-  }
 
   @action
   updateHighlightingForAllApplications() {
@@ -153,16 +145,38 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     value: number = this.opacity
   ) {
-    const drawableClassCommunications =
-      this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
-    if (drawableClassCommunications) {
+
+    const allLinks = this.linkRenderer.getAllLinks();
+    const applications = this.applicationRenderer.getOpenApplications();
+    applications.forEach((applicationObject3D : ApplicationObject3D) => {
+      const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
+      if(drawableComm2){
+        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
+          //drawableComm.push(drawableClassCommunication);
+
+          const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
+          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
+            allLinks.push(link as ClazzCommunicationMesh);
+          }
+        });
+      }
+    });
+
+    let drawableComm : DrawableClassCommunication[] = [];
+    allLinks.forEach((link) => {
+      const linkCommunications = link.dataModel.drawableClassCommus;
+      drawableComm = [...drawableComm, ...linkCommunications];
+    });
+
+
       Highlighting.updateHighlighting(
         applicationObject3D,
         this.applicationRenderer.getOpenApplications(),
-        drawableClassCommunications,
+        drawableComm,
+        allLinks,
         value
       );
-    }
+    
   }
 
   @action
@@ -170,20 +184,38 @@ export default class HighlightingService extends Service.extend({
     entity: Package | Class,
     applicationObject3D: ApplicationObject3D
   ) {
-    let allLinks = this.linkRenderer.getAllLinks();
+    let allLinks = this.linkRenderer.getAllLinks(); //TODO adding inner links
 
-    const drawableClassCommunications =
-      this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
-    if (drawableClassCommunications) {
-      Highlighting.highlightModel(
-        entity,
-        applicationObject3D,
-        this.applicationRenderer.getOpenApplications(),
-        drawableClassCommunications,
-        allLinks,
-        this.opacity
-      );
-    }
+    const applications = this.applicationRenderer.getOpenApplications();
+    applications.forEach((applicationObject3D : ApplicationObject3D) => {
+      const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
+      if(drawableComm2){
+        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
+          //drawableComm.push(drawableClassCommunication);
+
+          const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
+          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
+            allLinks.push(link as ClazzCommunicationMesh);
+          }
+        });
+      }
+    });
+
+    let drawableComm : DrawableClassCommunication[] = [];
+    allLinks.forEach((link) => {
+      const linkCommunications = link.dataModel.drawableClassCommus;
+      drawableComm = [...drawableComm, ...linkCommunications];
+    });
+    
+    Highlighting.highlightModel(
+      entity,
+      applicationObject3D,
+      this.applicationRenderer.getOpenApplications(),
+      drawableComm,
+      allLinks,
+      this.opacity
+    );
+    
   }
 
   @action
