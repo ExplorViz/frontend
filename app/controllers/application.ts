@@ -16,7 +16,9 @@ export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
 
   @tracked
-  queryParams = ['deviceId', 'roomId'];
+  queryParams = ['lsToken', 'deviceId', 'roomId'];
+  @tracked
+  lsToken = '';
   @tracked
   deviceId = -1;
   @tracked
