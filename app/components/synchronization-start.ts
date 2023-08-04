@@ -6,6 +6,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
+import SynchronizeService from 'virtual-reality/services/synchronize';
 
 interface SynchronizationStartArgs {
   deviceId: number;
@@ -14,16 +15,19 @@ interface SynchronizationStartArgs {
 
 export default class SynchronizationStart extends Component<SynchronizationStartArgs> {
   @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
+  private collaborationSession!: CollaborationSession;
 
   @service('router')
-  router!: any;
+  private router!: any;
 
   @service('landscape-token')
-  tokenService!: LandscapeTokenService;
+  private tokenService!: LandscapeTokenService;
 
   @service('synchronization-session')
-  synchronizationSession!: SynchronizationSession;
+  private synchronizationSession!: SynchronizationSession;
+
+  @service('synchronize')
+  private synchronizeService!: SynchronizeService;
 
   token = {
     alias: 'Fibonacci Sample',
@@ -46,7 +50,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     this.routeToVisualization(this.token);
 
     // chill to let all be set up
-    await timeout(10000);
+    await timeout(2000);
 
     // host room if main-instance, join room if projector
     this.synchronizationSession.deviceId == 0
@@ -54,6 +58,16 @@ export default class SynchronizationStart extends Component<SynchronizationStart
       : await this.collaborationSession.joinRoom(
           this.synchronizationSession.roomId!
         );
+
+    // chill to let all be set up
+    await timeout(2000);
+    console.log(this.collaborationSession.getAllRemoteUserIds());
+    Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
+      if (user.color.getHexString() === 'ff0000') {
+        console.log('ich war hier');
+        this.synchronizeService.activate(user);
+      }
+    });
   });
 
   routeToVisualization(token: LandscapeToken) {

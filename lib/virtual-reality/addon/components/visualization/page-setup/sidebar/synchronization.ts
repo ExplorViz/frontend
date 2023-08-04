@@ -53,11 +53,13 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     }
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
-    ).map((user) => ({
-      name: user.userName,
-      style: `color:#${user.color.getHexString()}`,
-      id: user.userId,
-    }));
+    ).map((user) => {
+      return {
+        name: user.userName,
+        style: `color:#${user.color.getHexString()}`,
+        id: user.userId,
+      };
+    });
 
     return users.concat(remoteUsers);
   }
