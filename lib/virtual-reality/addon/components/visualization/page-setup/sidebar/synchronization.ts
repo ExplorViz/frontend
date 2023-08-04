@@ -41,6 +41,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   get users() {
     const users = [];
     if (this.localUser.color) {
+      // Set name of projector, which should be set up by query parameters
       users.push({
         name: `${
           this.synchronizationSession.deviceId == 0
@@ -64,7 +65,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   constructor(owner: any, args: SynchronizationArgs) {
     super(owner, args);
 
-    console.log('Component created');
     this.loadRooms(false);
   }
 
@@ -105,6 +105,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     }
   }
 
+  // Testing file upload
   @action
   handleFileUpload(event?: Event) {
     if (
@@ -140,6 +141,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     }
   }
 
+  // testing url opening by event
   @action
   addUser() {
     // Use window.open method to open a new browser tab/window

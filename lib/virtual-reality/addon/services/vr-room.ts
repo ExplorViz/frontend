@@ -82,6 +82,7 @@ export default class VrRoomService extends Service {
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
+      // roomId will be set in the synchronizationSession, when synchronization is intented (query params)
       roomId: this.synchronizationSession.roomId,
     };
   }
