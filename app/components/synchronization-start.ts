@@ -37,7 +37,9 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
     this.routeToVisualization(this.token);
     await timeout(10000);
-    this.collaborationSession.hostRoom();
+    this.synchronizationSession.deviceId == 0
+      ? this.collaborationSession.hostRoom()
+      : this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
   });
 
   routeToVisualization(token: LandscapeToken) {

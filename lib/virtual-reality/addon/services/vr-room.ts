@@ -78,6 +78,7 @@ export default class VrRoomService extends Service {
       return;
     }
 
+    console.log(this.synchronizationSession.roomId);
     return {
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
