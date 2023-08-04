@@ -203,17 +203,6 @@ export function highlight(
 
   console.log("highlight aufruf");
 
-  // remove highlighted components for closed boxes
-  applicationObject3DList.forEach(app => {
-    if(app.highlightedEntity && !isTrace(app.highlightedEntity)){
-      app.highlightedEntity.forEach(mesh => {
-
-      });
-    }
-  });
-
-
-
 
   // Highlight/unhighlight the entity itself
   if(!highlightOnHighlighted && mesh.highlighted){
@@ -251,8 +240,7 @@ export function highlight(
     if(!applicationObject3D.highlightedEntity || isTrace(applicationObject3D.highlightedEntity)){
       applicationObject3D.highlightedEntity = new Map<string, BaseMesh>();
     }
-    // when we are just updating (open/close boxes) we already have the highlighted component 
-    if(!highlightOnHighlighted) applicationObject3D.highlightedEntity.set(mesh.getModelId(), mesh); 
+    applicationObject3D.highlightedEntity.set(mesh.getModelId(), mesh); 
   }
 
 

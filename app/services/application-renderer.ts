@@ -226,7 +226,7 @@ export default class ApplicationRenderer extends Service.extend({
           : addApplicationArgs;
 
       if (layoutChanged) {
-        applicationObject3D.removeAllEntities();
+        //applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(

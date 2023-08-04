@@ -161,7 +161,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       return;
     }
 
-    if (isHighlighted) {
+   
       this.highlightingService.hightlightComponentLocallyByTypeAndId(
         application,
         {
@@ -170,9 +170,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
           color: user.color,
         }
       );
-    } else {
-      this.highlightingService.removeHighlightingLocally(application);
-    }
+   
   }
 
   onMousePingUpdate({

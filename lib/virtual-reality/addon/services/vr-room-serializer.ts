@@ -4,10 +4,12 @@ import ApplicationRenderer, {
 } from 'explorviz-frontend/services/application-renderer';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
+import { isTrace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import {
@@ -104,20 +106,45 @@ export default class VrRoomSerializer extends Service {
     const { highlightedEntity } = application;
     if (
       highlightedEntity &&
-      (highlightedEntity instanceof ComponentMesh ||
-        highlightedEntity instanceof ClazzMesh ||
-        highlightedEntity instanceof ClazzCommunicationMesh)
+      (!isTrace(highlightedEntity))
     ) {
-      return [
-        {
-          appId: application.getModelId(),
-          userId: '1',
-          entityType: highlightedEntity.constructor.name,
-          entityId: highlightedEntity.getModelId(),
-          isHighlighted: true,
-          color: highlightedEntity.highlightingColor.toArray(),
-        },
-      ];
+      const list : {
+        appId : string,
+        userId : string,
+        entityType : string,
+        entityId : string,
+        isHighlighted : boolean,
+        color: number[],
+      }[] = [];
+
+      Array.from(highlightedEntity.keys()).forEach( meshId => {
+        const color = application.getMeshById(meshId)?.highlightingColor.toArray();
+        const entityType = application.getMeshById(meshId);
+        if(color && entityType){
+          const item = {
+            appId: application.getModelId(),
+            userId: '1',
+            entityType: entityType.constructor.name,
+            entityId: (application.getMeshById(meshId) as ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh).getModelId(),
+            isHighlighted: true,
+            color: color,
+          }
+          list.push(item);
+        }
+
+      });
+
+      return list;
+      // return [
+      //   {
+      //     appId: application.getModelId(),
+      //     userId: '1',
+      //     entityType: highlightedEntity.constructor.name,
+      //     entityId: highlightedEntity.getModelId(),
+      //     isHighlighted: true,
+      //     color: highlightedEntity.highlightingColor.toArray(),
+      //   },
+      // ];
     }
     return [];
   }
