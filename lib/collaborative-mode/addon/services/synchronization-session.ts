@@ -22,19 +22,16 @@ export default class SynchronizationSession extends Service {
 
   setCount(n: number) {
     this.numberDevices = n;
-    console.log(this.numberDevices);
   }
 
   setUp(rId: string, dId: number) {
     this.roomId = rId;
     this.deviceId = dId;
-    // this.collaborationSession.hostRoom();
+    this.isMain = this.deviceId === 0;
   }
 
   /** MAIN CONFIGS */
   setCamera() {
-    this.isMain = this.deviceId === 0;
-
     // For remote user names we should create another remoteUserGroup for synchronization to match names with deviceId.
     this.localUser.userName = this.isMain
       ? 'Main'
