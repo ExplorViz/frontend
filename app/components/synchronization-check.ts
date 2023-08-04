@@ -5,8 +5,7 @@ import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
-import { task } from 'ember-concurrency';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { task, timeout } from 'ember-concurrency';
 import VrRoomService from 'virtual-reality/services/vr-room';
 
 interface SynchronizationCheckArgs {
@@ -39,20 +38,21 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
     value: '17844195-6144-4254-a17b-0f7fb49adb0a',
   };
 
+  async routeToVisualization(token: LandscapeToken) {
+    this.tokenService.setToken(token);
+    await this.router.transitionTo('visualization');
+  }
+
+  setUpSynchronizationTask = task(async () => {
+    this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
+    await this.routeToVisualization(this.token);
+    // await timeout(1000);
+    await this.roomService.createRoom();
+  });
+
   get setUpSynchronization() {
     return () => {
-      this.hostRoomTask.perform();
-      this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
-      this.routeToVisualization(this.token);
+      this.setUpSynchronizationTask.perform();
     };
   }
-
-  routeToVisualization(token: LandscapeToken) {
-    this.tokenService.setToken(token);
-    this.router.transitionTo('visualization');
-  }
-
-  hostRoomTask = task({ enqueue: true }, async () => {
-    this.roomService.createRoom();
-  });
 }
