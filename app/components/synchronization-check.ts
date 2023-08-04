@@ -38,17 +38,17 @@ export default class SynchronizationCheck extends Component<SynchronizationCheck
     value: '17844195-6144-4254-a17b-0f7fb49adb0a',
   };
 
-  async routeToVisualization(token: LandscapeToken) {
-    this.tokenService.setToken(token);
-    await this.router.transitionTo('visualization');
-  }
-
   setUpSynchronizationTask = task(async () => {
     this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
-    await this.routeToVisualization(this.token);
-    // await timeout(1000);
-    await this.roomService.createRoom();
+    this.routeToVisualization(this.token);
+    await timeout(1000);
+    this.roomService.createRoom();
   });
+
+  routeToVisualization(token: LandscapeToken) {
+    this.tokenService.setToken(token);
+    this.router.transitionTo('visualization');
+  }
 
   get setUpSynchronization() {
     return () => {
