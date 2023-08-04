@@ -33,11 +33,6 @@ export default class SynchronizationSession extends Service {
 
   /** MAIN CONFIGS */
   setCamera() {
-    // For remote user names we should create another remoteUserGroup for synchronization to match names with deviceId.
-    this.localUser.userName = this.isMain
-      ? 'Main'
-      : 'Projector ' + this.deviceId;
-
     // translate pixel to radians and divide it by projector count (here 4)
     const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 4);
 

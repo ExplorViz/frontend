@@ -23,7 +23,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   tokenService!: LandscapeTokenService;
 
   @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
+  synchronizationSession!: SynchronizationSession;
 
   token = {
     alias: 'Fibonacci Sample',
@@ -33,13 +33,27 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     value: '17844195-6144-4254-a17b-0f7fb49adb0a',
   };
 
+  // Check for updates on query params
+  checkQueryParams() {
+    return this.args.deviceId > -1 && this.args.roomId !== '';
+  }
+
+  // Create task to handle async calls on room handling
   setUpSynchronizationTask = task(async () => {
+    // Set up service attributes
     this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
+    // set token and redirect to visualization space
     this.routeToVisualization(this.token);
+
+    // chill to let all be set up
     await timeout(10000);
+
+    // host room if main-instance, join room if projector
     this.synchronizationSession.deviceId == 0
-      ? this.collaborationSession.hostRoom()
-      : this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
+      ? await this.collaborationSession.hostRoom()
+      : await this.collaborationSession.joinRoom(
+          this.synchronizationSession.roomId!
+        );
   });
 
   routeToVisualization(token: LandscapeToken) {
@@ -47,9 +61,10 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     this.router.transitionTo('visualization');
   }
 
+  // Function which is called when query params are set and the component is created
   get setUpSynchronization() {
     return () => {
-      this.setUpSynchronizationTask.perform();
+      this.checkQueryParams() && this.setUpSynchronizationTask.perform();
     };
   }
 }
