@@ -57,7 +57,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
       style: `color:#${user.color.getHexString()}`,
       id: user.userId,
     }));
-    console.log(remoteUsers);
 
     return users.concat(remoteUsers);
   }

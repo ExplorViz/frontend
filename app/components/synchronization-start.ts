@@ -1,12 +1,13 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LandscapeTokenService, {
+  LandscapeToken,
+} from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
-import VrRoomService from 'virtual-reality/services/vr-room';
+import { task, timeout } from 'ember-concurrency';
 
 interface SynchronizationStartArgs {
-  lsToken: string;
   deviceId: number;
   roomId: string;
 }
@@ -21,17 +22,32 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
-  @service('vr-room')
-  private roomService!: VrRoomService;
+  @service('synchronization-session')
+  private synchronizationSession!: SynchronizationSession;
 
-  get startSynchronization() {
-    return () => {
-      // this.collaborationSession.hostRoom();
-    };
+  token = {
+    alias: 'Fibonacci Sample',
+    created: 1551631224242,
+    ownerId: 'github|123456',
+    sharedUsersIds: [],
+    value: '17844195-6144-4254-a17b-0f7fb49adb0a',
+  };
+
+  setUpSynchronizationTask = task(async () => {
+    this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
+    this.routeToVisualization(this.token);
+    await timeout(10000);
+    this.collaborationSession.hostRoom();
+  });
+
+  routeToVisualization(token: LandscapeToken) {
+    this.tokenService.setToken(token);
+    this.router.transitionTo('visualization');
   }
 
-  async hostRoom() {
-    const response = this.roomService.createRoom();
-    console.log(response);
+  get setUpSynchronization() {
+    return () => {
+      this.setUpSynchronizationTask.perform();
+    };
   }
 }
