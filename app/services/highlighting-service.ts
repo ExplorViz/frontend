@@ -170,7 +170,8 @@ export default class HighlightingService extends Service.extend({
         this.applicationRenderer.getOpenApplications(),
         drawableComm,
         allLinks,
-        value
+        value,
+        this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value
       );
     
   }
@@ -209,7 +210,8 @@ export default class HighlightingService extends Service.extend({
       this.applicationRenderer.getOpenApplications(),
       drawableComm,
       allLinks,
-      this.opacity
+      this.opacity,
+      this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value
     );
     
   }
@@ -339,13 +341,14 @@ export default class HighlightingService extends Service.extend({
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );
-    Highlighting.highlight(mesh, application, applications, drawableComm, allLinks, this.opacity);
+    Highlighting.highlight(mesh, application, applications, drawableComm, allLinks, this.opacity, this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value);
   }
 
   private getEntityType(mesh: HighlightableMesh): string {
     return mesh.constructor.name;
   }
 }
+
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

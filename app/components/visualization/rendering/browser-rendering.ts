@@ -361,6 +361,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
   }
 
+
+  @action
+  handleStrgDown() {
+    console.log('Strg Down');
+  }
+
+  @action
+  handleStrgUp() {
+    console.log('Strg Up');
+  }
+
+
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();

@@ -170,14 +170,19 @@ export function turnComponentAndAncestorsOpaque(
  *                           causes removal of all highlighting
  */
 export function highlight(
-  mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
+  mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh,
   applicationObject3D: ApplicationObject3D,
   applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
   allLinks: ClazzCommunicationMesh[],
   opacity: number,
-  toggleHighlighting = true,
+  toggleHighlighting : boolean = true,
+  highlightOnHighlighted : boolean = false, // need this flag to prevent unhighlighting of component when updateHighlight function is called
 ) {
+
+
+
+
   // Reset highlighting if highlighted mesh is clicked
   // if (mesh.highlighted && toggleHighlighting) {
   //   removeAllHighlighting(applicationObject3D);
@@ -196,14 +201,28 @@ export function highlight(
     return;
   }
 
+  console.log("highlight aufruf");
+
+  // remove highlighted components for closed boxes
+  applicationObject3DList.forEach(app => {
+    if(app.highlightedEntity && !isTrace(app.highlightedEntity)){
+      app.highlightedEntity.forEach(mesh => {
+
+      });
+    }
+  });
+
+
+
 
   // Highlight/unhighlight the entity itself
-  if(mesh.highlighted){
-    //TODO: toggleHighlighting Logik benutzen wenn toggleHighlighting auf true => alle highlights entfernen und alles opaque machen
-    mesh.unhighlight();
-    if(applicationObject3D.highlightedEntity && !isTrace(applicationObject3D.highlightedEntity)){
-      applicationObject3D.highlightedEntity.delete(mesh.getModelId());
-    }
+  if(!highlightOnHighlighted && mesh.highlighted){
+    //TODO: Strg + Mausklick Logik => alles unhighlighten wenn auf eine highlighted sache geklickt wird
+      mesh.unhighlight();
+      if(applicationObject3D.highlightedEntity && !isTrace(applicationObject3D.highlightedEntity)){
+        applicationObject3D.highlightedEntity.delete(mesh.getModelId());
+      }
+    
   }else{
     mesh.highlight(); //TODO: Strg + Mausklick Logik => nur eine Sache highlightable innerhalb einer Application
 
@@ -232,7 +251,8 @@ export function highlight(
     if(!applicationObject3D.highlightedEntity || isTrace(applicationObject3D.highlightedEntity)){
       applicationObject3D.highlightedEntity = new Map<string, BaseMesh>();
     }
-    applicationObject3D.highlightedEntity.set(mesh.getModelId(), mesh); 
+    // when we are just updating (open/close boxes) we already have the highlighted component 
+    if(!highlightOnHighlighted) applicationObject3D.highlightedEntity.set(mesh.getModelId(), mesh); 
   }
 
 
@@ -276,7 +296,7 @@ export function highlight(
       }
     });
 
-  console.log();
+  console.log(containedClazzes);
 
   if(containedClazzes.size === 0){
     // turn everything opaque by considering all clazzes as involved
@@ -436,11 +456,12 @@ export function highlightModel(
   applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
   allLinks: ClazzCommunicationMesh[],
-  opacity: number
+  opacity: number,
+  toggleHighlighting: boolean ,
 ) {
   const mesh = applicationObject3D.getBoxMeshbyModelId(entity.id);
   if (mesh instanceof ComponentMesh || mesh instanceof ClazzMesh) {
-    highlight(mesh, applicationObject3D,applicationObject3DList,communication,allLinks,opacity);
+    highlight(mesh, applicationObject3D,applicationObject3DList,communication,allLinks,opacity,toggleHighlighting);
   }
 }
 
@@ -613,7 +634,9 @@ export function updateHighlighting(
   applicationObject3DList: ApplicationObject3D[],
   communication: DrawableClassCommunication[],
   allLinks: ClazzCommunicationMesh[],
-  opacity: number
+  opacity: number,
+  toggleHighlighting: boolean
+
 ) {
   let allHighlightiedEntity = new Set<BaseMesh>();
   applicationObject3DList.forEach(app =>{
@@ -633,7 +656,8 @@ export function updateHighlighting(
       if (
         mesh instanceof ClazzMesh ||
         mesh instanceof ComponentMesh ||
-        mesh instanceof ClazzCommunicationMesh
+        mesh instanceof ClazzCommunicationMesh ||
+        mesh instanceof FoundationMesh
       ) {
         highlight(
           mesh,
@@ -642,9 +666,28 @@ export function updateHighlighting(
           communication,
           allLinks,
           opacity,
-          false
+          toggleHighlighting,
+          true
         );
       }
     });
   }
 }
+
+export function removeHighlighting(
+  mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh,
+  applicationObject3D: ApplicationObject3D,
+  applicationObject3DList: ApplicationObject3D[],
+  communication: DrawableClassCommunication[],
+  allLinks: ClazzCommunicationMesh[],
+  opacity: number,
+  toggleHighlighting: boolean ){
+  if(applicationObject3D.highlightedEntity && !isTrace(applicationObject3D.highlightedEntity)){
+    highlight(mesh, applicationObject3D, applicationObject3DList, communication, allLinks, opacity, toggleHighlighting);
+  }
+}
+
+
+
+
+

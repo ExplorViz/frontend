@@ -1,18 +1,22 @@
 import * as THREE from 'three';
+const times = [0, 2];
+const values = [ 10.5, 50];
+const scaleValues = [1.0, 4];
 
-export const PING_ANIMATION_CLIP = new THREE.AnimationClip(
+ const PING_ANIMATION_CLIP = new THREE.AnimationClip(
   'ping-animation',
-  0.5,
+  1,
   [
-    new THREE.NumberKeyframeTrack('.scale[x]', [0.0, 0.5], [1.0, 2.6]),
-    new THREE.NumberKeyframeTrack('.scale[y]', [0.0, 0.5], [1.0, 2.6]),
-    new THREE.NumberKeyframeTrack('.scale[z]', [0.0, 0.5], [1.0, 2.6]),
+    new THREE.NumberKeyframeTrack('.scale[x]', times, scaleValues),
+    new THREE.NumberKeyframeTrack('.scale[y]', times, scaleValues),
+    new THREE.NumberKeyframeTrack('.scale[z]', times,scaleValues),
+    new THREE.NumberKeyframeTrack('.position[y]', times, values),
   ]
 );
 
-const PING_RADIUS = 2.4;
+const PING_RADIUS = 1.4;
 
-const PING_SEGMENTS = 32;
+const PING_SEGMENTS = 22;
 
 export default class PingMesh extends THREE.Mesh {
   private action: THREE.AnimationAction;
@@ -27,8 +31,9 @@ export default class PingMesh extends THREE.Mesh {
     color: THREE.Color;
   }) {
     super();
-
-    this.geometry = new THREE.SphereGeometry(
+   
+    this.geometry = new THREE.CylinderGeometry(
+      PING_RADIUS,
       PING_RADIUS,
       PING_SEGMENTS,
       PING_SEGMENTS
@@ -63,6 +68,7 @@ export default class PingMesh extends THREE.Mesh {
   updateIntersection(intersection: THREE.Vector3 | undefined) {
     if (intersection) {
       this.position.copy(intersection);
+      console.log(this.position);
       this.startAnimation();
     } else {
       this.stopAnimation();
