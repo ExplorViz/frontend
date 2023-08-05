@@ -22,6 +22,7 @@ import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-rendere
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -56,6 +57,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('local-user')
   localUser!: LocalUser;
+
+  
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service
   private worker!: any;
@@ -144,6 +149,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           }
         });
       }
+      
     }
 
     const interAppCommunications = drawableClassCommunications.filter(

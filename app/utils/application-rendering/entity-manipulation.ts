@@ -126,6 +126,7 @@ export function closeComponentMesh(
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
+        console.log("close ", childMesh.dataModel.name);
         closeComponentMesh(childMesh, applicationObject3D, applicationObject3DList,
           communication,
           allLinks,
@@ -134,11 +135,7 @@ export function closeComponentMesh(
       }
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D, applicationObject3DList,
-          communication,
-          allLinks,
-          opacity,
-          toggleHighlighting );
+        removeHighlighting(childMesh, applicationObject3D);
       }
     }
   });
@@ -150,11 +147,7 @@ export function closeComponentMesh(
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D,applicationObject3DList,
-          communication,
-          allLinks,
-          opacity,
-          toggleHighlighting );
+        removeHighlighting(childMesh, applicationObject3D );
       }
     }
   });

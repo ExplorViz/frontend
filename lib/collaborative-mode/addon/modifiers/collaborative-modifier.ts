@@ -162,7 +162,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
 
    
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
+      this.highlightingService.hightlightComponentLocallyByTypeAndId( // highlighting a highlighted component unhighlights it
         application,
         {
           entityType,

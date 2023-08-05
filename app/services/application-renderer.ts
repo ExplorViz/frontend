@@ -226,7 +226,7 @@ export default class ApplicationRenderer extends Service.extend({
           : addApplicationArgs;
 
       if (layoutChanged) {
-        //applicationObject3D.removeAllEntities();
+        applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
@@ -258,7 +258,7 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      this.highlightingService.updateHighlighting(applicationObject3D);
+      //this.highlightingService.updateHighlighting(); TODO: delete this line
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -312,9 +312,10 @@ export default class ApplicationRenderer extends Service.extend({
     }
     // Update highlighting
     if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      this.highlightingService.updateHighlighting(applicationObject3D);
+      this.highlightingService.updateHighlighting();
     } else {
       removeAllHighlighting(applicationObject3D);
+      this.highlightingService.updateHighlighting();
     }
     // Update labels
     Labeler.addApplicationLabels(
@@ -401,33 +402,7 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D
   ) {
 
-    //const drawableComm : DrawableClassCommunication[] = [];
-    const applications = this.getOpenApplications();
-
-    // Highlighting.highlight(mesh, application, drawableComm, this.opacity);
-    const allLinks = this.linkRenderer.getAllLinks();
-
-    applications.forEach((applicationObject3D : ApplicationObject3D) => {
-      const drawableComm2 = this.getDrawableClassCommunications(applicationObject3D);
-      if(drawableComm2){
-        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
-          //drawableComm.push(drawableClassCommunication);
-
-          const link = this.getMeshById(drawableClassCommunication.id);
-          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-            allLinks.push(link as ClazzCommunicationMesh);
-          }
-        });
-      }
-    });
-
-    let drawableComm : DrawableClassCommunication[] = [];
-    allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.drawableClassCommus;
-      drawableComm = [...drawableComm, ...linkCommunications];
-    });
-
-
+    const {applications, drawableComm, allLinks} = this.highlightingService.getParams();
 
     EntityManipulation.toggleComponentMeshState(
       componentMesh,

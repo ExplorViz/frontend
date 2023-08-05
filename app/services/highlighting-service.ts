@@ -104,11 +104,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlightingForAllApplications() {
-    this.applicationRenderer
-      .getOpenApplications()
-      .forEach((applicationObject3D) => {
-        this.updateHighlighting(applicationObject3D, this.opacity);
-      });
+    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
   }
 
   @action
@@ -116,10 +112,12 @@ export default class HighlightingService extends Service.extend({
     this.applicationRenderer
       .getOpenApplications()
       .forEach((applicationObject3D) => {
-        const meshList = applicationObject3D.highlightedEntity;
-        if (meshList && !(isTrace(meshList))) {
-          meshList.forEach(mesh => {
-            this.highlightComponent(applicationObject3D, mesh);
+        const meshIdList = applicationObject3D.highlightedEntity;
+        if (meshIdList && !(isTrace(meshIdList))) {
+          meshIdList.forEach(meshId => {
+            const mesh = applicationObject3D.getMeshById(meshId);
+            if(mesh)
+              this.highlightComponent(applicationObject3D, mesh);
           });
         }
       });
@@ -138,10 +136,22 @@ export default class HighlightingService extends Service.extend({
   // }
 
   updateHighlighting(
-    applicationObject3D: ApplicationObject3D,
     value: number = this.opacity
   ) {
 
+    const {allLinks, drawableComm, applications} = this.getParams();
+
+      Highlighting.updateHighlighting(
+        applications,
+        drawableComm,
+        allLinks,
+        value,
+      );
+    
+  }
+
+
+  getParams(): {allLinks: ClazzCommunicationMesh[], drawableComm: DrawableClassCommunication[], applications: ApplicationObject3D[]}{
     const allLinks = this.linkRenderer.getAllLinks();
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D : ApplicationObject3D) => {
@@ -164,56 +174,21 @@ export default class HighlightingService extends Service.extend({
       drawableComm = [...drawableComm, ...linkCommunications];
     });
 
-
-      Highlighting.updateHighlighting(
-        applicationObject3D,
-        this.applicationRenderer.getOpenApplications(),
-        drawableComm,
-        allLinks,
-        value,
-        this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value
-      );
-    
+    return {allLinks: allLinks, drawableComm: drawableComm, applications: applications};
   }
+
+
+
 
   @action
   highlightModel(
     entity: Package | Class,
     applicationObject3D: ApplicationObject3D
   ) {
-    let allLinks = this.linkRenderer.getAllLinks(); //TODO adding inner links
-
-    const applications = this.applicationRenderer.getOpenApplications();
-    applications.forEach((applicationObject3D : ApplicationObject3D) => {
-      const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
-      if(drawableComm2){
-        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
-          //drawableComm.push(drawableClassCommunication);
-
-          const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
-          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-            allLinks.push(link as ClazzCommunicationMesh);
-          }
-        });
-      }
-    });
-
-    let drawableComm : DrawableClassCommunication[] = [];
-    allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.drawableClassCommus;
-      drawableComm = [...drawableComm, ...linkCommunications];
-    });
-    
     Highlighting.highlightModel(
       entity,
       applicationObject3D,
-      this.applicationRenderer.getOpenApplications(),
-      drawableComm,
-      allLinks,
-      this.opacity,
-      this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value
     );
-    
   }
 
   @action
@@ -243,6 +218,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
+    console.log("highlightLink");
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
     if (mesh.highlighted) {
@@ -260,6 +236,7 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     structureData: StructureLandscapeData
   ) {
+    console.log("highlightTrace");
     const drawableClassCommunications =
       this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
 
@@ -293,6 +270,7 @@ export default class HighlightingService extends Service.extend({
   }
 
   removeHighlightingLocally(application: ApplicationObject3D) {
+    console.log("removeHighlightingLocally");
     Highlighting.removeAllHighlighting(application);
   }
 
@@ -311,37 +289,11 @@ export default class HighlightingService extends Service.extend({
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
-
-    //const drawableComm : DrawableClassCommunication[] = [];
-    const applications = this.applicationRenderer.getOpenApplications();
-
-    // Highlighting.highlight(mesh, application, drawableComm, this.opacity);
-    const allLinks = this.linkRenderer.getAllLinks();
-
-    applications.forEach((applicationObject3D : ApplicationObject3D) => {
-      const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
-      if(drawableComm2){
-        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
-          //drawableComm.push(drawableClassCommunication);
-
-          const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
-          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-            allLinks.push(link as ClazzCommunicationMesh);
-          }
-        });
-      }
-    });
-
-
-    let drawableComm : DrawableClassCommunication[] = [];
-    allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.drawableClassCommus;
-      drawableComm = [...drawableComm, ...linkCommunications];
-    });
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );
-    Highlighting.highlight(mesh, application, applications, drawableComm, allLinks, this.opacity, this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value);
+    Highlighting.highlight(mesh.getModelId(), application);
+    this.updateHighlighting();
   }
 
   private getEntityType(mesh: HighlightableMesh): string {
