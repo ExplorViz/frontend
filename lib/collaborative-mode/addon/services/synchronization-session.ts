@@ -297,8 +297,8 @@ export default class SynchronizationSession extends Service {
           fovDirections.right,
           fovDirections.up,
           fovDirections.down,
-          this.localUser.camera.near / 4, // near
-          this.localUser.camera.far / 4 // far
+          this.localUser.camera.near, // near
+          this.localUser.camera.far // far
         );
         break;
       default:
