@@ -293,10 +293,10 @@ export default class SynchronizationSession extends Service {
         break;
       case 5: //middle
         this.localUser.camera.projectionMatrix.makePerspective(
-          -width / 2, // left
-          width / 2, // right
-          height / 2, // top
-          -height / 2, // bottom
+          fovDirections.left,
+          fovDirections.right,
+          fovDirections.up,
+          fovDirections.down,
           this.localUser.camera.near / 4, // near
           this.localUser.camera.far / 4 // far
         );
