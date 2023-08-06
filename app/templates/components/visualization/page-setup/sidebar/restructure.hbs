@@ -58,28 +58,26 @@
 
     <h6 class="mb-3 mt-3"><strong>Communication</strong></h6>
     <div class='ml-3'>
-      <label>Method name:
-        <div class="d-flex justify-content-between">
-          <input class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
-        </div>
-      </label>
-      <ul></ul>
-      <label>Source Class:
-        <div class="d-flex justify-content-between">
-          <input class="form-control mr-2"  value={{this.sourceClass}} disabled>
-          <button type="button" class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}></button>
-          <button type="button" class="btn btn-light" title="Reset Source Class" onclick={{this.resetSourceClass}}></button>
-        </div>
-      </label>
+      <label for="methodName">Method name:</label>
+      <div class="d-flex justify-content-between">
+        <input id="methodName" class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
+      </div>
       
       <ul></ul>
-      <label>Target Class:
-        <div class="d-flex justify-content-between">
-          <input class="form-control mr-2"  value={{this.targetClass}} disabled>
-          <button type="button" class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}></button>
-          <button type="button" class="btn btn-light" title="Reset Target Class" onclick={{this.resetTargetClass}}></button>
-        </div>
-      </label>
+      <label for="srcClass">Source Class:</label>
+      <div class="d-flex justify-content-between">
+        <input id="srcClass" class="form-control mr-2"  value={{this.sourceClass}} disabled>
+        <button type="button" class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}></button>
+        <button type="button" class="btn btn-light" title="Reset Source Class" onclick={{this.resetSourceClass}}></button>
+      </div>
+      
+      <ul></ul>
+      <label for="targetClass">Target Class:</label>
+      <div class="d-flex justify-content-between">
+        <input id="targetClass" class="form-control mr-2"  value={{this.targetClass}} disabled>
+        <button type="button" class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}></button>
+        <button type="button" class="btn btn-light" title="Reset Target Class" onclick={{this.resetTargetClass}}></button>
+      </div>
       
       <ul></ul>
       <div class='d-flex justify-content-between'>
@@ -97,12 +95,40 @@
 
     <h6 class="mb-3 mt-3"><strong>Clipboard</strong></h6>
     <div class="ml-3">
-      <label>
-        <div class="d-flex justify-content-between">
-          <input class="form-control mr-2"  value={{this.clip_board}} disabled>
-          <button type="button" class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
+      <label for="clipboard"></label>
+      <div class="d-flex justify-content-between">
+        <input id="clipboard" class="form-control mr-2"  value={{this.clip_board}} disabled>
+        <button type="button" class="btn btn-light" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}></button>
+      </div>
+    </div>
+
+    <h6 class="mb-3 mt-3"><strong>Gitlab</strong></h6>
+    {{#each this.issues as |issue index|}}
+      <div class="ml-3">
+        <div class="d-flex flex-column justify-content-between">
+          <label for="issueTitle"></label>
+            <input id="issueTitle" type="text" placeholder="Issue Title" value={{issue.title}} {{on "input" (fn this.updateIssueTitle index)}}>
+          <ul></ul>
+          <label for="issue"></label>
+          <textarea id="issue" placeholder="Issue Content" rows="10" value={{issue.content}} {{on "input" (fn this.updateIssueContent index)}}></textarea>
         </div>
-      </label>
+      </div>
+      <ul></ul>
+    {{/each}}
+
+    <div class='ml-3'>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Foundation'
+          {{on 'click' this.createIssue}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Create Issue
+        </BsButton>
+      </div>
+      <ul></ul>
+      
     </div>
   {{/if}}
 

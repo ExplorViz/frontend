@@ -52,7 +52,6 @@ export default class EditMesh extends Component<Args> {
 
   @action
   addPackage() {
-    console.log(this.args.entity);
     if (this.isEntityApplication)
       this.landscapeRestructure.addPackageFromPopup(this.args.entity);
     else if (this.isEntityPackage)

@@ -3,31 +3,36 @@ import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import {
-  addClassToApplication,
   addFoundationToLandscape,
   addMethodToClass,
-  addPackageToApplication,
-  addSubPackageToPackage,
   cutAndInsertPackage,
   cutAndInsertClass,
   removeApplication,
   removeClassFromPackage,
   removePackageFromApplication,
-  setApplicationNameInLandscapeById,
-  setClassNameById,
-  setPackageNameById,
+  setClassName,
+  createPackage,
+  createClass,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
   Application,
   Class,
   Package,
+  isApplication,
   isClass,
   isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { getApplicationFromClass } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import {
+  getApplicationFromClass,
+  getApplicationFromPackage,
+  getApplicationFromSubPackage,
+  getApplicationInLandscapeById,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRepository from './repos/application-repository';
+import Changelog from './changelog';
+import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -37,6 +42,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('changelog')
+  changeLog!: Changelog;
 
   @tracked
   public restructureMode: boolean = false;
@@ -95,7 +103,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         targetApp: targetApp,
       };
       this.classCommunication.push(classCommunication);
-      console.log(this.classCommunication);
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -110,57 +117,121 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   setLandscapeData(newData: LandscapeData | null) {
     this.landscapeData = newData;
-    console.log(this.landscapeData);
   }
 
   updateApplicationName(name: string, id: string) {
     if (this.landscapeData?.structureLandscapeData) {
-      setApplicationNameInLandscapeById(
+      const app = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
-        id,
-        name
+        id
       );
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
-    } else console.log('No Application with ID: ' + id + ' found!');
+      if (app) {
+        this.changeLog.renameAppEntry(app, name);
+        app.name = name;
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        );
+      }
+    }
   }
 
   updatePackageName(name: string, id: string) {
     if (this.landscapeData?.structureLandscapeData) {
-      setPackageNameById(this.landscapeData.structureLandscapeData, id, name);
-      this.trigger(
-        'restructureLandscapeData',
+      const pckg = getPackageById(
         this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
+        id
       );
-    } else console.log('No Package with ID: ' + id + ' found!');
+
+      if (pckg) {
+        const app = this.getAppFromPackage(pckg);
+        if (!pckg.parent && app)
+          this.changeLog.renamePackageEntry(app, pckg, name);
+        else if (pckg.parent && app)
+          this.changeLog.renameSubPackageEntry(app, pckg, name);
+        pckg.name = name;
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        );
+      }
+    }
+  }
+
+  updateSubPackageName(name: string, id: string) {
+    if (this.landscapeData?.structureLandscapeData) {
+      const pckg = getPackageById(
+        this.landscapeData.structureLandscapeData,
+        id
+      );
+
+      if (pckg) {
+        const app = this.getAppFromPackage(pckg);
+        if (app) this.changeLog.renameSubPackageEntry(app, pckg, name);
+        pckg.name = name;
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        );
+      }
+    }
+  }
+
+  private getAppFromPackage(pckg: Package) {
+    let app: Application | undefined;
+    if (this.landscapeData?.structureLandscapeData) {
+      if (!pckg.parent)
+        app = getApplicationFromPackage(
+          this.landscapeData.structureLandscapeData,
+          pckg.id
+        );
+      else
+        app = getApplicationFromSubPackage(
+          this.landscapeData.structureLandscapeData,
+          pckg.id
+        );
+    }
+    return app;
   }
 
   updateClassName(name: string, id: string, appId: string) {
     if (this.landscapeData?.structureLandscapeData) {
-      setClassNameById(
+      const application = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
-        appId,
-        id,
-        name
+        appId
       );
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
-    } else console.log('No Class with ID: ' + id + ' found!');
+      if (application) {
+        const clazzToRename = setClassName(application, id);
+
+        if (clazzToRename) {
+          this.changeLog.renameClassEntry(application, clazzToRename, name);
+          clazzToRename.name = name;
+
+          this.trigger(
+            'restructureLandscapeData',
+            this.landscapeData.structureLandscapeData,
+            this.landscapeData.dynamicLandscapeData
+          );
+        }
+      }
+    }
   }
 
   addFoundation() {
     if (this.landscapeData?.structureLandscapeData) {
-      addFoundationToLandscape(
-        this.landscapeData?.structureLandscapeData,
-        this.newMeshCounter
-      );
+      const foundation = addFoundationToLandscape(this.newMeshCounter);
+      const app = foundation.applications.firstObject;
+      const pckg = app?.packages.firstObject;
+      const clazz = pckg?.classes.firstObject;
+      this.landscapeData.structureLandscapeData.nodes.push(foundation);
+      if (app && pckg && clazz) {
+        this.changeLog.createAppEntry(app);
+        this.changeLog.createPackageEntry(app, pckg);
+        this.changeLog.createClassEntry(app, pckg, clazz);
+      }
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -170,35 +241,51 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  addPackage() {
-    const highlightedMesh = this.highlightedMeshes.entries().next().value;
-    addPackageToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
-    console.log(highlightedMesh[1].dataModel);
-    if (this.landscapeData?.structureLandscapeData) {
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
-    }
-    this.newMeshCounter++;
-  }
+  // addPackage() {
+  //   const highlightedMesh = this.highlightedMeshes.entries().next().value;
+  //   addPackageToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
+  //   console.log(highlightedMesh[1].dataModel);
+  //   if (this.landscapeData?.structureLandscapeData) {
+  //     this.trigger(
+  //       'restructureLandscapeData',
+  //       this.landscapeData.structureLandscapeData,
+  //       this.landscapeData.dynamicLandscapeData
+  //     );
+  //   }
+  //   this.newMeshCounter++;
+  // }
 
   addSubPackageFromPopup(pckg: Package) {
-    addSubPackageToPackage(pckg, this.newMeshCounter);
     if (this.landscapeData?.structureLandscapeData) {
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
+      const app = this.getAppFromPackage(pckg);
+      if (app) {
+        const subPackage = createPackage(this.newMeshCounter);
+        const newClass = createClass(this.newMeshCounter);
+        newClass.parent = subPackage;
+        subPackage.parent = pckg;
+        subPackage.classes.push(newClass as Class);
+        pckg.subPackages.push(subPackage);
+        this.changeLog.createPackageEntry(app, subPackage);
+        this.changeLog.createClassEntry(app, subPackage, newClass as Class);
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        );
+      }
     }
     this.newMeshCounter++;
   }
 
   addPackageFromPopup(app: Application) {
-    addPackageToApplication(app, this.newMeshCounter);
     if (this.landscapeData?.structureLandscapeData) {
+      const newPckg = createPackage(this.newMeshCounter);
+      const newClass = createClass(this.newMeshCounter);
+      newClass.parent = newPckg;
+      newPckg.classes.push(newClass as Class);
+      app.packages.push(newPckg);
+      this.changeLog.createPackageEntry(app, newPckg);
+      this.changeLog.createClassEntry(app, newPckg, newClass as Class);
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -208,28 +295,34 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  addClass() {
-    const highlightedMesh = this.highlightedMeshes.entries().next().value;
-    addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
-    console.log(highlightedMesh[1].dataModel);
-    if (this.landscapeData?.structureLandscapeData) {
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
-    }
-    this.newMeshCounter++;
-  }
+  // addClass() {
+  //   const highlightedMesh = this.highlightedMeshes.entries().next().value;
+  //   addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
+  //   console.log(highlightedMesh[1].dataModel);
+  //   if (this.landscapeData?.structureLandscapeData) {
+  //     this.trigger(
+  //       'restructureLandscapeData',
+  //       this.landscapeData.structureLandscapeData,
+  //       this.landscapeData.dynamicLandscapeData
+  //     );
+  //   }
+  //   this.newMeshCounter++;
+  // }
 
   addClassFromPopup(pckg: Package) {
-    addClassToApplication(pckg, this.newMeshCounter);
     if (this.landscapeData?.structureLandscapeData) {
-      this.trigger(
-        'restructureLandscapeData',
-        this.landscapeData.structureLandscapeData,
-        this.landscapeData.dynamicLandscapeData
-      );
+      const app = this.getAppFromPackage(pckg);
+      if (app) {
+        const clazz = createClass(this.newMeshCounter);
+        clazz.parent = pckg;
+        pckg.classes.push(clazz as Class);
+        this.changeLog.createClassEntry(app, pckg, clazz as Class);
+        this.trigger(
+          'restructureLandscapeData',
+          this.landscapeData.structureLandscapeData,
+          this.landscapeData.dynamicLandscapeData
+        );
+      }
     }
     this.newMeshCounter++;
   }
@@ -244,6 +337,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       const wrapper = {
         comms: this.classCommunication,
       };
+      this.changeLog.deleteAppEntry(app);
       removeApplication(
         this.landscapeData?.structureLandscapeData,
         wrapper,
@@ -265,7 +359,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         //this.applicationRepo.delete(wrapper.app.id);
       }*/
       this.applicationRepo.clear();
-      console.log(this.applicationRepo);
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -276,13 +369,44 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   deletePackageFromPopup(pckg: Package) {
     if (this.landscapeData?.structureLandscapeData) {
-      const wrapper = { comms: this.classCommunication };
+      let app: Application | undefined;
+      if (pckg.parent) {
+        app = getApplicationFromSubPackage(
+          this.landscapeData.structureLandscapeData,
+          pckg.id
+        );
+      } else {
+        app = getApplicationFromPackage(
+          this.landscapeData.structureLandscapeData,
+          pckg.id
+        );
+      }
+
+      const wrapper = {
+        comms: this.classCommunication,
+        meshTodelete: pckg,
+      };
+
       removePackageFromApplication(
         this.landscapeData.structureLandscapeData,
         wrapper,
         pckg,
         false
       );
+
+      if (isApplication(wrapper.meshTodelete)) {
+        this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+      } else if (isPackage(wrapper.meshTodelete)) {
+        if (app && wrapper.meshTodelete.parent) {
+          console.log('parent');
+          this.changeLog.deleteSubPackageEntry(app, wrapper.meshTodelete);
+        } else if (app && !wrapper.meshTodelete.parent) {
+          console.log('no parent');
+          this.changeLog.deletePackageEntry(app, wrapper.meshTodelete);
+        }
+        //delete wrapper.meshTodelete.parent;
+      }
+
       this.classCommunication = wrapper.comms;
       this.applicationRepo.clear();
       this.trigger(
@@ -295,15 +419,39 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   deleteClassFromPopup(clazz: Class) {
     if (this.landscapeData?.structureLandscapeData) {
-      const wrapper = { comms: this.classCommunication };
+      const application = getApplicationFromClass(
+        this.landscapeData.structureLandscapeData,
+        clazz
+      );
+      const wrapper = {
+        comms: this.classCommunication,
+        meshTodelete: clazz,
+      };
       removeClassFromPackage(
         this.landscapeData.structureLandscapeData,
         wrapper,
         clazz,
         false
       );
+      if (application) {
+        if (isClass(wrapper.meshTodelete)) {
+          this.changeLog.deleteClassEntry(application, clazz);
+        } else if (isPackage(wrapper.meshTodelete)) {
+          if ((wrapper.meshTodelete as Package).parent)
+            this.changeLog.deleteSubPackageEntry(
+              application,
+              wrapper.meshTodelete
+            );
+          else
+            this.changeLog.deletePackageEntry(
+              application,
+              wrapper.meshTodelete
+            );
+        } else if (isApplication(wrapper.meshTodelete)) {
+          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+        }
+      }
       this.classCommunication = wrapper.comms;
-      console.log(this.classCommunication);
       this.applicationRepo.clear();
       this.trigger(
         'restructureLandscapeData',
@@ -345,7 +493,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           pckg,
           wrapper
         );
-      console.log(wrapper.comms);
       this.classCommunication = wrapper.comms;
       this.applicationRepo.clear();
       this.resetClipboard();

@@ -44,7 +44,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   targetClass: string = '';
 
   @tracked
-  restructureMode: boolean = false;
+  issues: { title: string; content: string }[] = [];
+
+  @tracked
+  restructureMode: boolean = this.landscapeRestructure.restructureMode;
 
   @tracked
   communicationBtnDisabled: boolean = true;
@@ -62,7 +65,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   toggleRestructureMode() {
     this.restructureMode = this.landscapeRestructure.toggleRestructureMode();
     if (this.restructureMode) {
-      console.log(this.args.landscapeData);
       this.landscapeRestructure.setLandscapeData(this.args.landscapeData);
 
       this.args.resetLandscapeListenerPolling();
@@ -147,5 +149,23 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @action
   addClass() {
     this.landscapeRestructure.addClass();
+  }
+
+  @action
+  createIssue() {
+    const changelog = this.landscapeRestructure.changeLog.getChangeLogs();
+    this.issues = [...this.issues, { title: '', content: changelog }];
+  }
+
+  @action
+  updateIssueTitle(index: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.issues[index].title = target.value;
+  }
+
+  @action
+  updateIssueContent(index: number, event: Event) {
+    const target = event.target as HTMLTextAreaElement;
+    this.issues[index].content = target.value;
   }
 }

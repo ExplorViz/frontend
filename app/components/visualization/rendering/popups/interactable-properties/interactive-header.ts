@@ -25,6 +25,8 @@ export default class InteractiveHeader extends Component<Args> {
   @tracked
   name = this.args.entity.name;
 
+  isSaving = false;
+
   @action
   edit() {
     if (this.landscapeRestructure.restructureMode) {
@@ -34,23 +36,41 @@ export default class InteractiveHeader extends Component<Args> {
   }
 
   @action
+  handleFocusOut() {
+    if (this.isSaving) {
+      this.isSaving = false;
+    } else {
+      this.save();
+    }
+  }
+
+  @action
+  handleEnter() {
+    this.isSaving = true;
+    this.save();
+  }
+
   save() {
-    if (isApplication(this.args.entity))
-      this.landscapeRestructure.updateApplicationName(
-        this.name,
-        this.args.entity.id
-      );
-    else if (isPackage(this.args.entity))
-      this.landscapeRestructure.updatePackageName(
-        this.name,
-        this.args.entity.id
-      );
-    else if (isClass(this.args.entity))
-      this.landscapeRestructure.updateClassName(
-        this.name,
-        this.args.entity.id,
-        this.args.appId
-      );
-    next(() => (this.isEditing = false));
+    if (this.args.entity.name !== this.name) {
+      if (isApplication(this.args.entity))
+        this.landscapeRestructure.updateApplicationName(
+          this.name,
+          this.args.entity.id
+        );
+      else if (isPackage(this.args.entity))
+        this.landscapeRestructure.updatePackageName(
+          this.name,
+          this.args.entity.id
+        );
+      else if (isClass(this.args.entity))
+        this.landscapeRestructure.updateClassName(
+          this.name,
+          this.args.entity.id,
+          this.args.appId
+        );
+      next(() => (this.isEditing = false));
+    } else {
+      this.isEditing = false;
+    }
   }
 }

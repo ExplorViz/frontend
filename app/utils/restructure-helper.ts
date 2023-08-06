@@ -1,7 +1,4 @@
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from './application-helpers';
+import { getAllClassesInApplication } from './application-helpers';
 import {
   StructureLandscapeData,
   Node,
@@ -11,148 +8,73 @@ import {
   isPackage,
   Method,
 } from './landscape-schemes/structure-data';
-import {
-  getApplicationFromPackage,
-  getApplicationInLandscapeById,
-} from './landscape-structure-helpers';
+import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import { getAncestorPackages, getClassesInPackage } from './package-helpers';
 
-export function setApplicationNameInLandscapeById(
-  landscapeStructure: StructureLandscapeData,
-  id: string,
-  name: string
-) {
-  const application = getApplicationInLandscapeById(landscapeStructure, id);
-  if (application) application.name = name;
+export function setClassName(app: Application, id: string) {
+  const allClassesInApplication = getAllClassesInApplication(app);
+  const classToRename = allClassesInApplication.find((cls) => cls.id === id);
+
+  return classToRename;
 }
 
-export function setPackageNameById(
-  landscapeStructure: StructureLandscapeData,
-  id: string,
-  name: string
-) {
-  landscapeStructure.nodes.forEach((node) => {
-    node.applications.forEach((application) => {
-      const allPackagesinApplication = getAllPackagesInApplication(application);
-
-      const packageToRename = allPackagesinApplication.find(
-        (pckg) => pckg.id === id
-      );
-
-      if (packageToRename) {
-        packageToRename.name = name;
-      }
-    });
-  });
-}
-
-export function setClassNameById(
-  landscapeStructure: StructureLandscapeData,
-  appId: string,
-  id: string,
-  name: string
-) {
-  const application = getApplicationInLandscapeById(landscapeStructure, appId);
-  if (application) {
-    const allClassesInApplication = getAllClassesInApplication(application);
-    const classToRename = allClassesInApplication.find((cls) => cls.id === id);
-
-    if (classToRename) {
-      classToRename.name = name;
-    }
-  }
-}
-
-export function addFoundationToLandscape(
-  landscapeStructure: StructureLandscapeData,
-  counter: number
-) {
+export function addFoundationToLandscape(counter: number) {
   const myNode: Node = {
-    id: 'newNode' + counter,
+    id: 'newNode ' + counter,
     ipAddress: '192.168.1.' + counter,
-    hostName: 'new Node' + counter,
+    hostName: 'new Node ' + counter,
     applications: [],
   };
 
   const myApplication: Application = {
     id: 'newApp' + counter,
-    name: 'New Application',
+    name: 'New Application ' + counter,
     language: 'JavaScript',
-    instanceId: 'newAppId' + counter,
-    parent: myNode as Node,
+    instanceId: 'newAppId ' + counter,
+    parent: myNode,
     packages: [],
   };
 
-  const myPackage: Package = {
-    id: 'newPackage' + counter,
-    name: 'new Package',
-    subPackages: [],
-    classes: [],
-  };
+  const newPckg = createPackage(counter);
 
-  const myClass: Class = {
-    id: 'newCLass' + counter,
-    name: 'New Class',
-    methods: [],
-    parent: myPackage,
-  };
+  const newClass = createClass(counter);
+  newClass.parent = newPckg;
 
-  myPackage.classes.push(myClass);
-
-  myApplication.packages.push(myPackage);
-
+  newPckg.classes.push(newClass as Class);
+  myApplication.packages.push(newPckg);
   myNode.applications.push(myApplication);
-
   myApplication.parent = myNode;
 
-  landscapeStructure.nodes.push(myNode as Node);
+  return myNode;
 }
 
-export function addSubPackageToPackage(pckg: Package, counter: number) {
+export function createPackage(counter: number) {
   const newPckg: Package = {
-    id: 'newPackage' + counter,
-    name: 'New Package',
+    id: 'newPackage ' + counter,
+    name: 'New Package ' + counter,
     subPackages: [],
     classes: [],
   };
 
-  const newClass: Class = {
-    id: 'newPackageClass' + counter,
-    name: 'New Package/Class',
-    methods: [],
-    parent: newPckg,
-  };
-
-  newPckg.classes.push(newClass);
-  pckg.subPackages.push(newPckg);
-  newPckg.parent = pckg;
+  return newPckg;
 }
 
-export function addPackageToApplication(app: Application, counter: number) {
-  const newPckg: Package = {
-    id: 'newPackage' + counter,
-    name: 'New Package',
-    subPackages: [],
-    classes: [],
-  };
-
-  const newClass: Class = {
-    id: 'newPackageClass' + counter,
-    name: 'New Package/Class',
+export function createClass(counter: number) {
+  const newClass: Partial<Class> = {
+    id: 'newClass ' + counter,
+    name: 'New Class ' + counter,
     methods: [],
-    parent: newPckg,
   };
 
-  newPckg.classes.push(newClass);
-  app.packages.push(newPckg);
+  return newClass;
 }
 
 export function addClassToApplication(pckg: Package, counter: number) {
   const newClass: Class = {
-    id: 'newClass' + counter,
-    name: 'New Class',
+    id: 'newClass ' + counter,
+    name: 'New Class ' + counter,
     methods: [],
     parent: pckg,
   };
@@ -171,9 +93,9 @@ export function addMethodToClass(clazz: Class, methodName: string) {
 
 export function removeApplication(
   landscapeStructure: StructureLandscapeData,
-  commsWrapper: {
+  wrapper: {
     comms: DrawableClassCommunication[];
-    app?: object;
+    meshTodelete?: Application | Package | Class;
   },
   app: Application,
   isCutOperation: boolean,
@@ -181,18 +103,18 @@ export function removeApplication(
 ) {
   const parentNode = app.parent;
 
-  if (commsWrapper.comms.length > 0) {
+  if (wrapper.comms.length > 0) {
     const classesInApplication = getAllClassesInApplication(app);
     if (isCutOperation) {
       // if any class in application is part of a communication and information about source and target app has changed then update it
       updateAffectedCommunications(
         classesInApplication,
-        commsWrapper,
+        wrapper,
         destinationApplication
       );
     } else {
       // if any class in application is part of a communication then remove it
-      removeAffectedCommunications(classesInApplication, commsWrapper);
+      removeAffectedCommunications(classesInApplication, wrapper);
     }
   }
 
@@ -207,15 +129,20 @@ export function removeApplication(
     );
   }
 
-  if (commsWrapper.app) {
-    commsWrapper.app = app;
-  }
+  wrapper.meshTodelete = app;
+  // if (commsWrapper.app) {
+  //   commsWrapper.app = app;
+  // }
+
   app.packages = [];
 }
 
 export function removePackageFromApplication(
   landscapeStructure: StructureLandscapeData,
-  commsWrapper: { comms: DrawableClassCommunication[] },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  },
   pckgToRemove: Package,
   isCutOperation: boolean,
   destinationApplication?: Application
@@ -230,37 +157,40 @@ export function removePackageFromApplication(
     let deleteApp = false;
 
     if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
+      wrapper.meshTodelete = pckgToRemove;
       parentPackage.subPackages = parentPackage.subPackages.filter(
         (packg) => packg.id != pckgToRemove.id
       );
+      //delete pckgToRemove.parent;
     } else {
       deleteApp = cleanUpAncestor(
         landscapeStructure,
         parentPackage,
-        applicationWrapper
+        applicationWrapper,
+        wrapper
       );
     }
 
     if (deleteApp && applicationWrapper.app) {
       removeApplication(
         landscapeStructure,
-        commsWrapper,
+        wrapper,
         applicationWrapper.app,
         isCutOperation,
         destinationApplication
       );
-    } else if (!deleteApp && commsWrapper.comms.length > 0) {
+    } else if (!deleteApp && wrapper.comms.length > 0) {
       const classesInPackage = getClassesInPackage(pckgToRemove);
       if (isCutOperation) {
         // if any class in package is part of a communication and information about source and target app has changed then update it
         updateAffectedCommunications(
           classesInPackage,
-          commsWrapper,
+          wrapper,
           destinationApplication
         );
       } else {
         // if any class in package is part of a communication then remove it
-        removeAffectedCommunications(classesInPackage, commsWrapper);
+        removeAffectedCommunications(classesInPackage, wrapper);
       }
     }
   } else {
@@ -273,30 +203,30 @@ export function removePackageFromApplication(
     if (parentApplication && parentApplication.packages.length <= 1) {
       removeApplication(
         landscapeStructure,
-        commsWrapper,
+        wrapper,
         parentApplication,
         isCutOperation,
         destinationApplication
       );
     } else if (parentApplication && parentApplication.packages.length > 1) {
+      wrapper.meshTodelete = pckgToRemove;
       parentApplication.packages = parentApplication.packages.filter(
         (pckg) => pckg.id !== pckgToRemove.id
       );
-      delete pckgToRemove.parent;
 
-      if (commsWrapper.comms.length > 0) {
+      if (wrapper.comms.length > 0) {
         // if any class in application is part of a communication then remove it
         const classesInPackage = getClassesInPackage(pckgToRemove);
         if (isCutOperation) {
           // if any class in package is part of a communication and information about source and target app has changed then update it
           updateAffectedCommunications(
             classesInPackage,
-            commsWrapper,
+            wrapper,
             destinationApplication
           );
         } else {
           // if any class in package is part of a communication then remove it
-          removeAffectedCommunications(classesInPackage, commsWrapper);
+          removeAffectedCommunications(classesInPackage, wrapper);
         }
       }
     }
@@ -305,7 +235,10 @@ export function removePackageFromApplication(
 
 export function removeClassFromPackage(
   landscapeStructure: StructureLandscapeData,
-  commsWrapper: { comms: DrawableClassCommunication[] },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  },
   clazzToRemove: Class,
   isCutOperation: boolean,
   destinationApplication?: Application
@@ -314,13 +247,14 @@ export function removeClassFromPackage(
   if (parentPackage) {
     // if parent Package has more than 1 element, then remove the class from it else remove the parent Package
     if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
+      wrapper.meshTodelete = clazzToRemove;
       parentPackage.classes = parentPackage.classes.filter(
         (clzz) => clzz.id != clazzToRemove.id
       );
-      if (commsWrapper.comms.length > 0) {
+      if (wrapper.comms.length > 0) {
         if (isCutOperation) {
           // if class in package is part of a communication and information about source and target app has changed then update it
-          commsWrapper.comms.forEach((comms) => {
+          wrapper.comms.forEach((comms) => {
             if (comms.sourceClass.id === clazzToRemove.id)
               comms.sourceApp = destinationApplication;
             else if (comms.targetClass.id === clazzToRemove.id)
@@ -328,7 +262,7 @@ export function removeClassFromPackage(
           });
         } else {
           // if class in package is part of a communication then remove it
-          commsWrapper.comms.filter(
+          wrapper.comms.filter(
             (comm) =>
               comm.sourceClass.id !== clazzToRemove.id &&
               comm.targetClass.id !== clazzToRemove.id
@@ -338,7 +272,7 @@ export function removeClassFromPackage(
     } else {
       removePackageFromApplication(
         landscapeStructure,
-        commsWrapper,
+        wrapper,
         parentPackage,
         isCutOperation,
         destinationApplication
@@ -544,7 +478,11 @@ function removeAffectedCommunications(
 function cleanUpAncestor(
   landscapeStructure: StructureLandscapeData,
   parentPackage: Package,
-  applicationWrapper: { app: Application | undefined }
+  applicationWrapper: { app: Application | undefined },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   const ancestorPackages = getAncestorPackages(parentPackage);
 
@@ -557,41 +495,52 @@ function cleanUpAncestor(
       landscapeStructure,
       parentPackage,
       ancestorPackages,
-      applicationWrapper
+      applicationWrapper,
+      wrapper
     );
   else if (ancestorPackages.length > 1)
     return handlePackageAncestors(
       landscapeStructure,
       parentPackage,
       ancestorPackages,
-      applicationWrapper
+      applicationWrapper,
+      wrapper
     );
   else
     return handleApplicationAncestor(
       landscapeStructure,
       parentPackage,
-      applicationWrapper
+      applicationWrapper,
+      wrapper
     );
 }
 
 function handleApplicationAncestor(
   landscapeStructure: StructureLandscapeData,
   parentPackage: Package,
-  applicationWrapper: { app: Application | undefined }
+  applicationWrapper: { app: Application | undefined },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   //check if the whole application has still more than 1 packages and if so then remove only the top package else the whole application
   applicationWrapper.app = getApplicationFromPackage(
     landscapeStructure,
     parentPackage.id
   );
-  return removeUnecessaryPackages(applicationWrapper, parentPackage);
+  return removeUnecessaryPackages(applicationWrapper, parentPackage, wrapper);
 }
 
 function handlePackageAncestors(
   landscapeStructure: StructureLandscapeData,
   parentPackage: Package,
   ancestorPackages: Package[],
-  applicationWrapper: { app: Application | undefined }
+  applicationWrapper: { app: Application | undefined },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   // find an ancestor that has more than 1 element
   const foundPackage: Package | undefined = ancestorPackages.find(
@@ -605,6 +554,7 @@ function handlePackageAncestors(
     const indexOfSubPackage = ancestorPackages.indexOf(foundPackage) - 1;
     if (indexOfSubPackage >= 0)
       subPackageToRemove = ancestorPackages[indexOfSubPackage];
+    wrapper.meshTodelete = subPackageToRemove;
     foundPackage.subPackages = foundPackage.subPackages.filter(
       (pckg) => pckg.id != subPackageToRemove.id
     );
@@ -615,17 +565,22 @@ function handlePackageAncestors(
       landscapeStructure,
       ancestorPackages[ancestorPackages.length - 1].id
     );
-    return removeUnecessaryPackages(applicationWrapper, topPackage);
+    return removeUnecessaryPackages(applicationWrapper, topPackage, wrapper);
   }
   return true;
 }
 
 function removeUnecessaryPackages(
   applicationWrapper: { app: Application | undefined },
-  topPackage: Package
+  topPackage: Package,
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   if (applicationWrapper.app) {
     if (applicationWrapper.app.packages.length > 1) {
+      wrapper.meshTodelete = topPackage;
       applicationWrapper.app.packages = applicationWrapper.app.packages.filter(
         (pckg: Package) => pckg.id != topPackage.id
       );
@@ -639,7 +594,11 @@ function handleTopPackageAncestor(
   landscapeStructure: StructureLandscapeData,
   parentPackage: Package,
   ancestorPackages: Package[],
-  applicationWrapper: { app: Application | undefined }
+  applicationWrapper: { app: Application | undefined },
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   const topPackage = ancestorPackages.firstObject;
 
@@ -649,6 +608,7 @@ function handleTopPackageAncestor(
     topPackage &&
     topPackage.subPackages.length + topPackage.classes.length > 1
   ) {
+    wrapper.meshTodelete = parentPackage;
     topPackage.subPackages = topPackage.subPackages.filter(
       (pckg) => pckg.id != parentPackage.id
     );
@@ -661,7 +621,7 @@ function handleTopPackageAncestor(
       landscapeStructure,
       topPackage.id
     );
-    return removeUnecessaryPackages(applicationWrapper, topPackage);
+    return removeUnecessaryPackages(applicationWrapper, topPackage, wrapper);
   }
   return true;
 }

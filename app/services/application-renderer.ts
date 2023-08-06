@@ -254,7 +254,6 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      console.log(currentApplicationObject3D);
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
           ? this.saveApplicationState(currentApplicationObject3D)
