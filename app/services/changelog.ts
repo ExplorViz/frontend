@@ -3,6 +3,7 @@ import {
   Application,
   Class,
   Package,
+  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
   ChangeLogAction,
@@ -145,7 +146,7 @@ export default class Changelog extends Service.extend({
     ) {
       console.log('II');
       this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app.id !== app.id
+        (entry) => entry.app?.id !== app.id
       );
     } else if (
       (entry && entry.action !== ChangeLogAction.Create) ||
@@ -155,7 +156,7 @@ export default class Changelog extends Service.extend({
     ) {
       console.log('III');
       this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app.id !== app.id
+        (entry) => entry.app?.id !== app.id
       );
       const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
       this.changeLogEntries.push(appEntry);
@@ -254,6 +255,48 @@ export default class Changelog extends Service.extend({
     console.log(this.changeLogEntries);
   }
 
+  // cutAndInsertPackageEntry(
+  //   app: Application,
+  //   pckg: Package,
+  //   destination: Application | Package
+  // ) {}
+
+  // cutAndInsertSubPackageEntry(
+  //   app: Application,
+  //   pckg: Package,
+  //   destination: Application | Package
+  // ) {}
+
+  cutAndInsertClassEntry(
+    app: Application,
+    clazz: Class,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const entry = this.findChangeLogEntry(clazz);
+
+    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+      console.log('ci-1');
+      const clazzEntry = new ChangeLogEntry(
+        ChangeLogAction.CutInsert,
+        app,
+        clazz.parent,
+        clazz,
+        undefined,
+        destination,
+        landscapeData
+      );
+      this.changeLogEntries.push(clazzEntry);
+    } else if (entry && entry.action === ChangeLogAction.Create) {
+      console.log('ci-2');
+      entry.updateCreateEntry(destination, landscapeData);
+    } else if (entry && entry.action !== ChangeLogAction.Create) {
+      console.log('ci-3');
+      entry.updateDestination(destination, landscapeData);
+    }
+    console.log(this.changeLogEntries);
+  }
+
   getChangeLogs() {
     let description = '';
     this.changeLogEntries.forEach((entry) => {
@@ -273,7 +316,7 @@ export default class Changelog extends Service.extend({
 
   private removeAffectedLogEntries(app: Application, pckg: Package) {
     this.changeLogEntries.forEach((logEntry) => {
-      if (logEntry.app.id === app.id && logEntry.pckg) {
+      if (logEntry.app?.id === app.id && logEntry.pckg) {
         const ancestorPackages = getAncestorPackages(logEntry.pckg);
         const affectedEntry = ancestorPackages.some(
           (ancestorPckg) => ancestorPckg.id === pckg.id

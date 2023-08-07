@@ -1,13 +1,21 @@
 import {
   Application,
   Class,
+  isApplication,
+  isPackage,
   Package,
+  StructureLandscapeData,
 } from './landscape-schemes/structure-data';
+import {
+  getApplicationFromPackage,
+  getApplicationFromSubPackage,
+} from './landscape-structure-helpers';
 
 export enum ChangeLogAction {
   Create = 'CREATE',
   Rename = 'RENAME',
   Delete = 'DELETE',
+  CutInsert = 'CUTINSERT',
 }
 
 export enum EntryType {
@@ -20,11 +28,13 @@ export enum EntryType {
 export class ChangeLogEntry {
   entryType: EntryType | undefined;
   originalAppName?: string;
-  app: Application;
+  app?: Application;
   originalPckgName?: string;
   pckg?: Package;
   originalClazzName?: string;
   clazz?: Class;
+  destinationPckg?: Package;
+  destinationApp?: Application;
   newName?: string;
   action: ChangeLogAction;
   description: string;
@@ -34,13 +44,18 @@ export class ChangeLogEntry {
     app: Application,
     pckg?: Package,
     clazz?: Class,
-    newName?: string
+    newName?: string,
+    destination?: Application | Package,
+    landscapeStructure?: StructureLandscapeData
   ) {
     this.action = action;
     this.app = app;
     this.pckg = pckg;
     this.clazz = clazz;
     this.newName = newName;
+
+    if (destination && landscapeStructure)
+      this.updateDestination(destination, landscapeStructure);
 
     if (this.action !== ChangeLogAction.Create) {
       this.originalAppName = app.name;
@@ -87,6 +102,22 @@ export class ChangeLogEntry {
           return `Delete the Class with the name "${this.clazz.name}" under the package "${this.pckg.name}" inside the Application "${this.app.name}"`;
         }
         break;
+      case ChangeLogAction.CutInsert:
+        if (this.destinationPckg && this.destinationApp) {
+          if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
+            return `Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
+          } else if (this.app && this.pckg && !this.clazz) {
+            return `Move the Package "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
+          } else if (this.app && this.pckg && this.clazz) {
+            return `Move the Class "${this.clazz.name}" under the Package "${this.originalPckgName}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
+          }
+        } else if (!this.destinationPckg && this.destinationApp) {
+          if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
+            return `Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" inside the Application "${this.destinationApp.name}"`;
+          } else if (this.app && this.pckg && !this.clazz) {
+            return `Move the Package "${this.pckg.name}" from the Application "${this.app.name}" inside the Application "${this.destinationApp.name}"`;
+          }
+        }
     }
     return '';
   }
@@ -102,5 +133,49 @@ export class ChangeLogEntry {
       return EntryType.Clazz;
     }
     return undefined;
+  }
+
+  updateCreateEntry(
+    destination: Application | Package,
+    landscapeStructure: StructureLandscapeData
+  ) {
+    if (isApplication(destination)) {
+      this.app = destination;
+    } else if (isPackage(destination)) {
+      this.pckg = destination;
+      if (destination.parent && landscapeStructure) {
+        this.app = getApplicationFromSubPackage(
+          landscapeStructure,
+          destination.id
+        );
+      } else if (!destination.parent && landscapeStructure) {
+        this.app = getApplicationFromPackage(
+          landscapeStructure,
+          destination.id
+        );
+      }
+    }
+  }
+
+  updateDestination(
+    destination: Application | Package,
+    landscapeStructure: StructureLandscapeData
+  ) {
+    if (isApplication(destination)) {
+      this.destinationApp = destination;
+    } else if (isPackage(destination)) {
+      this.destinationPckg = destination;
+      if (destination.parent && landscapeStructure) {
+        this.destinationApp = getApplicationFromSubPackage(
+          landscapeStructure,
+          destination.id
+        );
+      } else if (!destination.parent && landscapeStructure) {
+        this.destinationApp = getApplicationFromPackage(
+          landscapeStructure,
+          destination.id
+        );
+      }
+    }
   }
 }

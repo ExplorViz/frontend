@@ -22,6 +22,7 @@ import {
   isApplication,
   isClass,
   isPackage,
+  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import {
@@ -478,21 +479,70 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   insertPackageOrClassFromPopup(pckg: Package) {
     if (this.landscapeData?.structureLandscapeData) {
-      const wrapper = { comms: this.classCommunication };
-      if (isPackage(this.clippedMesh))
+      const getApp: (
+        LandscapeData: StructureLandscapeData,
+        appChild: Package | Class
+      ) => Application | undefined = (landscapeData, appChild) => {
+        if (isPackage(appChild)) {
+          if (appChild.parent)
+            return getApplicationFromSubPackage(landscapeData, appChild.id);
+          else return getApplicationFromPackage(landscapeData, appChild.id);
+        }
+
+        if (isClass(appChild))
+          return getApplicationFromClass(landscapeData, appChild);
+
+        return undefined;
+      };
+
+      const app = getApp(
+        this.landscapeData.structureLandscapeData,
+        this.clippedMesh as Package | Class
+      );
+
+      const wrapper = {
+        comms: this.classCommunication,
+        meshTodelete: this.clippedMesh as Package | Class,
+      };
+
+      if (isPackage(this.clippedMesh)) {
+        if (this.clippedMesh.parent && app) {
+          console.log('isSubPackage');
+          this.changeLog.cutAndInsertSubPackageEntry(
+            app,
+            this.clippedMesh,
+            pckg
+          );
+        } else if (!this.clippedMesh.parent && app) {
+          console.log('isPackage');
+          this.changeLog.cutAndInsertPackageEntry(app, this.clippedMesh, pckg);
+        }
+
         cutAndInsertPackage(
           this.landscapeData.structureLandscapeData,
           this.clippedMesh,
           pckg,
           wrapper
         );
-      else if (isClass(this.clippedMesh))
+      } else if (isClass(this.clippedMesh) && app) {
+        console.log('isClass');
+        this.changeLog.cutAndInsertClassEntry(
+          app,
+          this.clippedMesh,
+          pckg,
+          this.landscapeData.structureLandscapeData
+        );
         cutAndInsertClass(
           this.landscapeData.structureLandscapeData,
           this.clippedMesh,
           pckg,
           wrapper
         );
+      }
+      if (wrapper.meshTodelete !== this.clippedMesh) {
+        //console.log(`Beside cutting "${this.clippedMesh?.name}" we need to delete "${wrapper.meshTodelete.name}`);
+      }
+
       this.classCommunication = wrapper.comms;
       this.applicationRepo.clear();
       this.resetClipboard();
