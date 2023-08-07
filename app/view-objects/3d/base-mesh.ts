@@ -48,7 +48,7 @@ export default abstract class BaseMesh<
       this.material instanceof MeshLineMaterial
     ) {
       this.material.color = this.defaultColor;
-      this.changeOpacity(this.defaultOpacity);
+      //this.changeOpacity(this.defaultOpacity);
     }
   }
 

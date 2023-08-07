@@ -258,7 +258,7 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      //this.highlightingService.updateHighlighting(); TODO: delete this line
+      //this.highlightingService.updateHighlighting(); //TODO: delete this line
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 

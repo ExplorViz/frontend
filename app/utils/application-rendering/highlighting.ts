@@ -87,12 +87,34 @@ export function turnComponentAndAncestorsTransparent(
 
 
 /**
- * Highlights a given mesh
+ * (Un)Highlights a given extern (!) communication line
  *
- * @param mesh Either component, clazz or clazz communication mesh which shall be highlighted
+ * @param drawableClassCommunication Communication which shall be (un)highlighted
+ * @param sourceApplicationObject3D The application mesh which contains the source clazz of mesh
+ *  @param targetApplicationObject3D The application mesh which contains the target clazz of mesh
+ */
+
+export function highlightExternCommunicationLine(drawableClassCommunication : DrawableClassCommunication, sourceApplicationObject3D : ApplicationObject3D, targetApplicationObject3D : ApplicationObject3D ){
+  if(sourceApplicationObject3D.drawableClassCommSet.has(drawableClassCommunication)){
+    sourceApplicationObject3D.drawableClassCommSet.delete(drawableClassCommunication);
+  }else{
+    sourceApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
+  }
+    
+  if(targetApplicationObject3D.drawableClassCommSet.has(drawableClassCommunication)){
+    targetApplicationObject3D.drawableClassCommSet.delete(drawableClassCommunication);
+  }else {
+    targetApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
+  }
+
+}
+
+/**
+ * (Un)Highlights a given mesh
+ *
+ * @param meshId Either component, clazz or clazz communication mesh id of the mesh which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
- * @param toggleHighlighting Determines whether highlighting a already highlighted entity
- *                           causes removal of all highlighting
+ * @param externLine Extern clazz communication mesh which shall be added (removeFlag = false) or removed (removeFlag = true)
  */
 export function highlight(
   meshId: string ,
@@ -112,15 +134,14 @@ export function highlight(
     if (!datamodel) {
      return;
     }
-  
+
     if(mesh.highlighted){
-      //TODO: Strg + Mausklick Logik => alles unhighlighten wenn auf eine highlighted sache geklickt wird
-        mesh.unhighlight(); 
+         mesh.unhighlight();
         if(applicationObject3D.highlightedEntity && !isTrace(applicationObject3D.highlightedEntity)){
           applicationObject3D.highlightedEntity.delete(meshId);
         }
     }else{
-      mesh.highlight(); //TODO: Strg + Mausklick Logik => nur eine Sache highlightable innerhalb einer Application
+      mesh.highlight();
   
       if(!applicationObject3D.highlightedEntity || isTrace(applicationObject3D.highlightedEntity)){
           applicationObject3D.highlightedEntity = new Set<string>();
@@ -301,6 +322,32 @@ export function highlightTrace(
   });
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Highlights the stored highlighted entity again.
  *
@@ -330,8 +377,11 @@ export function updateHighlighting(
 
     const allClazzes = new Set<Class>(allClazzesArray);
 
-    allLinks.forEach(link => link.turnTransparent()); // make all links transparent
-    
+    allLinks.forEach(link => {
+      link.turnTransparent();
+      link.unhighlight();
+
+    });
 
 
     // Now we proceed to compute all involved clazzes in highlighted components
@@ -370,7 +420,9 @@ export function updateHighlighting(
             }
 
             const containedClazzesArray = Array.from(containedClazzes);
-            const allInvolvedClazzes = new Set(containedClazzes); // does it work like this?
+            const allInvolvedClazzes = new Set(containedClazzes);
+
+            
 
             communication.forEach((comm) => {
 
@@ -387,7 +439,7 @@ export function updateHighlighting(
 
                 for(let link of allLinks){ // TODO: helper function so we do not have to write this loop every time in the following
                   if(link.getModelId() === id){
-                      link.turnOpaque();
+                     link.turnOpaque();
                       break;
                   }
                 }
@@ -420,15 +472,28 @@ export function updateHighlighting(
             });
 
             allInvolvedClazzes.forEach(clss => allInvolvedClazzesFinal.add(clss));
+
           }
         });
+
       }
+      
+        application.drawableClassCommSet.forEach(drawableClassComm => {
+          allLinks.forEach(link => { //TODO: replace list with map so we don't have to iterate each time
+            if(link.getModelId() === drawableClassComm.id){
+              link.turnOpaque();
+              link.highlight();
+              allInvolvedClazzesFinal.add(drawableClassComm.sourceClass);
+              allInvolvedClazzesFinal.add(drawableClassComm.targetClass);
+            }
+          }); 
+        });
     });
 
     if(allInvolvedClazzesFinal.size === 0){
       // set everything opaque
 
-      allLinks.forEach(link => link.turnOpaque()); // make all links transparent
+      allLinks.forEach(link => link.turnOpaque());
       allInvolvedClazzesFinal = allClazzes; // we pretend that all clazzes are "selected" so everything gets opaque again
     }
 

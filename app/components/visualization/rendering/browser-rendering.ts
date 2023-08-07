@@ -364,12 +364,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    console.log('Strg Down');
+    if(!this.userSettings.applicationSettings.allowMultipleSelection.value){
+      this.userSettings.applicationSettings.allowMultipleSelection.value = true;
+    }
   }
 
   @action
   handleStrgUp() {
-    console.log('Strg Up');
+    this.userSettings.applicationSettings.allowMultipleSelection.value = false;
   }
 
 

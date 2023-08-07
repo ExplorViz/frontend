@@ -106,6 +106,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
       "Transparency effect intensity ('Enable Transparent Components' must be enabled)",
     isRangeSetting: true,
   },
+  allowMultipleSelection: {
+    value: false,
+    orderNumber: 3,
+    group: 'Highlighting',
+    displayName: 'Allow Multiple Highlights',
+    description:
+      'Toggle if highlighting should be kept on highlighting an unhighlighted component',
+    isFlagSetting: true,
+  },
   // Hover Effect Settings
   enableHoverEffects: {
     value: true,

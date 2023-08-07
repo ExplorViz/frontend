@@ -227,6 +227,8 @@ export default class VrRendering extends Component<Args> {
 
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
+
+    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = true;
   }
 
   // #region INITIALIZATION

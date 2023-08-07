@@ -112,16 +112,20 @@ export default class HighlightingService extends Service.extend({
     this.applicationRenderer
       .getOpenApplications()
       .forEach((applicationObject3D) => {
-        const meshIdList = applicationObject3D.highlightedEntity;
-        if (meshIdList && !(isTrace(meshIdList))) {
-          meshIdList.forEach(meshId => {
-            const mesh = applicationObject3D.getMeshById(meshId);
-            if(mesh)
-              this.highlightComponent(applicationObject3D, mesh);
-          });
-        }
+        this.removeHighlightingLocally(applicationObject3D);
+        applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
+
+        // const meshIdList = applicationObject3D.highlightedEntity;
+        // if (meshIdList && !(isTrace(meshIdList))) {
+        //   meshIdList.forEach(meshId => {
+        //     const mesh = applicationObject3D.getMeshById(meshId);
+        //     if(mesh)
+        //       this.highlightComponent(applicationObject3D, mesh);
+        //   });
+        // }
       });
-    this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
+    //this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
+    this.updateHighlighting();
   }
 
   // removeHighlightingsOfUser(userId : string){
@@ -218,15 +222,25 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
-    console.log("highlightLink");
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
-    if (mesh.highlighted) {
-      mesh.unhighlight();
-    } else {
-      this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
-      mesh.highlight();
-    }
+
+      mesh.dataModel.drawableClassCommus.forEach(drawableClassComm => {
+
+        const sourceApp =  drawableClassComm.sourceApp;
+        const targetApp = drawableClassComm.targetApp;
+
+        if(sourceApp && targetApp){
+          const sourceApplicationObject = this.applicationRenderer.getApplicationById(sourceApp.id);
+          const targetApplicationObject = this.applicationRenderer.getApplicationById(targetApp.id);
+
+          if(sourceApplicationObject && targetApplicationObject){
+            Highlighting.highlightExternCommunicationLine(drawableClassComm, sourceApplicationObject, targetApplicationObject);
+          }
+
+        }
+      });
+      this.updateHighlighting();
   }
 
   @action
@@ -236,7 +250,6 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     structureData: StructureLandscapeData
   ) {
-    console.log("highlightTrace");
     const drawableClassCommunications =
       this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
 
@@ -270,7 +283,6 @@ export default class HighlightingService extends Service.extend({
   }
 
   removeHighlightingLocally(application: ApplicationObject3D) {
-    console.log("removeHighlightingLocally");
     Highlighting.removeAllHighlighting(application);
   }
 
@@ -287,13 +299,29 @@ export default class HighlightingService extends Service.extend({
   private hightlightMesh(
     application: ApplicationObject3D,
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
-    color?: THREE.Color
+    color?: THREE.Color,
   ) {
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );
+
+
+    if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){
+      this.removeHighlightingLocally(application);
+      this.updateHighlighting();
+      return;
+    }
+
+    if(!this.userSettings.applicationSettings.allowMultipleSelection.value && !mesh.highlighted){
+      this.removeHighlightingLocally(application);
+      Highlighting.highlight(mesh.getModelId(), application);
+      this.updateHighlighting();
+      return;
+    }
+
     Highlighting.highlight(mesh.getModelId(), application);
     this.updateHighlighting();
+
   }
 
   private getEntityType(mesh: HighlightableMesh): string {

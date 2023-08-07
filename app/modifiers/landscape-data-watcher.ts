@@ -149,7 +149,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           }
         });
       }
-      
     }
 
     const interAppCommunications = drawableClassCommunications.filter(
