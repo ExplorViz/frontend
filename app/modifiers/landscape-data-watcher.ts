@@ -22,7 +22,7 @@ import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-rendere
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;

@@ -31,8 +31,8 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
-import HighlightingService, {
-  HightlightComponentArgs,
+import {
+  HightlightComponentArgs, 
 } from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -40,7 +40,6 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -61,9 +60,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('user-settings')
   private userSettings!: UserSettings;
-
-  @service('highlighting-service')
-  private highlightingService!: HighlightingService;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -311,9 +307,7 @@ export default class ApplicationRenderer extends Service.extend({
       this.addCommunication(applicationObject3D);
     }
     // Update highlighting
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      this.highlightingService.updateHighlighting();
-    } else {
+    if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
       removeAllHighlighting(applicationObject3D);
       this.highlightingService.updateHighlighting();
     }

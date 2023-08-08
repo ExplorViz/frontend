@@ -76,6 +76,7 @@ export function openComponentMesh(
     );
     if (childMesh) {
       childMesh.visible = true;
+      childMesh.material.opacity = mesh.material.opacity;
     }
   });
 

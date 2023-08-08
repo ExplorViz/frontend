@@ -104,8 +104,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlightingForAllApplications() {
-    this.applicationRenderer.getOpenApplications().forEach(app => this.updateHighlighting());
-    //this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
+    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
   }
 
   @action
@@ -116,17 +115,7 @@ export default class HighlightingService extends Service.extend({
         this.removeHighlightingLocally(applicationObject3D);
         applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
 
-        // const meshIdList = applicationObject3D.highlightedEntity;
-        // if (meshIdList && !(isTrace(meshIdList))) {
-        //   meshIdList.forEach(meshId => {
-        //     const mesh = applicationObject3D.getMeshById(meshId);
-        //     if(mesh)
-        //       this.highlightComponent(applicationObject3D, mesh);
-        //   });
-        // }
       });
-    //this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
-    //this.updateHighlighting();
   }
 
   // removeHighlightingsOfUser(userId : string){
@@ -164,8 +153,6 @@ export default class HighlightingService extends Service.extend({
       const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
       if(drawableComm2){
         drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
-          //drawableComm.push(drawableClassCommunication);
-
           const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
           if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
             allLinks.push(link as ClazzCommunicationMesh);
@@ -241,7 +228,6 @@ export default class HighlightingService extends Service.extend({
 
         }
       });
-      //this.updateHighlighting();
   }
 
   @action
@@ -306,22 +292,18 @@ export default class HighlightingService extends Service.extend({
       color || this.configuration.applicationColors.highlightedEntityColor
     );
 
-
     if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){
       this.removeHighlightingLocally(application);
-      //this.updateHighlighting();
       return;
     }
 
     if(!this.userSettings.applicationSettings.allowMultipleSelection.value && !mesh.highlighted){
       this.removeHighlightingLocally(application);
       Highlighting.highlight(mesh.getModelId(), application);
-      //this.updateHighlighting();
       return;
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
-    //this.updateHighlighting();
 
   }
 
