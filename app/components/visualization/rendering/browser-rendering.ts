@@ -229,7 +229,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    * @param step Step of the trace which shall be highlighted. Default is 1.
    */
   @action
-  highlightTrace(trace: Trace, traceStep: string) {
+  highlightTrace(trace: Trace, traceStep: string) { console.log("highlightTrace");
     if (this.selectedApplicationObject3D) {
       this.highlightingService.highlightTrace(
         trace,
@@ -330,6 +330,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.updateHighlighting();
     }
   }
 
@@ -346,6 +347,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // User clicked on blank spot on the canvas
     if (isEntityMesh(mesh)) {
       this.highlightingService.highlight(mesh);
+      this.highlightingService.updateHighlighting();
     }
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
@@ -376,7 +378,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (this.selectedApplicationObject3D !== applicationObject3D) {
+    if (this.selectedApplicationObject3D !== applicationObject3D) {console.log("INTERESSANT");
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }

@@ -11,8 +11,7 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import { DrawableClassCommunication } from './class-communication-computer';
+
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -98,11 +97,6 @@ export function openComponentMesh(
 export function closeComponentMesh(
   mesh: ComponentMesh,
   applicationObject3D: ApplicationObject3D,
-  applicationObject3DList: ApplicationObject3D[],
-  communication: DrawableClassCommunication[],
-  allLinks: ClazzCommunicationMesh[],
-  opacity: number,
-  toggleHighlighting: boolean 
 ) {
   if (!mesh.opened) {
     return;
@@ -127,11 +121,7 @@ export function closeComponentMesh(
       childMesh.visible = false;
       if (childMesh.opened) {
         console.log("close ", childMesh.dataModel.name);
-        closeComponentMesh(childMesh, applicationObject3D, applicationObject3DList,
-          communication,
-          allLinks,
-          opacity,
-          toggleHighlighting);
+        closeComponentMesh(childMesh, applicationObject3D);
       }
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
@@ -158,22 +148,14 @@ export function closeComponentMesh(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D, applicationObject3DList: ApplicationObject3D[],
-  communication: DrawableClassCommunication[],
-  allLinks: ClazzCommunicationMesh[],
-  opacity: number,
-  toggleHighlighting: boolean ) {
+export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
   const application = applicationObject3D.data.application;
 
   // Close each component
   application.packages.forEach((component) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D, applicationObject3DList,
-        communication,
-        allLinks,
-        opacity,
-        toggleHighlighting );
+      closeComponentMesh(componentMesh, applicationObject3D);
     }
   });
 }
@@ -222,18 +204,9 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D) {
 export function toggleComponentMeshState(
   mesh: ComponentMesh,
   applicationObject3D: ApplicationObject3D,
-  applicationObject3DList: ApplicationObject3D[],
-  communication: DrawableClassCommunication[],
-  allLinks: ClazzCommunicationMesh[],
-  opacity: number,
-  toggleHighlighting: boolean 
 ) {
   if (mesh.opened) {
-    closeComponentMesh(mesh, applicationObject3D, applicationObject3DList,
-      communication,
-      allLinks,
-      opacity,
-      toggleHighlighting );
+    closeComponentMesh(mesh, applicationObject3D);
   } else {
     openComponentMesh(mesh, applicationObject3D);
   }

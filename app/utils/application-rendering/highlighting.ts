@@ -416,6 +416,7 @@ export function updateHighlighting(
               containedClazzes.add(model);
               // Add source and target clazz of communication
             } else if (isDrawableClassCommunication(model)) {
+              baseMesh.highlight(); // we unhighlighted all links before
               containedClazzes.add(model.sourceClass);
               containedClazzes.add(model.targetClass);
               // Given model is not supported

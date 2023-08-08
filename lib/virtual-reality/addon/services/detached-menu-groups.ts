@@ -243,6 +243,7 @@ export default class DetachedMenuGroupsService extends Service {
   highlightComponent(entityId: string): Promise<boolean> {
     return new Promise((resolve) => {
       this.highlightingService.highlightById(entityId);
+      this.highlightingService.updateHighlighting();
       resolve(true);
     });
   }

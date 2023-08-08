@@ -59,8 +59,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   localUser!: LocalUser;
 
   
-  @service('highlighting-service')
-  private highlightingService!: HighlightingService;
 
   @service
   private worker!: any;
@@ -80,7 +78,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
     this.landscapeData = landscapeData;
     this.graph = graph;
-
     this.handleUpdatedLandscapeData.perform();
   }
 
@@ -112,6 +109,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const app = await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
+
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -149,6 +147,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           }
         });
       }
+      
     }
 
     const interAppCommunications = drawableClassCommunications.filter(
@@ -241,4 +240,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return applicationData;
     }
   );
+
+  
 }

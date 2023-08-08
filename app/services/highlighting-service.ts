@@ -104,7 +104,8 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlightingForAllApplications() {
-    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
+    this.applicationRenderer.getOpenApplications().forEach(app => this.updateHighlighting());
+    //this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
   }
 
   @action
@@ -125,7 +126,7 @@ export default class HighlightingService extends Service.extend({
         // }
       });
     //this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
-    this.updateHighlighting();
+    //this.updateHighlighting();
   }
 
   // removeHighlightingsOfUser(userId : string){
@@ -143,6 +144,7 @@ export default class HighlightingService extends Service.extend({
     value: number = this.opacity
   ) {
 
+    console.log("updateHIghlighting");
     const {allLinks, drawableComm, applications} = this.getParams();
 
       Highlighting.updateHighlighting(
@@ -207,10 +209,9 @@ export default class HighlightingService extends Service.extend({
   highlight(mesh: EntityMesh) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      
-      this.highlightComponent(parent, mesh);
+      this.highlightComponent(parent, mesh); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, this.localUser.color);
+      this.highlightLink(mesh, this.localUser.color); // extern communication lines get highlighted here
       this.sender.sendHighlightingUpdate(
         '',
         this.getEntityType(mesh),
@@ -240,7 +241,7 @@ export default class HighlightingService extends Service.extend({
 
         }
       });
-      this.updateHighlighting();
+      //this.updateHighlighting();
   }
 
   @action
@@ -308,19 +309,19 @@ export default class HighlightingService extends Service.extend({
 
     if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){
       this.removeHighlightingLocally(application);
-      this.updateHighlighting();
+      //this.updateHighlighting();
       return;
     }
 
     if(!this.userSettings.applicationSettings.allowMultipleSelection.value && !mesh.highlighted){
       this.removeHighlightingLocally(application);
       Highlighting.highlight(mesh.getModelId(), application);
-      this.updateHighlighting();
+      //this.updateHighlighting();
       return;
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
-    this.updateHighlighting();
+    //this.updateHighlighting();
 
   }
 

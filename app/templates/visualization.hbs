@@ -38,6 +38,11 @@
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
       />
+      <VrButton
+    @renderer={{this.renderer}}
+    @onSessionStartedCallback={{this.onVrSessionStarted}}
+    @onSessionEndedCallback={{this.onVrSessionEnded}}
+    />
       <div class='position-absolute mt-6 ml-3'>
         <BsButton
           id='backToLandscapeButton'
@@ -74,6 +79,19 @@
           @selectedTimestampRecords={{this.selectedTimestampRecords}}
           @applicationArgs={{this.applicationArgs}}
         />
+          <BsButton
+              @onClick={{this.switchToVR}}
+              @type='secondary'
+              @outline={{true}}
+              title='Enter VR'
+            >
+              Enter VR
+            </BsButton>
+        
+
+
+
+
       {{else}}
         <div class='container-fluid mt-6'>
           <div class='jumbotron'>
