@@ -157,7 +157,7 @@ export default class SearchMenu extends InteractiveMenu {
     this.add(this.keyboard);
   }
 
-  private searchComponents(searchWord: string, object: any, appName: string) {
+  public searchComponents(searchWord: string, object: any, appName: string) { // TODO private?
     const res: { name?: string; id?: string; objects: any[] } = { objects: [] };
     const REGEXP_SPECIAL_CHAR = /[?!#$%^&*)(+=.<>{}[\]:;'"|~`_-]/g;
     const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');

@@ -96,6 +96,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
+import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 
 interface Args {
   readonly id: string;
@@ -227,8 +228,6 @@ export default class VrRendering extends Component<Args> {
 
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
-
-    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = true;
   }
 
   // #region INITIALIZATION
@@ -400,12 +399,21 @@ export default class VrRendering extends Component<Args> {
       resetHover: (event) => event.target.resetHover(),
     });
 
+
     this.primaryInputManager.addInputHandler({
       targetType: ScrollDownButton,
       triggerPress: (event) => event.target.triggerPress(),
       hover: (event) => event.target.applyHover(),
       resetHover: (event) => event.target.resetHover(),
     });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: OpenEntityButton,
+      triggerDown: (event) => event.target.triggerDown(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+    });
+    
 
     this.primaryInputManager.addInputHandler({
       targetType: DetailInfoScrollarea,

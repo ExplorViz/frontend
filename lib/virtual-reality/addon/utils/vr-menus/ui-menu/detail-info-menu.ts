@@ -4,13 +4,19 @@ import { inject as service } from '@ember/service';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import composeContent, {
   EntityMesh,
+  getCommunicationSourceAppId,
+  getCommunicationSourceClass,
+  getCommunicationSourceClassId,
+  getCommunicationTargetAppId,
+  getCommunicationTargetClass,
+  getCommunicationTargetClassId,
   getIdOfEntity,
-  getTypeOfEntity,
+  getTypeOfEntity
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from '../interactive-menu';
 import { DetachableMenu } from '../detachable-menu';
-import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
+import { CLASS_COMMUNICATION_ENTITY_TYPE, EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
 import { BaseMenuArgs } from '../base-menu';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
@@ -19,6 +25,8 @@ import VRControllerThumbpadBinding, {
 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
 import VRController from 'virtual-reality/utils/vr-controller';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+
 
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -49,10 +57,12 @@ export default class DetailInfoMenu
 {
   private object: EntityMesh;
 
+
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
+  private owner:any;
 
   private container?: ThreeMeshUI.Block;
   private informationBlock?: DetailInfoMesh;
@@ -64,6 +74,7 @@ export default class DetailInfoMenu
 
   constructor({ owner, object, renderer, ...args }: DetailInfoMenuArgs) {
     super(args);
+    this.owner = owner;
     setOwner(this, owner);
     this.object = object;
     this.renderer = renderer;
@@ -80,12 +91,34 @@ export default class DetailInfoMenu
 
   createMenu() {
     const content = composeContent(this.object, this.applicationRepo);
+    let sourceClass:string;
+    let targetClass:string;
+    let sourceClassId:string;
+    let targetClassId:string;
+    let sourceAppId:string | undefined;
+    let targetAppId:string | undefined;
+
+    if(this.getEntityType() === CLASS_COMMUNICATION_ENTITY_TYPE && this.object instanceof ClazzCommunicationMesh){
+         sourceClass = getCommunicationSourceClass(this.object);
+         targetClass = getCommunicationTargetClass(this.object);
+         sourceClassId = getCommunicationSourceClassId(this.object);
+         targetClassId = getCommunicationTargetClassId(this.object);
+         sourceAppId = getCommunicationSourceAppId(this.object);
+         targetAppId = getCommunicationTargetAppId(this.object);
+    }else {
+       sourceClass = "";
+       targetClass = "";
+       sourceClassId = "";
+       targetClassId = "";
+       sourceAppId = "";
+       targetAppId = "";
+    }
 
     if (!content) {
       this.closeMenu();
       return;
     }
-
+    
     this.entries = content.entries;
 
     this.container = new ThreeMeshUI.Block({
@@ -114,6 +147,7 @@ export default class DetailInfoMenu
       fontColor: new THREE.Color('#ffffff'),
     });
 
+
     titleBlock.add(title);
     this.container.add(titleBlock);
 
@@ -121,7 +155,15 @@ export default class DetailInfoMenu
       this.informationText += key + ' ' + value + '\n\n';
     });
 
+
     this.informationBlock = new DetailInfoMesh(
+      this.owner,
+      sourceClass,
+      targetClass,
+      sourceClassId,
+      targetClassId,
+      sourceAppId,
+      targetAppId,
       this.informationText,
       this.menuFactory,
       {
@@ -167,7 +209,6 @@ export default class DetailInfoMenu
         );
 
       if (isEqual(this.entries, content.entries)) {
-        console.log('is equal');
         return;
       }
 

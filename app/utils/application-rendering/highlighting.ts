@@ -30,7 +30,7 @@ export function removeAllHighlighting(applicationObject3D: ApplicationObject3D) 
   const meshes = applicationObject3D.getAllMeshes();
 
   meshes.forEach((mesh) => {
-    mesh.unhighlight();
+   removeHighlighting(mesh as ComponentMesh | ClazzMesh | ClazzCommunicationMesh, applicationObject3D);
   });
   applicationObject3D.highlightedEntity = null;
 }
@@ -134,6 +134,9 @@ export function highlight(
     if (!datamodel) {
      return;
     }
+
+
+    console.log("Status bevor Klick: TRANSPARENT:", mesh.material.transparent, " INTENSITY:", mesh.material.transparencyIntensity);
 
     if(mesh.highlighted){
          mesh.unhighlight();
@@ -361,6 +364,8 @@ export function updateHighlighting(
 ) 
 {
 
+  // Set everything transparent at the beginning ----------------------
+
     // All clazzes from all applications
     let allClazzesArray: Class[] = []; 
     applicationObject3DList.forEach(application => {
@@ -383,6 +388,7 @@ export function updateHighlighting(
 
     });
 
+  // ------------------------------------------------------------------
 
     // Now we proceed to compute all involved clazzes in highlighted components
 
@@ -516,10 +522,12 @@ export function updateHighlighting(
       
 }
   
+
 export function removeHighlighting(
   mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh,
   applicationObject3D: ApplicationObject3D ){
-  highlight(mesh.getModelId(), applicationObject3D);
+  if(mesh.highlighted)
+    highlight(mesh.getModelId(), applicationObject3D);
 }
 
 

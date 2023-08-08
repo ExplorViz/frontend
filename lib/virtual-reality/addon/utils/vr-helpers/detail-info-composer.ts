@@ -229,6 +229,7 @@ function composeDrawableClazzCommunicationContent(
     });
   }
 
+
   // add information for each unique method call
   communication.drawableClassCommus.forEach((drawableCommu, index) => {
     const commuHasExternalApp =
@@ -280,6 +281,7 @@ function composeDrawableClazzCommunicationContent(
 
   return content;
 }
+
 
 // #endregion APPLICATION CONTENT COMPOSER
 
@@ -346,4 +348,48 @@ export function getTypeOfEntity(entity: EntityMesh): EntityType {
     return CLASS_ENTITY_TYPE;
   }
   return CLASS_COMMUNICATION_ENTITY_TYPE;
+}
+
+export function getCommunicationSourceClass(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  return communication.drawableClassCommus[0].sourceClass?.name;
+}
+
+export function getCommunicationTargetClass(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  return communication.drawableClassCommus[0].targetClass?.name;
+}
+
+export function getCommunicationSourceAppId(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  return communication.drawableClassCommus[0].sourceApp?.id;
+}
+
+export function getCommunicationTargetAppId(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  return communication.drawableClassCommus[0].targetApp?.id;
+}
+
+export function getCommunicationSourceClassId(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  console.log(communication.drawableClassCommus);
+  console.log(communication.drawableClassCommus[0].sourceClass?.id);
+  return communication.drawableClassCommus[0].sourceClass?.id;
+}
+
+export function getCommunicationTargetClassId(
+  communicationMesh :ClazzCommunicationMesh
+){
+  const communication = communicationMesh.dataModel;
+  return communication.drawableClassCommus[0].targetClass?.id;
 }

@@ -55,7 +55,6 @@ export default class DetailInfoScrollarea
   }
 
   triggerPress(intersection: THREE.Intersection) {
-    console.log('triggerPress gecheckt');
     if (this.isTriggered && intersection.uv) {
       const y = intersection.uv.y;
       const yDiff = y - this.cy;
