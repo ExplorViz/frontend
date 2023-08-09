@@ -102,14 +102,7 @@ export default class SynchronizeService extends Service {
         this.localUser.camera.quaternion.copy(
           this.main.camera.model.quaternion
         );
-
-        // Bottom left is diagonal mirrored
-        const rotationQuaternion = new THREE.Quaternion();
-        rotationQuaternion.setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          Math.PI // 180 Degress, 90 would be PI / 2
-        );
-        this.localUser.camera.quaternion.multiply(rotationQuaternion);
+        this.synchronizationSession.setUpRotation(this.synchronizationSession.deviceId);
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(

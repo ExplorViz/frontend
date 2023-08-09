@@ -49,7 +49,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     // set token and redirect to visualization space
     this.routeToVisualization(this.token);
 
-    // chill to let all be set up
     await timeout(2000);
 
     // host room if main-instance, join room if projector
