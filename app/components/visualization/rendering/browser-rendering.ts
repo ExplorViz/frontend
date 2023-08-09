@@ -43,6 +43,9 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -345,9 +348,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
     // User clicked on blank spot on the canvas
-    if (isEntityMesh(mesh)) {
-      this.highlightingService.highlight(mesh);
-      this.highlightingService.updateHighlighting();
+    if (mesh instanceof ClazzMesh || mesh instanceof ComponentMesh || mesh instanceof ClazzCommunicationMesh) {
+      if(mesh.parent instanceof ApplicationObject3D){
+        if(mesh instanceof ClazzCommunicationMesh){
+          if(mesh.dataModel.drawableClassCommus.firstObject)
+            this.applicationRenderer.highlightModel(mesh.dataModel.drawableClassCommus.firstObject, mesh.parent.data.application.id);
+        }else{
+          this.applicationRenderer.highlightModel(mesh.dataModel, mesh.parent.data.application.id);
+        }
+      }
     }
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
@@ -401,14 +410,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
         this.applicationRenderer.toggleComponent(mesh, applicationObject3D);
-        this.highlightingService.updateHighlighting();
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
-        this.highlightingService.updateHighlighting();
       }
     }
   }

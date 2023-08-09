@@ -197,10 +197,10 @@ export default class HighlightingService extends Service.extend({
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh); // notice that intern communication lines get highlighted here
-      this.updateHighlighting();
+      //this.updateHighlighting();
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, this.localUser.color); // extern communication lines get highlighted here
-      this.updateHighlighting();
+      //this.updateHighlighting();
       this.sender.sendHighlightingUpdate(
         '',
         this.getEntityType(mesh),
@@ -273,7 +273,7 @@ export default class HighlightingService extends Service.extend({
 
   removeHighlightingLocally(application: ApplicationObject3D) {
     Highlighting.removeAllHighlighting(application);
-    this.updateHighlighting();
+    //this.updateHighlighting();
   }
 
   hightlightComponentLocallyByTypeAndId(

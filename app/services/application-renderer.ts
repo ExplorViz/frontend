@@ -31,7 +31,7 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
-import {
+import HighlightingService, {
   HightlightComponentArgs, 
 } from './highlighting-service';
 import LinkRenderer from './link-renderer';
@@ -40,6 +40,7 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -81,6 +82,9 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
   
 
   forceGraph!: ThreeForceGraph;
@@ -309,6 +313,7 @@ export default class ApplicationRenderer extends Service.extend({
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
       removeAllHighlighting(applicationObject3D);
     }
+    this.highlightingService.updateHighlighting();
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
@@ -346,13 +351,16 @@ export default class ApplicationRenderer extends Service.extend({
    * @param entity Component or clazz which shall be highlighted
    */
   @action
-  highlightModel(entity: Package | Class, applicationId: string) {
+  highlightModel(entity: Package | Class | DrawableClassCommunication, applicationId: string) {
     const applicationObject3D = this.getApplicationById(applicationId);
     if (!applicationObject3D) {
-      console.log("XYZ");
       return;
     }
     this.highlightingService.highlightModel(entity, applicationObject3D);
+    this.updateApplicationObject3DAfterUpdate(
+      applicationObject3D
+    );
+
   }
 
   /**
