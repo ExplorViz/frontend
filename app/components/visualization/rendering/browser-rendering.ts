@@ -401,12 +401,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
         this.applicationRenderer.toggleComponent(mesh, applicationObject3D);
+        this.highlightingService.updateHighlighting();
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
+        this.highlightingService.updateHighlighting();
       }
     }
   }

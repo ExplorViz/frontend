@@ -11,6 +11,7 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 
 /**

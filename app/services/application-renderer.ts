@@ -254,7 +254,6 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      //this.highlightingService.updateHighlighting(); // never call it, otherwise we don't get to see current updates
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -309,7 +308,6 @@ export default class ApplicationRenderer extends Service.extend({
     // Update highlighting
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
       removeAllHighlighting(applicationObject3D);
-      this.highlightingService.updateHighlighting();
     }
     // Update labels
     Labeler.addApplicationLabels(
@@ -351,10 +349,10 @@ export default class ApplicationRenderer extends Service.extend({
   highlightModel(entity: Package | Class, applicationId: string) {
     const applicationObject3D = this.getApplicationById(applicationId);
     if (!applicationObject3D) {
+      console.log("XYZ");
       return;
     }
     this.highlightingService.highlightModel(entity, applicationObject3D);
-    this.highlightingService.updateHighlighting();
   }
 
   /**
@@ -401,6 +399,7 @@ export default class ApplicationRenderer extends Service.extend({
       componentMesh,
       applicationObject3D);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+    //TODO update highlighting
   }
 
   toggleComponent(
@@ -425,6 +424,7 @@ export default class ApplicationRenderer extends Service.extend({
   closeAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.closeAllComponents(applicationObject3D);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+    // TODO update highlighting
   }
 
   closeAllComponents(applicationObject3D: ApplicationObject3D) {

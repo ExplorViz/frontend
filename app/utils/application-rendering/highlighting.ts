@@ -87,6 +87,46 @@ export function turnComponentAndAncestorsTransparent(
   );
 }
 
+export function turnComponentAndAncestorsOpaque(
+  component: Package,
+  applicationObject3D: ApplicationObject3D,
+  ignorableComponents: Set<Package>
+) { 
+  if (ignorableComponents.has(component)) {
+    return;
+  }
+
+
+  ignorableComponents.add(component);
+
+  const { parent } = component;
+
+  const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
+
+  if (parent === undefined) {
+    if (componentMesh instanceof ComponentMesh) {
+      componentMesh.turnOpaque();
+      componentMesh.material.needsUpdate = true;
+    }
+    return;
+  }
+
+  const parentMesh = applicationObject3D.getBoxMeshbyModelId(parent.id);
+  if (
+    componentMesh instanceof ComponentMesh &&
+    parentMesh instanceof ComponentMesh &&
+    parentMesh.opened
+  ) {
+    componentMesh.turnOpaque();
+    componentMesh.material.needsUpdate = true;
+  }
+  turnComponentAndAncestorsOpaque(
+    parent,
+    applicationObject3D,
+    ignorableComponents,
+  );
+}
+
 
 /**
  * (Un)Highlights a given extern (!) communication line
@@ -364,7 +404,7 @@ export function updateHighlighting(
   allLinks: ClazzCommunicationMesh[],
   opacity: number,
 ) 
-{
+{ 
 
   // Set everything transparent at the beginning ----------------------
 
@@ -400,6 +440,9 @@ export function updateHighlighting(
 
     applicationObject3DList.forEach((application : ApplicationObject3D) => {
 
+
+      console.log(application.data.application.name, ":::", application.highlightedEntity);
+
       const highlightedEntityIds = application.highlightedEntity;
       if(highlightedEntityIds && !isTrace(highlightedEntityIds)){
         highlightedEntityIds.forEach((entityId : string) => {
@@ -418,12 +461,16 @@ export function updateHighlighting(
             } else if (isClass(model)) {
               containedClazzes.add(model);
               // Add source and target clazz of communication
-            } else if (isDrawableClassCommunication(model)) {
-              console.log("restore highlight of intern communication line");
-              baseMesh.highlight(); // we unhighlighted all links before
-              containedClazzes.add(model.sourceClass);
-              containedClazzes.add(model.targetClass);
-              // Given model is not supported
+            } else if (isDrawableClassCommunication((model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject)) {
+              baseMesh.highlight();
+              baseMesh.turnOpaque();
+              const sourceClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.sourceClass;
+              const targetClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.targetClass;
+              if(sourceClass && targetClass){
+                containedClazzes.add(sourceClass); 
+                containedClazzes.add(targetClass);
+              }
+              
             }else if(isApplication(model)){
               getAllPackagesInApplication(model).forEach(pckg => {
                 getClassesInPackage(pckg).forEach((clss) => containedClazzes.add(clss));
@@ -435,52 +482,36 @@ export function updateHighlighting(
 
             
 
+          if(!(baseMesh instanceof ClazzCommunicationMesh)){ // For a highlighted intern communication all involved clazzes are already known
             communication.forEach((comm) => {
+              
+                const { sourceClass, targetClass, id } = comm;
+            
+                // Add clazzes which communicate directly with highlighted entity
+                if (containedClazzesArray.findBy('id', sourceClass.id)) 
+                {
+                  allInvolvedClazzes.add(targetClass);
 
-              const { sourceClass, targetClass, id } = comm;
-          
-              // Add clazzes which communicate directly with highlighted entity
-              // For a highlighted communication all involved clazzes are already known
-              if (
-                containedClazzesArray.findBy('id', sourceClass.id) &&
-                !isDrawableClassCommunication(model)
-              ) 
-              {
-                allInvolvedClazzes.add(targetClass);
-
-                for(let link of allLinks){ // TODO: helper function so we do not have to write this loop every time in the following
-                  if(link.getModelId() === id){
-                     link.turnOpaque();
-                      break;
-                  }
-                }
-
-              } else if (
-                containedClazzesArray.findBy('id', targetClass.id) &&
-                !isDrawableClassCommunication(model)
-              ) {
-                allInvolvedClazzes.add(sourceClass);
-                for(let link of allLinks){ // TODO: helper function so we do not have to write this loop every time in the following
-                  if(link.getModelId() === id){
+                  for(let link of allLinks){ // TODO: helper function so we do not have to write this loop every time in the following
+                    if(link.getModelId() === id){
                       link.turnOpaque();
-                      break;
+                        break;
+                    }
+                  }
+
+                } else if (
+                  containedClazzesArray.findBy('id', targetClass.id)
+                ) {
+                  allInvolvedClazzes.add(sourceClass);
+                  for(let link of allLinks){ // TODO: helper function so we do not have to write this loop every time in the following
+                    if(link.getModelId() === id){
+                        link.turnOpaque();
+                        break;
+                    }
                   }
                 }
-                // Hide communication which is not directly connected to highlighted entity
-              } else if (
-                !containedClazzesArray.findBy('id', sourceClass.id) && 
-                !containedClazzesArray.findBy('id', targetClass.id) &&
-                !isDrawableClassCommunication(model)
-              ) { // do nothing since all communication lines were set transparent at the beginning 
-                  ;
-                // communication is not equal to the highlighted one, i.e. model
-              } else if (
-                isDrawableClassCommunication(model) &&
-                model !== comm
-              ) { // do nothing since all communication lines were set transparent at the beginning 
-                  ;
-              }
             });
+          }
 
             allInvolvedClazzes.forEach(clss => allInvolvedClazzesFinal.add(clss));
 
@@ -519,17 +550,19 @@ export function updateHighlighting(
         for(let application of applicationObject3DList){
         if(applicationHasClass(application.data.application, clazz)){
           application.getBoxMeshbyModelId(clazz.id)?.turnOpaque();
-          getClassAncestorPackages(clazz).forEach(pckg => {
-            const componentMesh = application.getBoxMeshbyModelId(pckg.id);
-            if(componentMesh){
-              componentMesh.turnOpaque();
-            }
+          turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
+          //getClassAncestorPackages(clazz).forEach(pckg => {
+           // const componentMesh = application.getBoxMeshbyModelId(pckg.id);
+            // if(componentMesh){
+            //   componentMesh.turnOpaque();
+            // }
 
-          });
+          //});
           break;
         }
       }
     });
+
       
 }
   
