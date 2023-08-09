@@ -511,11 +511,17 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           this.changeLog.cutAndInsertSubPackageEntry(
             app,
             this.clippedMesh,
-            pckg
+            pckg,
+            this.landscapeData.structureLandscapeData
           );
         } else if (!this.clippedMesh.parent && app) {
           console.log('isPackage');
-          this.changeLog.cutAndInsertPackageEntry(app, this.clippedMesh, pckg);
+          this.changeLog.cutAndInsertPackageEntry(
+            app,
+            this.clippedMesh,
+            pckg,
+            this.landscapeData.structureLandscapeData
+          );
         }
 
         cutAndInsertPackage(
@@ -540,7 +546,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
       }
       if (wrapper.meshTodelete !== this.clippedMesh) {
-        //console.log(`Beside cutting "${this.clippedMesh?.name}" we need to delete "${wrapper.meshTodelete.name}`);
+        console.log(
+          `Beside cutting "${this.clippedMesh?.name}" we need to delete "${wrapper.meshTodelete.name}`
+        );
       }
 
       this.classCommunication = wrapper.comms;

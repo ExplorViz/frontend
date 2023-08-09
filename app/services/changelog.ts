@@ -44,6 +44,7 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(app);
 
     if (!entry || (entry && entry._entryType !== EntryType.App)) {
+      console.log('ra-1');
       const appEntry = new ChangeLogEntry(
         ChangeLogAction.Rename,
         app,
@@ -58,6 +59,7 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
+      console.log('ra-2');
       entry.newName = newName;
     }
     console.log(this.changeLogEntries);
@@ -74,6 +76,7 @@ export default class Changelog extends Service.extend({
         undefined,
         newName
       );
+      console.log('rp-1');
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
@@ -81,6 +84,7 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
+      console.log('rp-2');
       entry.newName = newName;
     }
     console.log(this.changeLogEntries);
@@ -89,7 +93,7 @@ export default class Changelog extends Service.extend({
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
     const entry = this.findChangeLogEntry(pckg);
 
-    if (!entry) {
+    if (!entry || (entry && entry.entryType === EntryType.Clazz)) {
       const pckgEntry = new ChangeLogEntry(
         ChangeLogAction.Rename,
         app,
@@ -97,6 +101,7 @@ export default class Changelog extends Service.extend({
         undefined,
         newName
       );
+      console.log('rs-1');
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
@@ -104,6 +109,7 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
+      console.log('rs-2');
       entry.newName = newName;
     }
     console.log(this.changeLogEntries);
@@ -113,6 +119,7 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(clazz);
 
     if (!entry) {
+      console.log('rc-1');
       const clazzEntry = new ChangeLogEntry(
         ChangeLogAction.Rename,
         app,
@@ -127,6 +134,7 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
+      console.log('rc-2');
       entry.newName = newName;
     }
     console.log(this.changeLogEntries);
@@ -255,17 +263,87 @@ export default class Changelog extends Service.extend({
     console.log(this.changeLogEntries);
   }
 
-  // cutAndInsertPackageEntry(
-  //   app: Application,
-  //   pckg: Package,
-  //   destination: Application | Package
-  // ) {}
+  cutAndInsertPackageEntry(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const entry = this.findChangeLogEntry(pckg);
 
-  // cutAndInsertSubPackageEntry(
-  //   app: Application,
-  //   pckg: Package,
-  //   destination: Application | Package
-  // ) {}
+    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+      console.log('p1');
+      const pckgEntry = new ChangeLogEntry(
+        ChangeLogAction.CutInsert,
+        app,
+        pckg,
+        undefined,
+        undefined,
+        destination,
+        landscapeData
+      );
+      this.changeLogEntries.push(pckgEntry);
+    } else if (entry && entry.action === ChangeLogAction.Create) {
+      console.log('p2');
+      this.updateAffectedCreateLogEntries(
+        app,
+        pckg,
+        destination,
+        landscapeData
+      );
+    } else if (entry && entry.action !== ChangeLogAction.Create) {
+      console.log('p3');
+      this.updateAffectedCutInsertLogEntries(
+        app,
+        pckg,
+        destination,
+        landscapeData
+      );
+    }
+
+    console.log(this.changeLogEntries);
+  }
+
+  cutAndInsertSubPackageEntry(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const entry = this.findChangeLogEntry(pckg);
+
+    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+      console.log('p1');
+      const pckgEntry = new ChangeLogEntry(
+        ChangeLogAction.CutInsert,
+        app,
+        pckg,
+        undefined,
+        undefined,
+        destination,
+        landscapeData
+      );
+      this.changeLogEntries.push(pckgEntry);
+    } else if (entry && entry.action === ChangeLogAction.Create) {
+      console.log('p2');
+      this.updateAffectedCreateLogEntries(
+        app,
+        pckg,
+        destination,
+        landscapeData
+      );
+    } else if (entry && entry.action !== ChangeLogAction.Create) {
+      console.log('p3');
+      this.updateAffectedCutInsertLogEntries(
+        app,
+        pckg,
+        destination,
+        landscapeData
+      );
+    }
+
+    console.log(this.changeLogEntries);
+  }
 
   cutAndInsertClassEntry(
     app: Application,
@@ -315,6 +393,8 @@ export default class Changelog extends Service.extend({
   }
 
   private removeAffectedLogEntries(app: Application, pckg: Package) {
+    const entriesToRemove: ChangeLogEntry[] = [];
+
     this.changeLogEntries.forEach((logEntry) => {
       if (logEntry.app?.id === app.id && logEntry.pckg) {
         const ancestorPackages = getAncestorPackages(logEntry.pckg);
@@ -322,7 +402,47 @@ export default class Changelog extends Service.extend({
           (ancestorPckg) => ancestorPckg.id === pckg.id
         );
         if (affectedEntry) {
-          this.changeLogEntries.removeObject(logEntry);
+          entriesToRemove.push(logEntry);
+        }
+      }
+    });
+    if (this.changeLogEntries.length)
+      this.changeLogEntries.removeObjects(entriesToRemove);
+  }
+
+  private updateAffectedCreateLogEntries(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    this.changeLogEntries.forEach((entry) => {
+      if (entry.app?.id === app.id && entry.pckg) {
+        const ancestorPackages = getAncestorPackages(entry.pckg);
+        const affectedEntry = ancestorPackages.some(
+          (ancestorPckg) => ancestorPckg.id === pckg.id
+        );
+        if (affectedEntry) {
+          entry.updateCreateEntry(destination, landscapeData);
+        }
+      }
+    });
+  }
+
+  private updateAffectedCutInsertLogEntries(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    this.changeLogEntries.forEach((entry) => {
+      if (entry.app?.id === app.id && entry.pckg) {
+        const ancestorPackages = getAncestorPackages(entry.pckg);
+        const affectedEntry = ancestorPackages.some(
+          (ancestorPckg) => ancestorPckg.id === pckg.id
+        );
+        if (affectedEntry) {
+          entry.updateDestination(destination, landscapeData);
         }
       }
     });
