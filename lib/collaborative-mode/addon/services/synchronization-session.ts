@@ -31,11 +31,11 @@ export default class SynchronizationSession extends Service {
 
   roomId?: string;
 
-  readonly rotation0 = new THREE.Euler(-14.315, 24.45517, 37.73257);
-  readonly rotation1 = new THREE.Euler(16.31073, 27.50301, -35.22566);
-  readonly rotation2 = new THREE.Euler(23.7238, 50.71501, -118.98493);
-  readonly rotation3 = new THREE.Euler(-27.00377, 53.37216, 116.72392);
-  readonly rotation4 = new THREE.Euler(2.18843, 73.21593, -9.4374);
+  readonly rotation0 = new THREE.Euler(-14.315, 24.45517, 37.73257, 'ZYX');
+  readonly rotation1 = new THREE.Euler(16.31073, 27.50301, -35.22566, 'ZYX');
+  readonly rotation2 = new THREE.Euler(23.7238, 50.71501, -118.98493, 'ZYX');
+  readonly rotation3 = new THREE.Euler(-27.00377, 53.37216, 116.72392, 'ZYX');
+  readonly rotation4 = new THREE.Euler(2.18843, 73.21593, -9.4374, 'ZYX');
 
   setCount(n: number) {
     this.numberDevices = n;
