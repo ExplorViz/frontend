@@ -194,6 +194,225 @@ export default class SynchronizationSession extends Service {
     //     break;
     // }
 
+    /*
+    digital earthviewer uses x als tilt and calculates 90 - tilt°!!!!!!!!!!!!!!!!!
+
+    Roll: X
+    Pitch: Y
+    Yaw: Z
+
+    ?????
+    So, for each projector, you can set its yaw rotation based on its position:
+    1st Projector: 0° (or 360°)
+    2nd Projector: 90°
+    3rd Projector: 180°
+    4th Projector: 270°
+    
+    
+    -> #############################################Digital Earthviewer:
+    
+    1: Considering your first point:
+Which degree is this matrix representing on Z, when multiplying it with the present rotation of the visual?
+mt = new Mat4(
+                    1, 0, 0, 0,
+                    0, 0, 1, 0,
+                    0, -1, 0, 0,
+                    0, 0, 0, 1
+                );
+    
+    This matrix represents a transformation in 3D space. To understand the rotational transformation, 
+    you'll want to focus on the top-left 3x3 sub-matrix:
+
+1,  0,  0
+0,  0,  1
+0, -1,  0
+
+This is a rotation matrix. Specifically, it represents a rotation about the X-axis of 90°. 
+This can be understood by observing how the standard basis vectors transform:
+
+The first column is the image of the x-axis (1,0,0) under the transformation, which is still (1,0,0), indicating no rotation along the x-axis.
+
+The second column is the image of the y-axis (0,1,0) under the transformation. It transforms to (0,0,1), 
+which indicates that the positive y-axis has been rotated to the positive z-axis.
+
+The third column is the image of the z-axis (0,0,1) under the transformation. It transforms to (0,-1,0), 
+which indicates that the positive z-axis has been rotated to the negative y-axis.
+
+In essence, what you are seeing is a 90° rotation around the X-axis in a right-handed coordinate system.
+However, note that rotation matrices typically rotate the entire coordinate system rather than an individual point or vector. This means that if you use this matrix to transform a point, it will appear as if the point has rotated -90° around the X-axis (the opposite direction of the coordinate system rotation).
+    
+2:                 mt = new Mat4(
+                    0, -1, 0, 0,
+                    0, 0, 1, 0,
+                    -1, 0, 0, 0,
+                    0, 0, 0, 1
+                );
+    
+    Let's dissect the matrix:
+
+0, -1,  0
+0,  0,  1
+-1, 0,  0
+
+Again, to interpret this 3x3 sub-matrix, let's look at how the standard basis vectors transform:
+
+    The first column is the image of the x-axis (1,0,0) under the transformation. 
+    It becomes (0,0,-1), indicating the x-axis is rotated to the negative z-axis.
+
+    The second column is the image of the y-axis (0,1,0) under the transformation. 
+    It becomes (-1,0,0), which means the y-axis is rotated to the negative x-axis.
+
+    The third column is the image of the z-axis (0,0,1) under the transformation. 
+    It remains at (0,1,0), indicating that the z-axis is rotated to the y-axis.
+
+This matrix represents a composite rotation. Specifically, it's a 90° rotation around the Z-axis followed by a 90° 
+rotation around the Y-axis in a right-handed coordinate system.
+
+Just as before, if this matrix is used to transform a point, it will appear as if the point undergoes two opposite rotations, 
+first -90° around the Y-axis and then -90° around the Z-axis, because the matrix operates by rotating the entire coordinate system.
+
+
+    3:   mt = new Mat4(
+                    -1, 0, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1, 0, 0,
+                    0, 0, 0, 1
+                );
+
+    For the matrix:
+
+-1,  0,  0
+ 0,  0,  1
+ 0,  1,  0
+
+Let's interpret the 3x3 sub-matrix by examining its effect on the standard basis vectors:
+
+    The first column is the image of the x-axis (1,0,0) under the transformation. 
+    It becomes (-1,0,0), indicating that the x-axis is reflected across the yz-plane.
+
+    The second column is the image of the y-axis (0,1,0) under the transformation. 
+    It becomes (0,0,1), which means the y-axis is rotated to the z-axis.
+
+    The third column is the image of the z-axis (0,0,1) under the transformation. 
+    It becomes (0,1,0), indicating that the z-axis is rotated to the y-axis.
+
+This matrix represents a 180° rotation around the Z-axis in a right-handed coordinate system.
+
+If a point is transformed using this matrix, the effect will be to rotate it by 180° around the Z-axis, 
+making it seem like the entire coordinate system underwent a 180° rotation in the opposite direction around the Z-axis.
+
+    4: 
+                    mt = new Mat4(
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    1, 0, 0, 0,
+                    0, 0, 0, 1
+                );
+
+For the matrix:
+
+ 0,  1,  0
+ 0,  0,  1
+ 1,  0,  0
+
+Let's interpret the 3x3 sub-matrix by examining its effect on the standard basis vectors:
+
+    The first column is the image of the x-axis (1,0,0) under the transformation. 
+    It becomes (0,0,1), indicating that the x-axis is rotated to where the z-axis originally was.
+
+    The second column is the image of the y-axis (0,1,0) under the transformation. 
+    It becomes (1,0,0), which means the y-axis is rotated to where the x-axis originally was.
+
+    The third column is the image of the z-axis (0,0,1) under the transformation. 
+    It becomes (0,1,0), indicating that the z-axis is rotated to where the y-axis originally was.
+
+This matrix represents a 90° rotation counterclockwise around the Y-axis in a right-handed coordinate system.
+
+If a point is transformed using this matrix, the effect will be to rotate it by 90° around the Y-axis. Similarly, 
+it can be interpreted as rotating the entire coordinate system 90° in the opposite direction around the Y-axis.
+
+
+
+
+
+
+
+
+
+CONSIDERING PROJECTOR ANGLES: right, left, up and downAngle!
+Given the context you've provided, here's what you should do:
+
+    Set Initial Camera Rotation:
+        You've provided an initial Euler rotation (rotation0) for your camera. I noticed you are directly using degrees in the Euler constructor, but typically the Euler constructor in THREE.js expects radians. Ensure that your rotation0 values are in radians or convert them if they are in degrees.
+        Instead of multiplying quaternions directly, it's generally easier to set Euler rotations on the camera and let THREE.js handle the conversion to quaternions.
+
+    Apply Yaw, Pitch, and Roll:
+        When you say you applied yaw, pitch, and roll to your "present rotation", I assume you mean you adjusted the camera's rotation based on some dynamic input values for yaw, pitch, and roll. Ensure that these adjustments are in radians, or convert them from degrees if needed.
+        Since you're working with Eulers and then converting to a quaternion, it would be easier to modify the Euler angles directly and then set that on your camera.
+
+    Use the Frustum Configuration:
+        The rightAngle, leftAngle, upAngle, and downAngle values from your MPCDI XML define the angular extents of your projection frustum from the center view direction. These will directly influence your projection matrix. Ensure these angles are in radians or convert them if they are in degrees.
+
+Here's a structured approach based on the information you've provided:
+
+// Convert degrees to radians
+function degToRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+// 1. Set Initial Rotation
+const initialRotation = new THREE.Euler(
+  degToRad(-14.315),
+  degToRad(24.45517),
+  degToRad(37.73257),
+  'YXZ' // Order matters for Euler rotations
+);
+
+// 2. Apply Yaw, Pitch, and Roll adjustments
+// (Replace with your actual dynamic values for yaw, pitch, roll)
+const yawAdjustment = degToRad( Yaw Value );
+const pitchAdjustment = degToRad( Pitch Value );
+const rollAdjustment = degToRad( Roll Value );
+
+// Update the initial rotation with the adjustments
+initialRotation.x += pitchAdjustment;
+initialRotation.y += yawAdjustment;
+initialRotation.z += rollAdjustment;
+
+// Set this updated rotation to your camera
+this.localUser.camera.rotation.copy(initialRotation);
+
+// 3. Use the Frustum Configuration
+// Assuming you've parsed these angles from your XML and they are in degrees
+const rightAngle = degToRad(/* Parsed Right Angle );
+const leftAngle = degToRad(/* Parsed Left Angle );
+const upAngle = degToRad(/* Parsed Up Angle );
+const downAngle = degToRad(/* Parsed Down Angle );
+
+const tanFOV = Math.tan(rightAngle); // Assuming symmetric FOV for simplification
+const aspect = this.localUser.camera.aspect;
+const near = this.localUser.camera.near;
+
+const up = tanFOV * near;
+const down = -tanFOV * near;
+const right = up * aspect;
+const left = -right;
+
+this.localUser.camera.projectionMatrix.makePerspective(
+  left,
+  right,
+  up,
+  down,
+  this.localUser.camera.near,
+  this.localUser.camera.far
+);
+
+This approach sets the camera's orientation based on the initial Euler angles and any dynamic yaw, pitch, and roll adjustments. 
+It then configures the camera's projection matrix based on the frustum angles provided in the MPCDI XML.
+
+Ensure you're also updating the camera's matrix after modifying its rotation and projection matrix by calling 
+this.localUser.camera.updateMatrixWorld(true);
+    */
     switch (dId) {
       case 1:
         this.localUser.camera.quaternion.multiply(
