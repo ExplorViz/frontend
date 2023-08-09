@@ -137,6 +137,8 @@ export function turnComponentAndAncestorsOpaque(
  */
 
 export function highlightExternCommunicationLine(drawableClassCommunication : DrawableClassCommunication, sourceApplicationObject3D : ApplicationObject3D, targetApplicationObject3D : ApplicationObject3D ){
+  
+  
   if(sourceApplicationObject3D.drawableClassCommSet.has(drawableClassCommunication)){
     sourceApplicationObject3D.drawableClassCommSet.delete(drawableClassCommunication);
   }else{
@@ -202,7 +204,7 @@ export function highlight(
  * @param applicationObject3D Application mesh which contains the entity
  */
 export function highlightModel(
-  entity: Package | Class,
+  entity: Package | Class | DrawableClassCommunication,
   applicationObject3D: ApplicationObject3D,
 ) {
  highlight(entity.id, applicationObject3D);
@@ -441,7 +443,7 @@ export function updateHighlighting(
     applicationObject3DList.forEach((application : ApplicationObject3D) => {
 
 
-      console.log(application.data.application.name, ":::", application.highlightedEntity);
+      //console.log(application.data.application.name, ":::", application.highlightedEntity);
 
       const highlightedEntityIds = application.highlightedEntity;
       if(highlightedEntityIds && !isTrace(highlightedEntityIds)){
@@ -543,7 +545,7 @@ export function updateHighlighting(
      
     const allInvolvedClazzesArray = Array.from(allInvolvedClazzesFinal);
 
-    console.log("allInvolvedClazzesArray", allInvolvedClazzesArray);
+    //console.log("allInvolvedClazzesArray", allInvolvedClazzesArray);
 
     // Turn involved clazzes opaque
     allInvolvedClazzesArray.forEach((clazz) => {

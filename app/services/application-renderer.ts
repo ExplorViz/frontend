@@ -41,6 +41,7 @@ import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -348,19 +349,18 @@ export default class ApplicationRenderer extends Service.extend({
   /**
    * Highlights a given component or clazz
    *
-   * @param entity Component or clazz which shall be highlighted
+   * @param entity Component, communication link or clazz which shall be highlighted
+   * @param applicationObject3D Application which contains the entity
    */
+
   @action
-  highlightModel(entity: Package | Class | DrawableClassCommunication, applicationId: string) {
-    const applicationObject3D = this.getApplicationById(applicationId);
-    if (!applicationObject3D) {
-      return;
-    }
-    this.highlightingService.highlightModel(entity, applicationObject3D);
+  highlight(entity: any, applicationObject3D: ApplicationObject3D) {
+    if(isEntityMesh(entity)){
+    this.highlightingService.highlight(entity);
     this.updateApplicationObject3DAfterUpdate(
       applicationObject3D
     );
-
+  }
   }
 
   /**

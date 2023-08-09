@@ -347,22 +347,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    // User clicked on blank spot on the canvas
-    if (mesh instanceof ClazzMesh || mesh instanceof ComponentMesh || mesh instanceof ClazzCommunicationMesh) {
-      if(mesh.parent instanceof ApplicationObject3D){
-        if(mesh instanceof ClazzCommunicationMesh){
-          if(mesh.dataModel.drawableClassCommus.firstObject)
-            this.applicationRenderer.highlightModel(mesh.dataModel.drawableClassCommus.firstObject, mesh.parent.data.application.id);
-        }else{
-          this.applicationRenderer.highlightModel(mesh.dataModel, mesh.parent.data.application.id);
-        }
-      }
-    }
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
     }
+
+    if(isEntityMesh(mesh)){
+      if(mesh.parent instanceof ApplicationObject3D)
+        this.applicationRenderer.highlight(mesh, mesh.parent);
+      else // extern communication link
+        this.highlightingService.highlight(mesh);
+    }
+
   }
 
   @action
@@ -387,7 +384,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (this.selectedApplicationObject3D !== applicationObject3D) {console.log("INTERESSANT");
+    if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }

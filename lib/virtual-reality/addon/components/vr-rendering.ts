@@ -471,9 +471,9 @@ export default class VrRendering extends Component<Args> {
     this.secondaryInputManager.addInputHandler({
       targetType: ApplicationObject3D,
       triggerDown: (event) =>
-        this.highlightingService.highlightComponent(
-          event.target,
-          event.intersection.object
+        this.applicationRenderer.highlight(
+          event.intersection.object,
+          event.target
         ),
     });
 

@@ -175,7 +175,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   highlightModel(
-    entity: Package | Class,
+    entity: Package | Class | DrawableClassCommunication,
     applicationObject3D: ApplicationObject3D
   ) {
     Highlighting.highlightModel(
@@ -197,10 +197,9 @@ export default class HighlightingService extends Service.extend({
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh); // notice that intern communication lines get highlighted here
-      //this.updateHighlighting();
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, this.localUser.color); // extern communication lines get highlighted here
-      //this.updateHighlighting();
+      this.updateHighlighting();
       this.sender.sendHighlightingUpdate(
         '',
         this.getEntityType(mesh),
@@ -215,6 +214,7 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
 
+      console.log("HELLO 3");
       mesh.dataModel.drawableClassCommus.forEach(drawableClassComm => {
 
         const sourceApp =  drawableClassComm.sourceApp;
