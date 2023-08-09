@@ -2,6 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
+import { Mat3, Mat4, Vec3 } from 'collaborative-mode/utils/vecmat';
 
 type fovDirection = {
   up: number;
@@ -50,49 +51,185 @@ export default class SynchronizationSession extends Service {
   setUpRotation(dId: number) {
     switch(dId) {
       case 1:
+        const xRotationQuaternion0 = new THREE.Quaternion();
+        xRotationQuaternion0.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          this.degToRad(-14.315)
+        );
+
+        const yRotationQuaternion0 = new THREE.Quaternion();
+        yRotationQuaternion0.setFromAxisAngle(
+          new THREE.Vector3(0, -1, 0),
+          this.degToRad(24.45517)
+        );
+
         const zRotationQuaternion0 = new THREE.Quaternion();
         zRotationQuaternion0.setFromAxisAngle(
           new THREE.Vector3(0, 0, 1),
-          this.degToRad(37.73257)
+          this.degToRad(37.73257) * Math.PI / 2 
         );
 
-        this.localUser.camera.quaternion.multiply(zRotationQuaternion0);
+        this.localUser.camera.quaternion
+        .multiply(new THREE.Quaternion(xRotationQuaternion0.x, yRotationQuaternion0.y, zRotationQuaternion0.z));
 
         break;
 
       case 2:
+        const xRotationQuaternion1 = new THREE.Quaternion();
+        xRotationQuaternion1.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          this.degToRad(16.31073)
+        );
+
+        const yRotationQuaternion1 = new THREE.Quaternion();
+        yRotationQuaternion1.setFromAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          this.degToRad(27.50301)
+        );
+
         const zRotationQuaternion1 = new THREE.Quaternion();
         zRotationQuaternion1.setFromAxisAngle(
           new THREE.Vector3(0, 0, 1),
           this.degToRad(-35.22566)
         );
 
-        this.localUser.camera.quaternion.multiply(zRotationQuaternion1);
+        this.localUser.camera.quaternion
+        .multiply(new THREE.Quaternion(xRotationQuaternion1.x, yRotationQuaternion1.y, zRotationQuaternion1.z));
         break;
 
       case 3:
-        // const eulerQuaternion2 = new THREE.Quaternion().setFromEuler(this.rotation2);
-        // const localUserQuaternion2 =this.localUser.camera.quaternion.multiply(eulerQuaternion2);
-        // this.localUser.camera.applyQuaternion(localUserQuaternion2);
+        const xRotationQuaternion2 = new THREE.Quaternion();
+        xRotationQuaternion2.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          this.degToRad(23.7238)
+        );
+
+        const yRotationQuaternion2 = new THREE.Quaternion();
+        yRotationQuaternion2.setFromAxisAngle(
+          new THREE.Vector3(0, -1, 0),
+          this.degToRad(50.71501)
+        );
+
+        const zRotationQuaternion2 = new THREE.Quaternion();
+        zRotationQuaternion2.setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          this.degToRad(-118.98493) 
+          * (Math.PI * 1.5)
+        );
+
+        this.localUser.camera.quaternion
+        .multiply(new THREE.Quaternion(xRotationQuaternion2.x, yRotationQuaternion2.y, zRotationQuaternion2.z));
         break;
 
       case 4:
-        // const eulerQuaternion3 = new THREE.Quaternion().setFromEuler(this.rotation3);
-        // const localUserQuaternion3 =this.localUser.camera.quaternion.multiply(eulerQuaternion3);
-        // this.localUser.camera.applyQuaternion(localUserQuaternion3);
+        const xRotationQuaternion3 = new THREE.Quaternion();
+        xRotationQuaternion3.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          this.degToRad(-27.00377)
+        );
+
+        const yRotationQuaternion3 = new THREE.Quaternion();
+        yRotationQuaternion3.setFromAxisAngle(
+          new THREE.Vector3(0, -1, 0),
+          this.degToRad( 53.37216)
+        );
+
+        const zRotationQuaternion3 = new THREE.Quaternion();
+        zRotationQuaternion3.setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          this.degToRad(116.72392) * Math.PI
+        );
+
+        this.localUser.camera.quaternion
+        .multiply(new THREE.Quaternion(xRotationQuaternion3.x, yRotationQuaternion3.y, zRotationQuaternion3.z));
         break;
 
       case 5:
-        const zRotationQuaternion4 = new THREE.Quaternion();
-        zRotationQuaternion4.setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          this.degToRad(-9.4374)
-        );
+        // const xRotationQuaternion4 = new THREE.Quaternion();
+        // xRotationQuaternion4.setFromAxisAngle(
+        //   new THREE.Vector3(1, 0, 0),
+        //   this.degToRad(2.18843)
+        // );
 
-        this.localUser.camera.quaternion.multiply(zRotationQuaternion4);
+        // const yRotationQuaternion4 = new THREE.Quaternion();
+        // yRotationQuaternion4.setFromAxisAngle(
+        //   new THREE.Vector3(0, 1, 0),
+        //   this.degToRad(73.21593)
+        // );
+
+        // const zRotationQuaternion4 = new THREE.Quaternion();
+        // zRotationQuaternion4.setFromAxisAngle(
+        //   new THREE.Vector3(0, 0, 1),
+        //   this.degToRad(-9.4374)
+        // );
+
+        // this.localUser.camera.quaternion
+        // .multiply(new THREE.Quaternion(xRotationQuaternion4.x, yRotationQuaternion4.y, zRotationQuaternion4.z));
         break;
     }
   }
+
+  public recalculate_camera_transform_dome_side(domeTilt: number, rot_z: number) {
+    let perspective = Mat4.perspective_ext(
+        -1, 
+        1,
+        0,
+        -1,
+        0.025,
+        3
+    );
+    let mt;
+    switch (rot_z) {
+        case 1:
+            mt = new Mat4(
+                1, 0, 0, 0,
+                0, 0, 1, 0,
+                0, -1, 0, 0,
+                0, 0, 0, 1
+            );
+            break;
+        case 2:
+            mt = new Mat4(
+                0, -1, 0, 0,
+                0, 0, 1, 0,
+                -1, 0, 0, 0,
+                0, 0, 0, 1
+            );
+            break;
+        case 3: 
+            mt = new Mat4(
+                -1, 0, 0, 0,
+                0, 0, 1, 0,
+                0, 1, 0, 0,
+                0, 0, 0, 1
+            );
+            break;
+        default:
+            mt = new Mat4(
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                1, 0, 0, 0,
+                0, 0, 0, 1
+            );
+    }
+    // let result = this.calculate_camera_pretransform_internal();
+    return perspective
+        .mul_mat4(mt)
+        .mul_mat4(
+            Mat3.rot(
+                (90 - domeTilt) / 180 * Math.PI,
+                new Vec3(1, 0, 0))
+            .extend()
+            // .mul_mat4(result)
+        );
+}
+
+// calculate_camera_pretransform_internal(): Mat4 {
+//     let result = Mat3.identity().translate(new Vec3(0, 0, (this.camera_zposition_filtered - 1) * (Services.SettingsService.getValueOrDefault("Exaggeration", 1) / this.camera_distance_filtered)));
+//     result = Mat3.rot(Math.PI / 2 - this.camera_elevation_filtered, new Vec3(1, 0, 0)).extend().mul_mat4(result);
+//     result = Mat3.identity().translate(new Vec3(0, 0, 1)).mul_mat4(result);
+//     return result.mul_mat4(new Mat4(0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1));
+// }
 
   calculateFOVDirections(camera: THREE.PerspectiveCamera): fovDirection {
     const aspect = camera.aspect;
@@ -303,8 +440,8 @@ export default class SynchronizationSession extends Service {
       case 1: // bottom left
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
-          0,
-          0, // top
+          fovDirections.right, // right
+          fovDirections.up, // top
           fovDirections.down, // bottom
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
@@ -316,8 +453,8 @@ export default class SynchronizationSession extends Service {
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
           fovDirections.right, // right
-          0, // top
-          fovDirections.down * 2, // bottom
+          fovDirections.up, // top
+          fovDirections.down, // bottom
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
         );
@@ -325,10 +462,10 @@ export default class SynchronizationSession extends Service {
         break;
       case 3: // top right
         this.localUser.camera.projectionMatrix.makePerspective(
-          0, // left
+          fovDirections.left, // left
           fovDirections.right, // right
           fovDirections.up, // top
-          0, // bottom
+          fovDirections.down, // bottom
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
         );
@@ -336,9 +473,9 @@ export default class SynchronizationSession extends Service {
         break;
       case 4: // bottom right
         this.localUser.camera.projectionMatrix.makePerspective(
-          0, // left
+          fovDirections.left, // left
           fovDirections.right, // right
-          0, // top
+          fovDirections.up, // top
           fovDirections.down, // bottom
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
@@ -346,10 +483,10 @@ export default class SynchronizationSession extends Service {
         break;
       case 5: //middle
         this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left,
-          fovDirections.right,
-          fovDirections.up,
-          fovDirections.down,
+          fovDirections.left, // left
+          fovDirections.right, // right
+          fovDirections.up, // top
+          fovDirections.down, // bottom
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
         );
