@@ -49,7 +49,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     // set token and redirect to visualization space
     this.routeToVisualization(this.token);
 
-    await timeout(2000);
+    await timeout(3000);
 
     // host room if main-instance, join room if projector
     this.synchronizationSession.deviceId == 0
@@ -63,7 +63,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     console.log(this.collaborationSession.getAllRemoteUserIds());
     Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
       if (user.color.getHexString() === 'ff0000') {
-        console.log('ich war hier');
         this.synchronizeService.activate(user);
       }
     });
