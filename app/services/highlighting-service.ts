@@ -193,19 +193,22 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlight(mesh: EntityMesh) {
+  highlight(mesh: EntityMesh, color: THREE.Color, sendMessage=true) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh); // notice that intern communication lines get highlighted here
+      this.highlightComponent(parent, mesh, color, sendMessage); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, this.localUser.color); // extern communication lines get highlighted here
+      this.highlightLink(mesh, color); // extern communication lines get highlighted here
       this.updateHighlighting();
-      this.sender.sendHighlightingUpdate(
-        '',
-        this.getEntityType(mesh),
-        mesh.getModelId(),
-        mesh.highlighted
-      );
+      
+      if(sendMessage){
+        this.sender.sendHighlightingUpdate(
+          '',
+          this.getEntityType(mesh),
+          mesh.getModelId(),
+          mesh.highlighted
+        );
+      }
     }
   }
 
@@ -255,19 +258,22 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D) {
+  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, color: THREE.Color, sendMessage=true) {
     if (isHighlightableMesh(object)) {
-      this.hightlightMesh(application, object, this.localUser.color);
+      this.hightlightMesh(application, object, color);
 
       const appId = application.getModelId();
       const entityType = this.getEntityType(object);
       const entityId = object.getModelId();
-      this.sender.sendHighlightingUpdate(
-        appId,
-        entityType,
-        entityId,
-        object.highlighted
-      );
+
+      if(sendMessage){
+        this.sender.sendHighlightingUpdate(
+          appId,
+          entityType,
+          entityId,
+          object.highlighted
+        );
+      }
     }
   }
 

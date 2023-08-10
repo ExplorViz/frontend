@@ -463,7 +463,7 @@ export function updateHighlighting(
             } else if (isClass(model)) {
               containedClazzes.add(model);
               // Add source and target clazz of communication
-            } else if (isDrawableClassCommunication((model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject)) {
+            } else if (isDrawableClassCommunication((model as ClazzCommuMeshDataModel).drawableClassCommus?.firstObject)) {
               baseMesh.highlight();
               baseMesh.turnOpaque();
               const sourceClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.sourceClass;

@@ -133,7 +133,7 @@ export default class RemoteUser extends THREE.Object3D {
     });
     const waypointIndicator = new WaypointIndicator({
       target: pingMesh,
-      color: this.color,
+      color: new THREE.Color('yellow'),
     });
     this.add(pingMesh);
     this.localUser.defaultCamera.add(waypointIndicator);

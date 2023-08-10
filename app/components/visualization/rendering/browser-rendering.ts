@@ -43,9 +43,7 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -117,6 +115,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   cameraControls!: CameraControls;
 
   initDone: boolean = false;
+  
 
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
@@ -322,6 +321,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       updatables: this.updatables,
     });
     this.renderingLoop.start();
+
   }
 
   @action
@@ -577,4 +577,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (!glExtension) return;
     glExtension.loseContext();
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -74,6 +74,18 @@
           @selectedTimestampRecords={{this.selectedTimestampRecords}}
           @applicationArgs={{this.applicationArgs}}
         />
+        
+          
+        <button
+          id='VrButton'
+          type='button'
+          {{did-insert this.updateVrStatus}}
+          {{on 'click' this.switchToVR}}
+        >
+              {{this.buttonText}}
+        </button>
+         
+
       {{else}}
         <div class='container-fluid mt-6'>
           <div class='jumbotron'>

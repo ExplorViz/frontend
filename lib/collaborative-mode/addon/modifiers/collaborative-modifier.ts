@@ -153,7 +153,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     if (!user) return;
 
     const application = this.applicationRenderer.getApplicationById(appId);
-    if (!application) {
+    if (!application) { // extern communication link
       const mesh = this.applicationRenderer.getMeshById(entityId);
       if (mesh instanceof ClazzCommunicationMesh) {
         this.highlightingService.highlightLink(mesh, user.color);
@@ -161,15 +161,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       return;
     }
 
-   
-      this.highlightingService.hightlightComponentLocallyByTypeAndId( // highlighting a highlighted component unhighlights it
-        application,
-        {
-          entityType,
-          entityId,
-          color: user.color,
-        }
-      );
+      const mesh = application.getMeshById(entityId);
+      this.applicationRenderer.highlight(mesh, application, user.color, false);
    
   }
 

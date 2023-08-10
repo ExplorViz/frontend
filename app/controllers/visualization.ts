@@ -119,6 +119,12 @@ export default class VisualizationController extends Controller {
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
 
+  @tracked
+  vrSupported = false;
+
+  @tracked
+  buttonText: string = 'Checking ...';
+
   debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
@@ -423,6 +429,54 @@ export default class VisualizationController extends Controller {
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
   }
+
+
+
+
+
+
+
+
+
+
+
+/**
+   * Checks the current status of WebXR in the browser and if compatible
+   * devices are connected. Sets the tracked properties
+   * 'buttonText' and 'vrSupported' accordingly.
+   */
+@action
+async updateVrStatus() { 
+  if ('xr' in navigator) {
+    this.vrSupported =
+      (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+
+    if (this.vrSupported) {
+      this.buttonText = 'Enter VR';
+    } else if (window.isSecureContext === false) {
+      this.buttonText = 'WEBXR NEEDS HTTPS';
+    } else {
+      this.buttonText = 'WEBXR NOT AVAILABLE';
+    }
+  } else {
+    this.buttonText = 'WEBXR NOT SUPPORTED';
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
