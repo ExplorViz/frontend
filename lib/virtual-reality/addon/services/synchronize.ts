@@ -93,7 +93,6 @@ export default class SynchronizeService extends Service {
    */
   tick() {
     if (this.main?.camera) {
-      this.synchronizationSession.setCamera();
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {
@@ -139,6 +138,7 @@ export default class SynchronizeService extends Service {
     if (this.cameraControls) {
       this.cameraControls.enabled = false;
     }
+    this.synchronizationSession.setCamera();
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }

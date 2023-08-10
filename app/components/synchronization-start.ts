@@ -60,7 +60,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
     // chill to let all be set up
     await timeout(2000);
-    console.log(this.collaborationSession.getAllRemoteUserIds());
     Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
       if (user.color.getHexString() === 'ff0000') {
         this.synchronizeService.activate(user);

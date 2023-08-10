@@ -150,50 +150,56 @@ export default class SynchronizationSession extends Service {
 
   /** MAIN CONFIGS */
   setCamera() {
-    /* Clippling Planes:
-    A clipping plane is a plane used in 3D computer graphics to cut off objects or portions of objects that 
-    fall on a specific side of the plane. Clipping planes are essential for managing what is visible in a rendered scene 
-    and improving rendering efficiency.
+    // // translate pixel to radians and divide it by projector count (here 4)
+    // const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 4);
 
-    In the context of 3D rendering, particularly in perspective and orthographic projections, 
-    there are several standard clipping planes that define a view frustum:
-    Near Clipping Plane: This is the plane closest to the camera. Anything closer to the camera than this plane will not be rendered. 
-    This helps in omitting objects that are too close and might obstruct the view.
+    // // Calculating height of near clipping plane, which is a plane perpendicular to the viewing direction,
+    // // and is used to help determine which parts of the landscape should be rendered and which should not.
+    // const height = tanFOV * this.localUser.camera.near;
+    // // The proportion of the camera's viewport
+    // const width = height * this.localUser.camera.aspect;
 
-    Far Clipping Plane: This is the plane furthest from the camera in the viewing direction. 
-    Anything beyond this plane will not be rendered. 
-    This is used to prevent rendering distant objects that have little impact on the scene but could still consume computational resources.
+    // Height of near near clipping plane
+    // 2 * near * tan( ( fov * pi) / 360)
+    // This equation derives from the definition of the tangent function and the properties of a right triangle.
+    // Given the fov, we're effectively calculating the height of the opposite side of a right triangle
+    // (i.e., the height of the viewing frustum at the near clip plane), using half of the fov since it spans both above and below the center line.
+    const height =
+      2 *
+      this.localUser.camera.near *
+      Math.tan((this.localUser.camera.fov * Math.PI) / 360);
 
-    Together, these planes define a frustum (a truncated pyramid shape in perspective projection, or a rectangular prism in orthographic projection) 
-    within which everything is rendered. Anything outside this frustum is clipped and not drawn.
-    The use of clipping planes ensures that the rendering engine only processes what is within the viewable area, 
-    improving performance and preventing unwanted artifacts. Clipping can be performed in various coordinate spaces 
-    (e.g., object space, world space, camera space), and the mathematics of how it's done will depend on the specific situation 
-    and the type of projection being used.
-    */
+    // width of the near clipping plane
+    const width = height * this.localUser.camera.aspect;
 
-    /*
-    Left, Right, Top, Bottom Clipping Planes: 
-    These define the sides of the viewing frustum and are particularly relevant in asymmetric projections. 
-    They clip the scene horizontally and vertically to fit within the desired view.
+    // const top = height / 2;
+    const top = 0;
+    const bottom = -height;
+    // const right = width / 2;
+    const right = 0;
+    const left = -width;
 
-    near and far: distances to the near and far clipping planes. 
-    Only objects within this range will be rendered.
-    -> Keep in mind: This will affect the visibility range of the object.
-    -> Outside from near or far, there will be no rendering
-    */
+    this.localUser.camera.setViewOffset(
+      width * 4,
+      height * 4,
+      left,
+      bottom,
+      width,
+      height
+    );
+    // this.localUser.camera.updateProjectionMatrix();
 
     /* Pyramid of camera. */
-    // switch (this.deviceId) {
-    //   case 1: // bottom left
-    //       this.localUser.camera.projectionMatrix.makePerspective(
-    //         -width / 2, // left
-    //         0, // right
-    //         0, // top
-    //         -height / 2, // bottom
-    //         this.localUser.camera.near / 4, // near
-    //         this.localUser.camera.far / 4 // far
-    //       );
+    //   switch (this.deviceId) {
+    //     case 1: // bottom left
+    // this.localUser.camera.projectionMatrix.makePerspective(
+    //   -width / 2, // left
+    //   0, // right
+    //   0, // top
+    //   -height / 2, // bottom
+    //   this.localUser.camera.near / 4, // near
+    //   this.localUser.camera.far / 4 // far
+    // );
     //       break;
     //     case 2: // top left
     //       this.localUser.camera.projectionMatrix.makePerspective(
@@ -238,86 +244,86 @@ export default class SynchronizationSession extends Service {
     //     default:
     //       break;
     //   }
-    // }
-    let fovDirections: FovDirection;
-    switch (this.deviceId) {
-      case 1: // bottom left
-        fovDirections = this.calculateFOVDirections(
-          this.localUser.camera,
-          this.projectorAngle0
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
-        break;
-
-      case 2: // top left
-        fovDirections = this.calculateFOVDirections(
-          this.localUser.camera,
-          this.projectorAngle1
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
-
-        break;
-      case 3: // top right
-        fovDirections = this.calculateFOVDirections(
-          this.localUser.camera,
-          this.projectorAngle234
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
-
-        break;
-      case 4: // bottom right
-        fovDirections = this.calculateFOVDirections(
-          this.localUser.camera,
-          this.projectorAngle234
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
-        break;
-      case 5: //middle
-        fovDirections = this.calculateFOVDirections(
-          this.localUser.camera,
-          this.projectorAngle234
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
-        break;
-      default:
-        break;
-    }
   }
+  //   let fovDirections: FovDirection;
+  //   switch (this.deviceId) {
+  //     case 1: // bottom left
+  //       fovDirections = this.calculateFOVDirections(
+  //         this.localUser.camera,
+  //         this.projectorAngle0
+  //       );
+  //       this.localUser.camera.projectionMatrix.makePerspective(
+  //         fovDirections.left, // left
+  //         fovDirections.right, // right
+  //         fovDirections.up, // top
+  //         fovDirections.down, // bottom
+  //         this.localUser.camera.near, // near
+  //         this.localUser.camera.far // far
+  //       );
+  //       break;
+
+  //     case 2: // top left
+  //       fovDirections = this.calculateFOVDirections(
+  //         this.localUser.camera,
+  //         this.projectorAngle1
+  //       );
+  //       this.localUser.camera.projectionMatrix.makePerspective(
+  //         fovDirections.left, // left
+  //         fovDirections.right, // right
+  //         fovDirections.up, // top
+  //         fovDirections.down, // bottom
+  //         this.localUser.camera.near, // near
+  //         this.localUser.camera.far // far
+  //       );
+
+  //       break;
+  //     case 3: // top right
+  //       fovDirections = this.calculateFOVDirections(
+  //         this.localUser.camera,
+  //         this.projectorAngle234
+  //       );
+  //       this.localUser.camera.projectionMatrix.makePerspective(
+  //         fovDirections.left, // left
+  //         fovDirections.right, // right
+  //         fovDirections.up, // top
+  //         fovDirections.down, // bottom
+  //         this.localUser.camera.near, // near
+  //         this.localUser.camera.far // far
+  //       );
+
+  //       break;
+  //     case 4: // bottom right
+  //       fovDirections = this.calculateFOVDirections(
+  //         this.localUser.camera,
+  //         this.projectorAngle234
+  //       );
+  //       this.localUser.camera.projectionMatrix.makePerspective(
+  //         fovDirections.left, // left
+  //         fovDirections.right, // right
+  //         fovDirections.up, // top
+  //         fovDirections.down, // bottom
+  //         this.localUser.camera.near, // near
+  //         this.localUser.camera.far // far
+  //       );
+  //       break;
+  //     case 5: //middle
+  //       fovDirections = this.calculateFOVDirections(
+  //         this.localUser.camera,
+  //         this.projectorAngle234
+  //       );
+  //       this.localUser.camera.projectionMatrix.makePerspective(
+  //         fovDirections.left, // left
+  //         fovDirections.right, // right
+  //         fovDirections.up, // top
+  //         fovDirections.down, // bottom
+  //         this.localUser.camera.near, // near
+  //         this.localUser.camera.far // far
+  //       );
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
