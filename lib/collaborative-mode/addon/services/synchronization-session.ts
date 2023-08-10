@@ -246,21 +246,22 @@ export default class SynchronizationSession extends Service {
     let fovDirections: FovDirection;
     switch (this.deviceId) {
       case 1: // bottom left
-        // Maybe rotation before perspective?!
-        this.setUpRotation(this.deviceId);
         fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle0
         );
 
         console.log('fovDirections', fovDirections);
+        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+          this.rotation0
+        );
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
           fovDirections.right, // right
           fovDirections.up, // top
           fovDirections.down, // bottom
-          this.localUser.camera.near / 4, // near
-          this.localUser.camera.far / 4 // far
+          this.localUser.camera.near, // near
+          this.localUser.camera.far // far
         );
         break;
 
