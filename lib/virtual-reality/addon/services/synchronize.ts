@@ -94,7 +94,6 @@ export default class SynchronizeService extends Service {
   tick() {
     if (this.main?.camera) {
       this.synchronizationSession.setCamera();
-
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {
@@ -102,7 +101,9 @@ export default class SynchronizeService extends Service {
         this.localUser.camera.quaternion.copy(
           this.main.camera.model.quaternion
         );
-        this.synchronizationSession.setUpRotation(this.synchronizationSession.deviceId);
+        // this.synchronizationSession.setUpRotation(
+        //   this.synchronizationSession.deviceId
+        // );
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
