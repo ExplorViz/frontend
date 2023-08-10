@@ -97,7 +97,6 @@ import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-it
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
-import VrButton2 from './vr-button-2';
 
 interface Args {
   readonly id: string;
@@ -673,19 +672,6 @@ export default class VrRendering extends Component<Args> {
     this.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
-
-
-    const vrButton2 = new VrButton2(
-      {
-        renderer: this.renderer,
-        onSessionStartedCallback: this.onVrSessionStarted,
-        onSessionEndedCallback: this.onVrSessionEnded,
-
-      }
-    );
-
-    vrButton2.onClick();  
-    //vrButton2.updateVrStatus();
     
   }
 

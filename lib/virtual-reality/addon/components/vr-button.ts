@@ -17,13 +17,15 @@ export default class VrButton extends Component<VrButtonArgs> {
   @tracked
   buttonText: string = 'Checking ...';
 
+  firstCall: boolean = true;
+
   /**
    * Checks the current status of WebXR in the browser and if compatible
    * devices are connected. Sets the tracked properties
    * 'buttonText' and 'vrSupported' accordingly.
    */
   @action
-  async updateVrStatus() {
+  async updateVrStatus() { 
     if ('xr' in navigator) {
       this.vrSupported =
         (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
@@ -37,6 +39,11 @@ export default class VrButton extends Component<VrButtonArgs> {
       }
     } else {
       this.buttonText = 'WEBXR NOT SUPPORTED';
+    }
+
+    if(this.firstCall){
+      this.firstCall = false;
+      this.onClick();
     }
   }
 
@@ -73,6 +80,8 @@ export default class VrButton extends Component<VrButtonArgs> {
     if (this.args.onSessionEndedCallback) {
       this.args.onSessionEndedCallback();
     }
+
+    this.firstCall = true;
   }
 
   @action
