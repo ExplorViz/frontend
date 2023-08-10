@@ -251,7 +251,9 @@ export default class SynchronizationSession extends Service {
           this.projectorAngle0
         );
 
-        console.log('fovDirections', fovDirections);
+        // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
+        // Einfach tilt auf y in der const?
+        // Kreisanordung war über z
         this.localUser.camera.projectionMatrix.makeRotationFromEuler(
           this.rotation0
         );
