@@ -22,6 +22,7 @@ import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-rendere
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 
 interface NamedArgs {
@@ -58,6 +59,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('local-user')
   localUser!: LocalUser;
 
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   
 
   @service
@@ -75,7 +79,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  async modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
     this.landscapeData = landscapeData;
     this.graph = graph;
     this.handleUpdatedLandscapeData.perform();
@@ -109,7 +113,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const app = await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
-
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -147,7 +150,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           }
         });
       }
-      
     }
 
     const interAppCommunications = drawableClassCommunications.filter(
@@ -204,6 +206,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       cls.push(tempCL);
     });
     this.ideWebsocketFacade.refreshVizData(cls);
+
   });
 
   updateApplicationData = task(

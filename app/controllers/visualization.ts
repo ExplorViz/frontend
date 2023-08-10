@@ -40,6 +40,7 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { SerializedApp, SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -91,6 +92,9 @@ export default class VisualizationController extends Controller {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
@@ -115,15 +119,16 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
+  vrSupported: boolean = false;
+
+  @tracked
+  buttonText: string = "";
+
+  @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
-
-  @tracked
-  vrSupported = false;
-
-  @tracked
-  buttonText: string = 'Checking ...';
+  
 
   debug = debugLogger();
 
@@ -412,8 +417,6 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
-
-
   }
 
   async onTimestampUpdate({

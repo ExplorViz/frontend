@@ -185,15 +185,17 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightById(meshId: string) {
+  highlightById(meshId: string, color?: THREE.Color) {
     const mesh = this.applicationRenderer.getMeshById(meshId);
     if (isEntityMesh(mesh)) {
-      this.highlight(mesh);
+      if(!color)
+        color= color=this.configuration.applicationColors.highlightedEntityColor;
+      this.highlight(mesh, color);
     }
   }
 
   @action
-  highlight(mesh: EntityMesh, color: THREE.Color, sendMessage=true) {
+  highlight(mesh: EntityMesh, color: THREE.Color, sendMessage = true) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh, color, sendMessage); // notice that intern communication lines get highlighted here

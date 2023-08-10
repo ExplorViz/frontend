@@ -236,11 +236,13 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      // Restore state of components highlighting
+      // Restore state of open components
       restoreComponentState(
         applicationObject3D,
-        applicationState.openComponents
+        applicationState.openComponents,
       );
+
+
 
       // Add labels to application
       Labeler.addApplicationLabels(
@@ -251,6 +253,11 @@ export default class ApplicationRenderer extends Service.extend({
 
       this.addCommunication(applicationObject3D);
 
+
+      // reset highlights -------------------
+
+      const currentSetting = this.userSettings.applicationSettings.allowMultipleSelection.value;
+      this.userSettings.applicationSettings.allowMultipleSelection.value = true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
           this.highlightingService.hightlightComponentLocallyByTypeAndId(
@@ -259,6 +266,9 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
+      this.userSettings.applicationSettings.allowMultipleSelection.value = currentSetting;
+
+      // ----------------------------------------
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -354,8 +364,7 @@ export default class ApplicationRenderer extends Service.extend({
    */
 
   @action
-  highlight(entity: any, applicationObject3D: ApplicationObject3D, color=this.localUser.color, sendMessage=true) {
-    if(!color) return;
+  highlight(entity: any, applicationObject3D: ApplicationObject3D, color: THREE.Color, sendMessage=true) {
     if(isEntityMesh(entity)){
     this.highlightingService.highlight(entity, color, sendMessage);
     this.updateApplicationObject3DAfterUpdate(
@@ -391,12 +400,13 @@ export default class ApplicationRenderer extends Service.extend({
 
   openAllComponents(applicationObject3D: ApplicationObject3D) {
     this.openAllComponentsLocally(applicationObject3D);
-    this.sender.sendComponentUpdate(
-      applicationObject3D.getModelId(),
-      '',
-      true,
-      true
-    );
+
+    // this.sender.sendComponentUpdate(
+    //   applicationObject3D.getModelId(),
+    //   '',
+    //   true,
+    //   true
+    // );
   }
 
   toggleComponentLocally(
@@ -425,9 +435,10 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
-    EntityManipulation.openAllComponents(applicationObject3D);
+    EntityManipulation.openAllComponents(applicationObject3D, this.sender);
 
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
+
   }
 
   closeAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
@@ -495,6 +506,7 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
     });
+    this.highlightingService.updateHighlighting();
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

@@ -376,23 +376,42 @@ export function highlightTrace(
 
 
 
+/**
+ * Returns a list of all classes from all applications and sets every class and every package containing a class in its subpackage-hierarchy transparent
+ *
+ * @param applicationObject3DList List of applications to return all classes from
+ * @param opacity Opacity for transparency
+ */
+
+export function turnAllPackagesAndClassesTransparent(
+  applicationObject3DList: ApplicationObject3D[],
+  opacity: number
+)
+{   
+  let allClazzesArray: Class[] = []; 
+  applicationObject3DList.forEach(application => {
+    const allClazzesAsArray = getAllClassesInApplication(application.data.application);
+    allClazzesAsArray.forEach( clazz => { // set everything transparent at the beginning
+      const clazzMesh = application.getMeshById(clazz.id);
+      if(clazzMesh instanceof ClazzMesh){
+        clazzMesh.turnTransparent();
+        clazzMesh.material.needsUpdate = true;
+        turnComponentAndAncestorsTransparent(clazz.parent, application, new Set(), opacity);
+      }
+    });
+    allClazzesArray = [...allClazzesArray, ...allClazzesAsArray];
+  });
+
+  return allClazzesArray;
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export function turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks: ClazzCommunicationMesh[]){
+  allLinks.forEach(link => {
+    link.turnTransparent();
+    link.unhighlight();
+  });
+}
 
 
 /**
@@ -410,28 +429,10 @@ export function updateHighlighting(
 
   // Set everything transparent at the beginning ----------------------
 
-    // All clazzes from all applications
-    let allClazzesArray: Class[] = []; 
-    applicationObject3DList.forEach(application => {
-      const allClazzesAsArray = getAllClassesInApplication(application.data.application);
-      allClazzesAsArray.forEach( clazz => { // set everything transparent at the beginning
-        const clazzMesh = application.getMeshById(clazz.id);
-        if(clazzMesh instanceof ClazzMesh){
-          clazzMesh.turnTransparent();
-          clazzMesh.material.needsUpdate = true;
-          turnComponentAndAncestorsTransparent(clazz.parent, application, new Set(), opacity);
-        }
-      });
-      allClazzesArray = [...allClazzesArray, ...allClazzesAsArray];
-    });
+  const allClazzes = new Set(turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity));
+  turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks);
 
-    const allClazzes = new Set<Class>(allClazzesArray);
 
-    allLinks.forEach(link => {
-      link.turnTransparent();
-      link.unhighlight();
-
-    });
 
   // ------------------------------------------------------------------
 

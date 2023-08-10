@@ -11,7 +11,10 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import HighlightingService, { HightlightComponentArgs } from 'explorviz-frontend/services/highlighting-service';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 
 /**
@@ -122,7 +125,6 @@ export function closeComponentMesh(
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
-        console.log("close ", childMesh.dataModel.name);
         closeComponentMesh(childMesh, applicationObject3D);
       }
       // Reset highlighting if highlighted entity is no longer visible
@@ -170,15 +172,22 @@ export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
  */
 export function openComponentsRecursively(
   component: Package,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  sender: VrMessageSender
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
       openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(), 
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh,  
+      );
     }
-    openComponentsRecursively(child, applicationObject3D);
+    openComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 
@@ -187,13 +196,19 @@ export function openComponentsRecursively(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function openAllComponents(applicationObject3D: ApplicationObject3D) {
+export function openAllComponents(applicationObject3D: ApplicationObject3D, sender: VrMessageSender) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
       openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(), 
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh,  
+      );
     }
-    openComponentsRecursively(child, applicationObject3D);
+    openComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 
@@ -222,7 +237,7 @@ export function toggleComponentMeshState(
  */
 export function restoreComponentState(
   applicationObject3D: ApplicationObject3D,
-  openComponentIds?: Set<string>
+  openComponentIds?: Set<string>,
 ) {
   openComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);

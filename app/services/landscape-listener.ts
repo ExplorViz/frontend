@@ -10,6 +10,7 @@ import ENV from 'explorviz-frontend/config/environment';
 import TimestampRepository from './repos/timestamp-repository';
 import Auth from './auth';
 import LandscapeTokenService from './landscape-token';
+import HighlightingService from './highlighting-service';
 
 const { landscapeService, traceService } = ENV.backendAddresses;
 
@@ -19,6 +20,9 @@ export default class LandscapeListener extends Service.extend(Evented) {
   @service('auth') auth!: Auth;
 
   @service('landscape-token') tokenService!: LandscapeTokenService;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
   latestStructureData: StructureLandscapeData | null = null;
   latestStructureJsonString: StructureLandscapeData | null = null;
@@ -108,6 +112,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
           clearTimeout(this.timer);
         }
       }
+      this.highlightingService.updateHighlighting();
     } catch (e) {
       // landscape data could not be requested, try again?
     }
