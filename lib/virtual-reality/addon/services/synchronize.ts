@@ -100,9 +100,11 @@ export default class SynchronizeService extends Service {
         this.localUser.camera.quaternion.copy(
           this.main.camera.model.quaternion
         );
-        // this.synchronizationSession.setUpRotation(
-        //   this.synchronizationSession.deviceId
-        // );
+
+        // this.synchronizationSession.setUpFov();
+        this.synchronizationSession.setUpRotation(
+          this.synchronizationSession.deviceId
+        );
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
@@ -138,7 +140,6 @@ export default class SynchronizeService extends Service {
     if (this.cameraControls) {
       this.cameraControls.enabled = false;
     }
-    this.synchronizationSession.setCamera();
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }
