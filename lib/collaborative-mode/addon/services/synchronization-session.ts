@@ -220,17 +220,18 @@ export default class SynchronizationSession extends Service {
 
         mainMatrix.copy(this.localUser.camera.projectionMatrix);
 
+
         // console.log(fovDirections);
         // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
         // Same effect as for monitor!
         // const perspectiveMatrix =
           mainMatrix.makePerspective(
-            -fovDirections.left * 2, // left
-            fovDirections.right * 2, // right
+            -fovDirections.left, // left
+            fovDirections.right, // right
             // 0,
-            // fovDirections.up, // top
-            0,
-            -fovDirections.down * 4, // bottom
+            fovDirections.up + (2 * fovDirections.down) , // top
+            // 0,
+            -fovDirections.down + (2 * fovDirections.down), // bottom
             this.localUser.camera.near * 2, // near
             this.localUser.camera.far * 2 // far
           );
@@ -243,7 +244,7 @@ export default class SynchronizationSession extends Service {
         // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
         // const rotationMatrix =
           // mainMatrix.makeRotationFromEuler(
-          //   // new THREE.Euler(45, 0, 0)
+          //   // new THREE.Euler(0, 90, 0)
           //   // new THREE.Euler(0, 45, 0)
           //   // new THREE.Euler(0, 0, 45) // 
           // );

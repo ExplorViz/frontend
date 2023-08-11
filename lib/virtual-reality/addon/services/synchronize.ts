@@ -98,8 +98,6 @@ export default class SynchronizeService extends Service {
       } else {
         this.localUser.camera.position.copy(this.main.camera.model.position);
 
-        this.main.camera.model.quaternion.multiply(new THREE.Quaternion(0,0,45,1));
-
         this.localUser.camera.quaternion.copy(
           this.main.camera.model.quaternion
         );
