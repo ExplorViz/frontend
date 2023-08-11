@@ -473,6 +473,7 @@ export default class VrRendering extends Component<Args> {
         this.applicationRenderer.highlight(
           event.intersection.object,
           event.target,
+          this.localUser.color,
         ),
     });
 

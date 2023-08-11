@@ -193,12 +193,12 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlight(mesh: EntityMesh, sendMessage = true) {
+  highlight(mesh: EntityMesh, color?: THREE.Color, sendMessage = true) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh, sendMessage); // notice that intern communication lines get highlighted here
+      this.highlightComponent(parent, mesh, color, sendMessage); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh); // extern communication lines get highlighted here
+      this.highlightLink(mesh, color); // extern communication lines get highlighted here
       this.updateHighlighting();
       
       if(sendMessage){
@@ -213,9 +213,9 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightLink(mesh: ClazzCommunicationMesh) {
+  highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
     mesh.highlightingColor =
-    this.localUser.color || this.configuration.applicationColors.highlightedEntityColor
+    color || this.configuration.applicationColors.highlightedEntityColor
 
       mesh.dataModel.drawableClassCommus.forEach(drawableClassComm => {
 
@@ -257,9 +257,9 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, sendMessage=true) {
+  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, color?: THREE.Color, sendMessage=true) {
     if (isHighlightableMesh(object)) {
-      this.hightlightMesh(application, object);
+      this.hightlightMesh(application, object, color);
 
       const appId = application.getModelId();
       const entityType = this.getEntityType(object);
@@ -297,7 +297,7 @@ export default class HighlightingService extends Service.extend({
     color?: THREE.Color,
   ) {
     application.setHighlightingColor(
-     color || this.localUser.color || this.configuration.applicationColors.highlightedEntityColor
+      color || this.configuration.applicationColors.highlightedEntityColor
     );
 
     if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){

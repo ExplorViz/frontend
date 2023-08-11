@@ -380,9 +380,9 @@ export default class ApplicationRenderer extends Service.extend({
    */
 
   @action
-  highlight(entity: any, applicationObject3D: ApplicationObject3D, sendMessage=true) {
+  highlight(entity: any, applicationObject3D: ApplicationObject3D, color?: THREE.Color, sendMessage=true) {
     if(isEntityMesh(entity)){
-    this.highlightingService.highlight(entity, sendMessage);
+    this.highlightingService.highlight(entity, color, sendMessage);
     this.updateApplicationObject3DAfterUpdate(
       applicationObject3D
     );

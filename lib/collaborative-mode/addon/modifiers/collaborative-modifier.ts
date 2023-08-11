@@ -162,7 +162,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
 
       const mesh = application.getMeshById(entityId);
-      this.applicationRenderer.highlight(mesh, application, false);
+      this.applicationRenderer.highlight(mesh, application, user.color, false);
    
   }
 
