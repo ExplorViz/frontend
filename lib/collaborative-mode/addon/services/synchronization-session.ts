@@ -104,10 +104,15 @@ export default class SynchronizationSession extends Service {
     switch (dId) {
       case 1:
         this.localUser.camera.quaternion.multiply(
+          // new THREE.Quaternion(
+          //   THREE.MathUtils.degToRad(this.rotation0.x),
+          //   THREE.MathUtils.degToRad(this.rotation0.y + this.tilt),
+          //   THREE.MathUtils.degToRad(this.rotation0.z)
+          // )
           new THREE.Quaternion(
-            THREE.MathUtils.degToRad(this.rotation0.x),
-            THREE.MathUtils.degToRad(this.rotation0.y + this.tilt),
-            THREE.MathUtils.degToRad(this.rotation0.z)
+            THREE.MathUtils.degToRad(0),
+            THREE.MathUtils.degToRad(0),
+            THREE.MathUtils.degToRad(15)
           )
         );
         break;
@@ -152,7 +157,7 @@ export default class SynchronizationSession extends Service {
         );
         break;
     }
-    this.localUser.camera.updateProjectionMatrix();
+    // this.localUser.camera.updateProjectionMatrix();
   }
 
   // Frustum calibration by considering near and projectorAngles
@@ -229,11 +234,11 @@ export default class SynchronizationSession extends Service {
             -fovDirections.left, // left
             fovDirections.right, // right
             // 0,
-            fovDirections.up + (2 * fovDirections.down) , // top
+            fovDirections.up - (2 * fovDirections.down) , // top
             // 0,
-            -fovDirections.down + (2 * fovDirections.down), // bottom
-            this.localUser.camera.near * 2, // near
-            this.localUser.camera.far * 2 // far
+            -fovDirections.down - (2 * fovDirections.down), // bottom
+            this.localUser.camera.near, // near
+            this.localUser.camera.far // far
           );
 
         // Rotation on Matrix
@@ -255,7 +260,7 @@ export default class SynchronizationSession extends Service {
           
         // ############################################################### 
         // Rotation on Camera = Different effect than rotation on matrix!
-        // this.setUpRotation(this.deviceId);
+        this.setUpRotation(this.deviceId);
 
         // Working with main's projectionMatrix?
         // RemoteUser has only snapshot of projectionMatrix of the localUser!
@@ -355,8 +360,8 @@ export default class SynchronizationSession extends Service {
             // 0,
             fovDirections.up, // top
             -fovDirections.down, // bottom
-            this.localUser.camera.near * 2, // near
-            this.localUser.camera.far * 2 // far
+            this.localUser.camera.near , // near
+            this.localUser.camera.far // far
           );
 
         // Rotation on Matrix
