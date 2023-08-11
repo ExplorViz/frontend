@@ -3,7 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
-import main from '@embroider/core/src/babel-plugin-adjust-imports';
+
 
 type FovDirection = {
   left: number;
@@ -203,93 +203,32 @@ export default class SynchronizationSession extends Service {
     // );
     // this.localUser.camera.updateProjectionMatrix();
 
-    // translate pixel to radians and divide it by projector count (here 4)
-    const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 4);
-    // Calculating height of near clipping plane, which is a plane perpendicular to the viewing direction,
-    // and is used to help determine which parts of the landscape should be rendered and which should not.
-    const height = tanFOV * this.localUser.camera.near;
-    // The proportion of the camera's viewport
-    const width = height * this.localUser.camera.aspect;
-
-    // console.log(height);
-    // console.log(width);
-
-    /* Pyramid of camera. */
-    //   switch (this.deviceId) {
-    //     case 1: // bottom left
-    // this.localUser.camera.projectionMatrix.makePerspective(
-    //   -width / 2, // left
-    //   0, // right
-    //   0, // top
-    //   -height / 2, // bottom
-    //   this.localUser.camera.near / 4, // near
-    //   this.localUser.camera.far / 4 // far
-    // );
-    //       break;
-    //     case 2: // top left
-    //       this.localUser.camera.projectionMatrix.makePerspective(
-    //         -width / 2, // left
-    //         0, // right
-    //         height / 2, // top
-    //         0, // bottom
-    //         this.localUser.camera.near / 4, // near
-    //         this.localUser.camera.far / 4 // far
-    //       );
-    //       break;
-    //     case 3: // top right
-    //       this.localUser.camera.projectionMatrix.makePerspective(
-    //         0, // left
-    //         width / 2, // right
-    //         height / 2, // top
-    //         0, // bottom
-    //         this.localUser.camera.near / 4, // near
-    //         this.localUser.camera.far / 4 // far
-    //       );
-    //       break;
-    //     case 4: // bottom right
-    //       this.localUser.camera.projectionMatrix.makePerspective(
-    //         0, // left
-    //         width / 2, // right
-    //         0, // top
-    //         -height / 2, // bottom
-    //         this.localUser.camera.near / 4, // near
-    //         this.localUser.camera.far / 4 // far
-    //       );
-    //       break;
-    //     case 5: //middle
-    //       this.localUser.camera.projectionMatrix.makePerspective(
-    //         -width / 2, // left
-    //         width / 2, // right
-    //         height / 2, // top
-    //         -height / 2, // bottom
-    //         this.localUser.camera.near / 4, // near
-    //         this.localUser.camera.far / 4 // far
-    //       );
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    // }
     // console.log(mainProjectionMatrix);
     let fovDirections: FovDirection;
+    let mainMatrix: THREE.Matrix4 = new THREE.Matrix4();
     switch (this.deviceId) {
       case 1: // bottom left
-        fovDirections = this.calculateFOVDirections(
+
+      // ############################################################### 
+      this.localUser.camera.updateProjectionMatrix();
+      fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle0
         );
 
+        mainMatrix.copy(this.localUser.camera.projectionMatrix);
+
         // console.log(fovDirections);
         // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
-        // // Same effect as for monitor!
-        const perspectiveMatrix =
-          this.localUser.camera.projectionMatrix.makePerspective(
+        // Same effect as for monitor!
+        // const perspectiveMatrix =
+          mainMatrix.makePerspective(
             -fovDirections.left, // left
             fovDirections.right, // right
             // 0,
-            fovDirections.up, // top
-            // 0,
-            -fovDirections.down, // bottom
+            // fovDirections.up, // top
+            0,
+            -fovDirections.down * 2, // bottom
             this.localUser.camera.near, // near
             this.localUser.camera.far // far
           );
@@ -300,14 +239,18 @@ export default class SynchronizationSession extends Service {
         // Kreisanordung war über z?
         // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
         // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-        const rotationMatrix =
-          this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-            this.rotation0
+        // const rotationMatrix =
+          mainMatrix.makeRotationFromEuler(
+            // new THREE.Euler(45, 0, 0)
+            // new THREE.Euler(0, 45, 0)
+            new THREE.Euler(0, 0, 45) // 
           );
 
-        const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
-        this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
-
+        // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
+        // this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
+        this.localUser.camera.projectionMatrix.copy(mainMatrix);
+          
+        // ############################################################### 
         // Rotation on Camera = Different effect than rotation on matrix!
         // this.setUpRotation(this.deviceId);
 
