@@ -345,7 +345,8 @@ export default class VrRendering extends Component<Args> {
         if (event.target.parent instanceof ApplicationObject3D) {
           this.applicationRenderer.toggleComponent(
             event.target,
-            event.target.parent
+            event.target.parent,
+            true
           );
         }
       },
@@ -359,7 +360,7 @@ export default class VrRendering extends Component<Args> {
         if (this.heatmapConf.heatmapActive) {
           this.heatmapConf.setActiveApplication(application);
         } else {
-          this.applicationRenderer.closeAllComponents(application);
+          this.applicationRenderer.closeAllComponents(application, true);
         }
       },
     });
@@ -481,7 +482,7 @@ export default class VrRendering extends Component<Args> {
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          this.highlightingService.highlight(event.intersection.object);
+          this.highlightingService.highlight(event.intersection.object, true, this.localUser.color);
         }
       },
       hover: (event) => {

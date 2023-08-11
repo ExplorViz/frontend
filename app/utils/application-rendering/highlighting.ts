@@ -21,6 +21,7 @@ import { getClassAncestorPackages } from '../class-helpers';
 import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 /**
  * Restores default color and transparency for all application meshes
  *
@@ -569,7 +570,20 @@ export function updateHighlighting(
       }
     });
 
-      
+    // return a map of from application id to a list of component ids which are now transparent
+    const transparencyMap: Map<string,string[]> = new Map();
+    applicationObject3DList.forEach(application => {
+      const transparencyList: string[] = [];
+      application.getAllMeshes().forEach(mesh => {
+        if(mesh.material.opacity !== 1){
+          if(mesh instanceof ComponentMesh || mesh instanceof ClazzMesh || mesh instanceof ClazzCommunicationMesh)
+            transparencyList.push(mesh.getModelId());
+        }   
+      });
+      transparencyMap.set(application.getModelId(), transparencyList);
+    });
+
+    return transparencyMap;
 }
   
 

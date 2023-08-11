@@ -22,6 +22,7 @@ import {
 } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
+import { TransparencyUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/transparency_update';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
@@ -128,6 +129,23 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
+    });
+  }
+
+  /**
+   * Informs the backend the current state of all transparent entities from the current application
+   *
+   * @param {string} appId ID of the application of the transparent entities
+   * @param {string} entityIds List of IDs of the transparent entities
+   */
+  sendTransparencyUpdate(
+    appId: string,
+    entityIds: string[],
+  ) {
+    this.webSocket.send<TransparencyUpdateMessage>({
+      event: 'transparency_update',
+      appId,
+      entityIds,
     });
   }
 

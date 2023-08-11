@@ -25,6 +25,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { send } from 'process';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -104,7 +105,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlightingForAllApplications() {
-    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
+    this.updateHighlighting(true, this.opacity); // one call is all we need (see implementation)
   }
 
   @action
@@ -130,18 +131,30 @@ export default class HighlightingService extends Service.extend({
   // }
 
   updateHighlighting(
+    sendMessage: boolean,
     value: number = this.opacity
   ) {
 
     console.log("updateHIghlighting");
     const {allLinks, drawableComm, applications} = this.getParams();
 
-      Highlighting.updateHighlighting(
+    
+    const transparencyMap = Highlighting.updateHighlighting(
         applications,
         drawableComm,
         allLinks,
         value,
-      );
+    );
+
+    if(sendMessage){ // we don't send messages when updateHighlighting is called due to a receiving landscape update message (highlighting or opening/closing components)
+      Array.from(transparencyMap.keys()).forEach(appId => {
+        const transparencyList = transparencyMap.get(appId);
+        if(transparencyList)
+          this.sender.sendTransparencyUpdate(appId,transparencyList);
+      });
+    }
+
+
     
   }
 
@@ -185,21 +198,21 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightById(meshId: string) {
+  highlightById(meshId: string, color?: THREE.Color) {
     const mesh = this.applicationRenderer.getMeshById(meshId);
     if (isEntityMesh(mesh)) {
-      this.highlight(mesh);
+      this.highlight(mesh, true, color);
     }
   }
 
   @action
-  highlight(mesh: EntityMesh, color?: THREE.Color, sendMessage = true) {
+  highlight(mesh: EntityMesh, sendMessage: boolean, color?: THREE.Color) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh, color, sendMessage); // notice that intern communication lines get highlighted here
+      this.highlightComponent(parent, mesh, sendMessage, color); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, color); // extern communication lines get highlighted here
-      this.updateHighlighting();
+      this.updateHighlighting(sendMessage);
       
       if(sendMessage){
         this.sender.sendHighlightingUpdate(
@@ -257,7 +270,7 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, color?: THREE.Color, sendMessage=true) {
+  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, sendMessage: boolean,color?: THREE.Color) {
     if (isHighlightableMesh(object)) {
       this.hightlightMesh(application, object, color);
 
@@ -278,7 +291,6 @@ export default class HighlightingService extends Service.extend({
 
   removeHighlightingLocally(application: ApplicationObject3D) {
     Highlighting.removeAllHighlighting(application);
-    //this.updateHighlighting();
   }
 
   hightlightComponentLocallyByTypeAndId(

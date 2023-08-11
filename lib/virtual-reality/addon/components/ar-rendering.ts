@@ -690,9 +690,9 @@ export default class ArRendering extends Component<Args> {
         return;
 
       if (appObject instanceof ComponentMesh) {
-        self.applicationRenderer.toggleComponent(appObject, appObject.parent);
+        self.applicationRenderer.toggleComponent(appObject, appObject.parent, true);
       } else if (appObject instanceof FoundationMesh) {
-        self.applicationRenderer.closeAllComponents(appObject.parent);
+        self.applicationRenderer.closeAllComponents(appObject.parent, true);
       }
     }
 
@@ -716,7 +716,7 @@ export default class ArRendering extends Component<Args> {
       object instanceof ClazzMesh ||
       object instanceof ClazzCommunicationMesh
     ) {
-      this.highlightingService.highlight(object);
+      this.highlightingService.highlight(object, true, this.localUser.color);
     }
   }
 

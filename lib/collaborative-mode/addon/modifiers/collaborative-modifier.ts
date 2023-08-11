@@ -133,14 +133,19 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
     if (isFoundation) {
       if (isOpened) {
-        this.applicationRenderer.openAllComponentsLocally(applicationObject3D);
+        this.applicationRenderer.openAllComponentsLocally(applicationObject3D, 
+          false // whenever we receive messages we don't want to resend them
+          );
       } else {
-        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
+        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D, 
+          false // whenever we receive messages we don't want to resend them
+        );
       }
     } else if (componentMesh instanceof ComponentMesh) {
       this.applicationRenderer.toggleComponentLocally(
         componentMesh,
-        applicationObject3D
+        applicationObject3D,
+        false // whenever we receive messages we don't want to resend them
       );
     }
   }
@@ -162,7 +167,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
 
       const mesh = application.getMeshById(entityId);
-      this.applicationRenderer.highlight(mesh, application, user.color, false);
+      this.applicationRenderer.highlight(mesh, 
+        application, 
+        user.color, 
+        false // whenever we receive messages we don't want to resend them 
+        );
    
   }
 
