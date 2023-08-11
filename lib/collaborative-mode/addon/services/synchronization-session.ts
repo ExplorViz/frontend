@@ -175,7 +175,7 @@ export default class SynchronizationSession extends Service {
   }
 
   /** MAIN CONFIGS */
-  setUpCamera(mainProjectionMatrix: THREE.Matrix4) {
+  setUpCamera() {
     // Height of near near clipping plane
     // 2 * near * tan( ( fov * pi) / 360)
     // This equation derives from the definition of the tangent function and the properties of a right triangle.
@@ -307,8 +307,8 @@ export default class SynchronizationSession extends Service {
         // Rotation on Camera = Different effect than rotation on matrix!
         // this.setUpRotation(this.deviceId);
 
-        // Working with main's projectionMatrix
-        console.log(mainProjectionMatrix);
+        // Working with main's projectionMatrix?
+        // RemoteUser has only snapshot of projectionMatrix of the localUser!
         // this.localUser.camera.projectionMatrix.clone();
         break;
 
