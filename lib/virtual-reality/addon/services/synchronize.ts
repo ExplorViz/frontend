@@ -19,7 +19,10 @@ import {
   SPECTATING_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
-import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import SynchronizationSession, {
+  ProjectorAngles,
+  ProjectorQuaternions,
+} from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export default class SynchronizeService extends Service {
@@ -52,7 +55,10 @@ export default class SynchronizeService extends Service {
 
   private projectors: Set<string> = new Set<string>();
 
-  private startQuaternion: THREE.Quaternion = new THREE.Quaternion();
+  private synchronizationStartQuaternion: THREE.Quaternion =
+    new THREE.Quaternion();
+
+  private synchronizationStartPosition: THREE.Vector3 = new THREE.Vector3();
 
   init() {
     super.init();
@@ -88,6 +94,12 @@ export default class SynchronizeService extends Service {
 
   lastPose?: VrPose;
 
+  private lastMainQuaternion: THREE.Quaternion | null = null;
+
+  // Could be done by parser
+  private projectorQuaternions!: ProjectorQuaternions;
+  private projectorAngles!: ProjectorAngles;
+
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position
    */
@@ -98,11 +110,21 @@ export default class SynchronizeService extends Service {
       } else {
         this.localUser.camera.position.copy(this.main.camera.model.position);
 
-        this.localUser.camera.quaternion.copy(
-          this.main.camera.model.quaternion
-        );
-
-        this.synchronizationSession.setUpCamera();
+        // If the last known quaternion is different or not yet set => copy quaternion and apply multiplication
+        if (
+          !this.lastMainQuaternion ||
+          !this.main.camera.model.quaternion.equals(this.lastMainQuaternion)
+        ) {
+          this.localUser.camera.quaternion.copy(
+            this.main.camera.model.quaternion.multiply(
+              this.projectorQuaternions.quaternions[
+                this.synchronizationSession.deviceId - 1 // deviceId - 1 == array index
+              ]
+            )
+          );
+          this.localUser.camera.updateProjectionMatrix();
+          this.lastMainQuaternion = this.main.camera.model.quaternion.clone(); // Update the stored quaternion
+        }
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(
@@ -126,9 +148,10 @@ export default class SynchronizeService extends Service {
    * @param {number} userId The id of the user to be spectated
    */
   activate(remoteUser: RemoteUser) {
-    this.startQuaternion.copy(this.localUser.camera.quaternion);
-    this.main = remoteUser;
+    this.synchronizationStartQuaternion.copy(this.localUser.camera.quaternion);
+    this.synchronizationStartPosition.copy(this.localUser.camera.position);
 
+    this.main = remoteUser;
     if (this.localUser.controller1) {
       this.localUser.controller1.setToSpectatingAppearance();
     }
@@ -140,6 +163,12 @@ export default class SynchronizeService extends Service {
     }
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
+
+    this.projectorQuaternions = this.synchronizationSession.setUpQuaternions();
+    this.projectorAngles = this.synchronizationSession.setUpFovAspectArr();
+    this.synchronizationSession.setUpFovAspect(
+      this.projectorAngles.angles[this.synchronizationSession.deviceId]
+    );
   }
 
   /**
@@ -158,7 +187,7 @@ export default class SynchronizeService extends Service {
       this.localUser.controller2.setToDefaultAppearance();
     }
 
-    this.localUser.camera.quaternion.copy(this.startQuaternion);
+    this.localUser.camera.quaternion.copy(this.synchronizationStartQuaternion);
     this.main = null;
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, null);
