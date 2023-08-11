@@ -112,7 +112,7 @@ export default class SynchronizationSession extends Service {
           new THREE.Quaternion(
             THREE.MathUtils.degToRad(0),
             THREE.MathUtils.degToRad(0),
-            THREE.MathUtils.degToRad(15)
+            THREE.MathUtils.degToRad(20)
           )
         );
         break;
@@ -231,14 +231,14 @@ export default class SynchronizationSession extends Service {
         // Same effect as for monitor!
         // const perspectiveMatrix =
           mainMatrix.makePerspective(
-            -fovDirections.left, // left
-            fovDirections.right, // right
+            -fovDirections.left + (0.25 * fovDirections.left), // left
+            fovDirections.right + (0.25 * fovDirections.left), // right
             // 0,
-            fovDirections.up - (2 * fovDirections.down) , // top
+            fovDirections.up - (1.65 * fovDirections.down) , // top
             // 0,
-            -fovDirections.down - (2 * fovDirections.down), // bottom
-            this.localUser.camera.near, // near
-            this.localUser.camera.far // far
+            -fovDirections.down - (1.65 * fovDirections.down), // bottom
+            this.localUser.camera.near * 4, // near
+            this.localUser.camera.far * 4 // far
           );
 
         // Rotation on Matrix
@@ -360,8 +360,8 @@ export default class SynchronizationSession extends Service {
             // 0,
             fovDirections.up, // top
             -fovDirections.down, // bottom
-            this.localUser.camera.near , // near
-            this.localUser.camera.far // far
+            this.localUser.camera.near * 4, // near
+            this.localUser.camera.far *4// far
           );
 
         // Rotation on Matrix
