@@ -96,15 +96,19 @@ export default class SynchronizeService extends Service {
       if (this.localUser.xr?.isPresenting) {
         this.localUser.teleportToPosition(this.main.camera.model.position);
       } else {
-        this.localUser.camera.position.copy(this.main.camera.model.position);
-        this.localUser.camera.quaternion.copy(
-          this.main.camera.model.quaternion
-        );
+        // this.localUser.camera.position.copy(this.main.camera.model.position);
+        // this.localUser.camera.quaternion.copy(
+        //   this.main.camera.model.quaternion
+        // );
 
-        // this.synchronizationSession.setUpFov();
-        this.synchronizationSession.setUpRotation(
-          this.synchronizationSession.deviceId
+        // this.synchronizationSession.mainProjectionMatrix = remoteUser.localUser.camera.projectionMatrix;
+        this.main.localUser.camera.updateProjectionMatrix();
+        this.synchronizationSession.setUpCamera(
+          this.main.localUser.camera.projectionMatrix
         );
+        // this.synchronizationSession.setUpRotation(
+        //   this.synchronizationSession.deviceId
+        // );
       }
     } else if (this.projectors.size > 0) {
       const poses = VrPoses.getPoses(

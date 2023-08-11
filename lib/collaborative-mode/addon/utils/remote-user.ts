@@ -49,7 +49,8 @@ export default class RemoteUser extends THREE.Object3D {
 
   nameTag: NameTagSprite | null;
 
-  private localUser: LocalUser;
+  // private localUser: LocalUser;
+  localUser: LocalUser;
 
   constructor({
     userName,

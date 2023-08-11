@@ -3,6 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
+import main from '@embroider/core/src/babel-plugin-adjust-imports';
 
 type FovDirection = {
   left: number;
@@ -52,11 +53,36 @@ export default class SynchronizationSession extends Service {
 
   roomId?: string;
 
-  readonly rotation0 = new THREE.Euler(-14.315, 24.45517, 37.73257, 'ZYX');
-  readonly rotation1 = new THREE.Euler(16.31073, 27.50301, -35.22566, 'ZYX');
-  readonly rotation2 = new THREE.Euler(23.7238, 50.71501, -118.98493, 'ZYX');
-  readonly rotation3 = new THREE.Euler(-27.00377, 53.37216, 116.72392, 'ZYX');
-  readonly rotation4 = new THREE.Euler(2.18843, 73.21593, -9.4374, 'ZYX');
+  readonly rotation0 = new THREE.Euler(
+    -14.315,
+    24.45517 + this.tilt,
+    37.73257,
+    'ZYX'
+  );
+  readonly rotation1 = new THREE.Euler(
+    16.31073,
+    27.50301 + this.tilt,
+    -35.22566,
+    'ZYX'
+  );
+  readonly rotation2 = new THREE.Euler(
+    23.7238,
+    50.71501 + this.tilt,
+    -118.98493,
+    'ZYX'
+  );
+  readonly rotation3 = new THREE.Euler(
+    -27.00377,
+    53.37216 + this.tilt,
+    116.72392,
+    'ZYX'
+  );
+  readonly rotation4 = new THREE.Euler(
+    2.18843,
+    73.21593 + this.tilt,
+    -9.4374,
+    'ZYX'
+  );
 
   setCount(n: number) {
     this.numberDevices = n;
@@ -69,9 +95,7 @@ export default class SynchronizationSession extends Service {
     this.isMain = this.deviceId === 0;
   }
 
-  degToRad = (degrees: number) => degrees * (Math.PI / 180);
-
-  /*
+  /* Rotation by Camera
     Roll: X
     Pitch: Y
     Yaw: Z
@@ -81,9 +105,9 @@ export default class SynchronizationSession extends Service {
       case 1:
         this.localUser.camera.quaternion.multiply(
           new THREE.Quaternion(
-            this.degToRad(this.rotation0.x),
-            this.degToRad(this.rotation0.y + this.tilt),
-            this.degToRad(this.rotation0.z)
+            THREE.MathUtils.degToRad(this.rotation0.x),
+            THREE.MathUtils.degToRad(this.rotation0.y + this.tilt),
+            THREE.MathUtils.degToRad(this.rotation0.z)
           )
         );
         break;
@@ -91,9 +115,9 @@ export default class SynchronizationSession extends Service {
       case 2:
         this.localUser.camera.quaternion.multiply(
           new THREE.Quaternion(
-            this.degToRad(this.rotation1.x),
-            this.degToRad(this.rotation1.y + this.tilt),
-            this.degToRad(this.rotation1.z)
+            THREE.MathUtils.degToRad(this.rotation1.x),
+            THREE.MathUtils.degToRad(this.rotation1.y + this.tilt),
+            THREE.MathUtils.degToRad(this.rotation1.z)
           )
         );
         break;
@@ -101,9 +125,9 @@ export default class SynchronizationSession extends Service {
       case 3:
         this.localUser.camera.quaternion.multiply(
           new THREE.Quaternion(
-            this.degToRad(this.rotation2.x),
-            this.degToRad(this.rotation2.y + this.tilt),
-            this.degToRad(this.rotation2.z)
+            THREE.MathUtils.degToRad(this.rotation2.x),
+            THREE.MathUtils.degToRad(this.rotation2.y + this.tilt),
+            THREE.MathUtils.degToRad(this.rotation2.z)
           )
         );
         break;
@@ -111,9 +135,9 @@ export default class SynchronizationSession extends Service {
       case 4:
         this.localUser.camera.quaternion.multiply(
           new THREE.Quaternion(
-            this.degToRad(this.rotation3.x),
-            this.degToRad(this.rotation3.y + this.tilt),
-            this.degToRad(this.rotation3.z)
+            THREE.MathUtils.degToRad(this.rotation3.x),
+            THREE.MathUtils.degToRad(this.rotation3.y + this.tilt),
+            THREE.MathUtils.degToRad(this.rotation3.z)
           )
         );
         break;
@@ -121,9 +145,9 @@ export default class SynchronizationSession extends Service {
       case 5:
         this.localUser.camera.quaternion.multiply(
           new THREE.Quaternion(
-            this.degToRad(this.rotation4.x),
-            this.degToRad(this.rotation4.y + this.tilt),
-            this.degToRad(this.rotation4.z)
+            THREE.MathUtils.degToRad(this.rotation4.x),
+            THREE.MathUtils.degToRad(this.rotation4.y + this.tilt),
+            THREE.MathUtils.degToRad(this.rotation4.z)
           )
         );
         break;
@@ -131,14 +155,16 @@ export default class SynchronizationSession extends Service {
     this.localUser.camera.updateProjectionMatrix();
   }
 
+  // Frustum calibration by considering near and projectorAngles
   calculateFOVDirections(
     camera: THREE.PerspectiveCamera,
     projectorAngles: FovDirection
   ): FovDirection {
-    const tanLeft = Math.tan(this.degToRad(projectorAngles.left));
-    const tanRight = Math.tan(this.degToRad(projectorAngles.right));
-    const tanUp = Math.tan(this.degToRad(projectorAngles.up));
-    const tanDown = Math.tan(this.degToRad(projectorAngles.down));
+    // Convert angles and compute tangent
+    const tanLeft = Math.tan(THREE.MathUtils.degToRad(projectorAngles.left));
+    const tanRight = Math.tan(THREE.MathUtils.degToRad(projectorAngles.right));
+    const tanUp = Math.tan(THREE.MathUtils.degToRad(projectorAngles.up));
+    const tanDown = Math.tan(THREE.MathUtils.degToRad(projectorAngles.down));
 
     const left = tanLeft * camera.near;
     const right = tanRight * camera.near;
@@ -149,18 +175,7 @@ export default class SynchronizationSession extends Service {
   }
 
   /** MAIN CONFIGS */
-  setUpFov() {
-    // translate pixel to radians and divide it by projector count (here 4)
-    const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 4);
-    // Calculating height of near clipping plane, which is a plane perpendicular to the viewing direction,
-    // and is used to help determine which parts of the landscape should be rendered and which should not.
-    const height = tanFOV * this.localUser.camera.near;
-    // The proportion of the camera's viewport
-    const width = height * this.localUser.camera.aspect;
-
-    console.log('height', height);
-    console.log('width', width);
-
+  setUpCamera(mainProjectionMatrix: THREE.Matrix4) {
     // Height of near near clipping plane
     // 2 * near * tan( ( fov * pi) / 360)
     // This equation derives from the definition of the tangent function and the properties of a right triangle.
@@ -187,6 +202,18 @@ export default class SynchronizationSession extends Service {
     //   height
     // );
     // this.localUser.camera.updateProjectionMatrix();
+
+    // translate pixel to radians and divide it by projector count (here 4)
+    const tanFOV = Math.tan(((Math.PI / 180) * this.localUser.camera.fov) / 4);
+    // Calculating height of near clipping plane, which is a plane perpendicular to the viewing direction,
+    // and is used to help determine which parts of the landscape should be rendered and which should not.
+    const height = tanFOV * this.localUser.camera.near;
+    // The proportion of the camera's viewport
+    const width = height * this.localUser.camera.aspect;
+
+    // console.log(height);
+    // console.log(width);
+
     /* Pyramid of camera. */
     //   switch (this.deviceId) {
     //     case 1: // bottom left
@@ -243,6 +270,7 @@ export default class SynchronizationSession extends Service {
     //       break;
     //   }
     // }
+    // console.log(mainProjectionMatrix);
     let fovDirections: FovDirection;
     switch (this.deviceId) {
       case 1: // bottom left
@@ -251,20 +279,37 @@ export default class SynchronizationSession extends Service {
           this.projectorAngle0
         );
 
+        // console.log(fovDirections);
+        // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
+        // // Same effect as for monitor!
+        // this.localUser.camera.projectionMatrix.makePerspective(
+        //   -fovDirections.left, // left
+        //   // fovDirections.right, // right
+        //   0,
+        //   // fovDirections.up, // top
+        //   0,
+        //   -fovDirections.down, // bottom
+        //   this.localUser.camera.near, // near
+        //   this.localUser.camera.far // far
+        // );
+
+        // Rotation on Matrix
         // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
         // Einfach tilt auf y in der const?
-        // Kreisanordung war über z
-        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-          this.rotation0
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
+        // Kreisanordung war über z?
+        // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
+        // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
+        // this.localUser.camera.updateProjectionMatrix();
+        // this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+        //   this.rotation0
+        // );
+
+        // Rotation on Camera = Different effect than rotation on matrix!
+        // this.setUpRotation(this.deviceId);
+
+        // Working with main's projectionMatrix
+        console.log(mainProjectionMatrix);
+        // this.localUser.camera.projectionMatrix.clone();
         break;
 
       case 2: // top left
@@ -272,6 +317,15 @@ export default class SynchronizationSession extends Service {
           this.localUser.camera,
           this.projectorAngle1
         );
+
+        // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
+        // Einfach tilt auf y in der const?
+        // Kreisanordung war über z?
+        // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
+        // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
+        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+          this.rotation1
+        );
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
           fovDirections.right, // right
@@ -280,13 +334,24 @@ export default class SynchronizationSession extends Service {
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
         );
-
         break;
       case 3: // top right
         fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle234
         );
+
+        // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
+        // Einfach tilt auf y in der const?
+        // Kreisanordung war über z?
+
+        // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
+
+        // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
+        // -> Problem: Camera.model hat keine projectionMatrix!
+        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+          this.rotation2
+        );
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
           fovDirections.right, // right
@@ -295,12 +360,20 @@ export default class SynchronizationSession extends Service {
           this.localUser.camera.near, // near
           this.localUser.camera.far // far
         );
-
         break;
       case 4: // bottom right
         fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle234
+        );
+
+        // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
+        // Einfach tilt auf y in der const?
+        // Kreisanordung war über z?
+        // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
+        // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
+        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+          this.rotation3
         );
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
@@ -315,6 +388,15 @@ export default class SynchronizationSession extends Service {
         fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle234
+        );
+
+        // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
+        // Einfach tilt auf y in der const?
+        // Kreisanordung war über z?
+        // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
+        // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
+        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+          this.rotation4
         );
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
