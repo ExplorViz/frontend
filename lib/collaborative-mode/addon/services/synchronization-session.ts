@@ -285,10 +285,10 @@ export default class SynchronizationSession extends Service {
         const perspectiveMatrix =
           this.localUser.camera.projectionMatrix.makePerspective(
             -fovDirections.left, // left
-            // fovDirections.right, // right
-            0,
-            // fovDirections.up, // top
-            0,
+            fovDirections.right, // right
+            // 0,
+            fovDirections.up, // top
+            // 0,
             -fovDirections.down, // bottom
             this.localUser.camera.near, // near
             this.localUser.camera.far // far
@@ -306,7 +306,6 @@ export default class SynchronizationSession extends Service {
           );
 
         const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
-
         this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
 
         // Rotation on Camera = Different effect than rotation on matrix!
