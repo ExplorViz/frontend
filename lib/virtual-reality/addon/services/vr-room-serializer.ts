@@ -73,6 +73,7 @@ export default class VrRoomSerializer extends Service {
       quaternion: application.quaternion.toArray(),
       scale: application.scale.toArray(),
       openComponents: Array.from(application.openComponentIds),
+      transparentComponents: Array.from(application.transparentComponentIds),
       highlightedComponents: this.serializeHighlightedComponent(application),
     };
   }
@@ -92,6 +93,7 @@ export default class VrRoomSerializer extends Service {
       quaternion: new THREE.Quaternion(...serializedApp.quaternion),
       scale: new THREE.Vector3(...serializedApp.scale),
       openComponents: new Set(serializedApp.openComponents),
+      transparentComponents: new Set(serializedApp.transparentComponents),
       highlightedComponents: serializedApp.highlightedComponents.map(
         (highlightedComponent) => ({
           entityType: highlightedComponent.entityType,

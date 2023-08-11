@@ -198,7 +198,7 @@ export default class ApplicationRenderer extends Service.extend({
     async (
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {}
-    ) => {
+    ) => { 
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -228,7 +228,6 @@ export default class ApplicationRenderer extends Service.extend({
 
       if (layoutChanged) {
         applicationObject3D.removeAllEntities();
-
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
@@ -236,10 +235,17 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      // Restore state of open components
+      // console.log("RESTORE:");
+      // console.log(applicationState.openComponents);
+      // console.log("-------------------------------");
+      // console.log(applicationState.transparentComponents);
+
+      // Restore state of open components and transparent components
       restoreComponentState(
         applicationObject3D,
         applicationState.openComponents,
+        applicationState.transparentComponents,
+        this.highlightingService.opacity
       );
 
 
@@ -267,8 +273,8 @@ export default class ApplicationRenderer extends Service.extend({
         }
       );
       this.userSettings.applicationSettings.allowMultipleSelection.value = currentSetting;
-
       // ----------------------------------------
+
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -364,9 +370,9 @@ export default class ApplicationRenderer extends Service.extend({
    */
 
   @action
-  highlight(entity: any, applicationObject3D: ApplicationObject3D, color: THREE.Color, sendMessage=true) {
+  highlight(entity: any, applicationObject3D: ApplicationObject3D, sendMessage=true) {
     if(isEntityMesh(entity)){
-    this.highlightingService.highlight(entity, color, sendMessage);
+    this.highlightingService.highlight(entity, sendMessage);
     this.updateApplicationObject3DAfterUpdate(
       applicationObject3D
     );
@@ -497,16 +503,16 @@ export default class ApplicationRenderer extends Service.extend({
   restoreFromSerialization(room: SerializedVrRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
-    room.openApps.forEach((app) => {
+    room.openApps.forEach(async (app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-        this.addApplicationTask.perform(
+         await this.addApplicationTask.perform(
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
+        console.log("1 UPDATE");
       }
     });
-    this.highlightingService.updateHighlighting();
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
@@ -543,6 +549,7 @@ export type AddApplicationArgs = {
   position?: THREE.Vector3;
   quaternion?: THREE.Quaternion;
   scale?: THREE.Vector3;
+  transparentComponents?: Set<string>;
   openComponents?: Set<string>;
   highlightedComponents?: HightlightComponentArgs[];
 };

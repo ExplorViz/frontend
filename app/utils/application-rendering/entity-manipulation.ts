@@ -15,6 +15,8 @@ import HighlightingService, { HightlightComponentArgs } from 'explorviz-frontend
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 
 
 /**
@@ -80,7 +82,6 @@ export function openComponentMesh(
     );
     if (childMesh) {
       childMesh.visible = true;
-      childMesh.material.opacity = mesh.material.opacity;
     }
   });
 
@@ -234,17 +235,33 @@ export function toggleComponentMeshState(
  *
  * @param applicationObject3D Application object which contains the components
  * @param openComponentIds Set with ids of opened components
+ * @param transparentComponentIds Set with ids of transparent components
  */
 export function restoreComponentState(
   applicationObject3D: ApplicationObject3D,
   openComponentIds?: Set<string>,
+  transparentComponentIds?: Set<string>,
+  opacity?: number,
 ) {
+
+  transparentComponentIds?.forEach(componentId => {
+    const componentMesh = applicationObject3D.getMeshById(componentId);
+
+   if(componentMesh){
+      componentMesh.turnTransparent(opacity);
+      componentMesh.material.needsUpdate = true;
+    }
+  });
+
+
   openComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+
     if (componentMesh instanceof ComponentMesh) {
       openComponentMesh(componentMesh, applicationObject3D);
     }
   });
+
 }
 
 /**

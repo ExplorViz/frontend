@@ -27,6 +27,7 @@ export type SerializedApp = {
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
+  transparentComponents: string[];
   openComponents: string[];
   highlightedComponents: SerializedHighlightedComponent[];
 };

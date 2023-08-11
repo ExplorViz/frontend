@@ -185,22 +185,20 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightById(meshId: string, color?: THREE.Color) {
+  highlightById(meshId: string) {
     const mesh = this.applicationRenderer.getMeshById(meshId);
     if (isEntityMesh(mesh)) {
-      if(!color)
-        color= color=this.configuration.applicationColors.highlightedEntityColor;
-      this.highlight(mesh, color);
+      this.highlight(mesh);
     }
   }
 
   @action
-  highlight(mesh: EntityMesh, color: THREE.Color, sendMessage = true) {
+  highlight(mesh: EntityMesh, sendMessage = true) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh, color, sendMessage); // notice that intern communication lines get highlighted here
+      this.highlightComponent(parent, mesh, sendMessage); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, color); // extern communication lines get highlighted here
+      this.highlightLink(mesh); // extern communication lines get highlighted here
       this.updateHighlighting();
       
       if(sendMessage){
@@ -215,11 +213,10 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
+  highlightLink(mesh: ClazzCommunicationMesh) {
     mesh.highlightingColor =
-      color || this.configuration.applicationColors.highlightedEntityColor;
+    this.localUser.color || this.configuration.applicationColors.highlightedEntityColor
 
-      console.log("HELLO 3");
       mesh.dataModel.drawableClassCommus.forEach(drawableClassComm => {
 
         const sourceApp =  drawableClassComm.sourceApp;
@@ -260,9 +257,9 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, color: THREE.Color, sendMessage=true) {
+  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, sendMessage=true) {
     if (isHighlightableMesh(object)) {
-      this.hightlightMesh(application, object, color);
+      this.hightlightMesh(application, object);
 
       const appId = application.getModelId();
       const entityType = this.getEntityType(object);
@@ -300,7 +297,7 @@ export default class HighlightingService extends Service.extend({
     color?: THREE.Color,
   ) {
     application.setHighlightingColor(
-      color || this.configuration.applicationColors.highlightedEntityColor
+     color || this.localUser.color || this.configuration.applicationColors.highlightedEntityColor
     );
 
     if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){

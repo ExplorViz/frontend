@@ -14,6 +14,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 interface IArgs {
   isMovable: boolean;
@@ -34,6 +35,9 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   element!: HTMLDivElement;
 

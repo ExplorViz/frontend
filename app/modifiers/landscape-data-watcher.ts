@@ -87,7 +87,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-
+    console.log("NEW LANDSCAPE");
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -110,6 +110,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
 
         // create or update applicationObject3D
+        console.log("addApplicationTask");
         const app = await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
@@ -170,6 +171,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
     if (serializedRoom) {
+      console.log("restoreFromSerialization");
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
       // TODO is it necessary to wait?
       

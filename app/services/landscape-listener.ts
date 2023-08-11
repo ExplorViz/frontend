@@ -112,7 +112,6 @@ export default class LandscapeListener extends Service.extend(Evented) {
           clearTimeout(this.timer);
         }
       }
-      this.highlightingService.updateHighlighting();
     } catch (e) {
       // landscape data could not be requested, try again?
     }

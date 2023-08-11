@@ -156,13 +156,13 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     if (!application) { // extern communication link
       const mesh = this.applicationRenderer.getMeshById(entityId);
       if (mesh instanceof ClazzCommunicationMesh) {
-        this.highlightingService.highlightLink(mesh, user.color);
+        this.highlightingService.highlightLink(mesh);
       }
       return;
     }
 
       const mesh = application.getMeshById(entityId);
-      this.applicationRenderer.highlight(mesh, application, user.color, false);
+      this.applicationRenderer.highlight(mesh, application, false);
    
   }
 

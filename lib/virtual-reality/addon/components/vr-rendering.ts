@@ -473,7 +473,6 @@ export default class VrRendering extends Component<Args> {
         this.applicationRenderer.highlight(
           event.intersection.object,
           event.target,
-          this.localUser.color || this.configuration.applicationColors.highlightedEntityColor,
         ),
     });
 
@@ -481,7 +480,7 @@ export default class VrRendering extends Component<Args> {
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          this.highlightingService.highlight(event.intersection.object, this.localUser.color || this.configuration.applicationColors.highlightedEntityColor);
+          this.highlightingService.highlight(event.intersection.object);
         }
       },
       hover: (event) => {

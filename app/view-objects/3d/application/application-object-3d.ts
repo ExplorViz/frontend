@@ -12,6 +12,7 @@ import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -48,6 +49,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   @tracked
   highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
+
 
   drawableClassCommSet: Set<DrawableClassCommunication> = new Set();
 
@@ -238,6 +240,41 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     return openComponentIds;
   }
+
+   /**
+   * Iterates over all opened meshes which are currently added to the
+   * application and returns a set with ids of the transparent components.
+   */
+   get transparentComponentIds() {
+    const transparentComponentIds: Set<string> = new Set();
+
+    this.openComponentIds.forEach(openId => {
+      if(this.getMeshById(openId)?.material.opacity !== 1){
+        transparentComponentIds.add(openId);
+      }
+    });
+
+    // consider clazzes too
+    getAllClassesInApplication(this.data.application).forEach(clazz => {
+      if(this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1){
+        transparentComponentIds.add(clazz.id);
+      }
+    });
+
+
+    // intern links too
+    this.getCommMeshes().forEach(commMesh => {
+      if(commMesh?.material.opacity !== 1){
+        transparentComponentIds.add(commMesh.getModelId());
+        if(this.getMeshById(commMesh.getModelId()))
+          console.log("HAKUNA MATATA");
+      }
+    });
+
+    return transparentComponentIds;
+  }
+
+
 
   /**
    * Sets the visiblity of all component meshes with the current application

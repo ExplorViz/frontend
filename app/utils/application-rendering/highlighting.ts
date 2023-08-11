@@ -394,7 +394,7 @@ export function turnAllPackagesAndClassesTransparent(
     allClazzesAsArray.forEach( clazz => { // set everything transparent at the beginning
       const clazzMesh = application.getMeshById(clazz.id);
       if(clazzMesh instanceof ClazzMesh){
-        clazzMesh.turnTransparent();
+        clazzMesh.turnTransparent(opacity);
         clazzMesh.material.needsUpdate = true;
         turnComponentAndAncestorsTransparent(clazz.parent, application, new Set(), opacity);
       }
@@ -406,10 +406,12 @@ export function turnAllPackagesAndClassesTransparent(
 }
 
 
-export function turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks: ClazzCommunicationMesh[]){
+export function turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks: ClazzCommunicationMesh[], opacity: number){
   allLinks.forEach(link => {
-    link.turnTransparent();
+    link.turnTransparent(opacity);
     link.unhighlight();
+    link.material.needsUpdate = true;
+    console.log("Transparent");
   });
 }
 
@@ -430,7 +432,7 @@ export function updateHighlighting(
   // Set everything transparent at the beginning ----------------------
 
   const allClazzes = new Set(turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity));
-  turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks);
+  turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
 
 
 
@@ -467,6 +469,7 @@ export function updateHighlighting(
             } else if (isDrawableClassCommunication((model as ClazzCommuMeshDataModel).drawableClassCommus?.firstObject)) {
               baseMesh.highlight();
               baseMesh.turnOpaque();
+              console.log("turn link opaque");
               const sourceClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.sourceClass;
               const targetClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.targetClass;
               if(sourceClass && targetClass){
