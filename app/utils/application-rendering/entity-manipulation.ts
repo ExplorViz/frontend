@@ -244,21 +244,27 @@ export function restoreComponentState(
   opacity?: number,
 ) {
 
+  openComponentIds?.forEach((componentId) => {
+    const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+
+    if (boxMesh instanceof ComponentMesh) {
+      openComponentMesh(boxMesh, applicationObject3D);
+    }
+
+  });
+
+  
+  
   transparentComponentIds?.forEach(componentId => {
     const componentMesh = applicationObject3D.getMeshById(componentId);
 
-   if(componentMesh){
+    if(componentMesh){
       componentMesh.turnTransparent(opacity);
       componentMesh.material.needsUpdate = true;
-    }
-  });
 
 
-  openComponentIds?.forEach((componentId) => {
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
-
-    if (componentMesh instanceof ComponentMesh) {
-      openComponentMesh(componentMesh, applicationObject3D);
+      if(componentMesh instanceof ClazzCommunicationMesh)
+        console.log("INNERER LINK TRANSPARENT");
     }
   });
 

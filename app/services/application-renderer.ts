@@ -260,6 +260,16 @@ export default class ApplicationRenderer extends Service.extend({
       this.addCommunication(applicationObject3D);
 
 
+
+      // reset transparency of inner communication links
+
+      applicationObject3D.getCommMeshes().forEach(commMesh => {
+        if(applicationState.transparentComponents?.has(commMesh.getModelId()))
+          commMesh.turnTransparent(this.highlightingService.opacity);
+          commMesh.material.needsUpdate = true;
+      });
+
+
       // reset highlights -------------------
 
       const currentSetting = this.userSettings.applicationSettings.allowMultipleSelection.value;

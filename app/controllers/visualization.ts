@@ -40,7 +40,6 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { SerializedApp, SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -91,9 +90,6 @@ export default class VisualizationController extends Controller {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('highlighting-service')
-  highlightingService!: HighlightingService;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
