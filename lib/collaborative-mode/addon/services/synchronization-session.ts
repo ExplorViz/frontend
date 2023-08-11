@@ -203,6 +203,8 @@ export default class SynchronizationSession extends Service {
     // );
     // this.localUser.camera.updateProjectionMatrix();
 
+    
+
     // console.log(mainProjectionMatrix);
     let fovDirections: FovDirection;
     let mainMatrix: THREE.Matrix4 = new THREE.Matrix4();
@@ -223,14 +225,14 @@ export default class SynchronizationSession extends Service {
         // Same effect as for monitor!
         // const perspectiveMatrix =
           mainMatrix.makePerspective(
-            -fovDirections.left, // left
-            fovDirections.right, // right
+            -fovDirections.left * 2, // left
+            fovDirections.right * 2, // right
             // 0,
             // fovDirections.up, // top
             0,
-            -fovDirections.down * 2, // bottom
-            this.localUser.camera.near, // near
-            this.localUser.camera.far // far
+            -fovDirections.down * 4, // bottom
+            this.localUser.camera.near * 2, // near
+            this.localUser.camera.far * 2 // far
           );
 
         // Rotation on Matrix
@@ -240,11 +242,11 @@ export default class SynchronizationSession extends Service {
         // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
         // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
         // const rotationMatrix =
-          mainMatrix.makeRotationFromEuler(
-            // new THREE.Euler(45, 0, 0)
-            // new THREE.Euler(0, 45, 0)
-            new THREE.Euler(0, 0, 45) // 
-          );
+          // mainMatrix.makeRotationFromEuler(
+          //   // new THREE.Euler(45, 0, 0)
+          //   // new THREE.Euler(0, 45, 0)
+          //   // new THREE.Euler(0, 0, 45) // 
+          // );
 
         // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
         // this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
@@ -333,27 +335,53 @@ export default class SynchronizationSession extends Service {
         );
         break;
       case 5: //middle
-        fovDirections = this.calculateFOVDirections(
+       // ############################################################### 
+      this.localUser.camera.updateProjectionMatrix();
+      fovDirections = this.calculateFOVDirections(
           this.localUser.camera,
           this.projectorAngle234
         );
 
+        mainMatrix.copy(this.localUser.camera.projectionMatrix);
+
+        // console.log(fovDirections);
+        // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
+        // Same effect as for monitor!
+        // const perspectiveMatrix =
+          mainMatrix.makePerspective(
+            -fovDirections.left, // left
+            fovDirections.right, // right
+            // 0,
+            fovDirections.up, // top
+            -fovDirections.down, // bottom
+            this.localUser.camera.near * 2, // near
+            this.localUser.camera.far * 2 // far
+          );
+
+        // Rotation on Matrix
         // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
         // Einfach tilt auf y in der const?
         // Kreisanordung war über z?
         // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
         // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-        this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-          this.rotation4
-        );
-        this.localUser.camera.projectionMatrix.makePerspective(
-          fovDirections.left, // left
-          fovDirections.right, // right
-          fovDirections.up, // top
-          fovDirections.down, // bottom
-          this.localUser.camera.near, // near
-          this.localUser.camera.far // far
-        );
+        // const rotationMatrix =
+          // mainMatrix.makeRotationFromEuler(
+          //   // new THREE.Euler(45, 0, 0)
+          //   // new THREE.Euler(0, 45, 0)
+          //   // new THREE.Euler(0, 0, 45) // 
+          // );
+
+        // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
+        // this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
+        this.localUser.camera.projectionMatrix.copy(mainMatrix);
+          
+        // ############################################################### 
+        // Rotation on Camera = Different effect than rotation on matrix!
+        // this.setUpRotation(this.deviceId);
+
+        // Working with main's projectionMatrix?
+        // RemoteUser has only snapshot of projectionMatrix of the localUser!
+        // this.localUser.camera.projectionMatrix.clone();
         break;
       default:
         break;
