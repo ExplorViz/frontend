@@ -282,16 +282,17 @@ export default class SynchronizationSession extends Service {
         // console.log(fovDirections);
         // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
         // // Same effect as for monitor!
-        // this.localUser.camera.projectionMatrix.makePerspective(
-        //   -fovDirections.left, // left
-        //   // fovDirections.right, // right
-        //   0,
-        //   // fovDirections.up, // top
-        //   0,
-        //   -fovDirections.down, // bottom
-        //   this.localUser.camera.near, // near
-        //   this.localUser.camera.far // far
-        // );
+        const perspectiveMatrix =
+          this.localUser.camera.projectionMatrix.makePerspective(
+            -fovDirections.left, // left
+            // fovDirections.right, // right
+            0,
+            // fovDirections.up, // top
+            0,
+            -fovDirections.down, // bottom
+            this.localUser.camera.near, // near
+            this.localUser.camera.far // far
+          );
 
         // Rotation on Matrix
         // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
@@ -299,10 +300,14 @@ export default class SynchronizationSession extends Service {
         // Kreisanordung war über z?
         // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
         // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-        // this.localUser.camera.updateProjectionMatrix();
-        // this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-        //   this.rotation0
-        // );
+        const rotationMatrix =
+          this.localUser.camera.projectionMatrix.makeRotationFromEuler(
+            this.rotation0
+          );
+
+        const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
+
+        this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
 
         // Rotation on Camera = Different effect than rotation on matrix!
         // this.setUpRotation(this.deviceId);
@@ -326,6 +331,7 @@ export default class SynchronizationSession extends Service {
         this.localUser.camera.projectionMatrix.makeRotationFromEuler(
           this.rotation1
         );
+
         this.localUser.camera.projectionMatrix.makePerspective(
           fovDirections.left, // left
           fovDirections.right, // right
