@@ -215,6 +215,7 @@ export default class VrRendering extends Component<Args> {
       1000
     );
     this.localUser.defaultCamera.position.set(2, 2, 2);
+    this.scene.add(this.localUser.defaultCamera);
     //this.localUser.userGroup.add(this.localUser.defaultCamera);
     this.scene.add(this.localUser.userGroup);
 

@@ -116,6 +116,8 @@ export default class HighlightingService extends Service.extend({
         applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
 
       });
+
+      this.sender.sendAllHighlightsReset();
   }
 
   // removeHighlightingsOfUser(userId : string){

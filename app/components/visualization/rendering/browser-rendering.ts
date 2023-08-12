@@ -157,6 +157,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       100
     );
     this.camera.position.set(5, 5, 5);
+    this.scene.add(this.localUser.defaultCamera);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -332,7 +333,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
-      this.highlightingService.updateHighlighting(true);
+      this.highlightingService.updateHighlighting(false); // TODO:
     }
   }
 

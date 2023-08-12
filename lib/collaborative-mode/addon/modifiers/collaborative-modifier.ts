@@ -2,6 +2,7 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -12,7 +13,9 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
+import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { ALL_HIGHLIGHTS_RESET_EVENT, AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 import {
   AppOpenedMessage,
   APP_OPENED_EVENT,
@@ -55,6 +58,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
+    this.webSocket.on(ALL_HIGHLIGHTS_RESET_EVENT, this, this.onAllHighlightsReset);
     this.webSocket.on(
       HIGHLIGHTING_UPDATE_EVENT,
       this,
@@ -91,6 +95,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   get canvas(): HTMLCanvasElement {
     assert(
@@ -150,6 +157,12 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
+  onAllHighlightsReset({
+  }: ForwardedMessage<AllHighlightsResetMessage>): void {
+    this.highlightingService.removeHighlightingForAllApplications();
+    this.highlightingService.updateHighlighting(true);
+  }
+
   onHighlightingUpdate({
     userId,
     originalMessage: { isHighlighted, appId, entityType, entityId, isMultiSelected },
@@ -192,5 +205,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         position: point,
       });
     }
+
+    const waypointIndicator = new WaypointIndicator({
+      target: remoteUser.mousePing.mesh,
+      color: remoteUser.color,
+      });
+      this.localUser.defaultCamera.add(waypointIndicator);
   }
 }
