@@ -35,6 +35,7 @@ import {
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -207,7 +208,7 @@ export default class CollaborationSession extends Service.extend({
    *
    * @param {JSON} data - Contains the id of the user that disconnected.
    */
-  onUserDisconnect({ id }: UserDisconnectedMessage) {
+  onUserDisconnect({ id, highlightedComponents }: UserDisconnectedMessage) {
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
@@ -218,7 +219,20 @@ export default class CollaborationSession extends Service.extend({
         time: 3.0,
       });
     }
-    //TODO: applicationrendere function aufrufen
+
+    // walk trough all highlighted entities and unhighlight them
+    for(const highlightedEntityComponent of highlightedComponents){
+      
+      const {appId, entityId} = highlightedEntityComponent;
+      console.log("appID:", appId, " , entityID: ", entityId);
+      const application = this.applicationRenderer.getApplicationById(appId);
+      if(application){
+        const mesh = application.getMeshById(entityId);
+        if(isEntityMesh(mesh)){
+          this.applicationRenderer.highlight(mesh, application);
+        }
+      }
+    }
   }
 
   onSelfDisconnected(event?: any) {

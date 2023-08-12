@@ -152,7 +152,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onHighlightingUpdate({
     userId,
-    originalMessage: { isHighlighted, appId, entityType, entityId },
+    originalMessage: { isHighlighted, appId, entityType, entityId, isMultiSelected },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
@@ -160,7 +160,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) { // extern communication link
       const mesh = this.applicationRenderer.getMeshById(entityId);
-      if (mesh instanceof ClazzCommunicationMesh) {
+      if (mesh instanceof ClazzCommunicationMesh) { // multi selected extern links?
         this.highlightingService.highlightLink(mesh);
       }
       return;
@@ -170,7 +170,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this.applicationRenderer.highlight(mesh, 
         application, 
         user.color, 
-        false // whenever we receive messages we don't want to resend them 
+        isMultiSelected,
+        false, // whenever we receive messages we don't want to resend them 
         );
    
   }

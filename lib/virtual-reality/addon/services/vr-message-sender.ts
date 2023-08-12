@@ -121,7 +121,8 @@ export default class VrMessageSender extends Service {
     appId: string,
     entityType: string,
     entityId: string,
-    isHighlighted: boolean
+    isHighlighted: boolean,
+    isMultiSelected: boolean,
   ) {
     this.webSocket.send<HighlightingUpdateMessage>({
       event: 'highlighting_update',
@@ -129,6 +130,7 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
+      isMultiSelected
     });
   }
 

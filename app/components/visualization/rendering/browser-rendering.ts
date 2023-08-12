@@ -43,7 +43,6 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
-import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 
 interface BrowserRenderingArgs {
   readonly id: string;

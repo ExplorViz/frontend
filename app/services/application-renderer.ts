@@ -40,8 +40,7 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -381,9 +380,22 @@ export default class ApplicationRenderer extends Service.extend({
    */
 
   @action
-  highlight(entity: any, applicationObject3D: ApplicationObject3D, color?: THREE.Color, sendMessage=true) {
+  highlight(entity: any, applicationObject3D: ApplicationObject3D, color?: THREE.Color, isMultiSelected = false, sendMessage=true) {
     if(isEntityMesh(entity)){
+
+
+    const oldValue = this.configuration.userSettings.applicationSettings.allowMultipleSelection.value; // TODO: Refactor all this including the call chain
+    if(isMultiSelected){
+      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = isMultiSelected;
+    }
+    
+    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =  oldValue || isMultiSelected;
     this.highlightingService.highlight(entity,sendMessage,color);
+
+    if(isMultiSelected){
+      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = oldValue;
+    }
+    
     this.updateApplicationObject3DAfterUpdate(
       applicationObject3D, sendMessage
     );

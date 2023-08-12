@@ -7,7 +7,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { Trace, isTrace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
   Class,
   Package,
@@ -25,7 +25,6 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { send } from 'process';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -219,7 +218,8 @@ export default class HighlightingService extends Service.extend({
           '',
           this.getEntityType(mesh),
           mesh.getModelId(),
-          mesh.highlighted
+          mesh.highlighted,
+          this.configuration.userSettings.applicationSettings.allowMultipleSelection.value
         );
       }
     }
@@ -283,7 +283,8 @@ export default class HighlightingService extends Service.extend({
           appId,
           entityType,
           entityId,
-          object.highlighted
+          object.highlighted,
+          this.configuration.userSettings.applicationSettings.allowMultipleSelection.value
         );
       }
     }
