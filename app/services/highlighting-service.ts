@@ -108,7 +108,7 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  removeHighlightingForAllApplications() {
+  removeHighlightingForAllApplications(sendMessage : boolean) {
     this.applicationRenderer
       .getOpenApplications()
       .forEach((applicationObject3D) => {
@@ -117,7 +117,9 @@ export default class HighlightingService extends Service.extend({
 
       });
 
-      this.sender.sendAllHighlightsReset();
+      if(sendMessage){
+        this.sender.sendAllHighlightsReset();
+      }
   }
 
   // removeHighlightingsOfUser(userId : string){

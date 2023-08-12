@@ -332,8 +332,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideWebsocket.jumpToLocation(intersection.object);
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
-      this.highlightingService.updateHighlighting(false); // TODO:
+      this.highlightingService.removeHighlightingForAllApplications(true);
+      this.highlightingService.updateHighlighting(false);
     }
   }
 

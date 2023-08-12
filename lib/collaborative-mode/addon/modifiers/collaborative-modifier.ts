@@ -159,8 +159,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onAllHighlightsReset({
   }: ForwardedMessage<AllHighlightsResetMessage>): void {
-    this.highlightingService.removeHighlightingForAllApplications();
-    this.highlightingService.updateHighlighting(true);
+    this.highlightingService.removeHighlightingForAllApplications(false);
+    this.highlightingService.updateHighlighting(false);
   }
 
   onHighlightingUpdate({
