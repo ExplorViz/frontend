@@ -40,6 +40,7 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { SerializedApp, SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -91,6 +92,9 @@ export default class VisualizationController extends Controller {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
+  @service('user-settings')
+  userSettings!: UserSettings;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
@@ -125,6 +129,9 @@ export default class VisualizationController extends Controller {
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
   
+
+  @tracked
+  flag: boolean = false; // default value
 
   debug = debugLogger();
 
@@ -206,7 +213,10 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToVR() {
-    this.switchToMode('vr');
+    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
+    if(this.vrSupported){
+      this.switchToMode('vr');
+    }
   }
 
   @action

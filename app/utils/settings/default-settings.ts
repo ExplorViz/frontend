@@ -185,6 +185,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Visualizes the directional light',
     isFlagSetting: true,
   },
+  showVrOnClick: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show VR in browser',
+    description: 'Shows the VR room in the browser after joining',
+    isFlagSetting: true,
+  },
 };
 
 export const defaultLanscapeSettings: LandscapeSettings = {

@@ -50,7 +50,8 @@ export type ApplicationCommunicationSettingId =
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
-  | 'showLightHelper';
+  | 'showLightHelper'
+  | 'showVrOnClick';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
