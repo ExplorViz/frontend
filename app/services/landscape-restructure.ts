@@ -399,10 +399,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.changeLog.deleteAppEntry(wrapper.meshTodelete);
       } else if (isPackage(wrapper.meshTodelete)) {
         if (app && wrapper.meshTodelete.parent) {
-          console.log('parent');
           this.changeLog.deleteSubPackageEntry(app, wrapper.meshTodelete);
         } else if (app && !wrapper.meshTodelete.parent) {
-          console.log('no parent');
           this.changeLog.deletePackageEntry(app, wrapper.meshTodelete);
         }
         //delete wrapper.meshTodelete.parent;
@@ -477,7 +475,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.clippedMesh = null;
   }
 
-  insertPackageOrClassFromPopup(pckg: Package) {
+  insertPackageOrClassFromPopup(pckg: Application | Package) {
     if (this.landscapeData?.structureLandscapeData) {
       const getApp: (
         LandscapeData: StructureLandscapeData,
@@ -507,7 +505,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       if (isPackage(this.clippedMesh)) {
         if (this.clippedMesh.parent && app) {
-          console.log('isSubPackage');
           this.changeLog.cutAndInsertSubPackageEntry(
             app,
             this.clippedMesh,
@@ -515,7 +512,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             this.landscapeData.structureLandscapeData
           );
         } else if (!this.clippedMesh.parent && app) {
-          console.log('isPackage');
           this.changeLog.cutAndInsertPackageEntry(
             app,
             this.clippedMesh,
@@ -531,7 +527,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           wrapper
         );
       } else if (isClass(this.clippedMesh) && app) {
-        console.log('isClass');
         this.changeLog.cutAndInsertClassEntry(
           app,
           this.clippedMesh,
@@ -541,14 +536,26 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         cutAndInsertClass(
           this.landscapeData.structureLandscapeData,
           this.clippedMesh,
-          pckg,
+          pckg as Package,
           wrapper
         );
       }
-      if (wrapper.meshTodelete !== this.clippedMesh) {
-        console.log(
-          `Beside cutting "${this.clippedMesh?.name}" we need to delete "${wrapper.meshTodelete.name}`
-        );
+      if (wrapper.meshTodelete && wrapper.meshTodelete !== this.clippedMesh) {
+        if (isApplication(wrapper.meshTodelete)) {
+          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+        } else if (isPackage(wrapper.meshTodelete)) {
+          if (wrapper.meshTodelete.parent) {
+            this.changeLog.deleteSubPackageEntry(
+              app as Application,
+              wrapper.meshTodelete
+            );
+          } else {
+            this.changeLog.deletePackageEntry(
+              app as Application,
+              wrapper.meshTodelete
+            );
+          }
+        }
       }
 
       this.classCommunication = wrapper.comms;

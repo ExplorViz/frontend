@@ -93,7 +93,7 @@ export class ChangeLogEntry {
         break;
       case ChangeLogAction.Delete:
         if (this.app && !this.pckg && !this.clazz) {
-          return `Delete the Application with the name "${this.app.name}"`;
+          return `Delete the Application with the name "${this.originalAppName}"`;
         } else if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
           return `Delete the Subpackage with the name "${this.pckg.name}" under the Package "${this.pckg.parent.name}" inside the Application "${this.app.name}"`;
         } else if (this.app && this.pckg && !this.clazz) {
@@ -104,22 +104,46 @@ export class ChangeLogEntry {
         break;
       case ChangeLogAction.CutInsert:
         if (this.destinationPckg && this.destinationApp) {
-          if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
+          if (
+            this.entryType === EntryType.SubPackage &&
+            this.pckg &&
+            this.app
+          ) {
             return `Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
-          } else if (this.app && this.pckg && !this.clazz) {
+          } else if (
+            this.entryType === EntryType.Package &&
+            this.app &&
+            this.pckg
+          ) {
             return `Move the Package "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
-          } else if (this.app && this.pckg && this.clazz) {
+          } else if (
+            this.entryType === EntryType.Clazz &&
+            this.app &&
+            this.clazz
+          ) {
             return `Move the Class "${this.clazz.name}" under the Package "${this.originalPckgName}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"`;
           }
         } else if (!this.destinationPckg && this.destinationApp) {
-          if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
+          if (
+            this.entryType === EntryType.SubPackage &&
+            this.pckg &&
+            this.app
+          ) {
             return `Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" inside the Application "${this.destinationApp.name}"`;
-          } else if (this.app && this.pckg && !this.clazz) {
+          } else if (
+            this.entryType === EntryType.Package &&
+            this.app &&
+            this.pckg
+          ) {
             return `Move the Package "${this.pckg.name}" from the Application "${this.app.name}" inside the Application "${this.destinationApp.name}"`;
           }
         }
     }
     return '';
+  }
+
+  get _originalAppName() {
+    return this.originalAppName;
   }
 
   get _entryType() {
@@ -133,6 +157,10 @@ export class ChangeLogEntry {
       return EntryType.Clazz;
     }
     return undefined;
+  }
+
+  updateOriginalAppName(newName: string) {
+    this.originalAppName = newName;
   }
 
   updateCreateEntry(

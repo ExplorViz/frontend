@@ -143,7 +143,7 @@ export default class Changelog extends Service.extend({
   deleteAppEntry(app: Application) {
     const entry = this.findChangeLogEntry(app);
 
-    if (!entry) {
+    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
       console.log('I');
       const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
       this.changeLogEntries.push(appEntry);
@@ -166,7 +166,9 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.app?.id !== app.id
       );
+      const originalName = entry._originalAppName;
       const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
+      appEntry.updateOriginalAppName(originalName as string);
       this.changeLogEntries.push(appEntry);
     }
     console.log(this.changeLogEntries);
@@ -176,7 +178,7 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
     this.removeAffectedLogEntries(app, pckg);
 
-    if (!entry) {
+    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
       console.log('1');
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
@@ -204,7 +206,7 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
     this.removeAffectedLogEntries(app, pckg);
 
-    if (!entry) {
+    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
       console.log('11');
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
@@ -313,7 +315,7 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
 
     if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      console.log('p1');
+      console.log('sp1');
       const pckgEntry = new ChangeLogEntry(
         ChangeLogAction.CutInsert,
         app,
@@ -325,7 +327,7 @@ export default class Changelog extends Service.extend({
       );
       this.changeLogEntries.push(pckgEntry);
     } else if (entry && entry.action === ChangeLogAction.Create) {
-      console.log('p2');
+      console.log('sp2');
       this.updateAffectedCreateLogEntries(
         app,
         pckg,
@@ -333,7 +335,7 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('p3');
+      console.log('sp3');
       this.updateAffectedCutInsertLogEntries(
         app,
         pckg,
@@ -418,12 +420,16 @@ export default class Changelog extends Service.extend({
   ) {
     this.changeLogEntries.forEach((entry) => {
       if (entry.app?.id === app.id && entry.pckg) {
-        const ancestorPackages = getAncestorPackages(entry.pckg);
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
+        if (pckg.id === entry.pckg.id) {
           entry.updateCreateEntry(destination, landscapeData);
+        } else {
+          const ancestorPackages = getAncestorPackages(entry.pckg);
+          const affectedEntry = ancestorPackages.some(
+            (ancestorPckg) => ancestorPckg.id === pckg.id
+          );
+          if (affectedEntry) {
+            entry.updateCreateEntry(destination, landscapeData);
+          }
         }
       }
     });
@@ -436,13 +442,17 @@ export default class Changelog extends Service.extend({
     landscapeData: StructureLandscapeData
   ) {
     this.changeLogEntries.forEach((entry) => {
-      if (entry.app?.id === app.id && entry.pckg) {
-        const ancestorPackages = getAncestorPackages(entry.pckg);
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
+      if (entry.destinationApp?.id === app.id && entry.pckg) {
+        if (pckg.id === entry.pckg.id) {
           entry.updateDestination(destination, landscapeData);
+        } else {
+          const ancestorPackages = getAncestorPackages(entry.pckg);
+          const affectedEntry = ancestorPackages.some(
+            (ancestorPckg) => ancestorPckg.id === pckg.id
+          );
+          if (affectedEntry) {
+            entry.updateDestination(destination, landscapeData);
+          }
         }
       }
     });
