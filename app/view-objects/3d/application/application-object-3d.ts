@@ -266,7 +266,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       const pckg = findFirstOpenOrLastClosedAncestorComponent(this, clazzParentPackage);
       const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
       if(pckgMesh instanceof ComponentMesh){
-        console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
+        //console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
         if(pckgMesh.opened){
           pckgMesh.dataModel.subPackages.forEach(subPckg => {
             const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
@@ -290,8 +290,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.getCommMeshes().forEach(commMesh => {
       if(commMesh?.material.opacity !== 1){
         transparentComponentIds.add(commMesh.getModelId());
-        if(this.getMeshById(commMesh.getModelId()))
-          console.log("HAKUNA MATATA");
       }
     });
 

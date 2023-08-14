@@ -9,7 +9,7 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlighting, turnComponentAndAncestorsTransparent } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -234,11 +234,6 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      // console.log("RESTORE:");
-      // console.log(applicationState.openComponents);
-      // console.log("-------------------------------");
-      // console.log(applicationState.transparentComponents);
-
       // Restore state of open components and transparent components
       restoreComponentState(
         applicationObject3D,
@@ -448,7 +443,6 @@ export default class ApplicationRenderer extends Service.extend({
       componentMesh,
       applicationObject3D);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
-    //TODO update highlighting
   }
 
   toggleComponent(
@@ -536,8 +530,43 @@ export default class ApplicationRenderer extends Service.extend({
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
-        console.log("1 UPDATE");
+
+       
+        // reset highlighted extern links and implicated opaqueness
+        room.highlightedExternCommunicationLinks.forEach(externLink => {
+          const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
+          if(linkMesh){
+            const targetApp = linkMesh.dataModel.drawableClassCommus.firstObject?.targetApp;
+            const targetClass = linkMesh.dataModel.drawableClassCommus.firstObject?.targetClass
+            const sourceApp = linkMesh.dataModel.drawableClassCommus.firstObject?.sourceApp;
+            const sourceClass = linkMesh.dataModel.drawableClassCommus.firstObject?.sourceClass;
+ 
+
+            if(targetApp && targetClass && sourceApp && sourceClass){
+              const target = this.getApplicationById(targetApp.id);
+              const source = this.getApplicationById(sourceApp.id);
+
+              target?.getBoxMeshbyModelId(targetClass.id)?.turnOpaque();
+              source?.getBoxMeshbyModelId(sourceClass.id)?.turnOpaque();
+              
+              if(target)
+                turnComponentAndAncestorsTransparent(targetClass.parent, target, new Set(), this.highlightingService.opacity );
+
+              if(source)
+              turnComponentAndAncestorsTransparent(sourceClass.parent, source, new Set(), this.highlightingService.opacity );
+            }
+
+          }
+        });
+
       }
+    });
+
+    room.highlightedExternCommunicationLinks.forEach(externCommunicationLink => {
+
+      const mesh = this.linkRenderer.getLinkById(externCommunicationLink.entityId);
+      if(mesh)
+        this.highlightingService.highlight(mesh, false, new THREE.Color().fromArray(externCommunicationLink.color));
     });
   }
 

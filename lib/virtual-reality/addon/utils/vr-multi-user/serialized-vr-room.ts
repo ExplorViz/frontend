@@ -41,4 +41,5 @@ export type SerializedVrRoom = {
   landscape: SerializedLandscape;
   openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
+  highlightedExternCommunicationLinks: SerializedHighlightedComponent[]; 
 };

@@ -6,6 +6,7 @@ interface VrButtonArgs {
   renderer: THREE.WebGLRenderer;
   onSessionStartedCallback?(session: XRSession): void;
   onSessionEndedCallback?(): void;
+  debugMode: boolean;
 }
 
 export default class VrButton extends Component<VrButtonArgs> {
@@ -41,7 +42,7 @@ export default class VrButton extends Component<VrButtonArgs> {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
 
-    if(this.firstCall){
+    if(!this.args.debugMode && this.firstCall){
       this.firstCall = false;
       this.onClick();
     }

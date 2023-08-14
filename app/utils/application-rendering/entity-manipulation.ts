@@ -261,10 +261,6 @@ export function restoreComponentState(
     if(componentMesh){
       componentMesh.turnTransparent(opacity);
       componentMesh.material.needsUpdate = true;
-
-
-      if(componentMesh instanceof ClazzCommunicationMesh)
-        console.log("INNERER LINK TRANSPARENT");
     }
   });
 

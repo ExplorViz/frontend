@@ -138,7 +138,6 @@ export default class HighlightingService extends Service.extend({
     value: number = this.opacity
   ) {
 
-    console.log("updateHIghlighting");
     const {allLinks, drawableComm, applications} = this.getParams();
 
     

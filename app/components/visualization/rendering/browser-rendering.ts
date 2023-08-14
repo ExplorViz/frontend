@@ -231,7 +231,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    * @param step Step of the trace which shall be highlighted. Default is 1.
    */
   @action
-  highlightTrace(trace: Trace, traceStep: string) { console.log("highlightTrace");
+  highlightTrace(trace: Trace, traceStep: string) {
     if (this.selectedApplicationObject3D) {
       this.highlightingService.highlightTrace(
         trace,

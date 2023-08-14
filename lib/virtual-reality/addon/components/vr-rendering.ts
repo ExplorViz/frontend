@@ -97,8 +97,10 @@ import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-it
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface Args {
+  debugMode: boolean;
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly selectedTimestampRecords: Timestamp[];
@@ -154,6 +156,9 @@ export default class VrRendering extends Component<Args> {
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   // #endregion SERVICES
 
@@ -713,6 +718,12 @@ export default class VrRendering extends Component<Args> {
   onVrSessionEnded() {
     this.debug('WebXRSession ended');
     this.vrSessionActive = false;
+
+    if(!this.userSettings.applicationSettings.showVrOnClick.value)
+      this.localUser.visualizationMode = 'browser'; // TODO
+
+    this.args.debugMode = false;
+    
     const outerDiv = this.canvas?.parentElement;
     if (outerDiv) {
       this.resize(outerDiv);

@@ -412,7 +412,6 @@ export function turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks: C
     link.turnTransparent(opacity);
     link.unhighlight();
     link.material.needsUpdate = true;
-    console.log("Transparent");
   });
 }
 
@@ -429,6 +428,7 @@ export function updateHighlighting(
   opacity: number,
 ) 
 { 
+  console.log("update highlighting.ts");
 
   // Set everything transparent at the beginning ----------------------
 
@@ -470,7 +470,6 @@ export function updateHighlighting(
             } else if (isDrawableClassCommunication((model as ClazzCommuMeshDataModel).drawableClassCommus?.firstObject)) {
               baseMesh.highlight();
               baseMesh.turnOpaque();
-              console.log("turn link opaque");
               const sourceClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.sourceClass;
               const targetClass = (model as ClazzCommuMeshDataModel).drawableClassCommus.firstObject?.targetClass;
               if(sourceClass && targetClass){
@@ -555,18 +554,20 @@ export function updateHighlighting(
     // Turn involved clazzes opaque
     allInvolvedClazzesArray.forEach((clazz) => {
         for(let application of applicationObject3DList){
-        if(applicationHasClass(application.data.application, clazz)){
-          application.getBoxMeshbyModelId(clazz.id)?.turnOpaque();
-          turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
-          //getClassAncestorPackages(clazz).forEach(pckg => {
-           // const componentMesh = application.getBoxMeshbyModelId(pckg.id);
-            // if(componentMesh){
-            //   componentMesh.turnOpaque();
-            // }
+          const classMesh = application.getBoxMeshbyModelId(clazz.id);
 
-          //});
-          break;
-        }
+          if(classMesh){
+            classMesh.turnOpaque();
+            turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
+            break;
+          }
+
+        // the following code won't work for extern links
+        // if(applicationHasClass(application.data.application, clazz)){ 
+        //   application.getBoxMeshbyModelId(clazz.id)?.turnOpaque();
+        //   turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
+        //   break;
+        // }
       }
     });
 
