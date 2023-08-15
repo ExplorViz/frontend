@@ -13,8 +13,7 @@ export type EntityType =
   | typeof CLASS_ENTITY_TYPE
   | typeof CLASS_COMMUNICATION_ENTITY_TYPE
   | typeof HEATMAP_ENTITY_TYPE
-  | typeof SPECTATE_VIEW_ENTITY_TYPE
-  ;
+  | typeof SPECTATE_VIEW_ENTITY_TYPE;
 
 const entityTypes = [
   NODE_ENTITY_TYPE,

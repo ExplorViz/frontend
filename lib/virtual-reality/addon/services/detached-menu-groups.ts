@@ -210,7 +210,7 @@ export default class DetachedMenuGroupsService extends Service {
       metricIcon.addToObject(detachedMenuGroup);
       metricIcon.position.y -= 0.04;
       metricIcon.position.x -= 0.25;
-    } else if(!(menu instanceof SpectateViewMenu)){
+    } else if (!(menu instanceof SpectateViewMenu)) {
       const shareIcon: ActionIcon = new ActionIcon({
         textures: this.assetRepo.shareIconTextures,
         color: new THREE.Color(color),

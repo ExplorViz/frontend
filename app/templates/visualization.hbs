@@ -24,32 +24,32 @@
       @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
-    {{#if (and this.flag this.showVR) }}
-        <VrRendering
-          @id='landscape1'
-          @landscapeData={{this.landscapeData}}
-          @selectedTimestampRecords={{this.selectedTimestampRecords}}
-          @components={{this.components}}
-          @removeComponent={{this.removeComponent}}
-          @openDataSelection={{this.openDataSelection}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @showDataSelection={{this.showDataSelection}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @applicationArgs={{this.applicationArgs}}
-          @debugMode={{this.flag}}
-        />
-        <div class='position-absolute mt-6 ml-3'>
-          <BsButton
-            id='backToLandscapeButton'
-            @onClick={{this.openLandscapeView}}
-            @type='secondary'
-            @outline={{true}}
-            title='Back to Landscape View'
-          >
-            {{svg-jar 'reply-16' class='octicon align-middle'}}
-          </BsButton>
-        </div>
+    {{#if (and this.flag this.showVR)}}
+      <VrRendering
+        @id='landscape1'
+        @landscapeData={{this.landscapeData}}
+        @selectedTimestampRecords={{this.selectedTimestampRecords}}
+        @components={{this.components}}
+        @removeComponent={{this.removeComponent}}
+        @openDataSelection={{this.openDataSelection}}
+        @closeDataSelection={{this.closeDataSelection}}
+        @showDataSelection={{this.showDataSelection}}
+        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+        @visualizationPaused={{this.visualizationPaused}}
+        @applicationArgs={{this.applicationArgs}}
+        @debugMode={{this.flag}}
+      />
+      <div class='position-absolute mt-6 ml-3'>
+        <BsButton
+          id='backToLandscapeButton'
+          @onClick={{this.openLandscapeView}}
+          @type='secondary'
+          @outline={{true}}
+          title='Back to Landscape View'
+        >
+          {{svg-jar 'reply-16' class='octicon align-middle'}}
+        </BsButton>
+      </div>
 
     {{else}}
       {{#if this.isLandscapeExistentAndEmpty}}
@@ -60,8 +60,8 @@
           </div>
           <div class='spinner-center-3' role='status'></div>
         </div>
-      {{else if this.allLandscapeDataExistsAndNotEmpty}}       
-          
+      {{else if this.allLandscapeDataExistsAndNotEmpty}}
+
         {{#if this.showVR}}
 
           <VrRendering
@@ -80,31 +80,30 @@
           />
 
         {{else}}
-                <Visualization::Rendering::BrowserRendering
-          @landscapeData={{this.landscapeData}}
-          @components={{this.components}}
-          @removeComponent={{this.removeComponent}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @openDataSelection={{this.openDataSelection}}
-          @showDataSelection={{this.showDataSelection}}
-          @toggleSidebarComponent={{this.toggleSidebarComponent}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @switchToAR={{this.switchToAR}}
-          @switchToVR={{this.switchToVR}}
-          @selectedTimestampRecords={{this.selectedTimestampRecords}}
-          @applicationArgs={{this.applicationArgs}}
-        />
-        <button
-          id='VrButton'
-          type='button'
-          {{did-insert this.updateVrStatus}}
-          {{on 'click' this.switchToVR}}
-        >
-              {{this.buttonText}}
-        </button>
-      {{/if}}
-         
+          <Visualization::Rendering::BrowserRendering
+            @landscapeData={{this.landscapeData}}
+            @components={{this.components}}
+            @removeComponent={{this.removeComponent}}
+            @closeDataSelection={{this.closeDataSelection}}
+            @openDataSelection={{this.openDataSelection}}
+            @showDataSelection={{this.showDataSelection}}
+            @toggleSidebarComponent={{this.toggleSidebarComponent}}
+            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+            @visualizationPaused={{this.visualizationPaused}}
+            @switchToAR={{this.switchToAR}}
+            @switchToVR={{this.switchToVR}}
+            @selectedTimestampRecords={{this.selectedTimestampRecords}}
+            @applicationArgs={{this.applicationArgs}}
+          />
+          <button
+            id='VrButton'
+            type='button'
+            {{did-insert this.updateVrStatus}}
+            {{on 'click' this.switchToVR}}
+          >
+            {{this.buttonText}}
+          </button>
+        {{/if}}
 
       {{else}}
         <div class='container-fluid mt-6'>

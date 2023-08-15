@@ -690,7 +690,11 @@ export default class ArRendering extends Component<Args> {
         return;
 
       if (appObject instanceof ComponentMesh) {
-        self.applicationRenderer.toggleComponent(appObject, appObject.parent, true);
+        self.applicationRenderer.toggleComponent(
+          appObject,
+          appObject.parent,
+          true
+        );
       } else if (appObject instanceof FoundationMesh) {
         self.applicationRenderer.closeAllComponents(appObject.parent, true);
       }

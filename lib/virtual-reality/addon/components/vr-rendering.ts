@@ -95,7 +95,10 @@ import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
-import { JOIN_VR_EVENT, JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
+import {
+  JOIN_VR_EVENT,
+  JoinVrMessage,
+} from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 
@@ -234,6 +237,9 @@ export default class VrRendering extends Component<Args> {
 
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
+
+    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+      true;
   }
 
   // #region INITIALIZATION
@@ -249,7 +255,6 @@ export default class VrRendering extends Component<Args> {
     this.initSecondaryInput();
     this.initControllers();
     this.initWebSocket();
-    
   }
 
   /**
@@ -406,7 +411,6 @@ export default class VrRendering extends Component<Args> {
       resetHover: (event) => event.target.resetHover(),
     });
 
-
     this.primaryInputManager.addInputHandler({
       targetType: ScrollDownButton,
       triggerPress: (event) => event.target.triggerPress(),
@@ -420,7 +424,6 @@ export default class VrRendering extends Component<Args> {
       hover: (event) => event.target.applyHover(),
       resetHover: (event) => event.target.resetHover(),
     });
-    
 
     this.primaryInputManager.addInputHandler({
       targetType: DetailInfoScrollarea,
@@ -480,7 +483,7 @@ export default class VrRendering extends Component<Args> {
         this.applicationRenderer.highlight(
           event.intersection.object,
           event.target,
-          this.localUser.color,
+          this.localUser.color
         ),
     });
 
@@ -488,7 +491,11 @@ export default class VrRendering extends Component<Args> {
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          this.highlightingService.highlight(event.intersection.object, true, this.localUser.color);
+          this.highlightingService.highlight(
+            event.intersection.object,
+            true,
+            this.localUser.color
+          );
         }
       },
       hover: (event) => {
@@ -564,8 +571,6 @@ export default class VrRendering extends Component<Args> {
     controller.eventCallbacks.disconnected = () =>
       this.onControllerDisconnected(controller);
 
-    
-
     // Add hover event listeners.
     controller.eventCallbacks.updateIntersectedObject = () => {
       this.handleHover(controller.intersectedObject, controller);
@@ -601,7 +606,7 @@ export default class VrRendering extends Component<Args> {
     );
     this.webSocket.on(JOIN_VR_EVENT, this, this.onJoinVr);
 
-   // this.sender.sendJoinVr();
+    // this.sender.sendJoinVr();
   }
 
   // #endregion INITIALIZATION
@@ -680,7 +685,6 @@ export default class VrRendering extends Component<Args> {
     this.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();
-    
   }
 
   /**
@@ -719,11 +723,10 @@ export default class VrRendering extends Component<Args> {
     this.debug('WebXRSession ended');
     this.vrSessionActive = false;
 
-    if(!this.userSettings.applicationSettings.showVrOnClick.value)
+    if (!this.userSettings.applicationSettings.showVrOnClick.value)
       this.localUser.visualizationMode = 'browser'; // TODO
 
-    this.args.debugMode = false;
-    
+
     const outerDiv = this.canvas?.parentElement;
     if (outerDiv) {
       this.resize(outerDiv);
@@ -876,9 +879,6 @@ export default class VrRendering extends Component<Args> {
 
     this.sender.sendControllerConnect(controller);
   }
-
-
-
 
   private onControllerDisconnected(controller: VRController) {
     // Close all open menus of the disconnected controller.
@@ -1180,9 +1180,11 @@ export default class VrRendering extends Component<Args> {
     }
   }
 
-  onJoinVr( message : ForwardedMessage<JoinVrMessage>): void {
-    if(this.localUser.controller1) this.sender.sendControllerConnect(this.localUser.controller1);
-    if(this.localUser.controller2) this.sender.sendControllerConnect(this.localUser.controller2);
+  onJoinVr(message: ForwardedMessage<JoinVrMessage>): void {
+    if (this.localUser.controller1)
+      this.sender.sendControllerConnect(this.localUser.controller1);
+    if (this.localUser.controller2)
+      this.sender.sendControllerConnect(this.localUser.controller2);
   }
 
   onObjectMoved({
@@ -1232,5 +1234,4 @@ export default class VrRendering extends Component<Args> {
   }
 
   // #endregion HANDLING MESSAGES
-
 }

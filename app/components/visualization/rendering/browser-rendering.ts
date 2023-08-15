@@ -114,7 +114,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   cameraControls!: CameraControls;
 
   initDone: boolean = false;
-  
 
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
@@ -321,7 +320,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       updatables: this.updatables,
     });
     this.renderingLoop.start();
-
   }
 
   @action
@@ -353,15 +351,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     }
 
-    if(isEntityMesh(mesh)){
-      if(mesh.parent instanceof ApplicationObject3D){
-        this.applicationRenderer.highlight(mesh, mesh.parent, this.localUser.color);
-      }
-      else{ // extern communication link
+    if (isEntityMesh(mesh)) {
+      if (mesh.parent instanceof ApplicationObject3D) {
+        this.applicationRenderer.highlight(
+          mesh,
+          mesh.parent,
+          this.localUser.color
+        );
+      } else {
+        // extern communication link
         this.highlightingService.highlight(mesh, true, this.localUser.color);
       }
     }
-
   }
 
   @action
@@ -371,10 +372,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
   }
 
-
   @action
   handleStrgDown() {
-    if(!this.userSettings.applicationSettings.allowMultipleSelection.value){
+    if (!this.userSettings.applicationSettings.allowMultipleSelection.value) {
       this.userSettings.applicationSettings.allowMultipleSelection.value = true;
     }
   }
@@ -383,7 +383,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleStrgUp() {
     this.userSettings.applicationSettings.allowMultipleSelection.value = false;
   }
-
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
@@ -408,7 +407,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
-        this.applicationRenderer.toggleComponent(mesh, applicationObject3D, true);
+        this.applicationRenderer.toggleComponent(
+          mesh,
+          applicationObject3D,
+          true
+        );
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
@@ -514,12 +517,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  restore(detachedMenu: SerializedDetachedMenu){
+  restore(detachedMenu: SerializedDetachedMenu) {
     const mesh = this.applicationRenderer.getMeshById(detachedMenu.entityId);
-    const applicationId = this.applicationRenderer.getApplicationIdByMeshId(detachedMenu.entityId);
-    if(mesh && applicationId && detachedMenu.userId){
-      
-      const popupDataInstance : PopupData = new PopupData({
+    const applicationId = this.applicationRenderer.getApplicationIdByMeshId(
+      detachedMenu.entityId
+    );
+    if (mesh && applicationId && detachedMenu.userId) {
+      const popupDataInstance: PopupData = new PopupData({
         mouseX: 5,
         mouseY: 5,
         mesh: mesh as EntityMesh,
@@ -532,7 +536,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         hovered: false,
       });
 
-      const popupData : PopupData[] = [popupDataInstance];
+      const popupData: PopupData[] = [popupDataInstance];
       this.popupHandler.popupData = popupData;
     }
   }
@@ -579,18 +583,4 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (!glExtension) return;
     glExtension.loseContext();
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

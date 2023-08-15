@@ -1,4 +1,4 @@
-import { SerializedHighlightedComponent } from "virtual-reality/utils/vr-multi-user/serialized-vr-room";
+import { SerializedHighlightedComponent } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export const USER_DISCONNECTED_EVENT = 'user_disconnect';
 

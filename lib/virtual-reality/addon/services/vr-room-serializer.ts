@@ -106,34 +106,38 @@ export default class VrRoomSerializer extends Service {
 
   private serializeHighlightedComponent(application: ApplicationObject3D) {
     const { highlightedEntity } = application;
-    if (
-      highlightedEntity &&
-      (!isTrace(highlightedEntity))
-    ) {
-      const list : {
-        appId : string,
-        userId : string,
-        entityType : string,
-        entityId : string,
-        isHighlighted : boolean,
-        color: number[],
+    if (highlightedEntity && !isTrace(highlightedEntity)) {
+      const list: {
+        appId: string;
+        userId: string;
+        entityType: string;
+        entityId: string;
+        isHighlighted: boolean;
+        color: number[];
       }[] = [];
 
-      Array.from(highlightedEntity.keys()).forEach( meshId => {
-        const color = application.getMeshById(meshId)?.highlightingColor.toArray();
+      Array.from(highlightedEntity.keys()).forEach((meshId) => {
+        const color = application
+          .getMeshById(meshId)
+          ?.highlightingColor.toArray();
         const entityType = application.getMeshById(meshId);
-        if(color && entityType){
+        if (color && entityType) {
           const item = {
             appId: application.getModelId(),
             userId: '1',
             entityType: entityType.constructor.name,
-            entityId: (application.getMeshById(meshId) as ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh).getModelId(),
+            entityId: (
+              application.getMeshById(meshId) as
+                | ComponentMesh
+                | ClazzMesh
+                | ClazzCommunicationMesh
+                | FoundationMesh
+            ).getModelId(),
             isHighlighted: true,
             color: color,
-          }
+          };
           list.push(item);
         }
-
       });
 
       return list;

@@ -68,8 +68,6 @@ export default class CollaborationSession extends Service.extend({
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  
-
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group();
@@ -139,7 +137,6 @@ export default class CollaborationSession extends Service.extend({
     return this.idToRemoteUser.values();
   }
 
-
   lookupRemoteUserById(userId: string): RemoteUser | undefined {
     return this.idToRemoteUser.get(userId);
   }
@@ -194,7 +191,7 @@ export default class CollaborationSession extends Service.extend({
       quaternion,
     });
     this.addRemoteUser(remoteUser);
-    
+
     this.toastMessage.message({
       title: 'User connected',
       text: remoteUser.userName,
@@ -221,14 +218,13 @@ export default class CollaborationSession extends Service.extend({
     }
 
     // walk trough all highlighted entities and unhighlight them
-    for(const highlightedEntityComponent of highlightedComponents){
-      
-      const {appId, entityId} = highlightedEntityComponent;
-      console.log("appID:", appId, " , entityID: ", entityId);
+    for (const highlightedEntityComponent of highlightedComponents) {
+      const { appId, entityId } = highlightedEntityComponent;
+      console.log('appID:', appId, ' , entityID: ', entityId);
       const application = this.applicationRenderer.getApplicationById(appId);
-      if(application){
+      if (application) {
         const mesh = application.getMeshById(entityId);
-        if(isEntityMesh(mesh)){
+        if (isEntityMesh(mesh)) {
           this.applicationRenderer.highlight(mesh, application);
         }
       }

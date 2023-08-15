@@ -57,7 +57,7 @@ export default class VrMessageSender extends Service {
    */
   sendAllHighlightsReset() {
     this.webSocket.send<AllHighlightsResetMessage>({
-      event: 'all_highlights_reset'
+      event: 'all_highlights_reset',
     });
   }
 
@@ -108,7 +108,7 @@ export default class VrMessageSender extends Service {
     componentId: string,
     isOpened: boolean,
     isFoundation: boolean,
-    forward: boolean = true,
+    forward: boolean = true
   ) {
     this.webSocket.send<ComponentUpdateMessage>({
       event: 'component_update',
@@ -116,7 +116,7 @@ export default class VrMessageSender extends Service {
       componentId,
       isOpened,
       isFoundation,
-      forwardFlag: forward
+      forwardFlag: forward,
     });
   }
 
@@ -134,7 +134,7 @@ export default class VrMessageSender extends Service {
     entityType: string,
     entityId: string,
     isHighlighted: boolean,
-    isMultiSelected: boolean,
+    isMultiSelected: boolean
   ) {
     this.webSocket.send<HighlightingUpdateMessage>({
       event: 'highlighting_update',
@@ -142,7 +142,7 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
-      isMultiSelected
+      isMultiSelected,
     });
   }
 
@@ -152,10 +152,7 @@ export default class VrMessageSender extends Service {
    * @param {string} appId ID of the application of the transparent entities
    * @param {string} entityIds List of IDs of the transparent entities
    */
-  sendTransparencyUpdate(
-    appId: string,
-    entityIds: string[],
-  ) {
+  sendTransparencyUpdate(appId: string, entityIds: string[]) {
     this.webSocket.send<TransparencyUpdateMessage>({
       event: 'transparency_update',
       appId,
@@ -193,7 +190,7 @@ export default class VrMessageSender extends Service {
     });
   }
 
-  async sendJoinVr(){
+  async sendJoinVr() {
     this.webSocket.send<JoinVrMessage>({
       event: 'join_vr',
     });

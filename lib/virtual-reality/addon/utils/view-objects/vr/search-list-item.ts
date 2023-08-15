@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,
@@ -22,6 +23,9 @@ export default class SearchListItem
 {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   isHovered = false;
   text: string;
@@ -57,8 +61,12 @@ export default class SearchListItem
     );
     if (application) {
       this.applicationRenderer.openAllComponents(application);
-      if(mesh)
-        this.applicationRenderer.highlight(mesh, application);
+      if (mesh)
+        this.applicationRenderer.highlight(
+          mesh,
+          application,
+          this.localUser.color
+        );
     }
   }
 

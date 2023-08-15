@@ -1,18 +1,14 @@
 import * as THREE from 'three';
 const times = [0, 2];
-const values = [ 10.5, 50];
+const values = [10.5, 50];
 const scaleValues = [1.0, 4];
 
- const PING_ANIMATION_CLIP = new THREE.AnimationClip(
-  'ping-animation',
-  1,
-  [
-    new THREE.NumberKeyframeTrack('.scale[x]', times, scaleValues),
-    new THREE.NumberKeyframeTrack('.scale[y]', times, scaleValues),
-    new THREE.NumberKeyframeTrack('.scale[z]', times,scaleValues),
-    new THREE.NumberKeyframeTrack('.position[y]', times, values),
-  ]
-);
+const PING_ANIMATION_CLIP = new THREE.AnimationClip('ping-animation', 1, [
+  new THREE.NumberKeyframeTrack('.scale[x]', times, scaleValues),
+  new THREE.NumberKeyframeTrack('.scale[y]', times, scaleValues),
+  new THREE.NumberKeyframeTrack('.scale[z]', times, scaleValues),
+  new THREE.NumberKeyframeTrack('.position[y]', times, values),
+]);
 
 const PING_RADIUS = 1.4;
 
@@ -31,7 +27,7 @@ export default class PingMesh extends THREE.Mesh {
     color: THREE.Color;
   }) {
     super();
-   
+
     this.geometry = new THREE.CylinderGeometry(
       PING_RADIUS,
       PING_RADIUS,

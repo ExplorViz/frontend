@@ -257,7 +257,7 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildSpectateViewMenu(userId : string): SpectateViewMenu {
+  buildSpectateViewMenu(userId: string): SpectateViewMenu {
     return new SpectateViewMenu({
       owner: getOwner(this),
       renderer: this.renderer,

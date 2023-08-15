@@ -101,25 +101,23 @@ export default class HighlightingService extends Service.extend({
     return `color:#${hexColor}`;
   }
 
-
   @action
   updateHighlightingForAllApplications() {
     this.updateHighlighting(true, this.opacity); // one call is all we need (see implementation)
   }
 
   @action
-  removeHighlightingForAllApplications(sendMessage : boolean) {
+  removeHighlightingForAllApplications(sendMessage: boolean) {
     this.applicationRenderer
       .getOpenApplications()
       .forEach((applicationObject3D) => {
         this.removeHighlightingLocally(applicationObject3D);
         applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
-
       });
 
-      if(sendMessage){
-        this.sender.sendAllHighlightsReset();
-      }
+    if (sendMessage) {
+      this.sender.sendAllHighlightsReset();
+    }
   }
 
   // removeHighlightingsOfUser(userId : string){
@@ -133,70 +131,72 @@ export default class HighlightingService extends Service.extend({
   //   });
   // }
 
-  updateHighlighting(
-    sendMessage: boolean,
-    value: number = this.opacity
-  ) {
+  updateHighlighting(sendMessage: boolean, value: number = this.opacity) {
+    const { allLinks, drawableComm, applications } = this.getParams();
 
-    const {allLinks, drawableComm, applications} = this.getParams();
-
-    
     const transparencyMap = Highlighting.updateHighlighting(
-        applications,
-        drawableComm,
-        allLinks,
-        value,
+      applications,
+      drawableComm,
+      allLinks,
+      value
     );
 
-    if(sendMessage){ // we don't send messages when updateHighlighting is called due to a receiving landscape update message (highlighting or opening/closing components)
-      Array.from(transparencyMap.keys()).forEach(appId => {
+    if (sendMessage) {
+      // we don't send messages when updateHighlighting is called due to a receiving landscape update message (highlighting or opening/closing components)
+      Array.from(transparencyMap.keys()).forEach((appId) => {
         const transparencyList = transparencyMap.get(appId);
-        if(transparencyList)
-          this.sender.sendTransparencyUpdate(appId,transparencyList);
+        if (transparencyList)
+          this.sender.sendTransparencyUpdate(appId, transparencyList);
       });
     }
-
-
-    
   }
 
-
-  getParams(): {allLinks: ClazzCommunicationMesh[], drawableComm: DrawableClassCommunication[], applications: ApplicationObject3D[]}{
+  getParams(): {
+    allLinks: ClazzCommunicationMesh[];
+    drawableComm: DrawableClassCommunication[];
+    applications: ApplicationObject3D[];
+  } {
     const allLinks = this.linkRenderer.getAllLinks();
     const applications = this.applicationRenderer.getOpenApplications();
-    applications.forEach((applicationObject3D : ApplicationObject3D) => {
-      const drawableComm2 = this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
-      if(drawableComm2){
-        drawableComm2.forEach((drawableClassCommunication : DrawableClassCommunication) => {
-          const link = this.applicationRenderer.getMeshById(drawableClassCommunication.id);
-          if(link){ // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-            allLinks.push(link as ClazzCommunicationMesh);
+    applications.forEach((applicationObject3D: ApplicationObject3D) => {
+      const drawableComm2 =
+        this.applicationRenderer.getDrawableClassCommunications(
+          applicationObject3D
+        );
+      if (drawableComm2) {
+        drawableComm2.forEach(
+          (drawableClassCommunication: DrawableClassCommunication) => {
+            const link = this.applicationRenderer.getMeshById(
+              drawableClassCommunication.id
+            );
+            if (link) {
+              // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
+              allLinks.push(link as ClazzCommunicationMesh);
+            }
           }
-        });
+        );
       }
     });
 
-    let drawableComm : DrawableClassCommunication[] = [];
+    let drawableComm: DrawableClassCommunication[] = [];
     allLinks.forEach((link) => {
       const linkCommunications = link.dataModel.drawableClassCommus;
       drawableComm = [...drawableComm, ...linkCommunications];
     });
 
-    return {allLinks: allLinks, drawableComm: drawableComm, applications: applications};
+    return {
+      allLinks: allLinks,
+      drawableComm: drawableComm,
+      applications: applications,
+    };
   }
-
-
-
 
   @action
   highlightModel(
     entity: Package | Class | DrawableClassCommunication,
     applicationObject3D: ApplicationObject3D
   ) {
-    Highlighting.highlightModel(
-      entity,
-      applicationObject3D,
-    );
+    Highlighting.highlightModel(entity, applicationObject3D);
   }
 
   @action
@@ -215,14 +215,15 @@ export default class HighlightingService extends Service.extend({
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, color); // extern communication lines get highlighted here
       this.updateHighlighting(sendMessage);
-      
-      if(sendMessage){
+
+      if (sendMessage) {
         this.sender.sendHighlightingUpdate(
           '',
           this.getEntityType(mesh),
           mesh.getModelId(),
           mesh.highlighted,
-          this.configuration.userSettings.applicationSettings.allowMultipleSelection.value
+          this.configuration.userSettings.applicationSettings
+            .allowMultipleSelection.value
         );
       }
     }
@@ -231,23 +232,27 @@ export default class HighlightingService extends Service.extend({
   @action
   highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
     mesh.highlightingColor =
-    color || this.configuration.applicationColors.highlightedEntityColor
+      color || this.configuration.applicationColors.highlightedEntityColor;
 
-      mesh.dataModel.drawableClassCommus.forEach(drawableClassComm => {
+    mesh.dataModel.drawableClassCommus.forEach((drawableClassComm) => {
+      const sourceApp = drawableClassComm.sourceApp;
+      const targetApp = drawableClassComm.targetApp;
 
-        const sourceApp =  drawableClassComm.sourceApp;
-        const targetApp = drawableClassComm.targetApp;
+      if (sourceApp && targetApp) {
+        const sourceApplicationObject =
+          this.applicationRenderer.getApplicationById(sourceApp.id);
+        const targetApplicationObject =
+          this.applicationRenderer.getApplicationById(targetApp.id);
 
-        if(sourceApp && targetApp){
-          const sourceApplicationObject = this.applicationRenderer.getApplicationById(sourceApp.id);
-          const targetApplicationObject = this.applicationRenderer.getApplicationById(targetApp.id);
-
-          if(sourceApplicationObject && targetApplicationObject){
-            Highlighting.highlightExternCommunicationLine(drawableClassComm, sourceApplicationObject, targetApplicationObject);
-          }
-
+        if (sourceApplicationObject && targetApplicationObject) {
+          Highlighting.highlightExternCommunicationLine(
+            drawableClassComm,
+            sourceApplicationObject,
+            targetApplicationObject
+          );
         }
-      });
+      }
+    });
   }
 
   @action
@@ -258,7 +263,9 @@ export default class HighlightingService extends Service.extend({
     structureData: StructureLandscapeData
   ) {
     const drawableClassCommunications =
-      this.applicationRenderer.getDrawableClassCommunications(applicationObject3D);
+      this.applicationRenderer.getDrawableClassCommunications(
+        applicationObject3D
+      );
 
     this.applicationRenderer.openAllComponents(applicationObject3D);
     if (drawableClassCommunications) {
@@ -273,7 +280,12 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  highlightComponent(application: ApplicationObject3D, object: THREE.Object3D, sendMessage: boolean,color?: THREE.Color) {
+  highlightComponent(
+    application: ApplicationObject3D,
+    object: THREE.Object3D,
+    sendMessage: boolean,
+    color?: THREE.Color
+  ) {
     if (isHighlightableMesh(object)) {
       this.hightlightMesh(application, object, color);
 
@@ -281,13 +293,14 @@ export default class HighlightingService extends Service.extend({
       const entityType = this.getEntityType(object);
       const entityId = object.getModelId();
 
-      if(sendMessage){
+      if (sendMessage) {
         this.sender.sendHighlightingUpdate(
           appId,
           entityType,
           entityId,
           object.highlighted,
-          this.configuration.userSettings.applicationSettings.allowMultipleSelection.value
+          this.configuration.userSettings.applicationSettings
+            .allowMultipleSelection.value
         );
       }
     }
@@ -300,7 +313,7 @@ export default class HighlightingService extends Service.extend({
   hightlightComponentLocallyByTypeAndId(
     application: ApplicationObject3D,
     { entityId, color }: HightlightComponentArgs
-  ) { 
+  ) {
     const mesh = application.getMeshById(entityId);
     if (mesh && isHighlightableMesh(mesh)) {
       this.hightlightMesh(application, mesh, color);
@@ -310,32 +323,36 @@ export default class HighlightingService extends Service.extend({
   private hightlightMesh(
     application: ApplicationObject3D,
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
-    color?: THREE.Color,
+    color?: THREE.Color
   ) {
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );
 
-    if(this.userSettings.applicationSettings.allowMultipleSelection.value && mesh.highlighted){
+    if (
+      this.userSettings.applicationSettings.allowMultipleSelection.value &&
+      mesh.highlighted
+    ) {
       this.removeHighlightingLocally(application);
       return;
     }
 
-    if(!this.userSettings.applicationSettings.allowMultipleSelection.value && !mesh.highlighted){
+    if (
+      !this.userSettings.applicationSettings.allowMultipleSelection.value &&
+      !mesh.highlighted
+    ) {
       this.removeHighlightingLocally(application);
       Highlighting.highlight(mesh.getModelId(), application);
       return;
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
-
   }
 
   private getEntityType(mesh: HighlightableMesh): string {
     return mesh.constructor.name;
   }
 }
-
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

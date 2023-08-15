@@ -51,7 +51,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
 
-
   drawableClassCommSet: Set<DrawableClassCommunication> = new Set();
 
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
@@ -242,61 +241,63 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return openComponentIds;
   }
 
-   /**
+  /**
    * Iterates over all opened meshes which are currently added to the
    * application and returns a set with ids of the transparent components.
    */
-   get transparentComponentIds() {
+  get transparentComponentIds() {
     const transparentComponentIds: Set<string> = new Set();
 
-    this.openComponentIds.forEach(openId => {
+    this.openComponentIds.forEach((openId) => {
       const componentMesh = this.getMeshById(openId);
-      if(componentMesh){
-        if(componentMesh.material.opacity !== 1){
+      if (componentMesh) {
+        if (componentMesh.material.opacity !== 1) {
           transparentComponentIds.add(openId);
         }
       }
     });
 
     // consider clazzes too
-    getAllClassesInApplication(this.data.application).forEach(clazz => {
-
+    getAllClassesInApplication(this.data.application).forEach((clazz) => {
       const clazzParentPackage = clazz.parent;
 
-      const pckg = findFirstOpenOrLastClosedAncestorComponent(this, clazzParentPackage);
+      const pckg = findFirstOpenOrLastClosedAncestorComponent(
+        this,
+        clazzParentPackage
+      );
       const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
-      if(pckgMesh instanceof ComponentMesh){
+      if (pckgMesh instanceof ComponentMesh) {
         //console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
-        if(pckgMesh.opened){
-          pckgMesh.dataModel.subPackages.forEach(subPckg => {
+        if (pckgMesh.opened) {
+          pckgMesh.dataModel.subPackages.forEach((subPckg) => {
             const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
-            if(subPckgMesh instanceof ComponentMesh && subPckgMesh.material.opacity !== 1){
-              transparentComponentIds.add(subPckg.id)
+            if (
+              subPckgMesh instanceof ComponentMesh &&
+              subPckgMesh.material.opacity !== 1
+            ) {
+              transparentComponentIds.add(subPckg.id);
             }
           });
-        }else {
-          if(pckgMesh.material.opacity !== 1)
+        } else {
+          if (pckgMesh.material.opacity !== 1)
             transparentComponentIds.add(pckg.id);
         }
       }
 
-      if(this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1){
+      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
         transparentComponentIds.add(clazz.id);
       }
     });
 
-
     // intern links too
-    this.getCommMeshes().forEach(commMesh => {
-      if(commMesh?.material.opacity !== 1){
+    this.getCommMeshes().forEach((commMesh) => {
+      if (commMesh?.material.opacity !== 1) {
         transparentComponentIds.add(commMesh.getModelId());
       }
     });
 
     return transparentComponentIds;
   }
-
-
 
   /**
    * Sets the visiblity of all component meshes with the current application

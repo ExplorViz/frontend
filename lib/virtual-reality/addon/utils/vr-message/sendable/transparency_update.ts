@@ -14,7 +14,7 @@ export function isTransparencyUpdateMessage(
     typeof msg === 'object' &&
     msg.event === TRANSPARENCY_UPDATE_EVENT &&
     typeof msg.appId === 'string' &&
-    Array.isArray(msg.entityIds) && 
-    msg.endityIds.every( (id: any) => typeof id === "string")
+    Array.isArray(msg.entityIds) &&
+    msg.endityIds.every((id: any) => typeof id === 'string')
   );
 }

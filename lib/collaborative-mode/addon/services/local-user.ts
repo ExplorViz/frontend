@@ -81,13 +81,17 @@ export default class LocalUser extends Service.extend({
   tick(delta: number) {
     this.animationMixer.update(delta);
 
-    if(this.visualizationMode === "vr"){
+    if (this.visualizationMode === 'vr') {
       this.sendPositions();
     }
   }
 
-  sendPositions(){
-    const { camera, controller1, controller2 } = getPoses(this.defaultCamera, this.controller1, this.controller2);
+  sendPositions() {
+    const { camera, controller1, controller2 } = getPoses(
+      this.defaultCamera,
+      this.controller1,
+      this.controller2
+    );
     this.sender.sendPoseUpdate(camera, controller1, controller2);
   }
 

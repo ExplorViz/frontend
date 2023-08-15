@@ -39,7 +39,11 @@ import {
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { SerializedApp, SerializedDetachedMenu, SerializedHighlightedComponent } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import {
+  SerializedApp,
+  SerializedDetachedMenu,
+  SerializedHighlightedComponent,
+} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { highlightExternCommunicationLine } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
@@ -123,13 +127,12 @@ export default class VisualizationController extends Controller {
   vrSupported: boolean = false;
 
   @tracked
-  buttonText: string = "";
+  buttonText: string = '';
 
   @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
-  
 
   @tracked
   flag: boolean = false; // default value
@@ -215,14 +218,13 @@ export default class VisualizationController extends Controller {
   @action
   switchToVR() {
     this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
-    if(this.vrSupported){
+    if (this.vrSupported) {
       this.switchToMode('vr');
     }
   }
 
   @action
-  enterVr(){
-  }
+  enterVr() {}
 
   @action
   openLandscapeView() {
@@ -420,17 +422,20 @@ export default class VisualizationController extends Controller {
     landscape,
     openApps,
     detachedMenus,
-    highlightedExternCommunicationLinks
+    highlightedExternCommunicationLinks,
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-    this.roomSerializer.serializedRoom = { 
-      landscape: landscape, 
-      openApps: (openApps as SerializedApp[]), 
-      detachedMenus: (detachedMenus as SerializedDetachedMenu[]),  
-      highlightedExternCommunicationLinks: (highlightedExternCommunicationLinks as SerializedHighlightedComponent[]),
+    this.roomSerializer.serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+      highlightedExternCommunicationLinks:
+        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
-    this.applicationRenderer.restoreFromSerialization(this.roomSerializer.serializedRoom);
+    this.applicationRenderer.restoreFromSerialization(
+      this.roomSerializer.serializedRoom
+    );
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
@@ -450,53 +455,28 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-
-
-
-
-
-
-
-
-
-
-/**
+  /**
    * Checks the current status of WebXR in the browser and if compatible
    * devices are connected. Sets the tracked properties
    * 'buttonText' and 'vrSupported' accordingly.
    */
-@action
-async updateVrStatus() { 
-  if ('xr' in navigator) {
-    this.vrSupported =
-      (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+  @action
+  async updateVrStatus() {
+    if ('xr' in navigator) {
+      this.vrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
 
-    if (this.vrSupported) {
-      this.buttonText = 'Enter VR';
-    } else if (window.isSecureContext === false) {
-      this.buttonText = 'WEBXR NEEDS HTTPS';
+      if (this.vrSupported) {
+        this.buttonText = 'Enter VR';
+      } else if (window.isSecureContext === false) {
+        this.buttonText = 'WEBXR NEEDS HTTPS';
+      } else {
+        this.buttonText = 'WEBXR NOT AVAILABLE';
+      }
     } else {
-      this.buttonText = 'WEBXR NOT AVAILABLE';
+      this.buttonText = 'WEBXR NOT SUPPORTED';
     }
-  } else {
-    this.buttonText = 'WEBXR NOT SUPPORTED';
   }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

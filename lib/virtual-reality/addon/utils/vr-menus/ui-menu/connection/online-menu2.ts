@@ -6,7 +6,9 @@ import * as THREE from 'three';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import UserList from 'virtual-reality/utils/view-objects/vr/user-list';
 import { UiMenuArgs } from '../../ui-menu';
-import VRControllerThumbpadBinding, { thumbpadDirectionToVector2 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerThumbpadBinding, {
+  thumbpadDirectionToVector2,
+} from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import VRController from 'virtual-reality/utils/vr-controller';
 import InteractiveMenu from '../../interactive-menu';
 import LocalUser from 'collaborative-mode/services/local-user';
@@ -36,12 +38,11 @@ export default class OnlineMenu2 extends InteractiveMenu {
   @service('local-user')
   localUser!: LocalUser;
 
-
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   owner: any;
   renderer!: THREE.WebGLRenderer;
-  scene!: THREE.Scene; 
+  scene!: THREE.Scene;
   remoteUsers!: Set<string>;
   userListContainer!: ThreeMeshUI.Block;
   userList!: UserList;
@@ -57,8 +58,7 @@ export default class OnlineMenu2 extends InteractiveMenu {
     this.makeUI();
   }
 
-  makeUI(){
-
+  makeUI() {
     this.container = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
       height: BLOCK_OPTIONS_CONTAINER.height,
@@ -81,13 +81,15 @@ export default class OnlineMenu2 extends InteractiveMenu {
     });
 
     const title = new ThreeMeshUI.Text({
-      content: "Viewer FOV",
+      content: 'Viewer FOV',
       fontColor: new THREE.Color('#ffffff'),
     });
 
     titleBlock.add(title);
 
-    this.remoteUsers = new Set<string>(this.collaborationSession.getAllRemoteUserIds());
+    this.remoteUsers = new Set<string>(
+      this.collaborationSession.getAllRemoteUserIds()
+    );
 
     this.userListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
@@ -115,7 +117,7 @@ export default class OnlineMenu2 extends InteractiveMenu {
     });
     this.userListContainer.add(this.userList);
   }
-  
+
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
@@ -123,24 +125,24 @@ export default class OnlineMenu2 extends InteractiveMenu {
     if (
       !this.arrayEquals(
         Array.from(this.collaborationSession.getAllRemoteUserIds()),
-        Array.from(this.remoteUsers)//this.remoteUserButtons.keys())
+        Array.from(this.remoteUsers) //this.remoteUserButtons.keys())
       )
     ) {
-      this.remoteUsers = new Set<string>(this.collaborationSession.getAllRemoteUserIds());
+      this.remoteUsers = new Set<string>(
+        this.collaborationSession.getAllRemoteUserIds()
+      );
 
       this.userListContainer.remove(this.userList);
       this.userList.clear();
       this.updateUI();
     }
   }
-  
 
   private arrayEquals(a: string[], b: string[]) {
     return a.length === b.length && a.every((val, index) => val === b[index]);
   }
 
-
-  openSpectateViewMenu(userId: string){
+  openSpectateViewMenu(userId: string) {
     this.menuGroup?.replaceMenu(this.menuFactory.buildSpectateViewMenu(userId));
   }
 

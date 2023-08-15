@@ -102,8 +102,6 @@ export default class ToolMenu extends InteractiveMenu {
         this.menuGroup?.replaceMenu(this.menuFactory.buildOnlineMenu2()),
     });
 
-
-
     this.selectTool(this.defaultToolIndex, { enableAnimation: false });
   }
 

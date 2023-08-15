@@ -44,10 +44,9 @@ interface NamedArgs {
   pinch?(intersection: THREE.Intersection | null, delta: number): void;
   rotate?(intersection: THREE.Intersection | null, delta: number): void;
   pan?(intersection: THREE.Intersection | null, x: number, y: number): void;
-  strgDown?():void;
-  strgUp?():void;
+  strgDown?(): void;
+  strgUp?(): void;
 }
-
 
 interface InteractionModifierArgs {
   positional: [];
@@ -67,7 +66,6 @@ function cleanup(instance: InteractionModifierModifier) {
   document.removeEventListener('keydown', instance.onStrgDown);
   document.removeEventListener('keyup', instance.onStrgUp);
 }
-
 
 export default class InteractionModifierModifier extends Modifier<InteractionModifierArgs> {
   // Used to determine if and which object was hit
@@ -142,8 +140,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
-  
-
   get raycastObjects(): Object3D | Object3D[] {
     const { raycastObjects } = this.namedArgs;
     return raycastObjects instanceof Object3D
@@ -172,17 +168,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     this.namedArgs.mouseOut?.();
   }
-       
-  @action onStrgDown(event: KeyboardEvent){
+
+  @action onStrgDown(event: KeyboardEvent) {
     const key = event.key;
-    if (key === "Control"){
+    if (key === 'Control') {
       this.namedArgs.strgDown?.();
     }
-    
   }
-  @action onStrgUp(event: KeyboardEvent){
+  @action onStrgUp(event: KeyboardEvent) {
     const key = event.key;
-    if (key === "Control"){
+    if (key === 'Control') {
       this.namedArgs.strgUp?.();
     }
   }
@@ -289,7 +284,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.onDoubleClick(event);
     }
   }
-  
+
   @action
   ping(intersectedViewObj: THREE.Intersection | null) {
     // or touch, primary input ...

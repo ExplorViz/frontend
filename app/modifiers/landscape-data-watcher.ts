@@ -24,7 +24,6 @@ import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
-
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
   readonly graph: ForceGraph3DInstance;
@@ -62,8 +61,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  
-
   @service
   private worker!: any;
 
@@ -79,7 +76,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  async modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  async modify(
+    _element: any,
+    _positionalArgs: any[],
+    { landscapeData, graph }: any
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
     this.handleUpdatedLandscapeData.perform();
@@ -171,9 +172,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
 
-      if(this.localUser.visualizationMode === 'vr'){
+      if (this.localUser.visualizationMode === 'vr') {
         this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
-      }else if(this.localUser.visualizationMode === 'browser'){
+      } else if (this.localUser.visualizationMode === 'browser') {
         //restore(serializedRoom.detachedMenus); // browser popups not restorable?
       }
 
@@ -203,7 +204,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       cls.push(tempCL);
     });
     this.ideWebsocketFacade.refreshVizData(cls);
-
   });
 
   updateApplicationData = task(
@@ -240,6 +240,4 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return applicationData;
     }
   );
-
-  
 }

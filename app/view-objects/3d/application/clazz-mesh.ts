@@ -39,7 +39,6 @@ export default class ClazzMesh extends BoxMesh {
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
     if (arg === 'vr' && this.isHovered === false) {
-      console.log(typeof arg);
       this.scaleAll = 3;
       super.applyHoverEffect();
     } else if (typeof arg === 'number' && this.isHovered === false) {

@@ -9,7 +9,10 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeAllHighlighting, turnComponentAndAncestorsTransparent } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import {
+  removeAllHighlighting,
+  turnComponentAndAncestorsTransparent,
+} from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -32,7 +35,7 @@ import VrApplicationObject3D from 'virtual-reality/utils/view-objects/applicatio
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import HighlightingService, {
-  HightlightComponentArgs, 
+  HightlightComponentArgs,
 } from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -86,7 +89,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
-  
 
   forceGraph!: ThreeForceGraph;
 
@@ -176,7 +178,7 @@ export default class ApplicationRenderer extends Service.extend({
    *
    * @param id The mesh's id to lookup
    */
-  getApplicationIdByMeshId(meshId: string){
+  getApplicationIdByMeshId(meshId: string) {
     for (const application of this.getOpenApplications()) {
       const mesh = application.getMeshById(meshId);
       if (mesh) return application.getModelId();
@@ -198,7 +200,7 @@ export default class ApplicationRenderer extends Service.extend({
     async (
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {}
-    ) => { 
+    ) => {
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -243,8 +245,6 @@ export default class ApplicationRenderer extends Service.extend({
         this.highlightingService.opacity
       );
 
-
-
       // Add labels to application
       Labeler.addApplicationLabels(
         applicationObject3D,
@@ -254,20 +254,18 @@ export default class ApplicationRenderer extends Service.extend({
 
       this.addCommunication(applicationObject3D);
 
-
-
       // reset transparency of inner communication links
 
-      applicationObject3D.getCommMeshes().forEach(commMesh => {
-        if(applicationState.transparentComponents?.has(commMesh.getModelId()))
+      applicationObject3D.getCommMeshes().forEach((commMesh) => {
+        if (applicationState.transparentComponents?.has(commMesh.getModelId()))
           commMesh.turnTransparent(this.highlightingService.opacity);
-          commMesh.material.needsUpdate = true;
+        commMesh.material.needsUpdate = true;
       });
-
 
       // reset highlights -------------------
 
-      const currentSetting = this.userSettings.applicationSettings.allowMultipleSelection.value;
+      const currentSetting =
+        this.userSettings.applicationSettings.allowMultipleSelection.value;
       this.userSettings.applicationSettings.allowMultipleSelection.value = true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
@@ -277,9 +275,9 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      this.userSettings.applicationSettings.allowMultipleSelection.value = currentSetting;
+      this.userSettings.applicationSettings.allowMultipleSelection.value =
+        currentSetting;
       // ----------------------------------------
-
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -376,26 +374,36 @@ export default class ApplicationRenderer extends Service.extend({
    */
 
   @action
-  highlight(entity: any, applicationObject3D: ApplicationObject3D, color?: THREE.Color, isMultiSelected = false, sendMessage=true) {
-    if(isEntityMesh(entity)){
+  highlight(
+    entity: any,
+    applicationObject3D: ApplicationObject3D,
+    color?: THREE.Color,
+    isMultiSelected = false,
+    sendMessage = true
+  ) {
+    if (isEntityMesh(entity)) {
+      const oldValue =
+        this.configuration.userSettings.applicationSettings
+          .allowMultipleSelection.value; // TODO: Refactor all this including the call chain
+      if (isMultiSelected) {
+        this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+          isMultiSelected;
+      }
 
+      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+        oldValue || isMultiSelected;
+      this.highlightingService.highlight(entity, sendMessage, color);
 
-    const oldValue = this.configuration.userSettings.applicationSettings.allowMultipleSelection.value; // TODO: Refactor all this including the call chain
-    if(isMultiSelected){
-      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = isMultiSelected;
+      if (isMultiSelected) {
+        this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+          oldValue;
+      }
+
+      this.updateApplicationObject3DAfterUpdate(
+        applicationObject3D,
+        sendMessage
+      );
     }
-    
-    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =  oldValue || isMultiSelected;
-    this.highlightingService.highlight(entity,sendMessage,color);
-
-    if(isMultiSelected){
-      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value = oldValue;
-    }
-    
-    this.updateApplicationObject3DAfterUpdate(
-      applicationObject3D, sendMessage
-    );
-  }
   }
 
   /**
@@ -423,7 +431,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   // #region utility methods
 
-  openAllComponents(applicationObject3D: ApplicationObject3D, sendMessage = true) {
+  openAllComponents(
+    applicationObject3D: ApplicationObject3D,
+    sendMessage = true
+  ) {
     this.openAllComponentsLocally(applicationObject3D, sendMessage);
 
     // this.sender.sendComponentUpdate(
@@ -437,12 +448,12 @@ export default class ApplicationRenderer extends Service.extend({
   toggleComponentLocally(
     componentMesh: ComponentMesh,
     applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean,
+    sendMessage: boolean
   ) {
-
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
-      applicationObject3D);
+      applicationObject3D
+    );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
   }
 
@@ -451,7 +462,11 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     sendMessage: boolean
   ) {
-    this.toggleComponentLocally(componentMesh, applicationObject3D, sendMessage);
+    this.toggleComponentLocally(
+      componentMesh,
+      applicationObject3D,
+      sendMessage
+    );
 
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
@@ -460,9 +475,10 @@ export default class ApplicationRenderer extends Service.extend({
       false
     );
 
-    if(!componentMesh.opened){ // let the backend know that the subpackages are closed too
+    if (!componentMesh.opened) {
+      // let the backend know that the subpackages are closed too
       const subPackages = getSubPackagesOfPackage(componentMesh.dataModel);
-      subPackages.forEach(subPackage => {
+      subPackages.forEach((subPackage) => {
         this.sender.sendComponentUpdate(
           applicationObject3D.getModelId(),
           subPackage.id,
@@ -472,25 +488,32 @@ export default class ApplicationRenderer extends Service.extend({
         );
       });
     }
-
   }
 
-  openAllComponentsLocally(applicationObject3D: ApplicationObject3D, sendMessage: boolean) {
+  openAllComponentsLocally(
+    applicationObject3D: ApplicationObject3D,
+    sendMessage: boolean
+  ) {
     EntityManipulation.openAllComponents(applicationObject3D, this.sender);
 
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
-
   }
 
-  closeAllComponentsLocally(applicationObject3D: ApplicationObject3D, sendMessage: boolean) {
+  closeAllComponentsLocally(
+    applicationObject3D: ApplicationObject3D,
+    sendMessage: boolean
+  ) {
     EntityManipulation.closeAllComponents(applicationObject3D);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
     // TODO update highlighting
   }
 
-  closeAllComponents(applicationObject3D: ApplicationObject3D, sendMessage: boolean) {
+  closeAllComponents(
+    applicationObject3D: ApplicationObject3D,
+    sendMessage: boolean
+  ) {
     this.closeAllComponentsLocally(applicationObject3D, sendMessage);
-    
+
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
       '',
@@ -542,44 +565,58 @@ export default class ApplicationRenderer extends Service.extend({
     room.openApps.forEach(async (app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-         await this.addApplicationTask.perform(
+        await this.addApplicationTask.perform(
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
 
-       
         // reset highlighted extern links and implicated opaqueness
-        if(room.highlightedExternCommunicationLinks){
-        room.highlightedExternCommunicationLinks.forEach(externLink => {
-          const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
-          if(linkMesh){
-            const targetApp = linkMesh.dataModel.drawableClassCommus.firstObject?.targetApp;
-            const targetClass = linkMesh.dataModel.drawableClassCommus.firstObject?.targetClass
-            const sourceApp = linkMesh.dataModel.drawableClassCommus.firstObject?.sourceApp;
-            const sourceClass = linkMesh.dataModel.drawableClassCommus.firstObject?.sourceClass;
- 
+        if (room.highlightedExternCommunicationLinks) {
+          room.highlightedExternCommunicationLinks.forEach((externLink) => {
+            const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
+            if (linkMesh) {
+              const targetApp =
+                linkMesh.dataModel.drawableClassCommus.firstObject?.targetApp;
+              const targetClass =
+                linkMesh.dataModel.drawableClassCommus.firstObject?.targetClass;
+              const sourceApp =
+                linkMesh.dataModel.drawableClassCommus.firstObject?.sourceApp;
+              const sourceClass =
+                linkMesh.dataModel.drawableClassCommus.firstObject?.sourceClass;
 
-            if(targetApp && targetClass && sourceApp && sourceClass){
-              const target = this.getApplicationById(targetApp.id);
-              const source = this.getApplicationById(sourceApp.id);
+              if (targetApp && targetClass && sourceApp && sourceClass) {
+                const target = this.getApplicationById(targetApp.id);
+                const source = this.getApplicationById(sourceApp.id);
 
-              target?.getBoxMeshbyModelId(targetClass.id)?.turnOpaque();
-              source?.getBoxMeshbyModelId(sourceClass.id)?.turnOpaque();
-              
-              if(target)
-                turnComponentAndAncestorsTransparent(targetClass.parent, target, new Set(), this.highlightingService.opacity );
+                target?.getBoxMeshbyModelId(targetClass.id)?.turnOpaque();
+                source?.getBoxMeshbyModelId(sourceClass.id)?.turnOpaque();
 
-              if(source)
-              turnComponentAndAncestorsTransparent(sourceClass.parent, source, new Set(), this.highlightingService.opacity );
+                if (target)
+                  turnComponentAndAncestorsTransparent(
+                    targetClass.parent,
+                    target,
+                    new Set(),
+                    this.highlightingService.opacity
+                  );
+
+                if (source)
+                  turnComponentAndAncestorsTransparent(
+                    sourceClass.parent,
+                    source,
+                    new Set(),
+                    this.highlightingService.opacity
+                  );
+              }
+              this.highlightingService.highlight(
+                linkMesh,
+                false,
+                new THREE.Color().fromArray(externLink.color)
+              );
             }
-            this.highlightingService.highlight(linkMesh, false, new THREE.Color().fromArray(externLink.color));
-          }
-        });
+          });
         }
-
       }
     });
-
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

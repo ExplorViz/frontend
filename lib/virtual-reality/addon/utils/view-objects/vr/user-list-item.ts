@@ -30,14 +30,7 @@ export default class UserListItem
   userName: string;
   userId: string;
 
-
-  constructor({
-    menu,
-    owner,
-    userName,
-    userId,
-    ...options
-  }: UserListItemArgs) {
+  constructor({ menu, owner, userName, userId, ...options }: UserListItemArgs) {
     super({ ...options, hiddenOverflow: true });
     this.menu = menu;
     setOwner(this, owner);

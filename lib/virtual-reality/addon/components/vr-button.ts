@@ -26,7 +26,7 @@ export default class VrButton extends Component<VrButtonArgs> {
    * 'buttonText' and 'vrSupported' accordingly.
    */
   @action
-  async updateVrStatus() { 
+  async updateVrStatus() {
     if ('xr' in navigator) {
       this.vrSupported =
         (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
@@ -42,7 +42,7 @@ export default class VrButton extends Component<VrButtonArgs> {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
 
-    if(!this.args.debugMode && this.firstCall){
+    if (!this.args.debugMode && this.firstCall) {
       this.firstCall = false;
       this.onClick();
     }

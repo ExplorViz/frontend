@@ -14,8 +14,6 @@ import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 
-
-
 /**
  * Given a package or class, returns a list of all ancestor components.
  *
@@ -61,9 +59,6 @@ export function openComponentMesh(
     return;
   }
 
-  console.log("openComponentMesh for ", mesh.dataModel.name);
-
-
   mesh.height = 1.5;
 
   // Reset y coordinate
@@ -102,7 +97,7 @@ export function openComponentMesh(
  */
 export function closeComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
+  applicationObject3D: ApplicationObject3D
 ) {
   if (!mesh.opened) {
     return;
@@ -142,7 +137,7 @@ export function closeComponentMesh(
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
       if (childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D );
+        removeHighlighting(childMesh, applicationObject3D);
       }
     }
   });
@@ -179,14 +174,15 @@ export function openComponentsRecursively(
   const components = component.subPackages;
   components.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) { // !mesh.opened needed!
+    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
+      // !mesh.opened needed!
 
       openComponentMesh(mesh, applicationObject3D);
       sender.sendComponentUpdate(
-        applicationObject3D.getModelId(), 
+        applicationObject3D.getModelId(),
         mesh.getModelId(),
         mesh.opened,
-        mesh instanceof FoundationMesh,  
+        mesh instanceof FoundationMesh
       );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
@@ -198,16 +194,19 @@ export function openComponentsRecursively(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function openAllComponents(applicationObject3D: ApplicationObject3D, sender: VrMessageSender) {
+export function openAllComponents(
+  applicationObject3D: ApplicationObject3D,
+  sender: VrMessageSender
+) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       openComponentMesh(mesh, applicationObject3D);
       sender.sendComponentUpdate(
-        applicationObject3D.getModelId(), 
+        applicationObject3D.getModelId(),
         mesh.getModelId(),
         mesh.opened,
-        mesh instanceof FoundationMesh,  
+        mesh instanceof FoundationMesh
       );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
@@ -222,7 +221,7 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D, send
  */
 export function toggleComponentMeshState(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
+  applicationObject3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
     closeComponentMesh(mesh, applicationObject3D);
@@ -242,29 +241,24 @@ export function restoreComponentState(
   applicationObject3D: ApplicationObject3D,
   openComponentIds?: Set<string>,
   transparentComponentIds?: Set<string>,
-  opacity?: number,
+  opacity?: number
 ) {
-
   openComponentIds?.forEach((componentId) => {
     const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
     if (boxMesh instanceof ComponentMesh) {
       openComponentMesh(boxMesh, applicationObject3D);
     }
-
   });
 
-  
-  
-  transparentComponentIds?.forEach(componentId => {
+  transparentComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getMeshById(componentId);
 
-    if(componentMesh){
+    if (componentMesh) {
       componentMesh.turnTransparent(opacity);
       componentMesh.material.needsUpdate = true;
     }
   });
-
 }
 
 /**

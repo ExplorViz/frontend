@@ -12,29 +12,22 @@ export type UserListArgs = ThreeMeshUI.BlockOptions & {
 };
 
 export default class UserList extends ThreeMeshUI.Block {
-
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
   @service('local-user')
   localUser!: LocalUser;
-  
+
   menu: OnlineMenu2;
   owner: any;
   users: Set<string>;
 
-  constructor({
-    menu,
-    owner,
-    users,
-    ...options
-  }: UserListArgs) {
+  constructor({ menu, owner, users, ...options }: UserListArgs) {
     super(options);
     this.menu = menu;
     this.owner = owner;
     setOwner(this, owner);
     this.users = users;
-    
 
     const listItemOptions = {
       width: options.width,
@@ -43,25 +36,25 @@ export default class UserList extends ThreeMeshUI.Block {
       backgroundOpacity: 0,
     };
 
-
-    const userName = this.localUser.userName || "unknown";
+    const userName = this.localUser.userName || 'unknown';
     const userId = this.localUser.userId;
 
     const firstItem = new UserListItem({
       menu: this.menu,
       owner: this.owner,
-      userName: userName + " (YOU)",
+      userName: userName + ' (YOU)',
       userId: userId,
       ...listItemOptions,
     });
     this.add(firstItem);
 
     this.users.forEach((userId) => {
-      const userName = this.collaborationSession.lookupRemoteUserById(userId)?.userName;
+      const userName =
+        this.collaborationSession.lookupRemoteUserById(userId)?.userName;
       const item = new UserListItem({
         menu: this.menu,
         owner: this.owner,
-        userName: userName || "unknown",
+        userName: userName || 'unknown',
         userId: userId,
         ...listItemOptions,
       });

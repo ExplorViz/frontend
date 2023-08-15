@@ -7,7 +7,6 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import BaseRoute from './base-route';
-import UserSettings from 'explorviz-frontend/services/user-settings';
 
 /**
  * TODO

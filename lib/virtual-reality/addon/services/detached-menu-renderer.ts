@@ -20,7 +20,6 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
   @service('local-user')
   localUser!: LocalUser;
 
-
   restore(detachedMenus: SerializedDetachedMenu[]) {
     // Initialize detached menus.
     detachedMenus.forEach((detachedMenu) => {
@@ -28,11 +27,14 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
     });
   }
 
-  restoreMenu(detachedMenu: SerializedDetachedMenu) { // TODO: VR TESTEN
+  restoreMenu(detachedMenu: SerializedDetachedMenu) {
+    // TODO: VR TESTEN
 
-    if(!(detachedMenu.entityType === SPECTATE_VIEW_ENTITY_TYPE)){
-      const object = this.applicationRenderer.getMeshById(detachedMenu.entityId);
-      
+    if (!(detachedMenu.entityType === SPECTATE_VIEW_ENTITY_TYPE)) {
+      const object = this.applicationRenderer.getMeshById(
+        detachedMenu.entityId
+      );
+
       if (isEntityMesh(object)) {
         const menu = this.menuFactory.buildInfoMenu(object);
         menu.position.fromArray(detachedMenu.position);
@@ -45,8 +47,6 @@ export default class DetachedMenuRenderer extends Service.extend({}) {
         );
       }
     }
-    
-
   }
 }
 
