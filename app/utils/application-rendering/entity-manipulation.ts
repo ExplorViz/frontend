@@ -58,11 +58,19 @@ export function openComponentsByList(
  */
 export function openComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  sender: VrMessageSender
 ) {
   if (mesh.opened) {
     return;
   }
+
+  sender.sendComponentUpdate(
+    applicationObject3D.getModelId(), 
+    mesh.getModelId(),
+    mesh.opened,
+    mesh instanceof FoundationMesh,  
+  );
 
   mesh.height = 1.5;
 
@@ -201,13 +209,7 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D, send
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
-      openComponentMesh(mesh, applicationObject3D);
-      sender.sendComponentUpdate(
-        applicationObject3D.getModelId(), 
-        mesh.getModelId(),
-        mesh.opened,
-        mesh instanceof FoundationMesh,  
-      );
+      openComponentMesh(mesh, applicationObject3D, sender);
     }
     openComponentsRecursively(child, applicationObject3D, sender);
   });

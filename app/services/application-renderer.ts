@@ -564,12 +564,6 @@ export default class ApplicationRenderer extends Service.extend({
       }
     });
 
-    room.highlightedExternCommunicationLinks.forEach(externCommunicationLink => {
-
-      const mesh = this.linkRenderer.getLinkById(externCommunicationLink.entityId);
-      if(mesh)
-        this.highlightingService.highlight(mesh, false, new THREE.Color().fromArray(externCommunicationLink.color));
-    });
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
