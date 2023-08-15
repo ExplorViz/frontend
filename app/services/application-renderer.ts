@@ -41,6 +41,7 @@ import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -451,12 +452,26 @@ export default class ApplicationRenderer extends Service.extend({
     sendMessage: boolean
   ) {
     this.toggleComponentLocally(componentMesh, applicationObject3D, sendMessage);
+
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
       componentMesh.getModelId(),
       componentMesh.opened,
       false
     );
+
+    if(!componentMesh.opened){ // also close all subpackages
+      const subPackages = getSubPackagesOfPackage(componentMesh.dataModel);
+      subPackages.forEach(subPackage => {
+        this.sender.sendComponentUpdate(
+          applicationObject3D.getModelId(),
+          subPackage.id,
+          false,
+          false
+        );
+      });
+    }
+
   }
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D, sendMessage: boolean) {

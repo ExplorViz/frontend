@@ -58,20 +58,13 @@ export function openComponentsByList(
  */
 export function openComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
-  sender?: VrMessageSender
+  applicationObject3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
     return;
   }
 
-  if(sender)
-    sender.sendComponentUpdate(
-      applicationObject3D.getModelId(), 
-      mesh.getModelId(),
-      mesh.opened,
-      mesh instanceof FoundationMesh,  
-    );
+
 
   mesh.height = 1.5;
 
@@ -190,6 +183,8 @@ export function openComponentsRecursively(
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
       openComponentMesh(mesh, applicationObject3D);
+
+      console.log("WIRD GESENDET:", mesh.dataModel.name, " AKTUELL: ", mesh.opened);
       sender.sendComponentUpdate(
         applicationObject3D.getModelId(), 
         mesh.getModelId(),
@@ -210,7 +205,13 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D, send
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh) {
-      openComponentMesh(mesh, applicationObject3D, sender);
+      openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(), 
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh,  
+      );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
   });
