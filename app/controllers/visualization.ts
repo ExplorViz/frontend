@@ -224,9 +224,6 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  enterVr() {}
-
-  @action
   openLandscapeView() {
     this.switchToMode('browser');
   }

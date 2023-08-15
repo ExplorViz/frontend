@@ -479,7 +479,7 @@ export function updateHighlighting(
         const baseMesh = application.getMeshById(entityId);
         if (baseMesh) {
           // Get all clazzes in selected component
-          let containedClazzes = new Set<Class>();
+          const containedClazzes = new Set<Class>();
 
           const model = (
             baseMesh as
@@ -533,7 +533,7 @@ export function updateHighlighting(
               if (containedClazzesArray.findBy('id', sourceClass.id)) {
                 allInvolvedClazzes.add(targetClass);
 
-                for (let link of allLinks) {
+                for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
                     link.turnOpaque();
@@ -542,7 +542,7 @@ export function updateHighlighting(
                 }
               } else if (containedClazzesArray.findBy('id', targetClass.id)) {
                 allInvolvedClazzes.add(sourceClass);
-                for (let link of allLinks) {
+                for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
                     link.turnOpaque();
@@ -586,7 +586,7 @@ export function updateHighlighting(
 
   // Turn involved clazzes opaque
   allInvolvedClazzesArray.forEach((clazz) => {
-    for (let application of applicationObject3DList) {
+    for (const application of applicationObject3DList) {
       const classMesh = application.getBoxMeshbyModelId(clazz.id);
 
       if (classMesh) {

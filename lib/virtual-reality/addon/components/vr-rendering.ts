@@ -255,6 +255,14 @@ export default class VrRendering extends Component<Args> {
     this.initSecondaryInput();
     this.initControllers();
     this.initWebSocket();
+    this.renderer.xr.addEventListener(
+      'sessionend',
+      this.resetLandscape.bind(this)
+    );
+  }
+
+  private resetLandscape() {
+    if (!this.args.debugMode) this.localUser.visualizationMode = 'browser';
   }
 
   /**
@@ -725,7 +733,6 @@ export default class VrRendering extends Component<Args> {
 
     if (!this.userSettings.applicationSettings.showVrOnClick.value)
       this.localUser.visualizationMode = 'browser'; // TODO
-
 
     const outerDiv = this.canvas?.parentElement;
     if (outerDiv) {
