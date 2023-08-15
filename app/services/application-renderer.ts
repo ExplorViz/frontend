@@ -533,6 +533,7 @@ export default class ApplicationRenderer extends Service.extend({
 
        
         // reset highlighted extern links and implicated opaqueness
+        if(room.highlightedExternCommunicationLinks){
         room.highlightedExternCommunicationLinks.forEach(externLink => {
           const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
           if(linkMesh){
@@ -555,9 +556,10 @@ export default class ApplicationRenderer extends Service.extend({
               if(source)
               turnComponentAndAncestorsTransparent(sourceClass.parent, source, new Set(), this.highlightingService.opacity );
             }
-
+            this.highlightingService.highlight(linkMesh, false, new THREE.Color().fromArray(externLink.color));
           }
         });
+        }
 
       }
     });

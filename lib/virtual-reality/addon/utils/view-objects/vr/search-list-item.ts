@@ -57,7 +57,8 @@ export default class SearchListItem
     );
     if (application) {
       this.applicationRenderer.openAllComponents(application);
-      mesh?.highlight();
+      if(mesh)
+        this.applicationRenderer.highlight(mesh, application);
     }
   }
 

@@ -62,7 +62,7 @@ export default class OpenEntityButton
      if (application) {
        this.applicationRenderer.openAllComponents(application);
        if(mesh){
-        this.highlightingServic.highlight(mesh as ClazzMesh);
+        this.applicationRenderer.highlight((mesh as ClazzMesh), application);
        }
      }
   }
