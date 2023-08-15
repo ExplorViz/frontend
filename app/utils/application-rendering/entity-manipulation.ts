@@ -59,18 +59,19 @@ export function openComponentsByList(
 export function openComponentMesh(
   mesh: ComponentMesh,
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender?: VrMessageSender
 ) {
   if (mesh.opened) {
     return;
   }
 
-  sender.sendComponentUpdate(
-    applicationObject3D.getModelId(), 
-    mesh.getModelId(),
-    mesh.opened,
-    mesh instanceof FoundationMesh,  
-  );
+  if(sender)
+    sender.sendComponentUpdate(
+      applicationObject3D.getModelId(), 
+      mesh.getModelId(),
+      mesh.opened,
+      mesh instanceof FoundationMesh,  
+    );
 
   mesh.height = 1.5;
 
