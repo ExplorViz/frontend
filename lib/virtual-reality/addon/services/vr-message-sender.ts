@@ -107,7 +107,8 @@ export default class VrMessageSender extends Service {
     appId: string,
     componentId: string,
     isOpened: boolean,
-    isFoundation: boolean
+    isFoundation: boolean,
+    forward: boolean = true,
   ) {
     this.webSocket.send<ComponentUpdateMessage>({
       event: 'component_update',
@@ -115,6 +116,7 @@ export default class VrMessageSender extends Service {
       componentId,
       isOpened,
       isFoundation,
+      forwardFlag: forward
     });
   }
 

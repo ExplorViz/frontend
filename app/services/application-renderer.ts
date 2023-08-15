@@ -460,14 +460,15 @@ export default class ApplicationRenderer extends Service.extend({
       false
     );
 
-    if(!componentMesh.opened){ // also close all subpackages
+    if(!componentMesh.opened){ // let the backend know that the subpackages are closed too
       const subPackages = getSubPackagesOfPackage(componentMesh.dataModel);
       subPackages.forEach(subPackage => {
         this.sender.sendComponentUpdate(
           applicationObject3D.getModelId(),
           subPackage.id,
           false,
-          false
+          false,
+          false // needed so that the backend doesn't forward this message
         );
       });
     }

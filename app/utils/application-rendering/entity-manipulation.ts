@@ -11,12 +11,9 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import HighlightingService, { HightlightComponentArgs } from 'explorviz-frontend/services/highlighting-service';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+
 
 
 /**
@@ -58,22 +55,13 @@ export function openComponentsByList(
  */
 export function openComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
-  sender?: VrMessageSender
+  applicationObject3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
     return;
   }
 
   console.log("openComponentMesh for ", mesh.dataModel.name);
-
-  if(sender)
-    sender.sendComponentUpdate(
-      applicationObject3D.getModelId(), 
-      mesh.getModelId(),
-      mesh.opened,
-      mesh instanceof FoundationMesh,  
-    );
 
 
   mesh.height = 1.5;
@@ -191,8 +179,15 @@ export function openComponentsRecursively(
   const components = component.subPackages;
   components.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh) {
-      openComponentMesh(mesh, applicationObject3D, sender);
+    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) { // !mesh.opened needed!
+
+      openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(), 
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh,  
+      );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
   });
@@ -206,8 +201,14 @@ export function openComponentsRecursively(
 export function openAllComponents(applicationObject3D: ApplicationObject3D, sender: VrMessageSender) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh) {
-      openComponentMesh(mesh, applicationObject3D, sender);
+    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
+      openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(), 
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh,  
+      );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
   });
