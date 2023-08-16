@@ -13,6 +13,7 @@ import { HighlightingUpdateMessage } from '../utils/vr-message/sendable/highligh
 import { ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
 import { ObjectReleasedMessage } from '../utils/vr-message/sendable/object_released';
 import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
+import { SynchronizationUpdateMessage } from '../utils/vr-message/sendable/synchronization_update';
 import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
 import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import {
@@ -139,6 +140,18 @@ export default class VrMessageSender extends Service {
       event: 'spectating_update',
       isSpectating,
       spectatedUser,
+    });
+  }
+
+  /**
+   * Informs backend that this user entered or left synchronization mode and
+   * additionally adds who is spectating who.
+   */
+  sendSynchronzingUpdate(isSynchronizing: boolean, main: string | null) {
+    this.webSocket.send<SynchronizationUpdateMessage>({
+      event: 'synchronization_update',
+      isSynchronizing,
+      main,
     });
   }
 

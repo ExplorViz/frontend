@@ -1,18 +1,18 @@
-export const SYNCHRONIZING_UPDATE_EVENT = 'synchronizing_update';
+export const SYNCHRONIZATION_UPDATE_EVENT = 'synchronization_update';
 
-export type SynchronizingUpdateMessage = {
-  event: typeof SYNCHRONIZING_UPDATE_EVENT;
+export type SynchronizationUpdateMessage = {
+  event: typeof SYNCHRONIZATION_UPDATE_EVENT;
   isSynchronizing: boolean;
   main: string | null;
 };
 
 export function isSynchronizingUpdateMessage(
   msg: any
-): msg is SynchronizingUpdateMessage {
+): msg is SynchronizationUpdateMessage {
   return (
     msg !== null &&
     typeof msg === 'object' &&
-    msg.event === SYNCHRONIZING_UPDATE_EVENT &&
+    msg.event === SYNCHRONIZATION_UPDATE_EVENT &&
     typeof msg.isSynchronizing === 'boolean' &&
     (typeof msg.main === 'string' || msg.main === null)
   );

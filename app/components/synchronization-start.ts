@@ -8,6 +8,7 @@ import SynchronizationSession from 'collaborative-mode/services/synchronization-
 import { task, timeout } from 'ember-concurrency';
 import SynchronizeService from 'virtual-reality/services/synchronize';
 import LocalUser from 'collaborative-mode/services/local-user';
+import VrRoomService from 'virtual-reality/services/vr-room';
 
 interface SynchronizationStartArgs {
   deviceId: number;
@@ -33,6 +34,9 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('vr-room')
+  roomService!: VrRoomService;
+
   token = {
     alias: 'Fibonacci Sample',
     created: 1551631224242,
@@ -54,13 +58,13 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     this.routeToVisualization(this.token);
 
     await timeout(3000);
+    // const rooms = await this.roomService.listRooms();
+    // console.log(rooms);
 
     // host room if main-instance, join room if projector
     this.synchronizationSession.deviceId == 0
-      ? await this.collaborationSession.hostRoom()
-      : await this.collaborationSession.joinRoom(
-          this.synchronizationSession.roomId!
-        );
+      ? this.collaborationSession.hostRoom()
+      : this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
 
     // chill to let all be set up
     await timeout(2000);

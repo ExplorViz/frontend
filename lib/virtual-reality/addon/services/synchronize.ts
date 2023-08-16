@@ -14,16 +14,16 @@ import {
   UserDisconnectedMessage,
   USER_DISCONNECTED_EVENT,
 } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import {
-  SpectatingUpdateMessage,
-  SPECTATING_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/spectating_update';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 import SynchronizationSession, {
   ProjectorAngles,
   ProjectorQuaternions,
 } from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {
+  SYNCHRONIZATION_UPDATE_EVENT,
+  SynchronizationUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/synchronization_update';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -66,7 +66,7 @@ export default class SynchronizeService extends Service {
     this.debug('Initializing collaboration session');
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.on(
-      SPECTATING_UPDATE_EVENT,
+      SYNCHRONIZATION_UPDATE_EVENT,
       this,
       this.onSynchronizationUpdate
     );
@@ -76,7 +76,7 @@ export default class SynchronizeService extends Service {
   willDestroy() {
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.off(
-      SPECTATING_UPDATE_EVENT,
+      SYNCHRONIZATION_UPDATE_EVENT,
       this,
       this.onSynchronizationUpdate
     );
@@ -223,21 +223,20 @@ export default class SynchronizeService extends Service {
    */
   private onSynchronizationUpdate({
     userId,
-    originalMessage: { isSpectating, spectatedUser },
-  }: ForwardedMessage<SpectatingUpdateMessage>): void {
+    originalMessage: { isSynchronizing, main },
+  }: ForwardedMessage<SynchronizationUpdateMessage>): void {
     const remoteUser = this.setProjectorSynchronizationById(
       userId,
-      isSpectating
+      isSynchronizing
     );
     if (!remoteUser) return;
 
     const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
     let text = '';
-    if (isSpectating && spectatedUser === this.localUser.userId) {
+    if (isSynchronizing && main === this.localUser.userId) {
       this.addProjector(userId);
-      console.log(remoteUser + ' is now synchronized to ' + this.main);
       text = 'is now synchronized to you';
-    } else if (isSpectating) {
+    } else if (isSynchronizing) {
       text = 'is now synchronized to you';
     } else {
       text = 'stopped being synchronized to you';
@@ -253,16 +252,16 @@ export default class SynchronizeService extends Service {
 
   private setProjectorSynchronizationById(
     userId: string,
-    isSynchronized: boolean
+    isSynchronizing: boolean
   ): RemoteUser | undefined {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
-      remoteUser.state = isSynchronized ? 'synchronized' : 'not synchronized';
+      remoteUser.state = isSynchronizing ? 'synchronized' : 'not synchronized';
       // Hides when main
-      remoteUser.setVisible(!isSynchronized);
+      remoteUser.setVisible(!isSynchronizing);
 
       // If we are synchronized to the remote user before, stop.
-      if (isSynchronized && this.main?.userId === remoteUser.userId) {
+      if (isSynchronizing && this.main?.userId === remoteUser.userId) {
         this.deactivate();
       }
     }
