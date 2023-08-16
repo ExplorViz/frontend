@@ -9,7 +9,8 @@ import { task, timeout } from 'ember-concurrency';
 import SynchronizeService from 'virtual-reality/services/synchronize';
 import LocalUser from 'collaborative-mode/services/local-user';
 import VrRoomService from 'virtual-reality/services/vr-room';
-
+import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
+import { tracked } from '@glimmer/tracking';
 interface SynchronizationStartArgs {
   deviceId: number;
   roomId: string;
@@ -37,6 +38,9 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('vr-room')
   roomService!: VrRoomService;
 
+  @tracked
+  rooms: RoomListRecord[] = [];
+
   token = {
     alias: 'Fibonacci Sample',
     created: 1551631224242,
@@ -53,18 +57,26 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   // Create task to handle async calls on room handling
   setUpSynchronizationTask = task(async () => {
     // Set up service attributes
-    this.synchronizationSession.setUpIds(this.args.roomId, this.args.deviceId);
+    this.synchronizationSession.setUpDeviceId(this.args.deviceId);
+    this.synchronizationSession.setUpRoomId(this.args.roomId);
     // set token and redirect to visualization space
     this.routeToVisualization(this.token);
+    // List all rooms to check if room already created
+    this.rooms = await this.roomService.listRooms();
 
-    await timeout(3000);
-    // const rooms = await this.roomService.listRooms();
-    // console.log(rooms);
+    await timeout(5000);
+    console.log(this.rooms);
 
-    // host room if main-instance, join room if projector
-    this.synchronizationSession.deviceId == 0
-      ? this.collaborationSession.hostRoom()
-      : this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
+    // Check if Synchronizationroom is created
+    const roomCreated = this.rooms
+      .map((r) => r.roomId)
+      .includes('Synchronization');
+
+    if (!roomCreated) {
+      await this.collaborationSession.hostRoom();
+    } else {
+      this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
+    }
 
     // chill to let all be set up
     await timeout(2000);
@@ -75,7 +87,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     });
   });
 
-  routeToVisualization(token: LandscapeToken) {
+  async routeToVisualization(token: LandscapeToken) {
     this.tokenService.setToken(token);
     this.router.transitionTo('visualization');
   }

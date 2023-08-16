@@ -56,11 +56,14 @@ export default class SynchronizationSession extends Service {
     console.log(this.numberDevices);
   }
 
-  setUpIds(rId: string, dId: number, uId?: number) {
-    this.roomId = rId;
+  setUpDeviceId(dId: number) {
     this.deviceId = dId;
     // this.localUser.userId = uId;
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
+  }
+
+  setUpRoomId(rId: string) {
+    this.roomId = rId;
   }
 
   eulerToQuaternion(euler: THREE.Euler) {

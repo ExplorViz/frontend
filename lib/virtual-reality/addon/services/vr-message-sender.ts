@@ -144,8 +144,7 @@ export default class VrMessageSender extends Service {
   }
 
   /**
-   * Informs backend that this user entered or left synchronization mode and
-   * additionally adds who is spectating who.
+   * Informs backend that this user is synchronized to the main or not
    */
   sendSynchronzingUpdate(isSynchronizing: boolean, main: string | null) {
     this.webSocket.send<SynchronizationUpdateMessage>({

@@ -170,7 +170,7 @@ export default class SynchronizeService extends Service {
       this.cameraControls.enabled = false;
     }
 
-    this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
+    this.sender.sendSynchronzingUpdate(this.isSynchronized, remoteUser.userId);
 
     // Sets up lists for quaternion and angles for projector
     this.projectorQuaternions =
@@ -256,7 +256,7 @@ export default class SynchronizeService extends Service {
   ): RemoteUser | undefined {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
-      remoteUser.state = isSynchronizing ? 'synchronized' : 'not synchronized';
+      remoteUser.state = isSynchronizing ? 'synchronized' : 'online';
       // Hides when main
       remoteUser.setVisible(!isSynchronizing);
 
