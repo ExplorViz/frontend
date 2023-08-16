@@ -172,9 +172,11 @@ export default class SynchronizeService extends Service {
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
 
+    // Sets up lists for quaternion and angles for projector
     this.projectorQuaternions =
       this.synchronizationSession.setUpQuaternionArr();
     this.projectorAngles = this.synchronizationSession.setUpAngleArr();
+
     this.synchronizationSession.setUpCamera(
       this.projectorAngles.angles[this.synchronizationSession.deviceId - 1]
     );

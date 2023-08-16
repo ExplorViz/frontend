@@ -170,6 +170,8 @@ export default class CollaborationSession extends Service.extend({
     });
   }
 
+  // Display to other users when another user joins the room
+  // Creates remoteUser for this joined user and puts it in the remoteUserGroup
   onUserConnected({
     id,
     name,

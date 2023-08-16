@@ -7,6 +7,7 @@ import LandscapeTokenService, {
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
 import SynchronizeService from 'virtual-reality/services/synchronize';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 interface SynchronizationStartArgs {
   deviceId: number;
@@ -29,6 +30,9 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
+  @service('local-user')
+  private localUser!: LocalUser;
+
   token = {
     alias: 'Fibonacci Sample',
     created: 1551631224242,
@@ -45,7 +49,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   // Create task to handle async calls on room handling
   setUpSynchronizationTask = task(async () => {
     // Set up service attributes
-    this.synchronizationSession.setUp(this.args.roomId, this.args.deviceId);
+    this.synchronizationSession.setUpIds(this.args.roomId, this.args.deviceId);
     // set token and redirect to visualization space
     this.routeToVisualization(this.token);
 
