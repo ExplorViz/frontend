@@ -26,16 +26,23 @@ export default class SynchronizationSession extends Service {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  // Controlinstance of the connected devices
-  private isMain: boolean = false;
-
   // The id of the connected device
   deviceId!: number;
+
+  roomId!: string;
 
   // TestUpload attribute
   numberDevices?: number;
 
-  roomId?: string;
+  // FOV
+  private verticalAngleRad!: number;
+  private horizontalAngleRad!: number;
+
+  // Aspect
+  private aspect!: number;
+
+  private angle?: ProjectorAngle;
+  private quaternion?: THREE.Quaternion;
 
   // Things to consider:
   // 1) Tilt
@@ -49,10 +56,11 @@ export default class SynchronizationSession extends Service {
     console.log(this.numberDevices);
   }
 
-  setUp(rId: string, dId: number) {
+  setUpIds(rId: string, dId: number, uId?: number) {
     this.roomId = rId;
     this.deviceId = dId;
-    this.isMain = this.deviceId === 0;
+    // this.localUser.userId = uId;
+    this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
   }
 
   eulerToQuaternion(euler: THREE.Euler) {
@@ -66,7 +74,7 @@ export default class SynchronizationSession extends Service {
      Pitch: Y
      Yaw: Z
   */
-  setUpQuaternions(): ProjectorQuaternions {
+  setUpQuaternionArr(): ProjectorQuaternions {
     // Transform to radians
     const q0 = this.eulerToQuaternion(
       new THREE.Euler(
@@ -113,7 +121,7 @@ export default class SynchronizationSession extends Service {
     return { quaternions: [q0, q1, q2, q3, q4] };
   }
 
-  setUpFovAspectArr(): ProjectorAngles {
+  setUpAngleArr(): ProjectorAngles {
     const pA0: ProjectorAngle = {
       left: 62.0003,
       right: 62.0003,
@@ -157,277 +165,42 @@ export default class SynchronizationSession extends Service {
   /**
    * CALCULATE FOV AND ASPECT CONSIDERING PROJECTOR ANGLES
    */
-  setUpFovAspect(projectorAngle: ProjectorAngle) {
+  setUpVerticalFov(projectorAngle: ProjectorAngle) {
     // tangents returns angle of given value in radians
-    const tanLeft = Math.tan(THREE.MathUtils.degToRad(projectorAngle.left));
-    const tanRight = Math.tan(THREE.MathUtils.degToRad(projectorAngle.right));
     const tanUp = Math.tan(THREE.MathUtils.degToRad(projectorAngle.up));
     const tanDown = Math.tan(THREE.MathUtils.degToRad(projectorAngle.down));
 
     // The total vertical field of view will be the sum of the up and down angles.
     // Since tan(θ) gives us the opposite/adjacent relationship in a right triangle,
     // we can use the arctangent function to retrieve the angle in radians and then convert it to degrees.
-    const totalVerticalAngleRad = Math.atan(tanUp) + Math.atan(tanDown);
-    const fov = THREE.MathUtils.radToDeg(totalVerticalAngleRad);
-    this.localUser.camera.fov = fov;
+    this.verticalAngleRad = Math.atan(tanUp) + Math.atan(tanDown);
+    // Perspective Camera uses degree
+    const projectorVerticalAngleDeg = THREE.MathUtils.radToDeg(
+      this.verticalAngleRad
+    );
 
-    // The aspect ratio is the ratio of the width to the height of the frustum.
-    // In terms of angles, this would be the ratio of the sum of the right and left angles to the sum of the up and down angles.
-    const totalHorizontalAngleRad = Math.atan(tanRight) + Math.atan(tanLeft);
-    const aspect = totalHorizontalAngleRad / totalVerticalAngleRad;
-    this.localUser.camera.aspect = aspect;
+    this.localUser.camera.fov = projectorVerticalAngleDeg;
     this.localUser.camera.updateProjectionMatrix();
   }
 
-  // // Frustum calibration by considering near and projectorAngles
-  // calculateFOVDirections(
-  //   camera: THREE.PerspectiveCamera,
-  //   projectorAngles: FovDirection
-  // ): FovDirection {
-  //   // Convert angles and compute tangent
-  //   const tanLeft = Math.tan(THREE.MathUtils.degToRad(projectorAngles.left));
-  //   const tanRight = Math.tan(THREE.MathUtils.degToRad(projectorAngles.right));
-  //   const tanUp = Math.tan(THREE.MathUtils.degToRad(projectorAngles.up));
-  //   const tanDown = Math.tan(THREE.MathUtils.degToRad(projectorAngles.down));
+  setUpAspect(projectorAngle: ProjectorAngle) {
+    // tangents returns angle of given value in radians
+    const tanLeft = Math.tan(THREE.MathUtils.degToRad(projectorAngle.left));
+    const tanRight = Math.tan(THREE.MathUtils.degToRad(projectorAngle.right));
 
-  //   const left = tanLeft * camera.near;
-  //   const right = tanRight * camera.near;
-  //   const up = tanUp * camera.near;
-  //   const down = tanDown * camera.near;
+    // The aspect ratio is the ratio of the width to the height of the frustum.
+    // In terms of angles, this would be the ratio of the sum of the right and left angles to the sum of the up and down angles.
+    this.horizontalAngleRad = Math.atan(tanRight) + Math.atan(tanLeft);
+    this.aspect = this.horizontalAngleRad / this.verticalAngleRad;
 
-  //   return { left, right, up, down };
-  // }
+    this.localUser.camera.aspect = this.aspect;
+    this.localUser.camera.updateProjectionMatrix();
+  }
 
-  /** MAIN CONFIGS */
-  // setUpCamera() {
-  //   // Height of near near clipping plane
-  //   // 2 * near * tan( ( fov * pi) / 360)
-  //   // This equation derives from the definition of the tangent function and the properties of a right triangle.
-  //   // Given the fov, we're effectively calculating the height of the opposite side of a right triangle
-  //   // (i.e., the height of the viewing frustum at the near clip plane), using half of the fov since it spans both above and below the center line.
-  //   // const height =
-  //   //   2 *
-  //   //   this.localUser.camera.near *
-  //   //   Math.tan((this.localUser.camera.fov * Math.PI) / 360);
-  //   // // width of the near clipping plane
-  //   // const width = height * this.localUser.camera.aspect;
-  //   // // const top = height / 2;
-  //   // const top = 0;
-  //   // const bottom = -height;
-  //   // // const right = width / 2;
-  //   // const right = 0;
-  //   // const left = -width;
-  //   // this.localUser.camera.setViewOffset(
-  //   //   width * 4,
-  //   //   height * 4,
-  //   //   left,
-  //   //   bottom,
-  //   //   width,
-  //   //   height
-  //   // );
-  //   // this.localUser.camera.updateProjectionMatrix();
-
-  //   // console.log(mainProjectionMatrix);
-  //   let fovDirections: FovDirection;
-  //   const mainMatrix: THREE.Matrix4 = new THREE.Matrix4();
-  //   switch (this.deviceId) {
-  //     case 1: // bottom left
-  //       // Starting again with camera
-  //       // this.localUser.camera.updateProjectionMatrix();
-
-  //       // // ###############################################################
-  //       // fovDirections = this.calculateFOVDirections(
-  //       //   this.localUser.camera,
-  //       //   this.projectorAngle0
-  //       // );
-
-  //       // mainMatrix.copy(this.localUser.camera.projectionMatrix);
-
-  //       // // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
-  //       // // Same effect as for monitor!
-  //       // // const perspectiveMatrix =
-  //       // mainMatrix.makePerspective(
-  //       //   -fovDirections.left, // left
-  //       //   fovDirections.right, // right
-  //       //   fovDirections.up, // top
-  //       //   -fovDirections.down, // bottom
-  //       //   this.localUser.camera.near, // near
-  //       //   this.localUser.camera.far // far
-  //       // );
-
-  //       // // Rotation on Matrix
-  //       // // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
-  //       // // Einfach tilt auf y in der const?
-  //       // // Kreisanordung war über z?
-  //       // // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
-  //       // // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-  //       // // const rotationMatrix =
-  //       // // mainMatrix.makeRotationFromEuler(
-  //       // //   // new THREE.Euler(0, 90, 0)
-  //       // //   // new THREE.Euler(0, 45, 0)
-  //       // //   // new THREE.Euler(0, 0, 45) //
-  //       // // );
-
-  //       // // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
-  //       // this.localUser.camera.projectionMatrix.copy(mainMatrix);
-
-  //       // // ###############################################################
-  //       // // Rotation on Camera = Different effect than rotation on matrix!
-  //       // this.setUpRotation(this.deviceId);
-
-  //       // Working with main's projectionMatrix?
-  //       // RemoteUser has only snapshot of projectionMatrix of the localUser!
-  //       // this.localUser.camera.projectionMatrix.clone();
-  //       break;
-
-  //     case 2: // top left
-  //       // ###############################################################
-  //       // this.localUser.camera.updateProjectionMatrix();
-  //       // fovDirections = this.calculateFOVDirections(
-  //       //   this.localUser.camera,
-  //       //   this.projectorAngle1
-  //       // );
-
-  //       // mainMatrix.copy(this.localUser.camera.projectionMatrix);
-
-  //       // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
-  //       // Same effect as for monitor!
-  //       // const perspectiveMatrix =
-  //       // mainMatrix.makePerspective(
-  //       //   -fovDirections.left, // left
-  //       //   fovDirections.right, // right
-  //       //   fovDirections.up, // top
-  //       //   -fovDirections.down, // bottom
-  //       //   this.localUser.camera.near, // near
-  //       //   this.localUser.camera.far // far
-  //       // );
-
-  //       // // Rotation on Matrix
-  //       // // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
-  //       // // Einfach tilt auf y in der const?
-  //       // // Kreisanordung war über z?
-  //       // // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
-  //       // // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-  //       // // const rotationMatrix =
-  //       // // mainMatrix.makeRotationFromEuler(
-  //       // //   // new THREE.Euler(0, 90, 0)
-  //       // //   // new THREE.Euler(0, 45, 0)
-  //       // //   // new THREE.Euler(0, 0, 45) //
-  //       // // );
-
-  //       // // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
-  //       this.localUser.camera.projectionMatrix.copy(mainMatrix);
-
-  //       // // ###############################################################
-  //       // // Rotation on Camera = Different effect than rotation on matrix!
-  //       // this.setUpRotation(this.deviceId);
-
-  //       // Working with main's projectionMatrix?
-  //       // RemoteUser has only snapshot of projectionMatrix of the localUser!
-  //       // this.localUser.camera.projectionMatrix.clone();
-  //       break;
-  //     case 3: // top right
-  //       fovDirections = this.calculateFOVDirections(
-  //         this.localUser.camera,
-  //         this.projectorAngle234
-  //       );
-
-  //       // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
-  //       // Einfach tilt auf y in der const?
-  //       // Kreisanordung war über z?
-
-  //       // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
-
-  //       // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-  //       // -> Problem: Camera.model hat keine projectionMatrix!
-  //       this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-  //         this.rotation2
-  //       );
-  //       this.localUser.camera.projectionMatrix.makePerspective(
-  //         fovDirections.left, // left
-  //         fovDirections.right, // right
-  //         fovDirections.up, // top
-  //         fovDirections.down, // bottom
-  //         this.localUser.camera.near, // near
-  //         this.localUser.camera.far // far
-  //       );
-  //       break;
-  //     case 4: // bottom right
-  //       fovDirections = this.calculateFOVDirections(
-  //         this.localUser.camera,
-  //         this.projectorAngle234
-  //       );
-
-  //       // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
-  //       // Einfach tilt auf y in der const?
-  //       // Kreisanordung war über z?
-  //       // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
-  //       // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-  //       this.localUser.camera.projectionMatrix.makeRotationFromEuler(
-  //         this.rotation3
-  //       );
-  //       this.localUser.camera.projectionMatrix.makePerspective(
-  //         fovDirections.left, // left
-  //         fovDirections.right, // right
-  //         fovDirections.up, // top
-  //         fovDirections.down, // bottom
-  //         this.localUser.camera.near, // near
-  //         this.localUser.camera.far // far
-  //       );
-  //       break;
-  //     case 5: //middle
-  //       // ###############################################################
-  //       this.localUser.camera.updateProjectionMatrix();
-  //       fovDirections = this.calculateFOVDirections(
-  //         this.localUser.camera,
-  //         this.projectorAngle234
-  //       );
-
-  //       mainMatrix.copy(this.localUser.camera.projectionMatrix);
-
-  //       // console.log(fovDirections);
-  //       // ProjectionMatrix is overwritten by makePerspective and makeRotationFromEuler!
-  //       // Same effect as for monitor!
-  //       // const perspectiveMatrix =
-  //       mainMatrix.makePerspective(
-  //         -fovDirections.left, // left
-  //         fovDirections.right, // right
-  //         // 0,
-  //         fovDirections.up, // top
-  //         -fovDirections.down, // bottom
-  //         this.localUser.camera.near * 4, // near
-  //         this.localUser.camera.far * 4 // far
-  //       );
-
-  //       // Rotation on Matrix
-  //       // Hier fehlt noch tilt und die Berücksichtung der Kreisanordnung!
-  //       // Einfach tilt auf y in der const?
-  //       // Kreisanordung war über z?
-  //       // Überlegen, ob man nicht matrizen erstellt und diese miteinander verbindet?
-  //       // projectionmatrix von main nehmen und die Rotation und fov draufpacken?
-  //       // const rotationMatrix =
-  //       // mainMatrix.makeRotationFromEuler(
-  //       //   // new THREE.Euler(45, 0, 0)
-  //       //   // new THREE.Euler(0, 45, 0)
-  //       //   // new THREE.Euler(0, 0, 45) //
-  //       // );
-
-  //       // const multipliedMatrix = rotationMatrix.multiply(perspectiveMatrix);
-  //       // this.localUser.camera.projectionMatrix.multiply(multipliedMatrix);
-  //       this.localUser.camera.projectionMatrix.copy(mainMatrix);
-
-  //       // ###############################################################
-  //       // Rotation on Camera = Different effect than rotation on matrix!
-  //       // this.setUpRotation(this.deviceId);
-
-  //       // Working with main's projectionMatrix?
-  //       // RemoteUser has only snapshot of projectionMatrix of the localUser!
-  //       // this.localUser.camera.projectionMatrix.clone();
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }
+  setUpCamera(projectorAngle: ProjectorAngle) {
+    this.setUpVerticalFov(projectorAngle);
+    this.setUpAspect(projectorAngle);
+  }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

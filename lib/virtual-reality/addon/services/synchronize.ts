@@ -65,13 +65,21 @@ export default class SynchronizeService extends Service {
 
     this.debug('Initializing collaboration session');
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.on(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
+    this.webSocket.on(
+      SPECTATING_UPDATE_EVENT,
+      this,
+      this.onSynchronizationUpdate
+    );
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.reset);
   }
 
   willDestroy() {
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.off(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
+    this.webSocket.off(
+      SPECTATING_UPDATE_EVENT,
+      this,
+      this.onSynchronizationUpdate
+    );
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.reset);
   }
 
@@ -144,8 +152,8 @@ export default class SynchronizeService extends Service {
   }
 
   /**
-   * Switches our user into spectator mode
-   * @param {number} userId The id of the user to be spectated
+   * Switches our user (usually projector) into synchronization mode
+   * @param {RemoteUser} remoteUser The user (main) to be synchronized to
    */
   activate(remoteUser: RemoteUser) {
     this.synchronizationStartQuaternion.copy(this.localUser.camera.quaternion);
@@ -164,10 +172,11 @@ export default class SynchronizeService extends Service {
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
 
-    this.projectorQuaternions = this.synchronizationSession.setUpQuaternions();
-    this.projectorAngles = this.synchronizationSession.setUpFovAspectArr();
-    this.synchronizationSession.setUpFovAspect(
-      this.projectorAngles.angles[this.synchronizationSession.deviceId]
+    this.projectorQuaternions =
+      this.synchronizationSession.setUpQuaternionArr();
+    this.projectorAngles = this.synchronizationSession.setUpAngleArr();
+    this.synchronizationSession.setUpCamera(
+      this.projectorAngles.angles[this.synchronizationSession.deviceId - 1]
     );
   }
 
@@ -202,23 +211,29 @@ export default class SynchronizeService extends Service {
   }
 
   /**
-   * Updates the state of given user to spectating or connected.
-   * Hides them if spectating.
+   * Function for main:
+   * Updates the state of given projector to synchronized and adds it to projector group.
+   * Hides remoteUser when no projector.
+   * Removes them from group if stopped being synchronized.
    *
-   * @param {string} userId - The user's id.
+   * @param {string} userId - The remote user's id.
    * @param {boolean} isSpectating - True, if the user is now spectating, else false.
    */
-  private onSpectatingUpdate({
+  private onSynchronizationUpdate({
     userId,
     originalMessage: { isSpectating, spectatedUser },
   }: ForwardedMessage<SpectatingUpdateMessage>): void {
-    const remoteUser = this.setRemoteUserSpectatingById(userId, isSpectating);
+    const remoteUser = this.setProjectorSynchronizationById(
+      userId,
+      isSpectating
+    );
     if (!remoteUser) return;
 
     const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
     let text = '';
     if (isSpectating && spectatedUser === this.localUser.userId) {
       this.addProjector(userId);
+      console.log(remoteUser + ' is now synchronized to ' + this.main);
       text = 'is now synchronized to you';
     } else if (isSpectating) {
       text = 'is now synchronized to you';
@@ -234,17 +249,18 @@ export default class SynchronizeService extends Service {
     });
   }
 
-  private setRemoteUserSpectatingById(
+  private setProjectorSynchronizationById(
     userId: string,
-    isProjector: boolean
+    isSynchronized: boolean
   ): RemoteUser | undefined {
     const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
     if (remoteUser) {
-      remoteUser.state = isProjector ? 'synchronized' : 'not synchronized';
-      remoteUser.setVisible(!isProjector);
+      remoteUser.state = isSynchronized ? 'synchronized' : 'not synchronized';
+      // Hides when main
+      remoteUser.setVisible(!isSynchronized);
 
-      // If we spectated the remote user before, stop spectating.
-      if (isProjector && this.main?.userId === remoteUser.userId) {
+      // If we are synchronized to the remote user before, stop.
+      if (isSynchronized && this.main?.userId === remoteUser.userId) {
         this.deactivate();
       }
     }

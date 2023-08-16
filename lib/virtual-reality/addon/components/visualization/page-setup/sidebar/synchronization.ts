@@ -43,11 +43,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     if (this.localUser.color) {
       // Set name of projector, which should be set up by query parameters
       users.push({
-        name: `${
-          this.synchronizationSession.deviceId == 0
-            ? 'Main'
-            : 'Projector ' + this.synchronizationSession.deviceId
-        } (you)`,
+        name: `${this.localUser.userName} (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
       });
     }
