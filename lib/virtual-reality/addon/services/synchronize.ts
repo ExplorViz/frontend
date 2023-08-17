@@ -58,7 +58,6 @@ export default class SynchronizeService extends Service {
 
   init() {
     super.init();
-    console.log(this.main);
     this.debug('Initializing collaboration session');
 
     // this.webSocket.on(

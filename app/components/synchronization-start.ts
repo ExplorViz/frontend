@@ -49,52 +49,52 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     value: '17844195-6144-4254-a17b-0f7fb49adb0a',
   };
 
-  // Check for updates on query params
-  checkQueryParams() {
-    return this.args.deviceId > -1 && this.args.roomId !== '';
-  }
+  // // Check for updates on query params
+  // checkQueryParams() {
+  //   return this.args.deviceId > -1 && this.args.roomId !== '';
+  // }
 
-  // Create task to handle async calls on room handling
-  setUpSynchronizationTask = task(async () => {
-    // Set up service attributes
-    this.synchronizationSession.setUpDeviceId(this.args.deviceId);
-    this.synchronizationSession.setUpRoomId(this.args.roomId);
-    // set token and redirect to visualization space
-    this.routeToVisualization(this.token);
-    // List all rooms to check if room already created
-    this.rooms = await this.roomService.listRooms();
+  // // Create task to handle async calls on room handling
+  // setUpSynchronizationTask = task(async () => {
+  //   // Set up service attributes
+  //   this.synchronizationSession.setUpDeviceId(this.args.deviceId);
+  //   this.synchronizationSession.setUpRoomId(this.args.roomId);
+  //   // set token and redirect to visualization space
+  //   this.routeToVisualization(this.token);
+  //   // List all rooms to check if room already created
+  //   this.rooms = await this.roomService.listRooms();
 
-    await timeout(5000);
+  //   await timeout(5000);
 
-    // Check if Synchronizationroom is created
-    const roomCreated = this.rooms
-      .map((r) => r.roomId)
-      .includes('Synchronization');
+  //   // Check if Synchronizationroom is created
+  //   const roomCreated = this.rooms
+  //     .map((r) => r.roomId)
+  //     .includes('Synchronization');
 
-    if (!roomCreated) {
-      await this.collaborationSession.hostRoom();
-    } else {
-      this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
-    }
+  //   if (!roomCreated) {
+  //     await this.collaborationSession.hostRoom();
+  //   } else {
+  //     this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
+  //   }
 
-    // chill to let all be set up
-    await timeout(2000);
-    Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
-      if (user.color.getHexString() === 'ff0000') {
-        this.synchronizeService.activate(user);
-      }
-    });
-  });
+  //   // chill to let all be set up
+  //   await timeout(2000);
+  //   Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
+  //     if (user.color.getHexString() === 'ff0000') {
+  //       this.synchronizeService.activate(user);
+  //     }
+  //   });
+  // });
 
-  async routeToVisualization(token: LandscapeToken) {
-    this.tokenService.setToken(token);
-    this.router.transitionTo('visualization');
-  }
+  // async routeToVisualization(token: LandscapeToken) {
+  //   this.tokenService.setToken(token);
+  //   this.router.transitionTo('visualization');
+  // }
 
-  // Function which is called when query params are set and the component is created
-  get setUpSynchronization() {
-    return () => {
-      this.checkQueryParams() && this.setUpSynchronizationTask.perform();
-    };
-  }
+  // // Function which is called when query params are set and the component is created
+  // get setUpSynchronization() {
+  //   return () => {
+  //     this.checkQueryParams() && this.setUpSynchronizationTask.perform();
+  //   };
+  // }
 }
