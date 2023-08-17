@@ -50,6 +50,7 @@ export default class SynchronizationSession extends Service {
   // 2) Circle position
   private circleRotation?: THREE.Euler;
   // 3) Order of Euler: 'ZYX' according to mpcdi-file
+  // 4) Fullscreen
 
   setCount(n: number) {
     this.numberDevices = n;
