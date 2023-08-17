@@ -19,7 +19,10 @@ import {
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import VrRoomSerializer from './vr-room-serializer';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
-import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
+import {
+  isSynchronizationStartedResponse,
+  SynchronizationStartedResponse,
+} from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
 
 const { collaborationService } = ENV.backendAddresses;
 
@@ -50,7 +53,8 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  async payloadResponse(payload: any, url: string): Promise<Response> {
+  // generic jsonified respone to payload messages for reusage
+  async payloadResponse(payload: any, url: string) {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -60,16 +64,26 @@ export default class VrRoomService extends Service {
       body: JSON.stringify(payload),
     });
 
-    return response;
+    const json = await response.json();
+    return json;
   }
 
-  // async createSynchronizationRoom(): Promise<SynchronizationStartedResponse> {
-  //   const roomPayload = this.buildInitialRoomPayload();
+  // Specific for Synchronization
+  async createSynchronizationRoom(): Promise<SynchronizationStartedResponse> {
+    const roomPayload = this.buildInitialRoomPayload();
+    // STARTE ERSTMAL MIT NUR EINEM RAUM, dann kannst du immernoch mehr Sachen hinzufügen
+    const payload = { roomPayload: roomPayload };
 
-  //   if (!roomPayload?.landscape.landscapeToken) {
-  //     throw new Error('invalid data');
-  //   }
-  // }
+    if (!roomPayload?.landscape.landscapeToken) {
+      throw new Error('invalid data');
+    }
+
+    const url = `${collaborationService}/v2/vr/room`;
+    const jsonResponse = this.payloadResponse(payload, url);
+
+    if (isSynchronizationStartedResponse(jsonResponse)) return jsonResponse;
+    throw new Error('invalid data');
+  }
 
   async createRoom(): Promise<RoomCreatedResponse> {
     const payload = this.buildInitialRoomPayload();
@@ -78,9 +92,9 @@ export default class VrRoomService extends Service {
       throw new Error('invalid data');
     }
     const url = `${collaborationService}/v2/vr/room`;
-    const response = this.payloadResponse(payload, url);
-    const json = await (await response).json();
-    if (isRoomCreatedResponse(json)) return json;
+    const jsonResponse = this.payloadResponse(payload, url);
+
+    if (isRoomCreatedResponse(jsonResponse)) return jsonResponse;
     throw new Error('invalid data');
   }
 
