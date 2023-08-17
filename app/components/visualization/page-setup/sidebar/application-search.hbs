@@ -11,12 +11,14 @@
 <PowerSelectMultiple
   {{did-insert this.removePowerselectArrow}}
   @selected={{this.selected}}
-  @selectedItemComponent={{component "visualization/page-setup/sidebar/application-search-selected-item"}}
+  @selectedItemComponent={{component
+    'visualization/page-setup/sidebar/application-search-selected-item'
+  }}
   @onChange={{this.onSelect}}
   @searchEnabled={{true}}
   @search={{perform this.searchEntity}}
   @searchMessage='Insert substring...'
-  @placeholder='Search Entity...'  
+  @placeholder='Search Entity...'
   @loadingMessage='loading...'
   @matchTriggerWidth={{false}}
   as |entity|

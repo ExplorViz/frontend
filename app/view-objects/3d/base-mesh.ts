@@ -5,7 +5,7 @@ import { tracked } from '@glimmer/tracking';
 
 export default abstract class BaseMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
+  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material
 > extends THREE.Mesh<TGeometry, TMaterial> {
   @tracked
   highlighted: boolean = false;

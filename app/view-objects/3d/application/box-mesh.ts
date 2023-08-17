@@ -4,7 +4,7 @@ import BaseMesh from '../base-mesh';
 
 export default abstract class BoxMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
+  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material
 > extends BaseMesh<TGeometry, TMaterial> {
   layout: BoxLayout;
 
