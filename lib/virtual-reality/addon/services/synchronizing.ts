@@ -56,25 +56,6 @@ export default class SynchronizeService extends Service {
 
   private synchronizationStartPosition: THREE.Vector3 = new THREE.Vector3();
 
-  init() {
-    super.init();
-    this.debug('Initializing collaboration session');
-
-    // this.webSocket.on(
-    //   SYNCHRONIZATION_UPDATE_EVENT,
-    //   this,
-    //   this.onSynchronizationStart
-    // );
-  }
-
-  willDestroy() {
-    // this.webSocket.off(
-    //   SYNCHRONIZATION_UPDATE_EVENT,
-    //   this,
-    //   this.onSynchronizationStart
-    // );
-  }
-
   get isSynchronized() {
     return this.main !== null;
   }

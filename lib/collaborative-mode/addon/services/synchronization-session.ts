@@ -3,6 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 export type ProjectorAngle = {
   left: number;
@@ -26,13 +27,13 @@ export default class SynchronizationSession extends Service {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('virtual-reality@vr-room-serializer')
+  private roomSerializer!: VrRoomSerializer;
+
   // The id of the connected device
   deviceId!: number;
 
   roomId!: string;
-
-  // TestUpload attribute
-  numberDevices?: number;
 
   // FOV
   private verticalAngleRad!: number;
@@ -52,26 +53,11 @@ export default class SynchronizationSession extends Service {
   // 3) Order of Euler: 'ZYX' according to mpcdi-file
   // 4) Fullscreen
 
-  setCount(n: number) {
-    this.numberDevices = n;
-    console.log(this.numberDevices);
-  }
-
   setUpIds(dId: number, rId: string) {
     this.deviceId = dId;
     this.roomId = rId;
     // this.localUser.userId = uId;
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
-  }
-
-  setUpDeviceId(dId: number) {
-    this.deviceId = dId;
-    // this.localUser.userId = uId;
-    this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
-  }
-
-  setUpRoomId(rId: string) {
-    this.roomId = rId;
   }
 
   eulerToQuaternion(euler: THREE.Euler) {

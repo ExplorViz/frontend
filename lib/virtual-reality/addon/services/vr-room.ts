@@ -19,6 +19,7 @@ import {
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import VrRoomSerializer from './vr-room-serializer';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
 
 const { collaborationService } = ENV.backendAddresses;
 
@@ -49,14 +50,7 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  async createRoom(): Promise<RoomCreatedResponse> {
-    const payload = this.buildInitialRoomPayload();
-
-    if (!payload?.landscape.landscapeToken) {
-      throw new Error('invalid data');
-    }
-
-    const url = `${collaborationService}/v2/vr/room`;
+  async payloadResponse(payload: any, url: string): Promise<Response> {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -65,7 +59,27 @@ export default class VrRoomService extends Service {
       },
       body: JSON.stringify(payload),
     });
-    const json = await response.json();
+
+    return response;
+  }
+
+  // async createSynchronizationRoom(): Promise<SynchronizationStartedResponse> {
+  //   const roomPayload = this.buildInitialRoomPayload();
+
+  //   if (!roomPayload?.landscape.landscapeToken) {
+  //     throw new Error('invalid data');
+  //   }
+  // }
+
+  async createRoom(): Promise<RoomCreatedResponse> {
+    const payload = this.buildInitialRoomPayload();
+
+    if (!payload?.landscape.landscapeToken) {
+      throw new Error('invalid data');
+    }
+    const url = `${collaborationService}/v2/vr/room`;
+    const response = this.payloadResponse(payload, url);
+    const json = await (await response).json();
     if (isRoomCreatedResponse(json)) return json;
     throw new Error('invalid data');
   }
@@ -77,8 +91,6 @@ export default class VrRoomService extends Service {
     if (!room.landscape.landscapeToken) {
       return;
     }
-
-    console.log(this.synchronizationSession.roomId);
     return {
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),

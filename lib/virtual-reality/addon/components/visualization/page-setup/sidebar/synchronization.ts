@@ -7,7 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import SynchronizeService from 'virtual-reality/services/synchronize';
+import SynchronizeService from 'virtual-reality/services/synchronizing';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 interface SynchronizationArgs {
@@ -135,7 +135,7 @@ export default class Synchronization extends Component<SynchronizationArgs> {
         console.log(content);
 
         if (typeof content === 'string') {
-          this.synchronizationSession.setCount(parseInt(content));
+          // this.synchronizationSession.setCount(parseInt(content));
         }
       };
 
@@ -145,13 +145,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
         reader.readAsText(file); //.txt
       }
     }
-  }
-
-  // testing url opening by event
-  @action
-  addUser() {
-    // Use window.open method to open a new browser tab/window
-    window.open('http://localhost:4200/', '_blank');
   }
 
   @action

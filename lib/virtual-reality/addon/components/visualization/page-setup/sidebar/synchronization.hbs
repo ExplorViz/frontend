@@ -5,14 +5,6 @@
 <div>
   <label class='bold'>Status: </label>
   <label>{{this.collaborationSession.connectionStatus}}</label>
-  <BsButton
-    title='Add User'
-    {{on 'click' this.addUser}}
-    @type='primary'
-    @outline={{true}}
-  >
-    Add User
-  </BsButton>
 </div>
 
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}

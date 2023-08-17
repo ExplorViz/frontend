@@ -6,7 +6,7 @@ export type SynchronizationStartMessage = {
   main: string | null;
 };
 
-export function isSynchronizingUpdateMessage(
+export function isSynchronizationStartMessage(
   msg: any
 ): msg is SynchronizationStartMessage {
   return (

@@ -35,7 +35,7 @@ import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import SynchronizeService from 'virtual-reality/services/synchronize';
+import SynchronizeService from 'virtual-reality/services/synchronizing';
 import {
   EntityMesh,
   isEntityMesh,

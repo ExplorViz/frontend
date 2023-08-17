@@ -6,8 +6,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
-import SynchronizeService from 'virtual-reality/services/synchronize';
-import LocalUser from 'collaborative-mode/services/local-user';
+import SynchronizeService from 'virtual-reality/services/synchronizing';
 import VrRoomService from 'virtual-reality/services/vr-room';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import { tracked } from '@glimmer/tracking';
@@ -32,9 +31,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
-  @service('local-user')
-  private localUser!: LocalUser;
-
   @service('vr-room')
   roomService!: VrRoomService;
 
@@ -54,13 +50,12 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     return this.args.deviceId > -1 && this.args.roomId !== '';
   }
 
-  // Create task to handle async calls on room handling
-  setUpSynchronizationTask = task(async () => {
-    // Set up service attributes
-    this.synchronizationSession.setUpDeviceId(this.args.deviceId);
-    this.synchronizationSession.setUpRoomId(this.args.roomId);
-    // set token and redirect to visualization space
-    this.routeToVisualization(this.token);
+  async routeToVisualization(token: LandscapeToken) {
+    this.tokenService.setToken(token);
+    this.router.transitionTo('visualization');
+  }
+
+  async roomTask() {
     // List all rooms to check if room already created
     this.rooms = await this.roomService.listRooms();
 
@@ -76,7 +71,9 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     } else {
       this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
     }
+  }
 
+  async synchronizeTask() {
     // chill to let all be set up
     await timeout(2000);
     Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
@@ -84,17 +81,36 @@ export default class SynchronizationStart extends Component<SynchronizationStart
         this.synchronizeService.activate(user);
       }
     });
-  });
-
-  async routeToVisualization(token: LandscapeToken) {
-    this.tokenService.setToken(token);
-    this.router.transitionTo('visualization');
   }
 
+  // Create task to handle async calls on room handling
+  setUpSynchronizationTask = task(async () => {
+    // Set up service attributes
+    this.synchronizationSession.setUpIds(this.args.deviceId, this.args.roomId);
+
+    // set token and redirect to visualization space
+    await this.routeToVisualization(this.token);
+    // handle room situation
+    await this.roomTask();
+    // handle which instance is getting synchronized to which
+    await this.synchronizeTask();
+  });
+
   // Function which is called when query params are set and the component is created
-  get setUpSynchronization() {
-    return () => {
-      this.checkQueryParams() && this.setUpSynchronizationTask.perform();
-    };
+  setUpSynchronization() {
+    this.checkQueryParams() && this.setUpSynchronizationTask.perform();
+  }
+
+  // triggers when application.hbs implemented
+  constructor(owner: unknown, args: SynchronizationStartArgs) {
+    super(owner, args);
+
+    this.setUpSynchronization();
+  }
+
+  willDestroy(): void {
+    super.willDestroy();
+
+    // Clean up?
   }
 }

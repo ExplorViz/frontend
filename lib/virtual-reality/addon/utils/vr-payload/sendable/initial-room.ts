@@ -30,3 +30,7 @@ export type InitialRoomPayload = {
   detachedMenus: InitialRoomDetachedMenu[];
   roomId: string | undefined;
 };
+
+export type InitialSynchronizationPayload = {
+  roomPayload: InitialRoomPayload;
+};
