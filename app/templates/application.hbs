@@ -1,7 +1,7 @@
-<SynchronizationStart @deviceId={{this.deviceId}} @roomId={{this.roomId}} />
+{{!-- <SynchronizationStart @deviceId={{this.deviceId}} @roomId={{this.roomId}} /> --}}
 
 <div id='ember-right-click-menu-wormhole'></div>
-<div id='main-container'>
+<div id='main-container' {{did-insert this.updateSynchronization}} >
   {{#if this.auth.user}}
     <PageSetup::Navbar />
   {{/if}}

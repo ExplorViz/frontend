@@ -56,6 +56,13 @@ export default class SynchronizationSession extends Service {
     console.log(this.numberDevices);
   }
 
+  setUpIds(dId: number, rId: string) {
+    this.deviceId = dId;
+    this.roomId = rId;
+    // this.localUser.userId = uId;
+    this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
+  }
+
   setUpDeviceId(dId: number) {
     this.deviceId = dId;
     // this.localUser.userId = uId;

@@ -65,7 +65,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     this.rooms = await this.roomService.listRooms();
 
     await timeout(5000);
-    console.log(this.rooms);
 
     // Check if Synchronizationroom is created
     const roomCreated = this.rooms

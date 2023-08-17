@@ -10,20 +10,16 @@ import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  UserDisconnectedMessage,
-  USER_DISCONNECTED_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import WebSocketService from './web-socket';
 import SynchronizationSession, {
   ProjectorAngles,
   ProjectorQuaternions,
 } from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
-  SYNCHRONIZATION_UPDATE_EVENT,
-  SynchronizationUpdateMessage,
-} from 'virtual-reality/utils/vr-message/sendable/synchronization_update';
+  SYNCHRONIZATION_START_EVENT,
+  SynchronizationStartMessage,
+} from 'virtual-reality/utils/vr-message/sendable/synchronization_start';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -62,38 +58,22 @@ export default class SynchronizeService extends Service {
 
   init() {
     super.init();
-
+    console.log(this.main);
     this.debug('Initializing collaboration session');
-    this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.on(
-      SYNCHRONIZATION_UPDATE_EVENT,
-      this,
-      this.onSynchronizationUpdate
-    );
-    this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.reset);
+
+    // this.webSocket.on(
+    //   SYNCHRONIZATION_UPDATE_EVENT,
+    //   this,
+    //   this.onSynchronizationStart
+    // );
   }
 
   willDestroy() {
-    this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.off(
-      SYNCHRONIZATION_UPDATE_EVENT,
-      this,
-      this.onSynchronizationUpdate
-    );
-    this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.reset);
-  }
-
-  private reset() {
-    this.projectors.clear();
-    this.main = null;
-  }
-
-  private addProjector(id: string) {
-    this.projectors.add(id);
-  }
-
-  private removeProjector(id: string) {
-    this.projectors.delete(id);
+    // this.webSocket.off(
+    //   SYNCHRONIZATION_UPDATE_EVENT,
+    //   this,
+    //   this.onSynchronizationStart
+    // );
   }
 
   get isSynchronized() {
@@ -109,7 +89,8 @@ export default class SynchronizeService extends Service {
   private projectorAngles!: ProjectorAngles;
 
   /**
-   * Used in spectating mode to set user's camera position to the spectated user's position
+   * Used in spectating mode to set user's camera position to the spectated user's position.
+   * Here it is modified and manipulating the copied position and quaternion according to specific needs in ARENA2.
    */
   tick() {
     if (this.main?.camera) {
@@ -135,12 +116,14 @@ export default class SynchronizeService extends Service {
         }
       }
     } else if (this.projectors.size > 0) {
+      console.log('jemals in else if?');
       const poses = VrPoses.getPoses(
         this.localUser.camera,
         this.localUser.controller1,
         this.localUser.controller2
       );
       if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
+        console.log('jemals in else if if???');
         this.sender.sendPoseUpdate(
           poses.camera,
           poses.controller1,
@@ -160,17 +143,9 @@ export default class SynchronizeService extends Service {
     this.synchronizationStartPosition.copy(this.localUser.camera.position);
 
     this.main = remoteUser;
-    if (this.localUser.controller1) {
-      this.localUser.controller1.setToSpectatingAppearance();
-    }
-    if (this.localUser.controller2) {
-      this.localUser.controller2.setToSpectatingAppearance();
-    }
     if (this.cameraControls) {
       this.cameraControls.enabled = false;
     }
-
-    this.sender.sendSynchronzingUpdate(this.isSynchronized, remoteUser.userId);
 
     // Sets up lists for quaternion and angles for projector
     this.projectorQuaternions =
@@ -180,6 +155,7 @@ export default class SynchronizeService extends Service {
     this.synchronizationSession.setUpCamera(
       this.projectorAngles.angles[this.synchronizationSession.deviceId - 1]
     );
+    this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }
 
   /**
@@ -190,83 +166,40 @@ export default class SynchronizeService extends Service {
       this.cameraControls.enabled = true;
     }
     if (!this.main) return;
-
-    if (this.localUser.controller1) {
-      this.localUser.controller1.setToDefaultAppearance();
-    }
-    if (this.localUser.controller2) {
-      this.localUser.controller2.setToDefaultAppearance();
-    }
-
     this.localUser.camera.quaternion.copy(this.synchronizationStartQuaternion);
     this.main = null;
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, null);
   }
 
-  private onUserDisconnect({ id }: UserDisconnectedMessage) {
-    this.removeProjector(id);
-
-    if (this.main?.userId === id) {
-      this.deactivate();
-    }
-  }
-
   /**
-   * Function for main:
-   * Updates the state of given projector to synchronized and adds it to projector group.
-   * Hides remoteUser when no projector.
-   * Removes them from group if stopped being synchronized.
    *
-   * @param {string} userId - The remote user's id.
-   * @param {boolean} isSpectating - True, if the user is now spectating, else false.
    */
-  private onSynchronizationUpdate({
-    userId,
-    originalMessage: { isSynchronizing, main },
-  }: ForwardedMessage<SynchronizationUpdateMessage>): void {
-    const remoteUser = this.setProjectorSynchronizationById(
-      userId,
-      isSynchronizing
-    );
-    if (!remoteUser) return;
+  // private onSynchronizationStart({
+  //   userId,
+  //   originalMessage: { isSpectating, spectatedUser },
+  // }: ForwardedMessage<SynchronizationUpdateMessage>): void {
+  //   const remoteUser = this.setRemoteUserSpectatingById(userId, isSpectating);
+  //   if (!remoteUser) return;
 
-    const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
-    let text = '';
-    if (isSynchronizing && main === this.localUser.userId) {
-      this.addProjector(userId);
-      text = 'is now synchronized to you';
-    } else if (isSynchronizing) {
-      text = 'is now synchronized to you';
-    } else {
-      text = 'stopped being synchronized to you';
-      this.removeProjector(userId);
-    }
-    this.toastMessage.message({
-      title: remoteUser.userName,
-      text,
-      color: remoteUserHexColor,
-      time: 3.0,
-    });
-  }
-
-  private setProjectorSynchronizationById(
-    userId: string,
-    isSynchronizing: boolean
-  ): RemoteUser | undefined {
-    const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
-    if (remoteUser) {
-      remoteUser.state = isSynchronizing ? 'synchronized' : 'online';
-      // Hides when main
-      remoteUser.setVisible(!isSynchronizing);
-
-      // If we are synchronized to the remote user before, stop.
-      if (isSynchronizing && this.main?.userId === remoteUser.userId) {
-        this.deactivate();
-      }
-    }
-    return remoteUser;
-  }
+  //   const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
+  //   let text = '';
+  //   if (isSpectating && spectatedUser === this.localUser.userId) {
+  //     this.addSpectatingUser(userId);
+  //     text = 'is now spectating you';
+  //   } else if (isSpectating) {
+  //     text = 'is now spectating';
+  //   } else {
+  //     text = 'stopped spectating';
+  //     this.removeSpectatingUser(userId);
+  //   }
+  //   this.toastMessage.message({
+  //     title: remoteUser.userName,
+  //     text,
+  //     color: remoteUserHexColor,
+  //     time: 3.0,
+  //   });
+  // }
 }
 
 declare module '@ember/service' {
