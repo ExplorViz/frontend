@@ -10,6 +10,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 
@@ -96,6 +97,11 @@ export default class ForceGraph {
         const lineObj = link.__lineObj;
         if (!lineObj) return;
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
+        // if(lineObj.material.transparent)
+        //   lineObj.children.forEach(child => {
+        //     if(child instanceof CommunicationArrowMesh)
+        //       child.turnTransparent(lineObj.material.opacity);
+        //   });
       });
     };
     this.graph.scale.setScalar(scale);

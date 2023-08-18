@@ -133,7 +133,6 @@ export default class HighlightingService extends Service.extend({
 
   updateHighlighting(sendMessage: boolean, value: number = this.opacity) {
     const { allLinks, drawableComm, applications } = this.getParams();
-
     const transparencyMap = Highlighting.updateHighlighting(
       applications,
       drawableComm,

@@ -11,6 +11,7 @@ import { restoreComponentState } from 'explorviz-frontend/utils/application-rend
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import {
   removeAllHighlighting,
+  turnComponentAndAncestorsOpaque,
   turnComponentAndAncestorsTransparent,
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
@@ -43,7 +44,7 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 // #endregion imports
 
@@ -237,7 +238,7 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      // Restore state of open components and transparent components
+      // Restore state of open packages and transparent components (packages and clazzes)
       restoreComponentState(
         applicationObject3D,
         applicationState.openComponents,
@@ -259,7 +260,6 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.getCommMeshes().forEach((commMesh) => {
         if (applicationState.transparentComponents?.has(commMesh.getModelId()))
           commMesh.turnTransparent(this.highlightingService.opacity);
-        commMesh.material.needsUpdate = true;
       });
 
       // reset highlights -------------------
@@ -334,7 +334,6 @@ export default class ApplicationRenderer extends Service.extend({
     if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
       removeAllHighlighting(applicationObject3D);
     }
-    this.highlightingService.updateHighlighting(sendMessage);
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
@@ -343,6 +342,7 @@ export default class ApplicationRenderer extends Service.extend({
     );
     // Update links
     this.updateLinks?.();
+    this.highlightingService.updateHighlighting(sendMessage); // needs to be after update links
   }
 
   updateLinks?: () => void;
@@ -406,6 +406,12 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
+  @action
+  highlightExternLink(mesh: EntityMesh, sendMessage: boolean, color?: THREE.Color){
+    if(mesh instanceof ClazzCommunicationMesh)
+      this.highlightingService.highlight(mesh, sendMessage, color);
+  }
+
   /**
    * Opens all parents / components of a given component or clazz.
    * Adds communication and restores highlighting.
@@ -436,13 +442,6 @@ export default class ApplicationRenderer extends Service.extend({
     sendMessage = true
   ) {
     this.openAllComponentsLocally(applicationObject3D, sendMessage);
-
-    // this.sender.sendComponentUpdate(
-    //   applicationObject3D.getModelId(),
-    //   '',
-    //   true,
-    //   true
-    // );
   }
 
   toggleComponentLocally(
@@ -570,6 +569,8 @@ export default class ApplicationRenderer extends Service.extend({
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
 
+
+        // TODO: room.transparentExternCommunicationLinks so we can keep the arrows on the pipes transparent after each landscape tick in collaboration mode
         // reset highlighted extern links and implicated opaqueness
         if (room.highlightedExternCommunicationLinks) {
           room.highlightedExternCommunicationLinks.forEach((externLink) => {
@@ -591,27 +592,29 @@ export default class ApplicationRenderer extends Service.extend({
                 target?.getBoxMeshbyModelId(targetClass.id)?.turnOpaque();
                 source?.getBoxMeshbyModelId(sourceClass.id)?.turnOpaque();
 
-                if (target)
-                  turnComponentAndAncestorsTransparent(
-                    targetClass.parent,
-                    target,
-                    new Set(),
-                    this.highlightingService.opacity
-                  );
+                // actually the code isn't needed
+                // if (target)
+                //   turnComponentAndAncestorsOpaque(
+                //     targetClass.parent,
+                //     target,
+                //     new Set(),
+                //     //this.highlightingService.opacity
+                //   );
 
-                if (source)
-                  turnComponentAndAncestorsTransparent(
-                    sourceClass.parent,
-                    source,
-                    new Set(),
-                    this.highlightingService.opacity
-                  );
+                // if (source)
+                //   turnComponentAndAncestorsOpaque(
+                //     sourceClass.parent,
+                //     source,
+                //     new Set(),
+                //     //this.highlightingService.opacity
+                //   );
               }
               this.highlightingService.highlight(
                 linkMesh,
                 false,
                 new THREE.Color().fromArray(externLink.color)
               );
+              
             }
           });
         }

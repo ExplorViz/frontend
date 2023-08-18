@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { tracked } from '@glimmer/tracking';
+import CommunicationArrowMesh from './application/communication-arrow-mesh';
 
 export default abstract class BaseMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -111,6 +112,7 @@ export default abstract class BaseMesh<
     if (this.material instanceof THREE.Material) {
       this.material.opacity = opacity;
       this.material.transparent = isTransparent;
+      this.material.needsUpdate = true;
     }
   }
 

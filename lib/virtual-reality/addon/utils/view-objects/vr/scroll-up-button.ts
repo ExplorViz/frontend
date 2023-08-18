@@ -40,6 +40,6 @@ export default class ScrollUpButton
 
   resetHover() {
     this.isHovered = false;
-    this.set({ backgroundOpacity: 0 });
+    this.set({ backgroundOpacity: 0.2 });
   }
 }

@@ -252,11 +252,10 @@ export function restoreComponentState(
   });
 
   transparentComponentIds?.forEach((componentId) => {
-    const componentMesh = applicationObject3D.getMeshById(componentId);
+    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
     if (componentMesh) {
       componentMesh.turnTransparent(opacity);
-      componentMesh.material.needsUpdate = true;
     }
   });
 }

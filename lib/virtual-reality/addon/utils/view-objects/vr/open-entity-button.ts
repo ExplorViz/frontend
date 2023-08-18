@@ -79,6 +79,6 @@ export default class OpenEntityButton
 
   resetHover() {
     this.isHovered = false;
-    this.set({ backgroundOpacity: 0 });
+    this.set({ backgroundOpacity: 0.2 });
   }
 }

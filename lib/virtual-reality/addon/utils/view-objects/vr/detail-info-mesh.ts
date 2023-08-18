@@ -5,27 +5,28 @@ import OpenEntityButton from './open-entity-button';
 import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from './detail-info-scrollarea';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
+import * as THREE from 'three';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
-  owner: any;
+  owner:any
   source: string;
   target: string;
 
-  sourceClassId: string;
-  targetClassId: string;
-  sourceAppId: string | undefined;
-  targetAppId: string | undefined;
+  sourceClassId:string;
+  targetClassId:string;
+  sourceAppId:string | undefined;
+  targetAppId:string | undefined;
   content: string;
   menuFactory: VrMenuFactoryService;
   text: ThreeMeshUI.Text;
   constructor(
-    owner: any,
+    owner:any,
     source: string,
     target: string,
-    sourceClassId: string,
-    targetClassId: string,
-    sourceAppId: string | undefined,
-    targetAppId: string | undefined,
+    sourceClassId:string,
+    targetClassId:string,
+    sourceAppId:string | undefined,
+    targetAppId:string | undefined,
     content: string,
     menuFactory: VrMenuFactoryService,
     options: ThreeMeshUI.BlockOptions
@@ -34,17 +35,17 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     this.owner = owner;
     this.content = content;
     this.menuFactory = menuFactory;
-    this.source = source;
-    this.target = target;
+    this.source=source;
+    this.target =target;
     this.sourceClassId = sourceClassId;
     this.targetClassId = targetClassId;
     this.sourceAppId = sourceAppId;
     this.targetAppId = targetAppId;
 
     let boxhight;
-    if (this.source !== '') {
-      boxhight = 0.3;
-    } else {
+    if(this.source !== ""){
+      boxhight = 0.27;
+    }else{
       boxhight = 0.45;
     }
 
@@ -54,6 +55,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       hiddenOverflow: true,
       backgroundOpacity: 0,
       offset: 0.001,
+      
     }); // This Block with hiddenOverflow set to true is needed so the text stays within its block!
     this.text = new ThreeMeshUI.Text({
       content: this.content,
@@ -71,80 +73,100 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       contentDirection: 'row',
       backgroundOpacity: 0,
       offset: 0.001,
+      //padding:0.05
     });
 
     const scrollUpButton = new ScrollUpButton(this.text, {
-      width: 0.325,
+      width: 0.3,
       height: 0.1,
       offset: 0.02,
       justifyContent: 'center',
       textAlign: 'center',
-      backgroundOpacity: 0,
+      backgroundOpacity: 0.2,
+      borderRadius: [ 0.02, 0.02, 0.02, 0.02 ],
+		  borderWidth: 0.002 ,
+		  borderColor: new THREE.Color( 0x7A7A7A),
+		  borderOpacity: 0.8,
+      margin:0.01,
     });
 
     const scrollDownButton = new ScrollDownButton(this.text, {
-      width: 0.325,
+      width: 0.3,
       height: 0.1,
       offset: 0.02,
       justifyContent: 'center',
       textAlign: 'center',
-      backgroundOpacity: 0,
+      backgroundOpacity: 0.2,
+      borderRadius: [ 0.02, 0.02, 0.02, 0.02 ],
+		  borderWidth: 0.002 ,
+		  borderColor: new THREE.Color( 0x7A7A7A),
+		  borderOpacity: 0.8,
+      margin:0.01,
     });
 
     const sourceLableBox = new ThreeMeshUI.Block({
-      width: 0.2,
-      height: 0.08,
-      offset: 0.02,
-      justifyContent: 'center',
-      textAlign: 'center',
-      backgroundOpacity: 0,
-    });
-
-    const targetLableBox = new ThreeMeshUI.Block({
-      width: 0.2,
-      height: 0.08,
-      offset: 0.02,
-      justifyContent: 'center',
-      textAlign: 'center',
-      backgroundOpacity: 0,
-    });
-
-    const sourceButton = new OpenEntityButton({
-      owner: this.owner,
-      label: this.source,
-      classId: this.sourceClassId,
-      applicationId: this.sourceAppId!,
-
-      ...{
-        width: 0.45,
+        width: 0.2,
         height: 0.08,
         offset: 0.02,
         justifyContent: 'center',
         textAlign: 'center',
         backgroundOpacity: 0,
-      },
     });
+
+    const targetLableBox = new ThreeMeshUI.Block({
+        width: 0.2,
+        height: 0.08,
+        offset: 0.02,
+        justifyContent: 'center',
+        textAlign: 'center',
+        backgroundOpacity: 0,
+    });
+
+    const sourceButton = new OpenEntityButton({
+      owner:this.owner,
+      label:this.source,
+      classId: this.sourceClassId,
+      applicationId:this.sourceAppId!,
+
+      ...{
+        width: 0.43,
+        height: 0.08,
+        offset: 0.02,
+        justifyContent: 'center',
+        textAlign: 'center',
+        backgroundOpacity: 0.2,
+      borderRadius: [ 0.02, 0.02, 0.02, 0.02 ],
+		  borderWidth: 0.002 ,
+		  borderColor: new THREE.Color( 0x7A7A7A),
+		  borderOpacity: 0.8,
+      }
+    }); 
 
     const targetButton = new OpenEntityButton({
       owner: this.owner,
       label: this.target,
       classId: this.targetClassId,
-      applicationId: this.targetAppId!,
+      applicationId:this.targetAppId!,
       ...{
-        width: 0.45,
+        width: 0.43,
         height: 0.08,
         offset: 0.02,
         justifyContent: 'center',
         textAlign: 'center',
-        backgroundOpacity: 0,
-      },
-    });
+        backgroundOpacity: 0.2,
+      borderRadius: [ 0.02, 0.02, 0.02, 0.02 ],
+		  borderWidth: 0.002 ,
+		  borderColor: new THREE.Color( 0x7A7A7A),
+		  borderOpacity: 0.8,
+      }
+    });  
     const sourceBox = new ThreeMeshUI.Block({
       height: 0.08,
       width: 0.65,
       contentDirection: 'row',
       backgroundOpacity: 0,
       offset: 0.001,
+      margin:0.005,
     });
     const targetBox = new ThreeMeshUI.Block({
       height: 0.08,
@@ -152,21 +174,23 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       contentDirection: 'row',
       backgroundOpacity: 0,
       offset: 0.001,
+      margin:0.005,
     });
-
-    const sorceLable = new ThreeMeshUI.Text({ content: 'Source App: ' });
-    const targetLable = new ThreeMeshUI.Text({ content: 'Target App: ' });
+  
+    const sorceLable = new ThreeMeshUI.Text({ content:"Source App: "});
+    const targetLable = new ThreeMeshUI.Text({ content:"Target App: " });
 
     sourceLableBox.add(sorceLable);
     targetLableBox.add(targetLable);
 
     sourceBox.add(sourceLableBox, sourceButton);
     targetBox.add(targetLableBox, targetButton);
-
+    
+    
     scrollButtonBox.add(scrollUpButton, scrollDownButton);
     this.add(scrollButtonBox);
-    if (this.target !== '' && this.source !== '') {
-      this.add(sourceBox, targetBox);
+    if(this.target !=="" && this.source !== ""){
+      this.add(sourceBox,targetBox);
     }
     textBlock.add(this.text);
     textBlockBlock.add(textBlock);

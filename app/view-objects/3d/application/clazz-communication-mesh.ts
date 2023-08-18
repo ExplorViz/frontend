@@ -4,6 +4,7 @@ import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import ApplicationObject3D from './application-object-3d';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -45,11 +46,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    */
   turnTransparent(opacity = 0.3) {
     super.turnTransparent(opacity);
-    this.children.forEach((childObject) => {
-      if (childObject instanceof CommunicationArrowMesh) {
-        childObject.turnTransparent(opacity);
-      }
-    });
+
+      this.children.forEach((childObject) => {
+        if (childObject instanceof CommunicationArrowMesh) {
+          childObject.turnTransparent(opacity);
+        }
+      });
   }
 
   /**
@@ -66,11 +68,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   unhighlight(): void {
     super.unhighlight();
-    this.children.forEach((childObject) => {
-      if (childObject instanceof CommunicationArrowMesh) {
-        childObject.turnOpaque();
-      }
-    });
+    // this.children.forEach((childObject) => {
+    //   if (childObject instanceof CommunicationArrowMesh) {
+    //     childObject.turnOpaque();
+    //   }
+    // });
   }
 
   /**

@@ -72,7 +72,6 @@ export function turnComponentAndAncestorsTransparent(
   if (parent === undefined) {
     if (componentMesh instanceof ComponentMesh) {
       componentMesh.turnTransparent(opacity);
-      componentMesh.material.needsUpdate = true;
     }
     return;
   }
@@ -84,7 +83,6 @@ export function turnComponentAndAncestorsTransparent(
     parentMesh.opened
   ) {
     componentMesh.turnTransparent(opacity);
-    componentMesh.material.needsUpdate = true;
   }
   turnComponentAndAncestorsTransparent(
     parent,
@@ -112,7 +110,6 @@ export function turnComponentAndAncestorsOpaque(
   if (parent === undefined) {
     if (componentMesh instanceof ComponentMesh) {
       componentMesh.turnOpaque();
-      componentMesh.material.needsUpdate = true;
     }
     return;
   }
@@ -124,7 +121,6 @@ export function turnComponentAndAncestorsOpaque(
     parentMesh.opened
   ) {
     componentMesh.turnOpaque();
-    componentMesh.material.needsUpdate = true;
   }
   turnComponentAndAncestorsOpaque(
     parent,
@@ -420,7 +416,6 @@ export function turnAllPackagesAndClassesTransparent(
       const clazzMesh = application.getMeshById(clazz.id);
       if (clazzMesh instanceof ClazzMesh) {
         clazzMesh.turnTransparent(opacity);
-        clazzMesh.material.needsUpdate = true;
         turnComponentAndAncestorsTransparent(
           clazz.parent,
           application,
@@ -442,7 +437,6 @@ export function turnAllCommunicationLinksTransparentAndUnhighlighted(
   allLinks.forEach((link) => {
     link.turnTransparent(opacity);
     link.unhighlight();
-    link.material.needsUpdate = true;
   });
 }
 

@@ -218,7 +218,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
       { title: 'Enter AR', action: this.args.switchToAR },
-      { title: 'Enter VR', action: this.args.switchToVR },
+     // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -360,7 +360,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         );
       } else {
         // extern communication link
-        this.highlightingService.highlight(mesh, true, this.localUser.color);
+        this.applicationRenderer.highlightExternLink(mesh, true, this.localUser.color);
       }
     }
   }

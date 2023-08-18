@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import ApplicationObject3D from './application-object-3d';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   dataModel: DrawableClassCommunication;
@@ -54,14 +55,19 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
    */
   changeOpacity(opacity: number) {
     const isTransparent = opacity < 1;
+
     if (this.line.material instanceof THREE.Material) {
       this.line.material.opacity = opacity;
       this.line.material.transparent = isTransparent;
+      this.line.material.needsUpdate = true;
     }
+
     if (this.cone.material instanceof THREE.Material) {
       this.cone.material.opacity = opacity;
       this.cone.material.transparent = isTransparent;
+      this.cone.material.needsUpdate = true;
     }
+    
   }
 
   /**
