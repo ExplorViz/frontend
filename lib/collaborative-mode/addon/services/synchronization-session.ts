@@ -1,15 +1,28 @@
-/* eslint-disable no-case-declarations */
 import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+
+export type YawPitchRoll = {
+  yaw: number;
+  pitch: number;
+  roll: number;
+};
+
+export type ProjectorQuaternion = {
+  quaternion: THREE.Quaternion;
+};
 
 export type ProjectorAngle = {
   left: number;
   right: number;
   up: number;
   down: number;
+};
+
+export type ProjectorConfigurations = {
+  yawPitchRoll: YawPitchRoll;
+  projectorAngle: ProjectorAngle;
 };
 
 export type ProjectorAngles = {
@@ -39,8 +52,8 @@ export default class SynchronizationSession extends Service {
   // Aspect
   private aspect!: number;
 
-  private angle?: ProjectorAngle;
-  private quaternion?: THREE.Quaternion;
+  projectorAngle?: ProjectorAngle;
+  projectorQuaternion?: ProjectorQuaternion;
 
   // Things to consider:
   // 1) Tilt
@@ -50,6 +63,11 @@ export default class SynchronizationSession extends Service {
   // 3) Order of Euler: 'ZYX' according to mpcdi-file
   // 4) Fullscreen
 
+  /* Sets up important Ids: Essentially manages and starts synchronization behaviour
+  1) deviceId: Detection of device to request correct (a) projector angle and (b) yaw/pitch/roll angles.
+  2) roomId: Sets the room name to this and impacts which room is hosted or joined by synchronization user.
+  3) userId & userName: Sets user identification to choose the correct instance which gets synchronized or will be synchronized to the main.
+  */
   setUpIds(dId: number, rId: string) {
     this.deviceId = dId;
     this.roomId = rId;
@@ -57,10 +75,37 @@ export default class SynchronizationSession extends Service {
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
   }
 
+  // Transform given euler angles to usable quaternion
   eulerToQuaternion(euler: THREE.Euler) {
     const quaternion = new THREE.Quaternion();
     quaternion.setFromEuler(euler);
     return quaternion;
+  }
+
+  // Sets the projector angles of the device: Detection of device via payload at start of synchronization
+  // Could implement a test case for this, but need to save the mpcdi informations for that in frontend?!
+  setProjectorAngle(projectorAngle: ProjectorAngle) {
+    this.projectorAngle = projectorAngle;
+  }
+
+  // Sets projector yaw, pitch and roll angles of the device.
+  // Device detection same as projector angle
+  setProjectorYawPitchRoll(yawPitchRoll: YawPitchRoll) {
+    this.projectorQuaternion = {
+      quaternion: this.eulerToQuaternion(
+        new THREE.Euler(
+          yawPitchRoll.roll * THREE.MathUtils.DEG2RAD,
+          yawPitchRoll.pitch * THREE.MathUtils.DEG2RAD,
+          yawPitchRoll.yaw * THREE.MathUtils.DEG2RAD,
+          'ZYX'
+        )
+      ),
+    };
+  }
+
+  setProjectorConfigurations(projectorConfiguration: ProjectorConfigurations) {
+    this.setProjectorYawPitchRoll(projectorConfiguration.yawPitchRoll);
+    this.setProjectorAngle(projectorConfiguration.projectorAngle);
   }
 
   /* Rotation by Camera: MPCDI

@@ -34,9 +34,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   @tracked
   rooms: RoomListRecord[] = [];
 
-  @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
-
   @computed('collaborationSession.idToRemoteUser')
   get users() {
     const users = [];

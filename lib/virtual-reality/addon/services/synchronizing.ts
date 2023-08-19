@@ -10,7 +10,10 @@ import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import SynchronizationSession, {
+  ProjectorAngle,
   ProjectorAngles,
+  ProjectorConfigurations,
+  ProjectorQuaternion,
   ProjectorQuaternions,
 } from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -57,6 +60,7 @@ export default class SynchronizeService extends Service {
 
   // Could be done by parser
   private projectorQuaternions!: ProjectorQuaternions;
+
   private projectorAngles!: ProjectorAngles;
 
   /**
@@ -78,8 +82,8 @@ export default class SynchronizeService extends Service {
           this.localUser.camera.quaternion.copy(
             this.main.camera.model.quaternion.multiply(
               this.projectorQuaternions.quaternions[
-                this.synchronizationSession.deviceId - 1 // deviceId - 1 == array index
-              ]
+              this.synchronizationSession.deviceId - 1
+              ] // deviceId - 1 == array index
             )
           );
           this.localUser.camera.updateProjectionMatrix();
@@ -126,6 +130,7 @@ export default class SynchronizeService extends Service {
     this.synchronizationSession.setUpCamera(
       this.projectorAngles.angles[this.synchronizationSession.deviceId - 1]
     );
+
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }
 
