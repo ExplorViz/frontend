@@ -9,7 +9,6 @@ import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
-import WebSocketService from './web-socket';
 import SynchronizationSession, {
   ProjectorAngles,
   ProjectorQuaternions,
@@ -33,9 +32,6 @@ export default class SynchronizeService extends Service {
 
   @service('synchronization-session')
   synchronizationSession!: SynchronizationSession;
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -146,35 +142,6 @@ export default class SynchronizeService extends Service {
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, null);
   }
-
-  /**
-   *
-   */
-  // private onSynchronizationStart({
-  //   userId,
-  //   originalMessage: { isSpectating, spectatedUser },
-  // }: ForwardedMessage<SynchronizationUpdateMessage>): void {
-  //   const remoteUser = this.setRemoteUserSpectatingById(userId, isSpectating);
-  //   if (!remoteUser) return;
-
-  //   const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
-  //   let text = '';
-  //   if (isSpectating && spectatedUser === this.localUser.userId) {
-  //     this.addSpectatingUser(userId);
-  //     text = 'is now spectating you';
-  //   } else if (isSpectating) {
-  //     text = 'is now spectating';
-  //   } else {
-  //     text = 'stopped spectating';
-  //     this.removeSpectatingUser(userId);
-  //   }
-  //   this.toastMessage.message({
-  //     title: remoteUser.userName,
-  //     text,
-  //     color: remoteUserHexColor,
-  //     time: 3.0,
-  //   });
-  // }
 }
 
 declare module '@ember/service' {

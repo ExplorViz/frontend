@@ -26,7 +26,6 @@ import {
   isSynchronizationStartedResponse,
   SynchronizationStartedResponse,
 } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
-import { join } from 'path';
 
 const { collaborationService } = ENV.backendAddresses;
 
