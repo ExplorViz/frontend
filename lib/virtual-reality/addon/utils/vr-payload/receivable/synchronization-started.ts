@@ -1,5 +1,9 @@
+import { LobbyJoinedResponse } from './lobby-joined';
+import { RoomCreatedResponse } from './room-created';
+
 export type SynchronizationStartedResponse = {
-  roomId: string;
+  roomResponse: RoomCreatedResponse;
+  joinResponse: LobbyJoinedResponse;
 };
 
 export function isSynchronizationStartedResponse(
@@ -8,6 +12,7 @@ export function isSynchronizationStartedResponse(
   return (
     response !== null &&
     typeof response === 'object' &&
-    typeof response.roomId === 'string'
+    typeof response.roomResponse === 'object' &&
+    typeof response.joinResponse === 'object'
   );
 }

@@ -9,17 +9,12 @@ import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import WebSocketService from './web-socket';
 import SynchronizationSession, {
   ProjectorAngles,
   ProjectorQuaternions,
 } from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import {
-  SYNCHRONIZATION_START_EVENT,
-  SynchronizationStartMessage,
-} from 'virtual-reality/utils/vr-message/sendable/synchronization_start';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');

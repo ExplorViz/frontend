@@ -69,12 +69,14 @@ export default class Synchronization extends Component<SynchronizationArgs> {
   @action
   hostRoom() {
     this.collaborationSession.hostRoom();
-    AlertifyHandler.showAlertifySuccess('Hosting new Room.');
+    AlertifyHandler.showAlertifySuccess('Starting synchronization room.');
   }
 
   @action
   leaveSession() {
-    AlertifyHandler.showAlertifyWarning('Disconnected from Room');
+    AlertifyHandler.showAlertifyWarning(
+      'Disconnecting from synchronization room'
+    );
     this.collaborationSession.disconnect();
   }
 

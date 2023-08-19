@@ -2,7 +2,10 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaborative-mode/services/local-user';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import { InitialRoomPayload } from 'virtual-reality/utils/vr-payload/sendable/initial-room';
+import {
+  InitialRoomPayload,
+  InitialSynchronizationPayload,
+} from 'virtual-reality/utils/vr-payload/sendable/initial-room';
 import * as VrPose from '../utils/vr-helpers/vr-poses';
 import {
   isLobbyJoinedResponse,
@@ -23,6 +26,7 @@ import {
   isSynchronizationStartedResponse,
   SynchronizationStartedResponse,
 } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
+import { join } from 'path';
 
 const { collaborationService } = ENV.backendAddresses;
 
@@ -68,24 +72,6 @@ export default class VrRoomService extends Service {
     return json;
   }
 
-  // Specific for Synchronization
-  // Getting triggered, when deviceId is set through query param
-  async startSynchronization(): Promise<SynchronizationStartedResponse> {
-    const roomPayload = this.buildInitialRoomPayload();
-    // STARTE ERSTMAL MIT NUR EINEM RAUM, dann kannst du immernoch mehr Sachen hinzufügen
-    const payload = { roomPayload: roomPayload };
-
-    if (!roomPayload?.landscape.landscapeToken) {
-      throw new Error('invalid data');
-    }
-
-    const url = `${collaborationService}/v2/vr/room`;
-    const jsonResponse = this.payloadResponse(payload, url);
-
-    if (isSynchronizationStartedResponse(jsonResponse)) return jsonResponse;
-    throw new Error('invalid data');
-  }
-
   async createRoom(): Promise<RoomCreatedResponse> {
     const payload = this.buildInitialRoomPayload();
 
@@ -93,7 +79,7 @@ export default class VrRoomService extends Service {
       throw new Error('invalid data');
     }
     const url = `${collaborationService}/v2/vr/room`;
-    const jsonResponse = this.payloadResponse(payload, url);
+    const jsonResponse = await this.payloadResponse(payload, url);
 
     if (isRoomCreatedResponse(jsonResponse)) return jsonResponse;
     throw new Error('invalid data');
@@ -136,6 +122,31 @@ export default class VrRoomService extends Service {
       userName: this.auth.user.nickname,
       ...VrPose.getCameraPose(this.localUser.camera),
     };
+  }
+
+  // Specific for Synchronization
+  // Getting triggered, when deviceId is set through query param
+  async startSynchronization(): Promise<SynchronizationStartedResponse> {
+    const roomPayload = this.buildInitialRoomPayload();
+    const joinPayload = this.buildJoinLobbyPayload();
+
+    if (roomPayload !== undefined && joinPayload !== null) {
+      const payload: InitialSynchronizationPayload = {
+        roomPayload: roomPayload,
+        joinPayload: joinPayload,
+      };
+
+      if (!roomPayload?.landscape.landscapeToken) {
+        throw new Error('invalid data');
+      }
+
+      const url = `${collaborationService}/v2/vr/synchronization`;
+      const jsonResponse = await this.payloadResponse(payload, url);
+      console.log(jsonResponse);
+
+      if (isSynchronizationStartedResponse(jsonResponse)) return jsonResponse;
+    }
+    throw new Error('invalid data');
   }
 }
 

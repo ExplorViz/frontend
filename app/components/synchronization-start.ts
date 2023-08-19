@@ -56,21 +56,8 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   }
 
   async roomTask() {
-    // List all rooms to check if room already created
-    this.rooms = await this.roomService.listRooms();
-
     await timeout(3000);
-
-    // Check if Synchronizationroom is created
-    const roomCreated = this.rooms
-      .map((r) => r.roomId)
-      .includes('Synchronization');
-
-    if (!roomCreated) {
-      await this.collaborationSession.hostRoom();
-    } else {
-      this.collaborationSession.joinRoom(this.synchronizationSession.roomId!);
-    }
+    await this.collaborationSession.hostRoom(true);
   }
 
   async synchronizeTask() {

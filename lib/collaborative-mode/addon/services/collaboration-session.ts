@@ -34,6 +34,8 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
+import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -251,14 +253,24 @@ export default class CollaborationSession extends Service.extend({
     return this.connectionStatus === 'connecting';
   }
 
-  async hostRoom(snychronization?: boolean) {
+  async hostRoom(synchronization?: boolean) {
     if (!this.isConnecting) {
       this.connectionStatus = 'connecting';
       try {
-        const response = !snychronization
-          ? await this.roomService.createRoom()
-          : await this.roomService.startSynchronization();
-        this.joinRoom(response.roomId, { checkConnectionStatus: false });
+        let response: RoomCreatedResponse | SynchronizationStartedResponse;
+
+        if (synchronization === null) {
+          response = await this.roomService.createRoom();
+          if (response !== null)
+            this.joinRoom(response.roomId, { checkConnectionStatus: false });
+        } else {
+          response = await this.roomService.startSynchronization();
+          const roomResponse = response.roomResponse;
+          const joinResponse = response.joinResponse;
+
+          this.currentRoomId = roomResponse.roomId;
+          await this.webSocket.initSocket(joinResponse.ticketId);
+        }
       } catch (e: any) {
         this.connectionStatus = 'offline';
         AlertifyHandler.showAlertifyError(
