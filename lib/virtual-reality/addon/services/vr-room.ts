@@ -117,8 +117,12 @@ export default class VrRoomService extends Service {
 
   private buildJoinLobbyPayload(): JoinLobbyPayload | null {
     if (!this.auth.user) return null;
+
     return {
-      userName: this.auth.user.nickname,
+      userName:
+        this.synchronizationSession.deviceId == -99
+          ? this.auth.user.nickname
+          : this.localUser.userId,
       ...VrPose.getCameraPose(this.localUser.camera),
     };
   }

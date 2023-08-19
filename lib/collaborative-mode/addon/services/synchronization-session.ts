@@ -27,9 +27,6 @@ export default class SynchronizationSession extends Service {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('virtual-reality@vr-room-serializer')
-  private roomSerializer!: VrRoomSerializer;
-
   // The id of the connected device
   deviceId!: number;
 
@@ -56,7 +53,7 @@ export default class SynchronizationSession extends Service {
   setUpIds(dId: number, rId: string) {
     this.deviceId = dId;
     this.roomId = rId;
-    // this.localUser.userId = uId;
+    this.localUser.userId = dId === 0 ? 'Main' : 'Projector ' + dId;
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
   }
 
