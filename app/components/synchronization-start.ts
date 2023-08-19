@@ -47,7 +47,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   // Check for updates on query params
   checkQueryParams() {
-    return this.args.deviceId > -1 && this.args.roomId !== '';
+    return this.args.deviceId > -99 && this.args.roomId !== '';
   }
 
   async routeToVisualization(token: LandscapeToken) {
@@ -57,14 +57,17 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   async roomTask() {
     await timeout(3000);
-    await this.collaborationSession.hostRoom(true);
+    // Trigger synchronization when query param are saved in synchronization service
+    await this.collaborationSession.hostRoom(
+      this.args.deviceId == this.synchronizationSession.deviceId
+    );
   }
 
   async synchronizeTask() {
     // chill to let all be set up
     await timeout(2000);
     Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
-      if (user.color.getHexString() === 'ff0000') {
+      if (user.userName == 'Main') {
         this.synchronizeService.activate(user);
       }
     });

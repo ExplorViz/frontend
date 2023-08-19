@@ -105,14 +105,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
     }
   }
 
-  get queryParamDeviceId() {
-    return this.synchronizationSession.deviceId;
-  }
-
-  get queryParamRoomId() {
-    return this.synchronizationSession.roomId;
-  }
-
   // Testing file upload
   @action
   handleFileUpload(event?: Event) {
