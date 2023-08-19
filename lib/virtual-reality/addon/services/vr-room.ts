@@ -69,7 +69,8 @@ export default class VrRoomService extends Service {
   }
 
   // Specific for Synchronization
-  async createSynchronizationRoom(): Promise<SynchronizationStartedResponse> {
+  // Getting triggered, when deviceId is set through query param
+  async startSynchronization(): Promise<SynchronizationStartedResponse> {
     const roomPayload = this.buildInitialRoomPayload();
     // STARTE ERSTMAL MIT NUR EINEM RAUM, dann kannst du immernoch mehr Sachen hinzufügen
     const payload = { roomPayload: roomPayload };
