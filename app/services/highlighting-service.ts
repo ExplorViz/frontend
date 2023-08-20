@@ -222,7 +222,7 @@ export default class HighlightingService extends Service.extend({
           mesh.getModelId(),
           mesh.highlighted,
           this.configuration.userSettings.applicationSettings
-            .allowMultipleSelection.value
+            .enableMultipleHighlighting.value
         );
       }
     }
@@ -299,7 +299,7 @@ export default class HighlightingService extends Service.extend({
           entityId,
           object.highlighted,
           this.configuration.userSettings.applicationSettings
-            .allowMultipleSelection.value
+            .enableMultipleHighlighting.value
         );
       }
     }
@@ -329,7 +329,7 @@ export default class HighlightingService extends Service.extend({
     );
 
     if (
-      this.userSettings.applicationSettings.allowMultipleSelection.value &&
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
       mesh.highlighted
     ) {
       this.removeHighlightingLocally(application);
@@ -337,7 +337,7 @@ export default class HighlightingService extends Service.extend({
     }
 
     if (
-      !this.userSettings.applicationSettings.allowMultipleSelection.value &&
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
       !mesh.highlighted
     ) {
       this.removeHighlightingLocally(application);

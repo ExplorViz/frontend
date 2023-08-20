@@ -39,7 +39,7 @@ export type ApplicationColorSettingId =
 export type ApplicationHighlightingSettingId =
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
-  | 'allowMultipleSelection';
+  | 'enableMultipleHighlighting';
 
 export type ApplicationHoveringSettingId = 'enableHoverEffects';
 
@@ -86,7 +86,7 @@ export type ApplicationColorSettings = Record<
 export type ApplicationHighlightingSettings = {
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
-  allowMultipleSelection: FlagSetting;
+  enableMultipleHighlighting: FlagSetting;
 };
 
 export type ApplicationHoveringSettings = Record<

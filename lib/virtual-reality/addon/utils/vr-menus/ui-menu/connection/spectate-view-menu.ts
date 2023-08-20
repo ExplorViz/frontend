@@ -1,4 +1,5 @@
 import { EntityType } from 'virtual-reality/utils/vr-message/util/entity_type';
+import ThreeMeshUI from 'three-mesh-ui';
 import { DetachableMenu } from '../../detachable-menu';
 import InteractiveMenu from '../../interactive-menu';
 import { BaseMenuArgs } from '../../base-menu';
@@ -9,6 +10,7 @@ import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-co
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { setOwner } from '@ember/application';
 import LocalUser from 'collaborative-mode/services/local-user';
+import { BLOCK_OPTIONS_CONTAINER, BLOCK_OPTIONS_TITLE } from '../detail-info-menu';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -34,6 +36,8 @@ export default class SpectateViewMenu
   scene!: THREE.Scene;
 
   userId!: string;
+  
+  name!: string;
 
   headsetCamera!: THREE.Camera;
 
@@ -52,6 +56,11 @@ export default class SpectateViewMenu
     this.scene = scene;
     this.userId = userId;
     this.headsetCamera = new THREE.PerspectiveCamera();
+    if( this.collaborationSession.lookupRemoteUserById(this.userId) ){
+        this.name = this.collaborationSession.lookupRemoteUserById(this.userId)!.userName ;
+      }else{
+        this.name = "you";
+      }
   }
 
   private isVisualizationModeVr(): boolean {
@@ -83,9 +92,6 @@ export default class SpectateViewMenu
     }
   }
 
-  private printError() {
-    //TODO: clear content and replace with error text
-  }
 
   getDetachId(): string {
     return this.id.toString();
@@ -104,6 +110,7 @@ export default class SpectateViewMenu
 
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
+    ThreeMeshUI.update();
 
     if (this.isVisualizationModeVr()) {
       this.updatePositions();
@@ -145,7 +152,27 @@ export default class SpectateViewMenu
     plane.add(backgroundPlane);
     backgroundPlane.position.z -= 0.005;
 
+    const titleBlock = new ThreeMeshUI.Block({
+      width: res.width * worldSizeFactor + 0.05,
+      height: res.height * worldSizeFactor + 0.05 + BLOCK_OPTIONS_TITLE.height,
+      fontFamily: BLOCK_OPTIONS_CONTAINER.fontFamily,
+      fontTexture: BLOCK_OPTIONS_CONTAINER.fontTexture,
+      justifyContent: 'start',
+      textAlign: 'center',
+      offset: 0.02,
+      backgroundOpacity:0,
+    });
+
+    const title = new ThreeMeshUI.Text({
+      content: this.name,
+      fontColor: new THREE.Color('#000000'),
+    });
+
+    titleBlock.add(title);
+    this.add(titleBlock);
     this.add(plane);
+
+    
 
     this.firstTime = false;
   }

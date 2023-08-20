@@ -238,7 +238,7 @@ export default class VrRendering extends Component<Args> {
     this.menuFactory.scene = this.scene;
     this.scene.add(this.detachedMenuGroups.container);
 
-    this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+    this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
       true;
   }
 
@@ -262,7 +262,8 @@ export default class VrRendering extends Component<Args> {
   }
 
   private resetLandscape() {
-    if (!this.args.debugMode) this.localUser.visualizationMode = 'browser';
+    //if (!this.args.debugMode) this.localUser.visualizationMode = 'browser';
+    this.onVrSessionEnded();
   }
 
   /**

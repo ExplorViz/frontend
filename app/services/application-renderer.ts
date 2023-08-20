@@ -265,8 +265,8 @@ export default class ApplicationRenderer extends Service.extend({
       // reset highlights -------------------
 
       const currentSetting =
-        this.userSettings.applicationSettings.allowMultipleSelection.value;
-      this.userSettings.applicationSettings.allowMultipleSelection.value = true; // so resetting multiple highlights within one application won't reset them
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value = true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
           this.highlightingService.hightlightComponentLocallyByTypeAndId(
@@ -275,7 +275,7 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      this.userSettings.applicationSettings.allowMultipleSelection.value =
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
         currentSetting;
       // ----------------------------------------
 
@@ -330,10 +330,7 @@ export default class ApplicationRenderer extends Service.extend({
     ) {
       this.addCommunication(applicationObject3D);
     }
-    // Update highlighting
-    if (!this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      removeAllHighlighting(applicationObject3D);
-    }
+   
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
@@ -342,6 +339,7 @@ export default class ApplicationRenderer extends Service.extend({
     );
     // Update links
     this.updateLinks?.();
+    // Update highlighting
     this.highlightingService.updateHighlighting(sendMessage); // needs to be after update links
   }
 
@@ -384,18 +382,18 @@ export default class ApplicationRenderer extends Service.extend({
     if (isEntityMesh(entity)) {
       const oldValue =
         this.configuration.userSettings.applicationSettings
-          .allowMultipleSelection.value; // TODO: Refactor all this including the call chain
+          .enableMultipleHighlighting.value; // TODO: Refactor all this including the call chain
       if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
           isMultiSelected;
       }
 
-      this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+      this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
         oldValue || isMultiSelected;
       this.highlightingService.highlight(entity, sendMessage, color);
 
       if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.allowMultipleSelection.value =
+        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
           oldValue;
       }
 

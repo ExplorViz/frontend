@@ -43,6 +43,7 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -374,14 +375,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    if (!this.userSettings.applicationSettings.allowMultipleSelection.value) {
-      this.userSettings.applicationSettings.allowMultipleSelection.value = true;
+    if (!this.userSettings.applicationSettings.enableMultipleHighlighting.value) {
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value = true;
     }
   }
 
   @action
   handleStrgUp() {
-    this.userSettings.applicationSettings.allowMultipleSelection.value = false;
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value = false;
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
@@ -403,6 +404,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
+
+    if(mesh instanceof ComponentMesh || mesh instanceof FoundationMesh){
+      
+      if(!this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value){
+        const applicationObject3D = mesh.parent;
+        if(applicationObject3D instanceof ApplicationObject3D)
+          removeAllHighlighting(applicationObject3D);
+      }
+    }
+
     if (mesh instanceof ComponentMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {

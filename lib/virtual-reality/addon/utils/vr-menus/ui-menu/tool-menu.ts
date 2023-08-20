@@ -90,14 +90,14 @@ export default class ToolMenu extends InteractiveMenu {
 
     this.addTool({
       label: 'Search',
-      icon: 'search',
+      icon: 'keyboard',
       action: () =>
         this.menuGroup?.replaceMenu(this.menuFactory.buildSearchMenu()),
     });
 
     this.addTool({
-      label: 'OnlineMenu2',
-      icon: 'search',
+      label: 'Spectate',
+      icon: 'live',
       action: () =>
         this.menuGroup?.replaceMenu(this.menuFactory.buildOnlineMenu2()),
     });

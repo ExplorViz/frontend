@@ -27,7 +27,6 @@ type Controller = {
   model: THREE.Object3D;
   ray: RayMesh;
   pingMesh: PingMesh;
-  waypointIndicator: WaypointIndicator;
 };
 
 export default class RemoteUser extends THREE.Object3D {
@@ -131,12 +130,9 @@ export default class RemoteUser extends THREE.Object3D {
       animationMixer: this.animationMixer,
       color: this.color,
     });
-    const waypointIndicator = new WaypointIndicator({
-      target: pingMesh,
-      color: this.color,
-    });
+    
     this.add(pingMesh);
-    this.localUser.defaultCamera.add(waypointIndicator);
+
 
     const controller = {
       assetUrl,
@@ -146,7 +142,6 @@ export default class RemoteUser extends THREE.Object3D {
       model,
       ray,
       pingMesh,
-      waypointIndicator,
     };
     this.controllers[controllerId] = controller;
     this.add(controller.model);
@@ -159,7 +154,6 @@ export default class RemoteUser extends THREE.Object3D {
     if (!controller) return;
     this.remove(controller.model);
     this.remove(controller.pingMesh);
-    this.localUser.defaultCamera.remove(controller.waypointIndicator);
     this.controllers[controllerId] = null;
   }
 
