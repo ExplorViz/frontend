@@ -219,7 +219,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openDataSelection },
       { title: 'Enter AR', action: this.args.switchToAR },
-     // { title: 'Enter VR', action: this.args.switchToVR },
+      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -361,7 +361,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         );
       } else {
         // extern communication link
-        this.applicationRenderer.highlightExternLink(mesh, true, this.localUser.color);
+        this.applicationRenderer.highlightExternLink(
+          mesh,
+          true,
+          this.localUser.color
+        );
       }
     }
   }
@@ -375,14 +379,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    if (!this.userSettings.applicationSettings.enableMultipleHighlighting.value) {
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value = true;
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        true;
     }
   }
 
   @action
   handleStrgUp() {
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value = false;
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      false;
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
@@ -404,12 +412,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
-
-    if(mesh instanceof ComponentMesh || mesh instanceof FoundationMesh){
-      
-      if(!this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose.value){
+    if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
+      if (
+        !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
+          .value
+      ) {
         const applicationObject3D = mesh.parent;
-        if(applicationObject3D instanceof ApplicationObject3D)
+        if (applicationObject3D instanceof ApplicationObject3D)
           removeAllHighlighting(applicationObject3D);
       }
     }

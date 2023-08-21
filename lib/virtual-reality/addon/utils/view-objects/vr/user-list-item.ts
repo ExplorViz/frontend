@@ -5,6 +5,7 @@ import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,
@@ -24,6 +25,9 @@ export default class UserListItem
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
   isHovered = false;
 
   menu: OnlineMenu2;
@@ -31,13 +35,32 @@ export default class UserListItem
   userId: string;
 
   constructor({ menu, owner, userName, userId, ...options }: UserListItemArgs) {
-    super({ ...options, hiddenOverflow: true });
+    super({ ...options, hiddenOverflow: true, contentDirection: 'row' });
     this.menu = menu;
     setOwner(this, owner);
     this.userName = userName;
     this.userId = userId;
+    const textBox = new ThreeMeshUI.Block({
+      width: options.width - 0.09,
+      height: options.height,
+      justifyContent: 'center',
+      textAlign: 'left',
+      padding: 0.03,
+      backgroundOpacity: 0,
+    });
     const itemText = new ThreeMeshUI.Text({ content: userName });
-    this.add(itemText);
+    textBox.add(itemText);
+    this.add(textBox);
+
+    const imageBlock = new ThreeMeshUI.Block({
+      height: 0.08,
+      width: 0.08,
+    });
+    const loader = new THREE.TextureLoader();
+    loader.load('images/menu-icons/camera-128.png', (texture) => {
+      imageBlock.set({ backgroundTexture: texture });
+    });
+    this.add(imageBlock);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -101,6 +101,7 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 
 interface Args {
   debugMode: boolean;
@@ -462,6 +463,13 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: UserListItem,
       triggerDown: (event) => event.target.triggerDown(),
+      hover: (event) => event.target.applyHover(),
+      resetHover: (event) => event.target.resetHover(),
+    });
+
+    this.primaryInputManager.addInputHandler({
+      targetType: DisconnectButton,
+      triggerPress: (event) => event.target.triggerPress(),
       hover: (event) => event.target.applyHover(),
       resetHover: (event) => event.target.resetHover(),
     });

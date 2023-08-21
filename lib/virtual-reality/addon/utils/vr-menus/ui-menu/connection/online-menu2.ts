@@ -12,6 +12,7 @@ import VRControllerThumbpadBinding, {
 import VRController from 'virtual-reality/utils/vr-controller';
 import InteractiveMenu from '../../interactive-menu';
 import LocalUser from 'collaborative-mode/services/local-user';
+import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 
 export type UserMenuArgs = UiMenuArgs & {
   owner: any;
@@ -26,9 +27,14 @@ const BLOCK_OPTIONS_CONTAINER = {
   fontTexture: '/images/keyboard/custom.png',
 };
 
+const BLOCK_OPTIONS_DISCONNECT = {
+  width: BLOCK_OPTIONS_CONTAINER.width * 0.5,
+  height: BLOCK_OPTIONS_CONTAINER.height * 0.1,
+};
+
 const BLOCK_OPTIONS_SEARCHLIST_CONTAINER = {
   width: BLOCK_OPTIONS_CONTAINER.width,
-  height: BLOCK_OPTIONS_CONTAINER.height,
+  height: BLOCK_OPTIONS_CONTAINER.height - 0.1,
 };
 
 export default class OnlineMenu2 extends InteractiveMenu {
@@ -66,11 +72,14 @@ export default class OnlineMenu2 extends InteractiveMenu {
       fontTexture: BLOCK_OPTIONS_CONTAINER.fontTexture,
       fontSize: 0.03,
       justifyContent: 'start',
-      backgroundOpacity: 0,
+      //backgroundOpacity: 0,
       offset: -0.001,
+      backgroundColor: new THREE.Color('#777777'),
+      backgroundOpacity: 0.6,
     });
 
     this.add(this.container);
+    this.container.position.y += 0.1;
 
     const titleBlock = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
@@ -81,7 +90,7 @@ export default class OnlineMenu2 extends InteractiveMenu {
     });
 
     const title = new ThreeMeshUI.Text({
-      content: 'Viewer FOV',
+      content: `Room ${this.collaborationSession.currentRoomId}`,
       fontColor: new THREE.Color('#ffffff'),
     });
 
@@ -97,11 +106,20 @@ export default class OnlineMenu2 extends InteractiveMenu {
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
       offset: 0.001,
       backgroundColor: new THREE.Color('#777777'),
-      backgroundOpacity: 0.6,
+      backgroundOpacity: 0,
     });
 
     this.container.add(this.userListContainer);
     this.userListContainer.add(titleBlock);
+    const disconnect = new DisconnectButton({
+      owner: this.owner,
+      ...BLOCK_OPTIONS_DISCONNECT,
+      offset: 0.02,
+      backgroundOpacity: 0.6,
+      margin: 0.01,
+      backgroundColor: new THREE.Color('red'),
+    });
+    this.container.add(disconnect);
     this.updateUI();
   }
 

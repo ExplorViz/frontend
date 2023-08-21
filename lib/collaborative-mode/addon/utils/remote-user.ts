@@ -130,9 +130,8 @@ export default class RemoteUser extends THREE.Object3D {
       animationMixer: this.animationMixer,
       color: this.color,
     });
-    
-    this.add(pingMesh);
 
+    this.add(pingMesh);
 
     const controller = {
       assetUrl,
@@ -187,6 +186,7 @@ export default class RemoteUser extends THREE.Object3D {
   }
 
   getVisualizationMode(): string {
+    // TODO: refactoring! this method won't return the remote user's localUser instance! It is always our own
     return this.localUser.visualizationMode;
   }
 

@@ -28,7 +28,6 @@ import TimeMenu from 'virtual-reality/utils/vr-menus/ui-menu/time-menu';
 import ToolMenu from 'virtual-reality/utils/vr-menus/ui-menu/tool-menu';
 import ConnectingMenu from '../utils/vr-menus/ui-menu/connection/connecting-menu';
 import OfflineMenu from '../utils/vr-menus/ui-menu/connection/offline-menu';
-import OnlineMenu from '../utils/vr-menus/ui-menu/connection/online-menu';
 import MainMenu from '../utils/vr-menus/ui-menu/main-menu';
 import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
@@ -42,6 +41,7 @@ import VrRendering from 'virtual-reality/components/vr-rendering';
 import VRController from 'virtual-reality/utils/vr-controller';
 import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
+import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -110,7 +110,7 @@ export default class VrMenuFactoryService extends Service {
 
   // #region CONNECTION MENUS
 
-  buildConnectionMenu(): ConnectionBaseMenu {
+  buildConnectionMenu(): ConnectionBaseMenu | InteractiveMenu {
     switch (this.collaborationSession.connectionStatus) {
       case 'connecting':
         return this.buildConnectingMenu();
@@ -137,16 +137,17 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildOnlineMenu(): OnlineMenu {
-    return new OnlineMenu({
-      collaborationSession: this.collaborationSession,
-      localUser: this.localUser,
-      spectateUserService: this.spectateUserService,
-      menuFactory: this,
-    });
-  }
+  // Got replaced by OnlineMenu2
+  // buildOnlineMenu(): OnlineMenu {
+  //   return new OnlineMenu({
+  //     collaborationSession: this.collaborationSession,
+  //     localUser: this.localUser,
+  //     spectateUserService: this.spectateUserService,
+  //     menuFactory: this,
+  //   });
+  // }
 
-  buildOnlineMenu2(): OnlineMenu2 {
+  buildOnlineMenu(): OnlineMenu2 {
     return new OnlineMenu2({
       owner: getOwner(this),
       renderer: this.renderer,

@@ -95,14 +95,27 @@
             @selectedTimestampRecords={{this.selectedTimestampRecords}}
             @applicationArgs={{this.applicationArgs}}
           />
-          <button
+
+          {{#unless this.showTimeline}}
+            <button
+              id='VrButton'
+              type='button'
+              {{did-insert this.updateVrStatus}}
+              {{on 'click' this.switchToVR}}
+            >
+              {{this.buttonText}}
+            </button>
+          {{/unless}}
+          <!-- <button
             id='VrButton'
+            class={{if this.isTimelineActive 'test1' 'test2'}}
+            title={{if this.isTimelineActive 'test1' 'test2'}}
             type='button'
             {{did-insert this.updateVrStatus}}
             {{on 'click' this.switchToVR}}
           >
             {{this.buttonText}}
-          </button>
+          </button> -->
         {{/if}}
 
       {{else}}
@@ -137,6 +150,7 @@
 
 {{#if this.showTimeline}}
   <div id='timeline-content'>
+
     <BsButton
       @onClick={{this.toggleTimeline}}
       @type='secondary'
@@ -144,6 +158,17 @@
       class='btn-timeline'
       title={{if this.isTimelineActive 'Hide Timeline' 'Show Timeline'}}
     >
+
+      <button
+        id='VrButton'
+        class='btn-timeline-above'
+        type='button'
+        {{did-insert this.updateVrStatus}}
+        {{on 'click' this.switchToVR}}
+      >
+        {{this.buttonText}}
+      </button>
+
       {{#unless this.isTimelineActive}}
         <span class='pr-1'>Show Timeline</span>
       {{/unless}}

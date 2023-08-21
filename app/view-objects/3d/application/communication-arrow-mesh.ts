@@ -67,7 +67,6 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
       this.cone.material.transparent = isTransparent;
       this.cone.material.needsUpdate = true;
     }
-    
   }
 
   /**

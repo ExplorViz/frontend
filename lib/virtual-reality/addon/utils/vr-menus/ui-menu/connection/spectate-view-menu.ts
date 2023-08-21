@@ -10,7 +10,10 @@ import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-co
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import { setOwner } from '@ember/application';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { BLOCK_OPTIONS_CONTAINER, BLOCK_OPTIONS_TITLE } from '../detail-info-menu';
+import {
+  BLOCK_OPTIONS_CONTAINER,
+  BLOCK_OPTIONS_TITLE,
+} from '../detail-info-menu';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -36,7 +39,7 @@ export default class SpectateViewMenu
   scene!: THREE.Scene;
 
   userId!: string;
-  
+
   name!: string;
 
   headsetCamera!: THREE.Camera;
@@ -56,11 +59,13 @@ export default class SpectateViewMenu
     this.scene = scene;
     this.userId = userId;
     this.headsetCamera = new THREE.PerspectiveCamera();
-    if( this.collaborationSession.lookupRemoteUserById(this.userId) ){
-        this.name = this.collaborationSession.lookupRemoteUserById(this.userId)!.userName ;
-      }else{
-        this.name = "you";
-      }
+    if (this.collaborationSession.lookupRemoteUserById(this.userId)) {
+      this.name = this.collaborationSession.lookupRemoteUserById(
+        this.userId
+      )!.userName;
+    } else {
+      this.name = 'you';
+    }
   }
 
   private isVisualizationModeVr(): boolean {
@@ -91,7 +96,6 @@ export default class SpectateViewMenu
       this.headsetCamera.quaternion.copy(cameraQuaternion);
     }
   }
-
 
   getDetachId(): string {
     return this.id.toString();
@@ -160,7 +164,7 @@ export default class SpectateViewMenu
       justifyContent: 'start',
       textAlign: 'center',
       offset: 0.02,
-      backgroundOpacity:0,
+      backgroundOpacity: 0,
     });
 
     const title = new ThreeMeshUI.Text({
@@ -171,8 +175,6 @@ export default class SpectateViewMenu
     titleBlock.add(title);
     this.add(titleBlock);
     this.add(plane);
-
-    
 
     this.firstTime = false;
   }

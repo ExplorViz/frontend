@@ -91,18 +91,16 @@ export default class VrButton extends Component<VrButtonArgs> {
     if (!this.vrSupported) return;
 
     if (!this.currentSession) {
-
       const sessionInit = { optionalFeatures: ['local-floor'] };
       try {
         const session = await navigator.xr?.requestSession(
-        'immersive-vr',
-        sessionInit
-      );
-      this.onSessionStarted(session);
+          'immersive-vr',
+          sessionInit
+        );
+        this.onSessionStarted(session);
       } catch (error) {
         console.log('ERROR 1');
       }
-
     } else {
       try {
         await this.currentSession.end();
@@ -110,8 +108,7 @@ export default class VrButton extends Component<VrButtonArgs> {
         console.log('ERROR 2');
       }
 
-      if(this.args.debugMode) this.onSessionEnded();
+      if (this.args.debugMode) this.onSessionEnded();
     }
   }
 }
-

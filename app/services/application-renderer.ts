@@ -44,7 +44,10 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { EntityMesh, isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 // #endregion imports
 
@@ -266,7 +269,8 @@ export default class ApplicationRenderer extends Service.extend({
 
       const currentSetting =
         this.userSettings.applicationSettings.enableMultipleHighlighting.value;
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value = true; // so resetting multiple highlights within one application won't reset them
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
           this.highlightingService.hightlightComponentLocallyByTypeAndId(
@@ -330,7 +334,7 @@ export default class ApplicationRenderer extends Service.extend({
     ) {
       this.addCommunication(applicationObject3D);
     }
-   
+
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
@@ -405,8 +409,12 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   @action
-  highlightExternLink(mesh: EntityMesh, sendMessage: boolean, color?: THREE.Color){
-    if(mesh instanceof ClazzCommunicationMesh)
+  highlightExternLink(
+    mesh: EntityMesh,
+    sendMessage: boolean,
+    color?: THREE.Color
+  ) {
+    if (mesh instanceof ClazzCommunicationMesh)
       this.highlightingService.highlight(mesh, sendMessage, color);
   }
 
@@ -567,7 +575,6 @@ export default class ApplicationRenderer extends Service.extend({
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
 
-
         // TODO: room.transparentExternCommunicationLinks so we can keep the arrows on the pipes transparent after each landscape tick in collaboration mode
         // reset highlighted extern links and implicated opaqueness
         if (room.highlightedExternCommunicationLinks) {
@@ -612,7 +619,6 @@ export default class ApplicationRenderer extends Service.extend({
                 false,
                 new THREE.Color().fromArray(externLink.color)
               );
-              
             }
           });
         }
