@@ -72,11 +72,9 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
     console.log('onselect', firstEntity.modelId);
 
-    const clazzModel = (
-      this.applicationRenderer.getBoxMeshByModelId(
-        firstEntity.modelId
-      ) as ClazzMesh
-    ).dataModel;
+    const clazzMesh = this.applicationRenderer.getBoxMeshByModelId(
+      firstEntity.modelId
+    ) as ClazzMesh;
 
     const applicationObject3D = this.applicationRenderer.getApplicationById(
       firstEntity.applicationModelId
@@ -84,14 +82,11 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
     if (applicationObject3D) {
       openComponentsByList(
-        getAllAncestorComponents(clazzModel),
+        getAllAncestorComponents(clazzMesh.dataModel),
         applicationObject3D
       );
 
-      this.applicationRenderer.highlightModel(
-        clazzModel,
-        firstEntity.applicationModelId
-      );
+      this.applicationRenderer.highlight(clazzMesh, applicationObject3D);
     }
   }
 
