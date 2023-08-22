@@ -20,7 +20,11 @@ export function setClassName(app: Application, id: string) {
   return classToRename;
 }
 
-export function addFoundationToLandscape(counter: number) {
+export function addFoundationToLandscape(
+  appName: string,
+  language: string,
+  counter: number
+) {
   const myNode: Node = {
     id: 'newNode ' + counter,
     ipAddress: '192.168.1.' + counter,
@@ -29,10 +33,10 @@ export function addFoundationToLandscape(counter: number) {
   };
 
   const myApplication: Application = {
-    id: 'newApp' + counter,
-    name: 'New Application ' + counter,
-    language: 'JavaScript',
-    instanceId: 'newAppId ' + counter,
+    id: 'newApp ' + counter,
+    name: appName,
+    language: language,
+    instanceId: '0',
     parent: myNode,
     packages: [],
   };
@@ -69,18 +73,6 @@ export function createClass(counter: number) {
   };
 
   return newClass;
-}
-
-export function addClassToApplication(pckg: Package, counter: number) {
-  const newClass: Class = {
-    id: 'newClass ' + counter,
-    name: 'New Class ' + counter,
-    methods: [],
-    parent: pckg,
-  };
-
-  pckg.classes.push(newClass);
-  newClass.parent = pckg;
 }
 
 export function addMethodToClass(clazz: Class, methodName: string) {
@@ -156,6 +148,7 @@ export function removePackageFromApplication(
     };
     let deleteApp = false;
 
+    // if parent package has more than 1 element, then remove the current package from its child packages, else check for the next ancestors
     if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
       wrapper.meshTodelete = pckgToRemove;
       parentPackage.subPackages = parentPackage.subPackages.filter(
@@ -163,6 +156,7 @@ export function removePackageFromApplication(
       );
       //delete pckgToRemove.parent;
     } else {
+      // check if there is one ancestor package, that fulfills the condition of having more than 1 child elements. If not then we delete the whole application
       deleteApp = cleanUpAncestor(
         landscapeStructure,
         parentPackage,
@@ -262,7 +256,7 @@ export function removeClassFromPackage(
           });
         } else {
           // if class in package is part of a communication then remove it
-          wrapper.comms.filter(
+          wrapper.comms = wrapper.comms.filter(
             (comm) =>
               comm.sourceClass.id !== clazzToRemove.id &&
               comm.targetClass.id !== clazzToRemove.id
@@ -285,7 +279,10 @@ export function cutAndInsertPackage(
   landscapeStructure: StructureLandscapeData,
   clippedPackage: Package,
   clipToDestination: Application | Package,
-  commsWrapper: { comms: DrawableClassCommunication[] }
+  wrapper: {
+    comms: DrawableClassCommunication[];
+    meshTodelete?: Application | Package | Class;
+  }
 ) {
   const parentPackage = clippedPackage.parent;
 
@@ -313,7 +310,7 @@ export function cutAndInsertPackage(
     if (parentPackage.subPackages.length + parentPackage.classes.length <= 1) {
       removePackageFromApplication(
         landscapeStructure,
-        commsWrapper,
+        wrapper,
         parentPackage,
         true,
         destinationApplication
@@ -322,11 +319,11 @@ export function cutAndInsertPackage(
       parentPackage.subPackages = parentPackage.subPackages.filter(
         (packg: Package) => packg.id != clippedPackage.id
       );
-      if (commsWrapper.comms.length > 0) {
+      if (wrapper.comms.length > 0) {
         const classesInPackage = getClassesInPackage(clippedPackage);
         updateAffectedCommunications(
           classesInPackage,
-          commsWrapper,
+          wrapper,
           destinationApplication
         );
       }
@@ -360,7 +357,7 @@ export function cutAndInsertPackage(
     if (application && application.packages.length <= 1) {
       removeApplication(
         landscapeStructure,
-        commsWrapper,
+        wrapper,
         application,
         true,
         destinationApplication
@@ -372,11 +369,11 @@ export function cutAndInsertPackage(
       );
 
       // if any class in package is part of a communication and information about source and target app has changed then update it
-      if (commsWrapper.comms.length > 0) {
+      if (wrapper.comms.length > 0) {
         const classesInPackage = getClassesInPackage(clippedPackage);
         updateAffectedCommunications(
           classesInPackage,
-          commsWrapper,
+          wrapper,
           destinationApplication
         );
       }
@@ -529,7 +526,7 @@ function handleApplicationAncestor(
     landscapeStructure,
     parentPackage.id
   );
-  return removeUnecessaryPackages(applicationWrapper, parentPackage, wrapper);
+  return hasAppEnoughPackages(applicationWrapper, parentPackage, wrapper);
 }
 
 function handlePackageAncestors(
@@ -565,12 +562,12 @@ function handlePackageAncestors(
       landscapeStructure,
       ancestorPackages[ancestorPackages.length - 1].id
     );
-    return removeUnecessaryPackages(applicationWrapper, topPackage, wrapper);
+    return hasAppEnoughPackages(applicationWrapper, topPackage, wrapper);
   }
   return true;
 }
 
-function removeUnecessaryPackages(
+function hasAppEnoughPackages(
   applicationWrapper: { app: Application | undefined },
   topPackage: Package,
   wrapper: {
@@ -578,6 +575,7 @@ function removeUnecessaryPackages(
     meshTodelete?: Application | Package | Class;
   }
 ) {
+  // if the application has enough packages, then remove only the package else mark the app for delete
   if (applicationWrapper.app) {
     if (applicationWrapper.app.packages.length > 1) {
       wrapper.meshTodelete = topPackage;
@@ -621,7 +619,7 @@ function handleTopPackageAncestor(
       landscapeStructure,
       topPackage.id
     );
-    return removeUnecessaryPackages(applicationWrapper, topPackage, wrapper);
+    return hasAppEnoughPackages(applicationWrapper, topPackage, wrapper);
   }
   return true;
 }

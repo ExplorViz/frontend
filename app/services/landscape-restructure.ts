@@ -34,6 +34,8 @@ import {
 import ApplicationRepository from './repos/application-repository';
 import Changelog from './changelog';
 import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
+import { getClassMethodByName } from 'explorviz-frontend/utils/class-helpers';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -52,9 +54,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @tracked
   public landscapeData: LandscapeData | null = null;
-
-  @tracked
-  highlightedMeshes: Map<string, THREE.Mesh> = new Map();
 
   @tracked
   newMeshCounter: number = 1;
@@ -93,7 +92,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.structureLandscapeData,
         this.targetClass
       );
-      addMethodToClass(this.sourceClass, methodName);
+      addMethodToClass(this.targetClass, methodName);
       const classCommunication: DrawableClassCommunication = {
         id: this.sourceClass.name + ' => ' + this.targetClass.name,
         totalRequests: 1,
@@ -103,6 +102,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         sourceApp: sourceApp,
         targetApp: targetApp,
       };
+      this.changeLog.communicationEntry(
+        sourceApp as Application,
+        this.sourceClass,
+        targetApp as Application,
+        this.targetClass,
+        methodName,
+        this.landscapeData.structureLandscapeData
+      );
       this.classCommunication.push(classCommunication);
       this.trigger(
         'restructureLandscapeData',
@@ -221,9 +228,31 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  addFoundation() {
+  updateOperationName(clazz: Class, originalName: string, newName: string) {
+    const opt = getClassMethodByName(clazz, originalName);
+    const newCommunication = this.classCommunication.find(
+      (comm) => comm.targetClass === clazz && comm.operationName === opt?.name
+    );
+
+    if (newCommunication) {
+      newCommunication.operationName = newName;
+    }
+
+    if (opt) opt.name = newName;
+    this.trigger(
+      'restructureLandscapeData',
+      this.landscapeData?.structureLandscapeData,
+      this.landscapeData?.dynamicLandscapeData
+    );
+  }
+
+  addApplication(appName: string, language: string) {
     if (this.landscapeData?.structureLandscapeData) {
-      const foundation = addFoundationToLandscape(this.newMeshCounter);
+      const foundation = addFoundationToLandscape(
+        appName,
+        language,
+        this.newMeshCounter
+      );
       const app = foundation.applications.firstObject;
       const pckg = app?.packages.firstObject;
       const clazz = pckg?.classes.firstObject;
@@ -241,20 +270,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
     this.newMeshCounter++;
   }
-
-  // addPackage() {
-  //   const highlightedMesh = this.highlightedMeshes.entries().next().value;
-  //   addPackageToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
-  //   console.log(highlightedMesh[1].dataModel);
-  //   if (this.landscapeData?.structureLandscapeData) {
-  //     this.trigger(
-  //       'restructureLandscapeData',
-  //       this.landscapeData.structureLandscapeData,
-  //       this.landscapeData.dynamicLandscapeData
-  //     );
-  //   }
-  //   this.newMeshCounter++;
-  // }
 
   addSubPackageFromPopup(pckg: Package) {
     if (this.landscapeData?.structureLandscapeData) {
@@ -296,20 +311,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  // addClass() {
-  //   const highlightedMesh = this.highlightedMeshes.entries().next().value;
-  //   addClassToApplication(highlightedMesh[1].dataModel, this.newMeshCounter);
-  //   console.log(highlightedMesh[1].dataModel);
-  //   if (this.landscapeData?.structureLandscapeData) {
-  //     this.trigger(
-  //       'restructureLandscapeData',
-  //       this.landscapeData.structureLandscapeData,
-  //       this.landscapeData.dynamicLandscapeData
-  //     );
-  //   }
-  //   this.newMeshCounter++;
-  // }
-
   addClassFromPopup(pckg: Package) {
     if (this.landscapeData?.structureLandscapeData) {
       const app = this.getAppFromPackage(pckg);
@@ -330,11 +331,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   deleteAppFromPopup(app: Application) {
     if (this.landscapeData?.structureLandscapeData) {
-      /*let appl: object = {l: "test"};
-      let wrapper = {
-        comms: this.classCommunication,
-        app: appl
-      };*/
+      // let appl: object = {l: "test"};
+      // let wrapper = {
+      //   comms: this.classCommunication,
+      //   meshTodelete: appl as Application
+      // };
       const wrapper = {
         comms: this.classCommunication,
       };
@@ -346,20 +347,18 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         false
       );
       this.classCommunication = wrapper.comms;
-      /*if(isApplication(wrapper.app)) {
-        this.applicationRenderer.removeApplicationLocally(wrapper.app.id);
-        let vrobj: ApplicationObject3D | undefined = this.applicationRenderer.getApplicationById(wrapper.app.id);
-        const appdata = this.applicationRepo.getById(wrapper.app.id);
-        console.log("found");
-        console.log(vrobj);
-        if(vrobj) {
-          vrobj.removeAllEntities();
-          vrobj.removeAllCommunication();
-          this.applicationRenderer.
-        }
-        //this.applicationRepo.delete(wrapper.app.id);
-      }*/
-      this.applicationRepo.clear();
+      //if(wrapper.meshTodelete && isApplication(wrapper.meshTodelete)) {
+      const appObject3D: ApplicationObject3D | undefined =
+        this.applicationRenderer.getApplicationById(app.id);
+      console.log('found');
+      console.log(appObject3D);
+      if (appObject3D) {
+        appObject3D.removeAllEntities();
+        appObject3D.removeAllCommunication();
+      }
+      //this.applicationRepo.delete(wrapper.app.id);
+      //}
+      //this.applicationRepo.clear();
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,

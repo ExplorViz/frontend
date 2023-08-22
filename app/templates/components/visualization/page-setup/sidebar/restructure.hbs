@@ -20,38 +20,52 @@
   </div>
 
   {{#if this.restructureMode}}
-    <h6 class="mb-3 mt-3"><strong>Entity</strong></h6>
+    <h6 class="mb-3 mt-3"><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
+      <label for="token">API Token:</label>
+      <div class="d-flex justify-content-between">
+        <input id="token" class="form-control mr-2" oninput={{this.updateToken}} value={{this.token}}>
+      </div>
+      <ul></ul>
+      <label for="repo">Repository ID:</label>
+      <div class="d-flex justify-content-between">
+        <input id="repo" class="form-control mr-2" oninput={{this.updateRepo}} value={{this.repo}}>
+      </div>
+      <ul></ul>
       <div class='d-flex justify-content-between'>
         <BsButton
-          title='Foundation'
+          title='Save Gitlab Credentials'
+          {{on 'click' this.saveGitlabCredentials}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.saveCredBtnDisabled}}
+        >
+          Save
+        </BsButton>
+      </div>
+    </div>
+
+    <h6 class="mb-3 mt-3"><strong>Application</strong></h6>
+    <div class='ml-3'>
+      <label for="appName">Application name:</label>
+      <div class="d-flex justify-content-between">
+        <input id="appName" class="form-control mr-2" oninput={{this.updateNewAppName}} value={{this.appName}}>
+      </div>
+      <ul></ul>
+      <label for="language">Language:</label>
+      <div class="d-flex justify-content-between">
+        <input id="language" class="form-control mr-2" oninput={{this.updateLanguage}} value={{this.language}}>
+      </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Create a new Application'
           {{on 'click' this.addFoundation}}
           @type='secondary'
           @outline={{true}}
+          disabled={{this.createAppBtnDisabled}}
         >
-          Foundation
-        </BsButton>
-      </div>
-      <ul></ul>
-      <div class='d-flex justify-content-between'>
-        <BsButton
-          title='Package'
-          {{on 'click' this.addPackage}}
-          @type='secondary'
-          @outline={{true}}
-        >
-          Package
-        </BsButton>
-      </div>
-      <ul></ul>
-      <div class='d-flex justify-content-between'>
-        <BsButton
-          title='Class'
-          {{on 'click' this.addClass}}
-          @type='secondary'
-          @outline={{true}}
-        >
-          Class
+          Create Application
         </BsButton>
       </div>
     </div>
@@ -110,7 +124,7 @@
             <input id="issueTitle" type="text" placeholder="Issue Title" value={{issue.title}} {{on "input" (fn this.updateIssueTitle index)}}>
           <ul></ul>
           <label for="issue"></label>
-          <textarea id="issue" placeholder="Issue Content" rows="10" value={{issue.content}} {{on "input" (fn this.updateIssueContent index)}}></textarea>
+          <textarea id="issue" placeholder="Issue Content" rows="10" value={{issue.content}} {{on "input" (fn this.updateIssueContent index)}} {{on "keydown" (fn this.checkForPlusKey index)}}></textarea>
         </div>
       </div>
       <ul></ul>
@@ -119,12 +133,21 @@
     <div class='ml-3'>
       <div class='d-flex justify-content-between'>
         <BsButton
-          title='Foundation'
+          title='Create Issue'
           {{on 'click' this.createIssue}}
           @type='secondary'
           @outline={{true}}
         >
           Create Issue
+        </BsButton>
+
+        <BsButton
+          title='Upload Issue to Gitlab'
+          {{on 'click' this.uploadIssueToGitLab}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Upload to Gitlab
         </BsButton>
       </div>
       <ul></ul>

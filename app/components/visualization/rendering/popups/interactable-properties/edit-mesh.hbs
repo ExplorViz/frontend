@@ -1,53 +1,53 @@
 <hr> 
 {{#if this.isEntityPackage}}
-    <BsButton @type='success' {{on 'click' this.addPackage}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+    <BsButton style={{html-safe (concat "background-color: " this.packageColor "; border-color: " this.packageColor ";")}} {{on 'click' this.addPackage}}>
+        {{svg-jar 'package-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Add Package
         </BsTooltip>
     </BsButton>
-    <BsButton @type='info' {{on 'click' this.addClass}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+    <BsButton style={{html-safe (concat "background-color: " this.clazzColor "; border-color: " this.clazzColor ";")}} {{on 'click' this.addClass}}>
+        {{svg-jar 'file-code-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Add Class
         </BsTooltip>
     </BsButton>
     <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+        {{svg-jar 'trash-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Delete
         </BsTooltip>
     </BsButton>
     <BsButton @type='dark' {{on 'click' this.cutMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+        {{svg-jar 'copy-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Cut
         </BsTooltip>
     </BsButton>
     {{#if this.isInsertable}}
         <BsButton @type='light' {{on 'click' this.insertMesh}}>
-            {{svg-jar this.iconName class='octicon align-right'}}
+            {{svg-jar 'duplicate-16' class='octicon align-right'}}
             <BsTooltip @placement='top' @triggerEvents='hover'>
                 Insert
             </BsTooltip>
         </BsButton>
     {{/if}}
 {{else if this.isEntityApplication}}
-    <BsButton @type='success' {{on 'click' this.addPackage}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+    <BsButton style={{html-safe (concat "background-color: " this.packageColor "; border-color: " this.packageColor ";")}} {{on 'click' this.addPackage}}>
+        {{svg-jar 'package-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Add Package
         </BsTooltip>
     </BsButton>
     <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+        {{svg-jar 'trash-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Delete
         </BsTooltip>
     </BsButton>
     {{#if this.isInsertable}}
         <BsButton @type='light' {{on 'click' this.insertMesh}}>
-            {{svg-jar this.iconName class='octicon align-right'}}
+            {{svg-jar 'duplicate-16' class='octicon align-right'}}
             <BsTooltip @placement='top' @triggerEvents='hover'>
                 Insert
             </BsTooltip>
@@ -55,13 +55,13 @@
     {{/if}}
 {{else if this.isEntityClass}}
     <BsButton @type='danger' {{on 'click' this.deleteMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+        {{svg-jar 'trash-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Delete
         </BsTooltip>
     </BsButton>
     <BsButton @type='dark' {{on 'click' this.cutMesh}}>
-        {{svg-jar this.iconName class='octicon align-right'}}
+        {{svg-jar 'copy-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
             Cut
         </BsTooltip>

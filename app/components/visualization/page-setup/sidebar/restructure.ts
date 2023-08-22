@@ -32,6 +32,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   landscapeRestructure!: LandscapeRestructure;
 
   @tracked
+  token: string = localStorage.getItem('gitAPIToken') || '';
+
+  @tracked
+  repo: string = localStorage.getItem('gitRepo') || '';
+
+  @tracked
+  appName: string = '';
+
+  @tracked
+  language: string = '';
+
+  @tracked
   clipboard: string = '';
 
   @tracked
@@ -48,6 +60,12 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @tracked
   restructureMode: boolean = this.landscapeRestructure.restructureMode;
+
+  @tracked
+  saveCredBtnDisabled: boolean = true;
+
+  @tracked
+  createAppBtnDisabled: boolean = true;
 
   @tracked
   communicationBtnDisabled: boolean = true;
@@ -100,10 +118,38 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
+  updateNewAppName(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.appName = target.value;
+    this.canCreateApplication();
+  }
+
+  @action
+  updateLanguage(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.language = target.value;
+    this.canCreateApplication();
+  }
+
+  @action
   updateMethodName(event: InputEvent) {
     const target = event.target as HTMLInputElement;
     this.methodName = target.value;
     this.canCreateCommunication();
+  }
+
+  @action
+  updateToken(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.token = target.value;
+    this.canSaveCredentials();
+  }
+
+  @action
+  updateRepo(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.repo = target.value;
+    this.canSaveCredentials();
   }
 
   @action
@@ -119,11 +165,21 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
+  canSaveCredentials() {
+    this.saveCredBtnDisabled = this.token === '' || this.repo === '';
+  }
+
+  @action
   canCreateCommunication() {
     this.communicationBtnDisabled =
       this.methodName === '' ||
       this.sourceClass === '' ||
       this.targetClass === '';
+  }
+
+  @action
+  canCreateApplication() {
+    this.createAppBtnDisabled = this.appName === '' || this.language === '';
   }
 
   @action
@@ -138,17 +194,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   addFoundation() {
-    this.landscapeRestructure.addFoundation();
-  }
-
-  @action
-  addPackage() {
-    this.landscapeRestructure.addPackage();
-  }
-
-  @action
-  addClass() {
-    this.landscapeRestructure.addClass();
+    this.landscapeRestructure.addApplication(this.appName, this.language);
   }
 
   @action
@@ -167,5 +213,71 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   updateIssueContent(index: number, event: Event) {
     const target = event.target as HTMLTextAreaElement;
     this.issues[index].content = target.value;
+  }
+
+  @action
+  saveGitlabCredentials() {
+    localStorage.setItem('gitAPIToken', this.token);
+    localStorage.setItem('gitRepo', this.repo);
+  }
+
+  @action
+  checkForPlusKey(index: number, event: KeyboardEvent) {
+    if (event.key === '+') {
+      const target = event.target as HTMLTextAreaElement;
+      const content = target.value;
+      const splitIndex = target.selectionStart;
+
+      const contentBeforePlus = content.substring(0, splitIndex - 1);
+      const contentAfterPlus = content.substring(splitIndex);
+
+      const updatedCurrentIssue = {
+        ...this.issues[index],
+        content: contentBeforePlus,
+      };
+
+      this.issues = [
+        ...this.issues.slice(0, index),
+        updatedCurrentIssue,
+        ...this.issues.slice(index + 1),
+        { title: '', content: contentAfterPlus },
+      ];
+
+      event.preventDefault();
+    }
+  }
+
+  @action
+  uploadIssueToGitLab() {
+    Promise.all(
+      this.issues.map((issue) => {
+        return fetch(this.repo, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.token}`,
+          },
+          body: JSON.stringify({
+            title: issue.title,
+            description: issue.content,
+          }),
+        }).then((response) => {
+          if (!response.ok) {
+            return Promise.reject(`Failed to upload issue: ${issue.title}`);
+          }
+          return response.json();
+        });
+      })
+    )
+      .then((results) => {
+        // Do something with the results, such as logging them
+        AlertifyHandler.showAlertifySuccess('Issue(s) successfully uploaded');
+        console.log('Successfully uploaded all issues:', results);
+        return results;
+      })
+      .catch((error) => {
+        console.error(error);
+        // Handle error as needed
+      });
   }
 }

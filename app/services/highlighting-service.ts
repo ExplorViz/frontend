@@ -26,7 +26,6 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import LandscapeRestructure from './landscape-restructure';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -88,9 +87,6 @@ export default class HighlightingService extends Service.extend({
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('landscape-restructure')
-  landscapeRestructure!: LandscapeRestructure;
-
   debug = debugLogger('HighlightingService');
 
   get opacity() {
@@ -138,7 +134,6 @@ export default class HighlightingService extends Service.extend({
         }
       });
     this.linkRenderer.getAllLinks().forEach((link) => link.unhighlight());
-    this.landscapeRestructure.highlightedMeshes.clear();
   }
 
   updateHighlighting(
@@ -250,7 +245,6 @@ export default class HighlightingService extends Service.extend({
 
   removeHighlightingLocally(application: ApplicationObject3D) {
     Highlighting.removeHighlighting(application);
-    this.landscapeRestructure.highlightedMeshes.clear();
   }
 
   hightlightComponentLocallyByTypeAndId(
@@ -274,18 +268,6 @@ export default class HighlightingService extends Service.extend({
         color || this.configuration.applicationColors.highlightedEntityColor
       );
       Highlighting.highlight(mesh, application, drawableComm, this.opacity);
-
-      // Using highlightedMeshes to be able to restructure them
-      if (mesh.highlighted) {
-        this.landscapeRestructure.highlightedMeshes.set(
-          mesh.dataModel.id,
-          mesh
-        );
-        console.log(this.landscapeRestructure.highlightedMeshes);
-      } else {
-        this.landscapeRestructure.highlightedMeshes.delete(mesh.dataModel.id);
-        console.log(this.landscapeRestructure.highlightedMeshes);
-      }
 
       this.linkRenderer.getAllLinks().forEach((link) => {
         const linkCommunication = link.dataModel.drawableClassCommus[0];

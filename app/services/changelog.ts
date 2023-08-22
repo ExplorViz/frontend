@@ -237,6 +237,7 @@ export default class Changelog extends Service.extend({
 
   deleteClassEntry(app: Application, clazz: Class) {
     const entry = this.findChangeLogEntry(clazz);
+    const commEntry = this.findChangeLogCommunicationEntry(clazz);
 
     if (!entry) {
       console.log('c1');
@@ -260,6 +261,10 @@ export default class Changelog extends Service.extend({
         clazz
       );
       this.changeLogEntries.push(clazzEntry);
+    }
+
+    if (commEntry) {
+      this.changeLogEntries.removeObject(commEntry);
     }
 
     console.log(this.changeLogEntries);
@@ -377,6 +382,29 @@ export default class Changelog extends Service.extend({
     console.log(this.changeLogEntries);
   }
 
+  communicationEntry(
+    sourceApp: Application,
+    sourceClazz: Class,
+    targetApp: Application,
+    targetClass: Class,
+    methodName: string,
+    landscapeData: StructureLandscapeData
+  ) {
+    const commEntry = new ChangeLogEntry(
+      ChangeLogAction.Communication,
+      sourceApp,
+      sourceClazz.parent,
+      sourceClazz,
+      undefined,
+      targetApp,
+      landscapeData,
+      targetClass,
+      methodName
+    );
+    this.changeLogEntries.push(commEntry);
+    console.log(this.changeLogEntries);
+  }
+
   getChangeLogs() {
     let description = '';
     this.changeLogEntries.forEach((entry) => {
@@ -394,12 +422,54 @@ export default class Changelog extends Service.extend({
     );
   }
 
+  private findChangeLogCommunicationEntry(
+    app: Application | Package | Class
+  ): ChangeLogEntry | undefined {
+    console.log(app);
+    return this.changeLogEntries.find(
+      (entry) =>
+        entry.action === ChangeLogAction.Communication &&
+        (entry.app === app ||
+          entry.pckg === app ||
+          entry.clazz === app ||
+          entry.destinationApp === app ||
+          entry.destinationClass === app)
+    );
+  }
+
   private removeAffectedLogEntries(app: Application, pckg: Package) {
     const entriesToRemove: ChangeLogEntry[] = [];
 
     this.changeLogEntries.forEach((logEntry) => {
       if (logEntry.app?.id === app.id && logEntry.pckg) {
         const ancestorPackages = getAncestorPackages(logEntry.pckg);
+        const affectedEntry = ancestorPackages.some(
+          (ancestorPckg) => ancestorPckg.id === pckg.id
+        );
+        if (affectedEntry) {
+          entriesToRemove.push(logEntry);
+        }
+      }
+      if (
+        logEntry.action === ChangeLogAction.Communication &&
+        logEntry.destinationApp === app
+      ) {
+        const ancestorPackages = getAncestorPackages(
+          logEntry.destinationClass?.parent as Package
+        );
+        const affectedEntry = ancestorPackages.some(
+          (ancestorPckg) => ancestorPckg.id === pckg.id
+        );
+        if (affectedEntry) {
+          entriesToRemove.push(logEntry);
+        }
+      } else if (
+        logEntry.action === ChangeLogAction.Communication &&
+        logEntry.app === app
+      ) {
+        const ancestorPackages = getAncestorPackages(
+          logEntry.clazz?.parent as Package
+        );
         const affectedEntry = ancestorPackages.some(
           (ancestorPckg) => ancestorPckg.id === pckg.id
         );

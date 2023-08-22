@@ -8,6 +8,8 @@ import {
   isClass,
   isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+
 interface Args {
   entity: any;
   appId: string;
@@ -17,8 +19,14 @@ export default class EditMesh extends Component<Args> {
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
+  @service('user-settings')
+  userSettings!: UserSettings;
+
   @tracked
-  iconName = 'pin-16';
+  packageColor = this.userSettings.applicationSettings.componentOddColor.value;
+
+  @tracked
+  clazzColor = this.userSettings.applicationSettings.clazzColor.value;
 
   get isEntityApplication() {
     return isApplication(this.args.entity);
@@ -76,6 +84,7 @@ export default class EditMesh extends Component<Args> {
 
   @action
   cutMesh() {
+    console.log(this.packageColor);
     if (this.isEntityPackage)
       this.landscapeRestructure.cutPackageFromPopup(this.args.entity);
     else if (this.isEntityClass)
