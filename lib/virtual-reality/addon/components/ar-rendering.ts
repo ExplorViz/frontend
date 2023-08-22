@@ -41,13 +41,13 @@ import {
 interface Args {
   readonly landscapeData: LandscapeData;
   readonly components: string[];
-  readonly showDataSelection: boolean;
+  readonly showSettingsSidebar: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
-  toggleSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
 }
@@ -573,7 +573,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   toggleSettingsPane() {
-    this.args.openDataSelection();
+    this.args.openSettingsSidebar();
   }
 
   @action

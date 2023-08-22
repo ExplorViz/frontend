@@ -12,14 +12,21 @@ export default class ApplicationData {
 
   layoutData: Map<string, LayoutData>;
 
+  flatData: Map<string, any>;
+
   @tracked
   heatmapData: ApplicationHeatmapData;
 
   drawableClassCommunications: DrawableClassCommunication[] = [];
 
-  constructor(application: Application, layoutData: Map<string, LayoutData>) {
+  constructor(
+    application: Application,
+    layoutData: Map<string, LayoutData>,
+    flatData: Map<string, any>
+  ) {
     this.application = application;
     this.layoutData = layoutData;
+    this.flatData = flatData;
     this.heatmapData = {
       metrics: [],
       latestClazzMetricScores: [],
@@ -31,9 +38,11 @@ export default class ApplicationData {
 
   updateApplication(
     newApplication: Application,
-    layoutData: Map<string, LayoutData>
+    layoutData: Map<string, LayoutData>,
+    flatData: Map<string, any>
   ) {
     this.application = newApplication;
     this.layoutData = layoutData;
+    this.flatData = flatData;
   }
 }

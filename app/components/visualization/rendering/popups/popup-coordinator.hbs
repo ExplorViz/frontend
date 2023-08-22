@@ -9,7 +9,7 @@
 >
 
   {{#if @popupData.isPinned}}
-    <BsButton @type='secondary' @outline="true" disabled="true">
+    <BsButton @type='secondary' @outline='true' disabled='true'>
       {{svg-jar 'pin-16' class='octicon align-right'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
         Popup is pinned
@@ -25,8 +25,8 @@
   {{/if}}
 
   {{#if @popupData.sharedBy}}
-    <BsButton @type='secondary' @outline="true" disabled="true">
-       {{svg-jar 'share-android-16' class='octicon align-right'}}
+    <BsButton @type='secondary' @outline='true' disabled='true'>
+      {{svg-jar 'share-android-16' class='octicon align-right'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
         Popup is shared
       </BsTooltip>
@@ -40,21 +40,18 @@
     </BsButton>
   {{/if}}
 
-  <BsButton
-    @type={{'primary'}}
-    @onClick={{this.highlight}}
-  >
+  <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
     {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
     <BsTooltip @placement='top' @triggerEvents='hover'>
       Highlight
     </BsTooltip>
   </BsButton>
-  
+
   <BsButton
     id='popup-close-button'
     style='float: right;'
     @type='secondary'
-    @outline="true"
+    @outline='true'
     @onClick={{fn @removePopup @popupData.entity.id}}
   >
     X
@@ -67,7 +64,7 @@
     />
   {{/if}}
   {{#if (eq this.entityType 'application')}}
-    <Visualization::Rendering::Popups::LandscapePopups::ApplicationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
       @application={{@popupData.entity}}
     />
   {{/if}}

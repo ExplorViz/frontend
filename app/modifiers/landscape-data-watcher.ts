@@ -99,9 +99,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
 
         // create or update applicationObject3D
-        const app = await this.applicationRenderer.addApplicationTask.perform(
-          applicationData
-        );
+        const app =
+          await this.applicationRenderer.addApplicationTask.perform(
+            applicationData
+          );
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -207,13 +208,27 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         'metrics-worker',
         workerPayload
       );
-      const results = (await all([cityLayout, heatmapMetrics])) as any[];
+
+      const flatData = this.worker.postMessage(
+        'flat-data-worker',
+        workerPayload
+      );
+
+      const results = (await all([
+        cityLayout,
+        heatmapMetrics,
+        flatData,
+      ])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0]);
+        applicationData.updateApplication(application, results[0], results[2]);
       } else {
-        applicationData = new ApplicationData(application, results[0]);
+        applicationData = new ApplicationData(
+          application,
+          results[0],
+          results[2]
+        );
       }
       applicationData.drawableClassCommunications = calculateCommunications(
         applicationData.application,
