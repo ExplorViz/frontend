@@ -178,8 +178,8 @@ export default class VrMessageSender extends Service {
   async sendControllerConnect(controller: VRController | undefined) {
     if (!controller?.connected) return;
 
-    const motionController = await controller.controllerModel
-      .motionControllerPromise;
+    const motionController =
+      await controller.controllerModel.motionControllerPromise;
     this.webSocket.send<UserControllerConnectMessage>({
       event: 'user_controller_connect',
       controller: {

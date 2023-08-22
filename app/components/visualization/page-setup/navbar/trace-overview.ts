@@ -8,7 +8,7 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 interface Args {
   readonly dynamicData: DynamicLandscapeData;
   readonly visualizationPaused: boolean;
-  toggleSidebarComponent(componentPath: string): void;
+  toggleSettingsSidebarComponent(componentPath: string): void;
   toggleVisualizationUpdating(): void;
 }
 
@@ -28,6 +28,6 @@ export default class TraceOverview extends Component<Args> {
       toggleVisualizationUpdating();
     }
     AlertifyHandler.showAlertifyMessage('Visualization paused!');
-    this.args.toggleSidebarComponent('trace-selection');
+    this.args.toggleSettingsSidebarComponent('trace-selection');
   }
 }

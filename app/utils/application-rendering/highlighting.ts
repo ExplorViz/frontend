@@ -16,7 +16,6 @@ import {
   isDrawableClassCommunication,
 } from './class-communication-computer';
 import {
-  applicationHasClass,
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from '../application-helpers';
@@ -25,7 +24,6 @@ import { getClassAncestorPackages } from '../class-helpers';
 import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 /**
  * Restores default color and transparency for all application meshes
  *

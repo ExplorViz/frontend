@@ -13,14 +13,14 @@
       @landscapeData={{this.landscapeData}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @openLandscapeView={{this.openLandscapeView}}
-      @toggleSidebarComponent={{this.toggleSidebarComponent}}
+      @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
       @components={{this.components}}
       @removeComponent={{this.removeComponent}}
-      @openDataSelection={{this.openDataSelection}}
+      @openSettingsSidebar={{this.openSettingsSidebar}}
       @closeDataSelection={{this.closeDataSelection}}
-      @showDataSelection={{this.showDataSelection}}
+      @showSettingsSidebar={{this.showSettingsSidebar}}
       @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
@@ -31,9 +31,9 @@
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @components={{this.components}}
         @removeComponent={{this.removeComponent}}
-        @openDataSelection={{this.openDataSelection}}
+        @openSettingsSidebar={{this.openSettingsSidebar}}
         @closeDataSelection={{this.closeDataSelection}}
-        @showDataSelection={{this.showDataSelection}}
+        @showSettingsSidebar={{this.showSettingsSidebar}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
@@ -81,20 +81,26 @@
 
         {{else}}
           <Visualization::Rendering::BrowserRendering
-            @landscapeData={{this.landscapeData}}
-            @components={{this.components}}
-            @removeComponent={{this.removeComponent}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @openDataSelection={{this.openDataSelection}}
-            @showDataSelection={{this.showDataSelection}}
-            @toggleSidebarComponent={{this.toggleSidebarComponent}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @switchToAR={{this.switchToAR}}
-            @switchToVR={{this.switchToVR}}
-            @selectedTimestampRecords={{this.selectedTimestampRecords}}
-            @applicationArgs={{this.applicationArgs}}
-          />
+          @landscapeData={{this.landscapeData}}
+          @components={{this.components}}
+          @componentsToolsSidebar={{this.componentsToolsSidebar}}
+          @removeComponent={{this.removeComponent}}
+          @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
+          @closeDataSelection={{this.closeDataSelection}}
+          @closeToolsSidebar={{this.closeToolsSidebar}}
+          @openSettingsSidebar={{this.openSettingsSidebar}}
+          @openToolsSidebar={{this.openToolsSidebar}}
+          @showSettingsSidebar={{this.showSettingsSidebar}}
+          @showToolsSidebar={{this.showToolsSidebar}}
+          @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
+          @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
+          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+          @visualizationPaused={{this.visualizationPaused}}
+          @switchToAR={{this.switchToAR}}
+          @switchToVR={{this.switchToVR}}
+          @selectedTimestampRecords={{this.selectedTimestampRecords}}
+          @applicationArgs={{this.applicationArgs}}
+        />
 
           {{#unless this.showTimeline}}
             <button

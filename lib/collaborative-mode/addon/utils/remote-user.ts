@@ -116,9 +116,8 @@ export default class RemoteUser extends THREE.Object3D {
     this.removeController(controllerId);
 
     // Load controller model.
-    const model = await VrControllerModelFactory.INSTANCE.loadAssetScene(
-      assetUrl
-    );
+    const model =
+      await VrControllerModelFactory.INSTANCE.loadAssetScene(assetUrl);
     this.add(model);
 
     // Initialize ray.
