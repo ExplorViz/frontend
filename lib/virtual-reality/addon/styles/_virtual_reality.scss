@@ -19,7 +19,27 @@
 }
 
 .btn-timeline-above {
-  margin-bottom: 20px;
+  cursor: pointer;
+  left: calc(50%);
+  transform: translate(-50%, -70px);
+  width: 100px;
+  opacity: 0.5;
+  position: absolute;
+  padding: 12px 6px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #fff;
+  background-color: #919191;
+  font: normal 13px sans-serif;
+  text-align: center;
+  opacity: 0.5;
+  outline: none;
+  z-index: 999;
+}
+
+.btn-timeline-above:hover {
+  opacity: 1;
 }
 
 #VrButton:hover {
