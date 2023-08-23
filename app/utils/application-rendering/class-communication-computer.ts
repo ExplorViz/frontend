@@ -63,6 +63,7 @@ export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicData: DynamicLandscapeData
 ) {
+  performance.mark("computeDrawableClassCommunication-start");
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
   const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
@@ -134,6 +135,7 @@ export default function computeDrawableClassCommunication(
     ...aggregatedDrawableClassCommunications.values(),
   ];
 
+  performance.mark("computeDrawableClassCommunication-end");
   return drawableClassCommunications;
 }
 
