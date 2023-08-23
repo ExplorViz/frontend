@@ -425,7 +425,6 @@ export default class Changelog extends Service.extend({
   private findChangeLogCommunicationEntry(
     app: Application | Package | Class
   ): ChangeLogEntry | undefined {
-    console.log(app);
     return this.changeLogEntries.find(
       (entry) =>
         entry.action === ChangeLogAction.Communication &&

@@ -15,6 +15,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -60,6 +61,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('configuration')
   configuration!: Configuration;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -233,6 +237,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.debug('Canvas inserted');
 
     this.canvas = canvas;
+    this.landscapeRestructure.canvas = canvas;
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
@@ -265,6 +270,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
+      preserveDrawingBuffer: true,
     });
 
     this.renderer.shadowMap.enabled = true;

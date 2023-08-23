@@ -29,6 +29,30 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
+  changeTexture(texturePath: string) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      const loader = new THREE.TextureLoader();
+
+      const texture = loader.load(
+        texturePath,
+        function textureSettings(texture) {
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.offset.set(0, 0);
+          texture.repeat.set(5, 5);
+        }
+      );
+
+      this.material.map = texture;
+      this.material.blending = THREE.NormalBlending;
+
+      this.material.needsUpdate = true;
+    }
+  }
+
   highlight() {
     this.highlighted = true;
     if (

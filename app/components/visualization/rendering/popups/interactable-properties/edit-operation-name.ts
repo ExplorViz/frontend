@@ -41,7 +41,6 @@ export default class EditOperationName extends Component<Args> {
 
   @action
   handleEnter() {
-    console.log('enter');
     this.isSaving = true;
     this.save();
   }
@@ -54,7 +53,6 @@ export default class EditOperationName extends Component<Args> {
         this.operationName
       );
       next(() => (this.isEditing = false));
-      console.log(this.args.communication.targetClass);
     } else {
       this.isEditing = false;
     }

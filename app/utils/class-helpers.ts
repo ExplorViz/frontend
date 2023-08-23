@@ -10,7 +10,5 @@ export function getClassMethodHashCodes(clss: Class) {
 }
 
 export function getClassMethodByName(clss: Class, methodName: string) {
-  console.log(clss);
-  console.log(methodName);
   return clss.methods.find((method) => method.name === methodName);
 }

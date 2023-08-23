@@ -84,7 +84,6 @@ export default class EditMesh extends Component<Args> {
 
   @action
   cutMesh() {
-    console.log(this.packageColor);
     if (this.isEntityPackage)
       this.landscapeRestructure.cutPackageFromPopup(this.args.entity);
     else if (this.isEntityClass)

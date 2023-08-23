@@ -56,7 +56,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   targetClass: string = '';
 
   @tracked
-  issues: { title: string; content: string }[] = [];
+  changelog: string = '';
+
+  @tracked
+  issues: { title: string; content: string; screenshots: string[] }[] = [];
 
   @tracked
   restructureMode: boolean = this.landscapeRestructure.restructureMode;
@@ -198,9 +201,14 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  createIssue() {
+  showChangelog() {
     const changelog = this.landscapeRestructure.changeLog.getChangeLogs();
-    this.issues = [...this.issues, { title: '', content: changelog }];
+    this.changelog = changelog;
+  }
+
+  @action
+  createIssue() {
+    this.issues = [...this.issues, { title: '', content: '', screenshots: [] }];
   }
 
   @action
@@ -216,42 +224,72 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
+  deleteIssue(index: number) {
+    this.issues.removeAt(index);
+  }
+
+  @action
+  deleteScreenshot(issueIndex: number, screenshotIndex: number) {
+    this.issues[issueIndex].screenshots.removeAt(screenshotIndex);
+  }
+
+  @action
+  screenshotCanvas(index: number) {
+    const canvas = this.landscapeRestructure.canvas;
+    const screenshotDataURL = canvas.toDataURL('image/png');
+    this.issues[index].screenshots.pushObject(screenshotDataURL);
+  }
+
+  @action
   saveGitlabCredentials() {
     localStorage.setItem('gitAPIToken', this.token);
     localStorage.setItem('gitRepo', this.repo);
   }
 
+  // @action
+  // checkForPlusKey(index: number, event: KeyboardEvent) {
+  //   if (event.key === '+') {
+  //     const target = event.target as HTMLTextAreaElement;
+  //     const content = target.value;
+  //     const splitIndex = target.selectionStart;
+
+  //     const contentBeforePlus = content.substring(0, splitIndex - 1);
+  //     const contentAfterPlus = content.substring(splitIndex);
+
+  //     const updatedCurrentIssue = {
+  //       ...this.issues[index],
+  //       content: contentBeforePlus,
+  //     };
+
+  //     this.issues = [
+  //       ...this.issues.slice(0, index),
+  //       updatedCurrentIssue,
+  //       ...this.issues.slice(index + 1),
+  //       { title: '', content: contentAfterPlus },
+  //     ];
+
+  //     event.preventDefault();
+  //   }
+  // }
+
   @action
-  checkForPlusKey(index: number, event: KeyboardEvent) {
-    if (event.key === '+') {
-      const target = event.target as HTMLTextAreaElement;
-      const content = target.value;
-      const splitIndex = target.selectionStart;
+  async uploadIssueToGitLab() {
+    try {
+      const uploadPromises = this.issues.map(async (issue) => {
+        // Upload the screenshots and get their URLs
+        const screenshotUrls = await Promise.all(
+          issue.screenshots.map((screenshot) =>
+            this.uploadImageToRepository(screenshot)
+          )
+        );
 
-      const contentBeforePlus = content.substring(0, splitIndex - 1);
-      const contentAfterPlus = content.substring(splitIndex);
+        // Append the screenshot URLs to the issue content
+        const contentWithScreenshots = `${issue.content}\n${screenshotUrls
+          .map((url) => `![Screenshot](${url})`)
+          .join('\n')}`;
 
-      const updatedCurrentIssue = {
-        ...this.issues[index],
-        content: contentBeforePlus,
-      };
-
-      this.issues = [
-        ...this.issues.slice(0, index),
-        updatedCurrentIssue,
-        ...this.issues.slice(index + 1),
-        { title: '', content: contentAfterPlus },
-      ];
-
-      event.preventDefault();
-    }
-  }
-
-  @action
-  uploadIssueToGitLab() {
-    Promise.all(
-      this.issues.map((issue) => {
-        return fetch(this.repo, {
+        // Upload the issue
+        const response = await fetch(this.repo, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -259,25 +297,48 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
           },
           body: JSON.stringify({
             title: issue.title,
-            description: issue.content,
+            description: contentWithScreenshots,
           }),
-        }).then((response) => {
-          if (!response.ok) {
-            return Promise.reject(`Failed to upload issue: ${issue.title}`);
-          }
-          return response.json();
         });
-      })
-    )
-      .then((results) => {
-        // Do something with the results, such as logging them
-        AlertifyHandler.showAlertifySuccess('Issue(s) successfully uploaded');
-        console.log('Successfully uploaded all issues:', results);
-        return results;
-      })
-      .catch((error) => {
-        console.error(error);
-        // Handle error as needed
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload issue: ${issue.title}`);
+        }
+
+        return response.json();
       });
+
+      const results = await Promise.all(uploadPromises);
+
+      AlertifyHandler.showAlertifySuccess('Issue(s) successfully uploaded');
+      return results;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async uploadImageToRepository(dataURL: string) {
+    const blob = await fetch(dataURL).then((res) => res.blob());
+    const imgFile = new File([blob], 'screenshotCanva.png', {
+      type: 'image/png',
+    });
+    const formData = new FormData();
+
+    formData.append('file', imgFile);
+
+    const res = await fetch('http://localhost:8080/api/v4/projects/1/uploads', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to Upload Image');
+    }
+
+    const jsonRes = await res.json();
+    return jsonRes.url;
   }
 }
