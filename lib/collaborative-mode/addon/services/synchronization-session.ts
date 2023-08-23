@@ -146,12 +146,12 @@ export default class SynchronizationSession extends Service {
 
     let second = (new Date().getTime() / 3000) | 0;
     //let order = r[second % r.length];
-    let order = "NP,PH,PR"
+    let order = "PR,NP,PH"
     if (order != this.last_order){
       console.log(order);
       this.last_order = order;
     }
-    //const order = "PR,PP,NH";
+    //const order = "NR,NP,PH";
     const prefixes = order.split(",");
 
     let quaternions = projector_angles.map(axis => {
