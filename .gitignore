@@ -3,6 +3,7 @@
 # compiled output
 /dist/
 /tmp/
+/public/assets/web-workers/city-layouter.js
 
 # dependencies
 /bower_components/
