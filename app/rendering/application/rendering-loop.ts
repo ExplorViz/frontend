@@ -72,6 +72,7 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.render(this.scene, this.camera);
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render

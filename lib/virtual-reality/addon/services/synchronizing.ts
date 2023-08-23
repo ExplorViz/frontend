@@ -17,6 +17,7 @@ import SynchronizationSession, {
   ProjectorQuaternions,
 } from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { DEG2RAD } from 'three/src/math/MathUtils';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -75,20 +76,47 @@ export default class SynchronizeService extends Service {
         this.localUser.camera.position.copy(this.main.camera.model.position);
 
         // If the last known quaternion is different or not yet set => copy quaternion and apply multiplication
-        if (
+       /*if (
           !this.lastMainQuaternion ||
           !this.main.camera.model.quaternion.equals(this.lastMainQuaternion)
-        ) {
-          this.localUser.camera.quaternion.copy(
-            this.main.camera.model.quaternion.multiply(
-              this.projectorQuaternions.quaternions[
+        ) {*/
+          this.projectorQuaternions = this.synchronizationSession.setUpQuaternionArr();
+          let anim_active = Math.sin(new Date().getTime() / 2000) / 2 + 0.5;
+          let neutral =  this.main.camera.model.quaternion;
+          let warped =  this.main.camera.model.quaternion.clone().multiply(
+            this.projectorQuaternions.quaternions[
               this.synchronizationSession.deviceId - 1
-              ] // deviceId - 1 == array index
-            )
+            ] // deviceId - 1 == array index
+            );
+
+          let warped2 =   this.projectorQuaternions.quaternions[
+            this.synchronizationSession.deviceId - 1
+          ].clone().multiply(
+            this.main.camera.model.quaternion
+            );
+            
+            let lerped = warped2.clone().slerp(warped, anim_active);
+
+          this.localUser.camera.quaternion.copy(
+            neutral
           );
           this.localUser.camera.updateProjectionMatrix();
+
+          let angles = this.projectorAngles.angles[this.synchronizationSession.deviceId - 1];
+          this.localUser.camera.projectionMatrix.copy((new THREE.Matrix4()).makePerspective(
+            -Math.tan(angles.left * DEG2RAD) * this.localUser.camera.near,
+            Math.tan(angles.right * DEG2RAD) * this.localUser.camera.near,
+            Math.tan(angles.up * DEG2RAD) * this.localUser.camera.near,
+            -Math.tan(angles.down * DEG2RAD) * this.localUser.camera.near,
+            this.localUser.camera.near,
+            this.localUser.camera.far
+          ));
+
+          this.localUser.camera.projectionMatrix.multiply((new THREE.Matrix4()).makeRotationFromQuaternion(this.projectorQuaternions.quaternions[
+            this.synchronizationSession.deviceId - 1
+          ]));
           this.lastMainQuaternion = this.main.camera.model.quaternion.clone(); // Update the stored quaternion
-        }
+        //}
       }
     } else if (this.projectors.size > 0) {
       console.log('jemals in else if?');
