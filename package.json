@@ -11,7 +11,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "ember build --environment=production",
+    "build": "npm run build:worker && ember build --environment=production",
     "lint": "npm-run-all --aggregate-output --continue-on-error --parallel \"lint:!(fix)\"",
     "lint:fix": "npm-run-all --aggregate-output --continue-on-error --parallel lint:*:fix",
     "lint:hbs": "ember-template-lint .",
@@ -19,9 +19,11 @@
     "lint:js": "eslint . --cache",
     "lint:js:fix": "eslint . --fix",
     "typescript": "tsc",
-    "start": "ember serve",
+    "start": "concurrently \"npm:build:worker:watch\" \"ember serve\"",
     "test": "npm-run-all lint test:*",
-    "test:ember": "ember test"
+    "test:ember": "ember test",
+    "build:worker": "esbuild workers/city-layouter.ts --bundle --minify --outfile=public/assets/web-workers/city-layouter.js",
+    "build:worker:watch": "esbuild workers/city-layouter.ts --bundle --watch --outfile=public/assets/web-workers/city-layouter.js"
   },
   "devDependencies": {
     "@ember/jquery": "^2.0.0",
@@ -53,6 +55,7 @@
     "body-parser": "^1.20.2",
     "bootstrap": "^4.6.2",
     "broccoli-asset-rev": "^3.0.0",
+    "concurrently": "^8.2.1",
     "ember-auto-import": "^2.6.3",
     "ember-bootstrap": "^5.1.1",
     "ember-bootstrap-power-select": "^5.0.0",
@@ -94,6 +97,7 @@
     "ember-try": "^2.0.0",
     "ember-web-workers": "^1.0.0",
     "ember-welcome-page": "^7.0.1",
+    "esbuild": "0.19.2",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-ember": "^11.5.2",
