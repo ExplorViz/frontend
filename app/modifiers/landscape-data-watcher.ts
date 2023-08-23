@@ -3,6 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
+import type { NamedArgs } from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -21,17 +22,17 @@ import { Application } from 'explorviz-frontend/utils/landscape-schemes/structur
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
-interface NamedArgs {
-  readonly landscapeData: LandscapeData;
-  readonly graph: ForceGraph3DInstance;
+interface Signature {
+  Args: {
+    Positional: [];
+    Named: {
+      readonly landscapeData: LandscapeData;
+      readonly graph: ForceGraph3DInstance;
+    };
+  };
 }
 
-interface Args {
-  positional: [];
-  named: NamedArgs;
-}
-
-export default class LandscapeDataWatcherModifier extends Modifier<Args> {
+export default class LandscapeDataWatcherModifier extends Modifier<Signature> {
   debug = debugLogger('ApplicationRendererModifier');
 
   @service('repos/application-repository')
@@ -67,7 +68,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  modify(_element: unknown, _positionalArgs: unknown[], { landscapeData, graph }: NamedArgs<Signature>) {
     this.landscapeData = landscapeData;
     this.graph = graph;
 
