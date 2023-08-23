@@ -37,6 +37,7 @@
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
+        @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
         @debugMode={{this.flag}}
       />
       <div class='position-absolute mt-6 ml-3'>
@@ -76,6 +77,7 @@
             @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
             @visualizationPaused={{this.visualizationPaused}}
             @applicationArgs={{this.applicationArgs}}
+            @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
             @debugMode={{this.flag}}
           />
 
@@ -112,16 +114,6 @@
               {{this.buttonText}}
             </button>
           {{/unless}}
-          <!-- <button
-            id='VrButton'
-            class={{if this.isTimelineActive 'test1' 'test2'}}
-            title={{if this.isTimelineActive 'test1' 'test2'}}
-            type='button'
-            {{did-insert this.updateVrStatus}}
-            {{on 'click' this.switchToVR}}
-          >
-            {{this.buttonText}}
-          </button> -->
         {{/if}}
 
       {{else}}

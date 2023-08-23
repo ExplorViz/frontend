@@ -12,10 +12,12 @@ import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from '../vr-controller/vr-controller-thumbpad-binding';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import ApplicationSearch from 'explorviz-frontend/components/visualization/page-setup/sidebar/application-search';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
   renderer: THREE.WebGLRenderer;
+  removeToolsSidebarComponent?(nameOfComponent: string): void;
 };
 
 export type searchItemVal = { id: string; applicationId: string };
@@ -49,23 +51,33 @@ export default class SearchMenu extends InteractiveMenu {
   keyboard!: ThreeMeshUI.Keyboard;
   owner: any;
   renderer: THREE.WebGLRenderer;
-  map!: Map<string, searchItemVal>;
+  list!: any[];
   searchListContainer!: ThreeMeshUI.Block;
   keyboardContainer!: ThreeMeshUI.Block;
   searchList!: SearchList;
   _isNewInput: boolean = false;
+  applicationSearch!: ApplicationSearch;
+  oldContent?: string;
 
-  constructor({ owner, renderer, ...args }: SearchMenuArgs) {
+  constructor({ owner, renderer, removeToolsSidebarComponent, ...args }: SearchMenuArgs) {
     super(args);
     this.owner = owner;
     setOwner(this, owner);
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
+
+    console.log(removeToolsSidebarComponent);
+
+    if(removeToolsSidebarComponent)
+      this.applicationSearch = new ApplicationSearch(this.owner, {removeToolsSidebarComponent: removeToolsSidebarComponent});
+    
+    console.log("HEEEEEEEEEEEEEEEERE:", this.applicationSearch);
+
     this.makeUI();
     this.makeKeyboard();
   }
 
-  makeUI() {
+  async makeUI() {
     this.container = new ThreeMeshUI.Block({
       width: BLOCK_OPTIONS_CONTAINER.width,
       height: BLOCK_OPTIONS_CONTAINER.height,
@@ -115,7 +127,7 @@ export default class SearchMenu extends InteractiveMenu {
 
     textPanel.add(title, textField);
 
-    this.map = this.search(this.userText.content);
+    this.list = await this.applicationSearch.searchEntity.perform(this.userText.content);
     this.searchListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
@@ -126,7 +138,7 @@ export default class SearchMenu extends InteractiveMenu {
     });
     this.searchList = new SearchList({
       owner: this.owner,
-      items: this.map,
+      items: this.list,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
       offset: 0.001,
@@ -157,146 +169,131 @@ export default class SearchMenu extends InteractiveMenu {
     this.add(this.keyboard);
   }
 
-  public searchComponents(searchWord: string, object: any, appName: string) {
-    // TODO private?
-    const res: { name?: string; id?: string; objects: any[] } = { objects: [] };
-    const REGEXP_SPECIAL_CHAR = /[?!#$%^&*)(+=.<>{}[\]:;'"|~`_-]/g;
-    const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
+  // public searchComponents(searchWord: string, object: any, appName: string) {
+  //   // TODO private?
+  //   const res: { name?: string; id?: string; objects: any[] } = { objects: [] };
+  //   const REGEXP_SPECIAL_CHAR = /[?!#$%^&*)(+=.<>{}[\]:;'"|~`_-]/g;
+  //   const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
 
-    if (
-      {}.hasOwnProperty.call(object, 'name') &&
-      typeof object['name'] === 'string'
-    ) {
-      if (
-        new RegExp(escapedSearchWord, 'i').test(object.name) &&
-        searchWord.length !== 0
-      ) {
-        if ({}.hasOwnProperty.call(object, 'id')) {
-          res.id = object['id'];
-          let object2 = object;
-          let tempName = object2.name;
-          while (
-            {}.hasOwnProperty.call(object2, 'parent') &&
-            {}.hasOwnProperty.call(object2.parent, 'name')
-          ) {
-            object2 = object2.parent;
-            tempName = object2.name + '.' + tempName;
-          }
-          if (appName !== tempName) res.name = appName + '.' + tempName;
-          else res.name = appName;
-        }
-      }
-    }
+  //   if (
+  //     {}.hasOwnProperty.call(object, 'name') &&
+  //     typeof object['name'] === 'string'
+  //   ) {
+  //     if (
+  //       new RegExp(escapedSearchWord, 'i').test(object.name) &&
+  //       searchWord.length !== 0
+  //     ) {
+  //       if ({}.hasOwnProperty.call(object, 'id')) {
+  //         res.id = object['id'];
+  //         let object2 = object;
+  //         let tempName = object2.name;
+  //         while (
+  //           {}.hasOwnProperty.call(object2, 'parent') &&
+  //           {}.hasOwnProperty.call(object2.parent, 'name')
+  //         ) {
+  //           object2 = object2.parent;
+  //           tempName = object2.name + '.' + tempName;
+  //         }
+  //         if (appName !== tempName) res.name = appName + '.' + tempName;
+  //         else res.name = appName;
+  //       }
+  //     }
+  //   }
 
-    if (
-      {}.hasOwnProperty.call(
-        object,
-        'packages'
-      ) /*&& typeof object['packages'] === 'object' &&*/
-    ) {
-      object['packages'].forEach((element) => {
-        res.objects.push(element);
-      });
-    }
+  //   if (
+  //     {}.hasOwnProperty.call(
+  //       object,
+  //       'packages'
+  //     ) /*&& typeof object['packages'] === 'object' &&*/
+  //   ) {
+  //     object['packages'].forEach((element) => {
+  //       res.objects.push(element);
+  //     });
+  //   }
 
-    if (
-      {}.hasOwnProperty.call(
-        object,
-        'subPackages'
-      ) /*&& typeof object['subpackages'] === 'object' &&*/
-    ) {
-      object['subPackages'].forEach((element) => {
-        res.objects.push(element);
-      });
-    }
+  //   if (
+  //     {}.hasOwnProperty.call(
+  //       object,
+  //       'subPackages'
+  //     ) /*&& typeof object['subpackages'] === 'object' &&*/
+  //   ) {
+  //     object['subPackages'].forEach((element) => {
+  //       res.objects.push(element);
+  //     });
+  //   }
 
-    if (
-      {}.hasOwnProperty.call(
-        object,
-        'classes'
-      ) /*&& typeof object['classes'] === 'object' &&*/
-    ) {
-      object['classes'].forEach((element) => {
-        res.objects.push(element);
-      });
-    }
+  //   if (
+  //     {}.hasOwnProperty.call(
+  //       object,
+  //       'classes'
+  //     ) /*&& typeof object['classes'] === 'object' &&*/
+  //   ) {
+  //     object['classes'].forEach((element) => {
+  //       res.objects.push(element);
+  //     });
+  //   }
 
-    return res;
-  }
+  //   return res;
+  // }
 
-  private search(searchWord: string): Map<string, searchItemVal> {
-    const resObj = new Map<string, searchItemVal>();
-    for (const applicationData of this.applicationRepo.getAll()) {
-      const application = applicationData.application;
-      const res = this.searchComponents(
-        searchWord,
-        application,
-        application.name
-      );
-      if (res.name && res.id) {
-        resObj.set(res.name, { id: res.id, applicationId: application.id });
-      }
+  // private search(searchWord: string): Map<string, searchItemVal> {
+  //   const resObj = new Map<string, searchItemVal>();
+  //   for (const applicationData of this.applicationRepo.getAll()) {
+  //     const application = applicationData.application;
+  //     const res = this.searchComponents(
+  //       searchWord,
+  //       application,
+  //       application.name
+  //     );
+  //     if (res.name && res.id) {
+  //       resObj.set(res.name, { id: res.id, applicationId: application.id });
+  //     }
 
-      while (res.objects.length > 0) {
-        const object = res.objects.pop();
-        const res2 = this.searchComponents(
-          searchWord,
-          object,
-          application.name
-        );
-        if (res2.name && res2.id) {
-          resObj.set(res2.name, { id: res2.id, applicationId: application.id });
-        }
-        res.objects = res.objects.concat(res2.objects);
-      }
-    }
-    return resObj;
-  }
+  //     while (res.objects.length > 0) {
+  //       const object = res.objects.pop();
+  //       const res2 = this.searchComponents(
+  //         searchWord,
+  //         object,
+  //         application.name
+  //       );
+  //       if (res2.name && res2.id) {
+  //         resObj.set(res2.name, { id: res2.id, applicationId: application.id });
+  //       }
+  //       res.objects = res.objects.concat(res2.objects);
+  //     }
+  //   }
+  //   return resObj;
+  // }
 
-  onUpdateMenu(delta: number) {
+ async onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
-
-    if (this.isNewInput) {
-      this.isNewInput = false;
-
-      let isEqual = false;
-      const tmpMap = this.search(this.userText.content);
-
-      if (tmpMap.size === this.map.size) {
-        isEqual = true;
-        tmpMap.forEach((val, key) => {
-          const val2 = this.map.get(key);
-          if (val2 !== val || (val2 === undefined && !this.map.has(key))) {
-            isEqual = false;
-          }
-        });
-      }
-
-      if (!isEqual) {
-        this.map = tmpMap;
-        this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
-        this.searchListContainer.remove(this.searchList);
-        this.searchList = new SearchList({
-          owner: this.owner,
-          items: this.map,
-          width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
-          height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
-          offset: 0.001,
-          backgroundOpacity: 0,
-        });
-        this.searchListContainer.add(this.searchList);
-      }
-    }
     ThreeMeshUI.update();
+
+    
+
+    if(this.oldContent === this.userText.content){
+      return;
+    }
+
+    this.oldContent = this.userText.content;
+
+    console.log("EINGABE HAT SICH VERÄNDERT");
+
+     
+    this.list = await this.applicationSearch.searchEntity.perform(this.userText.content);
+    this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
+    this.searchListContainer.remove(this.searchList);
+    this.searchList = new SearchList({
+      owner: this.owner,
+      items: this.list,
+      width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
+      height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
+      offset: 0.001,
+      backgroundOpacity: 0,
+    });
+    this.searchListContainer.add(this.searchList);
   }
 
-  public get isNewInput() {
-    return this._isNewInput;
-  }
-
-  public set isNewInput(flag) {
-    this._isNewInput = flag;
-  }
 
   /**
    * The thumbpad can be used to select a searched item
@@ -309,7 +306,7 @@ export default class SearchMenu extends InteractiveMenu {
           // controller.updateIntersectedObject();
           //if (!controller.intersectedObject) return;
 
-          if (this.searchList && this.map.size > 0) {
+          if (this.searchList && this.list.size > 0) {
             const direction = VRControllerThumbpadBinding.getDirection(axes);
             const vector = thumbpadDirectionToVector2(direction);
             const offset = vector.toArray()[1]; // vertical part

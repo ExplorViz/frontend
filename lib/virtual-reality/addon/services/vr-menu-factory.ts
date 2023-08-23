@@ -79,6 +79,8 @@ export default class VrMenuFactoryService extends Service {
 
   renderer!: THREE.WebGLRenderer;
 
+  removeToolsSidebarComponent?(nameOfComponent: string) : void;
+
   buildMainMenu(): MainMenu {
     return new MainMenu({ menuFactory: this });
   }
@@ -255,6 +257,7 @@ export default class VrMenuFactoryService extends Service {
       owner: getOwner(this),
       renderer: this.renderer,
       menuFactory: this,
+      removeToolsSidebarComponent: this.removeToolsSidebarComponent
     });
   }
 

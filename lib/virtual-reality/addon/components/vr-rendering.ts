@@ -105,6 +105,7 @@ import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-b
 
 interface Args {
   debugMode: boolean;
+  removeToolsSidebarComponent?(path: string): void;
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly selectedTimestampRecords: Timestamp[];
@@ -237,6 +238,8 @@ export default class VrRendering extends Component<Args> {
     this.updatables.push(this.localUser);
 
     this.menuFactory.scene = this.scene;
+    this.menuFactory.removeToolsSidebarComponent = this.args.removeToolsSidebarComponent;
+
     this.scene.add(this.detachedMenuGroups.container);
 
     this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =

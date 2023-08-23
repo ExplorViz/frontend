@@ -131,6 +131,7 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       }
     }
 
+    console.log(returnValue);
     return returnValue;
   });
 }

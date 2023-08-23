@@ -4,12 +4,12 @@ import { searchItemVal } from 'virtual-reality/utils/vr-menus/search-menu';
 
 export type SearchListArgs = ThreeMeshUI.BlockOptions & {
   owner: any;
-  items: Map<string, searchItemVal>;
+  items: any[];
 };
 
 export default class SearchList extends ThreeMeshUI.Block {
   owner: any;
-  items: Map<string, searchItemVal>;
+  items: any[];
 
   constructor({
     owner,
@@ -20,7 +20,7 @@ export default class SearchList extends ThreeMeshUI.Block {
     super(options);
     this.owner = owner;
     this.items = items;
-    this.items.forEach((val, key) => {
+    this.items.forEach(elem => {
       const listItemOptions = {
         width: options.width,
         height: BLOCK_OPTIONS_LIST_ITEM.height,
@@ -29,9 +29,9 @@ export default class SearchList extends ThreeMeshUI.Block {
       };
       const item = new SearchListItem({
         owner: this.owner,
-        text: key,
-        meshId: val.id,
-        applicationId: val.applicationId,
+        text: elem.fqn,
+        meshId: elem.modelId,
+        applicationId: elem.applicationModelId,
         ...listItemOptions,
       });
       this.add(item);
