@@ -5,6 +5,7 @@
 /tmp/
 /public/assets/web-workers/city-layouter.js
 /public/assets/web-workers/metrics-worker.js
+/public/assets/web-workers/flat-data-worker.js
 
 # dependencies
 /bower_components/
