@@ -3,7 +3,7 @@ import type { ReducedApplication, ReducedComponent } from './worker-types';
 // Wait for the initial message event.
 self.addEventListener(
   'message',
-  function (e) {
+  (e) => {
     const structureData = e.data.structure;
     //const dynamicData = e.data.dynamic;
 
