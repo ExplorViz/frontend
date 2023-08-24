@@ -20,13 +20,11 @@ export default class Changelog extends Service.extend({
   createAppEntry(app: Application) {
     const appEntry = new ChangeLogEntry(ChangeLogAction.Create, app);
     this.changeLogEntries.push(appEntry);
-    console.log(this.changeLogEntries);
   }
 
   createPackageEntry(app: Application, pckg: Package) {
     const pckgEntry = new ChangeLogEntry(ChangeLogAction.Create, app, pckg);
     this.changeLogEntries.push(pckgEntry);
-    console.log(this.changeLogEntries);
   }
 
   createClassEntry(app: Application, parentPckg: Package, clazz: Class) {
@@ -37,14 +35,12 @@ export default class Changelog extends Service.extend({
       clazz
     );
     this.changeLogEntries.push(clazzEntry);
-    console.log(this.changeLogEntries);
   }
 
   renameAppEntry(app: Application, newName: string) {
     const entry = this.findChangeLogEntry(app);
 
     if (!entry || (entry && entry._entryType !== EntryType.App)) {
-      console.log('ra-1');
       const appEntry = new ChangeLogEntry(
         ChangeLogAction.Rename,
         app,
@@ -59,10 +55,8 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
-      console.log('ra-2');
       entry.newName = newName;
     }
-    console.log(this.changeLogEntries);
   }
 
   renamePackageEntry(app: Application, pckg: Package, newName: string) {
@@ -76,7 +70,6 @@ export default class Changelog extends Service.extend({
         undefined,
         newName
       );
-      console.log('rp-1');
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
@@ -84,10 +77,8 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
-      console.log('rp-2');
       entry.newName = newName;
     }
-    console.log(this.changeLogEntries);
   }
 
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
@@ -101,7 +92,6 @@ export default class Changelog extends Service.extend({
         undefined,
         newName
       );
-      console.log('rs-1');
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
@@ -109,17 +99,14 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
-      console.log('rs-2');
       entry.newName = newName;
     }
-    console.log(this.changeLogEntries);
   }
 
   renameClassEntry(app: Application, clazz: Class, newName: string) {
     const entry = this.findChangeLogEntry(clazz);
 
     if (!entry) {
-      console.log('rc-1');
       const clazzEntry = new ChangeLogEntry(
         ChangeLogAction.Rename,
         app,
@@ -134,17 +121,14 @@ export default class Changelog extends Service.extend({
       (entry.action === ChangeLogAction.Create ||
         entry.action === ChangeLogAction.Rename)
     ) {
-      console.log('rc-2');
       entry.newName = newName;
     }
-    console.log(this.changeLogEntries);
   }
 
   deleteAppEntry(app: Application) {
     const entry = this.findChangeLogEntry(app);
 
     if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      console.log('I');
       const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
       this.changeLogEntries.push(appEntry);
     } else if (
@@ -152,7 +136,6 @@ export default class Changelog extends Service.extend({
       entry._entryType === EntryType.App &&
       entry.action === ChangeLogAction.Create
     ) {
-      console.log('II');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.app?.id !== app.id
       );
@@ -162,7 +145,6 @@ export default class Changelog extends Service.extend({
         entry._entryType !== EntryType.App &&
         entry.action === ChangeLogAction.Create)
     ) {
-      console.log('III');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.app?.id !== app.id
       );
@@ -171,7 +153,6 @@ export default class Changelog extends Service.extend({
       appEntry.updateOriginalAppName(originalName as string);
       this.changeLogEntries.push(appEntry);
     }
-    console.log(this.changeLogEntries);
   }
 
   deletePackageEntry(app: Application, pckg: Package) {
@@ -179,7 +160,6 @@ export default class Changelog extends Service.extend({
     this.removeAffectedLogEntries(app, pckg);
 
     if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      console.log('1');
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     } else if (
@@ -187,19 +167,16 @@ export default class Changelog extends Service.extend({
       entry._entryType !== EntryType.App &&
       entry.action === ChangeLogAction.Create
     ) {
-      console.log('2');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('3');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     }
-    console.log(this.changeLogEntries);
   }
 
   deleteSubPackageEntry(app: Application, pckg: Package) {
@@ -207,7 +184,6 @@ export default class Changelog extends Service.extend({
     this.removeAffectedLogEntries(app, pckg);
 
     if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      console.log('11');
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     } else if (
@@ -215,7 +191,6 @@ export default class Changelog extends Service.extend({
       entry._entryType === EntryType.SubPackage &&
       entry.action === ChangeLogAction.Create
     ) {
-      console.log('22');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
@@ -225,14 +200,12 @@ export default class Changelog extends Service.extend({
         entry._entryType === EntryType.Clazz) &&
       entry.action !== ChangeLogAction.Create
     ) {
-      console.log('33');
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
       const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     }
-    console.log(this.changeLogEntries);
   }
 
   deleteClassEntry(app: Application, clazz: Class) {
@@ -240,7 +213,6 @@ export default class Changelog extends Service.extend({
     const commEntry = this.findChangeLogCommunicationEntry(clazz);
 
     if (!entry) {
-      console.log('c1');
       const clazzEntry = new ChangeLogEntry(
         ChangeLogAction.Delete,
         app,
@@ -249,10 +221,8 @@ export default class Changelog extends Service.extend({
       );
       this.changeLogEntries.push(clazzEntry);
     } else if (entry && entry.action === ChangeLogAction.Create) {
-      console.log('c2');
       this.changeLogEntries.removeObject(entry);
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('c3');
       this.changeLogEntries.removeObject(entry);
       const clazzEntry = new ChangeLogEntry(
         ChangeLogAction.Delete,
@@ -266,8 +236,6 @@ export default class Changelog extends Service.extend({
     if (commEntry) {
       this.changeLogEntries.removeObject(commEntry);
     }
-
-    console.log(this.changeLogEntries);
   }
 
   cutAndInsertPackageEntry(
@@ -279,7 +247,6 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
 
     if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      console.log('p1');
       const pckgEntry = new ChangeLogEntry(
         ChangeLogAction.CutInsert,
         app,
@@ -291,7 +258,6 @@ export default class Changelog extends Service.extend({
       );
       this.changeLogEntries.push(pckgEntry);
     } else if (entry && entry.action === ChangeLogAction.Create) {
-      console.log('p2');
       this.updateAffectedCreateLogEntries(
         app,
         pckg,
@@ -299,7 +265,6 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('p3');
       this.updateAffectedCutInsertLogEntries(
         app,
         pckg,
@@ -307,8 +272,6 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
     }
-
-    console.log(this.changeLogEntries);
   }
 
   cutAndInsertSubPackageEntry(
@@ -320,7 +283,6 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
 
     if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      console.log('sp1');
       const pckgEntry = new ChangeLogEntry(
         ChangeLogAction.CutInsert,
         app,
@@ -332,7 +294,6 @@ export default class Changelog extends Service.extend({
       );
       this.changeLogEntries.push(pckgEntry);
     } else if (entry && entry.action === ChangeLogAction.Create) {
-      console.log('sp2');
       this.updateAffectedCreateLogEntries(
         app,
         pckg,
@@ -340,7 +301,6 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('sp3');
       this.updateAffectedCutInsertLogEntries(
         app,
         pckg,
@@ -348,8 +308,6 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
     }
-
-    console.log(this.changeLogEntries);
   }
 
   cutAndInsertClassEntry(
@@ -361,7 +319,6 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(clazz);
 
     if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      console.log('ci-1');
       const clazzEntry = new ChangeLogEntry(
         ChangeLogAction.CutInsert,
         app,
@@ -373,13 +330,10 @@ export default class Changelog extends Service.extend({
       );
       this.changeLogEntries.push(clazzEntry);
     } else if (entry && entry.action === ChangeLogAction.Create) {
-      console.log('ci-2');
       entry.updateCreateEntry(destination, landscapeData);
     } else if (entry && entry.action !== ChangeLogAction.Create) {
-      console.log('ci-3');
       entry.updateDestination(destination, landscapeData);
     }
-    console.log(this.changeLogEntries);
   }
 
   communicationEntry(
@@ -402,7 +356,6 @@ export default class Changelog extends Service.extend({
       methodName
     );
     this.changeLogEntries.push(commEntry);
-    console.log(this.changeLogEntries);
   }
 
   getChangeLogs() {

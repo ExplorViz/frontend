@@ -93,8 +93,6 @@ export function removeApplication(
   isCutOperation: boolean,
   destinationApplication?: Application
 ) {
-  //const parentNode = app.parent;
-
   if (wrapper.comms.length > 0) {
     const classesInApplication = getAllClassesInApplication(app);
     if (isCutOperation) {
@@ -110,16 +108,19 @@ export function removeApplication(
     }
   }
 
-  // // If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
-  // if (parentNode.applications.length <= 1) {
-  //   landscapeStructure.nodes = landscapeStructure.nodes.filter(
-  //     (node) => node.id != parentNode.id
-  //   );
-  // } else {
-  //   parentNode.applications = parentNode.applications.filter(
-  //     (appl) => appl.id != app.id
-  //   );
-  // }
+  if (isCutOperation) {
+    const parentNode = app.parent;
+    // If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
+    if (parentNode.applications.length <= 1) {
+      landscapeStructure.nodes = landscapeStructure.nodes.filter(
+        (node) => node.id != parentNode.id
+      );
+    } else {
+      parentNode.applications = parentNode.applications.filter(
+        (appl) => appl.id != app.id
+      );
+    }
+  }
 
   wrapper.meshTodelete = app;
   // if (commsWrapper.app) {
@@ -151,9 +152,11 @@ export function removePackageFromApplication(
     // if parent package has more than 1 element, then remove the current package from its child packages, else check for the next ancestors
     if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
       wrapper.meshTodelete = pckgToRemove;
-      //parentPackage.subPackages = parentPackage.subPackages.filter(
-      //  (packg) => packg.id != pckgToRemove.id
-      //);
+      if (isCutOperation) {
+        parentPackage.subPackages = parentPackage.subPackages.filter(
+          (packg) => packg.id != pckgToRemove.id
+        );
+      }
       //delete pckgToRemove.parent;
     } else {
       // check if there is one ancestor package, that fulfills the condition of having more than 1 child elements. If not then we delete the whole application
@@ -161,7 +164,8 @@ export function removePackageFromApplication(
         landscapeStructure,
         parentPackage,
         applicationWrapper,
-        wrapper
+        wrapper,
+        isCutOperation
       );
     }
 
@@ -204,9 +208,11 @@ export function removePackageFromApplication(
       );
     } else if (parentApplication && parentApplication.packages.length > 1) {
       wrapper.meshTodelete = pckgToRemove;
-      // parentApplication.packages = parentApplication.packages.filter(
-      //   (pckg) => pckg.id !== pckgToRemove.id
-      // );
+      if (isCutOperation) {
+        parentApplication.packages = parentApplication.packages.filter(
+          (pckg) => pckg.id !== pckgToRemove.id
+        );
+      }
 
       if (wrapper.comms.length > 0) {
         // if any class in application is part of a communication then remove it
@@ -242,9 +248,11 @@ export function removeClassFromPackage(
     // if parent Package has more than 1 element, then remove the class from it else remove the parent Package
     if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
       wrapper.meshTodelete = clazzToRemove;
-      // parentPackage.classes = parentPackage.classes.filter(
-      //   (clzz) => clzz.id != clazzToRemove.id
-      // );
+      if (isCutOperation) {
+        parentPackage.classes = parentPackage.classes.filter(
+          (clzz) => clzz.id != clazzToRemove.id
+        );
+      }
       if (wrapper.comms.length > 0) {
         if (isCutOperation) {
           // if class in package is part of a communication and information about source and target app has changed then update it
@@ -306,7 +314,6 @@ export function cutAndInsertPackage(
       inserClipToDestinationApp(clipToDestination, clippedPackage);
       destinationApplication = clipToDestination;
     }
-
     if (parentPackage.subPackages.length + parentPackage.classes.length <= 1) {
       removePackageFromApplication(
         landscapeStructure,
@@ -319,6 +326,7 @@ export function cutAndInsertPackage(
       parentPackage.subPackages = parentPackage.subPackages.filter(
         (packg: Package) => packg.id != clippedPackage.id
       );
+      wrapper.meshTodelete = clippedPackage;
       if (wrapper.comms.length > 0) {
         const classesInPackage = getClassesInPackage(clippedPackage);
         updateAffectedCommunications(
@@ -367,6 +375,7 @@ export function cutAndInsertPackage(
       application.packages = application.packages.filter(
         (packg) => packg.id !== clippedPackage.id
       );
+      wrapper.meshTodelete = clippedPackage;
 
       // if any class in package is part of a communication and information about source and target app has changed then update it
       if (wrapper.comms.length > 0) {
@@ -479,10 +488,10 @@ function cleanUpAncestor(
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
-  }
+  },
+  isCutOperation?: boolean
 ) {
   const ancestorPackages = getAncestorPackages(parentPackage);
-
   /*  case 1: ancestor is the top Package meaning the highest on the hierarchy.
       case 2: there are multiple ancestors. We need to find the nearest ancestor with more than 1 element in it
       case 3: there are no ancestors since the current package is top Package, so we investigate the application
@@ -493,7 +502,8 @@ function cleanUpAncestor(
       parentPackage,
       ancestorPackages,
       applicationWrapper,
-      wrapper
+      wrapper,
+      isCutOperation
     );
   else if (ancestorPackages.length > 1)
     return handlePackageAncestors(
@@ -501,14 +511,16 @@ function cleanUpAncestor(
       parentPackage,
       ancestorPackages,
       applicationWrapper,
-      wrapper
+      wrapper,
+      isCutOperation
     );
   else
     return handleApplicationAncestor(
       landscapeStructure,
       parentPackage,
       applicationWrapper,
-      wrapper
+      wrapper,
+      isCutOperation
     );
 }
 
@@ -519,14 +531,20 @@ function handleApplicationAncestor(
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
-  }
+  },
+  isCutOperation?: boolean
 ) {
   //check if the whole application has still more than 1 packages and if so then remove only the top package else the whole application
   applicationWrapper.app = getApplicationFromPackage(
     landscapeStructure,
     parentPackage.id
   );
-  return hasAppEnoughPackages(applicationWrapper, parentPackage, wrapper);
+  return hasAppEnoughPackages(
+    applicationWrapper,
+    parentPackage,
+    wrapper,
+    isCutOperation
+  );
 }
 
 function handlePackageAncestors(
@@ -537,13 +555,13 @@ function handlePackageAncestors(
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
-  }
+  },
+  isCutOperation?: boolean
 ) {
   // find an ancestor that has more than 1 element
   const foundPackage: Package | undefined = ancestorPackages.find(
     (pckg) => pckg.subPackages.length + pckg.classes.length > 1
   );
-
   // when found delete the subpackage with the clipped object inside else check if the whole application has still more
   // packages and if so then remove only the top package else the whole application
   if (foundPackage) {
@@ -552,9 +570,11 @@ function handlePackageAncestors(
     if (indexOfSubPackage >= 0)
       subPackageToRemove = ancestorPackages[indexOfSubPackage];
     wrapper.meshTodelete = subPackageToRemove;
-    // foundPackage.subPackages = foundPackage.subPackages.filter(
-    //   (pckg) => pckg.id != subPackageToRemove.id
-    // );
+    if (isCutOperation) {
+      foundPackage.subPackages = foundPackage.subPackages.filter(
+        (pckg) => pckg.id != subPackageToRemove.id
+      );
+    }
     return false;
   } else {
     const topPackage = ancestorPackages[ancestorPackages.length - 1];
@@ -573,15 +593,19 @@ function hasAppEnoughPackages(
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
-  }
+  },
+  isCutOperation?: boolean
 ) {
   // if the application has enough packages, then remove only the package else mark the app for delete
   if (applicationWrapper.app) {
     if (applicationWrapper.app.packages.length > 1) {
       wrapper.meshTodelete = topPackage;
-      // applicationWrapper.app.packages = applicationWrapper.app.packages.filter(
-      //   (pckg: Package) => pckg.id != topPackage.id
-      // );
+      if (isCutOperation) {
+        applicationWrapper.app.packages =
+          applicationWrapper.app.packages.filter(
+            (pckg: Package) => pckg.id != topPackage.id
+          );
+      }
       return false;
     }
   }
@@ -596,10 +620,10 @@ function handleTopPackageAncestor(
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
-  }
+  },
+  isCutOperation?: boolean
 ) {
   const topPackage = ancestorPackages.firstObject;
-
   // if top package has more than 1 element then remove the subpackage with the clipped object else check if the whole application has still more
   // packages and if so then remove only the top package else the whole application
   if (
@@ -607,9 +631,11 @@ function handleTopPackageAncestor(
     topPackage.subPackages.length + topPackage.classes.length > 1
   ) {
     wrapper.meshTodelete = parentPackage;
-    // topPackage.subPackages = topPackage.subPackages.filter(
-    //   (pckg) => pckg.id != parentPackage.id
-    // );
+    if (isCutOperation) {
+      topPackage.subPackages = topPackage.subPackages.filter(
+        (pckg) => pckg.id != parentPackage.id
+      );
+    }
     return false;
   } else if (
     topPackage &&
@@ -619,7 +645,12 @@ function handleTopPackageAncestor(
       landscapeStructure,
       topPackage.id
     );
-    return hasAppEnoughPackages(applicationWrapper, topPackage, wrapper);
+    return hasAppEnoughPackages(
+      applicationWrapper,
+      topPackage,
+      wrapper,
+      isCutOperation
+    );
   }
   return true;
 }

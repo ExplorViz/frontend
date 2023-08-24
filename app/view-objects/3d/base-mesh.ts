@@ -29,7 +29,7 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
-  changeTexture(texturePath: string) {
+  changeTexture(texturePath: string, repeat: number = 5) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial ||
@@ -42,13 +42,24 @@ export default abstract class BaseMesh<
         function textureSettings(texture) {
           texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           texture.offset.set(0, 0);
-          texture.repeat.set(5, 5);
+          texture.repeat.set(repeat, repeat);
         }
       );
 
       this.material.map = texture;
       this.material.blending = THREE.NormalBlending;
 
+      this.material.needsUpdate = true;
+    }
+  }
+
+  changeColor(color: THREE.Color) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      this.defaultColor = color;
       this.material.needsUpdate = true;
     }
   }

@@ -40,6 +40,23 @@ export default class EditMesh extends Component<Args> {
     return isClass(this.args.entity);
   }
 
+  get isDeleted() {
+    return !(
+      (this.isEntityApplication &&
+        this.landscapeRestructure.deletedDataModels.some(
+          (entity) => entity === this.args.entity
+        )) ||
+      (this.isEntityPackage &&
+        this.landscapeRestructure.deletedDataModels.some(
+          (entity) => entity === this.args.entity
+        )) ||
+      (this.isEntityClass &&
+        this.landscapeRestructure.deletedDataModels.some(
+          (entity) => entity === this.args.entity
+        ))
+    );
+  }
+
   get isInsertable(): boolean {
     if (!this.landscapeRestructure.clippedMesh) return false;
 
