@@ -311,7 +311,7 @@ export default class CollaborationSession extends Service.extend({
     if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
-    this.performanceLogger.stop(timerId);
+    this.performanceLogger.stop(timerId, true);
   }
 }
 

@@ -11,6 +11,8 @@ export default class PerformanceLogger extends Service.extend({
 
     private executionTimes: number[] = [];
 
+    private executionTimesVr: number[] = [];
+
     init() {
         super.init();
 
@@ -27,11 +29,18 @@ export default class PerformanceLogger extends Service.extend({
         return timerId;
     }
 
-    stop(timerId: number) {
+    stop(timerId: number, isVrMessage: boolean = false) {
         if (this.timers.has(timerId)) {
             const timestamp = this.timers.get(timerId);
             const stopTime = performance.now();
-            if (timestamp) this.executionTimes.push(stopTime - timestamp);
+            if (timestamp) {
+                const time = stopTime - timestamp;
+                if (isVrMessage) {
+                    this.executionTimesVr.push(time);
+                } else {
+                    this.executionTimes.push(time);
+                }
+            }
         }
     }
 
@@ -39,9 +48,19 @@ export default class PerformanceLogger extends Service.extend({
         console.log("Log Performance")
         while(true) {
             await this.sleep(this.DELAY_OF_PERF_LOGS);
+
             const executionTimesCopy = [...this.executionTimes];
-            const averageExecutionTime = executionTimesCopy.reduce((partialSum, a) => partialSum + a, 0) / executionTimesCopy.length
-            console.log("Execution Time: " + averageExecutionTime + " ms");
+            if (executionTimesCopy.length > 0) {
+                const averageExecutionTime = executionTimesCopy.reduce((partialSum, a) => partialSum + a, 0) / executionTimesCopy.length
+                console.log("Execution Time: " + averageExecutionTime + " ms");
+            }
+
+            const executionTimesVrCopy = [...this.executionTimesVr];
+            if (executionTimesVrCopy.length > 0) {
+                const averageExecutionTimeVr = executionTimesVrCopy.reduce((partialSum, a) => partialSum + a, 0) / executionTimesVrCopy.length
+                console.log("VR Execution Time: " + averageExecutionTimeVr + " ms");
+            }
+            
 
         }
     }
