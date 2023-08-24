@@ -66,7 +66,7 @@ export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicData: DynamicLandscapeData
 ) {
-  performance.mark("computeClassCommunication-start");
+  performance.mark('computeClassCommunication-start');
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
   const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
@@ -166,7 +166,7 @@ export default function computeClassCommunication(
   const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
 
-  performance.mark("computeDrawableClassCommunication-end");
+  performance.mark('computeClassCommunication-end');
   return computedCommunication;
 }
 

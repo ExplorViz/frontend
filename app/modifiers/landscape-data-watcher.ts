@@ -94,7 +94,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
-    performance.mark("handleUpdatedLandscapeData-start");
+    performance.mark('handleUpdatedLandscapeData-start');
     await Promise.resolve();
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
@@ -227,7 +227,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // apply new color for restructured communications in restructure mode
     this.landscapeRestructure.applyColorMappings();
     
-    performance.mark("handleUpdatedLandscapeData-end");
+    performance.mark('handleUpdatedLandscapeData-end');
   });
 
   updateApplicationData = task(
