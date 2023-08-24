@@ -1,4 +1,4 @@
-import type { ReducedApplication, ReducedComponent } from "./worker-types";
+import type { ReducedApplication, ReducedComponent } from './worker-types';
 
 // Wait for the initial message event.
 self.addEventListener(

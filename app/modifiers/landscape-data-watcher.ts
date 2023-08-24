@@ -84,9 +84,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   }
 
   async modify(
-    _element: any,
-    _positionalArgs: any[],
-    { landscapeData, graph }: any
+    _element: unknown,
+    _positionalArgs: unknown[],
+    { landscapeData, graph }: any // TODO
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
