@@ -233,25 +233,26 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
 
-    mesh.dataModel.drawableClassCommus.forEach((drawableClassComm) => {
-      const sourceApp = drawableClassComm.sourceApp;
-      const targetApp = drawableClassComm.targetApp;
+      const drawableClassComm = mesh.dataModel.drawableClassCommus.firstObject;
+      if(drawableClassComm){
+        const sourceApp = drawableClassComm.sourceApp;
+        const targetApp = drawableClassComm.targetApp;
 
-      if (sourceApp && targetApp) {
-        const sourceApplicationObject =
-          this.applicationRenderer.getApplicationById(sourceApp.id);
-        const targetApplicationObject =
-          this.applicationRenderer.getApplicationById(targetApp.id);
+        if (sourceApp && targetApp) {
+          const sourceApplicationObject =
+            this.applicationRenderer.getApplicationById(sourceApp.id);
+          const targetApplicationObject =
+            this.applicationRenderer.getApplicationById(targetApp.id);
 
-        if (sourceApplicationObject && targetApplicationObject) {
-          Highlighting.highlightExternCommunicationLine(
-            drawableClassComm,
-            sourceApplicationObject,
-            targetApplicationObject
-          );
+          if (sourceApplicationObject && targetApplicationObject) {
+            Highlighting.highlightExternCommunicationLine(
+              drawableClassComm,
+              sourceApplicationObject,
+              targetApplicationObject
+            );
+          }
         }
-      }
-    });
+    }
   }
 
   @action
@@ -324,7 +325,6 @@ export default class HighlightingService extends Service.extend({
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
-    console.log("HIGHLIGHTING COLOR:", color);
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );

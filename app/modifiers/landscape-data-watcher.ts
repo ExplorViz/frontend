@@ -170,6 +170,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     };
 
     const { serializedRoom } = this.roomSerializer;
+
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
 

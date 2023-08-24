@@ -140,33 +140,31 @@ export function highlightExternCommunicationLine(
   sourceApplicationObject3D: ApplicationObject3D,
   targetApplicationObject3D: ApplicationObject3D
 ) {
-  if (
-    sourceApplicationObject3D.drawableClassCommSet.has(
-      drawableClassCommunication
-    )
-  ) {
-    sourceApplicationObject3D.drawableClassCommSet.delete(
-      drawableClassCommunication
-    );
-  } else {
-    sourceApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
-    );
+
+  let notFoundSource = true;
+  sourceApplicationObject3D.drawableClassCommSet.forEach(drawableClassComm => {
+    if(drawableClassComm.id === drawableClassCommunication.id){
+      notFoundSource = false;
+      sourceApplicationObject3D.drawableClassCommSet.delete(drawableClassComm);
+    }
+  });
+
+  if(notFoundSource){
+    sourceApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
   }
 
-  if (
-    targetApplicationObject3D.drawableClassCommSet.has(
-      drawableClassCommunication
-    )
-  ) {
-    targetApplicationObject3D.drawableClassCommSet.delete(
-      drawableClassCommunication
-    );
-  } else {
-    targetApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
-    );
+  let notFoundTarget = true;
+  targetApplicationObject3D.drawableClassCommSet.forEach(drawableClassComm => {
+    if(drawableClassComm.id === drawableClassCommunication.id){
+      notFoundTarget = false;
+      targetApplicationObject3D.drawableClassCommSet.delete(drawableClassComm);
+    }
+  });
+
+  if(notFoundTarget){
+    targetApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
   }
+
 }
 
 /**

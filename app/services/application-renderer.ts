@@ -289,6 +289,8 @@ export default class ApplicationRenderer extends Service.extend({
 
       applicationObject3D.resetRotation();
 
+      // delete all extern comminication links so we can replace them with the current ones later on
+      //applicationObject3D.drawableClassCommSet.clear();
       return applicationObject3D;
     }
   );
@@ -513,7 +515,6 @@ export default class ApplicationRenderer extends Service.extend({
   ) {
     EntityManipulation.closeAllComponents(applicationObject3D);
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
-    // TODO update highlighting
   }
 
   closeAllComponents(
@@ -577,56 +578,39 @@ export default class ApplicationRenderer extends Service.extend({
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
-
-        // TODO: room.transparentExternCommunicationLinks so we can keep the arrows on the pipes transparent after each landscape tick in collaboration mode
-        // reset highlighted extern links and implicated opaqueness
-        if (room.highlightedExternCommunicationLinks) {
-          room.highlightedExternCommunicationLinks.forEach((externLink) => {
-            const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
-            if (linkMesh) {
-              const targetApp =
-                linkMesh.dataModel.drawableClassCommus.firstObject?.targetApp;
-              const targetClass =
-                linkMesh.dataModel.drawableClassCommus.firstObject?.targetClass;
-              const sourceApp =
-                linkMesh.dataModel.drawableClassCommus.firstObject?.sourceApp;
-              const sourceClass =
-                linkMesh.dataModel.drawableClassCommus.firstObject?.sourceClass;
-
-              if (targetApp && targetClass && sourceApp && sourceClass) {
-                const target = this.getApplicationById(targetApp.id);
-                const source = this.getApplicationById(sourceApp.id);
-
-                target?.getBoxMeshbyModelId(targetClass.id)?.turnOpaque();
-                source?.getBoxMeshbyModelId(sourceClass.id)?.turnOpaque();
-
-                // actually the code isn't needed
-                // if (target)
-                //   turnComponentAndAncestorsOpaque(
-                //     targetClass.parent,
-                //     target,
-                //     new Set(),
-                //     //this.highlightingService.opacity
-                //   );
-
-                // if (source)
-                //   turnComponentAndAncestorsOpaque(
-                //     sourceClass.parent,
-                //     source,
-                //     new Set(),
-                //     //this.highlightingService.opacity
-                //   );
-              }
-              this.highlightingService.highlight(
-                linkMesh,
-                false,
-                new THREE.Color().fromArray(externLink.color)
-              );
-            }
-          });
-        }
       }
     });
+
+    this.linkRenderer.getAllLinks().forEach(externLink => {
+      externLink.unhighlight();
+      externLink.turnOpaque();
+    });
+
+
+    if (room.highlightedExternCommunicationLinks) {
+
+      room.openApps.forEach((app) => {
+        const appObj = this.getApplicationById(app.id);
+        if(appObj){
+          appObj.drawableClassCommSet.clear();
+        }
+      });
+  
+
+      // TODO: room.transparentExternCommunicationLinks so we can keep the arrows on the pipes transparent after each landscape tick in collaboration mode
+
+      room.highlightedExternCommunicationLinks.forEach((externLink) => {
+        const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
+        if (linkMesh) {
+          this.highlightingService.highlight(
+            linkMesh,
+            false,
+            new THREE.Color().fromArray(externLink.color)
+          );
+          linkMesh.highlight();
+        }
+      });
+    }
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

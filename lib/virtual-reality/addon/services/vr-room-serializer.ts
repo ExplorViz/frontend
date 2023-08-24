@@ -3,6 +3,7 @@ import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import { isTrace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -19,6 +20,7 @@ import {
 import {
   SerializedApp,
   SerializedDetachedMenu,
+  SerializedHighlightedComponent,
   SerializedLandscape,
   SerializedVrRoom,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
@@ -29,6 +31,9 @@ export default class VrRoomSerializer extends Service {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
 
   @service('timestamp')
   private timestampService!: TimestampService;
@@ -46,6 +51,7 @@ export default class VrRoomSerializer extends Service {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
+      highlightedExternCommunicationLinks: this.serializehighlightedExternCommunicationLinks(),
       // openPopups: this.serializeOpenPopups(),
     };
     return this.serializedRoom;
@@ -177,6 +183,20 @@ export default class VrRoomSerializer extends Service {
           scale: detachedMenuGroup.scale.toArray(),
         };
       });
+  }
+
+  private serializehighlightedExternCommunicationLinks(): SerializedHighlightedComponent[]{
+    return this.linkRenderer.getAllLinks().filter(externLinkMesh => externLinkMesh.highlighted).map(externLinkMesh => {
+      const color =  (externLinkMesh.material as THREE.MeshBasicMaterial).color;
+      return {
+        userId: "", // TODO: userId
+        appId: "",
+        entityType: "ClazzCommunicationMesh",
+        entityId: externLinkMesh.getModelId(),
+        isHighlighted: externLinkMesh.highlighted,
+        color: [color.r, color.g, color.b],
+      };
+    });
   }
 }
 
