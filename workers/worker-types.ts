@@ -30,6 +30,7 @@ export type ReducedComponent = {
 
 export type ReducedApplication = {
   id: string,
+  name: string,
   packages: ReducedComponent[]
 }
 

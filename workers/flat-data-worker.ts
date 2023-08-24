@@ -1,11 +1,13 @@
+import type { ReducedApplication, ReducedComponent } from "./worker-types";
+
 // Wait for the initial message event.
 self.addEventListener(
   'message',
   function (e) {
     const structureData = e.data.structure;
-    const dynamicData = e.data.dynamic;
+    //const dynamicData = e.data.dynamic;
 
-    const flatData = calculateFlatData(structureData, dynamicData);
+    const flatData = calculateFlatData(structureData);
 
     postMessage(flatData);
   },
@@ -32,10 +34,10 @@ postMessage(true);
 
 /******* Define flatData *******/
 
-function calculateFlatData(application, allLandscapeTraces) {
+function calculateFlatData(application: ReducedApplication) {
   return calculateStaticData(application);
 
-  function calculateStaticData(application) {
+  function calculateStaticData(application: ReducedApplication) {
     const topLevelPackages = application.packages;
 
     let returnValue = new Map();
@@ -46,7 +48,7 @@ function calculateFlatData(application, allLandscapeTraces) {
 
     return returnValue;
 
-    function collectFqns(node, parentFqn) {
+    function collectFqns(node: ReducedComponent, parentFqn?: string) {
       let flatDataMap = new Map();
 
       const currentName = parentFqn ? parentFqn + '.' + node.name : node.name;
