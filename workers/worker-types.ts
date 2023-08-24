@@ -35,6 +35,7 @@ export type ReducedApplication = {
 };
 
 export type Trace = {
+  traceId: string;
   spanList: Span[];
 };
 
@@ -44,4 +45,5 @@ export type Span = {
   spanId: string;
   startTime: number;
   endTime: number;
+  traceId: string;
 };

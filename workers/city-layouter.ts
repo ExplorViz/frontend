@@ -16,7 +16,7 @@ import {
 // Wait for the initial message event.
 self.addEventListener(
   'message',
-  function (e) {
+  (e) => {
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
 
@@ -471,7 +471,7 @@ function applyBoxLayout(
     let maxZ = 0.0;
 
     // Sort by width and by name (for entities with same width)
-    children.sort(function (e1, e2) {
+    children.sort((e1, e2) => {
       const e1Width = layoutMap.get(e1.id).width;
       const e2Width = layoutMap.get(e2.id).width;
       const result = e1Width - e2Width;

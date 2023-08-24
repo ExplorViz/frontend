@@ -14,7 +14,7 @@ import type {
 // Wait for the initial message event.
 self.addEventListener(
   'message',
-  function (e) {
+  (e) => {
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
 
@@ -177,14 +177,15 @@ function calculateMetrics(
 
     const traceIdToSpanTreeMap = getTraceIdToSpanTreeMap(allLandscapeTraces);
 
-    traceIdToSpanTreeMap.forEach((spanTree) => {
-      const { root, tree } = spanTree;
+    traceIdToSpanTreeMap.forEach(({ root, tree }) =>
+      calculateRequestsRecursively(root, tree)
+    );
 
-      calculateRequestsRecursively(root, tree);
-    });
-
-    function calculateRequestsRecursively(span, tree) {
-      const childSpans = tree.get(span.spanId);
+    function calculateRequestsRecursively(
+      span: Span,
+      tree: Map<string, Span[]>
+    ) {
+      const childSpans = tree.get(span.spanId) ?? [];
       const parentClass = hashCodeToClassMap.get(span.hashCode);
 
       if (parentClass) {
@@ -210,8 +211,8 @@ function calculateMetrics(
   }
 
   function calculateOverallRequestCountMetric(
-    incomingRequestCountMetric,
-    outgoingRequestCountMetric
+    incomingRequestCountMetric: Metric,
+    outgoingRequestCountMetric: Metric
   ): Metric {
     // Initialize metric properties
     let min = Number.MAX_SAFE_INTEGER;
@@ -220,7 +221,8 @@ function calculateMetrics(
     const values = new Map();
 
     incomingRequestCountMetric.values.forEach((incomingRequests, classId) => {
-      const outgoingRequests = outgoingRequestCountMetric.values.get(classId);
+      const outgoingRequests =
+        outgoingRequestCountMetric.values.get(classId) ?? 0;
       const overallRequests = incomingRequests + outgoingRequests;
 
       min = Math.min(min, overallRequests);
@@ -245,6 +247,7 @@ function calculateMetrics(
   /**
    * Can be used for test purposes, as every new calculation of this metric generates different results
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function calculateDummyMetric(application: ReducedApplication): Metric {
     // Initialize metric properties
     let min = Number.MAX_VALUE;
@@ -329,11 +332,16 @@ function calculateMetrics(
     );
   }
 
+  type SpanTree = {
+    root: Span;
+    tree: Map<Span['spanId'], Span[]>;
+  };
+
   /**
    * Returns a SpanTree, which contains the first span and a map,
    * which maps all spans' ids to their corresponding child spans
    */
-  function getTraceIdToSpanTree(trace: Trace) {
+  function getTraceIdToSpanTree(trace: Trace): SpanTree {
     let firstSpan = trace.spanList[0];
 
     // Put spans into map for more efficient lookup when sorting
@@ -346,7 +354,7 @@ function calculateMetrics(
       }
     });
 
-    const parentSpanIdToChildSpansMap = new Map<string, Span[]>();
+    const parentSpanIdToChildSpansMap = new Map<Span['spanId'], Span[]>();
 
     trace.spanList.forEach((span) => {
       parentSpanIdToChildSpansMap.set(span.spanId, []);
@@ -368,8 +376,8 @@ function calculateMetrics(
     return tree;
   }
 
-  function getTraceIdToSpanTreeMap(traces) {
-    const traceIdToSpanTree = new Map();
+  function getTraceIdToSpanTreeMap(traces: Trace[]) {
+    const traceIdToSpanTree = new Map<Trace['traceId'], SpanTree>();
 
     traces.forEach((trace) => {
       traceIdToSpanTree.set(trace.traceId, getTraceIdToSpanTree(trace));
