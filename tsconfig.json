@@ -49,6 +49,7 @@
       "virtual-reality/test-support/*": [
         "lib/virtual-reality/addon-test-support/*"
       ],
+      "workers/*": ["workers/*"],
       "*": ["types/*"]
     }
   },
@@ -62,7 +63,8 @@
     "types",
     "lib/collaborative-mode",
     "lib/virtual-reality",
-    "lib/heatmap"
+    "lib/heatmap",
+    "workers"
   ],
   "exclude": ["tests/*"]
 }
