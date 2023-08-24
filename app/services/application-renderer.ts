@@ -414,8 +414,11 @@ export default class ApplicationRenderer extends Service.extend({
     sendMessage: boolean,
     color?: THREE.Color
   ) {
-    if (mesh instanceof ClazzCommunicationMesh)
+    if (mesh instanceof ClazzCommunicationMesh){
       this.highlightingService.highlight(mesh, sendMessage, color);
+      this.updateLinks?.();
+      this.highlightingService.updateHighlighting(false);
+    }
   }
 
   /**

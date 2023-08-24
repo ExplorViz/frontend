@@ -324,6 +324,7 @@ export default class HighlightingService extends Service.extend({
     mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
+    console.log("HIGHLIGHTING COLOR:", color);
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );

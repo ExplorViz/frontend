@@ -12,12 +12,11 @@ import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from '../vr-controller/vr-controller-thumbpad-binding';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ApplicationSearch from 'explorviz-frontend/components/visualization/page-setup/sidebar/application-search';
+import { task } from 'ember-concurrency';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
   renderer: THREE.WebGLRenderer;
-  removeToolsSidebarComponent?(nameOfComponent: string): void;
 };
 
 export type searchItemVal = { id: string; applicationId: string };
@@ -56,23 +55,14 @@ export default class SearchMenu extends InteractiveMenu {
   keyboardContainer!: ThreeMeshUI.Block;
   searchList!: SearchList;
   _isNewInput: boolean = false;
-  applicationSearch!: ApplicationSearch;
   oldContent?: string;
 
-  constructor({ owner, renderer, removeToolsSidebarComponent, ...args }: SearchMenuArgs) {
+  constructor({ owner, renderer, ...args }: SearchMenuArgs) {
     super(args);
     this.owner = owner;
     setOwner(this, owner);
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
-
-    console.log(removeToolsSidebarComponent);
-
-    if(removeToolsSidebarComponent)
-      this.applicationSearch = new ApplicationSearch(this.owner, {removeToolsSidebarComponent: removeToolsSidebarComponent});
-    
-    console.log("HEEEEEEEEEEEEEEEERE:", this.applicationSearch);
-
     this.makeUI();
     this.makeKeyboard();
   }
@@ -127,7 +117,7 @@ export default class SearchMenu extends InteractiveMenu {
 
     textPanel.add(title, textField);
 
-    this.list = await this.applicationSearch.searchEntity.perform(this.userText.content);
+    this.list = await this.getPossibleEntityNames.perform(this.userText.content);
     this.searchListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
@@ -265,6 +255,38 @@ export default class SearchMenu extends InteractiveMenu {
   //   return resObj;
   // }
 
+
+  getPossibleEntityNames = task(async (name: string) => {
+    const searchString = name.toLowerCase();
+
+    let allEntities: Map<string, any> = new Map();
+
+    const applications = this.applicationRepo.getAll();
+
+    for (const application of applications) {
+      allEntities = new Map([...allEntities, ...application.flatData]);
+    }
+
+    const returnValue: any[] = [];
+
+    const entriesArray = Array.from(allEntities.entries());
+
+    for (let i = 0; i < entriesArray.length; i++) {
+      const [, value] = entriesArray[i];
+
+      if (returnValue.length === 10) {
+        break;
+      }
+
+      if (value.fqn.toLowerCase().includes(searchString)) {
+        returnValue.push(value);
+      }
+    }
+
+    console.log(returnValue);
+    return returnValue;
+  });
+
  async onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
@@ -276,11 +298,8 @@ export default class SearchMenu extends InteractiveMenu {
     }
 
     this.oldContent = this.userText.content;
-
-    console.log("EINGABE HAT SICH VERÄNDERT");
-
      
-    this.list = await this.applicationSearch.searchEntity.perform(this.userText.content);
+    this.list = await this.getPossibleEntityNames.perform(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
     this.searchList = new SearchList({
@@ -306,7 +325,7 @@ export default class SearchMenu extends InteractiveMenu {
           // controller.updateIntersectedObject();
           //if (!controller.intersectedObject) return;
 
-          if (this.searchList && this.list.size > 0) {
+          if (this.searchList && this.list.length > 0) {
             const direction = VRControllerThumbpadBinding.getDirection(axes);
             const vector = thumbpadDirectionToVector2(direction);
             const offset = vector.toArray()[1]; // vertical part
