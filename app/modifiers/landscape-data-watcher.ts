@@ -76,7 +76,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Signature> {
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
-    performance.mark("handleUpdatedLandscapeData-start");
+    performance.mark('handleUpdatedLandscapeData-start');
     await Promise.resolve();
 
     const drawableClassCommunications = computeDrawableClassCommunication(
@@ -191,7 +191,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Signature> {
       cls.push(tempCL);
     });
     this.ideWebsocketFacade.refreshVizData(cls);
-    performance.mark("handleUpdatedLandscapeData-end");
+    performance.mark('handleUpdatedLandscapeData-end');
   });
 
   updateApplicationData = task(
