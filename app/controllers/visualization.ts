@@ -92,10 +92,16 @@ export default class VisualizationController extends Controller {
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  showDataSelection = false;
+  showSettingsSidebar = false;
+
+  @tracked
+  showToolsSidebar = false;
 
   @tracked
   components: string[] = [];
+
+  @tracked
+  componentsToolsSidebar: string[] = [];
 
   @tracked
   isTimelineActive: boolean = true;
@@ -240,18 +246,40 @@ export default class VisualizationController extends Controller {
   @action
   closeDataSelection() {
     this.debug('closeDataSelection');
-    this.showDataSelection = false;
+    this.showSettingsSidebar = false;
     this.components = [];
   }
 
   @action
-  openDataSelection() {
-    this.debug('openDataSelection');
-    this.showDataSelection = true;
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.componentsToolsSidebar = [];
   }
 
   @action
-  toggleSidebarComponent(component: string) {
+  openSettingsSidebar() {
+    this.debug('openSettingsSidebar');
+    this.showSettingsSidebar = true;
+  }
+
+  @action
+  openToolsSidebar() {
+    this.debug('openToolsSidebar');
+    this.showToolsSidebar = true;
+  }
+
+  @action
+  toggleToolsSidebarComponent(component: string) {
+    if (this.componentsToolsSidebar.includes(component)) {
+      this.removeToolsSidebarComponent(component);
+    } else {
+      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+    }
+  }
+
+  @action
+  toggleSettingsSidebarComponent(component: string) {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
@@ -271,6 +299,21 @@ export default class VisualizationController extends Controller {
       const components = [...this.components];
       components.splice(index, 1);
       this.components = components;
+    }
+  }
+
+  @action
+  removeToolsSidebarComponent(path: string) {
+    if (this.componentsToolsSidebar.length === 0) {
+      return;
+    }
+
+    const index = this.componentsToolsSidebar.indexOf(path);
+    // Remove existing sidebar component
+    if (index !== -1) {
+      const componentsToolsSidebar = [...this.componentsToolsSidebar];
+      componentsToolsSidebar.splice(index, 1);
+      this.componentsToolsSidebar = componentsToolsSidebar;
     }
   }
 

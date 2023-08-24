@@ -1,0 +1,22 @@
+<EmberScrollable>
+  <div class='pr-3 pl-3 pb-3'>
+    {{yield}}
+  </div>
+</EmberScrollable>
+<div id='toolsSidebarButtonContainer' class='foreground'>
+  <button
+    type='button'
+    class='btn btn-light btn-outline-dark sidebar-button'
+    title='Close Sidebar'
+    aria-label='Close'
+    {{on 'click' @closeToolSelection}}
+  >
+    {{svg-jar 'x-16' class='octicon align-middle'}}
+  </button>
+  <Visualization::PageSetup::Sidebar::SidebarResizer
+    @buttonName='toolSidebarDragButton'
+    @containerName='toolsSidebarButtonContainer'
+    @sidebarName='toolselection'
+    @expandToRight={{true}}
+  />
+</div>

@@ -47,7 +47,7 @@ interface BrowserRenderingArgs {
   readonly landscapeData: LandscapeData;
   readonly visualizationPaused: boolean;
   readonly selectedTimestampRecords: Timestamp[];
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   switchToVR(): void;
@@ -213,7 +213,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openDataSelection },
+      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
       { title: 'Enter VR', action: this.args.switchToVR },
     ];

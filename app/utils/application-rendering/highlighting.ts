@@ -93,7 +93,7 @@ export function highlight(
   applicationObject3D: ApplicationObject3D,
   communication: DrawableClassCommunication[],
   opacity: number,
-  toggleHighlighting = true
+  toggleHighlighting = false
 ) {
   // Reset highlighting if highlighted mesh is clicked
   if (mesh.highlighted && toggleHighlighting) {

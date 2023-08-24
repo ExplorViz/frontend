@@ -9,7 +9,7 @@ interface Args {
   application: Application;
 }
 
-export default class ApplicationPopup extends Component<Args> {
+export default class FoundationPopup extends Component<Args> {
   get clazzCount() {
     return getAllClassesInApplication(this.args.application).length;
   }
