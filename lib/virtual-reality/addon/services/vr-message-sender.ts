@@ -2,19 +2,19 @@ import Service, { inject as service } from '@ember/service';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
-import { MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import { PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import { TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import { MOUSE_PING_UPDATE_EVENT, MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import { PING_UPDATE_EVENT, PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
+import { TIMESTAMP_UPDATE_EVENT, TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VRController from '../utils/vr-controller';
 import { getControllerPose } from '../utils/vr-helpers/vr-poses';
-import { AppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
-import { ComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
-import { HighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
-import { ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
-import { ObjectReleasedMessage } from '../utils/vr-message/sendable/object_released';
-import { SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
-import { UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
-import { UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
+import { APP_OPENED_EVENT, AppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
+import { COMPONENT_UPDATE_EVENT, ComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
+import { HIGHLIGHTING_UPDATE_EVENT, HighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
+import { OBJECT_MOVED_EVENT, ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
+import { OBJECT_RELEASED_EVENT, ObjectReleasedMessage } from '../utils/vr-message/sendable/object_released';
+import { SPECTATING_UPDATE_EVENT, SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
+import { USER_CONTROLLER_CONNECT_EVENT, UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
+import { USER_CONTROLLER_DISCONNECT_EVENT, UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
 import {
   ControllerPose,
   Pose,
@@ -41,7 +41,7 @@ export default class VrMessageSender extends Service {
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined
   ) {
-    this.webSocket.send<UserPositionsMessage>({
+    this.webSocket.send<UserPositionsMessage>('user_positions', {
       event: 'user_positions',
       controller1,
       controller2,
@@ -62,7 +62,7 @@ export default class VrMessageSender extends Service {
     quaternion: THREE.Quaternion,
     scale: THREE.Vector3
   ) {
-    this.webSocket.send<ObjectMovedMessage>({
+    this.webSocket.send<ObjectMovedMessage>(OBJECT_MOVED_EVENT, {
       event: 'object_moved',
       objectId,
       position: position.toArray(),
@@ -78,7 +78,7 @@ export default class VrMessageSender extends Service {
    * @param objectId The id of the object to request to grab.
    */
   sendObjectReleased(objectId: string) {
-    this.webSocket.send<ObjectReleasedMessage>({
+    this.webSocket.send<ObjectReleasedMessage>(OBJECT_RELEASED_EVENT, {
       event: 'object_released',
       objectId,
     });
@@ -97,7 +97,7 @@ export default class VrMessageSender extends Service {
     isOpened: boolean,
     isFoundation: boolean
   ) {
-    this.webSocket.send<ComponentUpdateMessage>({
+    this.webSocket.send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
       event: 'component_update',
       appId,
       componentId,
@@ -121,7 +121,7 @@ export default class VrMessageSender extends Service {
     entityId: string,
     isHighlighted: boolean
   ) {
-    this.webSocket.send<HighlightingUpdateMessage>({
+    this.webSocket.send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
       event: 'highlighting_update',
       appId,
       entityType,
@@ -135,7 +135,7 @@ export default class VrMessageSender extends Service {
    * additionally adds who is spectating who.
    */
   sendSpectatingUpdate(isSpectating: boolean, spectatedUser: string | null) {
-    this.webSocket.send<SpectatingUpdateMessage>({
+    this.webSocket.send<SpectatingUpdateMessage>(SPECTATING_UPDATE_EVENT, {
       event: 'spectating_update',
       isSpectating,
       spectatedUser,
@@ -150,7 +150,7 @@ export default class VrMessageSender extends Service {
 
     const motionController = await controller.controllerModel
       .motionControllerPromise;
-    this.webSocket.send<UserControllerConnectMessage>({
+    this.webSocket.send<UserControllerConnectMessage>(USER_CONTROLLER_CONNECT_EVENT, {
       event: 'user_controller_connect',
       controller: {
         assetUrl: motionController.assetUrl,
@@ -164,7 +164,7 @@ export default class VrMessageSender extends Service {
    * Informs the backend if a controller was connected/disconnected.
    */
   sendControllerDisconnect(controller: VRController) {
-    this.webSocket.send<UserControllerDisconnectMessage>({
+    this.webSocket.send<UserControllerDisconnectMessage>( USER_CONTROLLER_DISCONNECT_EVENT, {
       event: 'user_controller_disconnect',
       controllerId: controller.gamepadIndex,
     });
@@ -176,7 +176,7 @@ export default class VrMessageSender extends Service {
    * @param ApplicationObject3D Opened application
    */
   sendAppOpened(application: ApplicationObject3D) {
-    this.webSocket.send<AppOpenedMessage>({
+    this.webSocket.send<AppOpenedMessage>(APP_OPENED_EVENT, {
       event: 'app_opened',
       id: application.getModelId(),
       position: application.getWorldPosition(new THREE.Vector3()).toArray(),
@@ -188,7 +188,7 @@ export default class VrMessageSender extends Service {
   }
 
   sendPingUpdate(controllerId: ControllerId, isPinging: boolean) {
-    this.webSocket.send<PingUpdateMessage>({
+    this.webSocket.send<PingUpdateMessage>(PING_UPDATE_EVENT, {
       event: 'ping_update',
       controllerId,
       isPinging,
@@ -200,7 +200,7 @@ export default class VrMessageSender extends Service {
     isApplication: boolean,
     position: THREE.Vector3
   ) {
-    this.webSocket.send<MousePingUpdateMessage>({
+    this.webSocket.send<MousePingUpdateMessage>(MOUSE_PING_UPDATE_EVENT, {
       event: 'mouse_ping_update',
       modelId,
       isApplication,
@@ -209,7 +209,7 @@ export default class VrMessageSender extends Service {
   }
 
   sendTimestampUpdate(timestamp: number) {
-    this.webSocket.send<TimestampUpdateMessage>({
+    this.webSocket.send<TimestampUpdateMessage>(TIMESTAMP_UPDATE_EVENT, {
       event: 'timestamp_update',
       timestamp,
     });

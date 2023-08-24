@@ -167,7 +167,7 @@ export default class CollaborationSession extends Service.extend({
     this.localUser.connected({
       id: self.id,
       name: self.name,
-      color: new THREE.Color(...self.color),
+      color: new THREE.Color(self.color.red, self.color.green, self.color.blue),
     });
   }
 

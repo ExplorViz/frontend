@@ -47,8 +47,8 @@ export default class PopupHandler {
 
   constructor(owner: any) {
     setOwner(this, owner);
-    this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
-    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached.bind(this));
+    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed.bind(this));
   }
 
   @action
@@ -71,7 +71,7 @@ export default class PopupHandler {
     this.webSocket.sendRespondableMessage<
       MenuDetachedMessage,
       MenuDetachedResponse
-    >(
+    >(MENU_DETACHED_EVENT,
       {
         event: 'menu_detached',
         detachId: entityId,
@@ -124,7 +124,7 @@ export default class PopupHandler {
       this.webSocket.sendRespondableMessage<
         DetachedMenuClosedMessage,
         ObjectClosedResponse
-      >(
+      >(DETACHED_MENU_CLOSED_EVENT,
         {
           event: 'detached_menu_closed',
           menuId: popup.menuId,
