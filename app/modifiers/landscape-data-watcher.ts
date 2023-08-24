@@ -68,7 +68,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Signature> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: unknown, _positionalArgs: unknown[], { landscapeData, graph }: NamedArgs<Signature>) {
+  modify(
+    _element: unknown,
+    _positionalArgs: unknown[],
+    { landscapeData, graph }: NamedArgs<Signature>
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
 

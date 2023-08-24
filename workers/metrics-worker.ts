@@ -1,11 +1,16 @@
-import { getAllClassesInApplication, getAllSpanHashCodesFromTraces, getClassList, getHashCodeToClassMap } from './utils';
-import type { 
+import {
+  getAllClassesInApplication,
+  getAllSpanHashCodesFromTraces,
+  getClassList,
+  getHashCodeToClassMap,
+} from './utils';
+import type {
   ReducedApplication,
   ReducedClass,
   Trace,
   Span,
 } from './worker-types';
-  
+
 // Wait for the initial message event.
 self.addEventListener(
   'message',
@@ -26,18 +31,24 @@ postMessage(true);
 /******* Define Metrics *******/
 
 type Metric = {
-  name: string,
-  mode: string,
-  description: string,
-  min: number,
-  max: number,
-  values: Map<ReducedClass['id'], number>,
+  name: string;
+  mode: string;
+  description: string;
+  min: number;
+  max: number;
+  values: Map<ReducedClass['id'], number>;
 };
 
-function calculateMetrics(application: ReducedApplication, allLandscapeTraces: Trace[]) {
-  function calcInstanceCountMetric(application: ReducedApplication, allLandscapeTraces: Trace[]): Metric {
+function calculateMetrics(
+  application: ReducedApplication,
+  allLandscapeTraces: Trace[]
+) {
+  function calcInstanceCountMetric(
+    application: ReducedApplication,
+    allLandscapeTraces: Trace[]
+  ): Metric {
     // Initialize metric properties
-    let min = 0;
+    const min = 0;
     let max = 0;
     const values = new Map();
 
@@ -55,7 +66,7 @@ function calculateMetrics(application: ReducedApplication, allLandscapeTraces: T
     const allMethodHashCodes =
       getAllSpanHashCodesFromTraces(allLandscapeTraces);
 
-    for (let methodHashCode of allMethodHashCodes) {
+    for (const methodHashCode of allMethodHashCodes) {
       const classMatchingTraceHashCode = hashCodeToClassMap.get(methodHashCode);
 
       if (classMatchingTraceHashCode === undefined) {
@@ -95,7 +106,7 @@ function calculateMetrics(application: ReducedApplication, allLandscapeTraces: T
     allLandscapeTraces: Trace[]
   ): Metric {
     // Initialize metric properties
-    let min = 0;
+    const min = 0;
     let max = 0;
     const values = new Map();
 
@@ -116,7 +127,7 @@ function calculateMetrics(application: ReducedApplication, allLandscapeTraces: T
     const allMethodHashCodes =
       getAllSpanHashCodesFromTracesExceptParentSpans(allLandscapeTraces);
 
-    for (let methodHashCode of allMethodHashCodes) {
+    for (const methodHashCode of allMethodHashCodes) {
       const classMatchingTraceHashCode = hashCodeToClassMap.get(methodHashCode);
 
       if (classMatchingTraceHashCode === undefined) {
@@ -152,7 +163,7 @@ function calculateMetrics(application: ReducedApplication, allLandscapeTraces: T
     allLandscapeTraces: Trace[]
   ): Metric {
     // Initialize metric properties
-    let min = 0;
+    const min = 0;
     let max = 0;
     const values = new Map();
 
@@ -261,7 +272,7 @@ function calculateMetrics(application: ReducedApplication, allLandscapeTraces: T
     };
   }
 
-  let metrics: Metric[] = [];
+  const metrics: Metric[] = [];
 
   // The following metric might be useful for testing purposes
   // const dummyMetric = calculateDummyMetric(application);

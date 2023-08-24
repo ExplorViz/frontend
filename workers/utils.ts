@@ -1,20 +1,28 @@
-import { ReducedApplication, ReducedClass, ReducedComponent, Trace } from "./worker-types";
+import {
+  ReducedApplication,
+  ReducedClass,
+  ReducedComponent,
+  Trace,
+} from './worker-types';
 
+export function getAllClassesInApplication(
+  application: ReducedApplication
+): ReducedClass[] {
+  const allComponents = getAllComponentsInApplication(application);
 
-export function getAllClassesInApplication(application: ReducedApplication): ReducedClass[] {
-  let allComponents = getAllComponentsInApplication(application);
-
-  let allClasses: ReducedClass[] = [];
+  const allClasses: ReducedClass[] = [];
   allComponents.forEach((component) => {
     allClasses.push(...component.classes);
   });
   return allClasses;
 }
 
-export function getAllComponentsInApplication(application: ReducedApplication): ReducedComponent[]  {
-  let children = application.packages;
+export function getAllComponentsInApplication(
+  application: ReducedApplication
+): ReducedComponent[] {
+  const children = application.packages;
 
-  let components: ReducedComponent[] = [];
+  const components: ReducedComponent[] = [];
 
   children.forEach((component) => {
     components.push(...getAllComponents(component), component);
@@ -23,7 +31,7 @@ export function getAllComponentsInApplication(application: ReducedApplication): 
 }
 
 function getAllComponents(component: ReducedComponent): ReducedComponent[] {
-  let components: ReducedComponent[] = [];
+  const components: ReducedComponent[] = [];
   component.subPackages.forEach((component) => {
     components.push(...getAllComponents(component), component);
   });
@@ -31,7 +39,9 @@ function getAllComponents(component: ReducedComponent): ReducedComponent[] {
   return components;
 }
 
-export function getHashCodeToClassMap(classes: ReducedClass[]): Map<string, ReducedClass> {
+export function getHashCodeToClassMap(
+  classes: ReducedClass[]
+): Map<string, ReducedClass> {
   const hashCodeToClassMap = new Map<string, ReducedClass>();
 
   classes.forEach((clazz) => {
@@ -43,7 +53,10 @@ export function getHashCodeToClassMap(classes: ReducedClass[]): Map<string, Redu
   return hashCodeToClassMap;
 }
 
-export function getClassList(component: ReducedComponent, classesArray: ReducedClass[]): void {
+export function getClassList(
+  component: ReducedComponent,
+  classesArray: ReducedClass[]
+): void {
   const children = component.subPackages;
   const classes = component.classes;
 
