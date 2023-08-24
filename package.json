@@ -22,8 +22,8 @@
     "start": "concurrently \"npm:build:worker:watch\" \"ember serve\"",
     "test": "npm-run-all lint test:*",
     "test:ember": "ember test",
-    "build:worker": "esbuild workers/city-layouter.ts --bundle --minify --outfile=public/assets/web-workers/city-layouter.js",
-    "build:worker:watch": "esbuild workers/city-layouter.ts --bundle --watch --outfile=public/assets/web-workers/city-layouter.js"
+    "build:worker": "node build-workers.mjs build --minify",
+    "build:worker:watch": "node build-workers.mjs watch"
   },
   "devDependencies": {
     "@ember/jquery": "^2.0.0",
