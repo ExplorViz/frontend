@@ -1,3 +1,11 @@
+import { getAllClassesInApplication, getAllSpanHashCodesFromTraces, getClassList, getHashCodeToClassMap } from './utils';
+import type { 
+  ReducedApplication,
+  ReducedClass,
+  Trace,
+  Span,
+} from './worker-types';
+  
 // Wait for the initial message event.
 self.addEventListener(
   'message',
@@ -17,23 +25,32 @@ postMessage(true);
 
 /******* Define Metrics *******/
 
-function calculateMetrics(application, allLandscapeTraces) {
-  function calcInstanceCountMetric(application, allLandscapeTraces) {
+type Metric = {
+  name: string,
+  mode: string,
+  description: string,
+  min: number,
+  max: number,
+  values: Map<ReducedClass['id'], number>,
+};
+
+function calculateMetrics(application: ReducedApplication, allLandscapeTraces: Trace[]) {
+  function calcInstanceCountMetric(application: ReducedApplication, allLandscapeTraces: Trace[]): Metric {
     // Initialize metric properties
     let min = 0;
     let max = 0;
     const values = new Map();
 
-    getAllClazzesInApplication(application).forEach((clazz) => {
+    getAllClassesInApplication(application).forEach((clazz) => {
       values.set(clazz.id, 0);
     });
 
-    const clazzes = [];
+    const classes: ReducedClass[] = [];
     application.packages.forEach((component) => {
-      getClazzList(component, clazzes);
+      getClassList(component, classes);
     });
 
-    const hashCodeToClassMap = getHashCodeToClassMap(clazzes);
+    const hashCodeToClassMap = getHashCodeToClassMap(classes);
 
     const allMethodHashCodes =
       getAllSpanHashCodesFromTraces(allLandscapeTraces);
@@ -74,27 +91,27 @@ function calculateMetrics(application, allLandscapeTraces) {
   }
 
   function calculateIncomingRequestCountMetric(
-    application,
-    allLandscapeTraces
-  ) {
+    application: ReducedApplication,
+    allLandscapeTraces: Trace[]
+  ): Metric {
     // Initialize metric properties
     let min = 0;
     let max = 0;
     const values = new Map();
 
-    const clazzes = getAllClazzesInApplication(application);
+    const classes = getAllClassesInApplication(application);
 
-    clazzes.forEach((clazz) => {
+    classes.forEach((clazz) => {
       values.set(clazz.id, 0);
     });
 
-    //const clazzes = getAllClazzesInApplication(application);
-    // clazzes = [];
+    //const clazzes = getAllClassesInApplication(application);
+    // classes = [];
     //application.packages.forEach((component) => {
-    //  getClazzList(component, clazzes);
+    //  getClazzList(component, classes);
     // });
 
-    const hashCodeToClassMap = getHashCodeToClassMap(clazzes);
+    const hashCodeToClassMap = getHashCodeToClassMap(classes);
 
     const allMethodHashCodes =
       getAllSpanHashCodesFromTracesExceptParentSpans(allLandscapeTraces);
@@ -131,15 +148,15 @@ function calculateMetrics(application, allLandscapeTraces) {
   }
 
   function calculateOutgoingRequestCountMetric(
-    application,
-    allLandscapeTraces
-  ) {
+    application: ReducedApplication,
+    allLandscapeTraces: Trace[]
+  ): Metric {
     // Initialize metric properties
     let min = 0;
     let max = 0;
     const values = new Map();
 
-    const clazzes = getAllClazzesInApplication(application);
+    const clazzes = getAllClassesInApplication(application);
 
     clazzes.forEach((clazz) => {
       values.set(clazz.id, 0);
@@ -184,7 +201,7 @@ function calculateMetrics(application, allLandscapeTraces) {
   function calculateOverallRequestCountMetric(
     incomingRequestCountMetric,
     outgoingRequestCountMetric
-  ) {
+  ): Metric {
     // Initialize metric properties
     let min = Number.MAX_SAFE_INTEGER;
     let max = 0;
@@ -217,13 +234,13 @@ function calculateMetrics(application, allLandscapeTraces) {
   /**
    * Can be used for test purposes, as every new calculation of this metric generates different results
    */
-  function calculateDummyMetric(application) {
+  function calculateDummyMetric(application: ReducedApplication): Metric {
     // Initialize metric properties
     let min = Number.MAX_VALUE;
     let max = 0;
     const values = new Map();
 
-    getAllClazzesInApplication(application).forEach((clazz) => {
+    getAllClassesInApplication(application).forEach((clazz) => {
       const randomValue = Math.random() * 1000;
       values.set(clazz.id, randomValue);
       min = Math.min(min, randomValue);
@@ -244,7 +261,7 @@ function calculateMetrics(application, allLandscapeTraces) {
     };
   }
 
-  let metrics = [];
+  let metrics: Metric[] = [];
 
   // The following metric might be useful for testing purposes
   // const dummyMetric = calculateDummyMetric(application);
@@ -278,63 +295,8 @@ function calculateMetrics(application, allLandscapeTraces) {
 
   // Helper functions
 
-  function getAllClazzesInApplication(application) {
-    let allComponents = getAllComponentsInApplication(application);
-
-    let allClazzes = [];
-    allComponents.forEach((component) => {
-      allClazzes.push(...component.classes);
-    });
-    return allClazzes;
-  }
-
-  function getClazzList(component, clazzesArray) {
-    const children = component.subPackages;
-    const clazzes = component.classes;
-
-    children.forEach((child) => {
-      getClazzList(child, clazzesArray);
-    });
-
-    clazzes.forEach((clazz) => {
-      clazzesArray.push(clazz);
-    });
-  }
-
-  function getAllComponentsInApplication(application) {
-    let children = application.packages;
-
-    let components = [];
-
-    children.forEach((component) => {
-      components.push(...getAllComponents(component), component);
-    });
-    return components;
-  }
-
-  function getAllComponents(component) {
-    let components = [];
-    component.subPackages.forEach((component) => {
-      components.push(...getAllComponents(component), component);
-    });
-
-    return components;
-  }
-
-  function getHashCodeToClassMap(clazzes) {
-    const hashCodeToClassMap = new Map();
-
-    clazzes.forEach((clazz) => {
-      clazz.methods.forEach(({ hashCode }) =>
-        hashCodeToClassMap.set(hashCode, clazz)
-      );
-    });
-
-    return hashCodeToClassMap;
-  }
-
-  function getAllSpanHashCodesFromTracesExceptParentSpans(traceArray) {
-    const hashCodes = [];
+  function getAllSpanHashCodesFromTracesExceptParentSpans(traceArray: Trace[]) {
+    const hashCodes: string[] = [];
 
     traceArray.forEach((trace) => {
       trace.spanList.forEach((span) => {
@@ -346,19 +308,8 @@ function calculateMetrics(application, allLandscapeTraces) {
     return hashCodes;
   }
 
-  function getAllSpanHashCodesFromTraces(traceArray) {
-    const hashCodes = [];
-
-    traceArray.forEach((trace) => {
-      trace.spanList.forEach((span) => {
-        hashCodes.push(span.hashCode);
-      });
-    });
-    return hashCodes;
-  }
-
-  function sortSpanArrayByTime(spanArary, copy = false) {
-    let sortedArray = spanArary;
+  function sortSpanArrayByTime(spanArray: Span[], copy = false) {
+    let sortedArray = spanArray;
     if (copy) {
       sortedArray = [...sortedArray];
     }
@@ -371,7 +322,7 @@ function calculateMetrics(application, allLandscapeTraces) {
    * Returns a SpanTree, which contains the first span and a map,
    * which maps all spans' ids to their corresponding child spans
    */
-  function getTraceIdToSpanTree(trace) {
+  function getTraceIdToSpanTree(trace: Trace) {
     let firstSpan = trace.spanList[0];
 
     // Put spans into map for more efficient lookup when sorting
@@ -384,7 +335,7 @@ function calculateMetrics(application, allLandscapeTraces) {
       }
     });
 
-    const parentSpanIdToChildSpansMap = new Map();
+    const parentSpanIdToChildSpansMap = new Map<string, Span[]>();
 
     trace.spanList.forEach((span) => {
       parentSpanIdToChildSpansMap.set(span.spanId, []);
@@ -394,8 +345,8 @@ function calculateMetrics(application, allLandscapeTraces) {
       parentSpanIdToChildSpansMap.get(span.parentSpanId)?.push(span);
     });
 
-    parentSpanIdToChildSpansMap.forEach((spanArary) =>
-      sortSpanArrayByTime(spanArary)
+    parentSpanIdToChildSpansMap.forEach((spanArray) =>
+      sortSpanArrayByTime(spanArray)
     );
 
     const tree = {

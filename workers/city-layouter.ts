@@ -1,3 +1,13 @@
+import type { 
+  ReducedApplication,
+  ReducedComponent,
+  ReducedClass,
+  Trace,
+  LayoutSegment
+} from './worker-types';
+
+import { getAllClassesInApplication, getAllComponentsInApplication, getAllSpanHashCodesFromTraces, getHashCodeToClassMap } from './utils';
+
 // Wait for the initial message event.
 self.addEventListener(
     'message',
@@ -15,89 +25,8 @@ self.addEventListener(
   postMessage(true);
   
   /******* Define Layouter *******/
-
-  type LayoutData = {
-    height: number,
-    width: number,
-    depth: number,
-    positionX: number,
-    positionY: number,
-    positionZ: number
-  }
   
-  type LayoutSegment = {
-    parent: null | LayoutSegment,
-    lowerChild: null | LayoutSegment,
-    upperRightChild: null | LayoutSegment,
-    startX: number,
-    startZ: number,
-    width: number,
-    height: number,
-    used: boolean
-  }
-  
-  type ReducedClass = {
-    id: string,
-    name: string,
-    instanceCount: number,
-    methods: ReducedMethod[]
-  }
-
-  type ReducedMethod = {
-    name: string;
-    hashCode: string // TODO tiwe
-  }
-  
-  type ReducedComponent = {
-    id: string,
-    name: string,
-    classes: ReducedClass[],
-    subPackages: ReducedComponent[] // TODO tiwe
-  }
-  
-  type ReducedApplication = {
-    id: string,
-    packages: ReducedComponent[]
-  }
-
-  type ReducedTrace = { // TODO tiwe
-    spanList: {
-        hashCode: string
-    }[]
-  }
-  
-  // TODO tiwe
-  function applyBoxLayout(application: ReducedApplication, allLandscapeTraces: ReducedTrace[]) {
-    function getAllClazzesInApplication(application: ReducedApplication): ReducedClass[] {
-      let allComponents = getAllComponentsInApplication(application);
-  
-      let allClasses: ReducedClass[] = [];
-      allComponents.forEach((component) => {
-        allClasses.push(...component.classes);
-      });
-      return allClasses;
-    }
-  
-    function getAllComponentsInApplication(application: ReducedApplication): ReducedComponent[]  {
-      let children = application.packages;
-  
-      let components: ReducedComponent[] = [];
-  
-      children.forEach((component) => {
-        components.push(...getAllComponents(component), component);
-      });
-      return components;
-    }
-  
-    function getAllComponents(component: ReducedComponent): ReducedComponent[] {
-      let components: ReducedComponent[] = [];
-      component.subPackages.forEach((component) => {
-        components.push(...getAllComponents(component), component);
-      });
-  
-      return components;
-    }
-  
+  function applyBoxLayout(application: ReducedApplication, allLandscapeTraces: Trace[]) {
     const INSET_SPACE = 4.0;
     const OPENED_COMPONENT_HEIGHT = 1.5;
   
@@ -113,7 +42,7 @@ self.addEventListener(
       positionZ: 0,
     });
   
-    getAllClazzesInApplication(application).forEach((clazz) => {
+    getAllClassesInApplication(application).forEach((clazz) => {
       layoutMap.set(clazz.id, {
         height: 1,
         width: 1,
@@ -198,30 +127,7 @@ self.addEventListener(
       });
     }
   
-    function getHashCodeToClassMap(clazzes: ReducedClass[]): Map<string, ReducedClass> {
-      const hashCodeToClassMap = new Map<string, ReducedClass>();
-  
-      clazzes.forEach((clazz) => {
-        clazz.methods.forEach(({ hashCode }) =>
-          hashCodeToClassMap.set(hashCode, clazz)
-        );
-      });
-  
-      return hashCodeToClassMap;
-    }
-  
-    function getAllSpanHashCodesFromTraces(traceArray: ReducedTrace[]): string[] {
-      const hashCodes: string[] = [];
-  
-      traceArray.forEach((trace) => {
-        trace.spanList.forEach((span) => {
-          hashCodes.push(span.hashCode);
-        });
-      });
-      return hashCodes;
-    }
-  
-    function calcClazzHeight(application: ReducedApplication, allLandscapeTraces: ReducedTrace[]): void {
+    function calcClazzHeight(application: ReducedApplication, allLandscapeTraces: Trace[]): void {
       const CLAZZ_SIZE_DEFAULT = 1.5;
       const CLAZZ_SIZE_EACH_STEP = 1.5;
   
