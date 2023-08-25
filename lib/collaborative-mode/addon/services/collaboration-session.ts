@@ -36,6 +36,7 @@ import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -67,6 +68,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
+
+  @service('user-settings')
+  private userSettings!: UserSettings;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -174,6 +178,10 @@ export default class CollaborationSession extends Service.extend({
       name: self.name,
       color: new THREE.Color(...self.color),
     });
+
+   
+    this.userSettings.applyDefaultApplicationSettings(); // in collab mode keepHighlightingOnOpenOrClose is always enabled (default setting!) and cannot be switched in collaboration!
+    
   }
 
   onUserConnected({

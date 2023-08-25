@@ -464,10 +464,11 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     sendMessage: boolean
   ) {
+
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
       applicationObject3D,
-      this.collaborationSession.connectionStatus === "online" ? true : this.appSettings.keepHighlightingOnOpenOrClose.value // in collab mode keepHighlightingOnOpenOrClose is always enabled
+      this.appSettings.keepHighlightingOnOpenOrClose.value
     );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
   }
