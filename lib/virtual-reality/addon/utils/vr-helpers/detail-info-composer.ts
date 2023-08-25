@@ -192,22 +192,20 @@ function composeDrawableClazzCommunicationContent(
       applicationId !== drawableCommu.targetApp?.id;
 
     // Call hierarchy
-    content.entries.push({
-      key: 'Src / Tgt Class:',
-      value: `${trimString(drawableCommu.sourceClass.name, 20)} -> ${trimString(
-        drawableCommu.targetClass.name,
-        20
-      )}`,
-    });
+    // content.entries.push({
+    //   key: 'Src / Tgt Class:',
+    //   value: `${drawableCommu.sourceClass.name} -> ${
+    //     drawableCommu.targetClass.name
+    //    }`,
+    // });
 
     if (commuHasExternalApp) {
       // App hierarchy
       content.entries.push({
         key: 'Src / Tgt App:',
-        value: `${trimString(
-          drawableCommu.sourceApp?.name,
-          20
-        )} -> ${trimString(drawableCommu.targetApp?.name, 20)}`,
+        value: `${
+          drawableCommu.sourceApp?.name
+         } -> ${drawableCommu.targetApp?.name}`,
       });
     }
 

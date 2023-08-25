@@ -97,7 +97,8 @@ export function openComponentMesh(
  */
 export function closeComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean,
 ) {
   if (!mesh.opened) {
     return;
@@ -121,10 +122,10 @@ export function closeComponentMesh(
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
-        closeComponentMesh(childMesh, applicationObject3D);
+        closeComponentMesh(childMesh, applicationObject3D, keepHighlighted);
       }
       // Reset highlighting if highlighted entity is no longer visible
-      if (childMesh.highlighted) {
+      if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, applicationObject3D);
       }
     }
@@ -136,7 +137,7 @@ export function closeComponentMesh(
     if (childMesh instanceof ClazzMesh) {
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
-      if (childMesh.highlighted) {
+      if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, applicationObject3D);
       }
     }
@@ -148,14 +149,14 @@ export function closeComponentMesh(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
+export function closeAllComponents(applicationObject3D: ApplicationObject3D, keepHighlighted: boolean) {
   const application = applicationObject3D.data.application;
 
   // Close each component
   application.packages.forEach((component) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D);
+      closeComponentMesh(componentMesh, applicationObject3D,keepHighlighted);
     }
   });
 }
@@ -221,10 +222,11 @@ export function openAllComponents(
  */
 export function toggleComponentMeshState(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean,
 ) {
   if (mesh.opened) {
-    closeComponentMesh(mesh, applicationObject3D);
+    closeComponentMesh(mesh, applicationObject3D, keepHighlighted);
   } else {
     openComponentMesh(mesh, applicationObject3D);
   }

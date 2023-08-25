@@ -49,6 +49,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -93,6 +94,9 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   forceGraph!: ThreeForceGraph;
 
@@ -462,7 +466,8 @@ export default class ApplicationRenderer extends Service.extend({
   ) {
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
-      applicationObject3D
+      applicationObject3D,
+      this.collaborationSession.connectionStatus === "online" ? true : this.appSettings.keepHighlightingOnOpenOrClose.value // in collab mode keepHighlightingOnOpenOrClose is always enabled
     );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
   }
@@ -513,7 +518,8 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     sendMessage: boolean
   ) {
-    EntityManipulation.closeAllComponents(applicationObject3D);
+    EntityManipulation.closeAllComponents(applicationObject3D, this.appSettings.keepHighlightingOnOpenOrClose.value
+      );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
   }
 

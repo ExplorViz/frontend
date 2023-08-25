@@ -464,7 +464,7 @@ export default class ArRendering extends Component<Args> {
     if (intersection) {
       this.handleSecondaryInputOn(intersection);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.removeHighlightingForAllApplications(true);
     }
   }
 

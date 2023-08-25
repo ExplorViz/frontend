@@ -55,6 +55,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       hiddenOverflow: true,
       backgroundOpacity: 0,
       offset: 0.001,
+      textAlign: 'left',
     }); // This Block with hiddenOverflow set to true is needed so the text stays within its block!
     this.text = new ThreeMeshUI.Text({
       content: this.content,
@@ -62,7 +63,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     });
     const textBlock = new DetailInfoScrollarea(this.text, this.menuFactory, {
       height: boxhight,
-      width: 0.65,
+      width: 0.64,
       backgroundOpacity: 0,
       offset: 0.001,
     });
@@ -110,6 +111,8 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       justifyContent: 'center',
       textAlign: 'center',
       backgroundOpacity: 0,
+      fontColor: new THREE.Color( 0x554343 ),
+
     });
 
     const targetLableBox = new ThreeMeshUI.Block({
@@ -119,6 +122,8 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       justifyContent: 'center',
       textAlign: 'center',
       backgroundOpacity: 0,
+      fontColor: new THREE.Color( 0x554343 ),
+
     });
 
     const sourceButton = new OpenEntityButton({
