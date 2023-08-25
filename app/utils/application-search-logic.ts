@@ -37,6 +37,7 @@ export default class ApplicationSearchLogic {
     }
 
     const returnValue: any[] = [];
+    const returnValueIncludedModelIds: any[] = [];
 
     const entriesArray = Array.from(allEntities.entries());
 
@@ -47,7 +48,11 @@ export default class ApplicationSearchLogic {
         break;
       }
 
-      if (value.fqn.toLowerCase().includes(searchString)) {
+      if (
+        value.fqn.toLowerCase().includes(searchString) &&
+        !returnValueIncludedModelIds.includes(value.modelId)
+      ) {
+        returnValueIncludedModelIds.push(value.modelId);
         returnValue.push(value);
       }
     }
