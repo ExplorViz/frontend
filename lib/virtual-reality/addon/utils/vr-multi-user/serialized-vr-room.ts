@@ -42,4 +42,5 @@ export type SerializedVrRoom = {
   openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
   highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
+  //transparentExternCommunicationLinks: string[];
 };

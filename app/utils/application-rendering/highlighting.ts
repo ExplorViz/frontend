@@ -197,7 +197,6 @@ export function highlight(
   }
 
   //console.log("Status bevor Klick: TRANSPARENT:", mesh.material.transparent, " OPACITY:", mesh.material.opacity);
-
   if (mesh.highlighted) {
     mesh.unhighlight();
     if (
@@ -447,12 +446,15 @@ export function updateHighlighting(
   allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
+  console.log("updateHighlighting");
   // Set everything transparent at the beginning ----------------------
 
   const allClazzes = new Set(
     turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
   );
   turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
+
+  const opaqueLinks : Set<ClazzCommunicationMesh> = new Set();
 
   // ------------------------------------------------------------------
 
@@ -526,6 +528,7 @@ export function updateHighlighting(
                 for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
+                    opaqueLinks.add(link);
                     link.turnOpaque();
                     break;
                   }
@@ -535,6 +538,7 @@ export function updateHighlighting(
                 for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
+                    opaqueLinks.add(link);
                     link.turnOpaque();
                     break;
                   }
@@ -566,7 +570,10 @@ export function updateHighlighting(
   if (allInvolvedClazzesFinal.size === 0) {
     // set everything opaque
 
-    allLinks.forEach((link) => link.turnOpaque());
+    allLinks.forEach((link) => {
+      opaqueLinks.add(link);
+      link.turnOpaque();
+    });
     allInvolvedClazzesFinal = allClazzes; // we pretend that all clazzes are "selected" so everything gets opaque again
   }
 
@@ -594,10 +601,14 @@ export function updateHighlighting(
     }
   });
 
+
+  // console.log("OPAQUE LINKS:", opaqueLinks);
+  const transparentLinks = allLinks.filter((link) => !(link.parent instanceof ApplicationObject3D) && !opaqueLinks.has(link));
+
   // return a map of from application id to a list of component ids which are now transparent
   const transparencyMap: Map<string, string[]> = new Map();
   applicationObject3DList.forEach((application) => {
-    const transparencyList: string[] = [];
+    let transparencyList: string[] = [];
     application.getAllMeshes().forEach((mesh) => {
       if (mesh.material.opacity !== 1) {
         if (
@@ -608,6 +619,9 @@ export function updateHighlighting(
           transparencyList.push(mesh.getModelId());
       }
     });
+    const externTransparentLinks = transparentLinks.filter(externLink => externLink.dataModel.application.id === application.getModelId()).map(clazzCommuMesh => clazzCommuMesh.getModelId());
+    console.log(externTransparentLinks);
+    transparencyList = [...transparencyList, ...externTransparentLinks];
     transparencyMap.set(application.getModelId(), transparencyList);
   });
 

@@ -73,13 +73,22 @@ export default class VrRoomSerializer extends Service {
   }
 
   serializeApplication(application: ApplicationObject3D) {
+    const transparentExternLinks : Set<string> = new Set();
+    this.linkRenderer.getAllLinks().forEach(link => {
+      if(link.dataModel.application.id === application.getModelId()){
+        if(link.material.opacity !== 1){
+          transparentExternLinks.add(link.getModelId());
+        }
+      }
+    });
+
     return {
       id: application.getModelId(),
       position: application.position.toArray(),
       quaternion: application.quaternion.toArray(),
       scale: application.scale.toArray(),
       openComponents: Array.from(application.openComponentIds),
-      transparentComponents: Array.from(application.transparentComponentIds),
+      transparentComponents: Array.from(new Set([...application.transparentComponentIds, ...transparentExternLinks])),
       highlightedComponents: this.serializeHighlightedComponent(application),
     };
   }

@@ -245,6 +245,8 @@ export default class HighlightingService extends Service.extend({
             this.applicationRenderer.getApplicationById(targetApp.id);
 
           if (sourceApplicationObject && targetApplicationObject) {
+            console.log("HIGHLIIIIIIIIIIIIIGHT:", mesh.getModelId());
+            console.log("HIGHLIGHT2:", mesh.dataModel.id);
             Highlighting.highlightExternCommunicationLine(
               drawableClassComm,
               sourceApplicationObject,

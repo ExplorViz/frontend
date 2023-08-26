@@ -463,6 +463,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks,
+    //transparentExternCommunicationLinks
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
@@ -476,9 +477,10 @@ export default class VisualizationController extends Controller {
     this.applicationRenderer.restoreFromSerialization(
       this.roomSerializer.serializedRoom
     );
-    this.updateTimestamp(landscape.timestamp);
+    await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
+
   }
 
   async onTimestampUpdate({

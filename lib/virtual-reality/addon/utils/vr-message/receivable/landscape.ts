@@ -46,6 +46,7 @@ export type InitialLandscapeMessage = {
   landscape: Landscape;
   detachedMenus: DetachedMenu[];
   highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
+  //transparentExternCommunicationLinks: string[];
 };
 
 function isHighlightedComponent(comp: any): comp is HighlightedComponent {
