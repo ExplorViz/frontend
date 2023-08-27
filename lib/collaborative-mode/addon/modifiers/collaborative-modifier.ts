@@ -15,10 +15,7 @@ import { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  ALL_HIGHLIGHTS_RESET_EVENT,
-  AllHighlightsResetMessage,
-} from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 import {
   AppOpenedMessage,
   APP_OPENED_EVENT,
@@ -166,7 +163,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
-  onAllHighlightsReset({}: ForwardedMessage<AllHighlightsResetMessage>): void {
+  onAllHighlightsReset(): void {
     this.highlightingService.removeHighlightingForAllApplications(false);
     this.highlightingService.updateHighlighting(false);
   }

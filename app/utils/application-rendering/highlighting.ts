@@ -636,7 +636,6 @@ export function updateHighlighting(
           externLink.dataModel.application.id === application.getModelId()
       )
       .map((clazzCommuMesh) => clazzCommuMesh.getModelId());
-    console.log(externTransparentLinks);
     transparencyList = [...transparencyList, ...externTransparentLinks];
     transparencyMap.set(application.getModelId(), transparencyList);
   });

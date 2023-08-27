@@ -95,10 +95,7 @@ import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
-import {
-  JOIN_VR_EVENT,
-  JoinVrMessage,
-} from 'virtual-reality/utils/vr-message/sendable/join_vr';
+import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
@@ -1197,7 +1194,7 @@ export default class VrRendering extends Component<Args> {
     }
   }
 
-  onJoinVr(message: ForwardedMessage<JoinVrMessage>): void {
+  onJoinVr(): void {
     if (this.localUser.controller1)
       this.sender.sendControllerConnect(this.localUser.controller1);
     if (this.localUser.controller2)
