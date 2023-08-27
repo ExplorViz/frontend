@@ -45,6 +45,7 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -63,6 +64,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('landscape-data-service')
+  landscapeDataService!: LandscapeDataService;
 
   @service('configuration')
   configuration!: Configuration;
@@ -176,6 +180,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
+    this.landscapeDataService.setForceGraph(this.graph);
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(

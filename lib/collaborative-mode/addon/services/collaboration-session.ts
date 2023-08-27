@@ -275,7 +275,7 @@ export default class CollaborationSession extends Service.extend({
     // Remove remote users.
     this.removeAllRemoteUsers();
 
-    this.landscapeListener.initLandscapePolling();
+    this.landscapeListener.initLandscapePolling(); // TODO tiwe
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
