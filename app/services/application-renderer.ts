@@ -354,7 +354,7 @@ export default class ApplicationRenderer extends Service.extend({
     // Update links
     //this.updateLinks?.();
     // Update highlighting
-    this.highlightingService.updateHighlighting(sendMessage); // needs to be after update links
+    this.highlightingService.updateHighlighting(); // needs to be after update links
   }
 
   updateLinks?: () => void;
@@ -427,7 +427,7 @@ export default class ApplicationRenderer extends Service.extend({
     if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightingService.highlight(mesh, sendMessage, color);
       //this.updateLinks?.();
-      this.highlightingService.updateHighlighting(false);
+      this.highlightingService.updateHighlighting();
     }
   }
 

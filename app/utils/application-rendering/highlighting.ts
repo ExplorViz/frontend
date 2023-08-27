@@ -463,8 +463,6 @@ export function updateHighlighting(
   );
   turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
 
-  const opaqueLinks: Set<ClazzCommunicationMesh> = new Set();
-
   // ------------------------------------------------------------------
 
   // Now we proceed to compute all involved clazzes in highlighted components
@@ -537,7 +535,6 @@ export function updateHighlighting(
                 for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
-                    opaqueLinks.add(link);
                     link.turnOpaque();
                     break;
                   }
@@ -547,7 +544,6 @@ export function updateHighlighting(
                 for (const link of allLinks) {
                   // TODO: helper function so we do not have to write this loop every time in the following
                   if (link.getModelId() === id) {
-                    opaqueLinks.add(link);
                     link.turnOpaque();
                     break;
                   }
@@ -580,7 +576,6 @@ export function updateHighlighting(
     // set everything opaque
 
     allLinks.forEach((link) => {
-      opaqueLinks.add(link);
       link.turnOpaque();
     });
     allInvolvedClazzesFinal = allClazzes; // we pretend that all clazzes are "selected" so everything gets opaque again
@@ -609,38 +604,6 @@ export function updateHighlighting(
       // }
     }
   });
-
-  // console.log("OPAQUE LINKS:", opaqueLinks);
-  const transparentLinks = allLinks.filter(
-    (link) =>
-      !(link.parent instanceof ApplicationObject3D) && !opaqueLinks.has(link)
-  );
-
-  // return a map of from application id to a list of component ids which are now transparent
-  const transparencyMap: Map<string, string[]> = new Map();
-  applicationObject3DList.forEach((application) => {
-    let transparencyList: string[] = [];
-    application.getAllMeshes().forEach((mesh) => {
-      if (mesh.material.opacity !== 1) {
-        if (
-          mesh instanceof ComponentMesh ||
-          mesh instanceof ClazzMesh ||
-          mesh instanceof ClazzCommunicationMesh
-        )
-          transparencyList.push(mesh.getModelId());
-      }
-    });
-    const externTransparentLinks = transparentLinks
-      .filter(
-        (externLink) =>
-          externLink.dataModel.application.id === application.getModelId()
-      )
-      .map((clazzCommuMesh) => clazzCommuMesh.getModelId());
-    transparencyList = [...transparencyList, ...externTransparentLinks];
-    transparencyMap.set(application.getModelId(), transparencyList);
-  });
-
-  return transparencyMap;
 }
 
 export function removeHighlighting(

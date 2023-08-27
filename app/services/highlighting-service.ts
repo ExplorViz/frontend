@@ -103,7 +103,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlightingForAllApplications() {
-    this.updateHighlighting(true, this.opacity); // one call is all we need (see implementation)
+    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
   }
 
   @action
@@ -131,23 +131,14 @@ export default class HighlightingService extends Service.extend({
   //   });
   // }
 
-  updateHighlighting(sendMessage: boolean, value: number = this.opacity) {
+  updateHighlighting(value: number = this.opacity) {
     const { allLinks, drawableComm, applications } = this.getParams();
-    const transparencyMap = Highlighting.updateHighlighting(
+    Highlighting.updateHighlighting(
       applications,
       drawableComm,
       allLinks,
       value
     );
-
-    if (sendMessage) {
-      // we don't send messages when updateHighlighting is called due to a receiving landscape update message (highlighting or opening/closing components)
-      Array.from(transparencyMap.keys()).forEach((appId) => {
-        const transparencyList = transparencyMap.get(appId);
-        if (transparencyList)
-          this.sender.sendTransparencyUpdate(appId, transparencyList);
-      });
-    }
   }
 
   getParams(): {
@@ -213,7 +204,7 @@ export default class HighlightingService extends Service.extend({
       this.highlightComponent(parent, mesh, sendMessage, color); // notice that intern communication lines get highlighted here
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, color); // extern communication lines get highlighted here
-      this.updateHighlighting(sendMessage);
+      this.updateHighlighting();
 
       if (sendMessage) {
         this.sender.sendHighlightingUpdate(

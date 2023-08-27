@@ -204,8 +204,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     if(this.initDone && this.linkRenderer.flag
       ){
-      this.linkRenderer.flag = false;
+      this.linkRenderer.flag = false; 
     }
+
   }
 
   get rightClickMenuItems() {
@@ -346,7 +347,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications(true);
-      this.highlightingService.updateHighlighting(false);
+      this.highlightingService.updateHighlighting();
     }
   }
 

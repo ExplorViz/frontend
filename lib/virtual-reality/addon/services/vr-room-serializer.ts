@@ -74,6 +74,7 @@ export default class VrRoomSerializer extends Service {
   }
 
   serializeApplication(application: ApplicationObject3D) {
+    // collect transparent extern links
     const transparentExternLinks: Set<string> = new Set();
     this.linkRenderer.getAllLinks().forEach((link) => {
       if (link.dataModel.application.id === application.getModelId()) {

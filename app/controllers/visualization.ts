@@ -477,7 +477,7 @@ export default class VisualizationController extends Controller {
       await timeout(350);
     }
     // now we can be sure our linkRenderer has all extern links
-    
+
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
@@ -490,9 +490,12 @@ export default class VisualizationController extends Controller {
       this.roomSerializer.serializedRoom
     );
 
+    this.applicationRenderer.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
+
+    
 
   }
 

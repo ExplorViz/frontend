@@ -147,20 +147,6 @@ export default class VrMessageSender extends Service {
   }
 
   /**
-   * Informs the backend the current state of all transparent entities from the current application
-   *
-   * @param {string} appId ID of the application of the transparent entities
-   * @param {string} entityIds List of IDs of the transparent entities
-   */
-  sendTransparencyUpdate(appId: string, entityIds: string[]) {
-    this.webSocket.send<TransparencyUpdateMessage>({
-      event: 'transparency_update',
-      appId,
-      entityIds,
-    });
-  }
-
-  /**
    * Informs backend that this user entered or left spectating mode and
    * additionally adds who is spectating who.
    */
