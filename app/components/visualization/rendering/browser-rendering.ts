@@ -41,6 +41,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
+import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -59,6 +60,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('landscape-data-service')
+  landscapeDataService!: LandscapeDataService;
 
   @service('configuration')
   configuration!: Configuration;
@@ -168,6 +172,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
+    this.landscapeDataService.setForceGraph(this.graph);
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(

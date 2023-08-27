@@ -1,7 +1,8 @@
 import VisualizationController from 'explorviz-frontend/controllers/visualization';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import type LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 import { inject as service } from '@ember/service';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
@@ -17,6 +18,9 @@ import BaseRoute from './base-route';
 export default class VisualizationRoute extends BaseRoute {
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
+
+  @service('landscape-data-service')
+  landscapeDataService!: LandscapeDataService;
 
   @service('router')
   router!: any;
@@ -83,6 +87,7 @@ export default class VisualizationRoute extends BaseRoute {
     super.setupController(controller, model, transition);
 
     controller.initRendering();
+    this.landscapeDataService.initPolling();
   }
 
   // @Override Ember-Hook

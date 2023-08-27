@@ -193,6 +193,7 @@ export default class ApplicationRenderer extends Service.extend({
 
       let layoutChanged = true;
       if (applicationObject3D) {
+        // Always true!
         layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
 
         applicationObject3D.boxLayoutMap = boxLayoutMap;

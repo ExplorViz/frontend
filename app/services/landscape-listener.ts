@@ -30,6 +30,9 @@ export default class LandscapeListener extends Service.extend(Evented) {
   timer: NodeJS.Timeout | null = null;
 
   async initLandscapePolling(intervalInSeconds: number = 10) {
+    this.debug('Skipped legacy initLandscapePolling');
+    return; // TODO tiwe
+
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);

@@ -392,7 +392,7 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling();
+    this.landscapeListener.initLandscapePolling(); // TODO tiwe
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');

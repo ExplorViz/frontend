@@ -247,7 +247,6 @@ function calculateMetrics(
   /**
    * Can be used for test purposes, as every new calculation of this metric generates different results
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function calculateDummyMetric(application: ReducedApplication): Metric {
     // Initialize metric properties
     let min = Number.MAX_VALUE;
@@ -274,6 +273,9 @@ function calculateMetrics(
       values,
     };
   }
+
+  // Fake usage:
+  calculateDummyMetric;
 
   const metrics: Metric[] = [];
 
