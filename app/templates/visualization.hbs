@@ -144,9 +144,8 @@
 </div>
 {{! timeline }}
 
-    
 {{#if this.showTimeline}}
-  <div id='timeline-content'>    
+  <div id='timeline-content'>
     <BsButton
       @onClick={{this.toggleTimeline}}
       @type='secondary'
@@ -169,13 +168,13 @@
       }}
     </BsButton>
 
-<button
-        class='btn-timeline-above'
-        type='button'
-        {{did-insert this.updateVrStatus}}
-        {{on 'click' this.switchToVR}}
-      >
-        {{this.buttonText}}
+    <button
+      class='btn-timeline-above'
+      type='button'
+      {{did-insert this.updateVrStatus}}
+      {{on 'click' this.switchToVR}}
+    >
+      {{this.buttonText}}
     </button>
     <div
       id='timeline'

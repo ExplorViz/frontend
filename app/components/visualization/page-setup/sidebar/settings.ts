@@ -174,8 +174,13 @@ export default class Settings extends Component<Args> {
     } else {
       const settingId = name as ApplicationSettingId;
       try {
-        if(this.collaborationSession.connectionStatus === "online" && settingId === "keepHighlightingOnOpenOrClose"){
-          AlertifyHandler.showAlertifyWarning("Switching Mode Not Allowed In Collaboration Session");
+        if (
+          this.collaborationSession.connectionStatus === 'online' &&
+          settingId === 'keepHighlightingOnOpenOrClose'
+        ) {
+          AlertifyHandler.showAlertifyWarning(
+            'Switching Mode Not Allowed In Collaboration Session'
+          );
           return;
         }
         this.userSettings.updateApplicationSetting(settingId, value);

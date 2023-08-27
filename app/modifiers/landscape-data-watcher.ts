@@ -23,6 +23,7 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -60,6 +61,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   @service
   private worker!: any;

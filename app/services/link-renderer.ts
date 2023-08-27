@@ -12,6 +12,7 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -167,6 +168,14 @@ export default class LinkRenderer extends Service.extend({}) {
         arrowHeight,
         arrowColorHex
       );
+    }
+
+    if (pipe.material.opacity !== 1) {
+      // This fixes the problem that every arrow gets opaque (even for transparent pipes) after receiving onTimestampUpdate messages
+      pipe.children.forEach((child) => {
+        if (child instanceof CommunicationArrowMesh)
+          child.turnTransparent(pipe.material.opacity);
+      });
     }
   }
 }

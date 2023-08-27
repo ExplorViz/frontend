@@ -208,7 +208,7 @@ export default class ApplicationRenderer extends Service.extend({
     async (
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {}
-    ) => {console.log("XXXXXXXXXXXXXXXXXXXXXXXXX");
+    ) => {
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -228,7 +228,6 @@ export default class ApplicationRenderer extends Service.extend({
           boxLayoutMap
         );
       }
-      
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
@@ -254,7 +253,6 @@ export default class ApplicationRenderer extends Service.extend({
         this.highlightingService.opacity
       );
 
-
       // Add labels to application
       Labeler.addApplicationLabels(
         applicationObject3D,
@@ -264,31 +262,18 @@ export default class ApplicationRenderer extends Service.extend({
 
       this.addCommunication(applicationObject3D);
 
-
       // reset transparency of inner communication links
       applicationObject3D.getCommMeshes().forEach((commMesh) => {
         if (applicationState.transparentComponents?.has(commMesh.getModelId()))
           commMesh.turnTransparent(this.highlightingService.opacity);
       });
 
-
-      // this.linkRenderer.getAllLinks().forEach(link => {
-      //   applicationState.transparentComponents?.forEach(id => {
-      //     if(link.getModelId() === id){
-      //       console.log("TURN EXTERN LINK TRANSPARENT");
-      //     }
-      //   });
-
-      // });
-
-
       // reset transparency of extern communication links
 
-      applicationState.transparentComponents?.forEach(id => {
+      applicationState.transparentComponents?.forEach((id) => {
         const externLinkMesh = this.linkRenderer.getLinkById(id);
-        if(externLinkMesh){
+        if (externLinkMesh) {
           externLinkMesh.turnTransparent(this.highlightingService.opacity);
-          console.log("TURN EXTERN LINK TRANSPARENT");
         }
       });
 
@@ -371,7 +356,7 @@ export default class ApplicationRenderer extends Service.extend({
       this.configuration.applicationColors
     );
     // Update links
-    this.updateLinks?.();
+    //this.updateLinks?.();
     // Update highlighting
     this.highlightingService.updateHighlighting(sendMessage); // needs to be after update links
   }
@@ -443,9 +428,9 @@ export default class ApplicationRenderer extends Service.extend({
     sendMessage: boolean,
     color?: THREE.Color
   ) {
-    if (mesh instanceof ClazzCommunicationMesh){
+    if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightingService.highlight(mesh, sendMessage, color);
-      this.updateLinks?.();
+      //this.updateLinks?.();
       this.highlightingService.updateHighlighting(false);
     }
   }
@@ -487,7 +472,6 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     sendMessage: boolean
   ) {
-
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
       applicationObject3D,
@@ -542,8 +526,10 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     sendMessage: boolean
   ) {
-    EntityManipulation.closeAllComponents(applicationObject3D, this.appSettings.keepHighlightingOnOpenOrClose.value
-      );
+    EntityManipulation.closeAllComponents(
+      applicationObject3D,
+      this.appSettings.keepHighlightingOnOpenOrClose.value
+    );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
   }
 
@@ -601,6 +587,11 @@ export default class ApplicationRenderer extends Service.extend({
   restoreFromSerialization(room: SerializedVrRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.unhighlight();
+      externLink.turnOpaque();
+    });
+
     room.openApps.forEach(async (app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
@@ -611,22 +602,13 @@ export default class ApplicationRenderer extends Service.extend({
       }
     });
 
-    this.linkRenderer.getAllLinks().forEach(externLink => {
-      externLink.unhighlight();
-    });
-
-
     if (room.highlightedExternCommunicationLinks) {
-
       room.openApps.forEach((app) => {
         const appObj = this.getApplicationById(app.id);
-        if(appObj){
+        if (appObj) {
           appObj.drawableClassCommSet.clear();
         }
       });
-  
-
-      // TODO: room.transparentExternCommunicationLinks so we can keep the arrows on the pipes transparent after each landscape tick in collaboration mode
 
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);

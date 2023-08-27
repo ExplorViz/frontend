@@ -259,21 +259,16 @@ export default class SearchMenu extends InteractiveMenu {
   //   return resObj;
   // }
 
-
-
-
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
 
-    
-
-    if(this.oldContent === this.userText.content){
+    if (this.oldContent === this.userText.content) {
       return;
     }
 
     this.oldContent = this.userText.content;
-     
+
     this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
@@ -287,7 +282,6 @@ export default class SearchMenu extends InteractiveMenu {
     });
     this.searchListContainer.add(this.searchList);
   }
-
 
   /**
    * The thumbpad can be used to select a searched item

@@ -51,7 +51,8 @@ export default class VrRoomSerializer extends Service {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
-      highlightedExternCommunicationLinks: this.serializehighlightedExternCommunicationLinks(),
+      highlightedExternCommunicationLinks:
+        this.serializehighlightedExternCommunicationLinks(),
       // openPopups: this.serializeOpenPopups(),
     };
     return this.serializedRoom;
@@ -73,10 +74,10 @@ export default class VrRoomSerializer extends Service {
   }
 
   serializeApplication(application: ApplicationObject3D) {
-    const transparentExternLinks : Set<string> = new Set();
-    this.linkRenderer.getAllLinks().forEach(link => {
-      if(link.dataModel.application.id === application.getModelId()){
-        if(link.material.opacity !== 1){
+    const transparentExternLinks: Set<string> = new Set();
+    this.linkRenderer.getAllLinks().forEach((link) => {
+      if (link.dataModel.application.id === application.getModelId()) {
+        if (link.material.opacity !== 1) {
           transparentExternLinks.add(link.getModelId());
         }
       }
@@ -88,7 +89,12 @@ export default class VrRoomSerializer extends Service {
       quaternion: application.quaternion.toArray(),
       scale: application.scale.toArray(),
       openComponents: Array.from(application.openComponentIds),
-      transparentComponents: Array.from(new Set([...application.transparentComponentIds, ...transparentExternLinks])),
+      transparentComponents: Array.from(
+        new Set([
+          ...application.transparentComponentIds,
+          ...transparentExternLinks,
+        ])
+      ),
       highlightedComponents: this.serializeHighlightedComponent(application),
     };
   }
@@ -194,18 +200,22 @@ export default class VrRoomSerializer extends Service {
       });
   }
 
-  private serializehighlightedExternCommunicationLinks(): SerializedHighlightedComponent[]{
-    return this.linkRenderer.getAllLinks().filter(externLinkMesh => externLinkMesh.highlighted).map(externLinkMesh => {
-      const color =  (externLinkMesh.material as THREE.MeshBasicMaterial).color;
-      return {
-        userId: "", // TODO: userId
-        appId: "",
-        entityType: "ClazzCommunicationMesh",
-        entityId: externLinkMesh.getModelId(),
-        isHighlighted: externLinkMesh.highlighted,
-        color: [color.r, color.g, color.b],
-      };
-    });
+  private serializehighlightedExternCommunicationLinks(): SerializedHighlightedComponent[] {
+    return this.linkRenderer
+      .getAllLinks()
+      .filter((externLinkMesh) => externLinkMesh.highlighted)
+      .map((externLinkMesh) => {
+        const color = (externLinkMesh.material as THREE.MeshBasicMaterial)
+          .color;
+        return {
+          userId: '', // TODO: userId
+          appId: '',
+          entityType: 'ClazzCommunicationMesh',
+          entityId: externLinkMesh.getModelId(),
+          isHighlighted: externLinkMesh.highlighted,
+          color: [color.r, color.g, color.b],
+        };
+      });
   }
 }
 

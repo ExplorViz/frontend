@@ -140,31 +140,41 @@ export function highlightExternCommunicationLine(
   sourceApplicationObject3D: ApplicationObject3D,
   targetApplicationObject3D: ApplicationObject3D
 ) {
-
   let notFoundSource = true;
-  sourceApplicationObject3D.drawableClassCommSet.forEach(drawableClassComm => {
-    if(drawableClassComm.id === drawableClassCommunication.id){
-      notFoundSource = false;
-      sourceApplicationObject3D.drawableClassCommSet.delete(drawableClassComm);
+  sourceApplicationObject3D.drawableClassCommSet.forEach(
+    (drawableClassComm) => {
+      if (drawableClassComm.id === drawableClassCommunication.id) {
+        notFoundSource = false;
+        sourceApplicationObject3D.drawableClassCommSet.delete(
+          drawableClassComm
+        );
+      }
     }
-  });
+  );
 
-  if(notFoundSource){
-    sourceApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
+  if (notFoundSource) {
+    sourceApplicationObject3D.drawableClassCommSet.add(
+      drawableClassCommunication
+    );
   }
 
   let notFoundTarget = true;
-  targetApplicationObject3D.drawableClassCommSet.forEach(drawableClassComm => {
-    if(drawableClassComm.id === drawableClassCommunication.id){
-      notFoundTarget = false;
-      targetApplicationObject3D.drawableClassCommSet.delete(drawableClassComm);
+  targetApplicationObject3D.drawableClassCommSet.forEach(
+    (drawableClassComm) => {
+      if (drawableClassComm.id === drawableClassCommunication.id) {
+        notFoundTarget = false;
+        targetApplicationObject3D.drawableClassCommSet.delete(
+          drawableClassComm
+        );
+      }
     }
-  });
+  );
 
-  if(notFoundTarget){
-    targetApplicationObject3D.drawableClassCommSet.add(drawableClassCommunication);
+  if (notFoundTarget) {
+    targetApplicationObject3D.drawableClassCommSet.add(
+      drawableClassCommunication
+    );
   }
-
 }
 
 /**
@@ -446,7 +456,6 @@ export function updateHighlighting(
   allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  console.log("updateHighlighting");
   // Set everything transparent at the beginning ----------------------
 
   const allClazzes = new Set(
@@ -454,7 +463,7 @@ export function updateHighlighting(
   );
   turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
 
-  const opaqueLinks : Set<ClazzCommunicationMesh> = new Set();
+  const opaqueLinks: Set<ClazzCommunicationMesh> = new Set();
 
   // ------------------------------------------------------------------
 
@@ -601,9 +610,11 @@ export function updateHighlighting(
     }
   });
 
-
   // console.log("OPAQUE LINKS:", opaqueLinks);
-  const transparentLinks = allLinks.filter((link) => !(link.parent instanceof ApplicationObject3D) && !opaqueLinks.has(link));
+  const transparentLinks = allLinks.filter(
+    (link) =>
+      !(link.parent instanceof ApplicationObject3D) && !opaqueLinks.has(link)
+  );
 
   // return a map of from application id to a list of component ids which are now transparent
   const transparencyMap: Map<string, string[]> = new Map();
@@ -619,7 +630,12 @@ export function updateHighlighting(
           transparencyList.push(mesh.getModelId());
       }
     });
-    const externTransparentLinks = transparentLinks.filter(externLink => externLink.dataModel.application.id === application.getModelId()).map(clazzCommuMesh => clazzCommuMesh.getModelId());
+    const externTransparentLinks = transparentLinks
+      .filter(
+        (externLink) =>
+          externLink.dataModel.application.id === application.getModelId()
+      )
+      .map((clazzCommuMesh) => clazzCommuMesh.getModelId());
     console.log(externTransparentLinks);
     transparencyList = [...transparencyList, ...externTransparentLinks];
     transparencyMap.set(application.getModelId(), transparencyList);

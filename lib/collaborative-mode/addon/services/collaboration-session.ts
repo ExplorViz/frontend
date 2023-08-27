@@ -37,6 +37,7 @@ import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -71,6 +72,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('user-settings')
   private userSettings!: UserSettings;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -179,9 +183,7 @@ export default class CollaborationSession extends Service.extend({
       color: new THREE.Color(...self.color),
     });
 
-   
     this.userSettings.applyDefaultApplicationSettings(); // in collab mode keepHighlightingOnOpenOrClose is always enabled (default setting!) and cannot be switched in collaboration!
-    
   }
 
   onUserConnected({
@@ -228,12 +230,20 @@ export default class CollaborationSession extends Service.extend({
     // walk trough all highlighted entities and unhighlight them
     for (const highlightedEntityComponent of highlightedComponents) {
       const { appId, entityId } = highlightedEntityComponent;
-      console.log('appID:', appId, ' , entityID: ', entityId);
-      const application = this.applicationRenderer.getApplicationById(appId);
-      if (application) {
-        const mesh = application.getMeshById(entityId);
-        if (isEntityMesh(mesh)) {
-          this.applicationRenderer.highlight(mesh, application);
+      //console.log('appID:', appId, ' , entityID: ', entityId);
+      if (appId !== '') {
+        const application = this.applicationRenderer.getApplicationById(appId);
+        if (application) {
+          const mesh = application.getMeshById(entityId);
+          if (isEntityMesh(mesh)) {
+            this.applicationRenderer.highlight(mesh, application);
+          }
+        }
+      } else {
+        //extern Link
+        const link = this.linkRenderer.getLinkById(entityId);
+        if (link) {
+          this.applicationRenderer.highlightExternLink(link, true);
         }
       }
     }

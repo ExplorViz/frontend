@@ -20,7 +20,7 @@ export default class SearchList extends ThreeMeshUI.Block {
     super(options);
     this.owner = owner;
     this.items = items;
-    this.items.forEach(elem => {
+    this.items.forEach((elem) => {
       const listItemOptions = {
         width: options.width,
         height: BLOCK_OPTIONS_LIST_ITEM.height,

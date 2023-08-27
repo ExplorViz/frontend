@@ -203,9 +203,7 @@ function composeDrawableClazzCommunicationContent(
       // App hierarchy
       content.entries.push({
         key: 'Src / Tgt App:',
-        value: `${
-          drawableCommu.sourceApp?.name
-         } -> ${drawableCommu.targetApp?.name}`,
+        value: `${drawableCommu.sourceApp?.name} -> ${drawableCommu.targetApp?.name}`,
       });
     }
 

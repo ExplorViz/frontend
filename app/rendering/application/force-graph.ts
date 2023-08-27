@@ -97,11 +97,6 @@ export default class ForceGraph {
         const lineObj = link.__lineObj;
         if (!lineObj) return;
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
-        // if(lineObj.material.transparent)
-        //   lineObj.children.forEach(child => {
-        //     if(child instanceof CommunicationArrowMesh)
-        //       child.turnTransparent(lineObj.material.opacity);
-        //   });
       });
     };
     this.graph.scale.setScalar(scale);

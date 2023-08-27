@@ -111,8 +111,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       justifyContent: 'center',
       textAlign: 'center',
       backgroundOpacity: 0,
-      fontColor: new THREE.Color( 0x554343 ),
-
+      fontColor: new THREE.Color(0x554343),
     });
 
     const targetLableBox = new ThreeMeshUI.Block({
@@ -122,8 +121,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       justifyContent: 'center',
       textAlign: 'center',
       backgroundOpacity: 0,
-      fontColor: new THREE.Color( 0x554343 ),
-
+      fontColor: new THREE.Color(0x554343),
     });
 
     const sourceButton = new OpenEntityButton({

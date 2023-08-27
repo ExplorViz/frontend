@@ -99,7 +99,7 @@ export function openComponentMesh(
 export function closeComponentMesh(
   mesh: ComponentMesh,
   applicationObject3D: ApplicationObject3D,
-  keepHighlighted: boolean,
+  keepHighlighted: boolean
 ) {
   if (!mesh.opened) {
     return;
@@ -150,14 +150,17 @@ export function closeComponentMesh(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D, keepHighlighted: boolean) {
+export function closeAllComponents(
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean
+) {
   const application = applicationObject3D.data.application;
 
   // Close each component
   application.packages.forEach((component) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D,keepHighlighted);
+      closeComponentMesh(componentMesh, applicationObject3D, keepHighlighted);
     }
   });
 }
@@ -224,7 +227,7 @@ export function openAllComponents(
 export function toggleComponentMeshState(
   mesh: ComponentMesh,
   applicationObject3D: ApplicationObject3D,
-  keepHighlighted: boolean,
+  keepHighlighted: boolean
 ) {
   if (mesh.opened) {
     closeComponentMesh(mesh, applicationObject3D, keepHighlighted);

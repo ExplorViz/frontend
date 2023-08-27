@@ -99,13 +99,13 @@ export default class VrButton extends Component<VrButtonArgs> {
         );
         this.onSessionStarted(session);
       } catch (error) {
-        console.log('ERROR 1');
+        console.log('ERROR: VR Session already existing');
       }
     } else {
       try {
         await this.currentSession.end();
       } catch (error) {
-        console.log('ERROR 2');
+        console.log('ERROR: VR Session already ended');
       }
 
       if (this.args.debugMode) this.onSessionEnded();
