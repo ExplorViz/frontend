@@ -13,7 +13,6 @@ import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from '../vr-controller/vr-controller-thumbpad-binding';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { task } from 'ember-concurrency';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
@@ -162,102 +161,6 @@ export default class SearchMenu extends InteractiveMenu {
     this.keyboard.rotation.x = -0.55;
     this.add(this.keyboard);
   }
-
-  // public searchComponents(searchWord: string, object: any, appName: string) {
-  //   // TODO private?
-  //   const res: { name?: string; id?: string; objects: any[] } = { objects: [] };
-  //   const REGEXP_SPECIAL_CHAR = /[?!#$%^&*)(+=.<>{}[\]:;'"|~`_-]/g;
-  //   const escapedSearchWord = searchWord.replace(REGEXP_SPECIAL_CHAR, '\\$&');
-
-  //   if (
-  //     {}.hasOwnProperty.call(object, 'name') &&
-  //     typeof object['name'] === 'string'
-  //   ) {
-  //     if (
-  //       new RegExp(escapedSearchWord, 'i').test(object.name) &&
-  //       searchWord.length !== 0
-  //     ) {
-  //       if ({}.hasOwnProperty.call(object, 'id')) {
-  //         res.id = object['id'];
-  //         let object2 = object;
-  //         let tempName = object2.name;
-  //         while (
-  //           {}.hasOwnProperty.call(object2, 'parent') &&
-  //           {}.hasOwnProperty.call(object2.parent, 'name')
-  //         ) {
-  //           object2 = object2.parent;
-  //           tempName = object2.name + '.' + tempName;
-  //         }
-  //         if (appName !== tempName) res.name = appName + '.' + tempName;
-  //         else res.name = appName;
-  //       }
-  //     }
-  //   }
-
-  //   if (
-  //     {}.hasOwnProperty.call(
-  //       object,
-  //       'packages'
-  //     ) /*&& typeof object['packages'] === 'object' &&*/
-  //   ) {
-  //     object['packages'].forEach((element) => {
-  //       res.objects.push(element);
-  //     });
-  //   }
-
-  //   if (
-  //     {}.hasOwnProperty.call(
-  //       object,
-  //       'subPackages'
-  //     ) /*&& typeof object['subpackages'] === 'object' &&*/
-  //   ) {
-  //     object['subPackages'].forEach((element) => {
-  //       res.objects.push(element);
-  //     });
-  //   }
-
-  //   if (
-  //     {}.hasOwnProperty.call(
-  //       object,
-  //       'classes'
-  //     ) /*&& typeof object['classes'] === 'object' &&*/
-  //   ) {
-  //     object['classes'].forEach((element) => {
-  //       res.objects.push(element);
-  //     });
-  //   }
-
-  //   return res;
-  // }
-
-  // private search(searchWord: string): Map<string, searchItemVal> {
-  //   const resObj = new Map<string, searchItemVal>();
-  //   for (const applicationData of this.applicationRepo.getAll()) {
-  //     const application = applicationData.application;
-  //     const res = this.searchComponents(
-  //       searchWord,
-  //       application,
-  //       application.name
-  //     );
-  //     if (res.name && res.id) {
-  //       resObj.set(res.name, { id: res.id, applicationId: application.id });
-  //     }
-
-  //     while (res.objects.length > 0) {
-  //       const object = res.objects.pop();
-  //       const res2 = this.searchComponents(
-  //         searchWord,
-  //         object,
-  //         application.name
-  //       );
-  //       if (res2.name && res2.id) {
-  //         resObj.set(res2.name, { id: res2.id, applicationId: application.id });
-  //       }
-  //       res.objects = res.objects.concat(res2.objects);
-  //     }
-  //   }
-  //   return resObj;
-  // }
 
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);

@@ -20,7 +20,6 @@ import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import { serialize } from 'v8';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';

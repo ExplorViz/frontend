@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { tracked } from '@glimmer/tracking';
-import CommunicationArrowMesh from './application/communication-arrow-mesh';
 
 export default abstract class BaseMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,

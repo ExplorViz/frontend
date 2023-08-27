@@ -1,4 +1,3 @@
-import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
 import VRController from '../vr-controller';
 
 export type VrInputEvent<T> = {

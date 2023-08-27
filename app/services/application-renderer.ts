@@ -9,11 +9,7 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import {
-  removeAllHighlighting,
-  turnComponentAndAncestorsOpaque,
-  turnComponentAndAncestorsTransparent,
-} from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,

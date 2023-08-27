@@ -13,7 +13,6 @@ import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 
 /**
  * Given a package or class, returns a list of all ancestor components.

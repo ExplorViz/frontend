@@ -37,7 +37,6 @@ export default class SearchListItem
     text,
     meshId,
     applicationId,
-    applicationRenderer,
     ...options
   }: SearchListItemArgs) {
     super({ ...options, hiddenOverflow: true });

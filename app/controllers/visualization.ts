@@ -45,7 +45,6 @@ import {
   SerializedHighlightedComponent,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { highlightExternCommunicationLine } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -462,9 +461,8 @@ export default class VisualizationController extends Controller {
     landscape,
     openApps,
     detachedMenus,
-    highlightedExternCommunicationLinks,
-  } //transparentExternCommunicationLinks
-  : //openApps,
+    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
+  }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
     this.roomSerializer.serializedRoom = {

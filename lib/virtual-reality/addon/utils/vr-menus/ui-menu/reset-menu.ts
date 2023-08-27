@@ -4,7 +4,7 @@ import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
-import Service, { inject as service } from '@ember/service';
+import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';

@@ -1,6 +1,5 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import SearchListItem, { BLOCK_OPTIONS_LIST_ITEM } from './search-list-item';
-import { searchItemVal } from 'virtual-reality/utils/vr-menus/search-menu';
 
 export type SearchListArgs = ThreeMeshUI.BlockOptions & {
   owner: any;
@@ -11,12 +10,7 @@ export default class SearchList extends ThreeMeshUI.Block {
   owner: any;
   items: any[];
 
-  constructor({
-    owner,
-    items,
-    applicationRenderer,
-    ...options
-  }: SearchListArgs) {
+  constructor({ owner, items, ...options }: SearchListArgs) {
     super(options);
     this.owner = owner;
     this.items = items;

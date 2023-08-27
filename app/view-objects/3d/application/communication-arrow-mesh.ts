@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import ApplicationObject3D from './application-object-3d';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   dataModel: DrawableClassCommunication;

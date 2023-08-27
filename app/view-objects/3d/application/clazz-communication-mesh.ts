@@ -4,7 +4,6 @@ import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
-import ApplicationObject3D from './application-object-3d';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;

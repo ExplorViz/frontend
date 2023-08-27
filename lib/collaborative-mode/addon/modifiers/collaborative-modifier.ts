@@ -166,22 +166,14 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
-  onAllHighlightsReset({
-    event,
-  }: ForwardedMessage<AllHighlightsResetMessage>): void {
+  onAllHighlightsReset({}: ForwardedMessage<AllHighlightsResetMessage>): void {
     this.highlightingService.removeHighlightingForAllApplications(false);
     this.highlightingService.updateHighlighting(false);
   }
 
   onHighlightingUpdate({
     userId,
-    originalMessage: {
-      isHighlighted,
-      appId,
-      entityType,
-      entityId,
-      isMultiSelected,
-    },
+    originalMessage: { appId, entityId, isMultiSelected },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;

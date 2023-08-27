@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import NameTagSprite from 'virtual-reality/utils/view-objects/vr/name-tag-sprite';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';
-import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
 import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
 import {
