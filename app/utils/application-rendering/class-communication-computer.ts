@@ -140,11 +140,9 @@ export default function computeDrawableClassCommunication(
 }
 
 export function isDrawableClassCommunication(
-  x: any
+  x: unknown
 ): x is DrawableClassCommunication {
-  return (
-    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests')
-  );
+  return isObject(x) && Object.hasOwn(x, 'totalRequests');
 }
 
 interface ClassCommunication {

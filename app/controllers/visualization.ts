@@ -9,7 +9,6 @@ import LocalUser, {
 } from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
@@ -37,6 +36,7 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -57,7 +57,8 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-data-service')
+  landscapeDataService!: LandscapeDataService;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
 
@@ -181,6 +182,7 @@ export default class VisualizationController extends Controller {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
+    // TODO this triggers a rerender
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
@@ -229,12 +231,7 @@ export default class VisualizationController extends Controller {
 
   @action
   resetLandscapeListenerPolling() {
-    if (this.landscapeListener.timer !== null) {
-      this.debug('Stopping timer');
-      clearTimeout(this.landscapeListener.timer);
-      this.landscapeListener.latestStructureJsonString = null;
-      this.landscapeListener.latestDynamicData = null;
-    }
+    this.landscapeDataService.stopPolling();
   }
 
   @action
@@ -386,7 +383,7 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling(); // TODO tiwe
+    // TODO tiwe: start polling if stopped?
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -447,7 +444,7 @@ export default class VisualizationController extends Controller {
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     this.resetLandscapeListenerPolling();
-    this.landscapeListener.pollData(timestamp);
+    this.landscapeDataService.fetchData(timestamp);
     this.updateTimestamp(timestamp);
   }
 }

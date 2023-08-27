@@ -6,13 +6,16 @@ import type LandscapeTokenService from './landscape-token';
 import type Auth from './auth';
 import ENV from 'explorviz-frontend/config/environment';
 import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
-import type { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import type {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import type TimestampRepository from './repos/timestamp-repository';
 import type ThreeForceGraph from 'three-forcegraph';
 import type { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import type ApplicationRenderer from './application-renderer';
-import computeDrawableClassCommunication, { type DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 
 const intervalInSeconds = 10;
@@ -22,8 +25,8 @@ export default class LandscapeDataService extends Service {
   private readonly debug = debugLogger('LandscapeDataService');
 
   private readonly latestData: Partial<{
-    structure: StructureLandscapeData,
-    dynamic: DynamicLandscapeData
+    structure: StructureLandscapeData;
+    dynamic: DynamicLandscapeData;
   }> = {};
 
   private worker: Worker | undefined;
@@ -40,11 +43,23 @@ export default class LandscapeDataService extends Service {
     const [worker, remote] = await this.createWorkerAndRemote();
     this.worker = worker;
     this.comlinkRemote = remote;
-    
+
     this.poll();
 
     // TODO tiwe: ENV.mode.tokenToShow
-    this.interval = setInterval(() => this.poll(), 1000 * intervalInSeconds) as unknown as number;
+    this.interval = setInterval(
+      () => this.poll(),
+      1000 * intervalInSeconds
+    ) as unknown as number;
+  }
+
+  async stopPolling() {
+    this.debug('Stopping polling interval');
+    // TODO
+  }
+
+  async fetchData(timestamp: number): Promise<void> {
+    // TODO
   }
 
   setForceGraph(graph: ThreeForceGraph): void {
@@ -54,7 +69,7 @@ export default class LandscapeDataService extends Service {
   private async handleUpdate(update: DataUpdate) {
     performance.mark('handleUpdate-start');
 
-    console.log('Update received!');
+    console.log('Update received!', Object.keys(update));
 
     if (update.dynamic) {
       this.latestData.dynamic = update.dynamic;
@@ -69,20 +84,17 @@ export default class LandscapeDataService extends Service {
       this.latestData.structure = update.structure;
     }
 
-    if (update.structure || update.dynamic) {
-      await this.handleUpdatedLandscapeData();
+    if (update.drawableClassCommunications) {
+      await this.handleUpdatedLandscapeData(update.drawableClassCommunications);
     }
-    
+
     performance.mark('handleUpdate-end');
   }
 
-  private async handleUpdatedLandscapeData() {
+  private async handleUpdatedLandscapeData(
+    drawableClassCommunications: DrawableClassCommunication[]
+  ) {
     performance.mark('handleUpdatedLandscapeData-start');
-
-    const drawableClassCommunications = computeDrawableClassCommunication(
-      this.latestData.structure!,
-      this.latestData.dynamic!
-    );
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -169,13 +181,12 @@ export default class LandscapeDataService extends Service {
     await remote.poll(landscapeToken.value, this.auth.accessToken);
   }
 
-  private async createWorkerAndRemote(): Promise<[
-    Worker,
-    Comlink.Remote<LandscapeDataWorkerAPI>
-  ]> {
+  private async createWorkerAndRemote(): Promise<
+    [Worker, Comlink.Remote<LandscapeDataWorkerAPI>]
+  > {
     const worker = new Worker(resolveWorkerUrl('landscape-data-worker.js'));
     const remote = Comlink.wrap<LandscapeDataWorkerAPI>(worker);
-    
+
     const { landscapeService, traceService } = ENV.backendAddresses;
 
     await remote.init(
@@ -183,8 +194,8 @@ export default class LandscapeDataService extends Service {
         updateIntervalInMS: 1000 * intervalInSeconds,
         backend: {
           landscapeUrl: landscapeService,
-          tracesUrl: traceService
-        }
+          tracesUrl: traceService,
+        },
       },
       Comlink.proxy((update) => this.handleUpdate(update))
     );
