@@ -30,8 +30,6 @@ export default class LinkRenderer extends Service.extend({}) {
 
   private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
-  private _serializedRoom?: SerializedVrRoom;
-
   private _flag = false;
 
   getAllLinks() {
@@ -40,14 +38,6 @@ export default class LinkRenderer extends Service.extend({}) {
 
   get appSettings() {
     return this.userSettings.applicationSettings;
-  }
-
-  get serializedRoom(){
-    return this._serializedRoom;
-  }
-
-  set serializedRoom(room: SerializedVrRoom | undefined){
-    this._serializedRoom = room;
   }
 
   get flag(){

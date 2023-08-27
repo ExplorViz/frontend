@@ -471,26 +471,13 @@ export default class VisualizationController extends Controller {
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-    // this.roomSerializer.serializedRoom = {
-    //   landscape: landscape,
-    //   openApps: openApps as SerializedApp[],
-    //   detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    //   highlightedExternCommunicationLinks:
-    //     highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
-    // };
-    // this.linkRenderer.serializedRoom = {
-    //   landscape: landscape,
-    //   openApps: openApps as SerializedApp[],
-    //   detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    //   highlightedExternCommunicationLinks:
-    //     highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
-    // };
-
-    while(!this.linkRenderer.flag){
-      console.log("GAGAGAGAGAGGA");
+   
+    this.linkRenderer.flag = true;
+    while(this.linkRenderer.flag){
       await timeout(350);
     }
-    console.log("FREE");
+    // now we can be sure our linkRenderer has all extern links
+    
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
