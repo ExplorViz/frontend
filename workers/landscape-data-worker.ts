@@ -1,5 +1,8 @@
 import * as Comlink from 'comlink';
-import type { BackendInfo, UpdateConsumer } from './landscape-data-worker/LandscapeDataContext';
+import type {
+  BackendInfo,
+  UpdateConsumer,
+} from './landscape-data-worker/LandscapeDataContext';
 import LandscapeDataContext from './landscape-data-worker/LandscapeDataContext';
 
 let currentContext: LandscapeDataContext | undefined;
@@ -15,7 +18,10 @@ const api = {
     console.log('worker initialized');
   },
 
-  async poll(landscapeToken: string | null, accessToken?: string): Promise<void> {
+  async poll(
+    landscapeToken: string | null,
+    accessToken?: string
+  ): Promise<void> {
     if (!backendInfo || !updateConsumer) {
       throw new Error('Not initialized.');
     }

@@ -1,17 +1,29 @@
-import type { Timestamp } from "explorviz-frontend/services/repos/timestamp-repository";
-import type { DynamicLandscapeData } from "explorviz-frontend/utils/landscape-schemes/dynamic-data";
-import { preProcessAndEnhanceStructureLandscape, type StructureLandscapeData } from "explorviz-frontend/utils/landscape-schemes/structure-data";
-
+import type { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import computeDrawableClassCommunication, {
+  DrawableClassCommunication,
+} from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import {
+  preProcessAndEnhanceStructureLandscape,
+  type StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 export default class LandscapeDataContext {
   readonly token: string;
   private readonly updateConsumer: UpdateConsumer;
   private readonly backend: BackendInfo;
   private intervalInMS: number;
+
+  private lastStructureData: StructureLandscapeData | undefined;
   private lastStructureDataRaw: string | undefined;
   private lastDynamicDataRaw: string | undefined;
 
-  constructor(token: string, backend: BackendInfo, updateConsumer: UpdateConsumer, intervalInMS: number) {
+  constructor(
+    token: string,
+    backend: BackendInfo,
+    updateConsumer: UpdateConsumer,
+    intervalInMS: number
+  ) {
     this.token = token;
     this.backend = backend;
     this.intervalInMS = intervalInMS;
@@ -26,39 +38,55 @@ export default class LandscapeDataContext {
     // TODO use allSettled to allow a request to fail
     const [structureData, dynamicData] = await Promise.all([
       this.request<StructureLandscapeData>(this.structureUrl, accessToken),
-      this.request<DynamicLandscapeData>(`${this.traceUrl}?from=${startTime}&to=${endTime}`, accessToken)
+      this.request<DynamicLandscapeData>(
+        `${this.traceUrl}?from=${startTime}&to=${endTime}`,
+        accessToken
+      ),
     ]);
 
     const update: DataUpdate = { token: this.token };
 
     // Compare with previous (if applicable)
     if (structureData.raw !== this.lastStructureDataRaw) {
-      const processedData = preProcessAndEnhanceStructureLandscape(structureData.json);
+      const processedData = preProcessAndEnhanceStructureLandscape(
+        structureData.json
+      );
       update.structure = processedData;
     }
+    this.lastStructureData = structureData.json;
     this.lastStructureDataRaw = structureData.raw;
 
     if (dynamicData.raw !== this.lastDynamicDataRaw) {
       const timestampRecord = {
         id: uuidv4(),
         timestamp: endTime,
-        totalRequests: computeTotalRequests(dynamicData.json)
+        totalRequests: computeTotalRequests(dynamicData.json),
       };
       update.dynamic = dynamicData.json;
       update.timestamp = timestampRecord;
     }
     this.lastDynamicDataRaw = dynamicData.raw;
 
+    if (this.lastStructureData && update.dynamic) {
+      update.drawableClassCommunications = computeDrawableClassCommunication(
+        this.lastStructureData,
+        update.dynamic
+      );
+    }
+
     if (update.structure || update.dynamic) {
       this.updateConsumer(update);
     }
   }
 
-  private async request<Data>(url: string, auth?: string): Promise<{json: Data, raw: string}> {
+  private async request<Data>(
+    url: string,
+    auth?: string
+  ): Promise<{ json: Data; raw: string }> {
     const response = await fetch(url, {
-      headers: auth ? { Authorization: `Bearer ${auth}` } : {}
+      headers: auth ? { Authorization: `Bearer ${auth}` } : {},
     });
-  
+
     if (!response.ok) {
       throw new Error('Bad response.');
     }
@@ -67,7 +95,7 @@ export default class LandscapeDataContext {
 
     return {
       json: data[0],
-      raw: data[1]
+      raw: data[1],
     };
   }
 
@@ -112,9 +140,10 @@ export type DataUpdate = {
   structure?: StructureLandscapeData;
   dynamic?: DynamicLandscapeData;
   timestamp?: Timestamp;
+  drawableClassCommunications?: DrawableClassCommunication[];
 };
 
 export type BackendInfo = {
-  landscapeUrl: string,
-  tracesUrl: string,
-}
+  landscapeUrl: string;
+  tracesUrl: string;
+};
