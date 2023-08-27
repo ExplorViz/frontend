@@ -3,10 +3,7 @@
 # compiled output
 /dist/
 /tmp/
-/public/assets/web-workers/city-layouter.js
-/public/assets/web-workers/metrics-worker.js
-/public/assets/web-workers/flat-data-worker.js
-/public/assets/web-workers/landscape-data-worker.js
+/public/assets/web-workers
 
 # dependencies
 /bower_components/
