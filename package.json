@@ -138,7 +138,6 @@
     "crypto-js": "^4.1.1",
     "d3-force-3d": "^3.0.5",
     "dotenv": "^16.3.1",
-    "elkjs": "^0.8.2",
     "ember-ajax": "^5.1.2",
     "ember-cli": "^4.12.1",
     "ember-cli-babel": "^7.26.11",

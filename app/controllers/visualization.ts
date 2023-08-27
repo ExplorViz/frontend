@@ -7,7 +7,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser, {
   VisualizationMode,
 } from 'collaborative-mode/services/local-user';
-import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -114,11 +113,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
-
-  @tracked
-  elk = new ElkConstructor({
-    workerUrl: './assets/web-workers/elk-worker.min.js',
-  });
 
   debug = debugLogger();
 
