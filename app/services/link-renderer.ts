@@ -13,6 +13,7 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -29,12 +30,32 @@ export default class LinkRenderer extends Service.extend({}) {
 
   private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
+  private _serializedRoom?: SerializedVrRoom;
+
+  private _flag = false;
+
   getAllLinks() {
     return Array.from(this.linkIdToMesh.values());
   }
 
   get appSettings() {
     return this.userSettings.applicationSettings;
+  }
+
+  get serializedRoom(){
+    return this._serializedRoom;
+  }
+
+  set serializedRoom(room: SerializedVrRoom | undefined){
+    this._serializedRoom = room;
+  }
+
+  get flag(){
+    return this._flag;
+  }
+
+  set flag(b: boolean){
+    this._flag = b;
   }
 
   @action

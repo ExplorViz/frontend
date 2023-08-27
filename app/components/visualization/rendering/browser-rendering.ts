@@ -44,6 +44,8 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -86,6 +88,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
+  @service('virtual-reality@vr-room-serializer')
+  roomSerializer!: VrRoomSerializer;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -192,6 +200,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
+
+    if(this.initDone && !this.linkRenderer.flag
+      //&& this.linkRenderer.serializedRoom
+      ){
+      console.log("ABCABCABC");
+      this.linkRenderer.flag = true;
+       //this.roomSerializer.serializedRoom = this.linkRenderer.serializedRoom;
+    
+      // this.applicationRenderer.restoreFromSerialization(
+      //   this.roomSerializer.serializedRoom
+      // );
+      //this.linkRenderer.serializedRoom = undefined;
+    }
   }
 
   get rightClickMenuItems() {

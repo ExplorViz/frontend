@@ -45,6 +45,9 @@ import {
   SerializedHighlightedComponent,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import { timeout } from 'ember-concurrency';
+import { time } from 'console';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -98,6 +101,9 @@ export default class VisualizationController extends Controller {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -465,6 +471,26 @@ export default class VisualizationController extends Controller {
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
+    // this.roomSerializer.serializedRoom = {
+    //   landscape: landscape,
+    //   openApps: openApps as SerializedApp[],
+    //   detachedMenus: detachedMenus as SerializedDetachedMenu[],
+    //   highlightedExternCommunicationLinks:
+    //     highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+    // };
+    // this.linkRenderer.serializedRoom = {
+    //   landscape: landscape,
+    //   openApps: openApps as SerializedApp[],
+    //   detachedMenus: detachedMenus as SerializedDetachedMenu[],
+    //   highlightedExternCommunicationLinks:
+    //     highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+    // };
+
+    while(!this.linkRenderer.flag){
+      console.log("GAGAGAGAGAGGA");
+      await timeout(350);
+    }
+    console.log("FREE");
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
@@ -472,12 +498,15 @@ export default class VisualizationController extends Controller {
       highlightedExternCommunicationLinks:
         highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
+
     this.applicationRenderer.restoreFromSerialization(
       this.roomSerializer.serializedRoom
     );
+
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
+
   }
 
   async onTimestampUpdate({
