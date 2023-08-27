@@ -47,7 +47,6 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
-import { time } from 'console';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -471,9 +470,8 @@ export default class VisualizationController extends Controller {
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-   
     this.linkRenderer.flag = true;
-    while(this.linkRenderer.flag){
+    while (this.linkRenderer.flag) {
       await timeout(350);
     }
     // now we can be sure our linkRenderer has all extern links
@@ -494,9 +492,6 @@ export default class VisualizationController extends Controller {
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
-
-    
-
   }
 
   async onTimestampUpdate({

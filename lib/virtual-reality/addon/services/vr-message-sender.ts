@@ -22,7 +22,6 @@ import {
 } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
-import { TransparencyUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/transparency_update';
 import { AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 
 export default class VrMessageSender extends Service {

@@ -46,7 +46,6 @@ import PopupData from './popups/popup-data';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import { timeout } from 'ember-concurrency';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -202,11 +201,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       remoteUser.update(delta);
     });
 
-    if(this.initDone && this.linkRenderer.flag
-      ){
-      this.linkRenderer.flag = false; 
+    if (this.initDone && this.linkRenderer.flag) {
+      this.linkRenderer.flag = false;
     }
-
   }
 
   get rightClickMenuItems() {

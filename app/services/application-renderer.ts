@@ -334,8 +334,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   updateApplicationObject3DAfterUpdate(
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
+    applicationObject3D: ApplicationObject3D
   ) {
     // Render communication
     if (
@@ -352,7 +351,7 @@ export default class ApplicationRenderer extends Service.extend({
       this.configuration.applicationColors
     );
     // Update links
-    //this.updateLinks?.();
+    this.updateLinks?.();
     // Update highlighting
     this.highlightingService.updateHighlighting(); // needs to be after update links
   }
