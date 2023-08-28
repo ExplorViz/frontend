@@ -21,15 +21,12 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
+export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
 
 export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly debug = debugLogger('LandscapeDataService');
 
-  private readonly latestData: Partial<{
-    structure: StructureLandscapeData;
-    dynamic: DynamicLandscapeData;
-    drawableClassCommunication: DrawableClassCommunication[];
-  }> = {};
+  private readonly latestData: LocalData = {};
 
   private worker: Worker | undefined;
   private comlinkRemote: Comlink.Remote<LandscapeDataWorkerAPI> | undefined;
@@ -65,6 +62,10 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     // TODO (?)
   }
 
+  getLatest(): LocalData {
+    return this.latestData;
+  }
+
   async fetchData(timestamp: number): Promise<void> {
     // TODO
   }
@@ -76,7 +77,9 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   private async handleUpdate(update: DataUpdate) {
     performance.mark('handleUpdate-start');
 
-    console.log('Update received!', Object.keys(update));
+    this.debug('Update received!', Object.keys(update));
+
+    this.trigger(LandscapeDataUpdateEventName, update);
 
     if (update.dynamic) {
       this.latestData.dynamic = update.dynamic;
@@ -232,6 +235,12 @@ function resolveWorkerUrl(worker: string): string {
   // https://github.com/BBVAEngineering/ember-web-workers/blob/dbb3bab974383fc053c8e4d9486259260b9d4b00/addon/services/worker.js#L86
   return `${webWorkersPath}${worker}`;
 }
+
+type LocalData = Partial<{
+  structure: StructureLandscapeData;
+  dynamic: DynamicLandscapeData;
+  drawableClassCommunication: DrawableClassCommunication[];
+}>;
 
 declare module '@ember/service' {
   interface Registry {
