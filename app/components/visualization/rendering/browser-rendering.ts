@@ -180,7 +180,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
-    this.landscapeDataService.setForceGraph(this.graph);
+    // TODO tiwe
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
