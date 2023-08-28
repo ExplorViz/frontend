@@ -25,14 +25,12 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import {
@@ -44,7 +42,11 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
+import LandscapeDataService, {
+  LandscapeDataUpdateEventName,
+} from 'explorviz-frontend/services/landscape-data-service';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
+import { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -104,11 +106,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private ideCrossCommunication: IdeCrossCommunication;
 
-  @tracked
-  readonly graph: ThreeForceGraph;
-
-  @tracked
-  readonly scene: THREE.Scene;
+  readonly scene: LandscapeScene3D;
 
   @tracked
   canvas!: HTMLCanvasElement;
@@ -132,8 +130,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   initDone: boolean = false;
 
-  @tracked
-  mousePosition: Vector3 = new Vector3(0, 0, 0);
+  mousePosition: Vector3 = new Vector3(0, 0, 0); // TODO remove? seems to be unused
 
   @tracked
   selectedApplicationId: string = '';
@@ -149,7 +146,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get raycastObjects() {
-    return this.scene.children;
+    return this.scene.threeScene.children;
   }
 
   get appSettings() {
@@ -162,18 +159,23 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
     this.debug('Constructor called');
     // scene
-    this.scene = defaultScene();
-    this.scene.background =
-      this.configuration.applicationColors.backgroundColor;
+    this.scene = this.applicationRenderer.createScene(getOwner(this)!);
+
+    const scene = this.scene.threeScene;
+    scene.background = this.configuration.applicationColors.backgroundColor;
+
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      1.0,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
-    const forceGraph = this.applicationRenderer.createForceGraph(
-      getOwner(this)!
-    );
-    this.graph = forceGraph.graph;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+    this.updatables.push(this.scene);
     this.updatables.push(this);
 
     // spectate
@@ -193,6 +195,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       getOwner(this),
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh
+    );
+
+    this.landscapeDataService.on(
+      LandscapeDataUpdateEventName,
+      (update: DataUpdate) =>
+        this.scene.updateData(update, this.applicationRenderer)
     );
   }
 
@@ -330,7 +338,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       100
     );
     this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
+    this.scene.add(this.localUser.defaultCamera); // TODO tiwe
 
     this.ortographicCamera = new THREE.OrthographicCamera(
       -aspectRatio * this.frustumSize,
@@ -348,7 +356,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       Math.PI / 3,
       Math.PI / 4
     );
-    this.ortographicCamera.lookAt(this.scene.position);
+    this.ortographicCamera.lookAt(this.scene.position); // TODO tiwe
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
@@ -358,8 +366,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
-    this.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+    this.scene.graph.onFinishUpdate(() => {
+      if (!this.initDone && !this.scene.isGraphEmpty()) {
         this.debug('initdone!');
         setTimeout(() => {
           this.cameraControls.resetCameraFocusOn(
@@ -376,7 +384,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
       orthographicCamera: this.ortographicCamera,
-      scene: this.scene,
+      scene: this.scene.threeScene,
       renderer: this.renderer,
       updatables: this.updatables,
     });
@@ -593,7 +601,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    this.entityManipulation.updateColors(this.scene);
+    this.entityManipulation.updateColors(this.scene.threeScene);
   }
 
   /**

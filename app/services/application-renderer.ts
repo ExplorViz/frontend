@@ -44,6 +44,7 @@ import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helper
 import HighlightingService from './highlighting-service';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import type Owner from '@ember/owner';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -89,7 +90,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  private forceGraph!: ForceGraph;
+  private scene: LandscapeScene3D | undefined;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -292,6 +293,11 @@ export default class ApplicationRenderer extends Service.extend({
       return applicationObject3D;
     }
   );
+
+  createScene(owner: Owner): LandscapeScene3D {
+    this.scene = new LandscapeScene3D(owner);
+    return this.scene;
+  }
 
   createForceGraph(owner: Owner): ForceGraph {
     this.forceGraph = new ForceGraph(owner, 0.02);

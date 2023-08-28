@@ -4,6 +4,8 @@ import type Owner from '@ember/owner';
 import type { Updatable } from 'explorviz-frontend/rendering/application/rendering-loop';
 import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 
+import { inject as service } from '@ember/service';
+import { setOwner } from '@ember/application';
 import ForceGraph, {
   type GraphNode,
 } from 'explorviz-frontend/rendering/application/force-graph';
@@ -14,21 +16,36 @@ import { DrawableClassCommunication } from 'explorviz-frontend/utils/application
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import debugLogger from 'ember-debug-logger';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
+import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 
 const debug = debugLogger('LandscapeScene3D');
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
-  readonly scene: THREE.Scene;
+  readonly threeScene: THREE.Scene;
+
+  @service
+  private readonly worker!: EmberWebWorker;
+
+  @service('repos/application-repository')
+  private applicationRepo!: ApplicationRepository;
 
   constructor(owner: Owner) {
-    this.scene = defaultScene();
+    setOwner(this, owner);
+    this.threeScene = defaultScene();
     this.forceGraph = new ForceGraph(owner, 0.02);
-    this.scene.add(this.forceGraph.graph);
+    this.threeScene.add(this.forceGraph.graph);
   }
 
   get graph(): ThreeForceGraph {
     return this.forceGraph.graph;
+  }
+
+  isGraphEmpty() {
+    return this.forceGraph.graph.graphData().nodes.length === 0;
   }
 
   async updateData(
@@ -57,6 +74,7 @@ export default class LandscapeScene3D implements Updatable {
         // TODO tiwe: do these in parallel?
         const applicationData = await this.updateApplicationData(
           application,
+          update.dynamic!,
           drawableClassCommunications
         );
 
@@ -135,9 +153,40 @@ export default class LandscapeScene3D implements Updatable {
 
   private async updateApplicationData(
     application: Application,
+    dynamicData: DynamicLandscapeData,
     drawableClassCommunications: DrawableClassCommunication[]
   ): Promise<ApplicationData> {
-    throw new Error('Not implemented');
+    const workerPayload = {
+      structure: application,
+      dynamic: dynamicData,
+    };
+    const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
+    const heatmapMetrics = this.worker.postMessage(
+      'metrics-worker',
+      workerPayload
+    );
+
+    const flatData = this.worker.postMessage('flat-data-worker', workerPayload);
+
+    const results = await Promise.all([cityLayout, heatmapMetrics, flatData]);
+
+    let applicationData = this.applicationRepo.getById(application.id);
+    if (applicationData) {
+      applicationData.updateApplication(application, results[0], results[2]);
+    } else {
+      applicationData = new ApplicationData(
+        application,
+        results[0],
+        results[2]
+      );
+    }
+    applicationData.drawableClassCommunications = calculateCommunications(
+      applicationData.application,
+      drawableClassCommunications
+    );
+    calculateHeatmap(applicationData.heatmapData, results[1]);
+    this.applicationRepo.add(applicationData);
+    return applicationData;
   }
 }
 
@@ -146,4 +195,8 @@ type CommunicationLink = {
   target: GraphNode;
   value: number | undefined;
   communicationData: DrawableClassCommunication;
+};
+
+type EmberWebWorker = {
+  postMessage(workerName: string, payload: any): Promise<any>;
 };
