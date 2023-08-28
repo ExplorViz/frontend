@@ -87,8 +87,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   forceGraph!: ThreeForceGraph;
 
-  private structureLandscapeData!: StructureLandscapeData;
-
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
   readonly appCommRendering: CommunicationRendering;
@@ -124,10 +122,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   getApplicationById(id: string): ApplicationObject3D | undefined {
     return this.openApplicationsMap.get(id);
-  }
-
-  getApplicationInCurrentLandscapeById(id: string): Application | undefined {
-    return getApplicationInLandscapeById(this.structureLandscapeData, id);
   }
 
   getBoxMeshByModelId(id: string) {
