@@ -99,6 +99,7 @@ import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 interface Args {
   debugMode: boolean;
@@ -161,6 +162,9 @@ export default class VrRendering extends Component<Args> {
   @service('user-settings')
   userSettings!: UserSettings;
 
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
   // #endregion SERVICES
 
   // #region CLASS FIELDS
@@ -193,6 +197,8 @@ export default class VrRendering extends Component<Args> {
   cameraControls!: CameraControls;
 
   updatables: any[] = [];
+
+  initDone = false;
 
   @tracked
   scene: THREE.Scene;
@@ -314,6 +320,8 @@ export default class VrRendering extends Component<Args> {
 
     this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.updatables.push(this.cameraControls);
+
+    this.initDone = true;
   }
 
   /**
@@ -364,8 +372,7 @@ export default class VrRendering extends Component<Args> {
         if (event.target.parent instanceof ApplicationObject3D) {
           this.applicationRenderer.toggleComponent(
             event.target,
-            event.target.parent,
-            true
+            event.target.parent
           );
         }
       },
@@ -379,7 +386,7 @@ export default class VrRendering extends Component<Args> {
         if (this.heatmapConf.heatmapActive) {
           this.heatmapConf.setActiveApplication(application);
         } else {
-          this.applicationRenderer.closeAllComponents(application, true);
+          this.applicationRenderer.closeAllComponents(application);
         }
       },
     });
@@ -837,6 +844,13 @@ export default class VrRendering extends Component<Args> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
+
+
+    if (this.initDone && this.linkRenderer.flag) {
+      this.linkRenderer.flag = false;
+    }
+
+
   }
 
   // #endregion MAIN LOOP

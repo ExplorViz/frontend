@@ -57,7 +57,6 @@ export default class GrabMenu extends BaseMenu {
 
   async onOpenMenu() {
     super.onOpenMenu();
-    console.log(this.grabbedObject.getGrabId());
     // Grab the object only when we are allowed to grab it.
     this.allowedToGrab = await this.grabbedObjectService.grabObject(
       this.grabbedObject

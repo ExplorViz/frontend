@@ -38,8 +38,6 @@ export default class DetailInfoScrollarea
   }
 
   triggerDown(intersection: THREE.Intersection) {
-    console.log('triggerDown gecheckt');
-
     if (intersection.uv) {
       if (this.isTriggered) return;
 

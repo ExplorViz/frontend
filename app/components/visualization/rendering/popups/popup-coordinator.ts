@@ -76,7 +76,7 @@ export default class PopupCoordinator extends Component<IArgs> {
   @action
   highlight() {
     this.args.updateMeshReference(this.args.popupData);
-    this.highlightingService.highlight(this.args.popupData.mesh);
+    this.highlightingService.highlight(this.args.popupData.mesh, true);
     this.highlightingService.updateHighlighting();
   }
 

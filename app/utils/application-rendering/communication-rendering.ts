@@ -7,6 +7,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { DrawableClassCommunication } from './class-communication-computer';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -14,9 +15,16 @@ export default class CommunicationRendering {
 
   userSettings: UserSettings;
 
-  constructor(configuration: Configuration, userSettings: UserSettings) {
+  localUser: LocalUser;
+
+  constructor(
+    configuration: Configuration,
+    userSettings: UserSettings,
+    localUser: LocalUser
+  ) {
     this.configuration = configuration;
     this.userSettings = userSettings;
+    this.localUser = localUser;
   }
 
   get appSettings() {
@@ -99,8 +107,10 @@ export default class CommunicationRendering {
     );
 
     // Retrieve color preferences
-    const { communicationColor, highlightedEntityColor } =
-      this.configuration.applicationColors;
+    const highlightedEntityColor =
+      this.localUser.color ||
+      this.configuration.applicationColors.highlightedEntityColor;
+    const { communicationColor } = this.configuration.applicationColors;
 
     const positionToClazzCommMesh = new Map<string, ClazzCommunicationMesh>();
 

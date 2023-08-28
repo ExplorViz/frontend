@@ -472,8 +472,9 @@ export default class VisualizationController extends Controller {
   InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
-      await timeout(350);
+      await timeout(50);
     }
+    console.log("0000000000000");
     // now we can be sure our linkRenderer has all extern links
 
     this.roomSerializer.serializedRoom = {
@@ -484,9 +485,9 @@ export default class VisualizationController extends Controller {
         highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
 
-    this.applicationRenderer.restoreFromSerialization(
-      this.roomSerializer.serializedRoom
-    );
+    // this.applicationRenderer.restoreFromSerialization(
+    //   this.roomSerializer.serializedRoom
+    // );
 
     this.applicationRenderer.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);

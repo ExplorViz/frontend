@@ -182,7 +182,6 @@ export function highlightExternCommunicationLine(
  *
  * @param meshId Either component, clazz or clazz communication mesh id of the mesh which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
- * @param externLine Extern clazz communication mesh which shall be added (removeFlag = false) or removed (removeFlag = true)
  */
 export function highlight(
   meshId: string,

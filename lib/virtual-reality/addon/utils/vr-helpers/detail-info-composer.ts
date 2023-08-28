@@ -317,8 +317,6 @@ export function getCommunicationSourceClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  console.log(communication.drawableClassCommus);
-  console.log(communication.drawableClassCommus[0].sourceClass?.id);
   return communication.drawableClassCommus[0].sourceClass?.id;
 }
 

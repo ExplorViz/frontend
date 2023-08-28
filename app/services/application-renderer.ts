@@ -45,7 +45,6 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -91,9 +90,6 @@ export default class ApplicationRenderer extends Service.extend({
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
-
   forceGraph!: ThreeForceGraph;
 
   private structureLandscapeData!: StructureLandscapeData;
@@ -109,7 +105,8 @@ export default class ApplicationRenderer extends Service.extend({
     this.openApplicationsMap = new Map();
     this.appCommRendering = new CommunicationRendering(
       this.configuration,
-      this.userSettings
+      this.userSettings,
+      this.localUser
     );
   }
 
@@ -410,10 +407,7 @@ export default class ApplicationRenderer extends Service.extend({
           oldValue;
       }
 
-      this.updateApplicationObject3DAfterUpdate(
-        applicationObject3D,
-        sendMessage
-      );
+      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
     }
   }
 
@@ -448,43 +442,34 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D
     );
 
-    this.updateApplicationObject3DAfterUpdate(applicationObject3D, true);
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   // #endregion @actions
 
   // #region utility methods
 
-  openAllComponents(
-    applicationObject3D: ApplicationObject3D,
-    sendMessage = true
-  ) {
-    this.openAllComponentsLocally(applicationObject3D, sendMessage);
+  openAllComponents(applicationObject3D: ApplicationObject3D) {
+    this.openAllComponentsLocally(applicationObject3D);
   }
 
   toggleComponentLocally(
     componentMesh: ComponentMesh,
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
+    applicationObject3D: ApplicationObject3D
   ) {
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
       applicationObject3D,
       this.appSettings.keepHighlightingOnOpenOrClose.value
     );
-    this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   toggleComponent(
     componentMesh: ComponentMesh,
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
+    applicationObject3D: ApplicationObject3D
   ) {
-    this.toggleComponentLocally(
-      componentMesh,
-      applicationObject3D,
-      sendMessage
-    );
+    this.toggleComponentLocally(componentMesh, applicationObject3D);
 
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
@@ -508,31 +493,22 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  openAllComponentsLocally(
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
-  ) {
+  openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.openAllComponents(applicationObject3D, this.sender);
 
-    this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
-  closeAllComponentsLocally(
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
-  ) {
+  closeAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
     EntityManipulation.closeAllComponents(
       applicationObject3D,
       this.appSettings.keepHighlightingOnOpenOrClose.value
     );
-    this.updateApplicationObject3DAfterUpdate(applicationObject3D, sendMessage);
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
-  closeAllComponents(
-    applicationObject3D: ApplicationObject3D,
-    sendMessage: boolean
-  ) {
-    this.closeAllComponentsLocally(applicationObject3D, sendMessage);
+  closeAllComponents(applicationObject3D: ApplicationObject3D) {
+    this.closeAllComponentsLocally(applicationObject3D);
 
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
