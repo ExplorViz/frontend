@@ -269,7 +269,7 @@ export default class CollaborationSession extends Service.extend({
       this.currentRoomId = roomId;
       try {
         const response = await this.roomService.joinLobby(this.currentRoomId);
-        this.webSocket.initSocket(response.ticketId);
+        this.webSocket.initSocket(response.ticketId, this.localUser.visualizationMode);
       } catch (e: any) {
         this.connectionStatus = 'offline';
         this.currentRoomId = null;

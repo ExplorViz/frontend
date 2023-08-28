@@ -37,6 +37,7 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import { VISUALIZATION_MODE_UPDATE_EVENT, VisualizationModeUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -205,6 +206,7 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(VISUALIZATION_MODE_UPDATE_EVENT, {mode});
   }
 
   @action

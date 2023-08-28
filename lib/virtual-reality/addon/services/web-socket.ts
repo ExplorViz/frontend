@@ -27,6 +27,7 @@ import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/r
 import { OBJECT_CLOSED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
 import { MENU_DETACHED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -62,13 +63,14 @@ export default class WebSocketService extends Service.extend(Evented) {
     return collaborationService;
   }
 
-  async initSocket(ticketId: string) {
+  async initSocket(ticketId: string, mode: VisualizationMode) {
     this.currentSocketUrl = this.getSocketUrl();
     this.currentSocket = io(this.currentSocketUrl, {
       transports: ["websocket"],
       query: {
         "ticketId": ticketId, 
-        "userName": "JOHNNY"
+        "userName": "JOHNNY",
+        "mode": mode
     }});
     this.currentSocket.on('disconnect', this.closeHandler.bind(this));
 
