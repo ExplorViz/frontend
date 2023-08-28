@@ -10,7 +10,6 @@ import {
 
 export default class LandscapeDataContext {
   readonly token: string;
-  private readonly updateConsumer: UpdateConsumer;
   private readonly backend: BackendInfo;
   private intervalInMS: number;
 
@@ -18,20 +17,16 @@ export default class LandscapeDataContext {
   private lastStructureDataRaw: string | undefined;
   private lastDynamicDataRaw: string | undefined;
 
-  constructor(
-    token: string,
-    backend: BackendInfo,
-    updateConsumer: UpdateConsumer,
-    intervalInMS: number
-  ) {
+  constructor(token: string, backend: BackendInfo, intervalInMS: number) {
     this.token = token;
     this.backend = backend;
     this.intervalInMS = intervalInMS;
-    this.updateConsumer = updateConsumer;
   }
 
-  async poll(accessToken: string | undefined) {
-    const endTime = Date.now() - 60 * 1000;
+  async poll(
+    endTime: number,
+    accessToken: string | undefined
+  ): Promise<DataUpdate> {
     const startTime = endTime - this.intervalInMS;
 
     // Fetch & parse data
@@ -74,9 +69,7 @@ export default class LandscapeDataContext {
       );
     }
 
-    if (update.structure || update.dynamic) {
-      this.updateConsumer(update);
-    }
+    return update;
   }
 
   private async request<Data>(

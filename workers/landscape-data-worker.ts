@@ -1,28 +1,27 @@
 import * as Comlink from 'comlink';
 import type {
   BackendInfo,
-  UpdateConsumer,
+  DataUpdate,
 } from './landscape-data-worker/LandscapeDataContext';
 import LandscapeDataContext from './landscape-data-worker/LandscapeDataContext';
 
 let currentContext: LandscapeDataContext | undefined;
 let backendInfo: BackendInfo | undefined;
-let updateConsumer: UpdateConsumer | undefined;
 let updateIntervalMS: number = 10 * 1000;
 
 const api = {
-  init(options: InitOptions, onUpdate: UpdateConsumer): void {
+  init(options: InitOptions): void {
     updateIntervalMS = options.updateIntervalInMS;
     backendInfo = options.backend;
-    updateConsumer = onUpdate;
-    console.log('worker initialized');
+    console.log('worker initialized'); // TODO remove
   },
 
-  async poll(
+  poll(
     landscapeToken: string | null,
+    endTime: number,
     accessToken?: string
-  ): Promise<void> {
-    if (!backendInfo || !updateConsumer) {
+  ): Promise<DataUpdate> {
+    if (!backendInfo) {
       throw new Error('Not initialized.');
     }
 
@@ -34,12 +33,11 @@ const api = {
       currentContext = new LandscapeDataContext(
         landscapeToken,
         backendInfo!,
-        updateConsumer!,
         updateIntervalMS
       );
     }
 
-    await currentContext.poll(accessToken);
+    return currentContext.poll(endTime, accessToken);
   },
 };
 
