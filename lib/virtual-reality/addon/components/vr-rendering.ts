@@ -513,11 +513,19 @@ export default class VrRendering extends Component<Args> {
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
         if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          this.highlightingService.highlight(
-            event.intersection.object,
-            true,
-            this.localUser.color
-          );
+          if (event.intersection.object.parent instanceof ApplicationObject3D) {
+            this.applicationRenderer.highlight(
+              event.intersection.object,
+              event.intersection.object.parent,
+              this.localUser.color
+            );
+          } else {
+            this.applicationRenderer.highlightExternLink(
+              event.intersection.object,
+              true,
+              this.localUser.color
+            );
+          }
         }
       },
       hover: (event) => {
@@ -845,12 +853,9 @@ export default class VrRendering extends Component<Args> {
       remoteUser.update(delta);
     });
 
-
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
-
-
   }
 
   // #endregion MAIN LOOP

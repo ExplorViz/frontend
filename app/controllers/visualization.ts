@@ -474,7 +474,7 @@ export default class VisualizationController extends Controller {
     while (this.linkRenderer.flag) {
       await timeout(50);
     }
-    console.log("0000000000000");
+    console.log('0000000000000');
     // now we can be sure our linkRenderer has all extern links
 
     this.roomSerializer.serializedRoom = {
