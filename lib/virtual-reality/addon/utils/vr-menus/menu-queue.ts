@@ -35,7 +35,7 @@ export default class MenuQueue extends MenuGroup {
    * Tests whether a menu has been enqueued that matches the given predicate.
    */
   hasEnquedMenu(predicate: (menu: BaseMenu) => boolean) {
-    return this.menuQueue.any(predicate);
+    return this.menuQueue.some(predicate);
   }
 
   /**
