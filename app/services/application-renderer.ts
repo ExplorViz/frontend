@@ -12,19 +12,15 @@ import * as EntityRendering from 'explorviz-frontend/utils/application-rendering
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
-  Application,
   Class,
   Package,
-  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -40,6 +36,8 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
+import type Owner from '@ember/owner';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -85,7 +83,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  forceGraph!: ThreeForceGraph;
+  private forceGraph!: ForceGraph;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -150,7 +148,7 @@ export default class ApplicationRenderer extends Service.extend({
   getGraphPosition(mesh: THREE.Object3D) {
     const worldPosition = new THREE.Vector3();
     mesh.getWorldPosition(worldPosition);
-    this.forceGraph.worldToLocal(worldPosition);
+    this.forceGraph.graph.worldToLocal(worldPosition);
     return worldPosition;
   }
 
@@ -249,6 +247,11 @@ export default class ApplicationRenderer extends Service.extend({
       return applicationObject3D;
     }
   );
+
+  createForceGraph(owner: Owner): ForceGraph {
+    this.forceGraph = new ForceGraph(owner, 0.02);
+    return this.forceGraph;
+  }
 
   // #region @actions
 

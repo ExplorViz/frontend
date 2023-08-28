@@ -7,7 +7,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -176,7 +175,7 @@ export default class ArRendering extends Component<Args> {
     this.scene.background = null;
 
     this.applicationRenderer.getOpenApplications().clear();
-    const forceGraph = new ForceGraph(getOwner(this)!, 0.02);
+    const forceGraph = this.applicationRenderer.createForceGraph(getOwner(this)!);
     this.graph = forceGraph.graph;
     this.graph.visible = false;
     this.scene.add(forceGraph.graph);
@@ -189,7 +188,6 @@ export default class ArRendering extends Component<Args> {
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
   }
 
   get camera() {

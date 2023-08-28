@@ -8,7 +8,6 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -161,7 +160,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
-    const forceGraph = new ForceGraph(getOwner(this)!, 0.02);
+    const forceGraph = this.applicationRenderer.createForceGraph(getOwner(this)!);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
@@ -171,8 +170,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
-    // TODO tiwe
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(

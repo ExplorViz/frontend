@@ -7,7 +7,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer, {
   AddApplicationArgs,
@@ -211,7 +210,7 @@ export default class VrRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
 
-    const forceGraph = new ForceGraph(getOwner(this)!, 0.02);
+    const forceGraph = this.applicationRenderer.createForceGraph(getOwner(this)!);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
