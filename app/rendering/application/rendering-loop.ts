@@ -13,8 +13,12 @@ interface Args {
   camera: THREE.Camera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
-  updatables: any[];
+  updatables: Updatable[];
   zoomHandler?: ArZoomHandler;
+}
+
+export interface Updatable {
+  tick: (delta: number, frame?: XRFrame) => void;
 }
 
 export default class RenderingLoop {
@@ -35,7 +39,7 @@ export default class RenderingLoop {
 
   renderer: THREE.WebGLRenderer;
 
-  updatables: any[];
+  updatables: Updatable[];
 
   zoomHandler?: ArZoomHandler;
 
