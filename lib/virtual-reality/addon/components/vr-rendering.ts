@@ -13,7 +13,6 @@ import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, {
   MessageArgs,
@@ -137,9 +136,6 @@ export default class VrRendering extends Component<Args> {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('highlighting-service')
-  private highlightingService!: HighlightingService;
 
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
@@ -512,20 +508,16 @@ export default class VrRendering extends Component<Args> {
     this.secondaryInputManager.addInputHandler({
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
-        if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          if (event.intersection.object.parent instanceof ApplicationObject3D) {
-            this.applicationRenderer.highlight(
-              event.intersection.object,
-              event.intersection.object.parent,
-              this.localUser.color
-            );
-          } else {
-            this.applicationRenderer.highlightExternLink(
-              event.intersection.object,
-              true,
-              this.localUser.color
-            );
-          }
+        if (
+          event.intersection.object instanceof ClazzCommunicationMesh &&
+          event.intersection.object.parent !== null
+        ) {
+          // in VR parent is null if we handle intern communication links. But they are already handled elsewhere anyway
+          this.applicationRenderer.highlightExternLink(
+            event.intersection.object,
+            true,
+            this.localUser.color
+          );
         }
       },
       hover: (event) => {

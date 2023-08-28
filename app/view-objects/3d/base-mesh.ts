@@ -100,11 +100,9 @@ export default abstract class BaseMesh<
       if (this.highlighted) {
         this.material.color = this.highlightingColor;
         this.material.needsUpdate = true;
-        console.log('ABC');
       } else {
         this.material.color = this.defaultColor;
         this.material.needsUpdate = true;
-        console.log('XYZ');
       }
     }
   }
