@@ -108,8 +108,6 @@ export default class VisualizationController extends Controller {
   @tracked
   isTimelineActive: boolean = true;
 
-  landscapeData: LandscapeData | null = null;
-
   @tracked
   visualizationPaused = false;
 
@@ -164,10 +162,6 @@ export default class VisualizationController extends Controller {
     const currentToken = this.landscapeTokenService.token!.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
-  }
-
-  updateLandscape(structureData: unknown, dynamicData: unknown) {
-    // TODO called by updateTimestamp
   }
 
   @action
@@ -306,10 +300,8 @@ export default class VisualizationController extends Controller {
 
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+      await this.landscapeDataService.loadByTimestamp(timestamp);
 
-      this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
         set(this, 'selectedTimestampRecords', timestampRecordArray);
       }
@@ -425,7 +417,6 @@ export default class VisualizationController extends Controller {
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     this.resetLandscapeListenerPolling();
-    this.landscapeDataService.fetchData(timestamp);
     this.updateTimestamp(timestamp);
   }
 

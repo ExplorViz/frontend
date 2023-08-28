@@ -7,17 +7,11 @@ import type LandscapeTokenService from './landscape-token';
 import type Auth from './auth';
 import ENV from 'explorviz-frontend/config/environment';
 import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
-import type {
-  Application,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import type { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import type TimestampRepository from './repos/timestamp-repository';
-import type ThreeForceGraph from 'three-forcegraph';
-import type { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import type ApplicationRenderer from './application-renderer';
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
 
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
@@ -31,7 +25,6 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   private worker: Worker | undefined;
   private comlinkRemote: Comlink.Remote<LandscapeDataWorkerAPI> | undefined;
   private interval: number | undefined;
-  private forceGraph: ThreeForceGraph | undefined;
 
   @service('auth') auth!: Auth;
   @service('landscape-token') tokenService!: LandscapeTokenService;
@@ -43,11 +36,11 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     this.worker = worker;
     this.comlinkRemote = remote;
 
-    this.poll();
+    this.updateData();
 
     // TODO tiwe: ENV.mode.tokenToShow
     this.interval = setInterval(
-      () => this.poll(),
+      () => this.updateData(),
       1000 * intervalInSeconds
     ) as unknown as number;
   }
@@ -66,20 +59,35 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     return this.latestData;
   }
 
-  async fetchData(timestamp: number): Promise<void> {
-    // TODO
+  /**
+   * Loads a landscape from the backend and triggers a visualization update.
+   * @param timestamp
+   */
+  async loadByTimestamp(timestamp: number): Promise<void> {
+    const data = await this.fetchData(timestamp);
+    await this.handleUpdate(data);
   }
 
-  setForceGraph(graph: ThreeForceGraph): void {
-    this.forceGraph = graph;
+  private async fetchData(
+    endTime = Date.now() - 60 * 1000
+  ): Promise<DataUpdate> {
+    const landscapeToken = this.tokenService.token;
+    if (landscapeToken === null) {
+      throw new Error('No landscape token.');
+    }
+
+    const remote = this.comlinkRemote;
+    if (remote === undefined) {
+      throw new Error('Not initialized.');
+    }
+
+    return remote.poll(landscapeToken.value, endTime, this.auth.accessToken);
   }
 
   private async handleUpdate(update: DataUpdate) {
     performance.mark('handleUpdate-start');
 
     this.debug('Update received!', Object.keys(update));
-
-    this.trigger(LandscapeDataUpdateEventName, update);
 
     if (update.dynamic) {
       this.latestData.dynamic = update.dynamic;
@@ -94,90 +102,12 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       this.latestData.structure = update.structure;
     }
 
-    if (update.drawableClassCommunications) {
-      await this.handleUpdatedLandscapeData(update.drawableClassCommunications);
-    }
+    this.trigger(LandscapeDataUpdateEventName, update);
 
     performance.mark('handleUpdate-end');
   }
 
-  private async handleUpdatedLandscapeData(
-    drawableClassCommunications: DrawableClassCommunication[]
-  ) {
-    performance.mark('handleUpdatedLandscapeData-start');
-
-    // Use the updated landscape data to calculate application metrics.
-    // This is done for all applications to have accurate heatmap data.
-
-    const { nodes: graphNodes } = this.forceGraph!.graphData();
-    const { nodes } = this.latestData.structure!;
-
-    const nodeLinks: any[] = [];
-    for (let i = 0; i < nodes.length; ++i) {
-      const node = nodes[i];
-      for (let j = 0; j < node.applications.length; ++j) {
-        const application = node.applications[j];
-        const applicationData = await this.updateApplicationData(
-          application,
-          drawableClassCommunications
-        );
-
-        // create or update applicationObject3D
-        const app =
-          await this.applicationRenderer.addApplicationTask.perform(
-            applicationData
-          );
-
-        // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.findBy(
-          'id',
-          applicationData.application.id
-        ) as GraphNode;
-
-        if (!app.foundationMesh) {
-          console.error('No foundation mesh, this should not happen');
-          return;
-        }
-
-        const { x, z } = app.foundationMesh.scale;
-        const collisionRadius = Math.hypot(x, z) / 2 + 3;
-        if (graphNode) {
-          graphNode.collisionRadius = collisionRadius;
-          graphNode.fx = graphNode.x;
-          graphNode.fz = graphNode.z;
-        } else {
-          graphNodes.push({
-            id: applicationData.application.id,
-            fy: 0,
-            collisionRadius,
-          } as GraphNode);
-        }
-
-        // create (invisible) links between apps on the same node
-        node.applications.forEach((nodeApp) => {
-          if (nodeApp.id !== application.id) {
-            nodeLinks.push({
-              source: application.id,
-              target: nodeApp.id,
-              value: 1, // used for particles
-            });
-          }
-        });
-      }
-    }
-
-    performance.mark('handleUpdatedLandscapeData-end');
-  }
-
-  private async updateApplicationData(
-    application: Application,
-    drawableClassCommunications: DrawableClassCommunication[]
-  ): Promise<ApplicationData> {
-    // TODO
-    throw new Error('Not implemented');
-  }
-
-  private async poll(endTime = Date.now() - 60 * 1000) {
+  private async updateData(endTime = Date.now() - 60 * 1000) {
     const landscapeToken = this.tokenService.token;
     if (landscapeToken === null) {
       return;
@@ -188,12 +118,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       return;
     }
 
-    const update = await remote.poll(
-      landscapeToken.value,
-      endTime,
-      this.auth.accessToken
-    );
-
+    const update = await this.fetchData(endTime);
     this.handleUpdate(update);
   }
 
