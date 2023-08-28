@@ -37,6 +37,8 @@ import {
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
+import { LandscapeDataUpdateEventName } from 'explorviz-frontend/services/landscape-data-service';
+import { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -106,7 +108,6 @@ export default class VisualizationController extends Controller {
   @tracked
   isTimelineActive: boolean = true;
 
-  @tracked
   landscapeData: LandscapeData | null = null;
 
   @tracked
@@ -115,21 +116,17 @@ export default class VisualizationController extends Controller {
   @tracked
   timelineTimestamps: Timestamp[] = [];
 
-  debug = debugLogger();
+  private debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
-    return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length === 0
-    );
+    const latestData = this.landscapeDataService.getLatest();
+    const structureData = latestData.structure;
+
+    return structureData !== undefined && structureData.nodes.length === 0;
   }
 
-  get allLandscapeDataExistsAndNotEmpty() {
-    return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length > 0
-    );
-  }
+  @tracked
+  allLandscapeDataExistsAndNotEmpty = false;
 
   get showTimeline() {
     return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
@@ -153,6 +150,12 @@ export default class VisualizationController extends Controller {
       this,
       this.onTimestampUpdate
     );
+
+    this.landscapeDataService.on(
+      LandscapeDataUpdateEventName,
+      this,
+      this.onDataUpdate
+    );
   }
 
   @action
@@ -163,30 +166,8 @@ export default class VisualizationController extends Controller {
       this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
 
-  @action
-  receiveNewLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.debug('receiveNewLandscapeData');
-    if (!this.visualizationPaused) {
-      this.updateLandscape(structureData, dynamicData);
-      if (this.timelineTimestamps.lastObject) {
-        this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.timestamp;
-      }
-    }
-  }
-
-  updateLandscape(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    // TODO this triggers a rerender
-    this.landscapeData = {
-      structureLandscapeData: structureData,
-      dynamicLandscapeData: dynamicData,
-    };
+  updateLandscape(structureData: unknown, dynamicData: unknown) {
+    // TODO called by updateTimestamp
   }
 
   @action
@@ -379,7 +360,7 @@ export default class VisualizationController extends Controller {
 
   initRendering() {
     this.debug('initRendering');
-    this.landscapeData = null;
+    // TODO tiwe: reset landscape data?
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
@@ -446,6 +427,26 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.landscapeDataService.fetchData(timestamp);
     this.updateTimestamp(timestamp);
+  }
+
+  private onDataUpdate(update: DataUpdate | undefined) {
+    if (update === undefined) {
+      return;
+    }
+
+    const latestData = this.landscapeDataService.getLatest();
+    const structureData = latestData.structure;
+
+    if (structureData === undefined) {
+      this.allLandscapeDataExistsAndNotEmpty = false;
+      return;
+    }
+
+    const notEmpty = structureData.nodes.length > 0;
+
+    if (this.allLandscapeDataExistsAndNotEmpty !== notEmpty) {
+      this.allLandscapeDataExistsAndNotEmpty = notEmpty;
+    }
   }
 }
 
