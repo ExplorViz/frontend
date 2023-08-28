@@ -1,5 +1,6 @@
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
+import type Owner from '@ember/owner';
 // @ts-ignore: no types atm
 import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
@@ -55,7 +56,7 @@ export default class ForceGraph {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  constructor(owner: any, scale: number = 1) {
+  constructor(owner: Owner, scale: number = 1) {
     this.scale = scale;
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);

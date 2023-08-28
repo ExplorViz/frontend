@@ -176,7 +176,7 @@ export default class ArRendering extends Component<Args> {
     this.scene.background = null;
 
     this.applicationRenderer.getOpenApplications().clear();
-    const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    const forceGraph = new ForceGraph(getOwner(this)!, 0.02);
     this.graph = forceGraph.graph;
     this.graph.visible = false;
     this.scene.add(forceGraph.graph);

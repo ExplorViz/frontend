@@ -211,7 +211,7 @@ export default class VrRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
 
-    const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    const forceGraph = new ForceGraph(getOwner(this)!, 0.02);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);

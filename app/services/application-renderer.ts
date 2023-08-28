@@ -89,7 +89,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
-  readonly appCommRendering: CommunicationRendering;
+  private readonly appCommRendering: CommunicationRendering;
 
   // #endregion fields
 
