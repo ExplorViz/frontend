@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import Evented from '@ember/object/evented';
 import * as Comlink from 'comlink';
 import { LandscapeDataWorkerAPI } from 'workers/landscape-data-worker';
 import debugLogger from 'ember-debug-logger';
@@ -21,12 +22,13 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
 
-export default class LandscapeDataService extends Service {
+export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly debug = debugLogger('LandscapeDataService');
 
   private readonly latestData: Partial<{
     structure: StructureLandscapeData;
     dynamic: DynamicLandscapeData;
+    drawableClassCommunication: DrawableClassCommunication[];
   }> = {};
 
   private worker: Worker | undefined;
@@ -55,7 +57,12 @@ export default class LandscapeDataService extends Service {
 
   async stopPolling() {
     this.debug('Stopping polling interval');
-    // TODO
+    if (this.interval === undefined) {
+      return;
+    }
+    clearInterval(this.interval);
+    this.interval = undefined;
+    // TODO (?)
   }
 
   async fetchData(timestamp: number): Promise<void> {
@@ -167,7 +174,7 @@ export default class LandscapeDataService extends Service {
     throw new Error('Not implemented');
   }
 
-  private async poll() {
+  private async poll(endTime = Date.now() - 60 * 1000) {
     const landscapeToken = this.tokenService.token;
     if (landscapeToken === null) {
       return;
@@ -178,7 +185,13 @@ export default class LandscapeDataService extends Service {
       return;
     }
 
-    await remote.poll(landscapeToken.value, this.auth.accessToken);
+    const update = await remote.poll(
+      landscapeToken.value,
+      endTime,
+      this.auth.accessToken
+    );
+
+    this.handleUpdate(update);
   }
 
   private async createWorkerAndRemote(): Promise<
@@ -189,16 +202,13 @@ export default class LandscapeDataService extends Service {
 
     const { landscapeService, traceService } = ENV.backendAddresses;
 
-    await remote.init(
-      {
-        updateIntervalInMS: 1000 * intervalInSeconds,
-        backend: {
-          landscapeUrl: landscapeService,
-          tracesUrl: traceService,
-        },
+    await remote.init({
+      updateIntervalInMS: 1000 * intervalInSeconds,
+      backend: {
+        landscapeUrl: landscapeService,
+        tracesUrl: traceService,
       },
-      Comlink.proxy((update) => this.handleUpdate(update))
-    );
+    });
 
     this.debug('landscape-data-worker.js initialized.');
 
