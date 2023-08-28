@@ -168,7 +168,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
-    const forceGraph = this.applicationRenderer.createForceGraph(getOwner(this)!);
+    const forceGraph = this.applicationRenderer.createForceGraph(
+      getOwner(this)!
+    );
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
