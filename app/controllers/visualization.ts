@@ -37,7 +37,7 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 import { LandscapeDataUpdateEventName } from 'explorviz-frontend/services/landscape-data-service';
-import { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
+import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;

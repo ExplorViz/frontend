@@ -16,10 +16,9 @@ import type { DrawableClassCommunication } from 'explorviz-frontend/utils/applic
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
 export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
+const debug = debugLogger('LandscapeDataService');
 
 export default class LandscapeDataService extends Service.extend(Evented) {
-  private readonly debug = debugLogger('LandscapeDataService');
-
   private readonly latestData: LocalData = {};
 
   private worker: Worker | undefined;
@@ -46,7 +45,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   }
 
   async stopPolling() {
-    this.debug('Stopping polling interval');
+    debug('Stopping polling interval');
     if (this.interval === undefined) {
       return;
     }
@@ -87,7 +86,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   private async handleUpdate(update: DataUpdate) {
     performance.mark('handleUpdate-start');
 
-    this.debug('Update received!', Object.keys(update));
+    debug('Update received!', Object.keys(update));
 
     if (update.dynamic) {
       this.latestData.dynamic = update.dynamic;
@@ -138,7 +137,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       },
     });
 
-    this.debug('landscape-data-worker.js initialized.');
+    debug('landscape-data-worker.js initialized.');
 
     return [worker, remote];
   }
