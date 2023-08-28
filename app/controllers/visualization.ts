@@ -10,7 +10,6 @@ import LocalUser, {
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, {
   Timestamp,
@@ -67,8 +66,6 @@ export default class VisualizationController extends Controller {
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-token') landscapeTokenService!: LandscapeTokenService;
-
-  @service('reload-handler') reloadHandler!: ReloadHandler;
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
