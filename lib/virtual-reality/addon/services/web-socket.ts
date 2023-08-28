@@ -1,10 +1,8 @@
-import Service, { inject as service } from '@ember/service';
+import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
 import { Nonce } from 'virtual-reality/utils/vr-message/util/nonce';
-import { RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response';
-import { FORWARDED_EVENT } from 'virtual-reality/utils/vr-message/receivable/forwarded';
 import { io, Socket } from 'socket.io-client';
 import { INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
 import { SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
@@ -45,8 +43,6 @@ const RECEIVABLE_EVENTS = [INITIAL_LANDSCAPE_EVENT, SELF_CONNECTED_EVENT, USER_C
 const RESPONSE_EVENTS = [OBJECT_CLOSED_RESPONSE_EVENT, MENU_DETACHED_RESPONSE_EVENT, OBJECT_GRABBED_RESPONSE_EVENT];
 
 export default class WebSocketService extends Service.extend(Evented) {
-  @service()
-  private websockets!: any;
 
   private debug = debugLogger('WebSocketService');
 
@@ -91,8 +87,8 @@ export default class WebSocketService extends Service.extend(Evented) {
   }
 
   closeSocket() {
-    if (this.currentSocketUrl)
-      this.websockets.closeSocketFor(this.currentSocketUrl);
+    if (this.isWebSocketOpen())
+      this.currentSocket?.disconnect();
   }
 
   private closeHandler(event: any) {
@@ -110,19 +106,6 @@ export default class WebSocketService extends Service.extend(Evented) {
     this.currentSocket?.disconnect();
     this.currentSocket = null;
     this.currentSocketUrl = null;
-  }
-
-  private messageHandler(event: any) {
-    const message = JSON.parse(event.data);
-    this.debug(`Got a message${message.event}`);
-    if (message.event === FORWARDED_EVENT) {
-      this.trigger(message.originalMessage.event, message);
-    } else if (message.event === RESPONSE_EVENT) {
-      const handler = this.responseHandlers.get(message.nonce);
-      if (handler) handler(message.response);
-    } else {
-      this.trigger(message.event, message);
-    }
   }
 
   /**

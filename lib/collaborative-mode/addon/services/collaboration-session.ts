@@ -217,14 +217,9 @@ export default class CollaborationSession extends Service.extend({
     if (this.isConnecting) {
       this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
-      switch (event.code) {
-        case 1000: // Normal Closure
+      switch (event) {
+        case "io client disconnect":
           this.toastMessage.info('Successfully disconnected');
-          break;
-        case 1006: // Abnormal closure
-          this.toastMessage.error(
-            'Collaboration backend service closed abnormally'
-          );
           break;
         default:
           this.toastMessage.error('Unexpected disconnect');
