@@ -4,7 +4,7 @@
 
 <div>
 
-  <h6 class="mb-3 mt-3"><strong>Restructure Mode</strong></h6>
+  <h6 class='mb-3 mt-3'><strong>Restructure Mode</strong></h6>
   <div class='ml-3'>
     <div class='d-flex justify-content-between'>
       <label>Enable Restructure Mode: </label>
@@ -20,16 +20,26 @@
   </div>
 
   {{#if this.restructureMode}}
-    <h6 class="mb-3 mt-3"><strong>Gitlab Credentials</strong></h6>
+    <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
-      <label for="token">API Token:</label>
-      <div class="d-flex justify-content-between">
-        <input id="token" class="form-control mr-2" oninput={{this.updateToken}} value={{this.token}}>
+      <label for='token'>API Token:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='token'
+          class='form-control mr-2'
+          oninput={{this.updateToken}}
+          value={{this.token}}
+        />
       </div>
       <ul></ul>
-      <label for="repo">Repository ID:</label>
-      <div class="d-flex justify-content-between">
-        <input id="repo" class="form-control mr-2" oninput={{this.updateRepo}} value={{this.repo}}>
+      <label for='repo'>Repository ID:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='repo'
+          class='form-control mr-2'
+          oninput={{this.updateRepo}}
+          value={{this.repo}}
+        />
       </div>
       <ul></ul>
       <div class='d-flex justify-content-between'>
@@ -45,16 +55,26 @@
       </div>
     </div>
 
-    <h6 class="mb-3 mt-3"><strong>Application</strong></h6>
+    <h6 class='mb-3 mt-3'><strong>Application</strong></h6>
     <div class='ml-3'>
-      <label for="appName">Application name:</label>
-      <div class="d-flex justify-content-between">
-        <input id="appName" class="form-control mr-2" oninput={{this.updateNewAppName}} value={{this.appName}}>
+      <label for='appName'>Application name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='appName'
+          class='form-control mr-2'
+          oninput={{this.updateNewAppName}}
+          value={{this.appName}}
+        />
       </div>
       <ul></ul>
-      <label for="language">Language:</label>
-      <div class="d-flex justify-content-between">
-        <input id="language" class="form-control mr-2" oninput={{this.updateLanguage}} value={{this.language}}>
+      <label for='language'>Language:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='language'
+          class='form-control mr-2'
+          oninput={{this.updateLanguage}}
+          value={{this.language}}
+        />
       </div>
       <ul></ul>
       <div class='d-flex justify-content-between'>
@@ -70,29 +90,66 @@
       </div>
     </div>
 
-    <h6 class="mb-3 mt-3"><strong>Communication</strong></h6>
+    <h6 class='mb-3 mt-3'><strong>Communication</strong></h6>
     <div class='ml-3'>
-      <label for="methodName">Method name:</label>
-      <div class="d-flex justify-content-between">
-        <input id="methodName" class="form-control mr-2" oninput={{this.updateMethodName}} value={{this.methodName}}>
+      <label for='methodName'>Method name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='methodName'
+          class='form-control mr-2'
+          oninput={{this.updateMethodName}}
+          value={{this.methodName}}
+        />
       </div>
-      
+
       <ul></ul>
-      <label for="srcClass">Source Class:</label>
-      <div class="d-flex justify-content-between">
-        <input id="srcClass" class="form-control mr-2"  value={{this.sourceClass}} disabled>
-        <button type="button" class="btn btn-dark" title="Paste Source Class" onclick={{this.addSourceClassFromClipboard}}>{{svg-jar 'copy-16' class='octicon align-right'}}</button>
-        <button style="margin-left: 5px;" type="button" class="btn btn-danger" title="Reset Source Class" onclick={{this.resetSourceClass}}>{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+      <label for='srcClass'>Source Class:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='srcClass'
+          class='form-control mr-2'
+          value={{this.sourceClass}}
+          disabled
+        />
+        <button
+          type='button'
+          class='btn btn-dark'
+          title='Paste Source Class'
+          onclick={{this.addSourceClassFromClipboard}}
+        >{{svg-jar 'copy-16' class='octicon align-right'}}</button>
+        <button
+          style='margin-left: 5px;'
+          type='button'
+          class='btn btn-danger'
+          title='Reset Source Class'
+          onclick={{this.resetSourceClass}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
       </div>
-      
+
       <ul></ul>
-      <label for="targetClass">Target Class:</label>
-      <div class="d-flex justify-content-between">
-        <input id="targetClass" class="form-control mr-2"  value={{this.targetClass}} disabled>
-        <button type="button" class="btn btn-dark" title="Paste TargetClass" onclick={{this.addTargetClassFromClipboard}}>{{svg-jar 'copy-16' class='octicon align-right'}}</button>
-        <button style="margin-left: 5px;" type="button" class="btn btn-danger" title="Reset Target Class" onclick={{this.resetTargetClass}}>{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+      <label for='targetClass'>Target Class:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='targetClass'
+          class='form-control mr-2'
+          value={{this.targetClass}}
+          disabled
+        />
+        <button
+          type='button'
+          class='btn btn-dark'
+          title='Paste TargetClass'
+          onclick={{this.addTargetClassFromClipboard}}
+        >{{svg-jar 'copy-16' class='octicon align-right'}}</button>
+        <button
+          style='margin-left: 5px;'
+          type='button'
+          class='btn btn-danger'
+          title='Reset Target Class'
+          onclick={{this.resetTargetClass}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
       </div>
-      
+
       <ul></ul>
       <div class='d-flex justify-content-between'>
         <BsButton
@@ -107,46 +164,94 @@
       </div>
     </div>
 
-    <h6 class="mb-3 mt-3"><strong>Clipboard</strong></h6>
-    <div class="ml-3">
-      <label for="clipboard"></label>
-      <div class="d-flex justify-content-between">
-        <input id="clipboard" class="form-control mr-2"  value={{this.clip_board}} disabled>
-        <button type="button" class="btn btn-danger" title="Reset Clipboard" onclick={{this.resetClipboardBtn}}>{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+    <h6 class='mb-3 mt-3'><strong>Clipboard</strong></h6>
+    <div class='ml-3'>
+      <label for='clipboard'></label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='clipboard'
+          class='form-control mr-2'
+          value={{this.clip_board}}
+          disabled
+        />
+        <button
+          type='button'
+          class='btn btn-danger'
+          title='Reset Clipboard'
+          onclick={{this.resetClipboardBtn}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
       </div>
     </div>
 
-    <h6 class="mb-3 mt-3"><strong>Changelog</strong></h6>
-    <div class="ml-3">
-      <div class="d-flex flex-column justify-content-between">
-        <label for="changelog"></label>
-        <textarea id="changelog" rows="10" value={{this.changelog}} readonly></textarea>
+    <h6 class='mb-3 mt-3'><strong>Changelog</strong></h6>
+    <div class='ml-3'>
+      <div class='d-flex flex-column justify-content-between'>
+        <label for='changelog'></label>
+        <textarea
+          id='changelog'
+          rows='10'
+          value={{this.changelog}}
+          readonly
+        ></textarea>
         <ul></ul>
-        <button type="button" class="btn btn-light" title="Show Changelog" onclick={{this.showChangelog}}>{{svg-jar 'checklist-16' class='octicon align-right'}}</button>
+        <button
+          type='button'
+          class='btn btn-light'
+          title='Show Changelog'
+          onclick={{this.showChangelog}}
+        >{{svg-jar 'checklist-16' class='octicon align-right'}}</button>
       </div>
     </div>
 
-    <h6 class="mb-3 mt-3"><strong>Gitlab</strong></h6>
+    <h6 class='mb-3 mt-3'><strong>Gitlab</strong></h6>
     {{#each this.issues as |issue index|}}
-      <div class="ml-3">
+      <div class='ml-3'>
         <div class='d-flex justify-content-between'>
-          <label for="issueTitle"></label>
-          <input id="issueTitle" class="form-control mr-2" type="text" placeholder="Issue Title" value={{issue.title}} {{on "input" (fn this.updateIssueTitle index)}}>
-          <button type="button" class="btn btn-danger" title="Delete Issue" onclick={{fn this.deleteIssue index}}>{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+          <label for='issueTitle'></label>
+          <input
+            id='issueTitle'
+            class='form-control mr-2'
+            type='text'
+            placeholder='Issue Title'
+            value={{issue.title}}
+            {{on 'input' (fn this.updateIssueTitle index)}}
+          />
+          <button
+            type='button'
+            class='btn btn-danger'
+            title='Delete Issue'
+            onclick={{fn this.deleteIssue index}}
+          >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
         </div>
         <ul></ul>
         <div class='d-flex flex-column justify-content-between'>
-          <label for="issue"></label>
-          <textarea id="issue" placeholder="Issue Content" rows="10" value={{issue.content}} {{on "input" (fn this.updateIssueContent index)}}></textarea>
+          <label for='issue'></label>
+          <textarea
+            id='issue'
+            placeholder='Issue Content'
+            rows='10'
+            value={{issue.content}}
+            {{on 'input' (fn this.updateIssueContent index)}}
+          ></textarea>
         </div>
         <ul></ul>
         <div class='d-flex justify-content-between'>
-          <button type="button" class="btn btn-light" title="Take a Screenshot" onclick={{fn this.screenshotCanvas index}}>{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
+          <button
+            type='button'
+            class='btn btn-light'
+            title='Take a Screenshot'
+            onclick={{fn this.screenshotCanvas index}}
+          >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
         </div>
         {{#each issue.screenshots as |screenshot screenshotIndex|}}
           <span>
             Screenshot{{screenshotIndex}}
-            <button type="button" class="btn btn-danger" title="Delete Screenshot" onclick={{fn this.deleteScreenshot index screenshotIndex}}>{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+            <button
+              type='button'
+              class='btn btn-danger'
+              title='Delete Screenshot'
+              onclick={{fn this.deleteScreenshot index screenshotIndex}}
+            >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
           </span>
         {{/each}}
       </div>
@@ -176,7 +281,7 @@
         {{/if}}
       </div>
       <ul></ul>
-      
+
     </div>
   {{/if}}
 
