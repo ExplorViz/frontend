@@ -11,6 +11,8 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -21,6 +23,7 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   visualizationPaused: boolean;
   toggleVisualizationUpdating: () => void;
   resetLandscapeListenerPolling: () => void;
+  removeTimestampListener: () => void;
   removeComponent(componentPath: string): void;
 }
 
@@ -30,6 +33,12 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   @tracked
   token: string = localStorage.getItem('gitAPIToken') || '';
@@ -84,8 +93,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   toggleRestructureMode() {
-    this.restructureMode = this.landscapeRestructure.toggleRestructureMode();
+    this.restructureMode = this.landscapeRestructure.restructureMode;
     if (this.restructureMode) {
+      if (this.collaborationSession.isOnline)
+        this.args.removeTimestampListener();
       this.landscapeRestructure.setLandscapeData(this.args.landscapeData);
 
       this.args.resetLandscapeListenerPolling();

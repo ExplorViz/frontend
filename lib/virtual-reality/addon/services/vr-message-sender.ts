@@ -21,6 +21,17 @@ import {
   UserPositionsMessage,
 } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
+import {
+  RestructureCommunicationMessage,
+  RestructureCreateOrDeleteMessage,
+  RestructureCutAndInsertMessage,
+  RestructureModeUpdateMessage,
+  RestructureUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/restructure_update';
+import {
+  ChangeLogAction,
+  EntryType,
+} from 'explorviz-frontend/utils/change-log-entry';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
@@ -127,6 +138,72 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
+    });
+  }
+
+  sendRestructureModeUpdate() {
+    this.webSocket.send<RestructureModeUpdateMessage>({
+      event: 'restructure_mode_update',
+    });
+  }
+
+  sendRestructureUpdate(
+    entityType: EntryType,
+    entityId: string,
+    newName: string,
+    appId: string | null
+  ) {
+    this.webSocket.send<RestructureUpdateMessage>({
+      event: 'restructure_update',
+      entityType: entityType,
+      entityId: entityId,
+      newName: newName,
+      appId: appId,
+    });
+  }
+
+  sendRestructureCreateOrDeleteMessage(
+    entityType: EntryType,
+    action: ChangeLogAction,
+    name: string | null,
+    language: string | null,
+    entityId: string | null
+  ) {
+    this.webSocket.send<RestructureCreateOrDeleteMessage>({
+      event: 'restructure_create_delete',
+      action: action,
+      entityType: entityType,
+      name: name,
+      language: language,
+      entityId: entityId,
+    });
+  }
+
+  sendRestructureCutAndInsertMessage(
+    destinationEntity: string,
+    destinationId: string,
+    clippedEntity: string,
+    clippedEntityId: string
+  ) {
+    this.webSocket.send<RestructureCutAndInsertMessage>({
+      event: 'restructure_cut_insert',
+      destinationEntity: destinationEntity,
+      destinationId: destinationId,
+      clippedEntity: clippedEntity,
+      clippedEntityId: clippedEntityId,
+    });
+  }
+
+  sendRestructureCommunicationMessage(
+    sourceClassId: string,
+    targetClassId: string,
+    methodName: string
+  ) {
+    this.webSocket.send<RestructureCommunicationMessage>({
+      event: 'restructure_communication',
+      sourceClassId: sourceClassId,
+      targetClassId: targetClassId,
+      methodName: methodName,
     });
   }
 

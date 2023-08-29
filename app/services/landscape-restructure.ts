@@ -1,3 +1,4 @@
+import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
@@ -38,7 +39,10 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'explorviz-frontend/utils/package-helpers';
-import { getClassMethodByName } from 'explorviz-frontend/utils/class-helpers';
+import {
+  getClassById,
+  getClassMethodByName,
+} from 'explorviz-frontend/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   ChangeLogAction,
@@ -52,6 +56,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 type MeshModelTextureMapping = {
   action: ChangeLogAction;
@@ -84,6 +89,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
 
   @tracked
   public restructureMode: boolean = false;
@@ -136,7 +144,30 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.targetClass = this.clippedMesh;
   }
 
-  async createCommunication(methodName: string) {
+  createCollaborativeCommunication(
+    sourceClassId: string,
+    targetClassId: string,
+    methodName: string
+  ) {
+    this.sourceClass = getClassById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      sourceClassId
+    ) as Class;
+    this.targetClass = getClassById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      targetClassId
+    ) as Class;
+    this.createCommunication(methodName, true);
+  }
+
+  async createCommunication(methodName: string, collabMode: boolean = false) {
+    if (!collabMode)
+      this.sender.sendRestructureCommunicationMessage(
+        this.sourceClass?.id as string,
+        this.targetClass?.id as string,
+        methodName
+      );
+
     if (
       this.sourceClass &&
       this.targetClass &&
@@ -196,16 +227,34 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
+  @action
   toggleRestructureMode() {
-    return (this.restructureMode = !this.restructureMode);
+    this.restructureMode = !this.restructureMode;
+    this.trigger('restructureMode');
+    this.sender.sendRestructureModeUpdate();
+  }
+
+  async toggleRestructureModeLocally() {
+    this.restructureMode = !this.restructureMode;
+    this.trigger('openDataSelection');
+    this.trigger('restructureComponent', 'restructure-landscape');
+    await new Promise((f) => setTimeout(f, 1000));
+    this.trigger('restructureMode');
   }
 
   setLandscapeData(newData: LandscapeData | null) {
     this.landscapeData = newData;
   }
 
-  async updateApplicationName(name: string, id: string) {
+  async updateApplicationName(
+    name: string,
+    id: string,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureUpdate(EntryType.App, id, name, null);
+
       const app = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
         id
@@ -240,8 +289,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  async updatePackageName(name: string, id: string) {
+  async updatePackageName(
+    name: string,
+    id: string,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureUpdate(EntryType.Package, id, name, null);
+
       const pckg = getPackageById(
         this.landscapeData.structureLandscapeData,
         id
@@ -281,8 +337,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  async updateSubPackageName(name: string, id: string) {
+  async updateSubPackageName(
+    name: string,
+    id: string,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureUpdate(EntryType.SubPackage, id, name, null);
+
       const pckg = getPackageById(
         this.landscapeData.structureLandscapeData,
         id
@@ -336,8 +399,16 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     return app;
   }
 
-  async updateClassName(name: string, id: string, appId: string) {
+  async updateClassName(
+    name: string,
+    id: string,
+    appId: string,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureUpdate(EntryType.Clazz, id, name, appId);
+
       const application = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
         appId
@@ -398,8 +469,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.applyTextureMappings();
   }
 
-  async addApplication(appName: string, language: string) {
+  async addApplication(
+    appName: string,
+    language: string,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.App,
+          ChangeLogAction.Create,
+          appName,
+          language,
+          null
+        );
+
       const foundation = addFoundationToLandscape(
         appName,
         language,
@@ -655,8 +739,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     );
   }
 
-  async addSubPackageFromPopup(pckg: Package) {
+  addCollaborativeSubPackage(pckgId: string) {
+    const pckg = getPackageById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      pckgId
+    );
+    this.addSubPackageFromPopup(pckg as Package, true);
+  }
+
+  async addSubPackageFromPopup(pckg: Package, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.SubPackage,
+          ChangeLogAction.Create,
+          null,
+          null,
+          pckg.id
+        );
+
       const app = this.getAppFromPackage(pckg);
       if (app) {
         const subPackage = createPackage(this.newMeshCounter);
@@ -695,8 +796,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  async addPackageFromPopup(app: Application) {
+  addCollaborativePackage(appId: string) {
+    const app = getApplicationInLandscapeById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      appId
+    );
+    this.addPackageFromPopup(app as Application, true);
+  }
+
+  async addPackageFromPopup(app: Application, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.Package,
+          ChangeLogAction.Create,
+          null,
+          null,
+          app.id
+        );
+
       const newPckg = createPackage(this.newMeshCounter);
       const newClass = createClass(this.newMeshCounter);
       newClass.parent = newPckg;
@@ -731,8 +849,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  async addClassFromPopup(pckg: Package) {
+  addCollaborativeClass(pckgId: string) {
+    const pckg = getPackageById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      pckgId
+    );
+    this.addClassFromPopup(pckg as Package, true);
+  }
+
+  async addClassFromPopup(pckg: Package, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.Clazz,
+          ChangeLogAction.Create,
+          null,
+          null,
+          pckg.id
+        );
+
       const app = this.getAppFromPackage(pckg);
       if (app) {
         const clazz = createClass(this.newMeshCounter);
@@ -767,8 +902,24 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  async deleteAppFromPopup(app: Application) {
+  deleteCollaborativeApplication(appId: string) {
+    const app = getApplicationInLandscapeById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      appId
+    );
+    this.deleteAppFromPopup(app as Application, true);
+  }
+
+  async deleteAppFromPopup(app: Application, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.App,
+          ChangeLogAction.Delete,
+          null,
+          null,
+          app.id
+        );
       // Create wrapper for Communication, since it can change inside the function
       const wrapper = {
         comms: this.classCommunication,
@@ -818,8 +969,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  async deletePackageFromPopup(pckg: Package) {
+  deleteCollaborativePackage(pckgId: string) {
+    const pckg = getPackageById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      pckgId
+    );
+    this.deletePackageFromPopup(pckg as Package, true);
+  }
+
+  async deletePackageFromPopup(pckg: Package, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.Package,
+          ChangeLogAction.Delete,
+          null,
+          null,
+          pckg.id
+        );
+
       let app: Application | undefined;
       if (pckg.parent) {
         app = getApplicationFromSubPackage(
@@ -919,8 +1087,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     });
   }
 
-  async deleteClassFromPopup(clazz: Class) {
+  deleteCollaborativeClass(clazzId: string) {
+    const clazz = getClassById(
+      this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+      clazzId
+    );
+    this.deleteClassFromPopup(clazz as Class, true);
+  }
+
+  async deleteClassFromPopup(clazz: Class, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode)
+        this.sender.sendRestructureCreateOrDeleteMessage(
+          EntryType.Clazz,
+          ChangeLogAction.Delete,
+          null,
+          null,
+          clazz.id
+        );
+
       const application = getApplicationFromClass(
         this.landscapeData.structureLandscapeData,
         clazz
@@ -1023,7 +1208,43 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.clippedMesh = null;
   }
 
-  async insertPackageOrClassFromPopup(destination: Application | Package) {
+  insertCollaborativePackagerOrClass(
+    destinationEntity: string,
+    destinationId: string,
+    clippedEntity: string,
+    clippedEntityId: string
+  ) {
+    if (clippedEntity === 'PACKAGE') {
+      this.clippedMesh = getPackageById(
+        this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+        clippedEntityId
+      ) as Package;
+    } else {
+      this.clippedMesh = getClassById(
+        this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+        clippedEntityId
+      ) as Class;
+    }
+
+    if (destinationEntity === 'APP') {
+      const app = getApplicationInLandscapeById(
+        this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+        destinationId
+      );
+      this.insertPackageOrClassFromPopup(app as Application, true);
+    } else {
+      const pckg = getPackageById(
+        this.landscapeData?.structureLandscapeData as StructureLandscapeData,
+        destinationId
+      );
+      this.insertPackageOrClassFromPopup(pckg as Package, true);
+    }
+  }
+
+  async insertPackageOrClassFromPopup(
+    destination: Application | Package,
+    collabMode: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       const getApp: (
         LandscapeData: StructureLandscapeData,
@@ -1040,6 +1261,40 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
         return undefined;
       };
+
+      if (!collabMode) {
+        if (isApplication(destination)) {
+          if (isPackage(this.clippedMesh))
+            this.sender.sendRestructureCutAndInsertMessage(
+              EntryType.App,
+              destination.id,
+              EntryType.Package,
+              this.clippedMesh?.id as string
+            );
+          else
+            this.sender.sendRestructureCutAndInsertMessage(
+              EntryType.App,
+              destination.id,
+              EntryType.Clazz,
+              this.clippedMesh?.id as string
+            );
+        } else {
+          if (isPackage(this.clippedMesh))
+            this.sender.sendRestructureCutAndInsertMessage(
+              EntryType.Package,
+              destination.id,
+              EntryType.Package,
+              this.clippedMesh?.id as string
+            );
+          else
+            this.sender.sendRestructureCutAndInsertMessage(
+              EntryType.Package,
+              destination.id,
+              EntryType.Clazz,
+              this.clippedMesh?.id as string
+            );
+        }
+      }
 
       const app = getApp(
         this.landscapeData.structureLandscapeData,

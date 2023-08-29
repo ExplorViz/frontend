@@ -1,3 +1,5 @@
+{{add-listener this.landscapeRestructure 'restructureMode' this.toggleRestructureMode}}
+
 <div class='sidebar-component-close' {{on 'click' this.close}}>
   {{svg-jar 'x-16' class='octicon'}}
 </div>
@@ -12,14 +14,14 @@
         <XToggle
           class='mr-4'
           @theme='skewed'
-          @value={{this.restructureMode}}
-          @onToggle={{this.toggleRestructureMode}}
+          @value={{this.landscapeRestructure.restructureMode}}
+          @onToggle={{this.landscapeRestructure.toggleRestructureMode}}
         />
       </div>
     </div>
   </div>
 
-  {{#if this.restructureMode}}
+  {{#if this.landscapeRestructure.restructureMode}}
     <h6 class="mb-3 mt-3"><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
       <label for="token">API Token:</label>

@@ -149,6 +149,17 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+  }
+
+  @action
   updateTimestampList() {
     this.debug('updateTimestampList');
     const currentToken = this.landscapeTokenService.token!.value;

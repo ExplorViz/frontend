@@ -7,6 +7,7 @@ import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
@@ -29,6 +30,18 @@ import {
   MousePingUpdateMessage,
   MOUSE_PING_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import {
+  RESTRUCTURE_COMMUNICATION_EVENT,
+  RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+  RESTRUCTURE_CUT_AND_INSERT_EVENT,
+  RESTRUCTURE_MODE_UPDATE_EVENT,
+  RESTRUCTURE_UPDATE_EVENT,
+  RestructureCommunicationMessage,
+  RestructureCreateOrDeleteMessage,
+  RestructureCutAndInsertMessage,
+  RestructureModeUpdateMessage,
+  RestructureUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 
 interface IModifierArgs {
   positional: [];
@@ -60,6 +73,28 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.on(
+      RESTRUCTURE_MODE_UPDATE_EVENT,
+      this,
+      this.onRestructureModeUpdate
+    );
+    this.webSocket.on(RESTRUCTURE_UPDATE_EVENT, this, this.onRestructureUpdate);
+    this.webSocket.on(
+      RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+      this,
+      this.onRestructureCreateOrDelete
+    );
+    this.webSocket.on(
+      RESTRUCTURE_CUT_AND_INSERT_EVENT,
+      this,
+      this.onRestructureCutAndInsert
+    );
+    this.webSocket.on(
+      RESTRUCTURE_COMMUNICATION_EVENT,
+      this,
+      this.onRestructureCommunication
+    );
+
     registerDestructor(this, this.cleanup);
   }
 
@@ -76,6 +111,31 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.off(
+      RESTRUCTURE_MODE_UPDATE_EVENT,
+      this,
+      this.onRestructureModeUpdate
+    );
+    this.webSocket.off(
+      RESTRUCTURE_UPDATE_EVENT,
+      this,
+      this.onRestructureUpdate
+    );
+    this.webSocket.off(
+      RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+      this,
+      this.onRestructureCreateOrDelete
+    );
+    this.webSocket.off(
+      RESTRUCTURE_CUT_AND_INSERT_EVENT,
+      this,
+      this.onRestructureCutAndInsert
+    );
+    this.webSocket.off(
+      RESTRUCTURE_COMMUNICATION_EVENT,
+      this,
+      this.onRestructureCommunication
+    );
   }
 
   debug = debugLogger('CollaborativeModifier');
@@ -91,6 +151,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   get canvas(): HTMLCanvasElement {
     assert(
@@ -151,7 +214,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
-
     const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) {
       const mesh = this.applicationRenderer.getMeshById(entityId);
@@ -173,6 +235,110 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     } else {
       this.highlightingService.removeHighlightingLocally(application);
     }
+  }
+
+  onRestructureModeUpdate(
+    originalMessage: ForwardedMessage<RestructureModeUpdateMessage>
+  ): void {
+    this.landscapeRestructure.toggleRestructureModeLocally();
+  }
+
+  onRestructureUpdate({
+    originalMessage: { entityType, entityId, newName, appId },
+  }: ForwardedMessage<RestructureUpdateMessage>): void {
+    switch (entityType) {
+      case 'APP':
+        this.landscapeRestructure.updateApplicationName(
+          newName,
+          entityId,
+          true
+        );
+        break;
+      case 'PACKAGE':
+        this.landscapeRestructure.updatePackageName(newName, entityId, true);
+        break;
+      case 'SUBPACKAGE':
+        this.landscapeRestructure.updateSubPackageName(newName, entityId, true);
+        break;
+      case 'CLAZZ':
+        this.landscapeRestructure.updateClassName(
+          newName,
+          entityId,
+          appId as string,
+          true
+        );
+    }
+  }
+
+  onRestructureCreateOrDelete({
+    originalMessage: { action, entityType, name, language, entityId },
+  }: ForwardedMessage<RestructureCreateOrDeleteMessage>): void {
+    if (action === 'CREATE') {
+      switch (entityType) {
+        case 'APP':
+          this.landscapeRestructure.addApplication(
+            name as string,
+            language as string,
+            true
+          );
+          break;
+        case 'PACKAGE':
+          this.landscapeRestructure.addCollaborativePackage(entityId as string);
+          break;
+        case 'SUBPACKAGE':
+          this.landscapeRestructure.addCollaborativeSubPackage(
+            entityId as string
+          );
+          break;
+        case 'CLAZZ':
+          this.landscapeRestructure.addCollaborativeClass(entityId as string);
+          break;
+      }
+    } else {
+      switch (entityType) {
+        case 'APP':
+          this.landscapeRestructure.deleteCollaborativeApplication(
+            entityId as string
+          );
+          break;
+        case 'PACKAGE':
+          this.landscapeRestructure.deleteCollaborativePackage(
+            entityId as string
+          );
+          break;
+        case 'CLAZZ':
+          this.landscapeRestructure.deleteCollaborativeClass(
+            entityId as string
+          );
+          break;
+      }
+    }
+  }
+
+  onRestructureCutAndInsert({
+    originalMessage: {
+      destinationEntity,
+      destinationId,
+      clippedEntity,
+      clippedEntityId,
+    },
+  }: ForwardedMessage<RestructureCutAndInsertMessage>): void {
+    this.landscapeRestructure.insertCollaborativePackagerOrClass(
+      destinationEntity,
+      destinationId,
+      clippedEntity,
+      clippedEntityId
+    );
+  }
+
+  onRestructureCommunication({
+    originalMessage: { sourceClassId, targetClassId, methodName },
+  }: ForwardedMessage<RestructureCommunicationMessage>): void {
+    this.landscapeRestructure.createCollaborativeCommunication(
+      sourceClassId,
+      targetClassId,
+      methodName
+    );
   }
 
   onMousePingUpdate({
