@@ -7,7 +7,7 @@ export type Controller = {
   assetUrl: string;
   position: Position;
   quaternion: Quaternion;
-  intersection: Position | null;
+  intersection: Position | undefined;
 };
 
 export function isController(controller: any): controller is Controller {

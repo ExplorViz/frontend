@@ -21,6 +21,8 @@ import {
   UserPositionsMessage,
 } from '../utils/vr-message/sendable/user_positions';
 import { ControllerId } from '../utils/vr-message/util/controller_id';
+import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
+import { AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
@@ -46,6 +48,15 @@ export default class VrMessageSender extends Service {
       controller1,
       controller2,
       camera,
+    });
+  }
+
+  /**
+   * Sends a message to indicate that every highlight from every user for all applications should be turned unhighlighted
+   */
+  sendAllHighlightsReset() {
+    this.webSocket.send<AllHighlightsResetMessage>({
+      event: 'all_highlights_reset',
     });
   }
 
@@ -95,7 +106,8 @@ export default class VrMessageSender extends Service {
     appId: string,
     componentId: string,
     isOpened: boolean,
-    isFoundation: boolean
+    isFoundation: boolean,
+    forward: boolean = true
   ) {
     this.webSocket.send<ComponentUpdateMessage>({
       event: 'component_update',
@@ -103,6 +115,7 @@ export default class VrMessageSender extends Service {
       componentId,
       isOpened,
       isFoundation,
+      forwardFlag: forward,
     });
   }
 
@@ -119,7 +132,8 @@ export default class VrMessageSender extends Service {
     appId: string,
     entityType: string,
     entityId: string,
-    isHighlighted: boolean
+    isHighlighted: boolean,
+    isMultiSelected: boolean
   ) {
     this.webSocket.send<HighlightingUpdateMessage>({
       event: 'highlighting_update',
@@ -127,6 +141,7 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
+      isMultiSelected,
     });
   }
 
@@ -157,6 +172,12 @@ export default class VrMessageSender extends Service {
         controllerId: controller.gamepadIndex,
         ...getControllerPose(controller),
       },
+    });
+  }
+
+  async sendJoinVr() {
+    this.webSocket.send<JoinVrMessage>({
+      event: 'join_vr',
     });
   }
 

@@ -21,6 +21,9 @@ import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import LocalUser from 'collaborative-mode/services/local-user';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -55,6 +58,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
   @service
   private worker!: any;
 
@@ -70,7 +82,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  async modify(
+    _element: any,
+    _positionalArgs: any[],
+    { landscapeData, graph }: any
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
     this.handleUpdatedLandscapeData.perform();
@@ -78,7 +94,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData,
@@ -163,10 +178,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     };
 
     const { serializedRoom } = this.roomSerializer;
+
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+
+      if (this.localUser.visualizationMode === 'vr') {
+        this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      } else if (this.localUser.visualizationMode === 'browser') {
+        //restore(serializedRoom.detachedMenus); // browser popups not restorable?
+      }
+
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;

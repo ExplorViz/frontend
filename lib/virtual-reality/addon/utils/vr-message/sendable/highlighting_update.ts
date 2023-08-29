@@ -6,6 +6,7 @@ export type HighlightingUpdateMessage = {
   appId: string;
   entityType: string;
   entityId: string;
+  isMultiSelected: boolean;
 };
 
 export function isHighlightingUpdateMessage(

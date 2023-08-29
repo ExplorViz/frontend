@@ -88,6 +88,13 @@ export default class ToolMenu extends InteractiveMenu {
     //   action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildPingMenu()),
     // });
 
+    this.addTool({
+      label: 'Search',
+      icon: 'keyboard',
+      action: () =>
+        this.menuGroup?.replaceMenu(this.menuFactory.buildSearchMenu()),
+    });
+
     this.selectTool(this.defaultToolIndex, { enableAnimation: false });
   }
 

@@ -4,7 +4,7 @@ import { isQuaternion, Quaternion } from '../util/quaternion';
 export const USER_POSITIONS_EVENT = 'user_positions';
 
 export type Pose = { position: Position; quaternion: Quaternion };
-export type ControllerPose = Pose & { intersection: Position | null };
+export type ControllerPose = Pose & { intersection: Position | undefined };
 
 export type UserPositionsMessage = {
   event: typeof USER_POSITIONS_EVENT;
