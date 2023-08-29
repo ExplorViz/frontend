@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
-import Modifier from 'ember-modifier';
+import Modifier, { NamedArgs } from 'ember-modifier';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -17,37 +17,37 @@ import applySimpleHeatOnFoundation, {
 import simpleHeatmap from 'heatmap/utils/simple-heatmap';
 import * as THREE from 'three';
 
-interface NamedArgs {
-  camera: THREE.Camera;
-  scene: THREE.Scene;
+interface Signature {
+  Args: {
+    Positional: [];
+    Named: {
+      readonly camera: THREE.Camera;
+      readonly scene: THREE.Scene;
+    };
+  };
 }
 
-interface Args {
-  positional: [];
-  named: NamedArgs;
-}
+const debug = debugLogger('HeatmapRendering');
 
-export default class HeatmapRenderer extends Modifier<Args> {
-  scene!: THREE.Scene;
+export default class HeatmapRenderer extends Modifier<Signature> {
+  private scene!: THREE.Scene;
 
-  camera!: THREE.Camera;
+  private camera!: THREE.Camera;
 
-  debug = debugLogger('HeatmapRendering');
-
-  lastApplicationObject3D: ApplicationObject3D | undefined | null;
+  private lastApplicationObject3D: ApplicationObject3D | undefined | null;
 
   @service('heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
+  private heatmapConf!: HeatmapConfiguration;
 
-  get applicationObject3D() {
+  private get applicationObject3D() {
     return this.heatmapConf.currentApplication;
   }
 
-  get metric() {
+  private get metric() {
     return this.heatmapConf.selectedMetric;
   }
 
-  modify(_element: any, _positionalArgs: any[], { camera, scene }: any) {
+  modify(_element: never, _positionalArgs: never[], { camera, scene }: NamedArgs<Signature>) {
     this.scene = scene;
     this.camera = camera;
 
@@ -59,7 +59,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
       (this.lastApplicationObject3D !== this.applicationObject3D ||
         !this.metric)
     ) {
-      this.debug(`Removing heatmap:${this.lastApplicationObject3D.id}`);
+      debug(`Removing heatmap:${this.lastApplicationObject3D.id}`);
       this.removeHeatmap(this.lastApplicationObject3D);
       this.lastApplicationObject3D = undefined;
     }
@@ -87,7 +87,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
    * @param isVisible Determines whether a spotlight is visible or not
    */
   private setSpotLightVisibilityInScene(isVisible = true) {
-    return; // TODO tiwe
     this.scene?.children.forEach((child) => {
       if (child instanceof THREE.DirectionalLight) {
         child.visible = isVisible;
@@ -143,7 +142,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
       simpleHeatMap.draw(0.0);
       applySimpleHeatOnFoundation(foundationMesh, canvas);
 
-      this.debug('Applied heatmap');
+      debug('Applied heatmap');
     }
   );
 
