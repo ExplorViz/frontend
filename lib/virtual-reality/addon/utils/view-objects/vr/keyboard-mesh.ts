@@ -32,7 +32,7 @@ export default class KeyboardMesh
   }
 
   setUpKeyStates() {
-    // @ts-ignore
+    // @ts-ignore no types atm
     this.keys.forEach((key) => {
       objsToTest.push(key);
 
@@ -69,13 +69,13 @@ export default class KeyboardMesh
             switch (key.info.command) {
               // switch between panels
               case 'switch':
-                // @ts-ignore
+                // @ts-ignore no types atm
                 this.setNextPanel();
                 break;
 
               // switch between panel charsets (eg: russian/english)
               case 'switch-set':
-                // @ts-ignore
+                // @ts-ignore no types atm
                 this.setNextCharset();
                 break;
 
@@ -84,41 +84,41 @@ export default class KeyboardMesh
                 break;
 
               case 'space':
-                // @ts-ignore
+                // @ts-ignore no types atm
                 this.userText.set({ content: this.userText.content + ' ' });
                 break;
 
               case 'backspace':
-                // @ts-ignore
+                // @ts-ignore no types atm
                 if (!this.userText.content.length) break;
-                // @ts-ignore
+                // @ts-ignore no types atm
                 this.userText.set({
                   content:
-                    // @ts-ignore
+                    // @ts-ignore no types atm
                     this.userText.content.substring(
                       0,
-                      // @ts-ignore
+                      // @ts-ignore no types atm
                       this.userText.content.length - 1
                     ) || '',
                 });
                 break;
 
               case 'shift':
-                // @ts-ignore
+                // @ts-ignore no types atm
                 this.toggleCase();
                 break;
             }
 
             // print a glyph, if any
           } else if (key.info.input) {
-            // @ts-ignore
+            // @ts-ignore no types atm
             this.userText.set({
-              // @ts-ignore
+              // @ts-ignore no types atm
               content: this.userText.content + key.info.input,
             });
           }
           if (this.parent instanceof SearchMenu) {
-            // @ts-ignore
+            // @ts-ignore no types atm
             this.parent.isNewInput = true;
           }
         },

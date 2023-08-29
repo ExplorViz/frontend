@@ -71,7 +71,7 @@ export default class DetailInfoScrollarea
     intersection: THREE.Intersection,
     renderer: VrRendering
   ) {
-    // @ts-ignore
+    // @ts-ignore no types atm
     this.set({ backgroundOpacity: 0.4 });
 
     if (controller) {
@@ -98,7 +98,7 @@ export default class DetailInfoScrollarea
 
   resetHover(controller: VRController | null) {
     this.isTriggered = false;
-    // @ts-ignore
+    // @ts-ignore no types atm
     this.set({ backgroundOpacity: 0 });
 
     if (controller) {

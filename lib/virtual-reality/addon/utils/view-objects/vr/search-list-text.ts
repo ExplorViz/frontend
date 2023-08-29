@@ -17,12 +17,12 @@ export default class SearchListText extends ThreeMeshUI.Text {
   }
 
   applyHover() {
-    // @ts-ignore
+    // @ts-ignore no types atm
     this.set({ fontColor: new THREE.Color('yellow') });
   }
 
   resetHover() {
-    // @ts-ignore
+    // @ts-ignore no types atm
     this.set({ fontColor: new THREE.Color('white') });
   }
 }
