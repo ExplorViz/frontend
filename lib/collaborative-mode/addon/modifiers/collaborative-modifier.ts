@@ -145,8 +145,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     if (isFoundation) {
       if (isOpened) {
         this.applicationRenderer.openAllComponentsLocally(
-          applicationObject3D,
-          false // whenever we receive messages we don't want to resend them
+          applicationObject3D //,
+          //false // whenever we receive messages we don't want to resend them
         );
       } else {
         this.applicationRenderer.closeAllComponentsLocally(
@@ -157,8 +157,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     } else if (componentMesh instanceof ComponentMesh) {
       this.applicationRenderer.toggleComponentLocally(
         componentMesh,
-        applicationObject3D,
-        false // whenever we receive messages we don't want to resend them
+        applicationObject3D //,
+        //false // whenever we receive messages we don't want to resend them
       );
     }
   }

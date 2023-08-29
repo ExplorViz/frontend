@@ -300,8 +300,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
-    } else if (typeof arg === 'number' && this.isHovered === false) {
-      super.applyHoverEffect(arg);
+    } else if (this.isHovered === false) {
+      super.applyHoverEffect();
     }
   }
 
