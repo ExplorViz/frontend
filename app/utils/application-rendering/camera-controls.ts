@@ -22,7 +22,11 @@ export default class CameraControls {
     this.controls = controls;
   }
 
-  fitCameraToBox(duration: number = 0, box: Box3) {
+  fitCameraToBox(
+    duration: number = 0,
+    box: Box3,
+    keepCameraPerspective = true
+  ) {
     const size = new Vector3();
     const center = new Vector3();
     box.getSize(size);
@@ -34,9 +38,13 @@ export default class CameraControls {
     const fitWidthDistance = fitHeightDistance / this.camera.aspect;
     const distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
-    const direction = this.controls.target
+
+    const origin = keepCameraPerspective
+      ? this.camera.position
+      : new Vector3(1, 1, 1);
+    const direction = center
       .clone()
-      .sub(this.camera.position)
+      .sub(origin)
       .normalize()
       .multiplyScalar(distance);
 
@@ -52,13 +60,21 @@ export default class CameraControls {
     }
   }
 
-  focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
+  getBoxForSelection(...selection: Object3D[]) {
     const box = new Box3();
     selection.forEach((object) => {
       box.expandByObject(object);
     });
 
-    this.fitCameraToBox(duration, box);
+    return box;
+  }
+
+  focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
+    this.fitCameraToBox(duration, this.getBoxForSelection(...selection));
+  }
+
+  resetCameraFocusOn(duration: number = 1, ...selection: Object3D[]) {
+    this.fitCameraToBox(duration, this.getBoxForSelection(...selection), false);
   }
 
   panCameraTo(position: Vector3, target: Vector3, duration: number) {

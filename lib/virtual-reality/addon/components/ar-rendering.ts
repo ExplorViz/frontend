@@ -27,8 +27,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -43,13 +41,13 @@ import {
 interface Args {
   readonly landscapeData: LandscapeData;
   readonly components: string[];
-  readonly showDataSelection: boolean;
+  readonly showSettingsSidebar: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
-  addComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
 }
@@ -185,7 +183,6 @@ export default class ArRendering extends Component<Args> {
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
 
-    // this.applicationRenderer.resetAndAddToScene(this.scene, this.updatables);
     this.toastMessage.init();
 
     AlertifyHandler.setAlertifyPosition('bottom-center');
@@ -506,10 +503,7 @@ export default class ArRendering extends Component<Args> {
 
     const intersection = this.raycastCenter();
 
-    if (
-      !(intersection?.object.parent instanceof ApplicationObject3D) &&
-      !(intersection?.object.parent instanceof LandscapeObject3D)
-    ) {
+    if (!(intersection?.object.parent instanceof ApplicationObject3D)) {
       return;
     }
 
@@ -525,7 +519,7 @@ export default class ArRendering extends Component<Args> {
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );
@@ -552,13 +546,6 @@ export default class ArRendering extends Component<Args> {
       }
       this.heatmapConf.setActiveApplication(applicationObject3D);
       this.heatmapConf.heatmapActive = true;
-    } else if (
-      intersection &&
-      intersection.object.parent instanceof LandscapeObject3D
-    ) {
-      AlertifyHandler.showAlertifyWarning(
-        'Heat Map only available for applications.'
-      );
     }
   }
 
@@ -586,7 +573,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   toggleSettingsPane() {
-    this.args.openDataSelection();
+    this.args.openSettingsSidebar();
   }
 
   @action
@@ -624,8 +611,7 @@ export default class ArRendering extends Component<Args> {
 
     if (
       intersection &&
-      (intersection.object.parent instanceof ApplicationObject3D ||
-        intersection.object.parent instanceof LandscapeObject3D)
+      intersection.object.parent instanceof ApplicationObject3D
     ) {
       const object = intersection.object.parent;
 
@@ -697,16 +683,10 @@ export default class ArRendering extends Component<Args> {
       }
     }
 
-    if (object instanceof ApplicationMesh) {
-      this.showApplication(object.dataModel.id);
-      // Handle application hits
-    } else if (object.parent instanceof ApplicationObject3D) {
+    // Handle application hits
+    if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);
     }
-  }
-
-  private showApplication(appId: string) {
-    this.applicationRenderer.openApplicationTask.perform(appId);
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {

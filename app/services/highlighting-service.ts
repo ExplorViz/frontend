@@ -52,9 +52,9 @@ export function serializeHighlightedComponent(
 ) {
   if (isHighlightableMesh(object)) {
     return {
-      appId: applicationObject3D.dataModel.id,
+      appId: applicationObject3D.getModelId(),
       entityType: object.constructor.name,
-      entityId: object.dataModel.id,
+      entityId: object.getModelId(),
     };
   }
   return null;
@@ -109,7 +109,7 @@ export default class HighlightingService extends Service.extend({
     applicationObjetc3D: ApplicationObject3D
   ) {
     const applicationData = this.applicationRepo.getById(
-      applicationObjetc3D.dataModel.id
+      applicationObjetc3D.getModelId()
     );
     return applicationData?.drawableClassCommunications;
   }
@@ -186,7 +186,7 @@ export default class HighlightingService extends Service.extend({
       this.sender.sendHighlightingUpdate(
         '',
         this.getEntityType(mesh),
-        mesh.dataModel.id,
+        mesh.getModelId(),
         mesh.highlighted
       );
     }
@@ -231,9 +231,9 @@ export default class HighlightingService extends Service.extend({
     if (isHighlightableMesh(object)) {
       this.hightlightMesh(application, object, this.localUser.color);
 
-      const appId = application.dataModel.id;
+      const appId = application.getModelId();
       const entityType = this.getEntityType(object);
-      const entityId = object.dataModel.id;
+      const entityId = object.getModelId();
       this.sender.sendHighlightingUpdate(
         appId,
         entityType,
@@ -277,20 +277,20 @@ export default class HighlightingService extends Service.extend({
         const targetClassId = linkCommunication?.targetClass.id;
         if (
           mesh.highlighted &&
-          ((sourceAppId === application.dataModel.id &&
-            sourceClassId !== mesh.dataModel.id) ||
-            (targetAppId === application.dataModel.id &&
-              targetClassId !== mesh.dataModel.id))
+          ((sourceAppId === application.getModelId() &&
+            sourceClassId !== mesh.getModelId()) ||
+            (targetAppId === application.getModelId() &&
+              targetClassId !== mesh.getModelId()))
         ) {
           link.turnTransparent();
         } else if (
-          sourceAppId === application.dataModel.id ||
-          targetAppId === application.dataModel.id
+          sourceAppId === application.getModelId() ||
+          targetAppId === application.getModelId()
         ) {
           link.turnOpaque();
         } else if (
-          sourceClassId === mesh.dataModel.id ||
-          targetClassId === mesh.dataModel.id
+          sourceClassId === mesh.getModelId() ||
+          targetClassId === mesh.getModelId()
         ) {
           link.turnOpaque();
         }

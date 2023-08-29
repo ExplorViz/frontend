@@ -314,6 +314,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       return results;
     } catch (error) {
       console.error(error);
+      return [];
     }
   }
 

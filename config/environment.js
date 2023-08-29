@@ -52,11 +52,15 @@ module.exports = (environment) => {
       landscapeService: P_ENV.LANDSCAPE_SERV_URL,
       traceService: P_ENV.TRACE_SERV_URL,
       userService: P_ENV.USER_SERV_URL,
+      vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
       collaborationSocketPath: P_ENV.COLLABORATION_SOCKET_PATH,
     },
     version: {
       versionTag: P_ENV.VERSION_TAG,
+    },
+    mode: {
+      tokenToShow: P_ENV.ONLY_SHOW_TOKEN,
     },
     APP: {
       // Here you can pass flags/options to your application instance

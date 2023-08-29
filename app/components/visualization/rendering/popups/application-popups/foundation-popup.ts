@@ -1,7 +1,6 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
@@ -11,10 +10,7 @@ interface Args {
   application: Application;
 }
 
-export default class ApplicationPopup extends Component<Args> {
-  @service('landscape-restructure')
-  landscapeRestructure!: LandscapeRestructure;
-
+export default class FoundationPopup extends Component<Args> {
   get clazzCount() {
     return getAllClassesInApplication(this.args.application).length;
   }

@@ -117,7 +117,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       return undefined;
     }
     const applicationData = this.applicationRepo.getById(
-      this.currentApplication.dataModel.id
+      this.currentApplication.getModelId()
     );
     return applicationData?.heatmapData;
   }

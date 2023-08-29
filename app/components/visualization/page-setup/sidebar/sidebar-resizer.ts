@@ -1,62 +1,91 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
-import ArSettings from 'virtual-reality/services/ar-settings';
 
-export default class SidebarResizer extends Component {
-  @service('ar-settings')
-  private settings!: ArSettings;
+interface SidebarArgs {
+  readonly buttonName: string;
+  readonly containerName: string;
+  readonly sidebarName: string;
+  readonly expandToRight: boolean;
+}
+
+export default class SidebarResizer extends Component<SidebarArgs> {
+  sidebarName!: string;
 
   @action
   setup() {
-    const dragButton = document.getElementById('sidebarDragButton');
-    const buttonContainer = document.getElementById('sidebarButtonContainer');
+    const dragButton = document.getElementById(this.args.buttonName);
+    const buttonContainer = document.getElementById(this.args.containerName);
 
+    // Init drag functionality
     if (dragButton) {
       this.dragElement(dragButton);
       if (buttonContainer) {
         buttonContainer.appendChild(dragButton);
       }
     }
+
+    // Init sidebar width
+    const sidebarWidthInPercent = Number(
+      localStorage.getItem('sidebarWithInPercent')
+    );
+    if (typeof sidebarWidthInPercent == 'number') {
+      this.setSidebarWidth(sidebarWidthInPercent);
+    }
+  }
+
+  setSidebarWidth(widthInPercent: number) {
+    const sidebar = document.getElementById('dataselection');
+
+    if (sidebar && widthInPercent > 20) {
+      sidebar.style.maxWidth = `${widthInPercent}%`;
+      localStorage.setItem('sidebarWithInPercent', widthInPercent.toString());
+    }
   }
 
   dragElement(resizeButton: HTMLElement) {
-    const self = this;
+    const sidebarName = this.args.sidebarName;
+    const expandToRight = this.args.expandToRight;
 
     function setSidebarWidth(widthInPercent: number) {
-      const sidebar = document.getElementById('dataselection');
+      const sidebar = document.getElementById(sidebarName);
 
       if (sidebar && widthInPercent > 20) {
         sidebar.style.maxWidth = `${widthInPercent}%`;
-        self.settings.sidebarWidthInPercent = widthInPercent;
       }
     }
 
     function handleDragInput(targetX: number) {
-      const buttonOffset = 30;
-      const widthInPercent =
-        100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+      let widthInPercent: number;
+
+      if (expandToRight) {
+        const buttonOffset = 30;
+        widthInPercent = ((targetX + buttonOffset) / window.innerWidth) * 100;
+      } else {
+        const buttonOffset = 30;
+        widthInPercent =
+          100 - ((targetX - buttonOffset) / window.innerWidth) * 100;
+      }
 
       setSidebarWidth(widthInPercent);
     }
 
-    function cancelDragElement() {
+    const cancelDragElement = () => {
       // stop moving when mouse button is released:
       document.onmouseup = null;
       document.onmousemove = null;
       document.ontouchcancel = null;
       document.ontouchend = null;
       document.ontouchmove = null;
-    }
+    };
 
-    function elementMouseDrag(e: MouseEvent) {
+    const elementMouseDrag = (e: MouseEvent) => {
       const event = e || window.event;
       event.preventDefault();
 
       handleDragInput(e.clientX);
-    }
+    };
 
-    function elementTouchDrag(e: TouchEvent) {
+    const elementTouchDrag = (e: TouchEvent) => {
       const event = e || window.event;
       event.preventDefault();
 
@@ -67,18 +96,18 @@ export default class SidebarResizer extends Component {
 
         handleDragInput(clientX);
       }
-    }
+    };
 
-    function dragMouseDown(e: MouseEvent) {
+    const dragMouseDown = (e: MouseEvent) => {
       const event = e || window.event;
       event.preventDefault();
 
       document.onmouseup = cancelDragElement;
       // Call a function whenever the cursor moves:
       document.onmousemove = elementMouseDrag;
-    }
+    };
 
-    function dragTouchDown(e: TouchEvent) {
+    const dragTouchDown = (e: TouchEvent) => {
       const event = e || window.event;
       event.preventDefault();
 
@@ -88,13 +117,9 @@ export default class SidebarResizer extends Component {
 
         document.ontouchmove = elementTouchDrag;
       }
-    }
+    };
 
     resizeButton.onmousedown = dragMouseDown;
     resizeButton.ontouchstart = dragTouchDown;
-
-    if (this.settings.sidebarWidthInPercent) {
-      setSidebarWidth(this.settings.sidebarWidthInPercent);
-    }
   }
 }

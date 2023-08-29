@@ -31,4 +31,8 @@ export default class ClazzMesh extends BoxMesh {
     this.geometry = geometry;
     this.dataModel = clazz;
   }
+
+  getModelId() {
+    return this.dataModel.id;
+  }
 }

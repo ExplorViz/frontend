@@ -1,3 +1,4 @@
+import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -94,13 +95,19 @@ export default class VisualizationController extends Controller {
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  showDataSelection = false;
+  showSettingsSidebar = false;
+
+  @tracked
+  showToolsSidebar = false;
 
   @tracked
   components: string[] = [];
 
   @tracked
-  showTimeline: boolean = true;
+  componentsToolsSidebar: string[] = [];
+
+  @tracked
+  isTimelineActive: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -132,15 +139,23 @@ export default class VisualizationController extends Controller {
     );
   }
 
+  get showTimeline() {
+    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+  }
+
   @action
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(
-      TIMESTAMP_UPDATE_TIMER_EVENT,
-      this,
-      this.onTimestampUpdateTimer
-    );
+
+    if (!this.isSingleLandscapeMode) {
+      this.webSocket.on(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+
     this.timestampService.on(
       TIMESTAMP_UPDATE_EVENT,
       this,
@@ -204,6 +219,12 @@ export default class VisualizationController extends Controller {
     this.switchToMode('browser');
   }
 
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
+  }
+
   get showAR() {
     return this.localUser.visualizationMode === 'ar';
   }
@@ -228,33 +249,53 @@ export default class VisualizationController extends Controller {
     if (this.landscapeListener.timer !== null) {
       this.debug('Stopping timer');
       clearTimeout(this.landscapeListener.timer);
+      this.landscapeListener.latestStructureJsonString = null;
+      this.landscapeListener.latestDynamicData = null;
     }
   }
 
   @action
   closeDataSelection() {
     this.debug('closeDataSelection');
-    this.showDataSelection = false;
+    this.showSettingsSidebar = false;
     this.components = [];
   }
 
   @action
-  openDataSelection() {
-    this.debug('openDataSelection');
-    this.showDataSelection = true;
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.componentsToolsSidebar = [];
   }
 
   @action
-  addComponent(component: string) {
-    this.debug('addComponent');
-    if (this.components.includes(component)) {
-      // remove it and readd it in the code below,
-      // so it again appears on top inside the sidebar
-      // This will not reset the component
-      this.removeComponent(component);
-    }
+  openSettingsSidebar() {
+    this.debug('openSettingsSidebar');
+    this.showSettingsSidebar = true;
+  }
 
-    this.components = [component, ...this.components];
+  @action
+  openToolsSidebar() {
+    this.debug('openToolsSidebar');
+    this.showToolsSidebar = true;
+  }
+
+  @action
+  toggleToolsSidebarComponent(component: string) {
+    if (this.componentsToolsSidebar.includes(component)) {
+      this.removeToolsSidebarComponent(component);
+    } else {
+      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+    }
+  }
+
+  @action
+  toggleSettingsSidebarComponent(component: string) {
+    if (this.components.includes(component)) {
+      this.removeComponent(component);
+    } else {
+      this.components = [component, ...this.components];
+    }
   }
 
   @action
@@ -269,6 +310,21 @@ export default class VisualizationController extends Controller {
       const components = [...this.components];
       components.splice(index, 1);
       this.components = components;
+    }
+  }
+
+  @action
+  removeToolsSidebarComponent(path: string) {
+    if (this.componentsToolsSidebar.length === 0) {
+      return;
+    }
+
+    const index = this.componentsToolsSidebar.indexOf(path);
+    // Remove existing sidebar component
+    if (index !== -1) {
+      const componentsToolsSidebar = [...this.componentsToolsSidebar];
+      componentsToolsSidebar.splice(index, 1);
+      this.componentsToolsSidebar = componentsToolsSidebar;
     }
   }
 
@@ -312,7 +368,7 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleTimeline() {
-    this.showTimeline = !this.showTimeline;
+    this.isTimelineActive = !this.isTimelineActive;
   }
 
   @action

@@ -28,12 +28,16 @@ declare const config: {
     landscapeService: string;
     traceService: string;
     userService: string;
+    vsCodeService: string;
     collaborativeService: string;
     collaborationService: string;
     collaborationSocketPath: string;
   };
   version: {
     versionTag: P_ENV.VERSION_TAG;
+  };
+  mode: {
+    tokenToShow: string;
   };
   APP: any;
 };

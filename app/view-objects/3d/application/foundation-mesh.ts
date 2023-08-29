@@ -6,7 +6,7 @@ import ComponentLabelMesh from './component-label-mesh';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material
+  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
 > extends BoxMesh<TGeometry, TMaterial> {
   geometry: any;
   material: any;
@@ -36,5 +36,9 @@ export default class FoundationMesh<
       color: this.defaultColor,
     });
     this.material = material;
+  }
+
+  getModelId() {
+    return this.dataModel.id;
   }
 }

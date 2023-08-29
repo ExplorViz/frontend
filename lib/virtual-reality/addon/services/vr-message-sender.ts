@@ -148,8 +148,8 @@ export default class VrMessageSender extends Service {
   async sendControllerConnect(controller: VRController | undefined) {
     if (!controller?.connected) return;
 
-    const motionController = await controller.controllerModel
-      .motionControllerPromise;
+    const motionController =
+      await controller.controllerModel.motionControllerPromise;
     this.webSocket.send<UserControllerConnectMessage>({
       event: 'user_controller_connect',
       controller: {
@@ -178,7 +178,7 @@ export default class VrMessageSender extends Service {
   sendAppOpened(application: ApplicationObject3D) {
     this.webSocket.send<AppOpenedMessage>({
       event: 'app_opened',
-      id: application.dataModel.id,
+      id: application.getModelId(),
       position: application.getWorldPosition(new THREE.Vector3()).toArray(),
       quaternion: application
         .getWorldQuaternion(new THREE.Quaternion())

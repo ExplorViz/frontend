@@ -34,19 +34,21 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
+import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly visualizationPaused: boolean;
   readonly selectedTimestampRecords: Timestamp[];
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   switchToVR(): void;
@@ -83,6 +85,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('entity-manipulation')
   private entityManipulation!: EntityManipulation;
 
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  private ideWebsocket: IdeWebsocket;
+
+  private ideCrossCommunication: IdeCrossCommunication;
+
   @tracked
   readonly graph: ThreeForceGraph;
 
@@ -113,9 +122,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @tracked
   selectedApplicationId: string = '';
-
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
 
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
@@ -166,6 +172,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
+
+    // IDE Websocket
+    this.ideWebsocket = new IdeWebsocket(
+      getOwner(this),
+      this.handleDoubleClickOnMeshIDEAPI,
+      this.lookAtMesh
+    );
+
+    // IDE Cross Communication
+    this.ideCrossCommunication = new IdeCrossCommunication(
+      getOwner(this),
+      this.handleDoubleClickOnMeshIDEAPI,
+      this.lookAtMesh
+    );
   }
 
   tick(delta: number) {
@@ -197,7 +217,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openDataSelection },
+      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
       { title: 'Enter VR', action: this.args.switchToVR },
     ];
@@ -223,9 +243,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  resetView() {
-    this.cameraControls.focusCameraOn(
-      1.2,
+  async resetView() {
+    this.cameraControls.resetCameraFocusOn(
+      1.0,
       ...this.applicationRenderer.getOpenApplications()
     );
   }
@@ -279,12 +299,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // controls
     this.cameraControls = new CameraControls(this.camera, this.canvas);
+
     this.spectateUserService.cameraControls = this.cameraControls;
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.focusCameraOn(
+          this.cameraControls.resetCameraFocusOn(
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
@@ -309,8 +330,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       // this.mousePosition.copy(intersection.point);
       this.handleSingleClickOnMesh(intersection.object);
+      this.ideWebsocket.jumpToLocation(intersection.object);
+      this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       this.highlightingService.removeHighlightingForAllApplications();
+    }
+  }
+
+  @action
+  lookAtMesh(meshId: string) {
+    const mesh = this.applicationRenderer.getMeshById(meshId);
+    if (mesh?.isObject3D) {
+      this.cameraControls.focusCameraOn(1, mesh);
     }
   }
 
@@ -324,7 +355,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
-      // this.cameraControls.focusCameraOn(1, mesh);
     }
   }
 
@@ -337,7 +367,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
-      this.selectedApplicationId = applicationObject3D.dataModel.id;
+      this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
     // applicationObject3D.position.y = 10;
@@ -345,6 +375,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.applicationRenderer.updateLinks?.();
   }
 
+  @action
+  handleDoubleClickOnMeshIDEAPI(meshID: string) {
+    const mesh = this.applicationRenderer.getMeshById(meshID);
+    if (mesh?.isObject3D) {
+      this.handleDoubleClickOnMesh(mesh);
+    }
+  }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh) {
@@ -478,6 +515,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.applicationRenderer.cleanUpApplications();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
+
+    this.ideWebsocket.dispose();
+    this.ideCrossCommunication.dispose();
 
     this.heatmapConf.cleanup();
     this.renderingLoop.stop();

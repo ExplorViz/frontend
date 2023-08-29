@@ -1,16 +1,23 @@
 // Wait for the initial message event.
-self.addEventListener('message', function(e) {
-  let { structureLandscapeData, applicationCommunications } = e.data;
+self.addEventListener(
+  'message',
+  function (e) {
+    let { structureLandscapeData, applicationCommunications } = e.data;
 
-  let kielerGraph = layout1(structureLandscapeData, applicationCommunications);
-  postMessage(kielerGraph);
-}, false);
+    let kielerGraph = layout1(
+      structureLandscapeData,
+      applicationCommunications
+    );
+    postMessage(kielerGraph);
+  },
+  false
+);
 
 // Ping the Ember service to say that everything is ok.
 postMessage(true);
 
 const CONVERT_TO_KIELER_FACTOR = 180.0;
-  
+
 const PADDING = 0.1;
 
 function layout1(landscape, applicationCommunications) {
@@ -25,7 +32,7 @@ function layout1(landscape, applicationCommunications) {
   // Maps for output
   let modelIdToPoints = new Map();
 
-  const graph = createEmptyGraph("root");
+  const graph = createEmptyGraph('root');
   topLevelKielerGraph = graph;
 
   addNodes(landscape, topLevelKielerGraph);
@@ -33,42 +40,38 @@ function layout1(landscape, applicationCommunications) {
 
   return {
     graph,
-    modelIdToPoints
+    modelIdToPoints,
   };
 
   function createEmptyGraph(id) {
-  
     const spacing = 0.2 * CONVERT_TO_KIELER_FACTOR;
 
     const layoutOptions = {
-      "elk.edgeRouting": "POLYLINE",
-      "elk.hierarchyHandling": "INCLUDE_CHILDREN",
-      "elk.spacing.nodeNode": spacing,
-      "elk.spacing.edgeNode": 2 * spacing,
-      "elk.layered.spacing.edgeEdgeBetweenLayers": 2.5 * spacing,
-      "elk.layered.spacing.nodeNodeBetweenLayers": 2.5 * spacing,
-      "elk.direction": "RIGHT",
-      "elk.interactive": true,
-      "elk.layered.nodePlacement.strategy": "LINEAR_SEGMENTS",
-      "elk.layered.unnecessaryBendpoints": true,
-      "edgeSpacingFactor": 1.0
+      'elk.edgeRouting': 'POLYLINE',
+      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+      'elk.spacing.nodeNode': spacing,
+      'elk.spacing.edgeNode': 2 * spacing,
+      'elk.layered.spacing.edgeEdgeBetweenLayers': 2.5 * spacing,
+      'elk.layered.spacing.nodeNodeBetweenLayers': 2.5 * spacing,
+      'elk.direction': 'RIGHT',
+      'elk.interactive': true,
+      'elk.layered.nodePlacement.strategy': 'LINEAR_SEGMENTS',
+      'elk.layered.unnecessaryBendpoints': true,
+      edgeSpacingFactor: 1.0,
     };
-  
+
     const graph = {
-      "id": id,
-      "properties": layoutOptions,
-      "children": [],
-      "edges": []
+      id: id,
+      properties: layoutOptions,
+      children: [],
+      edges: [],
     };
-  
+
     return graph;
   }
 
-
   function addEdges(totalApplicationCommunications) {
-
     totalApplicationCommunications.forEach((applicationcommunication) => {
-
       modeldToKielerEdgeReference.set(applicationcommunication.id, []);
 
       modelIdToPoints.set(applicationcommunication.id, []);
@@ -77,8 +80,14 @@ function layout1(landscape, applicationCommunications) {
       let appTarget = applicationcommunication.targetApplication;
 
       if (appSource.id !== appTarget.id) {
-        const edge = createEdgeBetweenSourceTarget(appSource, appTarget, applicationcommunication.id);
-        let edgeReference = modeldToKielerEdgeReference.get(applicationcommunication.id);
+        const edge = createEdgeBetweenSourceTarget(
+          appSource,
+          appTarget,
+          applicationcommunication.id
+        );
+        let edgeReference = modeldToKielerEdgeReference.get(
+          applicationcommunication.id
+        );
         edgeReference.push(edge);
       }
     });
@@ -93,7 +102,6 @@ function layout1(landscape, applicationCommunications) {
   } // END addNodes
 
   function createNodeAndItsApplications(kielerParentGraph, node) {
-
     const NODE_LABEL_HEIGHT = 0.2;
     const DEFAULT_WIDTH = 1.5;
     const DEFAULT_HEIGHT = 0.75;
@@ -104,28 +112,31 @@ function layout1(landscape, applicationCommunications) {
     // kieler scaled padding
     const ksp = 2.5 * PADDING * CONVERT_TO_KIELER_FACTOR;
 
-    nodeKielerGraph.properties['elk.padding'] = `[top=${ksp}, left=${ksp}, bottom=${3 * ksp}, right=${ksp}]`;
+    nodeKielerGraph.properties[
+      'elk.padding'
+    ] = `[top=${ksp}, left=${ksp}, bottom=${3 * ksp}, right=${ksp}]`;
 
-    const minWidth = Math.max(DEFAULT_WIDTH *
-      CONVERT_TO_KIELER_FACTOR,
+    const minWidth = Math.max(
+      DEFAULT_WIDTH * CONVERT_TO_KIELER_FACTOR,
       (calculateRequiredLabelLength(getDisplayName(node), NODE_LABEL_HEIGHT) +
-        PADDING * 2.0) * CONVERT_TO_KIELER_FACTOR);
+        PADDING * 2.0) *
+        CONVERT_TO_KIELER_FACTOR
+    );
 
     const minHeight = DEFAULT_HEIGHT * CONVERT_TO_KIELER_FACTOR;
 
-    if (!nodeKielerGraph.properties || !kielerParentGraph.children)
-      return;
+    if (!nodeKielerGraph.properties || !kielerParentGraph.children) return;
 
-    nodeKielerGraph.properties["elk.nodeSize.constraints"] = "MINIMUM_SIZE";
-    nodeKielerGraph.properties["elk.nodeSize.minimum"] =  "( "+ minWidth+", " + minHeight + "})";
-    nodeKielerGraph.properties["elk.contentAlignment"] = "V_CENTER,H_CENTER";
+    nodeKielerGraph.properties['elk.nodeSize.constraints'] = 'MINIMUM_SIZE';
+    nodeKielerGraph.properties['elk.nodeSize.minimum'] =
+      '( ' + minWidth + ', ' + minHeight + '})';
+    nodeKielerGraph.properties['elk.contentAlignment'] = 'V_CENTER,H_CENTER';
 
     kielerParentGraph.children.push(nodeKielerGraph);
 
     const applications = node.applications;
 
     applications.forEach((application) => {
-
       const DEFAULT_WIDTH = 1.5;
       const DEFAULT_HEIGHT = 0.75;
 
@@ -133,20 +144,27 @@ function layout1(landscape, applicationCommunications) {
       const APPLICATION_PIC_PADDING_SIZE = 0.15;
       const APPLICATION_LABEL_HEIGHT = 0.21;
 
-      const width = Math.max(DEFAULT_WIDTH * CONVERT_TO_KIELER_FACTOR,
-        (calculateRequiredLabelLength(application.name, APPLICATION_LABEL_HEIGHT) +
-          APPLICATION_PIC_PADDING_SIZE + APPLICATION_PIC_SIZE +
-          PADDING * 3.0) * CONVERT_TO_KIELER_FACTOR);
+      const width = Math.max(
+        DEFAULT_WIDTH * CONVERT_TO_KIELER_FACTOR,
+        (calculateRequiredLabelLength(
+          application.name,
+          APPLICATION_LABEL_HEIGHT
+        ) +
+          APPLICATION_PIC_PADDING_SIZE +
+          APPLICATION_PIC_SIZE +
+          PADDING * 3.0) *
+          CONVERT_TO_KIELER_FACTOR
+      );
 
       const height = DEFAULT_HEIGHT * CONVERT_TO_KIELER_FACTOR;
 
       const applicationKielerNode = {
-        "id": application.id,
-        "width": width,
-        "height": height,
-        "children": [],
-        "edges": [],
-        "ports": []
+        id: application.id,
+        width: width,
+        height: height,
+        children: [],
+        edges: [],
+        ports: [],
       };
 
       modelIdToGraph.set(application.id, applicationKielerNode);
@@ -154,42 +172,49 @@ function layout1(landscape, applicationCommunications) {
       if (nodeKielerGraph.children)
         nodeKielerGraph.children.push(applicationKielerNode);
     });
-
   } // END createNodeAndItsApplications
 
-  function createEdgeBetweenSourceTarget(sourceApplication, targetApplication, commId) {
-
+  function createEdgeBetweenSourceTarget(
+    sourceApplication,
+    targetApplication,
+    commId
+  ) {
     const port1 = createSourcePortIfNotExisting(sourceApplication);
     const port2 = createTargetPortIfNotExisting(targetApplication);
 
-    let edge = createEdgeHelper(sourceApplication, port1, targetApplication, port2, commId);
+    let edge = createEdgeHelper(
+      sourceApplication,
+      port1,
+      targetApplication,
+      port2,
+      commId
+    );
     return edge;
 
     //---------------------------inner functions
     function createSourcePortIfNotExisting(sourceApplication) {
-
       // Do not create duplicate port
       let maybePort = modelIdToSourcePort.get(sourceApplication.id);
-      if (maybePort && modelIdToSourcePort.has(sourceApplication.id)){
+      if (maybePort && modelIdToSourcePort.has(sourceApplication.id)) {
         return maybePort;
       } else {
         const DEFAULT_PORT_WIDTH = 0.000001;
 
         const DEFAULT_PORT_HEIGHT = 0.000001;
-  
+
         const CONVERT_TO_KIELER_FACTOR = 180;
 
-        const portId = sourceApplication.id + "_sp1";
+        const portId = sourceApplication.id + '_sp1';
 
         let port = {
           id: portId,
           width: DEFAULT_PORT_WIDTH * CONVERT_TO_KIELER_FACTOR,
           height: DEFAULT_PORT_HEIGHT * CONVERT_TO_KIELER_FACTOR,
           properties: {
-            "elk.port.side": "EAST"
+            'elk.port.side': 'EAST',
           },
           x: 0,
-          y: 0
+          y: 0,
         };
 
         let sourceGraph = modelIdToGraph.get(sourceApplication.id);
@@ -202,31 +227,29 @@ function layout1(landscape, applicationCommunications) {
       }
     }
 
-
     function createTargetPortIfNotExisting(targetApplication) {
-
       // Do not create duplicate port
       let maybePort = modelIdToTargetPort.get(targetApplication.id);
-      if (maybePort && modelIdToTargetPort.has(targetApplication.id)){
+      if (maybePort && modelIdToTargetPort.has(targetApplication.id)) {
         return maybePort;
       } else {
         const DEFAULT_PORT_WIDTH = 0.000001;
 
         const DEFAULT_PORT_HEIGHT = 0.000001;
-  
+
         const CONVERT_TO_KIELER_FACTOR = 180;
 
-        const portId = targetApplication.id + "_tp1";
+        const portId = targetApplication.id + '_tp1';
 
         let port = {
           id: portId,
           width: DEFAULT_PORT_WIDTH * CONVERT_TO_KIELER_FACTOR,
           height: DEFAULT_PORT_HEIGHT * CONVERT_TO_KIELER_FACTOR,
           properties: {
-            "elk.port.side": "WEST"
+            'elk.port.side': 'WEST',
           },
           x: 0,
-          y: 0
+          y: 0,
         };
 
         let targetGraph = modelIdToGraph.get(targetApplication.id);
@@ -240,12 +263,16 @@ function layout1(landscape, applicationCommunications) {
     }
 
     //---------------------------- end inner functions
-
   } // END createEdgeBetweenSourceTarget
 
-  function createEdgeHelper(sourceApplication, port1, targetApplication, port2, commId) {
-
-    const id = sourceApplication.id + "_to_" + targetApplication.id;
+  function createEdgeHelper(
+    sourceApplication,
+    port1,
+    targetApplication,
+    port2,
+    commId
+  ) {
+    const id = sourceApplication.id + '_to_' + targetApplication.id;
 
     let edge = lookForExistingEdge(sourceApplication, id);
 
@@ -263,11 +290,9 @@ function layout1(landscape, applicationCommunications) {
     edge.sourcePort = port1.id;
     edge.targetPort = port2.id;
 
-    if (port1.x && port1.y)
-      edge.sourcePoint = { x: port1.x, y: port1.y };
-    
-    if (port2.x && port2.y)
-      edge.targetPoint = { x: port2.x, y: port2.y };
+    if (port1.x && port1.y) edge.sourcePoint = { x: port1.x, y: port1.y };
+
+    if (port2.x && port2.y) edge.targetPoint = { x: port2.x, y: port2.y };
 
     edge.sPort = port1;
     edge.tPort = port2;
@@ -281,7 +306,6 @@ function layout1(landscape, applicationCommunications) {
     graph?.edges?.push(edge);
 
     return edge;
-
 
     //inner function
     // looks for already existing edges
@@ -297,12 +321,11 @@ function layout1(landscape, applicationCommunications) {
       }
       return undefined;
     }
-
   } // END createEdgeHelper
 
   function createNewEdge(id) {
     const kielerEdge = {
-      id: id
+      id: id,
     };
     return kielerEdge;
   }
@@ -310,11 +333,13 @@ function layout1(landscape, applicationCommunications) {
   function setEdgeLayoutProperties(edge) {
     const lineThickness = 0.06 * 4.0 + 0.01;
     const oldThickness = edge.thickness ? edge.thickness : 0.0;
-    edge.thickness = Math.max(lineThickness * CONVERT_TO_KIELER_FACTOR, oldThickness);
+    edge.thickness = Math.max(
+      lineThickness * CONVERT_TO_KIELER_FACTOR,
+      oldThickness
+    );
   }
 
   function getDisplayName(node) {
-
     if (node.hostName && node.hostName.length !== 0) {
       return node.hostName;
     } else {
@@ -323,8 +348,7 @@ function layout1(landscape, applicationCommunications) {
   }
 
   function calculateRequiredLabelLength(text, quadSize) {
-
-    if (text === null || text === "") {
+    if (text === null || text === '') {
       return 0;
     }
 

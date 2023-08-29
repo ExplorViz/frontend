@@ -30,8 +30,11 @@ export function addMeshToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
-
   applicationObject3D.add(mesh);
+
+  // console.log(applicationObject3D.uuid)
+
+  // applObj3D = applicationObject3D
 }
 
 /**
@@ -70,7 +73,7 @@ export function addComponentAndChildrenToScene(
   applicationColors: ApplicationColors,
   componentLevel = 1
 ) {
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
   const componentLayout = applicationObject3D.getBoxLayout(component.id);
   const applicationLayout = applicationObject3D.getBoxLayout(application.id);
 
@@ -142,7 +145,7 @@ export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
   applicationColors: ApplicationColors
 ) {
-  const application = applicationObject3D.dataModel;
+  const application = applicationObject3D.data.application;
   const applicationLayout = applicationObject3D.layout;
 
   if (!applicationLayout) {
@@ -160,6 +163,7 @@ export function addFoundationAndChildrenToApplication(
 
   addMeshToApplication(mesh, applicationObject3D);
 
+  // console.log(applicationObject3D)
   const children = application.packages;
 
   children.forEach((child: Package) => {

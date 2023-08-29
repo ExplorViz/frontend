@@ -11,6 +11,7 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/applicat
 export interface PopupDataArgs {
   mouseX: number;
   mouseY: number;
+  wasMoved: boolean;
   entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
   mesh: EntityMesh;
   applicationId: string;
@@ -26,6 +27,8 @@ export default class PopupData {
 
   @tracked
   mouseY: number;
+
+  wasMoved: boolean;
 
   entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
 
@@ -58,6 +61,7 @@ export default class PopupData {
     this.mouseX = mouseX;
     this.mouseY = mouseY;
     this.entity = entity;
+    this.wasMoved = false;
     this.mesh = mesh;
     this.applicationId = applicationId;
     this.isPinned = isPinned;

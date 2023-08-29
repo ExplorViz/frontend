@@ -9,12 +9,26 @@ export default class Navbar extends Component {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @service('router')
+  router!: any;
+
   @service('auth')
   auth!: Auth;
 
   @action
   logout() {
     this.auth.logout();
+  }
+
+  @action
+  goToLandscapeSelection() {
+    this.router.transitionTo('landscapes');
+  }
+
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
   }
 
   get versionTag() {

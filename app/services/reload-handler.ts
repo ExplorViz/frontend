@@ -38,7 +38,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
 
         return [structure, dynamicDataPromise.value] as [
           StructureLandscapeData,
-          DynamicLandscapeData
+          DynamicLandscapeData,
         ];
       }
       throw Error('No data available.');
