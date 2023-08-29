@@ -6,6 +6,7 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 import HeatmapConfiguration, {
   Metric,
 } from 'heatmap/services/heatmap-configuration';
@@ -22,7 +23,7 @@ interface Signature {
     Positional: [];
     Named: {
       readonly camera: THREE.Camera;
-      readonly scene: THREE.Scene;
+      readonly scene: LandscapeScene3D;
     };
   };
 }
@@ -30,7 +31,7 @@ interface Signature {
 const debug = debugLogger('HeatmapRendering');
 
 export default class HeatmapRenderer extends Modifier<Signature> {
-  private scene!: THREE.Scene;
+  private scene!: LandscapeScene3D;
 
   private camera!: THREE.Camera;
 
@@ -87,7 +88,8 @@ export default class HeatmapRenderer extends Modifier<Signature> {
    * @param isVisible Determines whether a spotlight is visible or not
    */
   private setSpotLightVisibilityInScene(isVisible = true) {
-    this.scene?.children.forEach((child) => {
+    const threeScene = this.scene.threeScene;
+    threeScene.children.forEach((child) => {
       if (child instanceof THREE.DirectionalLight) {
         child.visible = isVisible;
       }
