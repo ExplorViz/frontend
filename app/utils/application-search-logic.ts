@@ -61,20 +61,20 @@ export default class ApplicationSearchLogic {
   }
 
   highlightEntityMeshByModelId(modelId: string, applicationModelId: string) {
-    const clazzModel = (
-      this.applicationRenderer.getBoxMeshByModelId(modelId) as ClazzMesh
-    ).dataModel;
+    const clazzMesh = this.applicationRenderer.getBoxMeshByModelId(
+      modelId
+    ) as ClazzMesh;
 
     const applicationObject3D =
       this.applicationRenderer.getApplicationById(applicationModelId);
 
     if (applicationObject3D) {
       openComponentsByList(
-        getAllAncestorComponents(clazzModel),
+        getAllAncestorComponents(clazzMesh.dataModel),
         applicationObject3D
       );
 
-      this.applicationRenderer.highlightModel(clazzModel, applicationModelId);
+      this.applicationRenderer.highlight(clazzMesh, applicationObject3D);
     }
   }
 }

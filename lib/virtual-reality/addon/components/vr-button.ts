@@ -6,6 +6,7 @@ interface VrButtonArgs {
   renderer: THREE.WebGLRenderer;
   onSessionStartedCallback?(session: XRSession): void;
   onSessionEndedCallback?(): void;
+  debugMode: boolean;
 }
 
 export default class VrButton extends Component<VrButtonArgs> {
@@ -16,6 +17,8 @@ export default class VrButton extends Component<VrButtonArgs> {
 
   @tracked
   buttonText: string = 'Checking ...';
+
+  firstCall: boolean = true;
 
   /**
    * Checks the current status of WebXR in the browser and if compatible
@@ -37,6 +40,11 @@ export default class VrButton extends Component<VrButtonArgs> {
       }
     } else {
       this.buttonText = 'WEBXR NOT SUPPORTED';
+    }
+
+    if (!this.args.debugMode && this.firstCall) {
+      this.firstCall = false;
+      this.onClick();
     }
   }
 
@@ -73,6 +81,8 @@ export default class VrButton extends Component<VrButtonArgs> {
     if (this.args.onSessionEndedCallback) {
       this.args.onSessionEndedCallback();
     }
+
+    this.firstCall = true;
   }
 
   @action
@@ -82,14 +92,23 @@ export default class VrButton extends Component<VrButtonArgs> {
 
     if (!this.currentSession) {
       const sessionInit = { optionalFeatures: ['local-floor'] };
-      const session = await navigator.xr?.requestSession(
-        'immersive-vr',
-        sessionInit
-      );
-      this.onSessionStarted(session);
+      try {
+        const session = await navigator.xr?.requestSession(
+          'immersive-vr',
+          sessionInit
+        );
+        this.onSessionStarted(session);
+      } catch (error) {
+        console.log('ERROR: VR Session already existing');
+      }
     } else {
-      await this.currentSession.end();
-      this.onSessionEnded();
+      try {
+        await this.currentSession.end();
+      } catch (error) {
+        console.log('ERROR: VR Session already ended');
+      }
+
+      if (this.args.debugMode) this.onSessionEnded();
     }
   }
 }

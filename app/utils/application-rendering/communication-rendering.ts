@@ -7,6 +7,9 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { DrawableClassCommunication } from './class-communication-computer';
+import LocalUser from 'collaborative-mode/services/local-user';
+import { MeshLineMaterial } from 'meshline';
+import * as THREE from 'three';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -14,9 +17,16 @@ export default class CommunicationRendering {
 
   userSettings: UserSettings;
 
-  constructor(configuration: Configuration, userSettings: UserSettings) {
+  localUser: LocalUser;
+
+  constructor(
+    configuration: Configuration,
+    userSettings: UserSettings,
+    localUser: LocalUser
+  ) {
     this.configuration = configuration;
     this.userSettings = userSettings;
+    this.localUser = localUser;
   }
 
   get appSettings() {
@@ -87,6 +97,21 @@ export default class CommunicationRendering {
     }
 
     const viewCenterPoint = applicationLayout.center;
+
+    const oldHighlightedColors = new Map<string, THREE.Color>();
+
+    applicationObject3D.getCommMeshes().forEach((mesh) => {
+      if (mesh.highlighted) {
+        oldHighlightedColors.set(
+          mesh.getModelId(),
+          (
+            (mesh.material as THREE.MeshLambertMaterial) ||
+            THREE.MeshBasicMaterial ||
+            MeshLineMaterial
+          ).color
+        );
+      }
+    });
 
     // Remove old communication
     applicationObject3D.removeAllCommunication();
@@ -163,11 +188,13 @@ export default class CommunicationRendering {
           drawableClazzComm.id
         );
 
+        const oldColor = oldHighlightedColors.get(clazzCommuMeshData.id);
+
         const pipe = new ClazzCommunicationMesh(
           commLayout,
           clazzCommuMeshData,
           communicationColor,
-          highlightedEntityColor
+          oldColor ? oldColor : highlightedEntityColor
         );
 
         const curveHeight = this.computeCurveHeight(commLayout);

@@ -9,7 +9,7 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -40,6 +40,11 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -60,9 +65,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('user-settings')
   private userSettings!: UserSettings;
-
-  @service('highlighting-service')
-  private highlightingService!: HighlightingService;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -85,6 +87,9 @@ export default class ApplicationRenderer extends Service.extend({
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   forceGraph!: ThreeForceGraph;
 
   private structureLandscapeData!: StructureLandscapeData;
@@ -100,7 +105,8 @@ export default class ApplicationRenderer extends Service.extend({
     this.openApplicationsMap = new Map();
     this.appCommRendering = new CommunicationRendering(
       this.configuration,
-      this.userSettings
+      this.userSettings,
+      this.localUser
     );
   }
 
@@ -168,6 +174,19 @@ export default class ApplicationRenderer extends Service.extend({
     );
   }
 
+  /**
+   * Returns application id of the application which contains the mesh with the given id, if existend. Else undefined.
+   *
+   * @param id The mesh's id to lookup
+   */
+  getApplicationIdByMeshId(meshId: string) {
+    for (const application of this.getOpenApplications()) {
+      const mesh = application.getMeshById(meshId);
+      if (mesh) return application.getModelId();
+    }
+    return undefined;
+  }
+
   getOpenApplications(): ApplicationObject3D[] {
     return Array.from(this.openApplicationsMap.values());
   }
@@ -212,7 +231,6 @@ export default class ApplicationRenderer extends Service.extend({
 
       if (layoutChanged) {
         applicationObject3D.removeAllEntities();
-
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
@@ -220,10 +238,12 @@ export default class ApplicationRenderer extends Service.extend({
         );
       }
 
-      // Restore state of components highlighting
+      // Restore state of open packages and transparent components (packages and clazzes)
       restoreComponentState(
         applicationObject3D,
-        applicationState.openComponents
+        applicationState.openComponents,
+        applicationState.transparentComponents,
+        this.highlightingService.opacity
       );
 
       // Add labels to application
@@ -235,6 +255,27 @@ export default class ApplicationRenderer extends Service.extend({
 
       this.addCommunication(applicationObject3D);
 
+      // reset transparency of inner communication links
+      applicationObject3D.getCommMeshes().forEach((commMesh) => {
+        if (applicationState.transparentComponents?.has(commMesh.getModelId()))
+          commMesh.turnTransparent(this.highlightingService.opacity);
+      });
+
+      // reset transparency of extern communication links
+
+      applicationState.transparentComponents?.forEach((id) => {
+        const externLinkMesh = this.linkRenderer.getLinkById(id);
+        if (externLinkMesh) {
+          externLinkMesh.turnTransparent(this.highlightingService.opacity);
+        }
+      });
+
+      // reset highlights -------------------
+
+      const currentSetting =
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
           this.highlightingService.hightlightComponentLocallyByTypeAndId(
@@ -243,7 +284,9 @@ export default class ApplicationRenderer extends Service.extend({
           );
         }
       );
-      this.highlightingService.updateHighlighting(applicationObject3D);
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        currentSetting;
+      // ----------------------------------------
 
       this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
@@ -251,6 +294,8 @@ export default class ApplicationRenderer extends Service.extend({
 
       applicationObject3D.resetRotation();
 
+      // delete all extern comminication links so we can replace them with the current ones later on
+      //applicationObject3D.drawableClassCommSet.clear();
       return applicationObject3D;
     }
   );
@@ -295,12 +340,7 @@ export default class ApplicationRenderer extends Service.extend({
     ) {
       this.addCommunication(applicationObject3D);
     }
-    // Update highlighting
-    if (this.appSettings.keepHighlightingOnOpenOrClose.value) {
-      this.highlightingService.updateHighlighting(applicationObject3D);
-    } else {
-      removeHighlighting(applicationObject3D);
-    }
+
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
@@ -309,6 +349,8 @@ export default class ApplicationRenderer extends Service.extend({
     );
     // Update links
     this.updateLinks?.();
+    // Update highlighting
+    this.highlightingService.updateHighlighting(); // needs to be after update links
   }
 
   updateLinks?: () => void;
@@ -335,15 +377,51 @@ export default class ApplicationRenderer extends Service.extend({
   /**
    * Highlights a given component or clazz
    *
-   * @param entity Component or clazz which shall be highlighted
+   * @param entity Component, communication link or clazz which shall be highlighted
+   * @param applicationObject3D Application which contains the entity
    */
+
   @action
-  highlightModel(entity: Package | Class, applicationId: string) {
-    const applicationObject3D = this.getApplicationById(applicationId);
-    if (!applicationObject3D) {
-      return;
+  highlight(
+    entity: any,
+    applicationObject3D: ApplicationObject3D,
+    color?: THREE.Color,
+    isMultiSelected = false,
+    sendMessage = true
+  ) {
+    if (isEntityMesh(entity)) {
+      const oldValue =
+        this.configuration.userSettings.applicationSettings
+          .enableMultipleHighlighting.value; // TODO: Refactor all this including the call chain
+      if (isMultiSelected) {
+        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
+          isMultiSelected;
+      }
+
+      this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        oldValue || isMultiSelected;
+      this.highlightingService.highlight(entity, sendMessage, color);
+
+      if (isMultiSelected) {
+        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
+          oldValue;
+      }
+
+      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
     }
-    this.highlightingService.highlightModel(entity, applicationObject3D);
+  }
+
+  @action
+  highlightExternLink(
+    mesh: EntityMesh,
+    sendMessage: boolean,
+    color?: THREE.Color
+  ) {
+    if (mesh instanceof ClazzCommunicationMesh) {
+      this.highlightingService.highlight(mesh, sendMessage, color);
+      //this.updateLinks?.();
+      this.highlightingService.updateHighlighting();
+    }
   }
 
   /**
@@ -373,12 +451,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   openAllComponents(applicationObject3D: ApplicationObject3D) {
     this.openAllComponentsLocally(applicationObject3D);
-    this.sender.sendComponentUpdate(
-      applicationObject3D.getModelId(),
-      '',
-      true,
-      true
-    );
   }
 
   toggleComponentLocally(
@@ -387,7 +459,8 @@ export default class ApplicationRenderer extends Service.extend({
   ) {
     EntityManipulation.toggleComponentMeshState(
       componentMesh,
-      applicationObject3D
+      applicationObject3D,
+      this.appSettings.keepHighlightingOnOpenOrClose.value
     );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
@@ -397,28 +470,46 @@ export default class ApplicationRenderer extends Service.extend({
     applicationObject3D: ApplicationObject3D
   ) {
     this.toggleComponentLocally(componentMesh, applicationObject3D);
+
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
       componentMesh.getModelId(),
       componentMesh.opened,
       false
     );
+
+    if (!componentMesh.opened) {
+      // let the backend know that the subpackages are closed too
+      const subPackages = getSubPackagesOfPackage(componentMesh.dataModel);
+      subPackages.forEach((subPackage) => {
+        this.sender.sendComponentUpdate(
+          applicationObject3D.getModelId(),
+          subPackage.id,
+          false,
+          false,
+          false // needed so that the backend doesn't forward this message
+        );
+      });
+    }
   }
 
   openAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
-    EntityManipulation.openAllComponents(applicationObject3D);
+    EntityManipulation.openAllComponents(applicationObject3D, this.sender);
 
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   closeAllComponentsLocally(applicationObject3D: ApplicationObject3D) {
-    EntityManipulation.closeAllComponents(applicationObject3D);
-
+    EntityManipulation.closeAllComponents(
+      applicationObject3D,
+      this.appSettings.keepHighlightingOnOpenOrClose.value
+    );
     this.updateApplicationObject3DAfterUpdate(applicationObject3D);
   }
 
   closeAllComponents(applicationObject3D: ApplicationObject3D) {
     this.closeAllComponentsLocally(applicationObject3D);
+
     this.sender.sendComponentUpdate(
       applicationObject3D.getModelId(),
       '',
@@ -452,7 +543,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   removeCommunication(application: ApplicationObject3D) {
     if (application.highlightedEntity instanceof ClazzCommunicationMesh) {
-      removeHighlighting(application);
+      removeAllHighlighting(application);
     }
 
     application.removeAllCommunication();
@@ -467,15 +558,41 @@ export default class ApplicationRenderer extends Service.extend({
   restoreFromSerialization(room: SerializedVrRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
-    room.openApps.forEach((app) => {
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.unhighlight();
+      externLink.turnOpaque();
+    });
+
+    room.openApps.forEach(async (app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-        this.addApplicationTask.perform(
+        await this.addApplicationTask.perform(
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
       }
     });
+
+    if (room.highlightedExternCommunicationLinks) {
+      room.openApps.forEach((app) => {
+        const appObj = this.getApplicationById(app.id);
+        if (appObj) {
+          appObj.drawableClassCommSet.clear();
+        }
+      });
+
+      room.highlightedExternCommunicationLinks.forEach((externLink) => {
+        const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
+        if (linkMesh) {
+          this.highlightingService.highlight(
+            linkMesh,
+            false,
+            new THREE.Color().fromArray(externLink.color)
+          );
+          linkMesh.highlight();
+        }
+      });
+    }
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
@@ -512,6 +629,7 @@ export type AddApplicationArgs = {
   position?: THREE.Vector3;
   quaternion?: THREE.Quaternion;
   scale?: THREE.Vector3;
+  transparentComponents?: Set<string>;
   openComponents?: Set<string>;
   highlightedComponents?: HightlightComponentArgs[];
 };

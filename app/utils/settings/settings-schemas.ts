@@ -38,7 +38,8 @@ export type ApplicationColorSettingId =
 
 export type ApplicationHighlightingSettingId =
   | 'keepHighlightingOnOpenOrClose'
-  | 'transparencyIntensity';
+  | 'transparencyIntensity'
+  | 'enableMultipleHighlighting';
 
 export type ApplicationHoveringSettingId = 'enableHoverEffects';
 
@@ -49,7 +50,8 @@ export type ApplicationCommunicationSettingId =
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
-  | 'showLightHelper';
+  | 'showLightHelper'
+  | 'showVrOnClick';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
@@ -84,6 +86,7 @@ export type ApplicationColorSettings = Record<
 export type ApplicationHighlightingSettings = {
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
+  enableMultipleHighlighting: FlagSetting;
 };
 
 export type ApplicationHoveringSettings = Record<
