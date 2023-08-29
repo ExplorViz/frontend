@@ -23,7 +23,7 @@
         />
       {{/if}}
 
-      {{#unless @showDataSelection}}
+      {{#unless @showSettingsSidebar}}
         <div class='ar-right-relative foreground mt-6'>
           <BsButton
             id='arSettingsOpener'
@@ -171,25 +171,24 @@
 
     </div>
   </div>
-  {{#if @showDataSelection}}
+  {{#if @showSettingsSidebar}}
     <div class='position-absolute right col-8' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100'>
-        <Visualization::PageSetup::Sidebar::SidebarResizer />
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >
           <div class='explorviz-visualization-navbar foreground'>
             <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
-                @addComponent={{@addComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::ArSettingsOpener
-                @addComponent={{@addComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>
           </div>
           {{#each @components as |componentName|}}
-            <div class='card mt-3 border-radius-0 foreground'>
+            <div class='card mt-3 foreground'>
               <div class='card-body d-flex flex-column'>
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>

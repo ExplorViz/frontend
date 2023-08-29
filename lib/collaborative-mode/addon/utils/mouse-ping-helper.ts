@@ -36,7 +36,7 @@ export default class MousePing {
       this.mesh.position.copy(position);
       parentObj.add(this.mesh);
       this.mesh.startPinging();
-      await timeout(2000);
+      await timeout(5000);
       this.mesh.stopPinging();
 
       this.mesh.parent?.remove(this.mesh);

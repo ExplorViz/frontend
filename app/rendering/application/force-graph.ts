@@ -10,6 +10,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 
 export interface GraphNode {
@@ -58,7 +59,7 @@ export default class ForceGraph {
     this.scale = scale;
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
-    this.graph = new ThreeForceGraph()
+    this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
       .nodeThreeObject(
         ({ id }) => this.applicationRenderer.getApplicationById(id as string)!

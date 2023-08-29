@@ -19,13 +19,15 @@ export type SerializedHighlightedComponent = {
   entityType: string;
   entityId: string;
   isHighlighted: boolean;
+  color: number[];
 };
 
-export type SerialzedApp = {
+export type SerializedApp = {
   id: string;
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
+  transparentComponents: string[];
   openComponents: string[];
   highlightedComponents: SerializedHighlightedComponent[];
 };
@@ -37,6 +39,8 @@ export type SerializedLandscape = {
 
 export type SerializedVrRoom = {
   landscape: SerializedLandscape;
-  openApps: SerialzedApp[];
+  openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
+  highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
+  //transparentExternCommunicationLinks: string[];
 };

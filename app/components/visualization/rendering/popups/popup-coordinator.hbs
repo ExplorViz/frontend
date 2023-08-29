@@ -6,47 +6,52 @@
   {{on 'pointerout' this.onPointerOut}}
   {{did-insert this.setPopupPosition}}
   hover={{@popupData.hovered}}
-  {{style color=this.highlightingColorStyle}}
 >
 
   {{#if @popupData.isPinned}}
-    <div class='inline' {{style color='#212529'}}>
+    <BsButton @type='secondary' @outline='true' disabled='true'>
       {{svg-jar 'pin-16' class='octicon align-right'}}
-    </div>
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Popup is pinned
+      </BsTooltip>
+    </BsButton>
   {{else}}
     <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
       {{svg-jar 'pin-16' class='octicon align-right'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
-        Pin popup.
+        Pin Popup
       </BsTooltip>
     </BsButton>
   {{/if}}
 
   {{#if @popupData.sharedBy}}
-    <div class='inline' {{style color=this.sharedByColor}}>
+    <BsButton @type='secondary' @outline='true' disabled='true'>
       {{svg-jar 'share-android-16' class='octicon align-right'}}
-    </div>
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Popup is shared
+      </BsTooltip>
+    </BsButton>
   {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
-    <BsButton @type='secondary' @onClick={{fn @sharePopup @popupData}}>
+    <BsButton @type='primary' @onClick={{fn @sharePopup @popupData}}>
       {{svg-jar 'share-android-16' class='octicon align-middle'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
         Share popup with other users.
       </BsTooltip>
     </BsButton>
   {{/if}}
-  <BsButton
-    @type={{if @popupData.mesh.highlighted 'success' 'secondary'}}
-    style={{html-safe this.highlightingService.highlightingColorStyle}}
-    @onClick={{this.highlight}}
-  >
+
+  <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
     {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
     <BsTooltip @placement='top' @triggerEvents='hover'>
-      Highlight component.
+      Highlight
     </BsTooltip>
   </BsButton>
+
   <BsButton
+    id='popup-close-button'
     style='float: right;'
     @type='secondary'
+    @outline='true'
     @onClick={{fn @removePopup @popupData.entity.id}}
   >
     X
@@ -59,7 +64,7 @@
     />
   {{/if}}
   {{#if (eq this.entityType 'application')}}
-    <Visualization::Rendering::Popups::LandscapePopups::ApplicationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
       @application={{@popupData.entity}}
     />
   {{/if}}

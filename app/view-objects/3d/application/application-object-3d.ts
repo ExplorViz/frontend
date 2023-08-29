@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import { tracked } from '@glimmer/tracking';
@@ -10,6 +9,10 @@ import ComponentMesh from './component-mesh';
 import ClazzCommunicationMesh from './clazz-communication-mesh';
 import BaseMesh from '../base-mesh';
 import BoxMesh from './box-mesh';
+import ApplicationData from 'explorviz-frontend/utils/application-data';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -19,9 +22,9 @@ import BoxMesh from './box-mesh';
  */
 export default class ApplicationObject3D extends THREE.Object3D {
   /**
-   * The data model that this application object should visualize
+   * The underlying application data model
    */
-  dataModel: Application;
+  data: ApplicationData;
 
   boxLayoutMap: Map<string, BoxLayout>;
 
@@ -45,17 +48,19 @@ export default class ApplicationObject3D extends THREE.Object3D {
   animationMixer: THREE.AnimationMixer | undefined;
 
   @tracked
-  highlightedEntity: BaseMesh | Trace | null = null;
+  highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
 
-  constructor(application: Application, boxLayoutMap: Map<string, BoxLayout>) {
+  drawableClassCommSet: Set<DrawableClassCommunication> = new Set();
+
+  constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
-    this.dataModel = application;
+    this.data = data;
     this.boxLayoutMap = boxLayoutMap;
   }
 
   get layout() {
-    const layout = this.getBoxLayout(this.dataModel.id);
+    const layout = this.getBoxLayout(this.data.application.id);
     if (layout) {
       return layout;
     }
@@ -90,12 +95,12 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     // Ensure fast access to application meshes by additionally storing them in maps
     if (object instanceof FoundationMesh) {
-      this.modelIdToMesh.set(object.dataModel.id, object);
+      this.modelIdToMesh.set(object.getModelId(), object);
       // Store communication separately to allow efficient iteration over meshes
     } else if (object instanceof ComponentMesh || object instanceof ClazzMesh) {
-      this.modelIdToMesh.set(object.dataModel.id, object);
+      this.modelIdToMesh.set(object.getModelId(), object);
     } else if (object instanceof ClazzCommunicationMesh) {
-      this.commIdToMesh.set(object.dataModel.id, object);
+      this.commIdToMesh.set(object.getModelId(), object);
     }
 
     // Keep track of all components (e.g. to find opened components)
@@ -168,6 +173,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return this.boxLayoutMap.get(id);
   }
 
+  getModelId() {
+    return this.data.application.id;
+  }
+
   /**
    * Returns mesh with given id, if existend. Else undefined.
    *
@@ -212,7 +221,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   get foundationMesh() {
-    return this.getBoxMeshbyModelId(this.dataModel.id);
+    return this.getBoxMeshbyModelId(this.data.application.id);
   }
 
   /**
@@ -224,11 +233,71 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     this.componentMeshes.forEach((componentMesh) => {
       if (componentMesh.opened) {
-        openComponentIds.add(componentMesh.dataModel.id);
+        openComponentIds.add(componentMesh.getModelId());
       }
     });
 
     return openComponentIds;
+  }
+
+  /**
+   * Iterates over all opened meshes which are currently added to the
+   * application and returns a set with ids of the transparent components.
+   */
+  get transparentComponentIds() {
+    const transparentComponentIds: Set<string> = new Set();
+
+    this.openComponentIds.forEach((openId) => {
+      const componentMesh = this.getMeshById(openId);
+      if (componentMesh) {
+        if (componentMesh.material.opacity !== 1) {
+          transparentComponentIds.add(openId);
+        }
+      }
+    });
+
+    // consider clazzes too
+    getAllClassesInApplication(this.data.application).forEach((clazz) => {
+      const clazzParentPackage = clazz.parent;
+
+      const pckg = findFirstOpenOrLastClosedAncestorComponent(
+        this,
+        clazzParentPackage
+      );
+      const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
+      if (pckgMesh instanceof ComponentMesh) {
+        //console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
+        if (pckgMesh.opened) {
+          pckgMesh.dataModel.subPackages.forEach((subPckg) => {
+            const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
+            if (
+              subPckgMesh instanceof ComponentMesh &&
+              subPckgMesh.material.opacity !== 1
+            ) {
+              transparentComponentIds.add(subPckg.id);
+            }
+          });
+        } else {
+          if (pckgMesh.material.opacity !== 1)
+            transparentComponentIds.add(pckg.id);
+        }
+      }
+
+      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
+        transparentComponentIds.add(clazz.id);
+      }
+    });
+
+    // intern links too
+    this.getCommMeshes().forEach((commMesh) => {
+      if (commMesh?.material.opacity !== 1) {
+        transparentComponentIds.add(commMesh.getModelId());
+      }
+    });
+
+    // TODO: extern links too (currently handled in vr-room-serializer.ts, serializeApplication function)
+
+    return transparentComponentIds;
   }
 
   /**
@@ -386,5 +455,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
       mesh.deleteFromParent();
     });
     this.resetMeshReferences();
+    this.highlightedEntity = null;
   }
 }

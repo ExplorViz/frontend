@@ -4,26 +4,29 @@ import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
 import TitleItem from '../items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
+import { inject as service } from '@ember/service';
+import { setOwner } from '@ember/application';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
 export type ResetMenuArgs = UiMenuArgs & {
-  localUser: LocalUser;
+  owner: any;
   online: boolean;
   detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
-  private localUser: LocalUser;
+  @service('local-user')
+  localUser!: LocalUser;
+
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   private detachedMenuGroups: DetachedMenuGroupsService;
 
-  constructor({
-    localUser,
-    online,
-    detachedMenuGroups,
-    ...args
-  }: ResetMenuArgs) {
+  constructor({ owner, online, detachedMenuGroups, ...args }: ResetMenuArgs) {
     super(args);
-    this.localUser = localUser;
+    setOwner(this, owner);
     this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
@@ -94,10 +97,22 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    // not used atm
+    this.applicationRenderer
+      .getOpenApplications()
+      .forEach((applicationObject) => {
+        this.applicationRenderer.closeAllComponents(applicationObject, false);
+        removeAllHighlighting(applicationObject);
+      });
   }
 
   private resetLandscape() {
-    // not used atm
+    const applicationGraph =
+      this.applicationRenderer.getOpenApplications()[0].parent;
+    if (applicationGraph) {
+      applicationGraph.position.set(0, 0, 0);
+      applicationGraph.rotation.x = Math.PI / 180;
+      applicationGraph.rotation.y = Math.PI / 180;
+      applicationGraph.rotation.z = Math.PI / 180;
+    }
   }
 }

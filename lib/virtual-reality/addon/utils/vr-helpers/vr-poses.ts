@@ -25,7 +25,7 @@ export function getObjectPose(object: THREE.Object3D): Pose {
 export function getControllerPose(controller: VRController): ControllerPose {
   controller.updateIntersectedObject();
   return {
-    intersection: controller.intersectedObject?.point?.toArray() || null,
+    intersection: controller.intersectedObject?.point?.toArray() || undefined,
     ...getObjectPose(controller.raySpace),
   };
 }

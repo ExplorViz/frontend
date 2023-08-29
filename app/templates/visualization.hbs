@@ -4,6 +4,7 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
+
 {{add-listener this.landscapeRestructure 'restructureLandscapeData' this.restructureLandscapeData}}
 {{add-listener this.landscapeRestructure 'openDataSelection' this.openDataSelection}}
 {{add-listener this.landscapeRestructure 'restructureComponent' this.addComponent}}
@@ -11,7 +12,6 @@
 {{add-listener this.landscapeRestructure 'toggelVisualization' this.toggleVisualizationUpdating}}
 
 {{did-insert this.setupListeners}}
-
 <div id='vizspace' {{sync-state}}>
   {{#if this.showAR}}
     <ArRendering
@@ -19,30 +19,31 @@
       @landscapeData={{this.landscapeData}}
       @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @openLandscapeView={{this.openLandscapeView}}
-      @addComponent={{this.addComponent}}
+      @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
       @components={{this.components}}
       @removeComponent={{this.removeComponent}}
-      @openDataSelection={{this.openDataSelection}}
+      @openSettingsSidebar={{this.openSettingsSidebar}}
       @closeDataSelection={{this.closeDataSelection}}
-      @showDataSelection={{this.showDataSelection}}
+      @showSettingsSidebar={{this.showSettingsSidebar}}
       @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
-    {{#if this.showVR}}
+    {{#if (and this.flag this.showVR)}}
       <VrRendering
         @id='landscape1'
         @landscapeData={{this.landscapeData}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @components={{this.components}}
         @removeComponent={{this.removeComponent}}
-        @openDataSelection={{this.openDataSelection}}
+        @openSettingsSidebar={{this.openSettingsSidebar}}
         @closeDataSelection={{this.closeDataSelection}}
-        @showDataSelection={{this.showDataSelection}}
+        @showSettingsSidebar={{this.showSettingsSidebar}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
+        @debugMode={{this.flag}}
       />
       <div class='position-absolute mt-6 ml-3'>
         <BsButton
@@ -55,6 +56,7 @@
           {{svg-jar 'reply-16' class='octicon align-middle'}}
         </BsButton>
       </div>
+
     {{else}}
       {{#if this.isLandscapeExistentAndEmpty}}
         <div class='container-fluid mt-6'>
@@ -65,24 +67,63 @@
           <div class='spinner-center-3' role='status'></div>
         </div>
       {{else if this.allLandscapeDataExistsAndNotEmpty}}
-        <Visualization::Rendering::BrowserRendering
-          @landscapeData={{this.landscapeData}}
-          @components={{this.components}}
-          @removeComponent={{this.removeComponent}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @openDataSelection={{this.openDataSelection}}
-          @showDataSelection={{this.showDataSelection}}
-          @addComponent={{this.addComponent}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
-          @removeTimestampListener={{this.removeTimestampListener}}
-          @restructureLandscape={{this.restructureLandscape}}
-          @switchToAR={{this.switchToAR}}
-          @switchToVR={{this.switchToVR}}
-          @selectedTimestampRecords={{this.selectedTimestampRecords}}
-          @applicationArgs={{this.applicationArgs}}
-        />
+
+        {{#if this.showVR}}
+
+          <VrRendering
+            @id='landscape1'
+            @landscapeData={{this.landscapeData}}
+            @selectedTimestampRecords={{this.selectedTimestampRecords}}
+            @components={{this.components}}
+            @removeComponent={{this.removeComponent}}
+            @openDataSelection={{this.openDataSelection}}
+            @closeDataSelection={{this.closeDataSelection}}
+            @showDataSelection={{this.showDataSelection}}
+            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+            @visualizationPaused={{this.visualizationPaused}}
+            @applicationArgs={{this.applicationArgs}}
+            @debugMode={{this.flag}}
+          />
+
+        {{else}}
+          <Visualization::Rendering::BrowserRendering
+            @landscapeData={{this.landscapeData}}
+            @components={{this.components}}
+            @componentsToolsSidebar={{this.componentsToolsSidebar}}
+            @removeComponent={{this.removeComponent}}
+            @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
+            @closeDataSelection={{this.closeDataSelection}}
+            @closeToolsSidebar={{this.closeToolsSidebar}}
+            @openSettingsSidebar={{this.openSettingsSidebar}}
+            @openToolsSidebar={{this.openToolsSidebar}}
+            @showSettingsSidebar={{this.showSettingsSidebar}}
+            @showToolsSidebar={{this.showToolsSidebar}}
+            @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
+            @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
+            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+            @addComponent={{this.addComponent}}
+            @visualizationPaused={{this.visualizationPaused}}
+            @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
+            @removeTimestampListener={{this.removeTimestampListener}}
+            @restructureLandscape={{this.restructureLandscape}}
+            @switchToAR={{this.switchToAR}}
+            @switchToVR={{this.switchToVR}}
+            @selectedTimestampRecords={{this.selectedTimestampRecords}}
+            @applicationArgs={{this.applicationArgs}}
+          />
+
+          {{#unless this.showTimeline}}
+            <button
+              id='VrButton'
+              type='button'
+              {{did-insert this.updateVrStatus}}
+              {{on 'click' this.switchToVR}}
+            >
+              {{this.buttonText}}
+            </button>
+          {{/unless}}
+        {{/if}}
+
       {{else}}
         <div class='container-fluid mt-6'>
           <div class='jumbotron'>
@@ -112,39 +153,48 @@
   {{/if}}
 </div>
 {{! timeline }}
-{{#unless this.showAR}}
-  {{#unless this.showVR}}
-    <div id='timeline-content'>
-      <BsButton
-        @onClick={{this.toggleTimeline}}
-        @type='secondary'
-        @outline={{true}}
-        class='btn-timeline'
-        title={{if this.showTimeline 'Hide Timeline' 'Show Timeline'}}
-      >
-        {{#unless this.showTimeline}}
-          <span class='pr-1'>Show Timeline</span>
-        {{/unless}}
-        {{svg-jar
-          'chevron-up-16'
-          id='hidetimeline-icon'
-          class=(if
-            this.showTimeline
-            'octicon align-middle hidetimeline-icon-down'
-            'octicon align-middle'
-          )
-        }}
-      </BsButton>
-      <div
-        id='timeline'
-        class='timeline {{unless this.showTimeline "timelinehide"}}'
-      >
-        <Visualization::PageSetup::Timeline::PlotlyTimeline
-          @timestamps={{this.timelineTimestamps}}
-          @clicked={{this.timelineClicked}}
-          @setChildReference={{this.getTimelineReference}}
-        />
-      </div>
+
+{{#if this.showTimeline}}
+  <div id='timeline-content'>
+    <BsButton
+      @onClick={{this.toggleTimeline}}
+      @type='secondary'
+      @outline={{true}}
+      class='btn-timeline'
+      title={{if this.isTimelineActive 'Hide Timeline' 'Show Timeline'}}
+    >
+
+      {{#unless this.isTimelineActive}}
+        <span class='pr-1'>Show Timeline</span>
+      {{/unless}}
+      {{svg-jar
+        'chevron-up-16'
+        id='hidetimeline-icon'
+        class=(if
+          this.isTimelineActive
+          'octicon align-middle hidetimeline-icon-down'
+          'octicon align-middle'
+        )
+      }}
+    </BsButton>
+
+    <button
+      class='btn-timeline-above'
+      type='button'
+      {{did-insert this.updateVrStatus}}
+      {{on 'click' this.switchToVR}}
+    >
+      {{this.buttonText}}
+    </button>
+    <div
+      id='timeline'
+      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+    >
+      <Visualization::PageSetup::Timeline::PlotlyTimeline
+        @timestamps={{this.timelineTimestamps}}
+        @clicked={{this.timelineClicked}}
+        @setChildReference={{this.getTimelineReference}}
+      />
     </div>
-  {{/unless}}
-{{/unless}}
+  </div>
+{{/if}}

@@ -106,6 +106,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
       "Transparency effect intensity ('Enable Transparent Components' must be enabled)",
     isRangeSetting: true,
   },
+  enableMultipleHighlighting: {
+    value: false,
+    orderNumber: 3,
+    group: 'Highlighting',
+    displayName: 'Enable Multiple Highlighting',
+    description:
+      'Toggle if highlighting should be kept on highlighting an unhighlighted component within the same application',
+    isFlagSetting: true,
+  },
   // Hover Effect Settings
   enableHoverEffects: {
     value: true,
@@ -174,6 +183,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Debugging',
     displayName: 'Show Light Helper',
     description: 'Visualizes the directional light',
+    isFlagSetting: true,
+  },
+  showVrOnClick: {
+    value: false,
+    orderNumber: 1,
+    group: 'Debugging',
+    displayName: 'Show VR in browser',
+    description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
   },
 };

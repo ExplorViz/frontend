@@ -54,13 +54,17 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
    */
   changeOpacity(opacity: number) {
     const isTransparent = opacity < 1;
+
     if (this.line.material instanceof THREE.Material) {
       this.line.material.opacity = opacity;
       this.line.material.transparent = isTransparent;
+      this.line.material.needsUpdate = true;
     }
+
     if (this.cone.material instanceof THREE.Material) {
       this.cone.material.opacity = opacity;
       this.cone.material.transparent = isTransparent;
+      this.cone.material.needsUpdate = true;
     }
   }
 

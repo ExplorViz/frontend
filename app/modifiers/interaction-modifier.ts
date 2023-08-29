@@ -44,6 +44,8 @@ interface NamedArgs {
   pinch?(intersection: THREE.Intersection | null, delta: number): void;
   rotate?(intersection: THREE.Intersection | null, delta: number): void;
   pan?(intersection: THREE.Intersection | null, x: number, y: number): void;
+  strgDown?(): void;
+  strgUp?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -61,6 +63,8 @@ function cleanup(instance: InteractionModifierModifier) {
   canvas.removeEventListener('pointercancel', instance.onPointerCancel);
   canvas.removeEventListener('pointermove', instance.onPointerMove);
   canvas.removeEventListener('pointerstop', instance.onPointerStop);
+  document.removeEventListener('keydown', instance.onStrgDown);
+  document.removeEventListener('keyup', instance.onStrgUp);
 }
 
 export default class InteractionModifierModifier extends Modifier<InteractionModifierArgs> {
@@ -86,7 +90,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   longPressTimer!: NodeJS.Timeout;
 
-  pointerDownCounter: number = 0;
+  mouseClickCounter: number = 0;
 
   didSetup = false;
 
@@ -95,6 +99,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   canvas!: HTMLCanvasElement;
 
   rendererResolutionMultiplier: number = 1;
+
+  // Timestamps in milliseconds differentiate between click and pan actions
+  latestSingleClickTimestamp = 0;
+  latestPanTimestamp = 0;
+
+  // 500ms is a default double click time, e.g. in Windows
+  DOUBLE_CLICK_TIME_MS = 500;
+
+  // Determines which euclidean distance in one tick is needed to count as a pan action
+  PAN_THRESHOLD = 0.75;
 
   modify(element: any, _positionalArgs: any[], args: any) {
     this.namedArgs = args;
@@ -116,6 +130,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.addEventListener('pointercancel', this.onPointerCancel);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
 
+      document.addEventListener('keydown', this.onStrgDown);
+      document.addEventListener('keyup', this.onStrgUp);
       this.createPointerStopEvent();
       this.canvas.addEventListener('pointerstop', this.onPointerStop);
 
@@ -153,10 +169,29 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs.mouseOut?.();
   }
 
+  @action onStrgDown(event: KeyboardEvent) {
+    const key = event.key;
+    if (key === 'Control') {
+      this.namedArgs.strgDown?.();
+    }
+  }
+  @action onStrgUp(event: KeyboardEvent) {
+    const key = event.key;
+    if (key === 'Control') {
+      this.namedArgs.strgUp?.();
+    }
+  }
+
   @action
   onPointerMove(event: PointerEvent) {
+    if (
+      event.timeStamp - this.latestSingleClickTimestamp >
+      this.DOUBLE_CLICK_TIME_MS
+    ) {
+      this.mouseClickCounter = 0;
+    }
+
     this.isMouseOnCanvas = true;
-    this.pointerDownCounter = 0;
 
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.onTouchMove(event);
@@ -192,14 +227,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     } else if (
       event.button === 0 &&
       this.pointers.length === 1 &&
-      !this.longPressTriggered
+      !this.longPressTriggered &&
+      event.timeStamp - this.latestPanTimestamp > 200
     ) {
       this.onLeftClick(event, intersectedViewObj);
     } else if (
       event.button === 2 &&
       this.pointers.length === 1 &&
-      !this.selectedObject &&
-      event.timeStamp - this.pointers[0].timeStamp < 220
+      event.timeStamp - this.latestPanTimestamp > 200
     ) {
       this.dispatchOpenMenuEvent(event);
     }
@@ -233,15 +268,19 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
-    if (this.pointerDownCounter === 1) {
+    this.mouseClickCounter++;
+
+    // Counter could be zero when mouse is in motion or one when mouse has stopped
+    if (this.mouseClickCounter === 1) {
+      this.latestSingleClickTimestamp = event.timeStamp;
       this.timer = setTimeout(() => {
-        this.pointerDownCounter = 0;
+        this.mouseClickCounter = 0;
         this.namedArgs.singleClick?.(intersectedViewObj);
-      }, 300);
+      }, this.DOUBLE_CLICK_TIME_MS);
     }
 
-    if (this.pointerDownCounter > 1) {
-      this.pointerDownCounter = 0;
+    if (this.mouseClickCounter > 1) {
+      this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
   }
@@ -264,7 +303,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
-          parentObj.dataModel.id,
+          parentObj.getModelId(),
           true,
           pingPosition
         );
@@ -383,7 +422,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handleRotateStart();
     } else if (event.button === 0 && this.pointers.length === 1) {
       this.dispatchCloseMenuEvent(event);
-      this.pointerDownCounter += 1;
       this.handlePanStart(event);
       if (event.pointerType === 'touch') {
         this.longPressStart.set(event.clientX, event.clientY);
@@ -434,6 +472,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       .multiplyScalar(this.panSpeed);
     this.namedArgs.pan?.(this.selectedObject, this.panDelta.x, this.panDelta.y);
     this.panStart.copy(this.panEnd);
+
+    // Register pan action to avoid unwanted triggering of click events
+    if (this.panDelta.length() > this.PAN_THRESHOLD) {
+      this.latestPanTimestamp = event.timeStamp;
+    }
   }
 
   trackPointer(event: PointerEvent) {

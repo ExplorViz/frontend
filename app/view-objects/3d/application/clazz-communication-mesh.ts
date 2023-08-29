@@ -3,6 +3,7 @@ import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -10,6 +11,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   layout: CommunicationLayout;
 
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
+
+  curveHeight: number = 0.0;
+
+  applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
   constructor(
     layout: CommunicationLayout,
@@ -29,6 +34,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.castShadow = true;
   }
 
+  getModelId() {
+    return this.dataModel.id;
+  }
+
   /**
    * Turns the mesh and its arrows transparent, if value in [0,1). Fully transparent at 0.0
    *
@@ -36,6 +45,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    */
   turnTransparent(opacity = 0.3) {
     super.turnTransparent(opacity);
+
     this.children.forEach((childObject) => {
       if (childObject instanceof CommunicationArrowMesh) {
         childObject.turnTransparent(opacity);
@@ -57,11 +67,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   unhighlight(): void {
     super.unhighlight();
-    this.children.forEach((childObject) => {
-      if (childObject instanceof CommunicationArrowMesh) {
-        childObject.turnOpaque();
-      }
-    });
+    // this.children.forEach((childObject) => {
+    //   if (childObject instanceof CommunicationArrowMesh) {
+    //     childObject.turnOpaque();
+    //   }
+    // });
   }
 
   /**
@@ -114,6 +124,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     curveHeight = 0.0,
     desiredSegments = 20
   ) {
+    this.applicationCenter = applicationCenter;
+    this.curveHeight = curveHeight;
     const { layout } = this;
 
     const start = new THREE.Vector3();
@@ -280,5 +292,27 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   canBeIntersected() {
     return true;
+  }
+
+  applyHoverEffect(arg?: VisualizationMode | number): void {
+    if (arg === 'vr' && this.isHovered === false) {
+      this.layout.lineThickness *= 5;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+      super.applyHoverEffect();
+    } else if (this.isHovered === false) {
+      super.applyHoverEffect();
+    }
+  }
+
+  resetHoverEffect(mode?: VisualizationMode): void {
+    if (this.isHovered) {
+      super.resetHoverEffect();
+      if (mode === 'vr') {
+        this.layout.lineThickness /= 5;
+        this.geometry.dispose();
+        this.render(this.applicationCenter, this.curveHeight);
+      }
+    }
   }
 }

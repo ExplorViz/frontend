@@ -1,13 +1,18 @@
 <div id='sidebarButtonContainer' class='foreground'>
   <button
     type='button'
-    class='btn btn-light btn-outline-dark'
+    class='btn btn-light btn-outline-dark sidebar-button'
     title='Close Sidebar'
     aria-label='Close'
     {{on 'click' @closeDataSelection}}
   >
-    <span aria-hidden='true'>&times;</span>
+    {{svg-jar 'x-16' class='octicon align-middle'}}
   </button>
+  <Visualization::PageSetup::Sidebar::SidebarResizer
+    @buttonName='sidebarDragButton'
+    @containerName='sidebarButtonContainer'
+    @sidebarName='dataselection'
+  />
 </div>
 <EmberScrollable>
   <div class='pr-3 pl-3 pb-3'>

@@ -78,6 +78,28 @@ export default class AlertifyHandler {
     });
   }
 
+  static showAlertifyMessageWithDurationAndClickCallback(
+    message: string,
+    duration: number,
+    callbackOnDismiss: () => void,
+    cssClass: string = 'message'
+  ) {
+    this.alertActive = true;
+
+    const msg = alertify.notify(message, cssClass, duration, () => {
+      // If last dialog, set respective flag
+      // This flag is not used atm, but may be used in the future
+      if ($('.ajs-message.ajs-message.ajs-visible').length === 0) {
+        this.alertActive = false;
+      }
+    });
+    msg.callback = (isClicked: boolean) => {
+      if (isClicked) {
+        callbackOnDismiss();
+      }
+    };
+  }
+
   /**
    * Stops the displaying of all currently added messages
    */

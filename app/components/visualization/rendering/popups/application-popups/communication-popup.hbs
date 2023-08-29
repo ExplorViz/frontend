@@ -62,9 +62,7 @@
                 {{drawableClassCommu.sourceApp.name}}
               </BsTooltip>
             {{/if}}
-            {{#unless
-              (eq drawableClassCommu.sourceApp.id this.application.id)
-            }}
+            {{#unless (eq drawableClassCommu.sourceApp.id this.application.id)}}
               (<button
                 type='button'
                 class='buttonToLink'

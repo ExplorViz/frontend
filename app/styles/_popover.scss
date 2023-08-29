@@ -2,6 +2,7 @@
   .popover {
     cursor: move;
     max-width: 550px !important;
+    padding: 0.3rem;
   }
 }
 
@@ -15,9 +16,14 @@
   }
 }
 
+.popover > .popover-header {
+  margin: 0.3rem 0;
+}
+
 .popover > .popover-body {
   max-height: 50vh;
   overflow-y: auto;
+  padding: 0;
 }
 
 .popover[hover] {
@@ -28,4 +34,17 @@
 .popover[hover] > .popover-header {
   background-color: #999999 !important;
   border-color: #aaaaaa !important;
+}
+
+.popover > button {
+  margin: 0.2rem;
+}
+
+.popover > button[disabled] {
+  /* Ensure correct hover effect on popup even though button is disabled */
+  pointer-events: none;
+}
+
+#popup-close-button {
+  margin-left: 0.5rem;
 }
