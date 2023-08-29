@@ -112,7 +112,7 @@ export default class ArRendering extends Component<Args> {
   localPing: { obj: THREE.Object3D; time: number } | undefined | null;
 
   @tracked
-  scene: THREE.Scene;
+  scene: THREE.Scene; // TODO
 
   @tracked
   readonly graph: ThreeForceGraph;

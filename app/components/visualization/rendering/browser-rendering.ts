@@ -43,10 +43,9 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import LandscapeDataService, {
-  LandscapeDataUpdateEventName,
+  LocalLandscapeData,
 } from 'explorviz-frontend/services/landscape-data-service';
 import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
-import { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -197,10 +196,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.lookAtMesh
     );
 
-    this.landscapeDataService.on(
-      LandscapeDataUpdateEventName,
-      (update: DataUpdate) =>
-        this.scene.updateData(update, this.applicationRenderer)
+    this.landscapeDataService.subscribe(
+      (data: LocalLandscapeData) => this.scene.updateData(data, this.applicationRenderer)
     );
   }
 

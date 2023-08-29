@@ -196,7 +196,7 @@ export default class VrRendering extends Component<Args> {
   initDone = false;
 
   @tracked
-  scene: THREE.Scene;
+  scene: THREE.Scene; // TODO
 
   @tracked
   readonly graph: ThreeForceGraph;

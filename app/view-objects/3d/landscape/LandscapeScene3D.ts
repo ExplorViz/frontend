@@ -2,7 +2,7 @@ import type ThreeForceGraph from 'three-forcegraph';
 import type { GraphData } from 'three-forcegraph';
 import type Owner from '@ember/owner';
 import type { Updatable } from 'explorviz-frontend/rendering/application/rendering-loop';
-import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
+import type { LocalLandscapeData } from 'explorviz-frontend/services/landscape-data-service';
 
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
@@ -49,22 +49,22 @@ export default class LandscapeScene3D implements Updatable {
   }
 
   async updateData(
-    update: DataUpdate,
+    data: LocalLandscapeData,
     applicationRenderer: ApplicationRenderer
   ): Promise<CommunicationLink[]> {
-    debug('updateData called');
+    console.log('updateData called');
 
-    if (!update.drawableClassCommunications) {
+    if (!data.drawableClassCommunications) {
       return []; // TODO
     }
 
-    const drawableClassCommunications = update.drawableClassCommunications;
+    const drawableClassCommunications = data.drawableClassCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
     const { nodes: graphNodes } = this.graph.graphData();
-    const nodes = update.structure?.nodes ?? [];
+    const nodes = data.structure?.nodes ?? [];
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
@@ -74,7 +74,7 @@ export default class LandscapeScene3D implements Updatable {
         // TODO tiwe: do these in parallel?
         const applicationData = await this.updateApplicationData(
           application,
-          update.dynamic!,
+          data.dynamic!,
           drawableClassCommunications
         );
 
