@@ -179,7 +179,7 @@ export default class VrRendering extends Component<Args> {
   updatables: any[] = [];
 
   @tracked
-  scene: THREE.Scene;
+  scene: THREE.Scene; // TODO
 
   @tracked
   readonly graph: ThreeForceGraph;

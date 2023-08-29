@@ -36,8 +36,7 @@ import {
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
-import { LandscapeDataUpdateEventName } from 'explorviz-frontend/services/landscape-data-service';
-import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
+import { type LocalLandscapeData } from 'explorviz-frontend/services/landscape-data-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -146,11 +145,7 @@ export default class VisualizationController extends Controller {
       this.onTimestampUpdate
     );
 
-    this.landscapeDataService.on(
-      LandscapeDataUpdateEventName,
-      this,
-      this.onDataUpdate
-    );
+    this.landscapeDataService.subscribe((data) => this.onDataUpdate(data));
   }
 
   @action
@@ -417,7 +412,7 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-  private onDataUpdate(update: DataUpdate | undefined) {
+  private onDataUpdate(update: LocalLandscapeData | undefined) {
     if (update === undefined) {
       return;
     }

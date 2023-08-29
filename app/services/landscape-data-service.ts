@@ -19,7 +19,7 @@ export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
 const debug = debugLogger('LandscapeDataService');
 
 export default class LandscapeDataService extends Service.extend(Evented) {
-  private readonly latestData: LocalData = {};
+  private readonly latestData: LocalLandscapeData = {};
 
   private worker: Worker | undefined;
   private comlinkRemote: Comlink.Remote<LandscapeDataWorkerAPI> | undefined;
@@ -35,17 +35,24 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     this.worker = worker;
     this.comlinkRemote = remote;
 
-    this.updateData();
+    this.updateLocalData();
 
     // TODO tiwe: ENV.mode.tokenToShow
     this.interval = setInterval(
-      () => this.updateData(),
+      () => this.updateLocalData(),
       1000 * intervalInSeconds
     ) as unknown as number;
   }
 
+  subscribe(dataConsumer: (data: Readonly<LocalLandscapeData>) => unknown) {
+    if (this.latestData.drawableClassCommunications) {
+      dataConsumer(this.latestData);
+    }
+
+    this.on(LandscapeDataUpdateEventName, dataConsumer);
+  }
+
   async stopPolling() {
-    debug('Stopping polling interval');
     if (this.interval === undefined) {
       return;
     }
@@ -54,7 +61,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     // TODO (?)
   }
 
-  getLatest(): LocalData {
+  getLatest(): LocalLandscapeData {
     return this.latestData;
   }
 
@@ -84,9 +91,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   }
 
   private async handleUpdate(update: DataUpdate) {
-    performance.mark('handleUpdate-start');
-
-    debug('Update received!', Object.keys(update));
+    console.log('Update received!', Object.keys(update));
 
     if (update.dynamic) {
       this.latestData.dynamic = update.dynamic;
@@ -101,12 +106,10 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       this.latestData.structure = update.structure;
     }
 
-    this.trigger(LandscapeDataUpdateEventName, update);
-
-    performance.mark('handleUpdate-end');
+    this.trigger(LandscapeDataUpdateEventName, this.latestData);
   }
 
-  private async updateData(endTime = Date.now() - 60 * 1000) {
+  private async updateLocalData(endTime = Date.now() - 60 * 1000) {
     const landscapeToken = this.tokenService.token;
     if (landscapeToken === null) {
       return;
@@ -118,7 +121,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     }
 
     const update = await this.fetchData(endTime);
-    this.handleUpdate(update);
+    await this.handleUpdate(update);
   }
 
   private async createWorkerAndRemote(): Promise<
@@ -136,8 +139,6 @@ export default class LandscapeDataService extends Service.extend(Evented) {
         tracesUrl: traceService,
       },
     });
-
-    debug('landscape-data-worker.js initialized.');
 
     return [worker, remote];
   }
@@ -160,10 +161,10 @@ function resolveWorkerUrl(worker: string): string {
   return `${webWorkersPath}${worker}`;
 }
 
-type LocalData = Partial<{
+export type LocalLandscapeData = Partial<{
   structure: StructureLandscapeData;
   dynamic: DynamicLandscapeData;
-  drawableClassCommunication: DrawableClassCommunication[];
+  drawableClassCommunications: DrawableClassCommunication[];
 }>;
 
 declare module '@ember/service' {
