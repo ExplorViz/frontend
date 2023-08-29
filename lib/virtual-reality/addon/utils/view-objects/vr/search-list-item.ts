@@ -73,11 +73,13 @@ export default class SearchListItem
     if (this.isHovered) return;
 
     this.isHovered = true;
+    // @ts-ignore
     this.set({ backgroundOpacity: 0.4 });
   }
 
   resetHover() {
     this.isHovered = false;
+    // @ts-ignore
     this.set({ backgroundOpacity: 0 });
   }
 }

@@ -41,11 +41,13 @@ export default class DisconnectButton
     if (this.isHovered) return;
 
     this.isHovered = true;
+    // @ts-ignore
     this.set({ backgroundOpacity: 0.8 });
   }
 
   resetHover() {
     this.isHovered = false;
+    // @ts-ignore
     this.set({ backgroundOpacity: 0.6 });
   }
 }

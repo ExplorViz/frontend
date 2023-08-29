@@ -120,6 +120,7 @@ export default class SearchMenu extends InteractiveMenu {
 
     textPanel.add(title, textField);
 
+    // @ts-ignore
     this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
     this.searchListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
@@ -166,12 +167,15 @@ export default class SearchMenu extends InteractiveMenu {
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
 
+    // @ts-ignore
     if (this.oldContent === this.userText.content) {
       return;
     }
 
+    // @ts-ignore
     this.oldContent = this.userText.content;
 
+    // @ts-ignore
     this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);

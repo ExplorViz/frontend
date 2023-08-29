@@ -6,7 +6,7 @@ export type ComponentUpdateMessage = {
   isOpened: boolean;
   appId: string;
   componentId: string;
-  forwardFlag?: boolean;
+  forward?: boolean;
 };
 
 export function isComponentUpdateMessage(

@@ -144,33 +144,26 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
     if (isFoundation) {
       if (isOpened) {
-        this.applicationRenderer.openAllComponentsLocally(
-          applicationObject3D,
-          false // whenever we receive messages we don't want to resend them
-        );
+        this.applicationRenderer.openAllComponentsLocally(applicationObject3D);
       } else {
-        this.applicationRenderer.closeAllComponentsLocally(
-          applicationObject3D,
-          false // whenever we receive messages we don't want to resend them
-        );
+        this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
       }
     } else if (componentMesh instanceof ComponentMesh) {
       this.applicationRenderer.toggleComponentLocally(
         componentMesh,
-        applicationObject3D,
-        false // whenever we receive messages we don't want to resend them
+        applicationObject3D
       );
     }
   }
 
   onAllHighlightsReset(): void {
     this.highlightingService.removeHighlightingForAllApplications(false);
-    this.highlightingService.updateHighlighting(false);
+    this.highlightingService.updateHighlighting();
   }
 
   onHighlightingUpdate({
     userId,
-    originalMessage: { appId, entityId, isMultiSelected },
+    originalMessage: { appId, entityId, multiSelected },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
@@ -191,7 +184,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       mesh,
       application,
       user.color,
-      isMultiSelected,
+      multiSelected,
       false // whenever we receive messages we don't want to resend them
     );
   }
