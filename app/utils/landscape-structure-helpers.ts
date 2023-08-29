@@ -10,6 +10,7 @@ import {
   isApplication,
   StructureLandscapeData,
 } from './landscape-schemes/structure-data';
+import { getAncestorPackages, getPackageById } from './package-helpers';
 import { getTraceIdToSpanTree, SpanTree } from './trace-helpers';
 
 export function getAllApplicationsInLandscape(
@@ -25,6 +26,41 @@ export function getApplicationInLandscapeById(
   return getAllApplicationsInLandscape(landscapeStructure).filter(
     (app) => app.id === id
   )[0];
+}
+
+export function getApplicationFromPackage(
+  landscapeStructure: StructureLandscapeData,
+  packageId: string
+): Application | undefined {
+  let matchingApplication: Application | undefined;
+
+  landscapeStructure.nodes.forEach((node) => {
+    node.applications.forEach((application) => {
+      const possibleMatch = application.packages.find(
+        (packg) => packg.id === packageId
+      );
+
+      if (possibleMatch) {
+        matchingApplication = application;
+      }
+    });
+  });
+
+  return matchingApplication;
+}
+
+export function getApplicationFromSubPackage(
+  landscapeStructure: StructureLandscapeData,
+  packageId: string
+): Application | undefined {
+  const pckg = getPackageById(landscapeStructure, packageId);
+  if (pckg) {
+    const ancestorPackages = getAncestorPackages(pckg);
+    const pckgId = ancestorPackages[ancestorPackages.length - 1].id;
+    const app = getApplicationFromPackage(landscapeStructure, pckgId);
+    return app;
+  }
+  return undefined;
 }
 
 export function getApplicationFromClass(

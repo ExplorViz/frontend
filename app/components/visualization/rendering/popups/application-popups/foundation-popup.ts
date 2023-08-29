@@ -1,5 +1,6 @@
 import Component from '@glimmer/component';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,

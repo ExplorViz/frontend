@@ -49,7 +49,6 @@ export default class ComponentLabelMesh extends LabelMesh {
     }
 
     const parentScale = componentMesh.scale;
-
     const parentAspectRatio = parentScale.x / parentScale.z;
 
     // Adjust desired text size with possible scaling

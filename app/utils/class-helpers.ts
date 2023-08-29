@@ -8,3 +8,7 @@ export function getClassAncestorPackages(clss: Class) {
 export function getClassMethodHashCodes(clss: Class) {
   return clss.methods.map((method) => method.hashCode);
 }
+
+export function getClassMethodByName(clss: Class, methodName: string) {
+  return clss.methods.find((method) => method.name === methodName);
+}

@@ -1,4 +1,9 @@
-import { Package, Class } from './landscape-schemes/structure-data';
+import { getAllPackagesInApplication } from './application-helpers';
+import {
+  Package,
+  Class,
+  StructureLandscapeData,
+} from './landscape-schemes/structure-data';
 
 /**
  * Returns the package's classes
@@ -58,4 +63,25 @@ export function packageContainsClass(
         packageContainsClass(subPackage, clazz)
       ))
   );
+}
+
+export function getPackageById(
+  landscapeStructure: StructureLandscapeData,
+  id: string
+): Package | undefined {
+  for (const node of landscapeStructure.nodes) {
+    for (const application of node.applications) {
+      const allPackagesinApplication = getAllPackagesInApplication(application);
+
+      const possibleMatch = allPackagesinApplication.find(
+        (pckg) => pckg.id === id
+      );
+
+      if (possibleMatch) {
+        return possibleMatch;
+      }
+    }
+  }
+
+  return undefined;
 }
