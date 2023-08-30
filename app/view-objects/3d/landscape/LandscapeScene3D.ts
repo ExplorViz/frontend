@@ -3,6 +3,15 @@ import type { GraphData } from 'three-forcegraph';
 import type Owner from '@ember/owner';
 import type { Updatable } from 'explorviz-frontend/rendering/application/rendering-loop';
 import type { LocalLandscapeData } from 'explorviz-frontend/services/landscape-data-service';
+import type { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
+import type VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import type IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
+import type DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
+import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
@@ -11,14 +20,9 @@ import ForceGraph, {
 } from 'explorviz-frontend/rendering/application/force-graph';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import ApplicationData from 'explorviz-frontend/utils/application-data';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -32,6 +36,15 @@ export default class LandscapeScene3D implements Updatable {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
+
+  @service('virtual-reality@vr-room-serializer')
+  roomSerializer!: VrRoomSerializer;
+
+  @service('ide-websocket-facade')
+  ideWebsocketFacade!: IdeWebsocketFacade;
+
+  @service('detached-menu-renderer')
+  detachedMenuRenderer!: DetachedMenuRenderer;
 
   constructor(owner: Owner) {
     setOwner(this, owner);
@@ -48,9 +61,10 @@ export default class LandscapeScene3D implements Updatable {
     return this.forceGraph.graph.graphData().nodes.length === 0;
   }
 
-  async updateData(data: LocalLandscapeData): Promise<CommunicationLink[]> {
+  async updateData(data: LocalLandscapeData): Promise<void> {
     if (!data.drawableClassCommunications) {
-      return []; // TODO
+      console.error('no drawable class communication');
+      return; // TODO
     }
 
     const drawableClassCommunications = data.drawableClassCommunications;
@@ -74,10 +88,7 @@ export default class LandscapeScene3D implements Updatable {
         );
 
         // create or update applicationObject3D
-        const app =
-          await this.applicationRenderer.addApplicationTask.perform(
-            applicationData
-          );
+        const app = this.applicationRenderer.addApplication(applicationData);
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -132,11 +143,38 @@ export default class LandscapeScene3D implements Updatable {
       links: [...communicationLinks, ...nodeLinks],
     };
 
-    // TODO serialized room stuff & AR:removeApplicationLocallyById
+    const { serializedRoom } = this.roomSerializer;
+    if (serializedRoom) {
+      this.applicationRenderer.restoreFromSerialization(serializedRoom);
+      // TODO is it necessary to wait?
+      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      this.roomSerializer.serializedRoom = undefined;
+    } else {
+      const openApplicationsIds = this.applicationRenderer.openApplicationIds;
+      for (let i = 0; i < openApplicationsIds.length; ++i) {
+        const applicationId = openApplicationsIds[i];
+        const applicationData = this.applicationRepo.getById(applicationId);
+        if (!applicationData) {
+          this.applicationRenderer.removeApplicationLocallyById(applicationId);
+        }
+      }
+    }
 
     this.setGraphData(gData);
 
-    return communicationLinks;
+    // send new data to ide
+    const cls: CommunicationLink[] = [];
+    communicationLinks.forEach((element) => {
+      const meshIDs = element.communicationData.id.split('_');
+      const tempCL: CommunicationLink = {
+        meshID: element.communicationData.id,
+        sourceMeshID: meshIDs[0],
+        targetMeshID: meshIDs[1],
+        methodName: meshIDs[2],
+      };
+      cls.push(tempCL);
+    });
+    this.ideWebsocketFacade.refreshVizData(cls);
   }
 
   // TODO tiwe: remove?
@@ -187,12 +225,12 @@ export default class LandscapeScene3D implements Updatable {
   }
 }
 
-type CommunicationLink = {
-  source: GraphNode;
-  target: GraphNode;
-  value: number | undefined;
-  communicationData: DrawableClassCommunication;
-};
+// type CommunicationLink = {
+//   source: GraphNode;
+//   target: GraphNode;
+//   value: number | undefined;
+//   communicationData: DrawableClassCommunication;
+// };
 
 type EmberWebWorker = {
   postMessage(workerName: string, payload: any): Promise<any>;

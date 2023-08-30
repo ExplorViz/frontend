@@ -130,10 +130,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
 
         // create or update applicationObject3D
-        const app =
-          await this.applicationRenderer.addApplicationTask.perform(
-            applicationData
-          );
+        const app = this.applicationRenderer.addApplication(applicationData);
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(

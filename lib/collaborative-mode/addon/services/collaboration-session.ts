@@ -3,7 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import * as THREE from 'three';
@@ -38,6 +37,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -55,8 +55,8 @@ export default class CollaborationSession extends Service.extend({
   @service('vr-room')
   private roomService!: VrRoomService;
 
-  @service('landscape-listener')
-  private landscapeListener!: LandscapeListener;
+  @service('landscape-data-service')
+  private landscapeDataService!: LandscapeDataService;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -275,7 +275,7 @@ export default class CollaborationSession extends Service.extend({
     // Remove remote users.
     this.removeAllRemoteUsers();
 
-    this.landscapeListener.initLandscapePolling(); // TODO tiwe
+    this.landscapeDataService.initPolling();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();

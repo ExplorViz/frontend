@@ -1,7 +1,8 @@
-import Service from '@ember/service';
-
+import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
-import debugLogger from 'ember-debug-logger';
+import LandscapeDataService, {
+  NewTimestampEventName,
+} from '../landscape-data-service';
 
 export interface Timestamp {
   id: string;
@@ -16,9 +17,29 @@ export interface Timestamp {
  * @extends Ember.Service
  */
 export default class TimestampRepository extends Service.extend(Evented) {
-  debug = debugLogger();
+  @service('landscape-data-service')
+  private landscapeDataService!: LandscapeDataService;
 
   private timelineTimestamps: Map<string, Timestamp[]> = new Map();
+
+  init(): void {
+    super.init();
+
+    this.landscapeDataService.on(
+      NewTimestampEventName,
+      this,
+      this.onNewTimestamp
+    );
+  }
+
+  willDestroy(): void {
+    this.landscapeDataService.off(
+      NewTimestampEventName,
+      this,
+      this.onNewTimestamp
+    );
+    super.willDestroy();
+  }
 
   getTimestamps(landscapeToken: string) {
     return this.timelineTimestamps.get(landscapeToken);
@@ -46,10 +67,20 @@ export default class TimestampRepository extends Service.extend(Evented) {
    * Triggers the 'updated' event in the timeline for updating the chart
    * @method triggerTimelineUpdate
    */
-  triggerTimelineUpdate() {
+  private triggerTimelineUpdate() {
     this.trigger('updated');
   }
+
+  private onNewTimestamp({ token, timestamp }: NewTimestampPayload) {
+    this.addTimestamp(token, timestamp);
+    this.triggerTimelineUpdate();
+  }
 }
+
+export type NewTimestampPayload = {
+  token: string;
+  timestamp: Timestamp;
+};
 
 declare module '@ember/service' {
   interface Registry {

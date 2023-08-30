@@ -11,10 +11,13 @@ import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-sc
 import type TimestampRepository from './repos/timestamp-repository';
 import type ApplicationRenderer from './application-renderer';
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type { NewTimestampPayload } from './repos/timestamp-repository';
 
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
+
 export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
+export const NewTimestampEventName = 'NewTimestamp';
 
 export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly latestData: LocalLandscapeData = {};
@@ -29,6 +32,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   @service('application-renderer') applicationRenderer!: ApplicationRenderer;
 
   async initPolling() {
+    // TODO: could be called multiple times
     const [worker, remote] = await this.createWorkerAndRemote();
     this.worker = worker;
     this.comlinkRemote = remote;
@@ -88,8 +92,10 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     }
 
     if (update.timestamp) {
-      this.timestampRepo.addTimestamp(update.token, update.timestamp);
-      this.timestampRepo.triggerTimelineUpdate();
+      this.trigger(NewTimestampEventName, {
+        token: update.token,
+        timestamp: update.timestamp,
+      } as NewTimestampPayload);
     }
 
     if (update.structure) {

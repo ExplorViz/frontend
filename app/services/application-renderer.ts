@@ -2,7 +2,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -191,108 +190,131 @@ export default class ApplicationRenderer extends Service.extend({
 
   // #endregion getters
 
-  addApplicationTask = task(
-    async (
-      applicationData: ApplicationData,
-      addApplicationArgs: AddApplicationArgs = {}
-    ) => {
-      const applicationModel = applicationData.application;
-      const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
-        applicationData.layoutData
+  addApplication(
+    applicationData: ApplicationData,
+    addApplicationArgs: AddApplicationArgs = {}
+  ) {
+    const applicationModel = applicationData.application;
+    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
+      applicationData.layoutData
+    );
+
+    const isOpen = this.isApplicationOpen(applicationModel.id);
+    let applicationObject3D = this.getApplicationById(applicationModel.id);
+
+    let layoutChanged = true;
+    if (applicationObject3D) {
+      // Maps cannot be compared directly. Thus, we compare their size.
+      layoutChanged =
+        boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
+
+      applicationObject3D.boxLayoutMap = boxLayoutMap;
+    } else {
+      applicationObject3D = new VrApplicationObject3D(
+        applicationData,
+        boxLayoutMap
       );
-
-      const isOpen = this.isApplicationOpen(applicationModel.id);
-      let applicationObject3D = this.getApplicationById(applicationModel.id);
-
-      let layoutChanged = true;
-      if (applicationObject3D) {
-        // Maps cannot be compared directly. Thus, we compare their size.
-        layoutChanged =
-          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-
-        applicationObject3D.boxLayoutMap = boxLayoutMap;
-      } else {
-        applicationObject3D = new VrApplicationObject3D(
-          applicationData,
-          boxLayoutMap
-        );
-        this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
-      }
-
-      const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
-          ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
-          : addApplicationArgs;
-
-      if (layoutChanged) {
-        applicationObject3D.removeAllEntities();
-
-        // Add new meshes to application
-        EntityRendering.addFoundationAndChildrenToApplication(
-          applicationObject3D,
-          this.configuration.applicationColors
-        );
-
-        // Restore state of open packages and transparent components (packages and clazzes)
-        restoreComponentState(
-          applicationObject3D,
-          applicationState.openComponents,
-          applicationState.transparentComponents,
-          this.highlightingService.opacity
-        );
-
-        // Add labels to application
-        Labeler.addApplicationLabels(
-          applicationObject3D,
-          this.font,
-          this.configuration.applicationColors
-        );
-      }
-
-      this.addCommunication(applicationObject3D);
-
-      // reset transparency of inner communication links
-      applicationObject3D.getCommMeshes().forEach((commMesh) => {
-        if (applicationState.transparentComponents?.has(commMesh.getModelId()))
-          commMesh.turnTransparent(this.highlightingService.opacity);
-      });
-
-      // reset transparency of extern communication links
-
-      applicationState.transparentComponents?.forEach((id) => {
-        const externLinkMesh = this.linkRenderer.getLinkById(id);
-        if (externLinkMesh) {
-          externLinkMesh.turnTransparent(this.highlightingService.opacity);
-        }
-      });
-
-      // reset highlights -------------------
-
-      const currentSetting =
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        true; // so resetting multiple highlights within one application won't reset them
-      applicationState.highlightedComponents?.forEach(
-        (highlightedComponent) => {
-          this.highlightingService.highlightById(
-            highlightedComponent.entityId,
-            highlightedComponent.color
-          );
-        }
-      );
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        currentSetting;
-      // ----------------------------------------
-
-      // this.heatmapConf.updateActiveApplication(applicationObject3D);
-
-      applicationObject3D.resetRotation();
-
-      return applicationObject3D;
+      this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
     }
-  );
+
+    const applicationState =
+      Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        ? this.roomSerializer.serializeToAddApplicationArgs(
+            applicationObject3D
+          )
+        : addApplicationArgs;
+
+    if (layoutChanged) {
+      applicationObject3D.removeAllEntities();
+
+      // Add new meshes to application
+      EntityRendering.addFoundationAndChildrenToApplication(
+        applicationObject3D,
+        this.configuration.applicationColors
+      );
+
+      // Restore state of open packages and transparent components (packages and clazzes)
+      restoreComponentState(
+        applicationObject3D,
+        applicationState.openComponents,
+        applicationState.transparentComponents,
+        this.highlightingService.opacity
+      );
+
+      // Add labels to application
+      Labeler.addApplicationLabels(
+        applicationObject3D,
+        this.font,
+        this.configuration.applicationColors
+      );
+    }
+
+    if (layoutChanged) {
+      applicationObject3D.removeAllEntities();
+
+      // Add new meshes to application
+      EntityRendering.addFoundationAndChildrenToApplication(
+        applicationObject3D,
+        this.userSettings.applicationColors
+      );
+
+      // Restore state of open packages and transparent components (packages and clazzes)
+      EntityManipulation.restoreComponentState(
+        applicationObject3D,
+        applicationState.openComponents,
+        applicationState.transparentComponents,
+        this.highlightingService.opacity
+      );
+      
+      // Add labels to application
+      Labeler.addApplicationLabels(
+        applicationObject3D,
+        this.font,
+        this.userSettings.applicationColors
+      );
+    }
+
+    this.addCommunication(applicationObject3D);
+
+    // reset transparency of inner communication links
+    applicationObject3D.getCommMeshes().forEach((commMesh) => {
+      if (applicationState.transparentComponents?.has(commMesh.getModelId()))
+        commMesh.turnTransparent(this.highlightingService.opacity);
+    });
+
+    // reset transparency of extern communication links
+
+    applicationState.transparentComponents?.forEach((id) => {
+      const externLinkMesh = this.linkRenderer.getLinkById(id);
+      if (externLinkMesh) {
+        externLinkMesh.turnTransparent(this.highlightingService.opacity);
+      }
+    });
+
+    // reset highlights -------------------
+
+    const currentSetting =
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value;
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      true; // so resetting multiple highlights within one application won't reset them
+    applicationState.highlightedComponents?.forEach(
+      (highlightedComponent) => {
+        this.highlightingService.highlightById(
+          highlightedComponent.entityId,
+          highlightedComponent.color
+        );
+      }
+    );
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      currentSetting;
+    // ----------------------------------------
+
+    // this.heatmapConf.updateActiveApplication(applicationObject3D);
+
+    applicationObject3D.resetRotation();
+
+    return applicationObject3D;
+  }
 
   createScene(owner: Owner): LandscapeScene3D {
     this.scene = new LandscapeScene3D(owner);
@@ -541,7 +563,7 @@ export default class ApplicationRenderer extends Service.extend({
     room.openApps.forEach(async (app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-        await this.addApplicationTask.perform(
+        this.addApplication(
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );
