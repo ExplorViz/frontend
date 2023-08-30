@@ -30,9 +30,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
   timer: NodeJS.Timeout | null = null;
 
   async initLandscapePolling(intervalInSeconds: number = 10) {
-    this.debug('Skipped legacy initLandscapePolling');
-    return; // TODO tiwe
-
+    console.warn('legacy landscape polling');
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
@@ -221,7 +219,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
       timestampRecord
     );
 
-    this.timestampRepo.triggerTimelineUpdate();
+    //this.timestampRepo.triggerTimelineUpdate();
   }
 
   cleanup() {

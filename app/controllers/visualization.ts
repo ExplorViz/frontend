@@ -425,12 +425,7 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-  private onDataUpdate(update: LocalLandscapeData | undefined) {
-    if (update === undefined) {
-      return;
-    }
-
-    const latestData = this.landscapeDataService.getLatest();
+  private onDataUpdate(latestData: LocalLandscapeData) {
     const structureData = latestData.structure;
 
     if (structureData === undefined) {

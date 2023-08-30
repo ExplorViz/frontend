@@ -2,7 +2,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaborative-mode/services/local-user';
-import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -171,83 +170,73 @@ export default class ApplicationRenderer extends Service.extend({
 
   // #endregion getters
 
-  addApplicationTask = task(
-    async (
-      applicationData: ApplicationData,
-      addApplicationArgs: AddApplicationArgs = {}
-    ) => {
-      const applicationModel = applicationData.application;
-      const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
-        applicationData.layoutData
+  addApplication(
+    applicationData: ApplicationData,
+    addApplicationArgs: AddApplicationArgs = {}
+  ) {
+    const applicationModel = applicationData.application;
+    const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
+      applicationData.layoutData
+    );
+
+    const isOpen = this.isApplicationOpen(applicationModel.id);
+    let applicationObject3D = this.getApplicationById(applicationModel.id);
+
+    let layoutChanged = true;
+    if (applicationObject3D) {
+      layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
+
+      applicationObject3D.boxLayoutMap = boxLayoutMap;
+    } else {
+      applicationObject3D = new VrApplicationObject3D(
+        applicationData,
+        boxLayoutMap
       );
+    }
 
-      const isOpen = this.isApplicationOpen(applicationModel.id);
-      let applicationObject3D = this.getApplicationById(applicationModel.id);
+    const applicationState =
+      Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        ? this.roomSerializer.serializeToAddApplicationArgs(applicationObject3D)
+        : addApplicationArgs;
 
-      let layoutChanged = true;
-      if (applicationObject3D) {
-        // Always true!
-        layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
+    if (layoutChanged) {
+      applicationObject3D.removeAllEntities();
 
-        applicationObject3D.boxLayoutMap = boxLayoutMap;
-      } else {
-        applicationObject3D = new VrApplicationObject3D(
-          applicationData,
-          boxLayoutMap
-        );
-      }
-
-      const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
-          ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
-          : addApplicationArgs;
-
-      if (layoutChanged) {
-        applicationObject3D.removeAllEntities();
-
-        // Add new meshes to application
-        EntityRendering.addFoundationAndChildrenToApplication(
-          applicationObject3D,
-          this.configuration.applicationColors
-        );
-      }
-
-      // Restore state of components highlighting
-      restoreComponentState(
+      // Add new meshes to application
+      EntityRendering.addFoundationAndChildrenToApplication(
         applicationObject3D,
-        applicationState.openComponents
-      );
-
-      // Add labels to application
-      Labeler.addApplicationLabels(
-        applicationObject3D,
-        this.font,
         this.configuration.applicationColors
       );
-
-      this.addCommunication(applicationObject3D);
-
-      applicationState.highlightedComponents?.forEach(
-        (highlightedComponent) => {
-          this.highlightingService.hightlightComponentLocallyByTypeAndId(
-            applicationObject3D!,
-            highlightedComponent
-          );
-        }
-      );
-      this.highlightingService.updateHighlighting(applicationObject3D);
-
-      this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
-
-      // this.heatmapConf.updateActiveApplication(applicationObject3D);
-
-      applicationObject3D.resetRotation();
-
-      return applicationObject3D;
     }
-  );
+
+    // Restore state of components highlighting
+    restoreComponentState(applicationObject3D, applicationState.openComponents);
+
+    // Add labels to application
+    Labeler.addApplicationLabels(
+      applicationObject3D,
+      this.font,
+      this.configuration.applicationColors
+    );
+
+    this.addCommunication(applicationObject3D);
+
+    applicationState.highlightedComponents?.forEach((highlightedComponent) => {
+      this.highlightingService.hightlightComponentLocallyByTypeAndId(
+        applicationObject3D!,
+        highlightedComponent
+      );
+    });
+    this.highlightingService.updateHighlighting(applicationObject3D);
+
+    this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
+
+    // this.heatmapConf.updateActiveApplication(applicationObject3D);
+
+    applicationObject3D.resetRotation();
+
+    return applicationObject3D;
+  }
 
   createScene(owner: Owner): LandscapeScene3D {
     this.scene = new LandscapeScene3D(owner);
@@ -474,7 +463,7 @@ export default class ApplicationRenderer extends Service.extend({
     room.openApps.forEach((app) => {
       const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
-        this.addApplicationTask.perform(
+        this.addApplication(
           applicationData,
           this.roomSerializer.serializeToAddApplicationArgs(app)
         );

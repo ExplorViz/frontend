@@ -34,6 +34,7 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
+import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -53,6 +54,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('landscape-listener')
   private landscapeListener!: LandscapeListener;
+
+  @service('landscape-data-service')
+  private landscapeDataService!: LandscapeDataService;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -234,7 +238,7 @@ export default class CollaborationSession extends Service.extend({
     // Remove remote users.
     this.removeAllRemoteUsers();
 
-    this.landscapeListener.initLandscapePolling(); // TODO tiwe
+    this.landscapeDataService.initPolling();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlightingForAllApplications();
