@@ -197,7 +197,7 @@ export default class SearchMenu extends InteractiveMenu {
     return new VRControllerThumbpadBinding(
       { labelUp: 'Scroll up', labelDown: 'Scroll down' },
       {
-        onThumbpadTouch: (controller: VRController, axes: number[]) => {
+        onThumbpadTouch: (_controller: VRController, axes: number[]) => {
           // controller.updateIntersectedObject();
           //if (!controller.intersectedObject) return;
 
