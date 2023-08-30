@@ -39,7 +39,7 @@ import {
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import LandscapeDataService, {
-  LocalLandscapeData,
+  LandscapeDataUpdateEventName,
 } from 'explorviz-frontend/services/landscape-data-service';
 import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 
@@ -180,8 +180,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.lookAtMesh
     );
 
-    this.landscapeDataService.subscribe(
-      (data: LocalLandscapeData) => this.scene.updateData(data, this.applicationRenderer)
+    this.landscapeDataService.on(
+      LandscapeDataUpdateEventName,
+      this.scene,
+      this.scene.updateData
     );
   }
 
@@ -519,6 +521,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
     // this.graph.graphData([]);
+    this.landscapeDataService.off(
+      LandscapeDataUpdateEventName,
+      this.scene,
+      this.scene.updateData
+    );
 
     this.debug('Cleaned up application rendering');
 
