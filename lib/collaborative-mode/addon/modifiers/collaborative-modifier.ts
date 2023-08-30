@@ -42,7 +42,6 @@ import {
   RestructureCommunicationMessage,
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
-  RestructureModeUpdateMessage,
   RestructureUpdateMessage,
 } from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 
@@ -162,7 +161,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
-  
+
   @service('local-user')
   private localUser!: LocalUser;
 
@@ -251,9 +250,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
   }
 
-  onRestructureModeUpdate(
-    originalMessage: ForwardedMessage<RestructureModeUpdateMessage>
-  ): void {
+  onRestructureModeUpdate(): void {
     this.landscapeRestructure.toggleRestructureModeLocally();
   }
 

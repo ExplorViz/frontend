@@ -29,8 +29,8 @@ import {
   RestructureUpdateMessage,
 } from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 import {
-  ChangeLogAction,
-  EntryType,
+  MeshAction,
+  EntityType,
 } from 'explorviz-frontend/utils/change-log-entry';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import { AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
@@ -163,7 +163,7 @@ export default class VrMessageSender extends Service {
   }
 
   sendRestructureUpdate(
-    entityType: EntryType,
+    entityType: EntityType,
     entityId: string,
     newName: string,
     appId: string | null
@@ -178,8 +178,8 @@ export default class VrMessageSender extends Service {
   }
 
   sendRestructureCreateOrDeleteMessage(
-    entityType: EntryType,
-    action: ChangeLogAction,
+    entityType: EntityType,
+    action: MeshAction,
     name: string | null,
     language: string | null,
     entityId: string | null

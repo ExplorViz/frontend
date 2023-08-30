@@ -6,9 +6,9 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
-  ChangeLogAction,
+  MeshAction,
   ChangeLogEntry,
-  EntryType,
+  EntityType,
 } from 'explorviz-frontend/utils/change-log-entry';
 import { getAncestorPackages } from 'explorviz-frontend/utils/package-helpers';
 
@@ -18,18 +18,18 @@ export default class Changelog extends Service.extend({
   changeLogEntries: ChangeLogEntry[] = [];
 
   createAppEntry(app: Application) {
-    const appEntry = new ChangeLogEntry(ChangeLogAction.Create, app);
+    const appEntry = new ChangeLogEntry(MeshAction.Create, app);
     this.changeLogEntries.push(appEntry);
   }
 
   createPackageEntry(app: Application, pckg: Package) {
-    const pckgEntry = new ChangeLogEntry(ChangeLogAction.Create, app, pckg);
+    const pckgEntry = new ChangeLogEntry(MeshAction.Create, app, pckg);
     this.changeLogEntries.push(pckgEntry);
   }
 
   createClassEntry(app: Application, parentPckg: Package, clazz: Class) {
     const clazzEntry = new ChangeLogEntry(
-      ChangeLogAction.Create,
+      MeshAction.Create,
       app,
       parentPckg,
       clazz
@@ -40,9 +40,9 @@ export default class Changelog extends Service.extend({
   renameAppEntry(app: Application, newName: string) {
     const entry = this.findChangeLogEntry(app);
 
-    if (!entry || (entry && entry._entryType !== EntryType.App)) {
+    if (!entry || (entry && entry._entryType !== EntityType.App)) {
       const appEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+        MeshAction.Rename,
         app,
         undefined,
         undefined,
@@ -51,9 +51,8 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.push(appEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.App &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
+      entry._entryType === EntityType.App &&
+      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
     ) {
       entry.newName = newName;
     }
@@ -64,7 +63,7 @@ export default class Changelog extends Service.extend({
 
     if (!entry) {
       const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+        MeshAction.Rename,
         app,
         pckg,
         undefined,
@@ -73,9 +72,8 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.Package &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
+      entry._entryType === EntityType.Package &&
+      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
     ) {
       entry.newName = newName;
     }
@@ -84,9 +82,9 @@ export default class Changelog extends Service.extend({
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
     const entry = this.findChangeLogEntry(pckg);
 
-    if (!entry || (entry && entry.entryType === EntryType.Clazz)) {
+    if (!entry || (entry && entry.entryType === EntityType.Clazz)) {
       const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+        MeshAction.Rename,
         app,
         pckg,
         undefined,
@@ -95,9 +93,8 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.SubPackage &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
+      entry._entryType === EntityType.SubPackage &&
+      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
     ) {
       entry.newName = newName;
     }
@@ -108,7 +105,7 @@ export default class Changelog extends Service.extend({
 
     if (!entry) {
       const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+        MeshAction.Rename,
         app,
         clazz.parent,
         clazz,
@@ -117,9 +114,8 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.push(clazzEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.Clazz &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
+      entry._entryType === EntityType.Clazz &&
+      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
     ) {
       entry.newName = newName;
     }
@@ -128,28 +124,28 @@ export default class Changelog extends Service.extend({
   deleteAppEntry(app: Application) {
     const entry = this.findChangeLogEntry(app);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
+    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
+      const appEntry = new ChangeLogEntry(MeshAction.Delete, app);
       this.changeLogEntries.push(appEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.App &&
-      entry.action === ChangeLogAction.Create
+      entry._entryType === EntityType.App &&
+      entry.action === MeshAction.Create
     ) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.app?.id !== app.id
       );
     } else if (
-      (entry && entry.action !== ChangeLogAction.Create) ||
+      (entry && entry.action !== MeshAction.Create) ||
       (entry &&
-        entry._entryType !== EntryType.App &&
-        entry.action === ChangeLogAction.Create)
+        entry._entryType !== EntityType.App &&
+        entry.action === MeshAction.Create)
     ) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.app?.id !== app.id
       );
       const originalName = entry._originalAppName;
-      const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
+      const appEntry = new ChangeLogEntry(MeshAction.Delete, app);
       appEntry.updateOriginalAppName(originalName as string);
       this.changeLogEntries.push(appEntry);
     }
@@ -159,22 +155,22 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
     this.removeAffectedLogEntries(app, pckg);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
+    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
+      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
-      entry._entryType !== EntryType.App &&
-      entry.action === ChangeLogAction.Create
+      entry._entryType !== EntityType.App &&
+      entry.action === MeshAction.Create
     ) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
+    } else if (entry && entry.action !== MeshAction.Create) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
+      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     }
   }
@@ -183,27 +179,27 @@ export default class Changelog extends Service.extend({
     const entry = this.findChangeLogEntry(pckg);
     this.removeAffectedLogEntries(app, pckg);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
+    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
+      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     } else if (
       entry &&
-      entry._entryType === EntryType.SubPackage &&
-      entry.action === ChangeLogAction.Create
+      entry._entryType === EntityType.SubPackage &&
+      entry.action === MeshAction.Create
     ) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
     } else if (
       entry &&
-      (entry._entryType === EntryType.SubPackage ||
-        entry._entryType === EntryType.Clazz) &&
-      entry.action !== ChangeLogAction.Create
+      (entry._entryType === EntityType.SubPackage ||
+        entry._entryType === EntityType.Clazz) &&
+      entry.action !== MeshAction.Create
     ) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
+      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
       this.changeLogEntries.push(pckgEntry);
     }
   }
@@ -214,18 +210,18 @@ export default class Changelog extends Service.extend({
 
     if (!entry) {
       const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Delete,
+        MeshAction.Delete,
         app,
         clazz.parent,
         clazz
       );
       this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
+    } else if (entry && entry.action === MeshAction.Create) {
       this.changeLogEntries.removeObject(entry);
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
+    } else if (entry && entry.action !== MeshAction.Create) {
       this.changeLogEntries.removeObject(entry);
       const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Delete,
+        MeshAction.Delete,
         app,
         clazz.parent,
         clazz
@@ -246,9 +242,9 @@ export default class Changelog extends Service.extend({
   ) {
     const entry = this.findChangeLogEntry(pckg);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+    if (!entry || (entry && entry.action === MeshAction.Rename)) {
       const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
+        MeshAction.CutInsert,
         app,
         pckg,
         undefined,
@@ -257,14 +253,14 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
       this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
+    } else if (entry && entry.action === MeshAction.Create) {
       this.updateAffectedCreateLogEntries(
         app,
         pckg,
         destination,
         landscapeData
       );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
+    } else if (entry && entry.action !== MeshAction.Create) {
       this.updateAffectedCutInsertLogEntries(
         app,
         pckg,
@@ -282,9 +278,9 @@ export default class Changelog extends Service.extend({
   ) {
     const entry = this.findChangeLogEntry(pckg);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+    if (!entry || (entry && entry.action === MeshAction.Rename)) {
       const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
+        MeshAction.CutInsert,
         app,
         pckg,
         undefined,
@@ -293,14 +289,14 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
       this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
+    } else if (entry && entry.action === MeshAction.Create) {
       this.updateAffectedCreateLogEntries(
         app,
         pckg,
         destination,
         landscapeData
       );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
+    } else if (entry && entry.action !== MeshAction.Create) {
       this.updateAffectedCutInsertLogEntries(
         app,
         pckg,
@@ -318,9 +314,9 @@ export default class Changelog extends Service.extend({
   ) {
     const entry = this.findChangeLogEntry(clazz);
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
+    if (!entry || (entry && entry.action === MeshAction.Rename)) {
       const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
+        MeshAction.CutInsert,
         app,
         clazz.parent,
         clazz,
@@ -329,9 +325,9 @@ export default class Changelog extends Service.extend({
         landscapeData
       );
       this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
+    } else if (entry && entry.action === MeshAction.Create) {
       entry.updateCreateEntry(destination, landscapeData);
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
+    } else if (entry && entry.action !== MeshAction.Create) {
       entry.updateDestination(destination, landscapeData);
     }
   }
@@ -345,7 +341,7 @@ export default class Changelog extends Service.extend({
     landscapeData: StructureLandscapeData
   ) {
     const commEntry = new ChangeLogEntry(
-      ChangeLogAction.Communication,
+      MeshAction.Communication,
       sourceApp,
       sourceClazz.parent,
       sourceClazz,
@@ -380,7 +376,7 @@ export default class Changelog extends Service.extend({
   ): ChangeLogEntry | undefined {
     return this.changeLogEntries.find(
       (entry) =>
-        entry.action === ChangeLogAction.Communication &&
+        entry.action === MeshAction.Communication &&
         (entry.app === app ||
           entry.pckg === app ||
           entry.clazz === app ||
@@ -403,7 +399,7 @@ export default class Changelog extends Service.extend({
         }
       }
       if (
-        logEntry.action === ChangeLogAction.Communication &&
+        logEntry.action === MeshAction.Communication &&
         logEntry.destinationApp === app
       ) {
         const ancestorPackages = getAncestorPackages(
@@ -416,7 +412,7 @@ export default class Changelog extends Service.extend({
           entriesToRemove.push(logEntry);
         }
       } else if (
-        logEntry.action === ChangeLogAction.Communication &&
+        logEntry.action === MeshAction.Communication &&
         logEntry.app === app
       ) {
         const ancestorPackages = getAncestorPackages(

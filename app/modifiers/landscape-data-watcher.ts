@@ -55,6 +55,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
@@ -161,6 +162,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
+    // Apply restructure textures in restructure mode
+    this.landscapeRestructure.applyTextureMappings();
+
     const interAppCommunications = drawableClassCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
@@ -214,6 +218,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       cls.push(tempCL);
     });
     this.ideWebsocketFacade.refreshVizData(cls);
+
+    // apply new color for restructured communications in restructure mode
+    this.landscapeRestructure.applyColorMappings();
   });
 
   updateApplicationData = task(

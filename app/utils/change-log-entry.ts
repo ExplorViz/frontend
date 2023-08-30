@@ -11,7 +11,7 @@ import {
   getApplicationFromSubPackage,
 } from './landscape-structure-helpers';
 
-export enum ChangeLogAction {
+export enum MeshAction {
   Create = 'CREATE',
   Rename = 'RENAME',
   Delete = 'DELETE',
@@ -19,7 +19,7 @@ export enum ChangeLogAction {
   Communication = 'COMMUNICATION',
 }
 
-export enum EntryType {
+export enum EntityType {
   App = 'APP',
   Package = 'PACKAGE',
   SubPackage = 'SUBPACKAGE',
@@ -27,7 +27,7 @@ export enum EntryType {
 }
 
 export class ChangeLogEntry {
-  entryType: EntryType | undefined;
+  entryType: EntityType | undefined;
   originalAppName?: string;
   app?: Application;
   originalPckgName?: string;
@@ -39,11 +39,11 @@ export class ChangeLogEntry {
   destinationClass?: Class;
   newName?: string;
   methodName?: string;
-  action: ChangeLogAction;
+  action: MeshAction;
   description: string;
 
   constructor(
-    action: ChangeLogAction,
+    action: MeshAction,
     app: Application,
     pckg?: Package,
     clazz?: Class,
@@ -64,7 +64,7 @@ export class ChangeLogEntry {
     if (destination && landscapeStructure)
       this.updateDestination(destination, landscapeStructure);
 
-    if (this.action !== ChangeLogAction.Create) {
+    if (this.action !== MeshAction.Create) {
       this.originalAppName = app?.name;
       this.originalPckgName = pckg?.name;
       this.originalClazzName = clazz?.name;
@@ -76,55 +76,55 @@ export class ChangeLogEntry {
 
   get _description(): string {
     switch (this.action) {
-      case ChangeLogAction.Create:
-        if (this.entryType === EntryType.App) {
+      case MeshAction.Create:
+        if (this.entryType === EntityType.App) {
           return `-Create a new Application in "${this.app?.language}" with the name "${this.app?.name}"\n`;
-        } else if (this.entryType === EntryType.SubPackage) {
+        } else if (this.entryType === EntityType.SubPackage) {
           return `-Create new Subpackage with the name "${this.pckg?.name}" under the Package "${this.pckg?.parent?.name}" inside the Application "${this.app?.name}"\n`;
-        } else if (this.entryType === EntryType.Package) {
+        } else if (this.entryType === EntityType.Package) {
           return `-Create new Package with the name "${this.pckg?.name}" inside the Application "${this.app?.name}"\n`;
-        } else if (this.entryType === EntryType.Clazz) {
+        } else if (this.entryType === EntityType.Clazz) {
           return `-Create new Class with the name "${this.clazz?.name}" under the package "${this.pckg?.name}" inside the Application "${this.app?.name}"\n`;
         }
         break;
-      case ChangeLogAction.Rename:
-        if (this.entryType === EntryType.App) {
+      case MeshAction.Rename:
+        if (this.entryType === EntityType.App) {
           return `-Rename the Application "${this.originalAppName}" to "${this.newName}"\n`;
-        } else if (this.entryType === EntryType.SubPackage) {
+        } else if (this.entryType === EntityType.SubPackage) {
           return `-Inside the Application "${this.app?.name}" under the Package "${this.pckg?.parent?.name}" rename the Package "${this.originalPckgName}" to "${this.newName}"\n`;
-        } else if (this.entryType === EntryType.Package) {
+        } else if (this.entryType === EntityType.Package) {
           return `-Inside the Application "${this.app?.name}" rename the Package "${this.originalPckgName}" to "${this.newName}"\n`;
-        } else if (this.entryType === EntryType.Clazz) {
+        } else if (this.entryType === EntityType.Clazz) {
           return `-Inside the Application "${this.app?.name}" under the Package "${this.pckg?.name}" rename the Class "${this.originalClazzName}" to "${this.newName}"\n`;
         }
         break;
-      case ChangeLogAction.Delete:
-        if (this.entryType === EntryType.App) {
+      case MeshAction.Delete:
+        if (this.entryType === EntityType.App) {
           return `-Delete the Application with the name "${this.originalAppName}"\n`;
-        } else if (this.entryType === EntryType.SubPackage) {
+        } else if (this.entryType === EntityType.SubPackage) {
           return `-Delete the Subpackage with the name "${this.pckg?.name}" under the Package "${this.pckg?.parent?.name}" inside the Application "${this.app?.name}"\n`;
-        } else if (this.entryType === EntryType.Package) {
+        } else if (this.entryType === EntityType.Package) {
           return `-Delete the Package with the name "${this.pckg?.name}" inside the Application "${this.app?.name}"\n`;
-        } else if (this.entryType === EntryType.Clazz) {
+        } else if (this.entryType === EntityType.Clazz) {
           return `-Delete the Class with the name "${this.clazz?.name}" under the package "${this.pckg?.name}" inside the Application "${this.app?.name}"\n`;
         }
         break;
-      case ChangeLogAction.CutInsert:
+      case MeshAction.CutInsert:
         if (this.destinationPckg && this.destinationApp) {
           if (
-            this.entryType === EntryType.SubPackage &&
+            this.entryType === EntityType.SubPackage &&
             this.pckg &&
             this.app
           ) {
             return `-Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"\n`;
           } else if (
-            this.entryType === EntryType.Package &&
+            this.entryType === EntityType.Package &&
             this.app &&
             this.pckg
           ) {
             return `-Move the Package "${this.pckg.name}" from the Application "${this.app.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"\n`;
           } else if (
-            this.entryType === EntryType.Clazz &&
+            this.entryType === EntityType.Clazz &&
             this.app &&
             this.clazz
           ) {
@@ -132,13 +132,13 @@ export class ChangeLogEntry {
           }
         } else if (!this.destinationPckg && this.destinationApp) {
           if (
-            this.entryType === EntryType.SubPackage &&
+            this.entryType === EntityType.SubPackage &&
             this.pckg &&
             this.app
           ) {
             return `-Move the Subpackage "${this.pckg.name}" from the Application "${this.app.name}" inside the Application "${this.destinationApp.name}"\n`;
           } else if (
-            this.entryType === EntryType.Package &&
+            this.entryType === EntityType.Package &&
             this.app &&
             this.pckg
           ) {
@@ -146,7 +146,7 @@ export class ChangeLogEntry {
           }
         }
         break;
-      case ChangeLogAction.Communication:
+      case MeshAction.Communication:
         return `-Add a method call "${this.methodName}" from "${this.clazz?.name}" inside the Application "${this.app?.name}" to "${this.destinationClass?.name}" inside the Application "${this.destinationApp?.name} "\n`;
     }
     return '';
@@ -158,13 +158,13 @@ export class ChangeLogEntry {
 
   get _entryType() {
     if (this.app && !this.pckg && !this.clazz) {
-      return EntryType.App;
+      return EntityType.App;
     } else if (this.app && this.pckg && this.pckg.parent && !this.clazz) {
-      return EntryType.SubPackage;
+      return EntityType.SubPackage;
     } else if (this.app && this.pckg && !this.clazz) {
-      return EntryType.Package;
+      return EntityType.Package;
     } else if (this.app && this.pckg && this.clazz) {
-      return EntryType.Clazz;
+      return EntityType.Clazz;
     }
     return undefined;
   }
