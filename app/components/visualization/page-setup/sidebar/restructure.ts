@@ -11,7 +11,6 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
@@ -34,9 +33,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
-
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
@@ -44,7 +40,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   token: string = localStorage.getItem('gitAPIToken') || '';
 
   @tracked
-  repo: string = localStorage.getItem('gitRepo') || '';
+  issueURL: string = localStorage.getItem('gitIssue') || '';
+
+  @tracked
+  uploadURL: string = localStorage.getItem('gitUpload') || '';
 
   @tracked
   appName: string = '';
@@ -81,6 +80,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @tracked
   communicationBtnDisabled: boolean = true;
+
+  @tracked
+  uploadIssueBtnDisabled: boolean = false;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
@@ -160,9 +162,16 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  updateRepo(event: InputEvent) {
+  updateIssueURL(event: InputEvent) {
     const target = event.target as HTMLInputElement;
-    this.repo = target.value;
+    this.issueURL = target.value;
+    this.canSaveCredentials();
+  }
+
+  @action
+  updateUploadURL(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.uploadURL = target.value;
     this.canSaveCredentials();
   }
 
@@ -180,7 +189,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   canSaveCredentials() {
-    this.saveCredBtnDisabled = this.token === '' || this.repo === '';
+    this.saveCredBtnDisabled = this.token === '' || this.issueURL === '';
+    if (this.uploadURL) this.canUpload();
   }
 
   @action
@@ -242,6 +252,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @action
   deleteScreenshot(issueIndex: number, screenshotIndex: number) {
     this.issues[issueIndex].screenshots.removeAt(screenshotIndex);
+    this.canUpload();
   }
 
   @action
@@ -249,12 +260,14 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const canvas = this.landscapeRestructure.canvas;
     const screenshotDataURL = canvas.toDataURL('image/png');
     this.issues[index].screenshots.pushObject(screenshotDataURL);
+    this.canUpload();
   }
 
   @action
   saveGitlabCredentials() {
     localStorage.setItem('gitAPIToken', this.token);
-    localStorage.setItem('gitRepo', this.repo);
+    localStorage.setItem('gitIssue', this.issueURL);
+    localStorage.setItem('gitUpload', this.uploadURL);
   }
 
   // @action
@@ -284,6 +297,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   // }
 
   @action
+  canUpload() {
+    const hasScreenshot = this.issues.some(
+      (issue) => issue.screenshots && issue.screenshots.length > 0
+    );
+    if (hasScreenshot) {
+      this.uploadIssueBtnDisabled = this.uploadURL === '';
+    } else {
+      this.uploadIssueBtnDisabled = false;
+    }
+  }
+
+  @action
   async uploadIssueToGitLab() {
     try {
       const uploadPromises = this.issues.map(async (issue) => {
@@ -300,7 +325,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
           .join('\n')}`;
 
         // Upload the issue
-        const response = await fetch(this.repo, {
+        const response = await fetch(this.issueURL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -313,6 +338,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         });
 
         if (!response.ok) {
+          AlertifyHandler.showAlertifyError(
+            `Failed to upload issue: ${issue.title}`
+          );
           throw new Error(`Failed to upload issue: ${issue.title}`);
         }
 

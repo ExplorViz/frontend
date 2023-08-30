@@ -34,13 +34,23 @@
         />
       </div>
       <ul></ul>
-      <label for='repo'>Repository ID:</label>
+      <label for='issueURL'>Gitlab Issue Link:</label>
       <div class='d-flex justify-content-between'>
         <input
-          id='repo'
+          id='issueURL'
           class='form-control mr-2'
-          oninput={{this.updateRepo}}
-          value={{this.repo}}
+          oninput={{this.updateIssueURL}}
+          value={{this.issueURL}}
+        />
+      </div>
+      <ul></ul>
+      <label for='uploadURL'>Gitlab Upload Link:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='uploadURL'
+          class='form-control mr-2'
+          oninput={{this.updateUploadURL}}
+          value={{this.uploadURL}}
         />
       </div>
       <ul></ul>
@@ -245,16 +255,20 @@
             onclick={{fn this.screenshotCanvas index}}
           >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
         </div>
+        <ul></ul>
         {{#each issue.screenshots as |screenshot screenshotIndex|}}
-          <span>
-            Screenshot{{screenshotIndex}}
-            <button
-              type='button'
-              class='btn btn-danger'
-              title='Delete Screenshot'
-              onclick={{fn this.deleteScreenshot index screenshotIndex}}
-            >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
-          </span>
+          <div class='card mr-3'>
+              <div class='card-body d-flex justify-content-between align-items-center'>
+                  <span>Screenshot{{screenshotIndex}}</span>
+                  <button
+                      type='button'
+                      style='padding: 0; margin: 0;'
+                      class='btn btn-sm link-secondary'
+                      title='Delete Screenshot'
+                      onclick={{fn this.deleteScreenshot index screenshotIndex}}
+                  >{{svg-jar 'x-16' class='octicon'}}</button>
+              </div>
+          </div>
         {{/each}}
       </div>
       <ul></ul>
@@ -277,6 +291,7 @@
             {{on 'click' this.uploadIssueToGitLab}}
             @type='secondary'
             @outline={{true}}
+            disabled={{this.uploadIssueBtnDisabled}}
           >
             Upload to Gitlab
           </BsButton>
