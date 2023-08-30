@@ -45,16 +45,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
     return this.timelineTimestamps.get(landscapeToken);
   }
 
-  getLatestTimestamp(landscapeToken: string) {
-    const timestamps = this.getTimestamps(landscapeToken);
-    if (timestamps) {
-      return timestamps[timestamps.length - 1];
-    }
-
-    return undefined;
-  }
-
-  addTimestamp(landscapeToken: string, timestamp: Timestamp) {
+  private addTimestamp(landscapeToken: string, timestamp: Timestamp) {
     const timestamps = this.timelineTimestamps.get(landscapeToken);
     if (timestamps) {
       this.timelineTimestamps.set(landscapeToken, [...timestamps, timestamp]);

@@ -213,11 +213,12 @@ export default class LandscapeListener extends Service.extend(Evented) {
     }
 
     const timestampRecord = { id: uuidv4(), timestamp, totalRequests };
+    console.log(timestampRecord);
 
-    this.timestampRepo.addTimestamp(
-      this.tokenService.token!.value,
-      timestampRecord
-    );
+    // this.timestampRepo.addTimestamp(
+    //   this.tokenService.token!.value,
+    //   timestampRecord
+    // );
 
     //this.timestampRepo.triggerTimelineUpdate();
   }
