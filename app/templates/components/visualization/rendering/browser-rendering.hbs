@@ -139,6 +139,9 @@
               <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::RestructureOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
             </ul>
           </div>
           {{#each @components as |componentName|}}
@@ -174,6 +177,16 @@
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
                     @removeComponent={{@removeComponent}}
+                  />
+                {{/if}}
+                {{#if (eq componentName 'restructure-landscape')}}
+                  <h5 class='text-center'>Restructure</h5>
+                  <Visualization::PageSetup::Sidebar::Restructure
+                    @landscapeData={{@landscapeData}}
+                    @restructureLandscape={{@restructureLandscape}}
+                    @visualizationPaused={{@visualizationPaused}}
+                    @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
+                    @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
                   />
                 {{/if}}
                 {{#if (eq componentName 'xr-vscode-extension-settings')}}

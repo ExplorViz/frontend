@@ -4,6 +4,11 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureLandscapeData'
+  this.restructureLandscapeData
+}}
 
 {{did-insert this.setupListeners}}
 <div id='vizspace' {{sync-state}}>
@@ -96,6 +101,7 @@
             @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
             @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
             @visualizationPaused={{this.visualizationPaused}}
+            @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
             @switchToAR={{this.switchToAR}}
             @switchToVR={{this.switchToVR}}
             @selectedTimestampRecords={{this.selectedTimestampRecords}}
