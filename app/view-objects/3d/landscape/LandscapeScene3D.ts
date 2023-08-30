@@ -15,13 +15,10 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import debugLogger from 'ember-debug-logger';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-
-const debug = debugLogger('LandscapeScene3D');
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -32,6 +29,9 @@ export default class LandscapeScene3D implements Updatable {
 
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
 
   constructor(owner: Owner) {
     setOwner(this, owner);
@@ -48,12 +48,7 @@ export default class LandscapeScene3D implements Updatable {
     return this.forceGraph.graph.graphData().nodes.length === 0;
   }
 
-  async updateData(
-    data: LocalLandscapeData,
-    applicationRenderer: ApplicationRenderer
-  ): Promise<CommunicationLink[]> {
-    console.log('updateData called');
-
+  async updateData(data: LocalLandscapeData): Promise<CommunicationLink[]> {
     if (!data.drawableClassCommunications) {
       return []; // TODO
     }
@@ -80,7 +75,9 @@ export default class LandscapeScene3D implements Updatable {
 
         // create or update applicationObject3D
         const app =
-          await applicationRenderer.addApplicationTask.perform(applicationData);
+          await this.applicationRenderer.addApplicationTask.perform(
+            applicationData
+          );
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -160,12 +157,12 @@ export default class LandscapeScene3D implements Updatable {
       structure: application,
       dynamic: dynamicData,
     };
+
     const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
     const heatmapMetrics = this.worker.postMessage(
       'metrics-worker',
       workerPayload
     );
-
     const flatData = this.worker.postMessage('flat-data-worker', workerPayload);
 
     const results = await Promise.all([cityLayout, heatmapMetrics, flatData]);

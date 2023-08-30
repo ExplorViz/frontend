@@ -12,10 +12,6 @@ export default class LandscapeDataContext {
   private readonly backend: BackendInfo;
   private intervalInMS: number;
 
-  private lastStructureData: StructureLandscapeData | undefined;
-  private lastStructureDataRaw: string | undefined;
-  private lastDynamicDataRaw: string | undefined;
-
   constructor(token: string, backend: BackendInfo, intervalInMS: number) {
     this.token = token;
     this.backend = backend;
@@ -40,33 +36,24 @@ export default class LandscapeDataContext {
 
     const update: DataUpdate = { token: this.token };
 
-    // Compare with previous (if applicable)
-    if (structureData.raw !== this.lastStructureDataRaw) {
-      const processedData = preProcessAndEnhanceStructureLandscape(
-        structureData.json
-      );
-      update.structure = processedData;
-    }
-    this.lastStructureData = structureData.json;
-    this.lastStructureDataRaw = structureData.raw;
+    // TODO: Compare with previous (if applicable)
+    const processedData = preProcessAndEnhanceStructureLandscape(
+      structureData.json
+    );
+    update.structure = processedData;
 
-    if (dynamicData.raw !== this.lastDynamicDataRaw) {
-      const timestampRecord = {
-        id: uuidv4(),
-        timestamp: endTime,
-        totalRequests: computeTotalRequests(dynamicData.json),
-      };
-      update.dynamic = dynamicData.json;
-      update.timestamp = timestampRecord;
-    }
-    this.lastDynamicDataRaw = dynamicData.raw;
+    const timestampRecord = {
+      id: uuidv4(),
+      timestamp: endTime,
+      totalRequests: computeTotalRequests(dynamicData.json),
+    };
+    update.dynamic = dynamicData.json;
+    update.timestamp = timestampRecord;
 
-    if (this.lastStructureData && update.dynamic) {
-      update.drawableClassCommunications = computeClassCommunication(
-        this.lastStructureData,
-        update.dynamic
-      );
-    }
+    update.drawableClassCommunications = computeClassCommunication(
+      structureData.json,
+      update.dynamic
+    );
 
     return update;
   }

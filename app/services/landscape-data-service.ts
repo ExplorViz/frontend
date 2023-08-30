@@ -2,7 +2,6 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import * as Comlink from 'comlink';
 import { LandscapeDataWorkerAPI } from 'workers/landscape-data-worker';
-import debugLogger from 'ember-debug-logger';
 import type LandscapeTokenService from './landscape-token';
 import type Auth from './auth';
 import ENV from 'explorviz-frontend/config/environment';
@@ -16,7 +15,6 @@ import type { DrawableClassCommunication } from 'explorviz-frontend/utils/applic
 const intervalInSeconds = 10;
 const webWorkersPath = 'assets/web-workers/';
 export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
-const debug = debugLogger('LandscapeDataService');
 
 export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly latestData: LocalLandscapeData = {};
@@ -35,21 +33,13 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     this.worker = worker;
     this.comlinkRemote = remote;
 
-    this.updateLocalData();
+    setTimeout(() => this.updateLocalData(), 1000);
 
     // TODO tiwe: ENV.mode.tokenToShow
     this.interval = setInterval(
       () => this.updateLocalData(),
       1000 * intervalInSeconds
     ) as unknown as number;
-  }
-
-  subscribe(dataConsumer: (data: Readonly<LocalLandscapeData>) => unknown) {
-    if (this.latestData.drawableClassCommunications) {
-      dataConsumer(this.latestData);
-    }
-
-    this.on(LandscapeDataUpdateEventName, dataConsumer);
   }
 
   async stopPolling() {
@@ -104,6 +94,11 @@ export default class LandscapeDataService extends Service.extend(Evented) {
 
     if (update.structure) {
       this.latestData.structure = update.structure;
+    }
+
+    if (update.drawableClassCommunications) {
+      this.latestData.drawableClassCommunications =
+        update.drawableClassCommunications;
     }
 
     this.trigger(LandscapeDataUpdateEventName, this.latestData);

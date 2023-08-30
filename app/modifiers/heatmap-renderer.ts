@@ -48,7 +48,11 @@ export default class HeatmapRenderer extends Modifier<Signature> {
     return this.heatmapConf.selectedMetric;
   }
 
-  modify(_element: never, _positionalArgs: never[], { camera, scene }: NamedArgs<Signature>) {
+  modify(
+    _element: never,
+    _positionalArgs: never[],
+    { camera, scene }: NamedArgs<Signature>
+  ) {
     this.scene = scene;
     this.camera = camera;
 

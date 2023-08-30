@@ -13,7 +13,6 @@ const api = {
   init(options: InitOptions): void {
     updateIntervalMS = options.updateIntervalInMS;
     backendInfo = options.backend;
-    console.log('worker initialized'); // TODO remove
   },
 
   poll(

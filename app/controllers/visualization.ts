@@ -47,7 +47,10 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import type LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
-import { type LocalLandscapeData } from 'explorviz-frontend/services/landscape-data-service';
+import {
+  LandscapeDataUpdateEventName,
+  type LocalLandscapeData,
+} from 'explorviz-frontend/services/landscape-data-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -183,7 +186,11 @@ export default class VisualizationController extends Controller {
       this.onTimestampUpdate
     );
 
-    this.landscapeDataService.subscribe((data) => this.onDataUpdate(data));
+    this.landscapeDataService.on(
+      LandscapeDataUpdateEventName,
+      this,
+      this.onDataUpdate
+    );
   }
 
   @action
@@ -473,6 +480,12 @@ export default class VisualizationController extends Controller {
         this.onTimestampUpdate
       );
     }
+
+    this.landscapeDataService.off(
+      LandscapeDataUpdateEventName,
+      this,
+      this.onDataUpdate
+    );
   }
 
   private async initWebSocket() {
