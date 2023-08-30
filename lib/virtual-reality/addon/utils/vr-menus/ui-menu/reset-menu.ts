@@ -100,7 +100,7 @@ export default class ResetMenu extends UiMenu {
     this.applicationRenderer
       .getOpenApplications()
       .forEach((applicationObject) => {
-        this.applicationRenderer.closeAllComponents(applicationObject, false);
+        this.applicationRenderer.closeAllComponents(applicationObject);
         removeAllHighlighting(applicationObject);
       });
   }
