@@ -58,6 +58,7 @@ export default class UserListItem
     });
     const loader = new THREE.TextureLoader();
     loader.load('images/menu-icons/camera-128.png', (texture) => {
+      // @ts-ignore no types atm
       imageBlock.set({ backgroundTexture: texture });
     });
     this.add(imageBlock);
@@ -76,11 +77,13 @@ export default class UserListItem
     if (this.isHovered) return;
 
     this.isHovered = true;
+    // @ts-ignore no types atm
     this.set({ backgroundOpacity: 0.4 });
   }
 
   resetHover() {
     this.isHovered = false;
+    // @ts-ignore no types atm
     this.set({ backgroundOpacity: 0 });
   }
 }

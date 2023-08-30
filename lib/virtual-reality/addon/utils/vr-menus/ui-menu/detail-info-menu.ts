@@ -222,6 +222,7 @@ export default class DetailInfoMenu
       });
 
       const textBlock = this.informationBlock?.textBlock;
+      // @ts-ignore no types atm
       textBlock?.set({ content: this.informationText });
     } else {
       this.closeMenu();

@@ -236,14 +236,20 @@ export default class CollaborationSession extends Service.extend({
         if (application) {
           const mesh = application.getMeshById(entityId);
           if (isEntityMesh(mesh)) {
-            this.applicationRenderer.highlight(mesh, application);
+            this.applicationRenderer.highlight(
+              mesh,
+              application,
+              undefined,
+              false,
+              false
+            );
           }
         }
       } else {
         //extern Link
         const link = this.linkRenderer.getLinkById(entityId);
         if (link) {
-          this.applicationRenderer.highlightExternLink(link, true);
+          this.applicationRenderer.highlightExternLink(link, false);
         }
       }
     }

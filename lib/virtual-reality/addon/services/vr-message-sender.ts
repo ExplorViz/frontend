@@ -126,7 +126,7 @@ export default class VrMessageSender extends Service {
       componentId,
       isOpened,
       isFoundation,
-      forwardFlag: forward,
+      forward,
     });
   }
 
@@ -152,7 +152,7 @@ export default class VrMessageSender extends Service {
       entityType,
       entityId,
       isHighlighted,
-      isMultiSelected,
+      multiSelected: isMultiSelected,
     });
   }
 

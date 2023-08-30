@@ -574,17 +574,18 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     if (room.highlightedExternCommunicationLinks) {
-      room.openApps.forEach((app) => {
-        const appObj = this.getApplicationById(app.id);
-        if (appObj) {
-          appObj.drawableClassCommSet.clear();
-        }
-      });
+      // Can we delete this? I forgot why I wrote this...
+      // room.openApps.forEach((app) => {
+      //   const appObj = this.getApplicationById(app.id);
+      //   if (appObj) {
+      //     appObj.drawableClassCommSet.clear();
+      //   }
+      // });
 
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
-          this.highlightingService.highlight(
+          this.highlightExternLink(
             linkMesh,
             false,
             new THREE.Color().fromArray(externLink.color)
@@ -593,6 +594,7 @@ export default class ApplicationRenderer extends Service.extend({
         }
       });
     }
+    this.highlightingService.updateHighlighting();
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
