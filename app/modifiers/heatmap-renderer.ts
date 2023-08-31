@@ -92,6 +92,10 @@ export default class HeatmapRenderer extends Modifier<Signature> {
    * @param isVisible Determines whether a spotlight is visible or not
    */
   private setSpotLightVisibilityInScene(isVisible = true) {
+    if (this.scene === undefined) {
+      // TODO: fix heatmap-renderer integration test
+      return;
+    }
     const threeScene = this.scene.threeScene;
     threeScene.children.forEach((child) => {
       if (child instanceof THREE.DirectionalLight) {
