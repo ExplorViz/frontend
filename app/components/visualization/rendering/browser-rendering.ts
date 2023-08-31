@@ -185,6 +185,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.scene,
       this.scene.updateData
     );
+
+    // TODO
+    setTimeout(
+      () => this.scene.updateData(this.landscapeDataService.getLatest()),
+      0
+    );
   }
 
   tick(delta: number) {
