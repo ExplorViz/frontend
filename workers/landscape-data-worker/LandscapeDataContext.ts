@@ -13,56 +13,121 @@ export default class LandscapeDataContext {
   private readonly backend: BackendInfo;
   private intervalInMS: number;
 
+  private latestProcessedStructureData: StructureLandscapeData;
+  private latestDynamicData: DynamicLandscapeData = [];
+
+  private lastStructureResponse: string | undefined;
+  private lastDynamicResponse: string | undefined;
+
   constructor(token: string, backend: BackendInfo, intervalInMS: number) {
     this.token = token;
     this.backend = backend;
     this.intervalInMS = intervalInMS;
+    this.latestProcessedStructureData = {
+      landscapeToken: token,
+      nodes: [],
+    };
   }
 
-  async poll(
+  async update(
     endTime: number,
     accessToken: string | undefined
   ): Promise<DataUpdate> {
-    const startTime = endTime - this.intervalInMS;
-
-    // Fetch & parse data
-    // TODO use allSettled to allow a request to fail
-    const [structureData, dynamicData] = await Promise.all([
-      this.request<StructureLandscapeData>(this.structureUrl, accessToken),
-      this.request<DynamicLandscapeData>(
-        `${this.traceUrl}?from=${startTime}&to=${endTime}`,
-        accessToken
-      ),
+    const [structureUpdated, dynamicUpdated] = await Promise.all([
+      this.updateStructureData(accessToken),
+      this.updateDynamicData(endTime, accessToken),
     ]);
 
-    const update: DataUpdate = { token: this.token };
-
-    // TODO: Compare with previous (if applicable)
-    const processedData = preProcessAndEnhanceStructureLandscape(
-      structureData.json
-    );
-    update.structure = processedData;
-
-    const timestampRecord = {
+    const timestamp = {
       id: uuidv4(),
       timestamp: endTime,
-      totalRequests: computeTotalRequests(dynamicData.json),
+      totalRequests: computeTotalRequests(this.latestDynamicData),
     };
-    update.dynamic = dynamicData.json;
-    update.timestamp = timestampRecord;
 
-    update.drawableClassCommunications = computeDrawableClassCommunication(
-      processedData,
-      dynamicData.json
-    );
+    const update: DataUpdate = {
+      token: this.token,
+      timestamp,
+      structure: this.latestProcessedStructureData,
+      dynamic: this.latestDynamicData,
+    };
+
+    if (structureUpdated || dynamicUpdated) {
+      update.drawableClassCommunications = computeDrawableClassCommunication(
+        this.latestProcessedStructureData,
+        this.latestDynamicData
+      );
+    }
 
     return update;
   }
 
-  private async request<Data>(
-    url: string,
-    auth?: string
-  ): Promise<{ json: Data; raw: string }> {
+  private async updateStructureData(
+    accessToken: string | undefined
+  ): Promise<boolean> {
+    const [result] = await Promise.allSettled([
+      this.request(
+        `${this.backend.landscapeUrl}/v2/landscapes/${this.token}/structure`,
+        accessToken
+      ),
+    ]);
+
+    if (result.status === 'rejected') {
+      return false;
+    }
+
+    if (result.value === this.lastStructureResponse) {
+      return false;
+    }
+    this.lastStructureResponse = result.value;
+
+    let data: StructureLandscapeData;
+    try {
+      data = JSON.parse(result.value);
+    } catch (e) {
+      console.error('Invalid JSON response (structure)');
+      return false;
+    }
+
+    this.latestProcessedStructureData =
+      preProcessAndEnhanceStructureLandscape(data);
+    return true;
+  }
+
+  private async updateDynamicData(
+    endTime: number,
+    accessToken: string | undefined
+  ): Promise<boolean> {
+    const startTime = endTime - this.intervalInMS;
+
+    const [result] = await Promise.allSettled([
+      this.request(
+        `${this.backend.tracesUrl}/v2/landscapes/${this.token}/dynamic?from=${startTime}&to=${endTime}`,
+        accessToken
+      ),
+    ]);
+
+    if (result.status === 'rejected') {
+      return false;
+    }
+
+    if (result.value === this.lastDynamicResponse) {
+      return false;
+    }
+    this.lastDynamicResponse = result.value;
+
+    let data: DynamicLandscapeData;
+    try {
+      data = JSON.parse(result.value);
+    } catch (e) {
+      console.error('Invalid JSON response (dynamic)');
+      return false;
+    }
+
+    this.latestDynamicData = data;
+    return true;
+  }
+
+  private async request(url: string, auth?: string): Promise<string> {
     const response = await fetch(url, {
       headers: auth ? { Authorization: `Bearer ${auth}` } : {},
     });
@@ -71,20 +136,7 @@ export default class LandscapeDataContext {
       throw new Error('Bad response.');
     }
 
-    const data = await Promise.all([response.clone().json(), response.text()]);
-
-    return {
-      json: data[0],
-      raw: data[1],
-    };
-  }
-
-  private get structureUrl(): string {
-    return `${this.backend.landscapeUrl}/v2/landscapes/${this.token}/structure`;
-  }
-
-  private get traceUrl(): string {
-    return `${this.backend.tracesUrl}/v2/landscapes/${this.token}/dynamic`;
+    return await response.text();
   }
 }
 
@@ -117,9 +169,9 @@ export type UpdateConsumer = (update: DataUpdate) => void | Promise<void>;
 
 export type DataUpdate = {
   token: string;
-  structure?: StructureLandscapeData;
-  dynamic?: DynamicLandscapeData;
-  timestamp?: Timestamp;
+  structure: StructureLandscapeData;
+  dynamic: DynamicLandscapeData;
+  timestamp: Timestamp;
   drawableClassCommunications?: DrawableClassCommunication[];
 };
 

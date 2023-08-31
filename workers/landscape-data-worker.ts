@@ -15,7 +15,7 @@ const api = {
     backendInfo = options.backend;
   },
 
-  poll(
+  getDataUpdate(
     landscapeToken: string | null,
     endTime: number,
     accessToken?: string
@@ -36,7 +36,7 @@ const api = {
       );
     }
 
-    return currentContext.poll(endTime, accessToken);
+    return currentContext.update(endTime, accessToken);
   },
 };
 

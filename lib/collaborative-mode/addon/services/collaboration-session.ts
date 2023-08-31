@@ -3,7 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import * as THREE from 'three';
@@ -51,9 +50,6 @@ export default class CollaborationSession extends Service.extend({
 
   @service('vr-room')
   private roomService!: VrRoomService;
-
-  @service('landscape-listener')
-  private landscapeListener!: LandscapeListener;
 
   @service('landscape-data-service')
   private landscapeDataService!: LandscapeDataService;

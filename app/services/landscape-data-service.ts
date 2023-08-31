@@ -81,26 +81,23 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       throw new Error('Not initialized.');
     }
 
-    return remote.poll(landscapeToken.value, endTime, this.auth.accessToken);
+    return remote.getDataUpdate(
+      landscapeToken.value,
+      endTime,
+      this.auth.accessToken
+    );
   }
 
   private async handleUpdate(update: DataUpdate) {
     console.log('Update received!', Object.keys(update));
 
-    if (update.dynamic) {
-      this.latestData.dynamic = update.dynamic;
-    }
+    this.latestData.dynamic = update.dynamic;
+    this.latestData.structure = update.structure;
 
-    if (update.timestamp) {
-      this.trigger(NewTimestampEventName, {
-        token: update.token,
-        timestamp: update.timestamp,
-      } as NewTimestampPayload);
-    }
-
-    if (update.structure) {
-      this.latestData.structure = update.structure;
-    }
+    this.trigger(NewTimestampEventName, {
+      token: update.token,
+      timestamp: update.timestamp,
+    } as NewTimestampPayload);
 
     if (update.drawableClassCommunications) {
       this.latestData.drawableClassCommunications =
@@ -144,7 +141,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     return [worker, remote];
   }
 
-  cleanup() {
+  willDestroy(): void {
     if (this.worker) {
       this.worker.terminate();
       this.comlinkRemote = undefined;
@@ -153,6 +150,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       clearInterval(this.interval);
       this.interval = undefined;
     }
+    super.willDestroy();
   }
 }
 
