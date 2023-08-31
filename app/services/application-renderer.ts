@@ -238,9 +238,8 @@ export default class ApplicationRenderer extends Service.extend({
     return applicationObject3D;
   }
 
-  createScene(owner: Owner): LandscapeScene3D {
-    this.scene = new LandscapeScene3D(owner);
-    return this.scene;
+  setScene(scene: LandscapeScene3D): void {
+    this.scene = scene;
   }
 
   createForceGraph(owner: Owner): ForceGraph {

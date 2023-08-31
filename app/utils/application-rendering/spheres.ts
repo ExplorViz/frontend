@@ -1,3 +1,4 @@
+import type LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 import * as THREE from 'three';
 
 export default class Spheres {
@@ -38,7 +39,7 @@ export default class Spheres {
 export function addSpheres(
   color: string,
   position: THREE.Vector3,
-  scene: THREE.Scene,
+  scene: THREE.Scene | LandscapeScene3D,
   updatables: any[]
 ) {
   const spheres = new Spheres(color, position);

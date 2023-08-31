@@ -18,11 +18,12 @@ import { setOwner } from '@ember/application';
 import ForceGraph, {
   type GraphNode,
 } from 'explorviz-frontend/rendering/application/force-graph';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
+import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
+import type { Object3D } from 'three';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -46,11 +47,29 @@ export default class LandscapeScene3D implements Updatable {
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  constructor(owner: Owner) {
+  private constructor(owner: Owner, scene: THREE.Scene) {
     setOwner(this, owner);
-    this.threeScene = defaultScene();
+    this.threeScene = scene;
     this.forceGraph = new ForceGraph(owner, 0.02);
     this.threeScene.add(this.forceGraph.graph);
+  }
+
+  static createDefault(
+    owner: Owner,
+    backgroundColor: THREE.Color | null
+  ): LandscapeScene3D {
+    const scene = new LandscapeScene3D(owner, defaultScene());
+    scene.threeScene.background = backgroundColor;
+    return scene;
+  }
+
+  static createVR(
+    owner: Owner,
+    backgroundColor: THREE.Color | null
+  ): LandscapeScene3D {
+    const scene = new LandscapeScene3D(owner, vrScene());
+    scene.threeScene.background = backgroundColor;
+    return scene;
   }
 
   get graph(): ThreeForceGraph {
@@ -59,6 +78,11 @@ export default class LandscapeScene3D implements Updatable {
 
   isGraphEmpty() {
     return this.forceGraph.graph.graphData().nodes.length === 0;
+  }
+
+  add(...object: Object3D[]): LandscapeScene3D {
+    this.threeScene.add(...object);
+    return this;
   }
 
   async updateData(data: LocalLandscapeData): Promise<void> {

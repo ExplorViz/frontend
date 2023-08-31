@@ -18,7 +18,6 @@ import ToastMessage, {
   MessageArgs,
 } from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -27,7 +26,6 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
@@ -87,6 +85,7 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from '../utils/vr-message/util/controller_id';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 
 interface Args {
   readonly id: string;
@@ -178,11 +177,7 @@ export default class VrRendering extends Component<Args> {
 
   updatables: any[] = [];
 
-  @tracked
-  scene: THREE.Scene; // TODO
-
-  @tracked
-  readonly graph: ThreeForceGraph;
+  scene: LandscapeScene3D;
 
   // #endregion CLASS FIELDS
   //
@@ -194,9 +189,10 @@ export default class VrRendering extends Component<Args> {
     this.toastMessage.success = (message) => this.showHint(message);
     this.toastMessage.error = (message) => this.showHint(message);
 
-    this.scene = vrScene();
-    // this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene = LandscapeScene3D.createVR(
+      getOwner(this)!,
+      this.configuration.landscapeColors.backgroundColor
+    );
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -210,15 +206,10 @@ export default class VrRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
 
-    const forceGraph = this.applicationRenderer.createForceGraph(
-      getOwner(this)!
-    );
-    this.graph = forceGraph.graph;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+    this.updatables.push(this.scene);
     this.updatables.push(this.localUser);
 
-    this.menuFactory.scene = this.scene;
+    this.menuFactory.scene = this.scene.threeScene;
     this.scene.add(this.detachedMenuGroups.container);
   }
 
@@ -431,7 +422,7 @@ export default class VrRendering extends Component<Args> {
     // Initialize controller.
     const controller = new VRController({
       gamepadIndex,
-      scene: this.scene,
+      scene: this.scene.threeScene,
       bindings: new VRControllerBindingsList(
         this.makeControllerBindings(),
         menuGroup.controllerBindings
@@ -556,7 +547,7 @@ export default class VrRendering extends Component<Args> {
     // Start main loop.
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      scene: this.scene,
+      scene: this.scene.threeScene,
       renderer: this.renderer,
       updatables: this.updatables,
     });
@@ -1057,7 +1048,7 @@ export default class VrRendering extends Component<Args> {
     originalMessage: { objectId, position, quaternion, scale },
   }: ForwardedMessage<ObjectMovedMessage>): void {
     // Find moved object in the scene.
-    const movedObject = findGrabbableObject(this.scene, objectId);
+    const movedObject = findGrabbableObject(this.scene.threeScene, objectId);
     if (!movedObject) {
       this.debug('Could not find moved object', objectId);
       return;
@@ -1080,7 +1071,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x);
+    this.scene.graph.localToWorld(x);
     this.detachedMenuRenderer.restoreMenu({
       objectId,
       entityType,

@@ -20,15 +20,14 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
@@ -112,11 +111,7 @@ export default class ArRendering extends Component<Args> {
 
   localPing: { obj: THREE.Object3D; time: number } | undefined | null;
 
-  @tracked
-  scene: THREE.Scene; // TODO
-
-  @tracked
-  readonly graph: ThreeForceGraph;
+  scene: LandscapeScene3D;
 
   private renderer!: THREE.WebGLRenderer;
 
@@ -171,17 +166,12 @@ export default class ArRendering extends Component<Args> {
     super(owner, args);
     this.debug('Constructor called');
 
-    this.scene = defaultScene();
-    this.scene.background = null;
+    this.scene = LandscapeScene3D.createDefault(getOwner(this)!, null);
 
     this.applicationRenderer.getOpenApplications().clear();
-    const forceGraph = this.applicationRenderer.createForceGraph(
-      getOwner(this)!
-    );
-    this.graph = forceGraph.graph;
-    this.graph.visible = false;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+
+    this.scene.graph.visible = false;
+    this.updatables.push(this.scene);
     this.updatables.push(this.localUser);
 
     this.toastMessage.init();
@@ -218,7 +208,7 @@ export default class ArRendering extends Component<Args> {
     );
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      scene: this.scene,
+      scene: this.scene.threeScene,
       renderer: this.renderer,
       updatables: this.updatables,
       zoomHandler: this.arZoomHandler!,
@@ -281,32 +271,32 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePinching(_intersection: THREE.Intersection, delta: number) {
-    this.graph.scale.multiplyScalar(delta);
+    this.scene.graph.scale.multiplyScalar(delta);
   }
 
   @action
   handleRotate(_intersection: THREE.Intersection, delta: number) {
-    this.graph.rotateY(delta);
+    this.scene.graph.rotateY(delta);
   }
 
   @action
   increaseSize() {
-    this.graph.scale.multiplyScalar(1.1);
+    this.scene.graph.scale.multiplyScalar(1.1);
   }
 
   @action
   decreaseSize() {
-    this.graph.scale.multiplyScalar(0.9);
+    this.scene.graph.scale.multiplyScalar(0.9);
   }
 
   @action
   rotateLeft() {
-    this.graph.rotateY((12.5 * Math.PI) / 180);
+    this.scene.graph.rotateY((12.5 * Math.PI) / 180);
   }
 
   @action
   rotateRight() {
-    this.graph.rotateY((-12.5 * Math.PI) / 180);
+    this.scene.graph.rotateY((-12.5 * Math.PI) / 180);
   }
 
   @action
@@ -379,7 +369,7 @@ export default class ArRendering extends Component<Args> {
   }
 
   get intersectableObjects() {
-    return this.scene.children;
+    return this.scene.threeScene.children;
   }
 
   // #endregion COMPONENT AND SCENE INITIALIZATION
@@ -430,8 +420,8 @@ export default class ArRendering extends Component<Args> {
 
   @action
   resetView() {
-    this.graph.scale.setScalar(0.02);
-    this.graph.visible = false;
+    this.scene.graph.scale.setScalar(0.02);
+    this.scene.graph.visible = false;
   }
 
   @action
@@ -445,8 +435,8 @@ export default class ArRendering extends Component<Args> {
     const intersection = this.raycastCenter();
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
-    } else if (this.reticle.visible && !this.graph.visible) {
-      const mesh = this.graph;
+    } else if (this.reticle.visible && !this.scene.graph.visible) {
+      const mesh = this.scene.graph;
       this.reticle.matrix.decompose(
         mesh.position,
         mesh.quaternion,
@@ -652,7 +642,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (this.renderer.xr.enabled) {
-      if (!this.graph.visible || this.reticle.visible) {
+      if (!this.scene.graph.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
@@ -720,7 +710,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   updateColors() {
-    this.entityManipulation.updateColors(this.scene);
+    this.entityManipulation.updateColors(this.scene.threeScene);
   }
 
   // #endregion UTILS

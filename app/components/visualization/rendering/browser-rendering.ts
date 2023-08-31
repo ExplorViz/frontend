@@ -142,10 +142,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
     this.debug('Constructor called');
     // scene
-    this.scene = this.applicationRenderer.createScene(getOwner(this)!);
-
-    const scene = this.scene.threeScene;
-    scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene = LandscapeScene3D.createDefault(
+      getOwner(this)!,
+      this.configuration.landscapeColors.backgroundColor
+    );
+    this.applicationRenderer.setScene(this.scene);
 
     // camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
@@ -157,7 +158,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.position.set(5, 5, 5);
 
     this.applicationRenderer.getOpenApplications().clear();
-    // force graph
+
     this.updatables.push(this.scene);
     this.updatables.push(this);
 
