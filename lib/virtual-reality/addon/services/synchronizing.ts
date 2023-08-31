@@ -70,76 +70,52 @@ export default class SynchronizeService extends Service {
    */
   tick() {
     if (this.main?.camera) {
-      if (this.localUser.xr?.isPresenting) {
-        this.localUser.teleportToPosition(this.main.camera.model.position);
-      } else {
-        this.localUser.camera.position.copy(this.main.camera.model.position);
+      this.localUser.camera.position.copy(this.main.camera.model.position);
 
-        // If the last known quaternion is different or not yet set => copy quaternion and apply multiplication
-        /*if (
+      // Brauch ich evtl. noch, wenn ich wieder mit Camera arbeite
+      // If the last known quaternion is different or not yet set => copy quaternion and apply multiplication
+      /*if (
           !this.lastMainQuaternion ||
           !this.main.camera.model.quaternion.equals(this.lastMainQuaternion)
         ) {*/
-        this.projectorQuaternions =
-          this.synchronizationSession.setUpQuaternionArr();
-        const anim_active = Math.sin(new Date().getTime() / 2000) / 2 + 0.5;
-        const neutral = this.main.camera.model.quaternion;
-        const warped = this.main.camera.model.quaternion.clone().multiply(
+      const neutral = this.main.camera.model.quaternion;
+
+      // const matrixQ = new THREE.Matrix4().makeRotationFromQuaternion(neutral);
+      // const q = new THREE.Quaternion().setFromRotationMatrix(matrixQ);
+
+      // this.localUser.camera.quaternion.copy(q);
+      this.localUser.camera.quaternion.copy(neutral);
+
+      // this.localUser.camera.quaternion.premultiply(
+      //   this.projectorQuaternions.quaternions[
+      //   this.synchronizationSession.deviceId - 1
+      //   ]
+      // );
+      this.localUser.camera.updateProjectionMatrix();
+      // // FOV AND ASPECT
+      // const angles =
+      //   this.projectorAngles.angles[this.synchronizationSession.deviceId - 1];
+      // this.localUser.camera.projectionMatrix.copy(
+      //   new THREE.Matrix4().makePerspective(
+      //     -Math.tan(angles.left * DEG2RAD) * this.localUser.camera.near,
+      //     Math.tan(angles.right * DEG2RAD) * this.localUser.camera.near,
+      //     Math.tan(angles.down * DEG2RAD) * this.localUser.camera.near,
+      //     -Math.tan(angles.up * DEG2RAD) * this.localUser.camera.near,
+      //     this.localUser.camera.near,
+      //     this.localUser.camera.far
+      //   )
+      // );
+
+      this.localUser.camera.projectionMatrix.multiply(
+        new THREE.Matrix4().makeRotationFromQuaternion(
           this.projectorQuaternions.quaternions[
           this.synchronizationSession.deviceId - 1
-          ] // deviceId - 1 == array index
-        );
-
-        const warped2 = this.projectorQuaternions.quaternions[
-          this.synchronizationSession.deviceId - 1
-        ]
-          .clone()
-          .multiply(this.main.camera.model.quaternion);
-
-        const lerped = warped2.clone().slerp(warped, anim_active);
-
-        this.localUser.camera.quaternion.copy(neutral);
-        this.localUser.camera.updateProjectionMatrix();
-
-        const angles =
-          this.projectorAngles.angles[this.synchronizationSession.deviceId - 1];
-        this.localUser.camera.projectionMatrix.copy(
-          new THREE.Matrix4().makePerspective(
-            -Math.tan(angles.left * DEG2RAD) * this.localUser.camera.near,
-            Math.tan(angles.right * DEG2RAD) * this.localUser.camera.near,
-            Math.tan(angles.up * DEG2RAD) * this.localUser.camera.near,
-            -Math.tan(angles.down * DEG2RAD) * this.localUser.camera.near,
-            this.localUser.camera.near,
-            this.localUser.camera.far
-          )
-        );
-
-        this.localUser.camera.projectionMatrix.multiply(
-          new THREE.Matrix4().makeRotationFromQuaternion(
-            this.projectorQuaternions.quaternions[
-            this.synchronizationSession.deviceId - 1
-            ]
-          )
-        );
-        this.lastMainQuaternion = this.main.camera.model.quaternion.clone(); // Update the stored quaternion
-        //}
-      }
-    } else if (this.projectors.size > 0) {
-      console.log('jemals in else if?');
-      const poses = VrPoses.getPoses(
-        this.localUser.camera,
-        this.localUser.controller1,
-        this.localUser.controller2
+          ]
+        )
       );
-      if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
-        console.log('jemals in else if if???');
-        this.sender.sendPoseUpdate(
-          poses.camera,
-          poses.controller1,
-          poses.controller2
-        );
-      }
-      this.lastPose = poses;
+
+      this.lastMainQuaternion = this.main.camera.model.quaternion.clone(); // Update the stored quaternion
+      //}
     }
   }
 

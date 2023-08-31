@@ -118,7 +118,7 @@ export default class SynchronizationSession extends Service {
   last_order = '';
 
   setUpQuaternionArr(): ProjectorQuaternions {
-    // roll pitch yaw
+    // Define an array of projector angles in the format [roll, pitch, yaw].
     const projector_angles = [
       [-14.315, 24.45517, 37.73257],
       [16.31073, 27.50301, -35.22566],
@@ -127,31 +127,41 @@ export default class SynchronizationSession extends Service {
       [2.18843, 73.21593, -9.4374],
     ];
 
-    const base_orders = ['RPH', 'PRH', 'RHP', 'HRP', 'HPR', 'PHR'];
+    // The following commented-out code seems to generate a list of rotation orders.
+    // However, it's not used in the current code.
+    /*
+const base_orders = ['RPH', 'PRH', 'RHP', 'HRP', 'HPR', 'PHR'];
+const r = base_orders.flatMap((x) => {
+  return [0, 1, 2, 3, 4, 5, 6, 7].map((y) => {
+    return x
+      .split('')
+      .map((z, i) => {
+        return y & (1 << i) ? 'P' + z : 'N' + z;
+      })
+      .join(',');
+  });
+});
+const second = (new Date().getTime() / 3000) | 0;
+let order = r[second % r.length];
+*/
 
-    const r = base_orders.flatMap((x) => {
-      return [0, 1, 2, 3, 4, 5, 6, 7].map((y) => {
-        return x
-          .split('')
-          .map((z, i) => {
-            return y & (1 << i) ? 'P' + z : 'N' + z;
-          })
-          .join(',');
-      });
-    });
-
-    const second = (new Date().getTime() / 3000) | 0;
-    //let order = r[second % r.length];
+    // Define a rotation order. If this order is different from the last one, log it.
     const order = 'PR,NP,PH';
     if (order != this.last_order) {
       console.log(order);
       this.last_order = order;
     }
-    //const order = "NR,NP,PH";
+
+    // Split the rotation order into individual prefixes.
     const prefixes = order.split(',');
 
+    // Map projector angles to quaternions based on the rotation order.
     const quaternions = projector_angles.map((axis) => {
+      // Create a map to store quaternions for different rotation axes.
       const axes = new Map();
+      console.log(axis[0], axis[1], axis[2]);
+
+      // Define quaternions for negative roll, positive roll, negative yaw, positive yaw, negative pitch, and positive pitch.
       axes.set(
         'NR',
         new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
@@ -195,38 +205,63 @@ export default class SynchronizationSession extends Service {
         )
       );
 
+      // Retrieve the quaternions for the specified rotation order.
       const rot_a = axes.get(prefixes[0]);
       const rot_b = axes.get(prefixes[1]);
       const rot_c = axes.get(prefixes[2]);
+      console.log(prefixes[0]);
+      console.log('rot_a', rot_a);
+      console.log(prefixes[1]);
+      console.log('rot_b', rot_b);
+      console.log(prefixes[2]);
+      console.log('rot_c', rot_c);
+      // console.log(
+      //   'return value',
+      //   rot_a.clone().multiply(rot_b).multiply(rot_c)
+      // );
+
+      // Multiply the quaternions in the specified order to get the combined rotation.
       return rot_a.clone().multiply(rot_b).multiply(rot_c);
     });
+    console.log({ quaternions });
+    // Return the computed quaternions.
+    // return { quaternions };
 
-    return { quaternions };
-
+    // const temp = new THREE.Quaternion().setFromAxisAngle();
     // Transform to radians
     const q0 = this.eulerToQuaternion(
       new THREE.Euler(
-        -14.315 *
-        // - (90 - this.tilt)
-        THREE.MathUtils.DEG2RAD,
-        24.45517 *
-        // - (45)
-        THREE.MathUtils.DEG2RAD,
-        37.73257 *
-        // + (this.tilt)
-        THREE.MathUtils.DEG2RAD,
-        'XYZ'
+        -24.45517 * THREE.MathUtils.DEG2RAD, // Pitch
+        37.73257 * THREE.MathUtils.DEG2RAD, // Yaw
+        -14.315 * THREE.MathUtils.DEG2RAD, // Roll
+        'ZXY'
       )
     );
 
+    // // Roll
+    // const q00 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+    //   new THREE.Vector3(0, 0, 1),
+    //   -14.315 * THREE.MathUtils.DEG2RAD
+    // );
+
+    // // Pitch
+    // const q01 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+    //   new THREE.Vector3(-1, 0, 0),
+    //   24.45517 * THREE.MathUtils.DEG2RAD
+    // );
+
+    // // Yaw
+    // const q02 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+    //   new THREE.Vector3(0, 1, 0),
+    //   37.73257 * THREE.MathUtils.DEG2RAD
+    // );
+
+    // const q0 = q00.clone().multiply(q01).multiply(q02);
+
     const q1 = this.eulerToQuaternion(
       new THREE.Euler(
-        16.31073 *
-        // - (90)
-        THREE.MathUtils.DEG2RAD,
-        27.50301 *
-        // - (90)
-        THREE.MathUtils.DEG2RAD,
+        16.31073 * THREE.MathUtils.DEG2RAD,
+        27.50301 * THREE.MathUtils.DEG2RAD,
         -35.22566 * THREE.MathUtils.DEG2RAD,
         'XYZ'
       )
@@ -234,44 +269,28 @@ export default class SynchronizationSession extends Service {
     const q2 = this.eulerToQuaternion(
       new THREE.Euler(
         23.7238 * THREE.MathUtils.DEG2RAD,
-        50.71501 *
-        // - (90 - this.tilt)
-        THREE.MathUtils.DEG2RAD,
-        -118.98493 *
-        // + this.tilt
-        THREE.MathUtils.DEG2RAD,
+        50.71501 * THREE.MathUtils.DEG2RAD,
+        -118.98493 * THREE.MathUtils.DEG2RAD,
         'XYZ'
       )
     );
     const q3 = this.eulerToQuaternion(
       new THREE.Euler(
-        -27.00377 *
-        // - 45
-        THREE.MathUtils.DEG2RAD,
-        53.37216 *
-        // + (45)
-        THREE.MathUtils.DEG2RAD,
-        116.72392 *
-        // + 180
-        THREE.MathUtils.DEG2RAD,
+        -27.00377 * THREE.MathUtils.DEG2RAD,
+        53.37216 * THREE.MathUtils.DEG2RAD,
+        116.72392 * THREE.MathUtils.DEG2RAD,
         'XYZ'
       )
     );
     const q4 = this.eulerToQuaternion(
       new THREE.Euler(
-        2.18843 *
-        // + (this.tilt)
-        THREE.MathUtils.DEG2RAD,
-        73.21593 *
-        // - (90 - this.tilt)
-        THREE.MathUtils.DEG2RAD,
-        -9.4374 *
-        // + (this.tilt)
-        THREE.MathUtils.DEG2RAD,
+        2.18843 * THREE.MathUtils.DEG2RAD,
+        73.21593 * THREE.MathUtils.DEG2RAD,
+        -9.4374 * THREE.MathUtils.DEG2RAD,
         'XYZ'
       )
     );
-
+    console.log({ quaternions: [q0, q1, q2, q3, q4] });
     return { quaternions: [q0, q1, q2, q3, q4] };
   }
 
@@ -334,7 +353,7 @@ export default class SynchronizationSession extends Service {
     );
 
     this.localUser.camera.fov = projectorVerticalAngleDeg;
-    //this.localUser.camera.updateProjectionMatrix();
+    this.localUser.camera.updateProjectionMatrix();
   }
 
   setUpAspect(projectorAngle: ProjectorAngle) {
@@ -346,14 +365,14 @@ export default class SynchronizationSession extends Service {
     // In terms of angles, this would be the ratio of the sum of the right and left angles to the sum of the up and down angles.
     this.horizontalAngleRad = Math.atan(tanRight) + Math.atan(tanLeft);
     this.aspect = this.horizontalAngleRad / this.verticalAngleRad;
-
+    console.log(this.aspect); // 1.2497308128129048
     this.localUser.camera.aspect = this.aspect;
-    //this.localUser.camera.updateProjectionMatrix();
+    this.localUser.camera.updateProjectionMatrix();
   }
 
   setUpCamera(projectorAngle: ProjectorAngle) {
-    //this.setUpVerticalFov(projectorAngle);
-    //this.setUpAspect(projectorAngle);
+    this.setUpVerticalFov(projectorAngle);
+    this.setUpAspect(projectorAngle);
   }
 }
 
