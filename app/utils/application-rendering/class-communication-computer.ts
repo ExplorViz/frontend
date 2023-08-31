@@ -1,5 +1,8 @@
-import { DynamicLandscapeData, Span } from '../landscape-schemes/dynamic-data';
-import {
+import type {
+  DynamicLandscapeData,
+  Span,
+} from '../landscape-schemes/dynamic-data';
+import type {
   Application,
   Class,
   StructureLandscapeData,
@@ -92,6 +95,10 @@ export default function computeDrawableClassCommunication(
     DrawableClassCommunication
   >();
 
+  if (totalClassCommunications.length > 0) {
+    const first = totalClassCommunications[0];
+    console.log('worker first comm', first);
+  }
   totalClassCommunications.forEach(
     ({ sourceClass, targetClass, operationName }) => {
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;

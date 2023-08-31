@@ -52,7 +52,7 @@ export default class LandscapeDataContext {
     update.timestamp = timestampRecord;
 
     update.drawableClassCommunications = computeDrawableClassCommunication(
-      structureData.json,
+      processedData,
       dynamicData.json
     );
 
