@@ -23,7 +23,9 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly latestData: LocalLandscapeData = {};
 
   private worker: Worker | undefined;
-  private comlinkRemote: Comlink.Remote<LandscapeDataWorkerAPI> | undefined;
+  private readonly comlinkRemote: Promise<
+    Comlink.Remote<LandscapeDataWorkerAPI>
+  >;
   private interval: number | undefined;
 
   @service('auth') auth!: Auth;
@@ -31,13 +33,23 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
   @service('application-renderer') applicationRenderer!: ApplicationRenderer;
 
-  async initPolling() {
-    // TODO: could be called multiple times
-    const [worker, remote] = await this.createWorkerAndRemote();
-    this.worker = worker;
-    this.comlinkRemote = remote;
+  constructor() {
+    super(...arguments);
 
-    setTimeout(() => this.updateLocalData(), 1000);
+    this.comlinkRemote = this.createWorkerAndRemote().then(
+      ([worker, remote]) => {
+        this.worker = worker;
+        return remote;
+      }
+    );
+  }
+
+  startPolling(): void {
+    if (this.interval !== undefined) {
+      throw new Error('Polling already started.');
+    }
+
+    setTimeout(() => this.updateLocalData(), 0);
 
     // TODO tiwe: ENV.mode.tokenToShow
     this.interval = setInterval(
@@ -46,16 +58,15 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     ) as unknown as number;
   }
 
-  async stopPolling() {
+  stopPolling(): void {
     if (this.interval === undefined) {
       return;
     }
     clearInterval(this.interval);
     this.interval = undefined;
-    // TODO (?)
   }
 
-  getLatest(): LocalLandscapeData {
+  getLatest(): Readonly<LocalLandscapeData> {
     return this.latestData;
   }
 
@@ -76,10 +87,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       throw new Error('No landscape token.');
     }
 
-    const remote = this.comlinkRemote;
-    if (remote === undefined) {
-      throw new Error('Not initialized.');
-    }
+    const remote = await this.comlinkRemote;
 
     return remote.getDataUpdate(
       landscapeToken.value,
@@ -89,8 +97,6 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   }
 
   private async handleUpdate(update: DataUpdate) {
-    console.log('Update received!', Object.keys(update));
-
     this.latestData.dynamic = update.dynamic;
     this.latestData.structure = update.structure;
 
@@ -144,7 +150,6 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   willDestroy(): void {
     if (this.worker) {
       this.worker.terminate();
-      this.comlinkRemote = undefined;
     }
     if (this.interval !== undefined) {
       clearInterval(this.interval);

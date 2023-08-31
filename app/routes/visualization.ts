@@ -87,7 +87,7 @@ export default class VisualizationRoute extends BaseRoute {
     super.setupController(controller, model, transition);
 
     controller.initRendering();
-    this.landscapeDataService.initPolling();
+    this.landscapeDataService.startPolling();
   }
 
   // @Override Ember-Hook
