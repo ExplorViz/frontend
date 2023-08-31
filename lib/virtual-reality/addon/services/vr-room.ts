@@ -145,9 +145,13 @@ export default class VrRoomService extends Service {
 
       const url = `${collaborationService}/v2/vr/synchronization`;
       const jsonResponse = await this.payloadResponse(payload, url);
-      console.log(jsonResponse);
-      console.log(isSynchronizationStartedResponse(jsonResponse));
-      if (isSynchronizationStartedResponse(jsonResponse)) return jsonResponse;
+
+      if (isSynchronizationStartedResponse(jsonResponse)) {
+        this.synchronizationSession.setProjectorConfigurations(
+          jsonResponse.projectorConfigurations
+        );
+        return jsonResponse;
+      }
     }
     throw new Error('invalid data');
   }

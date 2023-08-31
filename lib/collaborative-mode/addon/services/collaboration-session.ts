@@ -272,10 +272,6 @@ export default class CollaborationSession extends Service.extend({
           const roomResponse = response.roomResponse;
           const joinResponse = response.joinResponse;
 
-          this.synchronizationSession.setProjectorConfigurations(
-            response.projectorConfigurations
-          );
-
           this.currentRoomId = roomResponse.roomId;
           await this.webSocket.initSocket(joinResponse.ticketId);
         }

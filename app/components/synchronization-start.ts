@@ -66,11 +66,17 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   async synchronizeTask() {
     // chill to let all be set up
     await timeout(2000);
+
+    // let mainfound = this.synchronizationSession.deviceId !== 0;
+
+    // while (!mainfound) {
     Array.from(this.collaborationSession.getAllRemoteUsers()).map((user) => {
       if (user.userName == 'Main') {
         this.synchronizeService.activate(user);
+        // mainfound = true;
       }
     });
+    // }
   }
 
   // Create task to handle async calls on room handling

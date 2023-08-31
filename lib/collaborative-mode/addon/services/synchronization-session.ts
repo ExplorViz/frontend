@@ -2,6 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
 import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
+import { DEG2RAD, RAD2DEG } from 'three/src/math/MathUtils';
 
 export type YawPitchRoll = {
   yaw: number;
@@ -13,7 +14,7 @@ export type ProjectorQuaternion = {
   quaternion: THREE.Quaternion;
 };
 
-export type ProjectorAngle = {
+export type ProjectorAngles = {
   left: number;
   right: number;
   up: number;
@@ -21,12 +22,13 @@ export type ProjectorAngle = {
 };
 
 export type ProjectorConfigurations = {
+  id: string;
   yawPitchRoll: YawPitchRoll;
-  projectorAngle: ProjectorAngle;
+  projectorAngles: ProjectorAngles;
 };
 
-export type ProjectorAngles = {
-  angles: ProjectorAngle[];
+export type ProjectorAngles2 = {
+  angles: ProjectorAngles[];
 };
 
 export type ProjectorQuaternions = {
@@ -52,8 +54,8 @@ export default class SynchronizationSession extends Service {
   // Aspect
   private aspect!: number;
 
-  projectorAngle?: ProjectorAngle;
-  projectorQuaternion?: ProjectorQuaternion;
+  projectorAngles!: ProjectorAngles;
+  projectorQuaternion!: ProjectorQuaternion;
 
   // Things to consider:
   // 1) Tilt
@@ -84,20 +86,27 @@ export default class SynchronizationSession extends Service {
 
   // Sets the projector angles of the device: Detection of device via payload at start of synchronization
   // Could implement a test case for this, but need to save the mpcdi informations for that in frontend?!
-  setProjectorAngle(projectorAngle: ProjectorAngle) {
-    this.projectorAngle = projectorAngle;
+  setProjectorAngle(projectorAngles: any) {
+    console.log(projectorAngles);
+    this.projectorAngles = {
+      left: projectorAngles.left,
+      right: projectorAngles.right,
+      up: projectorAngles.up,
+      down: projectorAngles.down,
+    };
   }
 
   // Sets projector yaw, pitch and roll angles of the device.
   // Device detection same as projector angle
   setProjectorYawPitchRoll(yawPitchRoll: YawPitchRoll) {
+    console.log(yawPitchRoll);
     this.projectorQuaternion = {
       quaternion: this.eulerToQuaternion(
         new THREE.Euler(
-          yawPitchRoll.roll * THREE.MathUtils.DEG2RAD,
-          yawPitchRoll.pitch * THREE.MathUtils.DEG2RAD,
-          yawPitchRoll.yaw * THREE.MathUtils.DEG2RAD,
-          'ZYX'
+          -yawPitchRoll.pitch * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
+          yawPitchRoll.yaw * THREE.MathUtils.DEG2RAD, // Yaw
+          yawPitchRoll.roll * THREE.MathUtils.DEG2RAD, // Roll
+          'ZXY'
         )
       ),
     };
@@ -105,7 +114,7 @@ export default class SynchronizationSession extends Service {
 
   setProjectorConfigurations(projectorConfiguration: ProjectorConfigurations) {
     this.setProjectorYawPitchRoll(projectorConfiguration.yawPitchRoll);
-    this.setProjectorAngle(projectorConfiguration.projectorAngle);
+    this.setProjectorAngle(projectorConfiguration.projectorAngles);
   }
 
   // Positive Roll, Positive Pitch, Negative Heading
@@ -118,212 +127,83 @@ export default class SynchronizationSession extends Service {
   last_order = '';
 
   setUpQuaternionArr(): ProjectorQuaternions {
-    // Define an array of projector angles in the format [roll, pitch, yaw].
-    const projector_angles = [
-      [-14.315, 24.45517, 37.73257],
-      [16.31073, 27.50301, -35.22566],
-      [23.7238, 50.71501, -118.98493],
-      [-27.00377, 53.37216, 116.72392],
-      [2.18843, 73.21593, -9.4374],
-    ];
-
-    // The following commented-out code seems to generate a list of rotation orders.
-    // However, it's not used in the current code.
-    /*
-const base_orders = ['RPH', 'PRH', 'RHP', 'HRP', 'HPR', 'PHR'];
-const r = base_orders.flatMap((x) => {
-  return [0, 1, 2, 3, 4, 5, 6, 7].map((y) => {
-    return x
-      .split('')
-      .map((z, i) => {
-        return y & (1 << i) ? 'P' + z : 'N' + z;
-      })
-      .join(',');
-  });
-});
-const second = (new Date().getTime() / 3000) | 0;
-let order = r[second % r.length];
-*/
-
-    // Define a rotation order. If this order is different from the last one, log it.
-    const order = 'PR,NP,PH';
-    if (order != this.last_order) {
-      console.log(order);
-      this.last_order = order;
-    }
-
-    // Split the rotation order into individual prefixes.
-    const prefixes = order.split(',');
-
-    // Map projector angles to quaternions based on the rotation order.
-    const quaternions = projector_angles.map((axis) => {
-      // Create a map to store quaternions for different rotation axes.
-      const axes = new Map();
-      console.log(axis[0], axis[1], axis[2]);
-
-      // Define quaternions for negative roll, positive roll, negative yaw, positive yaw, negative pitch, and positive pitch.
-      axes.set(
-        'NR',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(0, 0, -1),
-          axis[0] * THREE.MathUtils.DEG2RAD
-        )
-      );
-      axes.set(
-        'PR',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          axis[0] * THREE.MathUtils.DEG2RAD
-        )
-      );
-      axes.set(
-        'NH',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(0, -1, 0),
-          axis[2] * THREE.MathUtils.DEG2RAD
-        )
-      );
-      axes.set(
-        'PH',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(0, 1, 0),
-          axis[2] * THREE.MathUtils.DEG2RAD
-        )
-      );
-      axes.set(
-        'NP',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(-1, 0, 0),
-          axis[1] * THREE.MathUtils.DEG2RAD
-        )
-      );
-      axes.set(
-        'PP',
-        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-          new THREE.Vector3(1, 0, 0),
-          axis[1] * THREE.MathUtils.DEG2RAD
-        )
-      );
-
-      // Retrieve the quaternions for the specified rotation order.
-      const rot_a = axes.get(prefixes[0]);
-      const rot_b = axes.get(prefixes[1]);
-      const rot_c = axes.get(prefixes[2]);
-      console.log(prefixes[0]);
-      console.log('rot_a', rot_a);
-      console.log(prefixes[1]);
-      console.log('rot_b', rot_b);
-      console.log(prefixes[2]);
-      console.log('rot_c', rot_c);
-      // console.log(
-      //   'return value',
-      //   rot_a.clone().multiply(rot_b).multiply(rot_c)
-      // );
-
-      // Multiply the quaternions in the specified order to get the combined rotation.
-      return rot_a.clone().multiply(rot_b).multiply(rot_c);
-    });
-    console.log({ quaternions });
-    // Return the computed quaternions.
-    // return { quaternions };
-
-    // const temp = new THREE.Quaternion().setFromAxisAngle();
+    // Positive Roll (Z-Axe), Negative Pitch (X-Axe), Positive Yaw (Y-Axe)
     // Transform to radians
     const q0 = this.eulerToQuaternion(
       new THREE.Euler(
-        -24.45517 * THREE.MathUtils.DEG2RAD, // Pitch
+        -24.45517 * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
         37.73257 * THREE.MathUtils.DEG2RAD, // Yaw
         -14.315 * THREE.MathUtils.DEG2RAD, // Roll
         'ZXY'
       )
     );
 
-    // // Roll
-    // const q00 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-    //   new THREE.Vector3(0, 0, 1),
-    //   -14.315 * THREE.MathUtils.DEG2RAD
-    // );
-
-    // // Pitch
-    // const q01 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-    //   new THREE.Vector3(-1, 0, 0),
-    //   24.45517 * THREE.MathUtils.DEG2RAD
-    // );
-
-    // // Yaw
-    // const q02 = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-    //   new THREE.Vector3(0, 1, 0),
-    //   37.73257 * THREE.MathUtils.DEG2RAD
-    // );
-
-    // const q0 = q00.clone().multiply(q01).multiply(q02);
-
     const q1 = this.eulerToQuaternion(
       new THREE.Euler(
-        16.31073 * THREE.MathUtils.DEG2RAD,
-        27.50301 * THREE.MathUtils.DEG2RAD,
-        -35.22566 * THREE.MathUtils.DEG2RAD,
-        'XYZ'
+        -27.50301 * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
+        -35.22566 * THREE.MathUtils.DEG2RAD, // Yaw
+        16.31073 * THREE.MathUtils.DEG2RAD, // Roll
+        'ZXY'
       )
     );
     const q2 = this.eulerToQuaternion(
       new THREE.Euler(
-        23.7238 * THREE.MathUtils.DEG2RAD,
-        50.71501 * THREE.MathUtils.DEG2RAD,
-        -118.98493 * THREE.MathUtils.DEG2RAD,
-        'XYZ'
+        -50.71501 * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
+        -118.98493 * THREE.MathUtils.DEG2RAD, // Yaw
+        23.7238 * THREE.MathUtils.DEG2RAD, // Roll
+        'ZXY'
       )
     );
     const q3 = this.eulerToQuaternion(
       new THREE.Euler(
-        -27.00377 * THREE.MathUtils.DEG2RAD,
-        53.37216 * THREE.MathUtils.DEG2RAD,
-        116.72392 * THREE.MathUtils.DEG2RAD,
-        'XYZ'
+        -53.37216 * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
+        116.72392 * THREE.MathUtils.DEG2RAD, // Yaw
+        -27.00377 * THREE.MathUtils.DEG2RAD, // Roll
+        'ZXY'
       )
     );
     const q4 = this.eulerToQuaternion(
       new THREE.Euler(
-        2.18843 * THREE.MathUtils.DEG2RAD,
-        73.21593 * THREE.MathUtils.DEG2RAD,
-        -9.4374 * THREE.MathUtils.DEG2RAD,
-        'XYZ'
+        -73.21593 * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
+        -9.4374 * THREE.MathUtils.DEG2RAD, // Yaw
+        2.18843 * THREE.MathUtils.DEG2RAD, // Roll
+        'ZXY'
       )
     );
-    console.log({ quaternions: [q0, q1, q2, q3, q4] });
+
     return { quaternions: [q0, q1, q2, q3, q4] };
   }
 
-  setUpAngleArr(): ProjectorAngles {
-    const pA0: ProjectorAngle = {
+  setUpAngleArr(): ProjectorAngles2 {
+    const pA0: ProjectorAngles = {
       left: 62.0003,
       right: 62.0003,
       up: 49.6109237,
       down: 49.6109237,
     };
 
-    const pA1: ProjectorAngle = {
+    const pA1: ProjectorAngles = {
       left: 62,
       right: 62,
       up: 49.61092,
       down: 49.61092,
     };
 
-    const pA2: ProjectorAngle = {
+    const pA2: ProjectorAngles = {
       left: 62.0002972,
       right: 62.0002972,
       up: 49.6109237,
       down: 49.6109237,
     };
 
-    const pA3: ProjectorAngle = {
+    const pA3: ProjectorAngles = {
       left: 62.0002972,
       right: 62.0002972,
       up: 49.6109237,
       down: 49.6109237,
     };
 
-    const pA4: ProjectorAngle = {
+    const pA4: ProjectorAngles = {
       left: 62.0002972,
       right: 62.0002972,
       up: 49.6109237,
@@ -338,39 +218,37 @@ let order = r[second % r.length];
   /**
    * CALCULATE FOV AND ASPECT CONSIDERING PROJECTOR ANGLES
    */
-  setUpVerticalFov(projectorAngle: ProjectorAngle) {
+  setUpVerticalFov(projectorAngle: ProjectorAngles) {
     // tangents returns angle of given value in radians
-    const tanUp = Math.tan(THREE.MathUtils.degToRad(projectorAngle.up));
-    const tanDown = Math.tan(THREE.MathUtils.degToRad(projectorAngle.down));
+    const tanUp = Math.tan(projectorAngle.up * DEG2RAD);
+    const tanDown = Math.tan(projectorAngle.down * DEG2RAD);
 
     // The total vertical field of view will be the sum of the up and down angles.
     // Since tan(θ) gives us the opposite/adjacent relationship in a right triangle,
     // we can use the arctangent function to retrieve the angle in radians and then convert it to degrees.
     this.verticalAngleRad = Math.atan(tanUp) + Math.atan(tanDown);
     // Perspective Camera uses degree
-    const projectorVerticalAngleDeg = THREE.MathUtils.radToDeg(
-      this.verticalAngleRad
-    );
+    const projectorVerticalAngleDeg = this.verticalAngleRad * RAD2DEG;
 
     this.localUser.camera.fov = projectorVerticalAngleDeg;
     this.localUser.camera.updateProjectionMatrix();
   }
 
-  setUpAspect(projectorAngle: ProjectorAngle) {
+  setUpAspect(projectorAngle: ProjectorAngles) {
     // tangents returns angle of given value in radians
-    const tanLeft = Math.tan(THREE.MathUtils.degToRad(projectorAngle.left));
-    const tanRight = Math.tan(THREE.MathUtils.degToRad(projectorAngle.right));
+    const tanLeft = Math.tan(projectorAngle.left * DEG2RAD);
+    const tanRight = Math.tan(projectorAngle.right * DEG2RAD);
 
     // The aspect ratio is the ratio of the width to the height of the frustum.
     // In terms of angles, this would be the ratio of the sum of the right and left angles to the sum of the up and down angles.
     this.horizontalAngleRad = Math.atan(tanRight) + Math.atan(tanLeft);
     this.aspect = this.horizontalAngleRad / this.verticalAngleRad;
-    console.log(this.aspect); // 1.2497308128129048
+
     this.localUser.camera.aspect = this.aspect;
     this.localUser.camera.updateProjectionMatrix();
   }
 
-  setUpCamera(projectorAngle: ProjectorAngle) {
+  setUpCamera(projectorAngle: ProjectorAngles) {
     this.setUpVerticalFov(projectorAngle);
     this.setUpAspect(projectorAngle);
   }
