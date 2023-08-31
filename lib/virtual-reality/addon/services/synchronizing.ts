@@ -60,6 +60,7 @@ export default class SynchronizeService extends Service {
       this.localUser.camera.quaternion.copy(neutral);
       this.localUser.camera.updateProjectionMatrix();
 
+      const dometilt = 0;
       // Set up fov and aspect
       this.localUser.camera.projectionMatrix.copy(
         new THREE.Matrix4().makePerspective(
@@ -69,10 +70,13 @@ export default class SynchronizeService extends Service {
           Math.tan(
             this.synchronizationSession.projectorAngles.right * DEG2RAD
           ) * this.localUser.camera.near,
-          Math.tan(this.synchronizationSession.projectorAngles.down * DEG2RAD) *
-          this.localUser.camera.near,
-          -Math.tan(this.synchronizationSession.projectorAngles.up * DEG2RAD) *
-          this.localUser.camera.near,
+          Math.tan(
+            this.synchronizationSession.projectorAngles.down * DEG2RAD -
+            dometilt
+          ) * this.localUser.camera.near,
+          -Math.tan(
+            this.synchronizationSession.projectorAngles.up * DEG2RAD + dometilt
+          ) * this.localUser.camera.near,
           this.localUser.camera.near,
           this.localUser.camera.far
         )
