@@ -131,7 +131,9 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   private async createWorkerAndRemote(): Promise<
     [Worker, Comlink.Remote<LandscapeDataWorkerAPI>]
   > {
-    const worker = new Worker(resolveWorkerUrl('landscape-data-worker.js'));
+    const worker = new Worker(resolveWorkerUrl('landscape-data-worker.js'), {
+      name: 'Landscape Data Worker',
+    });
     const remote = Comlink.wrap<LandscapeDataWorkerAPI>(worker);
 
     const { landscapeService, traceService } = ENV.backendAddresses;

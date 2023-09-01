@@ -7,10 +7,7 @@ import type {
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import {
-  getHashCodeToClassMap,
-  getApplicationFromClass,
-} from '../landscape-structure-helpers';
+import { createMapsForClasses } from '../landscape-structure-helpers';
 import isObject from '../object-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 
@@ -69,7 +66,9 @@ export default function computeDrawableClassCommunication(
   performance.mark('computeDrawableClassCommunication-start');
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
-  const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
+  const [hashCodeToClassMap, classToApplicationMap] = createMapsForClasses(
+    landscapeStructureData
+  );
 
   const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
 
@@ -100,16 +99,10 @@ export default function computeDrawableClassCommunication(
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
       // get source app
-      const sourceApp = getApplicationFromClass(
-        landscapeStructureData,
-        sourceClass
-      );
+      const sourceApp = classToApplicationMap.get(sourceClass);
 
       // get target app
-      const targetApp = getApplicationFromClass(
-        landscapeStructureData,
-        targetClass
-      );
+      const targetApp = classToApplicationMap.get(targetClass);
 
       // Find all identical method calls based on their source
       // and target app / class
