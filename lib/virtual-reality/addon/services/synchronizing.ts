@@ -40,26 +40,35 @@ export default class SynchronizeService extends Service {
     if (this.main?.camera) {
       // Copy position and quaternion, then prepare or update the projectionmatrix
       this.localUser.camera.position.copy(this.main.camera.model.position);
-      const neutral = this.main.camera.model.quaternion;
-      this.localUser.camera.quaternion.copy(neutral);
+
+      // Rotation test
+      const mainQuaternion = this.main.camera.model.quaternion
+        .clone()
+        .multiply(this.synchronizationSession.projectorQuaternion.quaternion);
+      // this.localUser.camera.rotation.setFromQuaternion(mainQuaternion);
+
+      // Quaternion test
+      this.localUser.camera.quaternion.copy(mainQuaternion);
+
+      // this.localUser.camera.quaternion.copy(mainQuaternion);
       this.localUser.camera.updateProjectionMatrix();
 
       // Considering projector angles to set up fov and aspect using projection matrix
       this.synchronizationSession.setUpCamera();
 
       // manipulate main's quaternion
-      this.localUser.camera.projectionMatrix.multiply(
-        new THREE.Matrix4().makeRotationFromQuaternion(
-          this.synchronizationSession.projectorQuaternion?.quaternion
-        )
-      );
+      // this.localUser.camera.projectionMatrix.multiply(
+      //   new THREE.Matrix4().makeRotationFromQuaternion(
+      //     this.synchronizationSession.projectorQuaternion?.quaternion
+      //   )
+      // );
 
       // consider dometilt AFTER synchronisation, shifting all projections to the center of dome
-      this.localUser.camera.projectionMatrix.multiply(
-        new THREE.Matrix4().makeRotationFromQuaternion(
-          this.synchronizationSession.getDomeTiltQuaternion()
-        )
-      );
+      // this.localUser.camera.projectionMatrix.multiply(
+      //   new THREE.Matrix4().makeRotationFromQuaternion(
+      //     this.synchronizationSession.getDomeTiltQuaternion()
+      //   )
+      // );
     }
   }
 
