@@ -1,17 +1,12 @@
 import Service, { inject as service } from '@ember/service';
 import LocalUser from './local-user';
-import CollaborationSession from './collaboration-session';
 import * as THREE from 'three';
-import { DEG2RAD, RAD2DEG } from 'three/src/math/MathUtils';
+import { DEG2RAD } from 'three/src/math/MathUtils';
 
 export type YawPitchRoll = {
   yaw: number;
   pitch: number;
   roll: number;
-};
-
-export type ProjectorQuaternion = {
-  quaternion: THREE.Quaternion;
 };
 
 export type ProjectorAngles = {
@@ -21,42 +16,39 @@ export type ProjectorAngles = {
   down: number;
 };
 
+// Response type, which carries all projector informations sent from collaboration service
 export type ProjectorConfigurations = {
   id: string;
   yawPitchRoll: YawPitchRoll;
   projectorAngles: ProjectorAngles;
 };
 
-export type ProjectorAngles2 = {
-  angles: ProjectorAngles[];
-};
-
-export type ProjectorQuaternions = {
-  quaternions: THREE.Quaternion[];
+// Quaternion which actually getting used in synchronization
+export type ProjectorQuaternion = {
+  quaternion: THREE.Quaternion;
 };
 
 export default class SynchronizationSession extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
-
   // The id of the connected device
   deviceId!: number;
-
+  // synchronisation-room-id
   roomId!: string;
 
+  // Projector angles in ARENA2 for FOV and Aspect of frustum
   projectorAngles!: ProjectorAngles;
+  // Projector rotation in ARENA2
   projectorQuaternion!: ProjectorQuaternion;
 
   // domeTilt for moving the projection into center of dome
   private domeTilt: number = 21;
 
   /** ###########################################################################
-   *  ############### SYNCHRONIZATION START: SERVICE SET UP 
+   *  ############### SYNCHRONIZATION START: SERVICE SET UP
    *  ###########################################################################
-  */
+   */
   /* Sets up important Ids: Essentially manages and starts synchronization behaviour
   1) deviceId: Detection of device to request correct (a) projector angle and (b) yaw/pitch/roll angles.
   2) roomId: Sets the room name to this and impacts which room is hosted or joined by synchronization user.
@@ -74,21 +66,24 @@ export default class SynchronizationSession extends Service {
     this.setProjectorAngle(projectorConfiguration.projectorAngles);
   }
 
-
-
   /** ###########################################################################
    *  ############### DURING SYNCHRONIZATION: PROJECTION MANIPULATION
    *  ###########################################################################
-  */
+   */
   // Considers dome tilt and shifts the projection to the dome center
   getDomeTiltQuaternion() {
     // 360° whole globe, 180° half globe after horizontal cut, 90° half of half globe with vertical cut.
     // Horizontal cut, then vertical cut of half globe = angle from border to dometop center
-    const shiftedAngle = ((360 / 2) / 2) - this.domeTilt;
+    const shiftedAngle = 360 / 2 / 2 - this.domeTilt;
 
-    // after setting up rotation axes via synchronisation, 
+    // after setting up rotation axes via synchronisation,
     // we can use positive pitch to shift synchronized projection to the center of the globe.
-    const domeTiltQuaternion = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+    const domeTiltQuaternion = new THREE.Quaternion(
+      0,
+      0,
+      0,
+      0
+    ).setFromAxisAngle(
       new THREE.Vector3(1, 0, 0),
       shiftedAngle * THREE.MathUtils.DEG2RAD
     );
@@ -126,33 +121,21 @@ export default class SynchronizationSession extends Service {
    * CALCULATE FOV AND ASPECT CONSIDERING PROJECTOR ANGLES
    */
   setUpCamera() {
-          // Set up fov and aspect
-          this.localUser.camera.projectionMatrix.copy(
-            new THREE.Matrix4().makePerspective(
-              -Math.tan(
-                this.projectorAngles.left * DEG2RAD
-              ) 
-            * this.localUser.camera.near
-              ,
-              Math.tan(
-                this.projectorAngles.right * DEG2RAD
-              ) 
-              * this.localUser.camera.near
-              ,
-              Math.tan(
-                (this.projectorAngles.down) * DEG2RAD 
-              ) 
-              * this.localUser.camera.near
-              ,
-              -Math.tan(
-                (this.projectorAngles.up) * DEG2RAD 
-              ) 
-              * this.localUser.camera.near
-              ,
-              this.localUser.camera.near,
-              this.localUser.camera.far
-            )
-          );
+    // Set up fov and aspect
+    this.localUser.camera.projectionMatrix.copy(
+      new THREE.Matrix4().makePerspective(
+        -Math.tan(this.projectorAngles.left * DEG2RAD) *
+        this.localUser.camera.near,
+        Math.tan(this.projectorAngles.right * DEG2RAD) *
+        this.localUser.camera.near,
+        Math.tan(this.projectorAngles.down * DEG2RAD) *
+        this.localUser.camera.near,
+        -Math.tan(this.projectorAngles.up * DEG2RAD) *
+        this.localUser.camera.near,
+        this.localUser.camera.near,
+        this.localUser.camera.far
+      )
+    );
   }
 }
 

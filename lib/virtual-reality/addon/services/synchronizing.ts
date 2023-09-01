@@ -1,15 +1,11 @@
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -17,20 +13,11 @@ export default class SynchronizeService extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
-
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
-
   @service('synchronization-session')
   synchronizationSession!: SynchronizationSession;
-
-  @service('toast-message')
-  toastMessage!: ToastMessage;
 
   main: RemoteUser | null = null;
 
@@ -45,8 +32,6 @@ export default class SynchronizeService extends Service {
     return this.main !== null;
   }
 
-  lastPose?: VrPose;
-
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position.
    * Here it is modified and manipulating the copied position and quaternion according to specific needs in ARENA2.
@@ -58,7 +43,7 @@ export default class SynchronizeService extends Service {
       const neutral = this.main.camera.model.quaternion;
       this.localUser.camera.quaternion.copy(neutral);
       this.localUser.camera.updateProjectionMatrix();
-      
+
       // Considering projector angles to set up fov and aspect using projection matrix
       this.synchronizationSession.setUpCamera();
 
@@ -87,6 +72,7 @@ export default class SynchronizeService extends Service {
     this.synchronizationStartPosition.copy(this.localUser.camera.position);
 
     this.main = remoteUser;
+    // Effectivly surrenders projection control to main
     if (this.cameraControls) {
       this.cameraControls.enabled = false;
     }
@@ -95,13 +81,14 @@ export default class SynchronizeService extends Service {
   }
 
   /**
-   * Deactives spectator mode for our user
+   * Sets projection to the pre-synchronized state.
    */
   deactivate() {
     if (this.cameraControls) {
       this.cameraControls.enabled = true;
     }
     if (!this.main) return;
+    this.localUser.camera.position.copy(this.synchronizationStartPosition);
     this.localUser.camera.quaternion.copy(this.synchronizationStartQuaternion);
     this.main = null;
 
