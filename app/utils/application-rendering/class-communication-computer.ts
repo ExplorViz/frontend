@@ -1,3 +1,4 @@
+import { getAllClassesInApplication } from '../application-helpers';
 import type {
   DynamicLandscapeData,
   Span,
@@ -7,7 +8,6 @@ import type {
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import { createMapsForClasses } from '../landscape-structure-helpers';
 import isObject from '../object-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 
@@ -66,7 +66,7 @@ export default function computeDrawableClassCommunication(
   performance.mark('computeDrawableClassCommunication-start');
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
-  const [hashCodeToClassMap, classToApplicationMap] = createMapsForClasses(
+  const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
     landscapeStructureData
   );
 
@@ -139,6 +139,37 @@ export function isDrawableClassCommunication(
   x: unknown
 ): x is DrawableClassCommunication {
   return isObject(x) && Object.hasOwn(x, 'totalRequests');
+}
+
+/**
+ * Creates the following two maps based on given structure data:
+ *  - hashCodeToClassMap: maps method hash codes to classes
+ *  - classToApplicationMap: maps classes to an application
+ * @returns Both maps as a tuple which can be destructured
+ */
+function createLookupMaps(
+  structureData: StructureLandscapeData
+): [Map<string, Class>, Map<Class, Application>] {
+  const hashCodeToClassMap = new Map<string, Class>();
+  const classToApplicationMap = new Map<Class, Application>();
+
+  const allApplications = structureData.nodes
+    .map((node) => node.applications)
+    .flat();
+
+  for (const application of allApplications) {
+    const classes = getAllClassesInApplication(application);
+
+    for (const clazz of classes) {
+      clazz.methods.forEach(({ hashCode }) =>
+        hashCodeToClassMap.set(hashCode, clazz)
+      );
+
+      classToApplicationMap.set(clazz, application);
+    }
+  }
+
+  return [hashCodeToClassMap, classToApplicationMap];
 }
 
 interface ClassCommunication {

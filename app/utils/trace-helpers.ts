@@ -101,7 +101,7 @@ export function sortSpanArrayByTime(spanArary: Span[], copy = false) {
  * Returns a SpanTree, which contains the first span and a map,
  * which maps all spans' ids to their corresponding child spans
  */
-export function getTraceIdToSpanTree(trace: Trace) {
+export function getTraceIdToSpanTree(trace: Trace): SpanTree {
   let firstSpan: Span = trace.spanList[0];
 
   // Put spans into map for more efficient lookup when sorting
