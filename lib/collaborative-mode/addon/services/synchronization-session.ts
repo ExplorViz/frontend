@@ -103,9 +103,9 @@ export default class SynchronizationSession extends Service {
     this.projectorQuaternion = {
       quaternion: this.eulerToQuaternion(
         new THREE.Euler(
-          -yawPitchRoll.pitch * THREE.MathUtils.DEG2RAD, // NEGATIVE Pitch
-          yawPitchRoll.yaw * THREE.MathUtils.DEG2RAD, // Yaw
-          yawPitchRoll.roll * THREE.MathUtils.DEG2RAD, // Roll
+          -yawPitchRoll.pitch * DEG2RAD, // NEGATIVE Pitch
+          yawPitchRoll.yaw * DEG2RAD, // Yaw
+          yawPitchRoll.roll * DEG2RAD, // Roll
           'ZXY'
         )
       ),

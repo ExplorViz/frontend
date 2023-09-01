@@ -105,8 +105,7 @@ export default class SynchronizeService extends Service {
       //     ]
       //   )
       // );
-
-      const dometilt = 1;
+      const domeTilt = 90 - 21;
       // Set up fov and aspect
       this.localUser.camera.projectionMatrix.copy(
         new THREE.Matrix4().makePerspective(
@@ -117,20 +116,30 @@ export default class SynchronizeService extends Service {
             this.synchronizationSession.projectorAngles.right * DEG2RAD
           ) * this.localUser.camera.near,
           Math.tan(
-            (this.synchronizationSession.projectorAngles.down - dometilt) * DEG2RAD 
+            (this.synchronizationSession.projectorAngles.down) * DEG2RAD 
           ) * this.localUser.camera.near,
           -Math.tan(
-            (this.synchronizationSession.projectorAngles.up + dometilt) * DEG2RAD 
+            (this.synchronizationSession.projectorAngles.up) * DEG2RAD 
           ) * this.localUser.camera.near,
           this.localUser.camera.near,
           this.localUser.camera.far
         )
       );
 
+      const domeTiltQuaternion = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0),
+        domeTilt * THREE.MathUtils.DEG2RAD
+      )
+
       // manipulate main's quaternion
       this.localUser.camera.projectionMatrix.multiply(
         new THREE.Matrix4().makeRotationFromQuaternion(
           this.synchronizationSession.projectorQuaternion?.quaternion
+        )
+      );
+      this.localUser.camera.projectionMatrix.multiply(
+        new THREE.Matrix4().makeRotationFromQuaternion(
+          domeTiltQuaternion
         )
       );
     }
