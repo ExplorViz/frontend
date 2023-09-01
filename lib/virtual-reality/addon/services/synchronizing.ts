@@ -60,52 +60,6 @@ export default class SynchronizeService extends Service {
       this.localUser.camera.quaternion.copy(neutral);
       this.localUser.camera.updateProjectionMatrix();
 
-      /** ARENA LÖSUNG */
-
-      // const projectorQuaternions =
-      //   this.synchronizationSession.setUpQuaternionArr();
-      // const anim_active = Math.sin(new Date().getTime() / 2000) / 2 + 0.5;
-      // const neutral2 = this.main.camera.model.quaternion;
-      // const warped = this.main.camera.model.quaternion
-      //   .clone()
-      //   .multiply(
-      //     projectorQuaternions.quaternions[
-      //     this.synchronizationSession.deviceId - 1
-      //     ]
-      //   );
-
-      // const warped2 = projectorQuaternions.quaternions[
-      //   this.synchronizationSession.deviceId - 1
-      // ]
-      //   .clone()
-      //   .multiply(this.main.camera.model.quaternion);
-
-      // const lerped = warped2.clone().slerp(warped, anim_active);
-
-      // this.localUser.camera.quaternion.copy(neutral);
-      // this.localUser.camera.updateProjectionMatrix();
-      // const projectorAngles = this.synchronizationSession.setUpAngleArr();
-      // const angles =
-      //   projectorAngles.angles[this.synchronizationSession.deviceId - 1];
-      // this.localUser.camera.projectionMatrix.copy(
-      //   new THREE.Matrix4().makePerspective(
-      //     -Math.tan(angles.left * DEG2RAD) * this.localUser.camera.near,
-      //     Math.tan(angles.right * DEG2RAD) * this.localUser.camera.near,
-      //     Math.tan(angles.up * DEG2RAD) * this.localUser.camera.near,
-      //     -Math.tan(angles.down * DEG2RAD) * this.localUser.camera.near,
-      //     this.localUser.camera.near,
-      //     this.localUser.camera.far
-      //   )
-      // );
-
-      // this.localUser.camera.projectionMatrix.multiply(
-      //   new THREE.Matrix4().makeRotationFromQuaternion(
-      //     projectorQuaternions.quaternions[
-      //     this.synchronizationSession.deviceId - 1
-      //     ]
-      //   )
-      // );
-      const domeTilt = 90 - 21;
       // Set up fov and aspect
       this.localUser.camera.projectionMatrix.copy(
         new THREE.Matrix4().makePerspective(
@@ -126,20 +80,17 @@ export default class SynchronizeService extends Service {
         )
       );
 
-      const domeTiltQuaternion = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
-        new THREE.Vector3(1, 0, 0),
-        domeTilt * THREE.MathUtils.DEG2RAD
-      )
-
       // manipulate main's quaternion
       this.localUser.camera.projectionMatrix.multiply(
         new THREE.Matrix4().makeRotationFromQuaternion(
           this.synchronizationSession.projectorQuaternion?.quaternion
         )
       );
+
+      // consider dometilt AFTER synchronisation, shifting all projections to the center of dome
       this.localUser.camera.projectionMatrix.multiply(
         new THREE.Matrix4().makeRotationFromQuaternion(
-          domeTiltQuaternion
+          this.synchronizationSession.getDomeTiltQuaternion()
         )
       );
     }

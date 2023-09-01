@@ -42,7 +42,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     created: 1551631224242,
     ownerId: 'github|123456',
     sharedUsersIds: [],
-    value: '17844195-6144-4254-a17b-0f7fb49adb0a',
+    value: '26844195-7235-4254-a17b-0f7fb49adb0a',
   };
 
   // Check for updates on query params

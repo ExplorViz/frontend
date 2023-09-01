@@ -57,13 +57,23 @@ export default class SynchronizationSession extends Service {
   projectorAngles!: ProjectorAngles;
   projectorQuaternion!: ProjectorQuaternion;
 
-  // Things to consider:
-  // 1) Tilt
-  private tilt: number = 21;
-  // 2) Circle position
-  private circleRotation?: THREE.Euler;
-  // 3) Order of Euler: 'ZYX' according to mpcdi-file
-  // 4) Fullscreen
+  // domeTilt for moving the projection into center of dome
+  private domeTilt: number = 21;
+
+  getDomeTiltQuaternion() {
+    // 360° whole globe, 180° half globe after horizontal cut, 90° half of half globe with vertical cut.
+    // Horizontal cut, then vertical cut of half globe = angle from border to dometop center
+    const shiftedAngle = ((360 / 2) / 2) - this.domeTilt;
+
+    // after setting up rotation axes via synchronisation, 
+    // we can use positive pitch to shift synchronized projection to the center of the globe.
+    const domeTiltQuaternion = new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      shiftedAngle * THREE.MathUtils.DEG2RAD
+    );
+
+    return domeTiltQuaternion;
+  }
 
   /* Sets up important Ids: Essentially manages and starts synchronization behaviour
   1) deviceId: Detection of device to request correct (a) projector angle and (b) yaw/pitch/roll angles.
