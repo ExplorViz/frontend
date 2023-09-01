@@ -10,7 +10,6 @@ import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { DEG2RAD } from 'three/src/math/MathUtils';
 
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
@@ -59,26 +58,9 @@ export default class SynchronizeService extends Service {
       const neutral = this.main.camera.model.quaternion;
       this.localUser.camera.quaternion.copy(neutral);
       this.localUser.camera.updateProjectionMatrix();
-
-      // Set up fov and aspect
-      this.localUser.camera.projectionMatrix.copy(
-        new THREE.Matrix4().makePerspective(
-          -Math.tan(
-            this.synchronizationSession.projectorAngles.left * DEG2RAD
-          ) * this.localUser.camera.near,
-          Math.tan(
-            this.synchronizationSession.projectorAngles.right * DEG2RAD
-          ) * this.localUser.camera.near,
-          Math.tan(
-            (this.synchronizationSession.projectorAngles.down) * DEG2RAD 
-          ) * this.localUser.camera.near,
-          -Math.tan(
-            (this.synchronizationSession.projectorAngles.up) * DEG2RAD 
-          ) * this.localUser.camera.near,
-          this.localUser.camera.near,
-          this.localUser.camera.far
-        )
-      );
+      
+      // Considering projector angles to set up fov and aspect using projection matrix
+      this.synchronizationSession.setUpCamera();
 
       // manipulate main's quaternion
       this.localUser.camera.projectionMatrix.multiply(
@@ -108,11 +90,6 @@ export default class SynchronizeService extends Service {
     if (this.cameraControls) {
       this.cameraControls.enabled = false;
     }
-
-    // Fov and aspect camera
-    this.synchronizationSession.setUpCamera(
-      this.synchronizationSession.projectorAngles
-    );
 
     this.sender.sendSpectatingUpdate(this.isSynchronized, remoteUser.userId);
   }

@@ -7,7 +7,6 @@ import LandscapeTokenService, {
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
 import SynchronizeService from 'virtual-reality/services/synchronizing';
-import VrRoomService from 'virtual-reality/services/vr-room';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import { tracked } from '@glimmer/tracking';
 interface SynchronizationStartArgs {
@@ -30,9 +29,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
-
-  @service('vr-room')
-  roomService!: VrRoomService;
 
   @tracked
   rooms: RoomListRecord[] = [];
