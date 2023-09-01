@@ -129,11 +129,8 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure)
-  );
 
-  enhancedlandscapeStructure.nodes.forEach((node) => {
+  landscapeStructure.nodes.forEach((node) => {
     node.applications.forEach((app) => {
       addParentToApplication(app, node);
       createApplicationId(app);
@@ -152,8 +149,6 @@ export function preProcessAndEnhanceStructureLandscape(
   });
 
   hashEntityIds();
-
-  return enhancedlandscapeStructure;
 }
 
 interface RawMethod {

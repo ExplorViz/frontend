@@ -88,8 +88,10 @@ export default class LandscapeDataContext {
       return false;
     }
 
-    this.latestProcessedStructureData =
-      preProcessAndEnhanceStructureLandscape(data);
+    preProcessAndEnhanceStructureLandscape(data);
+
+    this.latestProcessedStructureData = data;
+
     return true;
   }
 
