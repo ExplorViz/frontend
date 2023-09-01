@@ -127,6 +127,91 @@ export default class SynchronizationSession extends Service {
   last_order = '';
 
   setUpQuaternionArr(): ProjectorQuaternions {
+    // roll pitch yaw
+    const projector_angles = [
+      [-14.315, 24.45517, 37.73257],
+      [16.31073, 27.50301, -35.22566],
+      [23.7238, 50.71501, -118.98493],
+      [-27.00377, 53.37216, 116.72392],
+      [2.18843, 73.21593, -9.4374],
+    ];
+
+    const base_orders = ['RPH', 'PRH', 'RHP', 'HRP', 'HPR', 'PHR'];
+
+    const r = base_orders.flatMap((x) => {
+      return [0, 1, 2, 3, 4, 5, 6, 7].map((y) => {
+        return x
+          .split('')
+          .map((z, i) => {
+            return y & (1 << i) ? 'P' + z : 'N' + z;
+          })
+          .join(',');
+      });
+    });
+
+    const second = (new Date().getTime() / 3000) | 0;
+    //let order = r[second % r.length];
+    const order = 'NP,PH,PR';
+    if (order != this.last_order) {
+      console.log(order);
+      this.last_order = order;
+    }
+    //const order = "PR,PP,NH";
+    const prefixes = order.split(',');
+
+    const quaternions = projector_angles.map((axis) => {
+      const axes = new Map();
+      axes.set(
+        'NR',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(0, 0, -1),
+          axis[0] * THREE.MathUtils.DEG2RAD
+        )
+      );
+      axes.set(
+        'PR',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          axis[0] * THREE.MathUtils.DEG2RAD
+        )
+      );
+      axes.set(
+        'NH',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(0, -1, 0),
+          axis[2] * THREE.MathUtils.DEG2RAD
+        )
+      );
+      axes.set(
+        'PH',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          axis[2] * THREE.MathUtils.DEG2RAD
+        )
+      );
+      axes.set(
+        'NP',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(-1, 0, 0),
+          axis[1] * THREE.MathUtils.DEG2RAD
+        )
+      );
+      axes.set(
+        'PP',
+        new THREE.Quaternion(0, 0, 0, 0).setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          axis[1] * THREE.MathUtils.DEG2RAD
+        )
+      );
+
+      const rot_a = axes.get(prefixes[0]);
+      const rot_b = axes.get(prefixes[1]);
+      const rot_c = axes.get(prefixes[2]);
+      return rot_a.clone().multiply(rot_b).multiply(rot_c);
+    });
+
+    return { quaternions };
+
     // Positive Roll (Z-Axe), Negative Pitch (X-Axe), Positive Yaw (Y-Axe)
     // Transform to radians
     const q0 = this.eulerToQuaternion(
