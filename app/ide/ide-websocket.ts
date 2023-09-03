@@ -1,7 +1,6 @@
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { Socket, io } from 'socket.io-client';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import Auth from 'explorviz-frontend/services/auth';
 import { setOwner } from '@ember/application';
 import {
@@ -20,59 +19,15 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-
-export enum IDEApiDest {
-  VizDo = 'vizDo',
-  IDEDo = 'ideDo',
-}
-
-export enum IDEApiActions {
-  Refresh = 'refresh',
-  SingleClickOnMesh = 'singleClickOnMesh',
-  DoubleClickOnMesh = 'doubleClickOnMesh',
-  ClickTimeline = 'clickTimeLine',
-  GetVizData = 'getVizData',
-  JumpToLocation = 'jumpToLocation',
-  JumpToMonitoringClass = 'jumpToMonitoringClass',
-}
-
-export type MonitoringData = {
-  fqn: string;
-  description: string;
-};
-
-export type CommunicationLink = {
-  sourceMeshID: string;
-  targetMeshID: string;
-  meshID: string;
-  methodName: string;
-};
-
-export type IDEApiCall = {
-  action: IDEApiActions;
-  data: OrderTuple[];
-  meshId: string;
-  occurrenceID: number;
-  fqn: string;
-  foundationCommunicationLinks: CommunicationLink[];
-};
-
-export type VizDataRaw = {
-  applicationObject3D: ApplicationObject3D[];
-  communicationLinks: CommunicationLink[];
-};
-
-type ParentOrder = {
-  fqn: string;
-  meshid: string;
-  childs: ParentOrder[];
-  methods: ParentOrder[];
-};
-
-type OrderTuple = {
-  hierarchyModel: ParentOrder;
-  meshes: { meshNames: string[]; meshIds: string[] };
-};
+import { IDEApiActions, IDEApiDest } from './shared';
+import type {
+  CommunicationLink,
+  OrderTuple,
+  ParentOrder,
+  VizDataRaw,
+  IDEApiCall,
+  MonitoringData,
+} from './shared';
 
 const { vsCodeService } = ENV.backendAddresses;
 

@@ -1,5 +1,4 @@
 import { inject as service } from '@ember/service';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { setOwner } from '@ember/application';
 import {
   Application,
@@ -16,59 +15,14 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import IdeCrossCommunicationEvent from './ide-cross-communication-event';
-
-export enum IDEApiDest {
-  VizDo = 'vizDo',
-  IDEDo = 'ideDo',
-}
-
-export enum IDEApiActions {
-  Refresh = 'refresh',
-  SingleClickOnMesh = 'singleClickOnMesh',
-  DoubleClickOnMesh = 'doubleClickOnMesh',
-  ClickTimeline = 'clickTimeLine',
-  GetVizData = 'getVizData',
-  JumpToLocation = 'jumpToLocation',
-  JumpToMonitoringClass = 'jumpToMonitoringClass',
-}
-
-export type MonitoringData = {
-  fqn: string;
-  description: string;
-};
-
-export type CommunicationLink = {
-  sourceMeshID: string;
-  targetMeshID: string;
-  meshID: string;
-  methodName: string;
-};
-
-export type IDEApiCall = {
-  action: IDEApiActions;
-  data: OrderTuple[];
-  meshId: string;
-  occurrenceID: number;
-  fqn: string;
-  foundationCommunicationLinks: CommunicationLink[];
-};
-
-export type VizDataRaw = {
-  applicationObject3D: ApplicationObject3D[];
-  communicationLinks: CommunicationLink[];
-};
-
-type ParentOrder = {
-  fqn: string;
-  meshid: string;
-  childs: ParentOrder[];
-  methods: ParentOrder[];
-};
-
-type OrderTuple = {
-  hierarchyModel: ParentOrder;
-  meshes: { meshNames: string[]; meshIds: string[] };
-};
+import { IDEApiActions } from './shared';
+import type {
+  CommunicationLink,
+  OrderTuple,
+  ParentOrder,
+  VizDataRaw,
+  IDEApiCall,
+} from './shared';
 
 // @ts-ignore value is set in listener function of websocket
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -102,7 +56,7 @@ export default class IdeCrossCommunication {
 
     this.ideWebsocketFacade.on(
       'ide-refresh-data',
-      this.refreshVizData.bind(this)
+      this.refreshVizData.bind(this) // TODO: this might leak
     );
 
     this.setupCrossOriginListener();
@@ -229,6 +183,7 @@ export default class IdeCrossCommunication {
   }
 
   refreshVizData(cl: CommunicationLink[]) {
+    performance.mark('refreshVizData-start');
     foundationCommunicationLinksGlobal = cl;
 
     const vizDataRaw: VizDataRaw = this.getVizData(
@@ -245,6 +200,7 @@ export default class IdeCrossCommunication {
       occurrenceID: -1,
       foundationCommunicationLinks: foundationCommunicationLinksGlobal,
     });
+    performance.mark('refreshVizData-end');
   }
 
   dispose() {
