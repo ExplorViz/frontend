@@ -10,6 +10,7 @@ import {
   OpenObject,
   VizDataToOrderTuple,
   getIdFromMesh,
+  getVizData,
 } from './shared';
 import type {
   CommunicationLink,
@@ -68,7 +69,11 @@ export default class IdeCrossCommunication {
           return;
         }
 
-        const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
+        const vizDataRaw: VizDataRaw = getVizData(
+          this.applicationRenderer,
+          this.applicationRepo,
+          foundationCommunicationLinksGlobal
+        );
         const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
         vizDataOrderTupleGlobal = vizDataOrderTuple;
@@ -114,55 +119,10 @@ export default class IdeCrossCommunication {
     );
   }
 
-  private getVizData(
-    foundationCommunicationLinks: CommunicationLink[]
-  ): VizDataRaw {
-    const openApplications = this.applicationRenderer.getOpenApplications();
-    const communicationLinks: CommunicationLink[] =
-      foundationCommunicationLinks;
-    openApplications.forEach((element) => {
-      const application = element;
-
-      const applicationData = this.applicationRepo.getById(
-        application.getModelId()
-      );
-
-      const drawableClassCommunications =
-        applicationData?.drawableClassCommunications;
-
-      // console.log(drawableClassCommunications)
-
-      // Add Communication meshes inside the foundations to the foundation communicationLinks list
-      if (
-        drawableClassCommunications &&
-        drawableClassCommunications.length != 0
-      ) {
-        drawableClassCommunications.forEach((element) => {
-          const meshIDs = element.id.split('_');
-          const tempCL: CommunicationLink = {
-            meshID: element.id,
-            sourceMeshID: meshIDs[0],
-            targetMeshID: meshIDs[1],
-            methodName: meshIDs[2],
-          };
-          if (
-            communicationLinks.findIndex((e) => e.meshID == element.id) == -1
-          ) {
-            communicationLinks.push(tempCL);
-          }
-        });
-      }
-    });
-
-    // console.log("communicationLinks", communicationLinks)
-    return {
-      applicationObject3D: openApplications,
-      communicationLinks: communicationLinks,
-    };
-  }
-
   jumpToLocation(object: THREE.Object3D<THREE.Event>) {
-    const vizDataRaw: VizDataRaw = this.getVizData(
+    const vizDataRaw: VizDataRaw = getVizData(
+      this.applicationRenderer,
+      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
@@ -177,10 +137,12 @@ export default class IdeCrossCommunication {
   }
 
   refreshVizData(cl: CommunicationLink[]) {
-    performance.mark('refreshVizData-start');
+    performance.mark('cc:refreshVizData-start');
     foundationCommunicationLinksGlobal = cl;
 
-    const vizDataRaw: VizDataRaw = this.getVizData(
+    const vizDataRaw: VizDataRaw = getVizData(
+      this.applicationRenderer,
+      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
@@ -194,7 +156,7 @@ export default class IdeCrossCommunication {
       occurrenceID: -1,
       foundationCommunicationLinks: foundationCommunicationLinksGlobal,
     });
-    performance.mark('refreshVizData-end');
+    performance.mark('cc:refreshVizData-end');
   }
 
   dispose() {

@@ -1,3 +1,5 @@
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import type {
   Application,
   Class,
@@ -64,6 +66,73 @@ export type OrderTuple = {
   meshes: { meshNames: string[]; meshIds: string[] };
 };
 
+export function getVizData(
+  applicationRenderer: ApplicationRenderer,
+  applicationRepo: ApplicationRepository,
+  foundationCommunicationLinks: CommunicationLink[]
+): VizDataRaw {
+  const openApplications = applicationRenderer.getOpenApplications();
+  const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
+  openApplications.forEach((element) => {
+    const application = element;
+
+    const applicationData = applicationRepo.getById(application.getModelId());
+
+    const drawableClassCommunications =
+      applicationData?.drawableClassCommunications;
+
+    // console.log(drawableClassCommunications)
+
+    // Add Communication meshes inside the foundations to the foundation communicationLinks list
+    if (
+      drawableClassCommunications &&
+      drawableClassCommunications.length != 0
+    ) {
+      drawableClassCommunications.forEach((element) => {
+        const meshIDs = element.id.split('_');
+        const tempCL: CommunicationLink = {
+          meshID: element.id,
+          sourceMeshID: meshIDs[0],
+          targetMeshID: meshIDs[1],
+          methodName: meshIDs[2],
+        };
+        if (communicationLinks.findIndex((e) => e.meshID == element.id) == -1) {
+          communicationLinks.push(tempCL);
+        }
+      });
+    }
+  });
+
+  // console.log("communicationLinks", communicationLinks)
+  return {
+    applicationObject3D: openApplications,
+    communicationLinks: communicationLinks,
+  };
+}
+
+export function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+  if (mesh instanceof FoundationMesh) {
+    return mesh.dataModel.id;
+  } else if (mesh instanceof ComponentMesh) {
+    return mesh.dataModel.id;
+  } else if (mesh instanceof ClazzMesh) {
+    console.error('ClazzMesh --- Mesh Type not Supported!');
+    return mesh.dataModel.id;
+  } else if (mesh instanceof ClazzCommunicationMesh) {
+    console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
+    console.log(mesh.dataModel);
+    return mesh.dataModel.id;
+    // return 'Not implemented ClazzCommunicationMesh';
+  } else if (mesh instanceof CommunicationArrowMesh) {
+    console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
+    return 'Not implemented CommunicationArrowMesh';
+  } else {
+    //
+    console.error(typeof mesh, ' --- Mesh Type not Supported!');
+    return 'Not implemented';
+  }
+}
+
 export function getOrderedParents(dataModel: Application): ParentOrder {
   const result: ParentOrder = {
     fqn: dataModel.name,
@@ -85,6 +154,45 @@ export function getOrderedParents(dataModel: Application): ParentOrder {
   result.childs = temp;
 
   return result;
+}
+
+export function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
+  const vizDataOrderTuple: OrderTuple[] = [];
+  vizData.applicationObject3D.forEach((element) => {
+    const orderedParents = getOrderedParents(element.data.application);
+    const meshes = getFqnForMeshes(orderedParents);
+    let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
+    tempOT = addCommunicationLinksToOrderTuple(
+      tempOT,
+      vizData.communicationLinks
+    );
+    vizDataOrderTuple.push(tempOT);
+  });
+  return vizDataOrderTuple;
+}
+
+export function OpenObject(
+  doSomethingOnMesh: (meshID: string) => void,
+  fullQualifiedName: string,
+  occurrenceID: number,
+  lookAtMesh: (meshID: string) => void,
+  vizData: VizDataRaw
+) {
+  const orderTuple: OrderTuple[] = VizDataToOrderTuple(vizData);
+
+  resetFoundation(doSomethingOnMesh, orderTuple);
+
+  orderTuple.forEach((ot) => {
+    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
+
+    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
+    recursivelyOpenObjects(
+      doSomethingOnMesh,
+      lookAtMesh,
+      ot.hierarchyModel.fqn + occurrenceName + fullQualifiedName,
+      ot
+    );
+  });
 }
 
 function parentPackage(
@@ -161,45 +269,6 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
   return meshTemp;
 }
 
-export function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
-  const vizDataOrderTuple: OrderTuple[] = [];
-  vizData.applicationObject3D.forEach((element) => {
-    const orderedParents = getOrderedParents(element.data.application);
-    const meshes = getFqnForMeshes(orderedParents);
-    let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
-    tempOT = addCommunicationLinksToOrderTuple(
-      tempOT,
-      vizData.communicationLinks
-    );
-    vizDataOrderTuple.push(tempOT);
-  });
-  return vizDataOrderTuple;
-}
-
-export function OpenObject(
-  doSomethingOnMesh: (meshID: string) => void,
-  fullQualifiedName: string,
-  occurrenceID: number,
-  lookAtMesh: (meshID: string) => void,
-  vizData: VizDataRaw
-) {
-  const orderTuple: OrderTuple[] = VizDataToOrderTuple(vizData);
-
-  resetFoundation(doSomethingOnMesh, orderTuple);
-
-  orderTuple.forEach((ot) => {
-    const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
-
-    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
-    recursivelyOpenObjects(
-      doSomethingOnMesh,
-      lookAtMesh,
-      ot.hierarchyModel.fqn + occurrenceName + fullQualifiedName,
-      ot
-    );
-  });
-}
-
 function recursivelyOpenObjects(
   doSomethingOnMesh: (meshID: string) => void,
   lookAtMesh: (meshID: string) => void,
@@ -263,29 +332,6 @@ function resetFoundation(
   orderTuple.forEach((ot) => {
     doSomethingOnMesh(ot.hierarchyModel.meshid);
   });
-}
-
-export function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
-  if (mesh instanceof FoundationMesh) {
-    return mesh.dataModel.id;
-  } else if (mesh instanceof ComponentMesh) {
-    return mesh.dataModel.id;
-  } else if (mesh instanceof ClazzMesh) {
-    console.error('ClazzMesh --- Mesh Type not Supported!');
-    return mesh.dataModel.id;
-  } else if (mesh instanceof ClazzCommunicationMesh) {
-    console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    console.log(mesh.dataModel);
-    return mesh.dataModel.id;
-    // return 'Not implemented ClazzCommunicationMesh';
-  } else if (mesh instanceof CommunicationArrowMesh) {
-    console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
-    return 'Not implemented CommunicationArrowMesh';
-  } else {
-    //
-    console.error(typeof mesh, ' --- Mesh Type not Supported!');
-    return 'Not implemented';
-  }
 }
 
 function addCommunicationLinksToOrderTuple(
