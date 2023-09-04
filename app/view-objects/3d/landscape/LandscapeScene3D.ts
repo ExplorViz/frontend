@@ -3,7 +3,7 @@ import type { GraphData } from 'three-forcegraph';
 import type Owner from '@ember/owner';
 import type { Updatable } from 'explorviz-frontend/rendering/application/rendering-loop';
 import type { LocalLandscapeData } from 'explorviz-frontend/services/landscape-data-service';
-import type { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
+import type { CommunicationLink } from 'explorviz-frontend/ide/shared';
 import type VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import type IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import type DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';

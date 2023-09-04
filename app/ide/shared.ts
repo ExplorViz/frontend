@@ -52,7 +52,7 @@ export type VizDataRaw = {
   communicationLinks: CommunicationLink[];
 };
 
-export type ParentOrder = {
+type ParentOrder = {
   fqn: string;
   meshid: string;
   childs: ParentOrder[];

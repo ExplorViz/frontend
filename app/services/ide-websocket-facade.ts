@@ -1,6 +1,6 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
+import type { CommunicationLink } from 'explorviz-frontend/ide/shared';
 import { tracked } from '@glimmer/tracking';
 
 export default class IdeWebsocketFacade extends Service.extend(Evented) {
