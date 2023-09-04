@@ -7,7 +7,7 @@ const ctx = await esbuild.context({
         'workers/city-layouter.ts',
         'workers/metrics-worker.ts',
         'workers/flat-data-worker.ts',
-        'workers/landscape-data-worker.ts'
+        'workers/main-worker.ts'
     ],
     outdir: 'public/assets/web-workers',
     bundle: true,

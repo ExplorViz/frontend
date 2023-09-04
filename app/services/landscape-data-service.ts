@@ -1,10 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
-import * as Comlink from 'comlink';
-import { LandscapeDataWorkerAPI } from 'workers/landscape-data-worker';
 import type LandscapeTokenService from './landscape-token';
 import type Auth from './auth';
-import ENV from 'explorviz-frontend/config/environment';
 import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
 import type { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
@@ -12,37 +9,23 @@ import type TimestampRepository from './repos/timestamp-repository';
 import type ApplicationRenderer from './application-renderer';
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import type { NewTimestampPayload } from './repos/timestamp-repository';
+import type WorkerService from './worker-service';
 
-const intervalInSeconds = 10;
-const webWorkersPath = 'assets/web-workers/';
-
+export const DataUpdateIntervalInSeconds = 10;
 export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
 export const NewTimestampEventName = 'NewTimestamp';
 
 export default class LandscapeDataService extends Service.extend(Evented) {
   private readonly latestData: LocalLandscapeData = {};
-
-  private worker: Worker | undefined;
-  private readonly comlinkRemote: Promise<
-    Comlink.Remote<LandscapeDataWorkerAPI>
-  >;
   private interval: number | undefined;
 
-  @service('auth') auth!: Auth;
-  @service('landscape-token') tokenService!: LandscapeTokenService;
-  @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
-  @service('application-renderer') applicationRenderer!: ApplicationRenderer;
-
-  constructor() {
-    super(...arguments);
-
-    this.comlinkRemote = this.createWorkerAndRemote().then(
-      ([worker, remote]) => {
-        this.worker = worker;
-        return remote;
-      }
-    );
-  }
+  @service('worker-service') readonly workerService!: WorkerService;
+  @service('auth') readonly auth!: Auth;
+  @service('landscape-token') readonly tokenService!: LandscapeTokenService;
+  @service('repos/timestamp-repository')
+  readonly timestampRepo!: TimestampRepository;
+  @service('application-renderer')
+  readonly applicationRenderer!: ApplicationRenderer;
 
   startPolling(): void {
     if (this.interval !== undefined) {
@@ -54,7 +37,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
     // TODO tiwe: ENV.mode.tokenToShow
     this.interval = setInterval(
       () => this.updateLocalData(),
-      1000 * intervalInSeconds
+      1000 * DataUpdateIntervalInSeconds
     ) as unknown as number;
   }
 
@@ -87,7 +70,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       throw new Error('No landscape token.');
     }
 
-    const remote = await this.comlinkRemote;
+    const remote = await this.workerService.getRemote();
 
     return remote.getDataUpdate(
       landscapeToken.value,
@@ -119,52 +102,17 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       return;
     }
 
-    const remote = this.comlinkRemote;
-    if (remote === undefined) {
-      return;
-    }
-
     const update = await this.fetchData(endTime);
     await this.handleUpdate(update);
   }
 
-  private async createWorkerAndRemote(): Promise<
-    [Worker, Comlink.Remote<LandscapeDataWorkerAPI>]
-  > {
-    const worker = new Worker(resolveWorkerUrl('landscape-data-worker.js'), {
-      name: 'Landscape Data Worker',
-    });
-    const remote = Comlink.wrap<LandscapeDataWorkerAPI>(worker);
-
-    const { landscapeService, traceService } = ENV.backendAddresses;
-
-    await remote.init({
-      updateIntervalInMS: 1000 * intervalInSeconds,
-      backend: {
-        landscapeUrl: landscapeService,
-        tracesUrl: traceService,
-      },
-    });
-
-    return [worker, remote];
-  }
-
   willDestroy(): void {
-    if (this.worker) {
-      this.worker.terminate();
-    }
     if (this.interval !== undefined) {
       clearInterval(this.interval);
       this.interval = undefined;
     }
     super.willDestroy();
   }
-}
-
-function resolveWorkerUrl(worker: string): string {
-  // TODO assetMap?
-  // https://github.com/BBVAEngineering/ember-web-workers/blob/dbb3bab974383fc053c8e4d9486259260b9d4b00/addon/services/worker.js#L86
-  return `${webWorkersPath}${worker}`;
 }
 
 export type LocalLandscapeData = Partial<{
