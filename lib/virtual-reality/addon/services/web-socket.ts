@@ -1,4 +1,4 @@
-import Service from '@ember/service';
+import Service, { service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
@@ -28,6 +28,7 @@ import { OBJECT_CLOSED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/r
 import { MENU_DETACHED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import PerformanceLogger from 'collaborative-mode/services/performance-logger';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -44,6 +45,9 @@ const RECEIVABLE_EVENTS = [INITIAL_LANDSCAPE_EVENT, SELF_CONNECTED_EVENT, USER_C
 const RESPONSE_EVENTS = [OBJECT_CLOSED_RESPONSE_EVENT, MENU_DETACHED_RESPONSE_EVENT, OBJECT_GRABBED_RESPONSE_EVENT];
 
 export default class WebSocketService extends Service.extend(Evented) {
+
+  @service('performance-logger')
+  private performanceLogger!: PerformanceLogger;
 
   private debug = debugLogger('WebSocketService');
 
@@ -76,7 +80,8 @@ export default class WebSocketService extends Service.extend(Evented) {
 
     RECEIVABLE_EVENTS.forEach(event => {
       this.currentSocket?.on(event, message => {
-        this.trigger(event, message);
+        var timerId = this.performanceLogger.start();
+        this.trigger(event, message, timerId);
       });
     });
 
