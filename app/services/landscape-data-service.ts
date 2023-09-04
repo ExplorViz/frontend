@@ -72,7 +72,7 @@ export default class LandscapeDataService extends Service.extend(Evented) {
 
     const remote = await this.workerService.getRemote();
 
-    return remote.getDataUpdate(
+    return remote.getLandscapeDataUpdate(
       landscapeToken.value,
       endTime,
       this.auth.accessToken

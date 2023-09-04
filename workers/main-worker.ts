@@ -4,8 +4,11 @@ import type {
   DataUpdate,
 } from './landscape-data-worker/LandscapeDataContext';
 import LandscapeDataContext from './landscape-data-worker/LandscapeDataContext';
+import type { OrderTuple, VizDataRaw } from 'explorviz-frontend/ide/shared';
+import {} from 'explorviz-frontend/ide/shared';
+import { convertVizDataToOrderTuple } from './ide/prepare-viz-data';
 
-let currentContext: LandscapeDataContext | undefined;
+let currentDataContext: LandscapeDataContext | undefined;
 let backendInfo: BackendInfo | undefined;
 let updateIntervalMS: number = 10 * 1000;
 
@@ -15,7 +18,7 @@ const api = {
     backendInfo = options.backend;
   },
 
-  getDataUpdate(
+  getLandscapeDataUpdate(
     landscapeToken: string | null,
     endTime: number,
     accessToken?: string
@@ -28,15 +31,19 @@ const api = {
       throw new Error('No landscape token selected');
     }
 
-    if (!currentContext || currentContext.token !== landscapeToken) {
-      currentContext = new LandscapeDataContext(
+    if (!currentDataContext || currentDataContext.token !== landscapeToken) {
+      currentDataContext = new LandscapeDataContext(
         landscapeToken,
         backendInfo!,
         updateIntervalMS
       );
     }
 
-    return currentContext.update(endTime, accessToken);
+    return currentDataContext.update(endTime, accessToken);
+  },
+
+  prepareVizDataForIDE(vizDataRaw: VizDataRaw): OrderTuple[] {
+    return convertVizDataToOrderTuple(vizDataRaw);
   },
 };
 

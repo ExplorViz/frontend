@@ -1,11 +1,6 @@
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import type {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import type ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -50,11 +45,11 @@ export type IDEApiCall = {
 };
 
 export type VizDataRaw = {
-  applicationObject3D: ApplicationObject3D[];
+  applications: Application[];
   communicationLinks: CommunicationLink[];
 };
 
-type ParentOrder = {
+export type ParentOrder = {
   fqn: string;
   meshid: string;
   childs: ParentOrder[];
@@ -75,12 +70,11 @@ export function getVizData(
   const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
 
   openApplications.forEach((application) => {
+    // TODO: application has a data field
     const applicationData = applicationRepo.getById(application.getModelId());
 
     const drawableClassCommunications =
       applicationData?.drawableClassCommunications;
-
-    // console.log(drawableClassCommunications)
 
     // Add Communication meshes inside the foundations to the foundation communicationLinks list
     drawableClassCommunications?.forEach((element) => {
@@ -98,9 +92,8 @@ export function getVizData(
     });
   });
 
-  // console.log("communicationLinks", communicationLinks)
   return {
-    applicationObject3D: openApplications,
+    applications: openApplications.map((app3D) => app3D.data.application),
     communicationLinks: communicationLinks,
   };
 }
@@ -128,31 +121,16 @@ export function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
   }
 }
 
-export function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
-  return vizData.applicationObject3D.map((element) => {
-    const orderedParents = getOrderedParents(element.data.application);
-    const meshes = getFqnForMeshes(orderedParents);
-    const orderTuple: OrderTuple = {
-      hierarchyModel: orderedParents,
-      meshes: meshes,
-    };
-    addCommunicationLinksToOrderTuple(orderTuple, vizData.communicationLinks);
-    return orderTuple;
-  });
-}
-
 export function OpenObject(
   doSomethingOnMesh: (meshID: string) => void,
   fullQualifiedName: string,
   occurrenceID: number,
   lookAtMesh: (meshID: string) => void,
-  vizData: VizDataRaw
+  vizDataOrderTuple: OrderTuple[]
 ) {
-  const orderTuple: OrderTuple[] = VizDataToOrderTuple(vizData);
+  resetFoundation(doSomethingOnMesh, vizDataOrderTuple);
 
-  resetFoundation(doSomethingOnMesh, orderTuple);
-
-  orderTuple.forEach((ot) => {
+  vizDataOrderTuple.forEach((ot) => {
     const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
 
     console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
@@ -163,100 +141,6 @@ export function OpenObject(
       ot
     );
   });
-}
-
-/**
- * Create a tree containing all packages, classes and methods
- * from the given data model but with fully qualified names.
- * The fully qualified name has a prefix containing the parent
- * names joined by dots.
- */
-function getOrderedParents(dataModel: Application): ParentOrder {
-  const childs = dataModel.packages.map((element) => {
-    const fqn = dataModel.name + '.' + element.name;
-    return {
-      fqn: fqn,
-      childs: parentPackage(fqn, element.subPackages, element.classes),
-      meshid: element.id,
-      methods: [],
-    };
-  });
-
-  const result: ParentOrder = {
-    fqn: dataModel.name,
-    childs,
-    meshid: dataModel.id,
-    methods: [],
-  };
-
-  return result;
-}
-
-function parentPackage(
-  fqn: string,
-  subpackages: Package[],
-  classes: Class[]
-): ParentOrder[] {
-  if (subpackages.length === 0) {
-    return parentClass(fqn, classes);
-  }
-
-  return subpackages.map((element) => {
-    const newFqn = fqn + '.' + element.name;
-    return {
-      fqn: newFqn,
-      childs: parentPackage(newFqn, element.subPackages, element.classes),
-      meshid: element.id,
-      methods: [],
-    };
-  });
-}
-
-function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
-  return classes.map((element) => {
-    const newFqn = fqn + '.' + element.name;
-    return {
-      fqn: newFqn,
-      childs: [],
-      meshid: element.id,
-      methods: [],
-    };
-  });
-}
-
-function getFqnForMeshes(orderedParents: ParentOrder): {
-  meshNames: string[];
-  meshIds: string[];
-} {
-  const meshName: string = orderedParents.fqn;
-  const meshId: string = orderedParents.meshid;
-
-  const meshTemp = { meshNames: [meshName], meshIds: [meshId] };
-
-  if (orderedParents.methods.length > 0) {
-    // TODO: consider using map & flat
-    orderedParents.methods.forEach((element) => {
-      // TODO: only call getFqnForMeshes once
-      meshTemp.meshNames = meshTemp.meshNames.concat(
-        getFqnForMeshes(element).meshNames
-      );
-      meshTemp.meshIds = meshTemp.meshIds.concat(
-        getFqnForMeshes(element).meshIds
-      );
-    });
-  } else {
-    orderedParents.childs.forEach((element) => {
-      // TODO: only call getFqnForMeshes once
-      meshTemp.meshNames = meshTemp.meshNames.concat(
-        getFqnForMeshes(element).meshNames
-      );
-      meshTemp.meshIds = meshTemp.meshIds.concat(
-        getFqnForMeshes(element).meshIds
-      );
-    });
-  }
-
-  return meshTemp;
 }
 
 function recursivelyOpenObjects(
@@ -323,50 +207,4 @@ function resetFoundation(
   orderTuple.forEach((ot) => {
     doSomethingOnMesh(ot.hierarchyModel.meshid);
   });
-}
-
-function addCommunicationLinksToOrderTuple(
-  ot: OrderTuple,
-  communicationLinks: CommunicationLink[]
-): void {
-  communicationLinks.forEach((cl) => {
-    // TODO: consider using a different data structure such as map
-    const communicationLinkFQNIndex = ot.meshes.meshIds.findIndex(
-      (e) => e === cl.targetMeshID
-    );
-    if (communicationLinkFQNIndex >= 0) {
-      const communicationLinkFQN =
-        ot.meshes.meshNames[communicationLinkFQNIndex] + '.' + cl.methodName;
-
-      ot.hierarchyModel = insertCommunicationInParentOrder(
-        cl,
-        communicationLinkFQN,
-        ot.hierarchyModel
-      );
-      ot.meshes.meshNames.push(communicationLinkFQN);
-      ot.meshes.meshIds.push(cl.meshID);
-    }
-  });
-}
-
-function insertCommunicationInParentOrder(
-  cl: CommunicationLink,
-  communicationLinkFQN: string,
-  po: ParentOrder
-): ParentOrder {
-  if (cl.targetMeshID === po.meshid) {
-    const newPO: ParentOrder = {
-      childs: [],
-      fqn: communicationLinkFQN,
-      meshid: cl.meshID,
-      methods: [],
-    };
-    po.childs.push(newPO);
-  } else {
-    po.childs = po.childs.map((element) =>
-      insertCommunicationInParentOrder(cl, communicationLinkFQN, element)
-    );
-  }
-
-  return po;
 }

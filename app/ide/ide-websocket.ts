@@ -13,7 +13,6 @@ import {
   IDEApiActions,
   IDEApiDest,
   OpenObject,
-  VizDataToOrderTuple,
   getIdFromMesh,
   getVizData,
 } from './shared';
@@ -24,6 +23,7 @@ import type {
   IDEApiCall,
   MonitoringData,
 } from './shared';
+import WorkerService from 'explorviz-frontend/services/worker-service';
 
 const { vsCodeService } = ENV.backendAddresses;
 
@@ -48,6 +48,9 @@ export default class IdeWebsocket {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('worker-service')
+  workerService!: WorkerService;
 
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
@@ -129,13 +132,14 @@ export default class IdeWebsocket {
       console.log(`reconnect failed`);
     });
 
-    socket!.on('vizDo', (data: IDEApiCall) => {
+    socket!.on('vizDo', async (data: IDEApiCall) => {
       const vizDataRaw: VizDataRaw = getVizData(
         this.applicationRenderer,
         this.applicationRepo,
         foundationCommunicationLinksGlobal
       );
-      const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
+      const remote = await this.workerService.getRemote();
+      const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
 
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
@@ -153,7 +157,7 @@ export default class IdeWebsocket {
             data.fqn,
             data.occurrenceID,
             this.lookAtMesh,
-            vizDataRaw
+            vizDataOrderTuple
           );
 
           break;
@@ -178,7 +182,7 @@ export default class IdeWebsocket {
     });
   }
 
-  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  async jumpToLocation(object: THREE.Object3D<THREE.Event>): Promise<void> {
     if (!socket || (socket && socket.disconnected)) {
       return;
     }
@@ -188,7 +192,9 @@ export default class IdeWebsocket {
       this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
-    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+    const remote = await this.workerService.getRemote();
+    const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
+
     emitToBackend(IDEApiDest.IDEDo, {
       action: IDEApiActions.JumpToLocation,
       data: vizDataOrderTuple,
@@ -199,7 +205,7 @@ export default class IdeWebsocket {
     });
   }
 
-  refreshVizData(cl: CommunicationLink[]) {
+  async refreshVizData(cl: CommunicationLink[]): Promise<void> {
     performance.mark('ws:refreshVizData-start');
     if (!socket || (socket && socket.disconnected)) {
       performance.mark('ws:refreshVizData-end');
@@ -213,7 +219,8 @@ export default class IdeWebsocket {
       this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
-    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+    const remote = await this.workerService.getRemote();
+    const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
 
     log('Send new data to ide');
     emitToBackend(IDEApiDest.IDEDo, {

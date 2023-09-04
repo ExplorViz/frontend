@@ -5,19 +5,14 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import IdeCrossCommunicationEvent from './ide-cross-communication-event';
-import {
-  IDEApiActions,
-  OpenObject,
-  VizDataToOrderTuple,
-  getIdFromMesh,
-  getVizData,
-} from './shared';
+import { IDEApiActions, OpenObject, getIdFromMesh, getVizData } from './shared';
 import type {
   CommunicationLink,
   OrderTuple,
   VizDataRaw,
   IDEApiCall,
 } from './shared';
+import WorkerService from 'explorviz-frontend/services/worker-service';
 
 // @ts-ignore value is set in listener function of websocket
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,6 +30,9 @@ export default class IdeCrossCommunication {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('worker-service')
+  workerService!: WorkerService;
 
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
@@ -60,7 +58,7 @@ export default class IdeCrossCommunication {
   private setupCrossOriginListener() {
     window.addEventListener(
       'message',
-      (event: IdeCrossCommunicationEvent) => {
+      async (event: IdeCrossCommunicationEvent) => {
         //if (event.origin !== "http://localhost:4200") return;
 
         const data = event.data;
@@ -69,12 +67,15 @@ export default class IdeCrossCommunication {
           return;
         }
 
+        // TODO: avoid work if window.parent === window
+
         const vizDataRaw: VizDataRaw = getVizData(
           this.applicationRenderer,
           this.applicationRepo,
           foundationCommunicationLinksGlobal
         );
-        const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
+        const remote = await this.workerService.getRemote();
+        const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
 
         vizDataOrderTupleGlobal = vizDataOrderTuple;
         // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
@@ -92,7 +93,7 @@ export default class IdeCrossCommunication {
               data.fqn,
               data.occurrenceID,
               this.lookAtMesh,
-              vizDataRaw
+              vizDataOrderTuple
             );
 
             break;
@@ -119,13 +120,14 @@ export default class IdeCrossCommunication {
     );
   }
 
-  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  async jumpToLocation(object: THREE.Object3D<THREE.Event>): Promise<void> {
     const vizDataRaw: VizDataRaw = getVizData(
       this.applicationRenderer,
       this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
-    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+    const remote = await this.workerService.getRemote();
+    const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
     emitToBackend({
       action: IDEApiActions.JumpToLocation,
       data: vizDataOrderTuple,
@@ -136,7 +138,7 @@ export default class IdeCrossCommunication {
     });
   }
 
-  refreshVizData(cl: CommunicationLink[]) {
+  async refreshVizData(cl: CommunicationLink[]): Promise<void> {
     performance.mark('cc:refreshVizData-start');
     foundationCommunicationLinksGlobal = cl;
 
@@ -145,7 +147,8 @@ export default class IdeCrossCommunication {
       this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
-    const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
+    const remote = await this.workerService.getRemote();
+    const vizDataOrderTuple = await remote.prepareVizDataForIDE(vizDataRaw);
 
     log('Send new data to ide');
     emitToBackend({
@@ -164,6 +167,10 @@ export default class IdeCrossCommunication {
   }
 }
 
-export function emitToBackend(apiCall: IDEApiCall) {
+function emitToBackend(apiCall: IDEApiCall) {
+  if (window.parent === window) {
+    // TODO: ask akrause
+    return;
+  }
   window.parent.postMessage(apiCall, '*');
 }
