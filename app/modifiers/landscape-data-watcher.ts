@@ -99,8 +99,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.structureLandscapeData,
       this.dynamicLandscapeData,
       this.landscapeRestructure.restructureMode,
-      this.landscapeRestructure.classCommunication
+      this.landscapeRestructure.createdClassCommunication,
+      this.landscapeRestructure.updatedClassCommunications,
+      this.landscapeRestructure.deletedClassCommunications
     );
+
+    this.landscapeRestructure.allClassCommunications =
+      drawableClassCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.

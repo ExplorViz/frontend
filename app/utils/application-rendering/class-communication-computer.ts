@@ -63,7 +63,9 @@ export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicData: DynamicLandscapeData,
   restructureMode: boolean,
-  classCommunication: DrawableClassCommunication[]
+  classCommunication: DrawableClassCommunication[],
+  updatedClassCommunication: DrawableClassCommunication[][],
+  deletedClassCommunication: DrawableClassCommunication[][]
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -136,10 +138,40 @@ export default function computeDrawableClassCommunication(
     ...aggregatedDrawableClassCommunications.values(),
   ];
 
-  if (restructureMode && classCommunication) {
-    classCommunication.forEach((comm) => {
-      drawableClassCommunications.push(comm);
-    });
+  if (restructureMode) {
+    if (classCommunication.length) {
+      classCommunication.forEach((comm) => {
+        drawableClassCommunications.push(comm);
+      });
+    }
+
+    if (deletedClassCommunication.length) {
+      const allDeletedComms: DrawableClassCommunication[] = [];
+      deletedClassCommunication.flat().forEach((deletedComm) => {
+        const foundComm = drawableClassCommunications.filter(
+          (comm) =>
+            comm.id === deletedComm.id ||
+            comm.operationName === deletedComm.operationName
+        );
+        if (foundComm) allDeletedComms.pushObjects(foundComm);
+      });
+
+      drawableClassCommunications.removeObjects(allDeletedComms);
+    }
+
+    if (updatedClassCommunication.length) {
+      const allUpdatedComms = updatedClassCommunication.flat();
+
+      drawableClassCommunications.pushObjects(allUpdatedComms);
+      const removeUnwantedComms = drawableClassCommunications.filter(
+        (comm) =>
+          !comm.operationName.includes('removed') &&
+          !comm.sourceClass.id.includes('removed') &&
+          !comm.targetClass.id.includes('removed')
+      );
+      drawableClassCommunications.clear();
+      drawableClassCommunications.pushObjects(removeUnwantedComms);
+    }
   }
 
   return drawableClassCommunications;

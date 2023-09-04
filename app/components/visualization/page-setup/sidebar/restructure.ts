@@ -223,7 +223,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   showChangelog() {
-    const changelog = this.landscapeRestructure.changeLog.getChangeLogs();
+    const changelog = this.landscapeRestructure.changeLog.getChangeLog();
     this.changelog = changelog;
   }
 

@@ -14,6 +14,10 @@ import {
   setClassName,
   createPackage,
   createClass,
+  changeID,
+  copyPackageContent,
+  copyClassContent,
+  restoreID,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
@@ -94,10 +98,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   private sender!: VrMessageSender;
 
   @tracked
-  public restructureMode: boolean = false;
+  restructureMode: boolean = false;
 
   @tracked
-  public landscapeData: LandscapeData | null = null;
+  landscapeData: LandscapeData | null = null;
 
   /**
    * Using amount of new Meshes for unique mesh id's
@@ -130,8 +134,26 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   clippedMesh: Package | Class | null = null;
 
   // TODO replace all occurrences with commModelColorMappings.comm and delete this one
+  /**
+   * Storing all communications created by user
+   */
   @tracked
-  classCommunication: DrawableClassCommunication[] = [];
+  createdClassCommunication: DrawableClassCommunication[] = [];
+
+  /**
+   * Storing all communications in the landscape
+   */
+  @tracked
+  allClassCommunications: DrawableClassCommunication[] = [];
+
+  /**
+   * Storing all communications that have been updated
+   */
+  @tracked
+  updatedClassCommunications: DrawableClassCommunication[][] = [];
+
+  @tracked
+  deletedClassCommunications: DrawableClassCommunication[][] = [];
 
   sourceClass: Class | null = null;
 
@@ -196,16 +218,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       };
 
       // Create the Changelog Entry
-      this.changeLog.communicationEntry(
-        sourceApp as Application,
-        this.sourceClass,
-        targetApp as Application,
-        this.targetClass,
-        methodName,
-        this.landscapeData.structureLandscapeData
-      );
+      this.changeLog.communicationEntry(classCommunication);
 
-      this.classCommunication.push(classCommunication);
+      this.createdClassCommunication.push(classCommunication);
 
       this.commModelColorMappings.push({
         action: MeshAction.Communication,
@@ -219,6 +234,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.dynamicLandscapeData
       );
     }
+  }
+
+  @action
+  deleteCommunication(
+    comm?: DrawableClassCommunication,
+    undo: boolean = false
+  ) {
+    if (undo) {
+      this.createdClassCommunication.pop();
+    }
+    this.trigger(
+      'restructureLandscapeData',
+      this.landscapeData?.structureLandscapeData,
+      this.landscapeData?.dynamicLandscapeData
+    );
   }
 
   @action
@@ -240,7 +270,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.landscapeData = newData;
   }
 
-  updateApplicationName(name: string, id: string, collabMode: boolean = false) {
+  updateApplicationName(
+    name: string,
+    id: string,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureUpdate(EntityType.App, id, name, null);
@@ -251,18 +286,30 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       );
 
       if (app) {
-        // Create Changelog Entry
-        this.changeLog.renameAppEntry(app, name);
+        if (!undo) {
+          // Create Changelog Entry
+          this.changeLog.renameAppEntry(app, name);
+
+          this.meshModelTextureMappings.push({
+            action: MeshAction.Rename,
+            meshType: EntityType.App,
+            texturePath: 'images/hashtag.png',
+            originApp: app as Application,
+          });
+        } else {
+          const undoMapping = this.meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === MeshAction.Rename &&
+              mapping.meshType === EntityType.App &&
+              mapping.originApp === app
+          );
+          this.meshModelTextureMappings.removeObject(
+            undoMapping as MeshModelTextureMapping
+          );
+        }
 
         // Set new Application name
         app.name = name;
-
-        this.meshModelTextureMappings.push({
-          action: MeshAction.Rename,
-          meshType: EntityType.App,
-          texturePath: 'images/hashtag.png',
-          originApp: app as Application,
-        });
 
         this.trigger(
           'restructureLandscapeData',
@@ -273,7 +320,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  updatePackageName(name: string, id: string, collabMode: boolean = false) {
+  updatePackageName(
+    name: string,
+    id: string,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureUpdate(EntityType.Package, id, name, null);
@@ -286,22 +338,35 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       if (pckg) {
         const app = this.getAppFromPackage(pckg);
 
-        // Create Changelog Entry
-        if (!pckg.parent && app)
-          this.changeLog.renamePackageEntry(app, pckg, name);
-        else if (pckg.parent && app)
-          this.changeLog.renameSubPackageEntry(app, pckg, name);
+        if (!undo) {
+          // Create Changelog Entry
+          if (!pckg.parent && app)
+            this.changeLog.renamePackageEntry(app, pckg, name);
+          else if (pckg.parent && app)
+            this.changeLog.renameSubPackageEntry(app, pckg, name);
+
+          this.meshModelTextureMappings.push({
+            action: MeshAction.Rename,
+            meshType: EntityType.Package,
+            texturePath: 'images/hashtag.png',
+            originApp: app as Application,
+            pckg: pckg,
+          });
+        } else {
+          const undoMapping = this.meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === MeshAction.Rename &&
+              mapping.meshType === EntityType.Package &&
+              mapping.originApp === app &&
+              mapping.pckg === pckg
+          );
+          this.meshModelTextureMappings.removeObject(
+            undoMapping as MeshModelTextureMapping
+          );
+        }
 
         // Set new Package name
         pckg.name = name;
-
-        this.meshModelTextureMappings.push({
-          action: MeshAction.Rename,
-          meshType: EntityType.Package,
-          texturePath: 'images/hashtag.png',
-          originApp: app as Application,
-          pckg: pckg,
-        });
 
         this.trigger(
           'restructureLandscapeData',
@@ -312,7 +377,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  updateSubPackageName(name: string, id: string, collabMode: boolean = false) {
+  updateSubPackageName(
+    name: string,
+    id: string,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureUpdate(
@@ -330,19 +400,32 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       if (pckg) {
         const app = this.getAppFromPackage(pckg);
 
-        // Create Changelog Entry
-        if (app) this.changeLog.renameSubPackageEntry(app, pckg, name);
+        if (!undo) {
+          // Create Changelog Entry
+          if (app) this.changeLog.renameSubPackageEntry(app, pckg, name);
+
+          this.meshModelTextureMappings.push({
+            action: MeshAction.Rename,
+            meshType: EntityType.Package,
+            texturePath: 'images/hashtag.png',
+            originApp: app as Application,
+            pckg: pckg,
+          });
+        } else {
+          const undoMapping = this.meshModelTextureMappings.find(
+            (mapping) =>
+              mapping.action === MeshAction.Rename &&
+              mapping.meshType === EntityType.Package &&
+              mapping.originApp === app &&
+              mapping.pckg === pckg
+          );
+          this.meshModelTextureMappings.removeObject(
+            undoMapping as MeshModelTextureMapping
+          );
+        }
 
         // Set new Package name
         pckg.name = name;
-
-        this.meshModelTextureMappings.push({
-          action: MeshAction.Rename,
-          meshType: EntityType.Package,
-          texturePath: 'images/hashtag.png',
-          originApp: app as Application,
-          pckg: pckg,
-        });
 
         this.trigger(
           'restructureLandscapeData',
@@ -374,7 +457,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     name: string,
     id: string,
     appId: string,
-    collabMode: boolean = false
+    collabMode: boolean = false,
+    undo: boolean = false
   ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
@@ -388,19 +472,32 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         const clazzToRename = setClassName(application, id);
 
         if (clazzToRename) {
-          // Create Changelog Entry
-          this.changeLog.renameClassEntry(application, clazzToRename, name);
+          if (!undo) {
+            // Create Changelog Entry
+            this.changeLog.renameClassEntry(application, clazzToRename, name);
+
+            this.meshModelTextureMappings.push({
+              action: MeshAction.Rename,
+              meshType: EntityType.Clazz,
+              texturePath: 'images/hashtag.png',
+              originApp: application as Application,
+              clazz: clazzToRename,
+            });
+          } else {
+            const undoMapping = this.meshModelTextureMappings.find(
+              (mapping) =>
+                mapping.action === MeshAction.Rename &&
+                mapping.meshType === EntityType.Clazz &&
+                mapping.originApp === application &&
+                mapping.clazz === clazzToRename
+            );
+            this.meshModelTextureMappings.removeObject(
+              undoMapping as MeshModelTextureMapping
+            );
+          }
 
           // Set new Class name
           clazzToRename.name = name;
-
-          this.meshModelTextureMappings.push({
-            action: MeshAction.Rename,
-            meshType: EntityType.Clazz,
-            texturePath: 'images/hashtag.png',
-            originApp: application as Application,
-            clazz: clazzToRename,
-          });
 
           this.trigger(
             'restructureLandscapeData',
@@ -415,8 +512,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   updateOperationName(clazz: Class, originalName: string, newName: string) {
     const opt = getClassMethodByName(clazz, originalName);
 
-    // User created Comms are not found with getClassMethodByName
-    const newCommunication = this.classCommunication.find(
+    //User created Comms are not found with getClassMethodByName
+    const newCommunication = this.createdClassCommunication.find(
       (comm) => comm.targetClass === clazz && comm.operationName === opt?.name
     );
 
@@ -426,6 +523,127 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
     if (opt) opt.name = newName;
 
+    this.trigger(
+      'restructureLandscapeData',
+      this.landscapeData?.structureLandscapeData,
+      this.landscapeData?.dynamicLandscapeData
+    );
+  }
+
+  restoreApplication(app: Application, undoCutOperation: boolean = false) {
+    this.restoreDeletedAppData(app as Application);
+    const undoMapping = this.meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === MeshAction.Delete &&
+        mapping.meshType === EntityType.App &&
+        mapping.originApp === app
+    );
+    this.meshModelTextureMappings.removeObject(
+      undoMapping as MeshModelTextureMapping
+    );
+    if (undoCutOperation) {
+      this.updatedClassCommunications.pop();
+      if (this.createdClassCommunication.length) {
+        this.createdClassCommunication.forEach((comm) => {
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+        });
+      }
+      restoreID({ entity: app }, 'removed|');
+    } else {
+      this.deletedClassCommunications.pop();
+    }
+    this.trigger(
+      'restructureLandscapeData',
+      this.landscapeData?.structureLandscapeData,
+      this.landscapeData?.dynamicLandscapeData
+    );
+  }
+
+  restorePackage(pckg: Package, undoCutOperation: boolean = false) {
+    this.restoreDeletedPackageData(pckg as Package);
+    const undoMapping = this.meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === MeshAction.Delete &&
+        mapping.meshType === EntityType.Package &&
+        mapping.pckg === pckg
+    );
+    this.meshModelTextureMappings.removeObject(
+      undoMapping as MeshModelTextureMapping
+    );
+    if (undoCutOperation) {
+      this.updatedClassCommunications.pop();
+      if (this.createdClassCommunication.length) {
+        let app: Application;
+        if (pckg.parent) {
+          app = getApplicationFromSubPackage(
+            this.landscapeData
+              ?.structureLandscapeData as StructureLandscapeData,
+            pckg.id
+          ) as Application;
+        } else {
+          app = getApplicationFromPackage(
+            this.landscapeData
+              ?.structureLandscapeData as StructureLandscapeData,
+            pckg.id
+          ) as Application;
+        }
+        this.createdClassCommunication.forEach((comm) => {
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+        });
+      }
+      restoreID({ entity: pckg }, 'removed|');
+    } else {
+      this.deletedClassCommunications.pop();
+    }
+    this.trigger(
+      'restructureLandscapeData',
+      this.landscapeData?.structureLandscapeData,
+      this.landscapeData?.dynamicLandscapeData
+    );
+  }
+
+  restoreClass(
+    app: Application,
+    clazz: Class,
+    undoCutOperation: boolean = false
+  ) {
+    this.deletedDataModels.removeObject(clazz);
+    const undoMapping = this.meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === MeshAction.Delete &&
+        mapping.meshType === EntityType.Clazz &&
+        mapping.originApp === app &&
+        mapping.clazz === clazz
+    );
+    this.meshModelTextureMappings.removeObject(
+      undoMapping as MeshModelTextureMapping
+    );
+    if (undoCutOperation) {
+      this.updatedClassCommunications.pop();
+      if (this.createdClassCommunication.length) {
+        this.createdClassCommunication.forEach((comm) => {
+          if (!comm.sourceApp) {
+            comm.sourceApp = app;
+          }
+          if (!comm.targetApp) {
+            comm.targetApp = app;
+          }
+        });
+      }
+      restoreID({ entity: clazz }, 'removed|');
+    } else {
+      this.deletedClassCommunications.pop();
+    }
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -459,11 +677,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.landscapeData.structureLandscapeData.nodes.push(foundation);
 
       // Create Changelog Entry
-      if (app && pckg && clazz) {
-        this.changeLog.createAppEntry(app);
-        this.changeLog.createPackageEntry(app, pckg);
-        this.changeLog.createClassEntry(app, pckg, clazz);
-      }
+      this.changeLog.createAppEntry(
+        app as Application,
+        pckg as Package,
+        clazz as Class
+      );
 
       this.meshModelTextureMappings.push({
         action: MeshAction.Create,
@@ -630,6 +848,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             const appliedTexture = this.findAppliedTexture(
               elem.pckg as Package
             );
+
             if (!appliedTexture) {
               const componentMesh = currentAppModel?.modelIdToMesh.get(
                 elem.pckg?.id as string
@@ -730,16 +949,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       const app = this.getAppFromPackage(pckg);
       if (app) {
-        const subPackage = createPackage(this.newMeshCounter);
-        const newClass = createClass(this.newMeshCounter);
+        const subPackage = createPackage(
+          'newPackage' + this.newMeshCounter,
+          'New Package ' + this.newMeshCounter
+        );
+        const newClass = createClass(
+          'newClass' + this.newMeshCounter,
+          'New Class ' + this.newMeshCounter
+        );
         newClass.parent = subPackage;
         subPackage.parent = pckg;
         subPackage.classes.push(newClass as Class);
         pckg.subPackages.push(subPackage);
 
         // Create Changelog Entry
-        this.changeLog.createPackageEntry(app, subPackage);
-        this.changeLog.createClassEntry(app, subPackage, newClass as Class);
+        this.changeLog.createPackageEntry(app, subPackage, newClass as Class);
 
         this.meshModelTextureMappings.push({
           action: MeshAction.Create,
@@ -779,15 +1003,20 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           app.id
         );
 
-      const newPckg = createPackage(this.newMeshCounter);
-      const newClass = createClass(this.newMeshCounter);
+      const newPckg = createPackage(
+        'newPackage' + this.newMeshCounter,
+        'New Package ' + this.newMeshCounter
+      );
+      const newClass = createClass(
+        'newClass' + this.newMeshCounter,
+        'New Class ' + this.newMeshCounter
+      );
       newClass.parent = newPckg;
       newPckg.classes.push(newClass as Class);
       app.packages.push(newPckg);
 
       // Create Changelog Entry
-      this.changeLog.createPackageEntry(app, newPckg);
-      this.changeLog.createClassEntry(app, newPckg, newClass as Class);
+      this.changeLog.createPackageEntry(app, newPckg, newClass as Class);
 
       this.meshModelTextureMappings.push({
         action: MeshAction.Create,
@@ -828,12 +1057,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       const app = this.getAppFromPackage(pckg);
       if (app) {
-        const clazz = createClass(this.newMeshCounter);
+        const clazz = createClass(
+          'newClass' + this.newMeshCounter,
+          'New Class ' + this.newMeshCounter
+        );
         clazz.parent = pckg;
         pckg.classes.push(clazz as Class);
 
         // Create Changelog Entry
-        this.changeLog.createClassEntry(app, pckg, clazz as Class);
+        this.changeLog.createClassEntry(app, clazz as Class);
 
         this.meshModelTextureMappings.push({
           action: MeshAction.Create,
@@ -862,7 +1094,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.deleteAppFromPopup(app as Application, true);
   }
 
-  deleteAppFromPopup(app: Application, collabMode: boolean = false) {
+  deleteAppFromPopup(
+    app: Application,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -874,37 +1110,31 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
       // Create wrapper for Communication, since it can change inside the function
       const wrapper = {
-        comms: this.classCommunication,
+        comms: this.allClassCommunications,
+        deletedComms: [],
       };
-
-      // Create Changelog Entry
-      this.changeLog.deleteAppEntry(app);
 
       removeApplication(
         this.landscapeData?.structureLandscapeData,
         wrapper,
         app,
-        false
+        undo
       );
 
-      this.storeDeletedAppData(app);
+      if (!undo) {
+        this.processDeletedAppData(app);
 
-      // Updating Communications
-      this.classCommunication = wrapper.comms;
-
-      // Remove all Meshes of the Application
-      // const appObject3D: ApplicationObject3D | undefined =
-      //   this.applicationRenderer.getApplicationById(app.id);
-      // if (appObject3D) {
-      //   appObject3D.removeAllEntities();
-      //   appObject3D.removeAllCommunication();
-      // }
-      this.meshModelTextureMappings.push({
-        action: MeshAction.Delete,
-        meshType: EntityType.App,
-        texturePath: 'images/minus.png',
-        originApp: app,
-      });
+        // Updating deleted communications
+        this.deletedClassCommunications.push(wrapper.deletedComms);
+      } else {
+        // Remove all meshes of the application
+        const appObject3D: ApplicationObject3D | undefined =
+          this.applicationRenderer.getApplicationById(app.id);
+        if (appObject3D) {
+          appObject3D.removeAllEntities();
+          appObject3D.removeAllCommunication();
+        }
+      }
 
       this.trigger(
         'restructureLandscapeData',
@@ -912,6 +1142,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.dynamicLandscapeData
       );
     }
+  }
+
+  private processDeletedAppData(app: Application) {
+    // Create Changelog Entry
+    this.changeLog.deleteAppEntry(app);
+
+    // Store all datamodels that are deleted
+    this.storeDeletedAppData(app);
+
+    this.meshModelTextureMappings.push({
+      action: MeshAction.Delete,
+      meshType: EntityType.App,
+      texturePath: 'images/minus.png',
+      originApp: app,
+    });
   }
 
   deleteCollaborativePackage(pckgId: string) {
@@ -922,7 +1167,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.deletePackageFromPopup(pckg as Package, true);
   }
 
-  deletePackageFromPopup(pckg: Package, collabMode: boolean = false) {
+  deletePackageFromPopup(
+    pckg: Package,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -948,47 +1197,43 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
-        comms: this.classCommunication,
+        comms: this.allClassCommunications,
         meshTodelete: pckg,
+        deletedComms: [],
       };
 
       removePackageFromApplication(
         this.landscapeData.structureLandscapeData,
         wrapper,
         pckg,
-        false
+        undo
       );
 
       // Apply the Minus texture either on the whole Application or a Package with its children
       if (isApplication(wrapper.meshTodelete)) {
-        // Store all datamodels that are deleted
-        this.storeDeletedAppData(wrapper.meshTodelete);
-
-        // Create Changelog Entry
-        this.changeLog.deleteAppEntry(wrapper.meshTodelete);
-
-        this.meshModelTextureMappings.push({
-          action: MeshAction.Delete,
-          meshType: EntityType.App,
-          texturePath: 'images/minus.png',
-          originApp: wrapper.meshTodelete,
-        });
+        if (!undo) {
+          this.processDeletedAppData(wrapper.meshTodelete);
+          this.deletedClassCommunications.push(wrapper.deletedComms);
+        }
       } else if (isPackage(wrapper.meshTodelete)) {
-        this.meshModelTextureMappings.push({
-          action: MeshAction.Delete,
-          meshType: EntityType.Package,
-          texturePath: 'images/minus.png',
-          originApp: app as Application,
-          pckg: wrapper.meshTodelete,
-        });
+        if (!undo) {
+          this.deletedClassCommunications.push(wrapper.deletedComms);
+          // Create Changelog Entry
+          if (app && wrapper.meshTodelete.parent) {
+            this.changeLog.deleteSubPackageEntry(app, wrapper.meshTodelete);
+          } else if (app && !wrapper.meshTodelete.parent) {
+            this.changeLog.deletePackageEntry(app, wrapper.meshTodelete);
+          }
 
-        this.storeDeletedPackageData(wrapper.meshTodelete);
+          this.storeDeletedPackageData(wrapper.meshTodelete);
 
-        // Create Changelog Entry
-        if (app && wrapper.meshTodelete.parent) {
-          this.changeLog.deleteSubPackageEntry(app, wrapper.meshTodelete);
-        } else if (app && !wrapper.meshTodelete.parent) {
-          this.changeLog.deletePackageEntry(app, wrapper.meshTodelete);
+          this.meshModelTextureMappings.push({
+            action: MeshAction.Delete,
+            meshType: EntityType.Package,
+            texturePath: 'images/minus.png',
+            originApp: app as Application,
+            pckg: wrapper.meshTodelete,
+          });
         }
         // this.classCommunication = wrapper.comms;
         // this.applicationRepo.clear();
@@ -1003,6 +1248,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
+  /**
+   * Stores all data models associated with a deleted application. These data models are added to the `deletedDataModels` array
+   * for potential future restoration.
+   *
+   * @param app The application that has been deleted.
+   */
   private storeDeletedAppData(app: Application) {
     const allPackages = getAllPackagesInApplication(app);
     const allClasses = getAllClassesInApplication(app);
@@ -1015,6 +1266,31 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     });
   }
 
+  /**
+   * Restores the data models of a deleted application. It searches the `deletedDataModels`
+   * array for the application, its associated packages, and classes, and then removes them from the
+   * `deletedDataModels` array, effectively restoring them to their inital state.
+   *
+   * @param app The application that is going to be restored.
+   */
+  private restoreDeletedAppData(app: Application) {
+    this.deletedDataModels.removeObject(app);
+    const allPackages = getAllPackagesInApplication(app);
+    const allClasses = getAllClassesInApplication(app);
+    allPackages.forEach((pckg) => {
+      this.deletedDataModels.removeObject(pckg);
+    });
+    allClasses.forEach((clazz) => {
+      this.deletedDataModels.removeObject(clazz);
+    });
+  }
+
+  /**
+   * Stores all data models associated with a deleted package. These data models are added to the `deletedDataModels`
+   * array for potential future restoration.
+   *
+   * @param pckg The package that has been deleted or is intended to be deleted.
+   */
   private storeDeletedPackageData(pckg: Package) {
     const allPackages = getSubPackagesOfPackage(pckg, true);
     const allClasses = getClassesInPackage(pckg, true);
@@ -1027,6 +1303,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     });
   }
 
+  /**
+   * Restores the data models of a deleted package. It searches the `deletedDataModels`
+   * array for the package, its associated subpackages, and classes, and then removes them from the
+   * `deletedDataModels` array, effectively restoring them to their inital state.
+   *
+   * @param pckg The package that is going to be restored.
+   */
+  private restoreDeletedPackageData(pckg: Package) {
+    this.deletedDataModels.removeObject(pckg);
+    const allPackages = getSubPackagesOfPackage(pckg, true);
+    const allClasses = getClassesInPackage(pckg, true);
+    allPackages.forEach((pckg) => {
+      this.deletedDataModels.removeObject(pckg);
+    });
+    allClasses.forEach((clazz) => {
+      this.deletedDataModels.removeObject(clazz);
+    });
+  }
+
   deleteCollaborativeClass(clazzId: string) {
     const clazz = getClassById(
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
@@ -1035,7 +1330,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.deleteClassFromPopup(clazz as Class, true);
   }
 
-  deleteClassFromPopup(clazz: Class, collabMode: boolean = false) {
+  deleteClassFromPopup(
+    clazz: Class,
+    collabMode: boolean = false,
+    undo: boolean = false
+  ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -1053,69 +1352,73 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
-        comms: this.classCommunication,
+        comms: this.allClassCommunications,
         meshTodelete: clazz,
+        deletedComms: [],
       };
 
       removeClassFromPackage(
         this.landscapeData.structureLandscapeData,
         wrapper,
         clazz,
-        false
+        undo
       );
 
-      // this.classCommunication = wrapper.comms;
-      // this.applicationRepo.clear();
-      // Apply the Minus texture either on the whole Application, n Package with its children or a Class only
-      if (application) {
-        if (isClass(wrapper.meshTodelete)) {
-          this.meshModelTextureMappings.push({
-            action: MeshAction.Delete,
-            meshType: EntityType.Clazz,
-            texturePath: 'images/minus.png',
-            originApp: application as Application,
-            clazz: wrapper.meshTodelete,
-          });
+      if (!undo) {
+        this.deletedClassCommunications.push(wrapper.deletedComms);
+        // this.classCommunication = wrapper.comms;
+        // this.applicationRepo.clear();
+        // Apply the Minus texture either on the whole Application, n Package with its children or a Class only
+        if (application) {
+          if (isClass(wrapper.meshTodelete)) {
+            this.meshModelTextureMappings.push({
+              action: MeshAction.Delete,
+              meshType: EntityType.Clazz,
+              texturePath: 'images/minus.png',
+              originApp: application as Application,
+              clazz: wrapper.meshTodelete,
+            });
 
-          // Create Changelog Entry
-          this.changeLog.deleteClassEntry(application, clazz);
+            // Create Changelog Entry
+            this.changeLog.deleteClassEntry(application, clazz);
 
-          this.deletedDataModels.push(wrapper.meshTodelete);
-        } else if (isPackage(wrapper.meshTodelete)) {
-          this.meshModelTextureMappings.push({
-            action: MeshAction.Delete,
-            meshType: EntityType.Package,
-            texturePath: 'images/minus.png',
-            originApp: application as Application,
-            pckg: wrapper.meshTodelete,
-          });
+            this.deletedDataModels.push(wrapper.meshTodelete);
+          } else if (isPackage(wrapper.meshTodelete)) {
+            this.meshModelTextureMappings.push({
+              action: MeshAction.Delete,
+              meshType: EntityType.Package,
+              texturePath: 'images/minus.png',
+              originApp: application as Application,
+              pckg: wrapper.meshTodelete,
+            });
 
-          this.storeDeletedPackageData(wrapper.meshTodelete);
+            this.storeDeletedPackageData(wrapper.meshTodelete);
 
-          // Create Changelog Entry
-          if ((wrapper.meshTodelete as Package).parent)
-            this.changeLog.deleteSubPackageEntry(
-              application,
-              wrapper.meshTodelete
-            );
-          else
-            this.changeLog.deletePackageEntry(
-              application,
-              wrapper.meshTodelete
-            );
-        } else if (isApplication(wrapper.meshTodelete)) {
-          this.meshModelTextureMappings.push({
-            action: MeshAction.Delete,
-            meshType: EntityType.App,
-            texturePath: 'images/minus.png',
-            originApp: application as Application,
-            clazz: wrapper.meshTodelete,
-          });
+            // Create Changelog Entry
+            if ((wrapper.meshTodelete as Package).parent)
+              this.changeLog.deleteSubPackageEntry(
+                application,
+                wrapper.meshTodelete
+              );
+            else
+              this.changeLog.deletePackageEntry(
+                application,
+                wrapper.meshTodelete
+              );
+          } else if (isApplication(wrapper.meshTodelete)) {
+            this.meshModelTextureMappings.push({
+              action: MeshAction.Delete,
+              meshType: EntityType.App,
+              texturePath: 'images/minus.png',
+              originApp: application as Application,
+              clazz: wrapper.meshTodelete,
+            });
 
-          this.storeDeletedAppData(wrapper.meshTodelete);
+            this.storeDeletedAppData(wrapper.meshTodelete);
 
-          // Create Changelog Entry
-          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+            // Create Changelog Entry
+            this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+          }
         }
       }
 
@@ -1175,70 +1478,43 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
+  getApp(
+    landscapeData: StructureLandscapeData,
+    appChild: Package | Class
+  ): Application | undefined {
+    if (isPackage(appChild)) {
+      if (appChild.parent)
+        return getApplicationFromSubPackage(landscapeData, appChild.id);
+      else return getApplicationFromPackage(landscapeData, appChild.id);
+    }
+
+    if (isClass(appChild))
+      return getApplicationFromClass(landscapeData, appChild);
+
+    return undefined;
+  }
+
   insertPackageOrClassFromPopup(
     destination: Application | Package,
     collabMode: boolean = false
   ) {
     if (this.landscapeData?.structureLandscapeData) {
-      const getApp: (
-        LandscapeData: StructureLandscapeData,
-        appChild: Package | Class
-      ) => Application | undefined = (landscapeData, appChild) => {
-        if (isPackage(appChild)) {
-          if (appChild.parent)
-            return getApplicationFromSubPackage(landscapeData, appChild.id);
-          else return getApplicationFromPackage(landscapeData, appChild.id);
-        }
-
-        if (isClass(appChild))
-          return getApplicationFromClass(landscapeData, appChild);
-
-        return undefined;
-      };
-
       if (!collabMode) {
-        if (isApplication(destination)) {
-          if (isPackage(this.clippedMesh))
-            this.sender.sendRestructureCutAndInsertMessage(
-              EntityType.App,
-              destination.id,
-              EntityType.Package,
-              this.clippedMesh?.id as string
-            );
-          else
-            this.sender.sendRestructureCutAndInsertMessage(
-              EntityType.App,
-              destination.id,
-              EntityType.Clazz,
-              this.clippedMesh?.id as string
-            );
-        } else {
-          if (isPackage(this.clippedMesh))
-            this.sender.sendRestructureCutAndInsertMessage(
-              EntityType.Package,
-              destination.id,
-              EntityType.Package,
-              this.clippedMesh?.id as string
-            );
-          else
-            this.sender.sendRestructureCutAndInsertMessage(
-              EntityType.Package,
-              destination.id,
-              EntityType.Clazz,
-              this.clippedMesh?.id as string
-            );
-        }
+        this.sendCutInsertMessage(destination);
       }
 
-      const app = getApp(
+      const app = this.getApp(
         this.landscapeData.structureLandscapeData,
         this.clippedMesh as Package | Class
       );
 
+      const updatedClassCommunications: DrawableClassCommunication[] = [];
+
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
-        comms: this.classCommunication,
-        meshTodelete: this.clippedMesh as Package | Class,
+        comms: this.allClassCommunications,
+        meshTodelete: this.clippedMesh as Application | Package | Class,
+        updatedComms: updatedClassCommunications,
       };
 
       const meshTextureMapping: Partial<MeshModelTextureMapping> = {
@@ -1248,53 +1524,72 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       // Distinguish between clipped Package and clipped Class
       if (isPackage(this.clippedMesh)) {
+        // Copy the clipped package
+        const cuttedPackage = copyPackageContent(this.clippedMesh);
+        cuttedPackage.parent = this.clippedMesh.parent;
+
+        // Set the texture to correct mesh
         meshTextureMapping.meshType = EntityType.Package;
-        meshTextureMapping.pckg = this.clippedMesh;
+        meshTextureMapping.pckg = cuttedPackage;
+
+        cutAndInsertPackage(
+          this.landscapeData.structureLandscapeData,
+          cuttedPackage,
+          destination,
+          wrapper
+        );
 
         // Create Changelog Entry
         if (this.clippedMesh.parent && app) {
           this.changeLog.cutAndInsertSubPackageEntry(
             app,
-            this.clippedMesh,
+            cuttedPackage,
             destination,
+            wrapper.meshTodelete,
             this.landscapeData.structureLandscapeData
           );
         } else if (!this.clippedMesh.parent && app) {
           this.changeLog.cutAndInsertPackageEntry(
             app,
-            this.clippedMesh,
+            cuttedPackage,
             destination,
+            wrapper.meshTodelete,
             this.landscapeData.structureLandscapeData
           );
         }
 
-        cutAndInsertPackage(
+        changeID({ entity: wrapper.meshTodelete }, 'removed|');
+      } else if (isClass(this.clippedMesh) && app) {
+        // Copy the clipped class
+        const cuttedClass = copyClassContent(this.clippedMesh);
+        cuttedClass.parent = this.clippedMesh.parent;
+
+        // Set the texture to correct mesh
+        meshTextureMapping.meshType = EntityType.Clazz;
+        meshTextureMapping.clazz = cuttedClass;
+
+        cutAndInsertClass(
           this.landscapeData.structureLandscapeData,
-          this.clippedMesh,
-          destination,
+          cuttedClass,
+          destination as Package,
           wrapper
         );
-      } else if (isClass(this.clippedMesh) && app) {
-        meshTextureMapping.meshType = EntityType.Clazz;
-        meshTextureMapping.clazz = this.clippedMesh;
 
         // Create Changelog Entry
         this.changeLog.cutAndInsertClassEntry(
           app,
-          this.clippedMesh,
-          destination,
+          cuttedClass,
+          destination as Package,
+          wrapper.meshTodelete,
           this.landscapeData.structureLandscapeData
         );
 
-        cutAndInsertClass(
-          this.landscapeData.structureLandscapeData,
-          this.clippedMesh,
-          destination as Package,
-          wrapper
-        );
+        changeID({ entity: wrapper.meshTodelete }, 'removed|');
       }
 
-      // Create Changelog Entry
+      this.updatedClassCommunications.push(wrapper.updatedComms);
+
+      // Create Changelog Entry for delete
       if (wrapper.meshTodelete && wrapper.meshTodelete !== this.clippedMesh) {
         if (isApplication(wrapper.meshTodelete)) {
           const appObject3D: ApplicationObject3D | undefined =
@@ -1305,23 +1600,25 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             appObject3D.removeAllEntities();
             appObject3D.removeAllCommunication();
           }
-          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+          //this.changeLog.deleteAppEntry(wrapper.meshTodelete);
+          this.storeDeletedAppData(wrapper.meshTodelete);
         } else if (isPackage(wrapper.meshTodelete)) {
           if (wrapper.meshTodelete.parent) {
-            this.changeLog.deleteSubPackageEntry(
-              app as Application,
-              wrapper.meshTodelete
-            );
+            // this.changeLog.deleteSubPackageEntry(
+            //   app as Application,
+            //   wrapper.meshTodelete
+            // );
           } else {
-            this.changeLog.deletePackageEntry(
-              app as Application,
-              wrapper.meshTodelete
-            );
+            // this.changeLog.deletePackageEntry(
+            //   app as Application,
+            //   wrapper.meshTodelete
+            // );
           }
+          this.storeDeletedPackageData(wrapper.meshTodelete);
         }
       }
 
-      this.classCommunication = wrapper.comms;
+      //this.classCommunication = wrapper.comms;
       // this.applicationRepo.clear();
       this.resetClipboard();
 
@@ -1331,7 +1628,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           meshTextureMapping as MeshModelTextureMapping
         );
       } else if (isPackage(destination)) {
-        const destinationApp = getApp(
+        const destinationApp = this.getApp(
           this.landscapeData.structureLandscapeData,
           destination
         );
@@ -1346,6 +1643,40 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.structureLandscapeData,
         this.landscapeData.dynamicLandscapeData
       );
+    }
+  }
+
+  private sendCutInsertMessage(destination: Application | Package) {
+    if (isApplication(destination)) {
+      if (isPackage(this.clippedMesh))
+        this.sender.sendRestructureCutAndInsertMessage(
+          EntityType.App,
+          destination.id,
+          EntityType.Package,
+          this.clippedMesh?.id as string
+        );
+      else
+        this.sender.sendRestructureCutAndInsertMessage(
+          EntityType.App,
+          destination.id,
+          EntityType.Clazz,
+          this.clippedMesh?.id as string
+        );
+    } else {
+      if (isPackage(this.clippedMesh))
+        this.sender.sendRestructureCutAndInsertMessage(
+          EntityType.Package,
+          destination.id,
+          EntityType.Package,
+          this.clippedMesh?.id as string
+        );
+      else
+        this.sender.sendRestructureCutAndInsertMessage(
+          EntityType.Package,
+          destination.id,
+          EntityType.Clazz,
+          this.clippedMesh?.id as string
+        );
     }
   }
 }

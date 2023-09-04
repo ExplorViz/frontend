@@ -7,266 +7,282 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
   MeshAction,
-  ChangeLogEntry,
   EntityType,
 } from 'explorviz-frontend/utils/change-log-entry';
 import { getAncestorPackages } from 'explorviz-frontend/utils/package-helpers';
+import {
+  AppChangeLogEntry,
+  BaseChangeLogEntry,
+  ClassChangeLogEntry,
+  CommunicationChangeLogEntry,
+  PackageChangeLogEntry,
+  SubPackageChangeLogEntry,
+} from 'explorviz-frontend/utils/changelog-entry';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { tracked } from '@glimmer/tracking';
 
 export default class Changelog extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  changeLogEntries: ChangeLogEntry[] = [];
+  // changeLogEntries: ChangeLogEntry[] = [];
+  @tracked
+  changeLogEntries: BaseChangeLogEntry[] = [];
 
-  createAppEntry(app: Application) {
-    const appEntry = new ChangeLogEntry(MeshAction.Create, app);
-    this.changeLogEntries.push(appEntry);
+  // Necessary for the created Packages and Classes that are not in the baseChangeLogEntries!!
+  deletedChangeLogEntries: BaseChangeLogEntry[][] = [];
+
+  createAppEntry(app: Application, pckg: Package, clazz: Class) {
+    const appLogEntry = new AppChangeLogEntry(MeshAction.Create, app);
+
+    this.changeLogEntries.push(appLogEntry);
+    this.createPackageEntry(app, pckg, clazz, appLogEntry);
   }
 
-  createPackageEntry(app: Application, pckg: Package) {
-    const pckgEntry = new ChangeLogEntry(MeshAction.Create, app, pckg);
-    this.changeLogEntries.push(pckgEntry);
+  createPackageEntry(
+    app: Application,
+    pckg: Package,
+    clazz: Class,
+    appEntry?: AppChangeLogEntry
+  ) {
+    if (pckg.parent) {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
+        MeshAction.Create,
+        app,
+        pckg
+      );
+
+      this.changeLogEntries.push(pckgLogEntry);
+      this.createClassEntry(app, clazz, pckgLogEntry);
+    } else {
+      const pckgLogEntry = new PackageChangeLogEntry(
+        MeshAction.Create,
+        app,
+        pckg
+      );
+
+      if (appEntry) pckgLogEntry._createdWithApp = appEntry;
+
+      this.changeLogEntries.push(pckgLogEntry);
+      this.createClassEntry(app, clazz, pckgLogEntry);
+    }
   }
 
-  createClassEntry(app: Application, parentPckg: Package, clazz: Class) {
-    const clazzEntry = new ChangeLogEntry(
+  createClassEntry(
+    app: Application,
+    clazz: Class,
+    pckgEntry?: PackageChangeLogEntry | SubPackageChangeLogEntry
+  ) {
+    const clazzLogEntry = new ClassChangeLogEntry(
       MeshAction.Create,
       app,
-      parentPckg,
       clazz
     );
-    this.changeLogEntries.push(clazzEntry);
+    if (pckgEntry) clazzLogEntry.createdWithPackage = pckgEntry;
+    this.changeLogEntries.push(clazzLogEntry);
   }
 
   renameAppEntry(app: Application, newName: string) {
-    const entry = this.findChangeLogEntry(app);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.App, app);
 
-    if (!entry || (entry && entry._entryType !== EntityType.App)) {
-      const appEntry = new ChangeLogEntry(
-        MeshAction.Rename,
-        app,
-        undefined,
-        undefined,
-        newName
-      );
-      this.changeLogEntries.push(appEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.App &&
-      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
-    ) {
-      entry.newName = newName;
+    if (!foundEntry) {
+      const appLogEntry = new AppChangeLogEntry(MeshAction.Rename, app);
+      appLogEntry.newName = newName;
+      this.changeLogEntries.push(appLogEntry);
+    } else {
+      foundEntry.newName = newName;
     }
   }
 
   renamePackageEntry(app: Application, pckg: Package, newName: string) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
 
-    if (!entry) {
-      const pckgEntry = new ChangeLogEntry(
+    if (!foundEntry) {
+      const pckgLogEntry = new PackageChangeLogEntry(
         MeshAction.Rename,
         app,
-        pckg,
-        undefined,
-        newName
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.Package &&
-      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
-    ) {
-      entry.newName = newName;
+      pckgLogEntry.newName = newName;
+      this.changeLogEntries.push(pckgLogEntry);
+    } else {
+      foundEntry.newName = newName;
     }
   }
 
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
 
-    if (!entry || (entry && entry.entryType === EntityType.Clazz)) {
-      const pckgEntry = new ChangeLogEntry(
+    if (!foundEntry) {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
         MeshAction.Rename,
         app,
-        pckg,
-        undefined,
-        newName
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.SubPackage &&
-      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
-    ) {
-      entry.newName = newName;
+      pckgLogEntry.newName = newName;
+      this.changeLogEntries.push(pckgLogEntry);
+    } else {
+      foundEntry.newName = newName;
     }
   }
 
   renameClassEntry(app: Application, clazz: Class, newName: string) {
-    const entry = this.findChangeLogEntry(clazz);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
 
-    if (!entry) {
-      const clazzEntry = new ChangeLogEntry(
+    if (!foundEntry) {
+      const clazzLogEntry = new ClassChangeLogEntry(
         MeshAction.Rename,
         app,
-        clazz.parent,
-        clazz,
-        newName
+        clazz
       );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.Clazz &&
-      (entry.action === MeshAction.Create || entry.action === MeshAction.Rename)
-    ) {
-      entry.newName = newName;
+      clazzLogEntry.newName = newName;
+      this.changeLogEntries.push(clazzLogEntry);
+    } else {
+      foundEntry.newName = newName;
     }
   }
 
   deleteAppEntry(app: Application) {
-    const entry = this.findChangeLogEntry(app);
-
-    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
-      const appEntry = new ChangeLogEntry(MeshAction.Delete, app);
-      this.changeLogEntries.push(appEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.App &&
-      entry.action === MeshAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app?.id !== app.id
-      );
-    } else if (
-      (entry && entry.action !== MeshAction.Create) ||
-      (entry &&
-        entry._entryType !== EntityType.App &&
-        entry.action === MeshAction.Create)
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app?.id !== app.id
-      );
-      const originalName = entry._originalAppName;
-      const appEntry = new ChangeLogEntry(MeshAction.Delete, app);
-      appEntry.updateOriginalAppName(originalName as string);
-      this.changeLogEntries.push(appEntry);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.App,
+      app
+    ) as AppChangeLogEntry;
+    let originalAppName = '';
+    this.deletedChangeLogEntries.push(this.changeLogEntries);
+    this.changeLogEntries = this.changeLogEntries.filter((entry) => {
+      if (!(entry instanceof CommunicationChangeLogEntry)) {
+        return entry.app?.id !== app.id;
+      } else {
+        return (
+          entry.communication?.sourceApp?.id !== app.id &&
+          entry.communication?.targetApp?.id !== app.id
+        );
+      }
+    });
+    if (foundEntry) {
+      if (foundEntry.action === MeshAction.Create) {
+        return;
+      }
+      originalAppName = foundEntry.originalAppName as string;
     }
+    const appLogEntry = new AppChangeLogEntry(MeshAction.Delete, app);
+    if (originalAppName !== '') appLogEntry.originalAppName = originalAppName;
+    this.changeLogEntries.push(appLogEntry);
   }
 
   deletePackageEntry(app: Application, pckg: Package) {
-    const entry = this.findChangeLogEntry(pckg);
-    this.removeAffectedLogEntries(app, pckg);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
+    this.deletedChangeLogEntries.push(this.changeLogEntries);
+    this.removeLogEntriesUnderPackage(app, pckg);
 
-    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType !== EntityType.App &&
-      entry.action === MeshAction.Create
-    ) {
+    let originalPckgName = '';
+
+    if (foundEntry) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
-    } else if (entry && entry.action !== MeshAction.Create) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
+      if (foundEntry.action === MeshAction.Create) {
+        return;
+      } else if (foundEntry.action === MeshAction.Rename) {
+        originalPckgName = foundEntry.originalPckgName as string;
+      }
     }
+
+    const pckgLogEntry = new PackageChangeLogEntry(
+      MeshAction.Delete,
+      app,
+      pckg
+    );
+    if (originalPckgName !== '') {
+      pckgLogEntry.originalPckgName = originalPckgName;
+    }
+    this.changeLogEntries.push(pckgLogEntry);
   }
 
   deleteSubPackageEntry(app: Application, pckg: Package) {
-    const entry = this.findChangeLogEntry(pckg);
-    this.removeAffectedLogEntries(app, pckg);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
+    this.deletedChangeLogEntries.push(this.changeLogEntries);
+    this.removeLogEntriesUnderPackage(app, pckg);
 
-    if (!entry || (entry && entry.action === MeshAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntityType.SubPackage &&
-      entry.action === MeshAction.Create
-    ) {
+    let originalPckgName = '';
+
+    if (foundEntry) {
       this.changeLogEntries = this.changeLogEntries.filter(
         (entry) => entry.pckg?.id !== pckg.id
       );
-    } else if (
-      entry &&
-      (entry._entryType === EntityType.SubPackage ||
-        entry._entryType === EntityType.Clazz) &&
-      entry.action !== MeshAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-      const pckgEntry = new ChangeLogEntry(MeshAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
+      if (foundEntry.action === MeshAction.Create) {
+        return;
+      } else if (foundEntry.action === MeshAction.Rename) {
+        originalPckgName = foundEntry.originalPckgName as string;
+      }
     }
+
+    const pckgLogEntry = new SubPackageChangeLogEntry(
+      MeshAction.Delete,
+      app,
+      pckg
+    );
+    if (originalPckgName !== '') {
+      pckgLogEntry.originalPckgName = originalPckgName;
+    }
+    this.changeLogEntries.push(pckgLogEntry);
   }
 
   deleteClassEntry(app: Application, clazz: Class) {
-    const entry = this.findChangeLogEntry(clazz);
-    const commEntry = this.findChangeLogCommunicationEntry(clazz);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
+    const commEntry = this.findCommunicationLogEntry(clazz);
+    this.deletedChangeLogEntries.push(this.changeLogEntries);
 
-    if (!entry) {
-      const clazzEntry = new ChangeLogEntry(
-        MeshAction.Delete,
-        app,
-        clazz.parent,
-        clazz
+    // Remove Communication Log Entry
+    if (commEntry) this.changeLogEntries.removeObject(commEntry);
+
+    let originalClazzName = '';
+    if (foundEntry) {
+      this.changeLogEntries = this.changeLogEntries.filter(
+        (entry) => entry.clazz?.id !== clazz.id
       );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === MeshAction.Create) {
-      this.changeLogEntries.removeObject(entry);
-    } else if (entry && entry.action !== MeshAction.Create) {
-      this.changeLogEntries.removeObject(entry);
-      const clazzEntry = new ChangeLogEntry(
-        MeshAction.Delete,
-        app,
-        clazz.parent,
-        clazz
-      );
-      this.changeLogEntries.push(clazzEntry);
+      if (foundEntry.action === MeshAction.Create) {
+        return;
+      } else if (foundEntry.action === MeshAction.Rename) {
+        originalClazzName = foundEntry.originalClazzName as string;
+      }
     }
 
-    if (commEntry) {
-      this.changeLogEntries.removeObject(commEntry);
+    const clazzLogEntry = new ClassChangeLogEntry(
+      MeshAction.Delete,
+      app,
+      clazz
+    );
+    if (originalClazzName !== '') {
+      clazzLogEntry.originalClazzName = originalClazzName;
     }
+    this.changeLogEntries.push(clazzLogEntry);
   }
 
   cutAndInsertPackageEntry(
     app: Application,
     pckg: Package,
     destination: Application | Package,
+    origin: Application | Package | Class,
     landscapeData: StructureLandscapeData
   ) {
-    const entry = this.findChangeLogEntry(pckg);
-
-    if (!entry || (entry && entry.action === MeshAction.Rename)) {
-      const pckgEntry = new ChangeLogEntry(
+    const foundEntry =
+      this.findBaseChangeLogEntry(EntityType.Package, pckg) ||
+      this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
+    if (foundEntry) {
+      if (foundEntry.action == MeshAction.Create) {
+        this.updateCreateLogEntries(app, pckg, destination, landscapeData);
+      } else {
+        this.updateCutInserLogEntries(app, pckg, destination, landscapeData);
+      }
+    } else {
+      const pckgLogEntry = new PackageChangeLogEntry(
         MeshAction.CutInsert,
         app,
-        pckg,
-        undefined,
-        undefined,
-        destination,
-        landscapeData
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === MeshAction.Create) {
-      this.updateAffectedCreateLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
-    } else if (entry && entry.action !== MeshAction.Create) {
-      this.updateAffectedCutInsertLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
+      pckgLogEntry.setDestination(destination, landscapeData);
+      pckgLogEntry.setOrigin(origin);
+      this.changeLogEntries.push(pckgLogEntry);
     }
   }
 
@@ -274,155 +290,194 @@ export default class Changelog extends Service.extend({
     app: Application,
     pckg: Package,
     destination: Application | Package,
+    origin: Application | Package | Class,
     landscapeData: StructureLandscapeData
   ) {
-    const entry = this.findChangeLogEntry(pckg);
-
-    if (!entry || (entry && entry.action === MeshAction.Rename)) {
-      const pckgEntry = new ChangeLogEntry(
+    const foundEntry =
+      this.findBaseChangeLogEntry(EntityType.SubPackage, pckg) ||
+      this.findBaseChangeLogEntry(EntityType.Package, pckg);
+    if (foundEntry) {
+      if (foundEntry.action == MeshAction.Create) {
+        this.updateCreateLogEntries(app, pckg, destination, landscapeData);
+      } else {
+        this.updateCutInserLogEntries(app, pckg, destination, landscapeData);
+      }
+    } else {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
         MeshAction.CutInsert,
         app,
-        pckg,
-        undefined,
-        undefined,
-        destination,
-        landscapeData
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === MeshAction.Create) {
-      this.updateAffectedCreateLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
-    } else if (entry && entry.action !== MeshAction.Create) {
-      this.updateAffectedCutInsertLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
+      pckgLogEntry.setDestination(destination, landscapeData);
+      pckgLogEntry.setOrigin(origin);
+      this.changeLogEntries.push(pckgLogEntry);
     }
   }
 
   cutAndInsertClassEntry(
     app: Application,
     clazz: Class,
-    destination: Application | Package,
+    destination: Package,
+    origin: Application | Package | Class,
     landscapeData: StructureLandscapeData
   ) {
-    const entry = this.findChangeLogEntry(clazz);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
 
-    if (!entry || (entry && entry.action === MeshAction.Rename)) {
-      const clazzEntry = new ChangeLogEntry(
+    if (foundEntry) {
+      if (foundEntry.action === MeshAction.Create) {
+        foundEntry.updateOrigin(destination, landscapeData);
+      } else {
+        foundEntry.setDestination(destination, landscapeData);
+      }
+    } else {
+      const clazzLogEntry = new ClassChangeLogEntry(
         MeshAction.CutInsert,
         app,
-        clazz.parent,
-        clazz,
-        undefined,
-        destination,
-        landscapeData
+        clazz
       );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === MeshAction.Create) {
-      entry.updateCreateEntry(destination, landscapeData);
-    } else if (entry && entry.action !== MeshAction.Create) {
-      entry.updateDestination(destination, landscapeData);
+      clazzLogEntry.setDestination(destination, landscapeData);
+      clazzLogEntry.setOrigin(origin);
+      this.changeLogEntries.push(clazzLogEntry);
     }
   }
 
-  communicationEntry(
-    sourceApp: Application,
-    sourceClazz: Class,
-    targetApp: Application,
-    targetClass: Class,
-    methodName: string,
-    landscapeData: StructureLandscapeData
-  ) {
-    const commEntry = new ChangeLogEntry(
-      MeshAction.Communication,
-      sourceApp,
-      sourceClazz.parent,
-      sourceClazz,
-      undefined,
-      targetApp,
-      landscapeData,
-      targetClass,
-      methodName
+  communicationEntry(communication: DrawableClassCommunication) {
+    const commEntry = new CommunicationChangeLogEntry(
+      MeshAction.Create,
+      communication
     );
     this.changeLogEntries.push(commEntry);
   }
 
-  getChangeLogs() {
+  /**
+   * Retrieves the log text for all changelog entries.
+   * @returns string with all log texts with each seperated by a new line
+   */
+  getChangeLog() {
     let description = '';
+
     this.changeLogEntries.forEach((entry) => {
-      description = description.concat(entry._description, '\n');
+      description = description.concat(entry._logText, '\n');
     });
 
     return description;
   }
 
-  private findChangeLogEntry(
-    app: Application | Package | Class
-  ): ChangeLogEntry | undefined {
-    return this.changeLogEntries.find(
-      (entry) => entry.app === app || entry.pckg === app || entry.clazz === app
-    );
+  /**
+   * Restores entries that were previously removed due to a delete operation.
+   * It fetches the last set of deleted entries and puts them into the main log.
+   */
+  restoreDeletedEntries() {
+    const deletedEntries = this.deletedChangeLogEntries.reverse()
+      .firstObject as BaseChangeLogEntry[];
+    this.changeLogEntries = deletedEntries;
+    this.deletedChangeLogEntries.removeObject(deletedEntries);
   }
 
-  private findChangeLogCommunicationEntry(
-    app: Application | Package | Class
-  ): ChangeLogEntry | undefined {
+  private findBaseChangeLogEntry(
+    entityType: EntityType,
+    entity: Application | Package | Class
+  ) {
+    switch (entityType) {
+      case EntityType.App: {
+        const appEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof AppChangeLogEntry
+        ) as AppChangeLogEntry[];
+        return appEntries.find((entry) => entry.app === entity);
+      }
+      case EntityType.Package: {
+        const pckgEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof PackageChangeLogEntry
+        ) as PackageChangeLogEntry[];
+        return pckgEntries.find((entry) => entry.pckg === entity);
+      }
+      case EntityType.SubPackage: {
+        const subpckgEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof SubPackageChangeLogEntry
+        ) as SubPackageChangeLogEntry[];
+        return subpckgEntries.find((entry) => entry.pckg === entity);
+      }
+      case EntityType.Clazz: {
+        const clazzEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof ClassChangeLogEntry
+        ) as ClassChangeLogEntry[];
+        return clazzEntries.find((entry) => entry.clazz === entity);
+      }
+      default:
+        return undefined;
+    }
+  }
+
+  private findCommunicationLogEntry(
+    clazz: Class
+  ): BaseChangeLogEntry | undefined {
     return this.changeLogEntries.find(
       (entry) =>
-        entry.action === MeshAction.Communication &&
-        (entry.app === app ||
-          entry.pckg === app ||
-          entry.clazz === app ||
-          entry.destinationApp === app ||
-          entry.destinationClass === app)
+        entry instanceof CommunicationChangeLogEntry &&
+        (entry.communication?.sourceClass === clazz ||
+          entry.communication?.targetClass === clazz)
     );
   }
 
-  private removeAffectedLogEntries(app: Application, pckg: Package) {
-    const entriesToRemove: ChangeLogEntry[] = [];
+  /**
+   * Removes changelog entries for packages and classes located under a specified package within a given application.
+   * @param app The application containing the package of interest. Changelog entries within this application will be evaluated.
+   * @param pckg The package of interest. Changelog entries under this package will be removed.
+   */
+  private removeLogEntriesUnderPackage(app: Application, pckg: Package) {
+    const entriesToRemove: BaseChangeLogEntry[] = [];
 
     this.changeLogEntries.forEach((logEntry) => {
-      if (logEntry.app?.id === app.id && logEntry.pckg) {
-        const ancestorPackages = getAncestorPackages(logEntry.pckg);
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
+      // Check if some children have changelog entries and remove them
+      if (
+        (logEntry instanceof PackageChangeLogEntry ||
+          logEntry instanceof SubPackageChangeLogEntry ||
+          logEntry instanceof ClassChangeLogEntry) &&
+        logEntry.app?.id === app.id
+      ) {
+        const ancestorPackages = getAncestorPackages(logEntry.pckg as Package);
+        const affectedLogEntry = ancestorPackages.some(
+          (ancestorPackages) => ancestorPackages.id === pckg.id
         );
-        if (affectedEntry) {
+        if (affectedLogEntry) {
           entriesToRemove.push(logEntry);
         }
       }
-      if (
-        logEntry.action === MeshAction.Communication &&
-        logEntry.destinationApp === app
-      ) {
-        const ancestorPackages = getAncestorPackages(
-          logEntry.destinationClass?.parent as Package
-        );
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
-          entriesToRemove.push(logEntry);
-        }
-      } else if (
-        logEntry.action === MeshAction.Communication &&
-        logEntry.app === app
-      ) {
-        const ancestorPackages = getAncestorPackages(
-          logEntry.clazz?.parent as Package
-        );
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
-          entriesToRemove.push(logEntry);
+
+      // Check if there are Communication Entries inside pckg, if there are then remove
+      if (logEntry instanceof CommunicationChangeLogEntry) {
+        if (
+          logEntry.communication?.targetApp ===
+          logEntry.communication?.sourceApp
+        ) {
+          if (logEntry.communication?.sourceApp?.id === app.id) {
+            this.removeInternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.sourceClass.parent,
+              logEntry.communication.targetClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          }
+        } else {
+          if (logEntry.communication?.targetApp?.id === app.id) {
+            this.removeExternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.targetClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          } else if (logEntry.communication?.sourceApp?.id === app.id) {
+            this.removeExternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.sourceClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          }
         }
       }
     });
@@ -430,48 +485,114 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.removeObjects(entriesToRemove);
   }
 
-  private updateAffectedCreateLogEntries(
+  private removeExternCommunicationsInsidePackage(
+    logEntry: CommunicationChangeLogEntry,
+    commPckg: Package,
+    pckg: Package,
+    entriesToRemove: BaseChangeLogEntry[]
+  ) {
+    const ancestorPackages = getAncestorPackages(commPckg);
+    const affectedEntry =
+      commPckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+    if (affectedEntry) {
+      entriesToRemove.push(logEntry);
+    }
+  }
+
+  private removeInternCommunicationsInsidePackage(
+    logEntry: CommunicationChangeLogEntry,
+    sourcePckg: Package,
+    targetPckg: Package,
+    pckg: Package,
+    entriesToRemove: BaseChangeLogEntry[]
+  ) {
+    let ancestorPackages = getAncestorPackages(sourcePckg);
+    let affectedEntry =
+      sourcePckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+
+    if (affectedEntry) {
+      entriesToRemove.push(logEntry);
+      return;
+    }
+    ancestorPackages = getAncestorPackages(targetPckg);
+    affectedEntry =
+      targetPckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+
+    if (affectedEntry) {
+      entriesToRemove.push(logEntry);
+    }
+  }
+
+  private updateCreateLogEntries(
     app: Application,
     pckg: Package,
     destination: Application | Package,
     landscapeData: StructureLandscapeData
   ) {
     this.changeLogEntries.forEach((entry) => {
-      if (entry.app?.id === app.id && entry.pckg) {
-        if (pckg.id === entry.pckg.id) {
-          entry.updateCreateEntry(destination, landscapeData);
+      if (entry.app?.id === app.id) {
+        if (
+          (entry instanceof PackageChangeLogEntry ||
+            entry instanceof SubPackageChangeLogEntry) &&
+          pckg.id === entry.pckg?.id
+        ) {
+          entry.updateOrigin(destination, landscapeData);
         } else {
-          const ancestorPackages = getAncestorPackages(entry.pckg);
-          const affectedEntry = ancestorPackages.some(
-            (ancestorPckg) => ancestorPckg.id === pckg.id
-          );
-          if (affectedEntry) {
-            entry.updateCreateEntry(destination, landscapeData);
-          }
+          const ancestorPackages = getAncestorPackages(entry.pckg as Package);
+          const affectedEntry =
+            entry.pckg?.id === pckg.id ||
+            ancestorPackages.some(
+              (ancestorPackage) => ancestorPackage.id === pckg.id
+            );
+          if (
+            affectedEntry &&
+            (entry instanceof PackageChangeLogEntry ||
+              entry instanceof SubPackageChangeLogEntry)
+          )
+            entry.updateOrigin(destination, landscapeData);
         }
       }
     });
   }
 
-  private updateAffectedCutInsertLogEntries(
+  private updateCutInserLogEntries(
     app: Application,
     pckg: Package,
     destination: Application | Package,
     landscapeData: StructureLandscapeData
   ) {
     this.changeLogEntries.forEach((entry) => {
-      if (entry.destinationApp?.id === app.id && entry.pckg) {
-        if (pckg.id === entry.pckg.id) {
-          entry.updateDestination(destination, landscapeData);
-        } else {
-          const ancestorPackages = getAncestorPackages(entry.pckg);
-          const affectedEntry = ancestorPackages.some(
-            (ancestorPckg) => ancestorPckg.id === pckg.id
-          );
-          if (affectedEntry) {
-            entry.updateDestination(destination, landscapeData);
-          }
+      if (
+        entry instanceof PackageChangeLogEntry &&
+        entry.destinationApp?.id === app.id
+      ) {
+        if (entry.pckg?.id === pckg.id) {
+          entry.setDestination(destination, landscapeData);
         }
+      } else if (
+        entry instanceof SubPackageChangeLogEntry &&
+        entry.destinationApp?.id === app.id
+      ) {
+        if (entry.pckg?.id === pckg.id) {
+          entry.setDestination(destination, landscapeData);
+        }
+      } else {
+        const ancestorPackages = getAncestorPackages(entry.pckg as Package);
+        const affectedEntry =
+          entry.pckg?.id === pckg.id ||
+          ancestorPackages.some(
+            (ancestorPackage) => ancestorPackage.id === pckg.id
+          );
+
+        if (
+          affectedEntry &&
+          (entry instanceof PackageChangeLogEntry ||
+            entry instanceof SubPackageChangeLogEntry)
+        )
+          entry.setDestination(destination, landscapeData);
       }
     });
   }
