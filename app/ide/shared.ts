@@ -71,7 +71,9 @@ export function getVizData(
   const openApplications = applicationRenderer.getOpenApplications();
   const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
 
-  const communicationMeshIDs = new Set<CommunicationLink['meshID']>(communicationLinks.map(cl => cl.meshID));
+  const communicationMeshIDs = new Set<CommunicationLink['meshID']>(
+    communicationLinks.map((cl) => cl.meshID)
+  );
 
   openApplications.forEach((application) => {
     const drawableClassCommunications =
@@ -186,16 +188,18 @@ function isInParentOrder(po: ParentOrder, name: string): boolean {
     return false;
   }
 
-  for(const child of po.childs) {
-    if (isInParentOrder(
-      {
-        fqn: child.fqn,
-        childs: child.childs,
-        meshid: child.meshid,
-        methods: [],
-      },
-      name
-    )) {
+  for (const child of po.childs) {
+    if (
+      isInParentOrder(
+        {
+          fqn: child.fqn,
+          childs: child.childs,
+          meshid: child.meshid,
+          methods: [],
+        },
+        name
+      )
+    ) {
       return true;
     }
   }

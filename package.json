@@ -20,6 +20,7 @@
     "lint:js:fix": "eslint . --fix",
     "typescript": "tsc",
     "start": "concurrently \"npm:build:worker:watch\" \"ember serve\"",
+    "start:prod": "npm run build:worker && ember serve --environment=production",
     "test": "npm-run-all lint test:*",
     "test:ember": "ember test",
     "build:worker": "node build-workers.mjs build --minify",
