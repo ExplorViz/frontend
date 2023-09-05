@@ -60,6 +60,10 @@ export type OrderTuple = {
   meshes: { meshNames: string[]; meshIds: string[] };
 };
 
+/**
+ * Warning this function will modify the contents of foundationCommunicationLinks.
+ * @modifies foundationCommunicationLinks
+ */
 export function getVizData(
   applicationRenderer: ApplicationRenderer,
   foundationCommunicationLinks: CommunicationLink[]
@@ -67,12 +71,14 @@ export function getVizData(
   const openApplications = applicationRenderer.getOpenApplications();
   const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
 
+  const communicationMeshIDs = new Set<CommunicationLink['meshID']>(communicationLinks.map(cl => cl.meshID));
+
   openApplications.forEach((application) => {
     const drawableClassCommunications =
       application.data.drawableClassCommunications;
 
     // Add Communication meshes inside the foundations to the foundation communicationLinks list
-    drawableClassCommunications?.forEach((element) => {
+    drawableClassCommunications.forEach((element) => {
       const meshIDs = element.id.split('_');
       const tempCL: CommunicationLink = {
         meshID: element.id,
@@ -80,9 +86,11 @@ export function getVizData(
         targetMeshID: meshIDs[1],
         methodName: meshIDs[2],
       };
-      // TODO: Consider using a set of meshIDs
-      if (communicationLinks.findIndex((e) => e.meshID === element.id) === -1) {
+
+      if (communicationMeshIDs.has(element.id)) {
+        // TODO: this modifies foundationCommunicationLinks, is that intended?
         communicationLinks.push(tempCL);
+        communicationMeshIDs.add(element.id);
       }
     });
   });
@@ -159,7 +167,8 @@ function recursivelyOpenObjects(
       console.log('Methods elem: ', element);
     } else if (isInParentOrder(element, toOpen)) {
       doSomethingOnMesh(element.meshid);
-      if (toOpen == element.fqn) {
+      if (toOpen === element.fqn) {
+        // TODO: stop iteration once found?
         lookAtMesh(element.meshid);
       }
       recursivelyOpenObjects(doSomethingOnMesh, lookAtMesh, toOpen, {
@@ -176,23 +185,22 @@ function isInParentOrder(po: ParentOrder, name: string): boolean {
   } else if (po.childs.length === 0) {
     return false;
   }
-  let tempBool = false;
-  // TODO: use for loop and do an early exit
-  po.childs.forEach((element) => {
-    tempBool =
-      tempBool ||
-      isInParentOrder(
-        {
-          fqn: element.fqn,
-          childs: element.childs,
-          meshid: element.meshid,
-          methods: [],
-        },
-        name
-      );
-  });
 
-  return tempBool;
+  for(const child of po.childs) {
+    if (isInParentOrder(
+      {
+        fqn: child.fqn,
+        childs: child.childs,
+        meshid: child.meshid,
+        methods: [],
+      },
+      name
+    )) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function resetFoundation(
