@@ -31,15 +31,26 @@ postMessage(true);
 
 /******* Define Layouter *******/
 
+type ComponentLayout = {
+  height: number;
+  width: number;
+  depth: number;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+};
+
+type CityLayout = Map<ReducedClass['id'], ComponentLayout>;
+
 function applyBoxLayout(
   application: ReducedApplication,
   allLandscapeTraces: Trace[]
-) {
+): CityLayout {
   const INSET_SPACE = 4.0;
   const OPENED_COMPONENT_HEIGHT = 1.5;
 
-  const layoutMap = new Map();
-  const instanceCountMap = new Map();
+  const layoutMap = new Map<ReducedClass['id'], ComponentLayout>();
+  const instanceCountMap = new Map<ReducedClass['id'], number>();
 
   layoutMap.set(application.id, {
     height: 1,
@@ -98,8 +109,18 @@ function applyBoxLayout(
 
     const componentLayout = layoutMap.get(application.id);
 
+    if (componentLayout === undefined) {
+      throw new Error(
+        `Component layout not found for application ${application.id}`
+      );
+    }
+
     packages.forEach((childComponent) => {
       const childCompLayout = layoutMap.get(childComponent.id);
+
+      if (childCompLayout === undefined) {
+        throw new Error(`Child ${childComponent.id} not found.`);
+      }
 
       childCompLayout.positionX += componentLayout.positionX;
       childCompLayout.positionY +=
@@ -114,10 +135,10 @@ function applyBoxLayout(
     const childComponents = component.subPackages;
     const clazzes = component.classes;
 
-    const componentLayout = layoutMap.get(component.id);
+    const componentLayout = layoutMap.get(component.id)!;
 
     childComponents.forEach((childComponent) => {
-      const childCompLayout = layoutMap.get(childComponent.id);
+      const childCompLayout = layoutMap.get(childComponent.id)!;
 
       childCompLayout.positionX += componentLayout.positionX;
       childCompLayout.positionY +=
@@ -128,7 +149,7 @@ function applyBoxLayout(
     });
 
     clazzes.forEach((clazz) => {
-      const clazzLayout = layoutMap.get(clazz.id);
+      const clazzLayout = layoutMap.get(clazz.id)!;
 
       clazzLayout.positionX += componentLayout.positionX;
       clazzLayout.positionY +=
@@ -186,7 +207,7 @@ function applyBoxLayout(
     const categories = getCategories(instanceCountList, false);
 
     clazzes.forEach((clazz) => {
-      const clazzLayout = layoutMap.get(clazz.id);
+      const clazzLayout = layoutMap.get(clazz.id)!;
 
       clazzLayout.height =
         CLAZZ_SIZE_EACH_STEP * categories[clazz.instanceCount] +
@@ -351,7 +372,7 @@ function applyBoxLayout(
       initNodes(child);
     });
 
-    const componentData = layoutMap.get(application.id);
+    const componentData = layoutMap.get(application.id)!;
     componentData.height = OPENED_COMPONENT_HEIGHT;
     componentData.width = -1.0;
     componentData.depth = -1.0;
@@ -368,12 +389,12 @@ function applyBoxLayout(
     });
 
     clazzes.forEach((clazz) => {
-      const clazzData = layoutMap.get(clazz.id);
+      const clazzData = layoutMap.get(clazz.id)!;
       clazzData.depth = clazzWidth;
       clazzData.width = clazzWidth;
     });
 
-    const componentData = layoutMap.get(component.id);
+    const componentData = layoutMap.get(component.id)!;
     componentData.height = getHeightOfComponent(component);
     componentData.width = -1.0;
     componentData.depth = -1.0;
@@ -388,7 +409,7 @@ function applyBoxLayout(
     const clazzes = component.classes;
 
     clazzes.forEach((clazz) => {
-      const clazzData = layoutMap.get(clazz.id);
+      const clazzData = layoutMap.get(clazz.id)!;
       const height = clazzData.height;
       if (height > childrenHeight) {
         childrenHeight = height;
@@ -396,7 +417,7 @@ function applyBoxLayout(
     });
 
     children.forEach((child) => {
-      const childData = layoutMap.get(child.id);
+      const childData = layoutMap.get(child.id)!;
       if (childData.height > childrenHeight) {
         childrenHeight = childData.height;
       }
@@ -426,7 +447,7 @@ function applyBoxLayout(
 
     const segment = layoutGeneric(tempList);
 
-    const componentData = layoutMap.get(application.id);
+    const componentData = layoutMap.get(application.id)!;
     componentData.width = segment.width;
     componentData.depth = segment.height;
   }
@@ -457,7 +478,7 @@ function applyBoxLayout(
 
     const segment = layoutGeneric(tempList);
 
-    const componentData = layoutMap.get(component.id);
+    const componentData = layoutMap.get(component.id)!;
     componentData.width = segment.width;
     componentData.depth = segment.height;
   }
@@ -472,8 +493,8 @@ function applyBoxLayout(
 
     // Sort by width and by name (for entities with same width)
     children.sort((e1, e2) => {
-      const e1Width = layoutMap.get(e1.id).width;
-      const e2Width = layoutMap.get(e2.id).width;
+      const e1Width = layoutMap.get(e1.id)!.width;
+      const e2Width = layoutMap.get(e2.id)!.width;
       const result = e1Width - e2Width;
 
       if (-0.00001 < result && result < 0.00001) {
@@ -488,7 +509,7 @@ function applyBoxLayout(
     });
 
     children.forEach((child) => {
-      const childData = layoutMap.get(child.id);
+      const childData = layoutMap.get(child.id)!;
       const childWidth = childData.width + INSET_SPACE * 2;
       const childHeight = childData.depth + INSET_SPACE * 2;
       childData.positionY = 0.0;
@@ -518,7 +539,7 @@ function applyBoxLayout(
     // Add labelInset space
 
     children.forEach((child) => {
-      const childData = layoutMap.get(child.id);
+      const childData = layoutMap.get(child.id)!;
       childData.positionX = childData.positionX + INSET_SPACE;
     });
 
@@ -619,7 +640,7 @@ function applyBoxLayout(
     let worstCaseHeight = 0.0;
 
     children.forEach((child) => {
-      const childData = layoutMap.get(child.id);
+      const childData = layoutMap.get(child.id)!;
       worstCaseWidth += childData.width + INSET_SPACE * 2;
       worstCaseHeight += childData.depth + INSET_SPACE * 2;
     });

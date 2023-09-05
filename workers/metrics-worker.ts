@@ -42,7 +42,7 @@ type Metric = {
 function calculateMetrics(
   application: ReducedApplication,
   allLandscapeTraces: Trace[]
-) {
+): Metric[] {
   function calcInstanceCountMetric(
     application: ReducedApplication,
     allLandscapeTraces: Trace[]
