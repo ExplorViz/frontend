@@ -3,7 +3,6 @@ import { setOwner } from '@ember/application';
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import IdeCrossCommunicationEvent from './ide-cross-communication-event';
 import { IDEApiActions, OpenObject, getIdFromMesh, getVizData } from './shared';
 import type {
@@ -27,9 +26,6 @@ export default class IdeCrossCommunication {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   @service('worker-service')
   workerService!: WorkerService;
@@ -71,7 +67,6 @@ export default class IdeCrossCommunication {
 
         const vizDataRaw: VizDataRaw = getVizData(
           this.applicationRenderer,
-          this.applicationRepo,
           foundationCommunicationLinksGlobal
         );
         const remote = await this.workerService.getRemote();
@@ -123,7 +118,6 @@ export default class IdeCrossCommunication {
   async jumpToLocation(object: THREE.Object3D<THREE.Event>): Promise<void> {
     const vizDataRaw: VizDataRaw = getVizData(
       this.applicationRenderer,
-      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const remote = await this.workerService.getRemote();
@@ -144,7 +138,6 @@ export default class IdeCrossCommunication {
 
     const vizDataRaw: VizDataRaw = getVizData(
       this.applicationRenderer,
-      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const remote = await this.workerService.getRemote();

@@ -6,7 +6,6 @@ import { setOwner } from '@ember/application';
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import {
@@ -45,9 +44,6 @@ export default class IdeWebsocket {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   @service('worker-service')
   workerService!: WorkerService;
@@ -135,7 +131,6 @@ export default class IdeWebsocket {
     socket!.on('vizDo', async (data: IDEApiCall) => {
       const vizDataRaw: VizDataRaw = getVizData(
         this.applicationRenderer,
-        this.applicationRepo,
         foundationCommunicationLinksGlobal
       );
       const remote = await this.workerService.getRemote();
@@ -189,7 +184,6 @@ export default class IdeWebsocket {
 
     const vizDataRaw: VizDataRaw = getVizData(
       this.applicationRenderer,
-      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const remote = await this.workerService.getRemote();
@@ -216,7 +210,6 @@ export default class IdeWebsocket {
 
     const vizDataRaw: VizDataRaw = getVizData(
       this.applicationRenderer,
-      this.applicationRepo,
       foundationCommunicationLinksGlobal
     );
     const remote = await this.workerService.getRemote();

@@ -1,5 +1,4 @@
 import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -63,18 +62,14 @@ export type OrderTuple = {
 
 export function getVizData(
   applicationRenderer: ApplicationRenderer,
-  applicationRepo: ApplicationRepository,
   foundationCommunicationLinks: CommunicationLink[]
 ): VizDataRaw {
   const openApplications = applicationRenderer.getOpenApplications();
   const communicationLinks: CommunicationLink[] = foundationCommunicationLinks;
 
   openApplications.forEach((application) => {
-    // TODO: application has a data field
-    const applicationData = applicationRepo.getById(application.getModelId());
-
     const drawableClassCommunications =
-      applicationData?.drawableClassCommunications;
+      application.data.drawableClassCommunications;
 
     // Add Communication meshes inside the foundations to the foundation communicationLinks list
     drawableClassCommunications?.forEach((element) => {
