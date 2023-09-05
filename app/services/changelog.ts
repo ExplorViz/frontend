@@ -1,4 +1,4 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import {
   Application,
   Class,
@@ -20,11 +20,14 @@ import {
 } from 'explorviz-frontend/utils/changelog-entry';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { tracked } from '@glimmer/tracking';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 export default class Changelog extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  // changeLogEntries: ChangeLogEntry[] = [];
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
+
   @tracked
   changeLogEntries: BaseChangeLogEntry[] = [];
 
@@ -148,6 +151,7 @@ export default class Changelog extends Service.extend({
     ) as AppChangeLogEntry;
     let originalAppName = '';
     this.deletedChangeLogEntries.push(this.changeLogEntries);
+
     this.changeLogEntries = this.changeLogEntries.filter((entry) => {
       if (!(entry instanceof CommunicationChangeLogEntry)) {
         return entry.app?.id !== app.id;
@@ -172,6 +176,7 @@ export default class Changelog extends Service.extend({
   deletePackageEntry(app: Application, pckg: Package) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
     this.deletedChangeLogEntries.push(this.changeLogEntries);
+
     this.removeLogEntriesUnderPackage(app, pckg);
 
     let originalPckgName = '';
@@ -201,6 +206,7 @@ export default class Changelog extends Service.extend({
   deleteSubPackageEntry(app: Application, pckg: Package) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
     this.deletedChangeLogEntries.push(this.changeLogEntries);
+
     this.removeLogEntriesUnderPackage(app, pckg);
 
     let originalPckgName = '';
@@ -370,9 +376,14 @@ export default class Changelog extends Service.extend({
    * Restores entries that were previously removed due to a delete operation.
    * It fetches the last set of deleted entries and puts them into the main log.
    */
-  restoreDeletedEntries() {
+  restoreDeletedEntries(collabMode: boolean = false) {
+    if (!collabMode) {
+      this.sender.sendChangeLogRestoreEntriesMessage();
+    }
+
     const deletedEntries = this.deletedChangeLogEntries.reverse()
       .firstObject as BaseChangeLogEntry[];
+
     this.changeLogEntries = deletedEntries;
     this.deletedChangeLogEntries.removeObject(deletedEntries);
   }
@@ -483,6 +494,26 @@ export default class Changelog extends Service.extend({
     });
     if (this.changeLogEntries.length)
       this.changeLogEntries.removeObjects(entriesToRemove);
+  }
+
+  removeEntry(entry: BaseChangeLogEntry, collabMode: boolean = false) {
+    if (!collabMode) {
+      this.sender.sendChangeLogRemoveEntryMessage([entry.id]);
+    }
+
+    this.changeLogEntries.removeObject(entry);
+  }
+
+  removeEntries(entries: BaseChangeLogEntry[], collabMode: boolean = false) {
+    if (!collabMode) {
+      const ids: string[] = [];
+      this.changeLogEntries.forEach((entry) => {
+        ids.push(entry.id);
+      });
+      this.sender.sendChangeLogRemoveEntryMessage(ids);
+    }
+
+    this.changeLogEntries.removeObjects(entries);
   }
 
   private removeExternCommunicationsInsidePackage(

@@ -11,8 +11,10 @@ import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
 } from './landscape-structure-helpers';
+import sha256 from 'crypto-js/sha256';
 
 export abstract class BaseChangeLogEntry {
+  id: string;
   action: MeshAction;
   originalAppName?: string;
   app?: Application;
@@ -32,6 +34,9 @@ export abstract class BaseChangeLogEntry {
     clazz?: Class,
     communication?: DrawableClassCommunication
   ) {
+    this.id = sha256(
+      action + app?.id + pckg?.id + clazz?.id + communication?.id
+    ).toString();
     this.action = action;
     this.app = app;
     this.pckg = pckg;

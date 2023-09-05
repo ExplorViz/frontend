@@ -25,7 +25,12 @@ import {
   RestructureCommunicationMessage,
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
+  RestructureDeleteCommunicationMessage,
   RestructureModeUpdateMessage,
+  RestructureRenameOperationMessage,
+  RestructureRestoreAppMessage,
+  RestructureRestoreClassMessage,
+  RestructureRestorePackageMessage,
   RestructureUpdateMessage,
 } from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 import {
@@ -34,6 +39,10 @@ import {
 } from 'explorviz-frontend/utils/change-log-entry';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import { AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
+import {
+  ChangeLogRemoveEntryMessage,
+  ChangeLogRestoreEntriesMessage,
+} from 'virtual-reality/utils/vr-message/sendable/changelog_update';
 
 export default class VrMessageSender extends Service {
   @service('web-socket')
@@ -166,7 +175,8 @@ export default class VrMessageSender extends Service {
     entityType: EntityType,
     entityId: string,
     newName: string,
-    appId: string | null
+    appId: string | null,
+    undo: boolean
   ) {
     this.webSocket.send<RestructureUpdateMessage>({
       event: 'restructure_update',
@@ -174,6 +184,7 @@ export default class VrMessageSender extends Service {
       entityId: entityId,
       newName: newName,
       appId: appId,
+      undo: undo,
     });
   }
 
@@ -182,7 +193,8 @@ export default class VrMessageSender extends Service {
     action: MeshAction,
     name: string | null,
     language: string | null,
-    entityId: string | null
+    entityId: string | null,
+    undo: boolean
   ) {
     this.webSocket.send<RestructureCreateOrDeleteMessage>({
       event: 'restructure_create_delete',
@@ -191,6 +203,7 @@ export default class VrMessageSender extends Service {
       name: name,
       language: language,
       entityId: entityId,
+      undo: undo,
     });
   }
 
@@ -219,6 +232,71 @@ export default class VrMessageSender extends Service {
       sourceClassId: sourceClassId,
       targetClassId: targetClassId,
       methodName: methodName,
+    });
+  }
+
+  sendRestructureDeleteCommunicationMessage(undo: boolean) {
+    this.webSocket.send<RestructureDeleteCommunicationMessage>({
+      event: 'restructure_delete_communication',
+      undo: undo,
+    });
+  }
+
+  sendRestructureRenameOperationMessage(
+    clazzId: string,
+    originalName: string,
+    newName: string
+  ) {
+    this.webSocket.send<RestructureRenameOperationMessage>({
+      event: 'restructure_rename_operation',
+      clazzId: clazzId,
+      originalName: originalName,
+      newName: newName,
+    });
+  }
+
+  sendRestructureRestoreAppMessage(appId: string, undoCutOperation: boolean) {
+    this.webSocket.send<RestructureRestoreAppMessage>({
+      event: 'restructure_restore_app',
+      appId: appId,
+      undoCutOperation: undoCutOperation,
+    });
+  }
+
+  sendRestructureRestorePackageMessage(
+    pckgId: string,
+    undoCutOperation: boolean
+  ) {
+    this.webSocket.send<RestructureRestorePackageMessage>({
+      event: 'restructure_restore_pckg',
+      pckgId: pckgId,
+      undoCutOperation: undoCutOperation,
+    });
+  }
+
+  sendRestructureRestoreClassMessage(
+    appId: string,
+    clazzId: string,
+    undoCutOperation: boolean
+  ) {
+    this.webSocket.send<RestructureRestoreClassMessage>({
+      event: 'restructure_restore_class',
+      appId: appId,
+      clazzId: clazzId,
+      undoCutOperation: undoCutOperation,
+    });
+  }
+
+  sendChangeLogRestoreEntriesMessage() {
+    this.webSocket.send<ChangeLogRestoreEntriesMessage>({
+      event: 'changelog_restore_entries',
+    });
+  }
+
+  sendChangeLogRemoveEntryMessage(entryIds: string[]) {
+    this.webSocket.send<ChangeLogRemoveEntryMessage>({
+      event: 'changelog_remove_entry',
+      entryIds: entryIds,
     });
   }
 

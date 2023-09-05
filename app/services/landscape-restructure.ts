@@ -61,7 +61,6 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 type MeshModelTextureMapping = {
   action: MeshAction;
@@ -239,9 +238,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @action
   deleteCommunication(
-    comm?: DrawableClassCommunication,
-    undo: boolean = false
+    comm?: DrawableClassCommunication, // Later for deleting existing comms
+    undo: boolean = false,
+    collabMode: boolean = false
   ) {
+    if (!collabMode) {
+      this.sender.sendRestructureDeleteCommunicationMessage(undo);
+    }
     if (undo) {
       this.createdClassCommunication.pop();
     }
@@ -261,7 +264,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   async toggleRestructureModeLocally() {
     this.restructureMode = !this.restructureMode;
-    AlertifyHandler.showAlertifyMessage('works');
     this.trigger('openSettingsSidebar');
     this.trigger('restructureComponent', 'restructure-landscape');
     await new Promise((f) => setTimeout(f, 500));
@@ -280,7 +282,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
-        this.sender.sendRestructureUpdate(EntityType.App, id, name, null);
+        this.sender.sendRestructureUpdate(EntityType.App, id, name, null, undo);
 
       const app = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
@@ -330,7 +332,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
-        this.sender.sendRestructureUpdate(EntityType.Package, id, name, null);
+        this.sender.sendRestructureUpdate(
+          EntityType.Package,
+          id,
+          name,
+          null,
+          undo
+        );
 
       const pckg = getPackageById(
         this.landscapeData.structureLandscapeData,
@@ -362,6 +370,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
               mapping.originApp === app &&
               mapping.pckg === pckg
           );
+
           this.meshModelTextureMappings.removeObject(
             undoMapping as MeshModelTextureMapping
           );
@@ -391,7 +400,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           EntityType.SubPackage,
           id,
           name,
-          null
+          null,
+          undo
         );
 
       const pckg = getPackageById(
@@ -464,7 +474,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   ) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
-        this.sender.sendRestructureUpdate(EntityType.Clazz, id, name, appId);
+        this.sender.sendRestructureUpdate(
+          EntityType.Clazz,
+          id,
+          name,
+          appId,
+          undo
+        );
 
       const application = getApplicationInLandscapeById(
         this.landscapeData.structureLandscapeData,
@@ -511,7 +527,20 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  updateOperationName(clazz: Class, originalName: string, newName: string) {
+  updateOperationName(
+    clazz: Class,
+    originalName: string,
+    newName: string,
+    collabMode: boolean = false
+  ) {
+    if (!collabMode) {
+      this.sender.sendRestructureRenameOperationMessage(
+        clazz.id,
+        originalName,
+        newName
+      );
+    }
+
     const opt = getClassMethodByName(clazz, originalName);
 
     //User created Comms are not found with getClassMethodByName
@@ -532,7 +561,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     );
   }
 
-  restoreApplication(app: Application, undoCutOperation: boolean = false) {
+  restoreApplication(
+    app: Application,
+    undoCutOperation: boolean = false,
+    collabMode: boolean = false
+  ) {
+    if (!collabMode) {
+      this.sender.sendRestructureRestoreAppMessage(app.id, undoCutOperation);
+    }
+
     this.restoreDeletedAppData(app as Application);
     const undoMapping = this.meshModelTextureMappings.find(
       (mapping) =>
@@ -566,7 +603,18 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     );
   }
 
-  restorePackage(pckg: Package, undoCutOperation: boolean = false) {
+  restorePackage(
+    pckg: Package,
+    undoCutOperation: boolean = false,
+    collabMode: boolean = false
+  ) {
+    if (!collabMode) {
+      this.sender.sendRestructureRestorePackageMessage(
+        pckg.id,
+        undoCutOperation
+      );
+    }
+
     this.restoreDeletedPackageData(pckg as Package);
     const undoMapping = this.meshModelTextureMappings.find(
       (mapping) =>
@@ -577,6 +625,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.meshModelTextureMappings.removeObject(
       undoMapping as MeshModelTextureMapping
     );
+
+    // Cut or Undo Operation? In case of Cut we also need to restore the communications!
     if (undoCutOperation) {
       this.updatedClassCommunications.pop();
       if (this.createdClassCommunication.length) {
@@ -617,8 +667,19 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   restoreClass(
     app: Application,
     clazz: Class,
-    undoCutOperation: boolean = false
+    undoCutOperation: boolean = false,
+    collabMode: boolean = false
   ) {
+    if (!collabMode) {
+      // this.sender.sendRestructureCreateOrDeleteMessage(
+      //   EntityType.App,
+      //   MeshAction.Create,
+      //   appName,
+      //   language,
+      //   null
+      // );
+    }
+
     this.deletedDataModels.removeObject(clazz);
     const undoMapping = this.meshModelTextureMappings.find(
       (mapping) =>
@@ -665,7 +726,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Create,
           appName,
           language,
-          null
+          null,
+          false
         );
 
       const foundation = addFoundationToLandscape(
@@ -946,7 +1008,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Create,
           null,
           null,
-          pckg.id
+          pckg.id,
+          false
         );
 
       const app = this.getAppFromPackage(pckg);
@@ -1002,7 +1065,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Create,
           null,
           null,
-          app.id
+          app.id,
+          false
         );
 
       const newPckg = createPackage(
@@ -1054,7 +1118,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Create,
           null,
           null,
-          pckg.id
+          pckg.id,
+          false
         );
 
       const app = this.getAppFromPackage(pckg);
@@ -1088,12 +1153,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.newMeshCounter++;
   }
 
-  deleteCollaborativeApplication(appId: string) {
+  deleteCollaborativeApplication(appId: string, undo: boolean) {
     const app = getApplicationInLandscapeById(
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       appId
     );
-    this.deleteAppFromPopup(app as Application, true);
+    this.deleteAppFromPopup(app as Application, true, undo);
   }
 
   deleteAppFromPopup(
@@ -1108,7 +1173,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Delete,
           null,
           null,
-          app.id
+          app.id,
+          undo
         );
 
       let shouldUndo = undo;
@@ -1166,12 +1232,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     });
   }
 
-  deleteCollaborativePackage(pckgId: string) {
+  deleteCollaborativePackage(pckgId: string, undo: boolean) {
     const pckg = getPackageById(
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       pckgId
     );
-    this.deletePackageFromPopup(pckg as Package, true);
+    this.deletePackageFromPopup(pckg as Package, true, undo);
   }
 
   deletePackageFromPopup(
@@ -1186,7 +1252,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Delete,
           null,
           null,
-          pckg.id
+          pckg.id,
+          undo
         );
 
       let shouldUndo = undo;
@@ -1335,12 +1402,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     });
   }
 
-  deleteCollaborativeClass(clazzId: string) {
+  deleteCollaborativeClass(clazzId: string, undo: boolean) {
     const clazz = getClassById(
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       clazzId
     );
-    this.deleteClassFromPopup(clazz as Class, true);
+    this.deleteClassFromPopup(clazz as Class, true, undo);
   }
 
   deleteClassFromPopup(
@@ -1355,7 +1422,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           MeshAction.Delete,
           null,
           null,
-          clazz.id
+          clazz.id,
+          undo
         );
 
       let shouldUndo = undo;

@@ -65,7 +65,7 @@ export default class UndoRestructure extends Component {
           true
         );
       }
-      entries.removeObjects(bundledCreateEntries);
+      this.changeLog.removeEntries(bundledCreateEntries);
     } else {
       if (lastElement.action === MeshAction.Create) {
         if (lastElement instanceof ClassChangeLogEntry) {
@@ -117,6 +117,7 @@ export default class UndoRestructure extends Component {
         }
       }
 
+      // TODO RESTORE DELTED ENTRIES RESTORES ALMOST ALL EXCEPT 1 FOR THE COLLABORATIVE PARTNER
       if (lastElement.action === MeshAction.Delete) {
         if (lastElement instanceof AppChangeLogEntry) {
           const { app } = lastElement;
@@ -137,7 +138,7 @@ export default class UndoRestructure extends Component {
             clazz as Class
           );
         }
-        entries.removeObject(lastElement);
+        this.changeLog.removeEntry(lastElement);
       }
 
       if (lastElement.action === MeshAction.CutInsert) {
@@ -177,7 +178,7 @@ export default class UndoRestructure extends Component {
         } else if (lastElement instanceof ClassChangeLogEntry) {
           const { origin, clazz } = lastElement;
 
-          // TODO Not working correctly if we created communications. Need to update the aftected, created communication (set the source/target class back)
+          // TODO Not working correctly if we created communications. Need to update the affected and created communication (set the source/target class back)
           this.landscapeRestructure.deleteClassFromPopup(
             clazz as Class,
             false,
@@ -202,7 +203,7 @@ export default class UndoRestructure extends Component {
         }
       }
 
-      entries.removeObject(lastElement);
+      this.changeLog.removeEntry(lastElement);
     }
   }
 

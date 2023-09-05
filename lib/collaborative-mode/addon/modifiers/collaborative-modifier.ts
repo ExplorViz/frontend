@@ -7,8 +7,19 @@ import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import {
+  Application,
+  Class,
+  Package,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
@@ -21,6 +32,11 @@ import {
   AppOpenedMessage,
   APP_OPENED_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/app_opened';
+import {
+  CHANGELOG_REMOVE_ENTRY_EVENT,
+  CHANGELOG_RESTORE_ENTRIES_EVENT,
+  ChangeLogRemoveEntryMessage,
+} from 'virtual-reality/utils/vr-message/sendable/changelog_update';
 import {
   ComponentUpdateMessage,
   COMPONENT_UPDATE_EVENT,
@@ -37,11 +53,21 @@ import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_CREATE_OR_DELETE_EVENT,
   RESTRUCTURE_CUT_AND_INSERT_EVENT,
+  RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
   RESTRUCTURE_MODE_UPDATE_EVENT,
+  RESTRUCTURE_RENAME_OPERATION_EVENT,
+  RESTRUCTURE_RESTORE_APP_EVENT,
+  RESTRUCTURE_RESTORE_CLASS_EVENT,
+  RESTRUCTURE_RESTORE_PACKAGE_EVENT,
   RESTRUCTURE_UPDATE_EVENT,
   RestructureCommunicationMessage,
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
+  RestructureDeleteCommunicationMessage,
+  RestructureRenameOperationMessage,
+  RestructureRestoreAppMessage,
+  RestructureRestoreClassMessage,
+  RestructureRestorePackageMessage,
   RestructureUpdateMessage,
 } from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 
@@ -101,6 +127,41 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onRestructureCommunication
     );
+    this.webSocket.on(
+      RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+      this,
+      this.onRestructureDeleteCommunication
+    );
+    this.webSocket.on(
+      RESTRUCTURE_RENAME_OPERATION_EVENT,
+      this,
+      this.onRestructureRenameOperationMessage
+    );
+    this.webSocket.on(
+      RESTRUCTURE_RESTORE_APP_EVENT,
+      this,
+      this.onRestructureRestoreApp
+    );
+    this.webSocket.on(
+      RESTRUCTURE_RESTORE_PACKAGE_EVENT,
+      this,
+      this.onRestructureRestorePackage
+    );
+    this.webSocket.on(
+      RESTRUCTURE_RESTORE_CLASS_EVENT,
+      this,
+      this.onRestructureRestoreClass
+    );
+    this.webSocket.on(
+      CHANGELOG_REMOVE_ENTRY_EVENT,
+      this,
+      this.onChangeLogRemoveEntry
+    );
+    this.webSocket.on(
+      CHANGELOG_RESTORE_ENTRIES_EVENT,
+      this,
+      this.onChangeLogRestoreEntriesMessage
+    );
 
     registerDestructor(this, this.cleanup);
   }
@@ -143,6 +204,41 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onRestructureCommunication
     );
+    this.webSocket.off(
+      RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+      this,
+      this.onRestructureDeleteCommunication
+    );
+    this.webSocket.off(
+      RESTRUCTURE_RENAME_OPERATION_EVENT,
+      this,
+      this.onRestructureRenameOperationMessage
+    );
+    this.webSocket.off(
+      RESTRUCTURE_RESTORE_APP_EVENT,
+      this,
+      this.onRestructureRestoreApp
+    );
+    this.webSocket.off(
+      RESTRUCTURE_RESTORE_PACKAGE_EVENT,
+      this,
+      this.onRestructureRestorePackage
+    );
+    this.webSocket.off(
+      RESTRUCTURE_RESTORE_CLASS_EVENT,
+      this,
+      this.onRestructureRestoreClass
+    );
+    this.webSocket.off(
+      CHANGELOG_REMOVE_ENTRY_EVENT,
+      this,
+      this.onChangeLogRemoveEntry
+    );
+    this.webSocket.off(
+      CHANGELOG_RESTORE_ENTRIES_EVENT,
+      this,
+      this.onChangeLogRestoreEntriesMessage
+    );
   }
 
   debug = debugLogger('CollaborativeModifier');
@@ -161,6 +257,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @service('changelog')
+  changeLog!: Changelog;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -255,34 +354,46 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }
 
   onRestructureUpdate({
-    originalMessage: { entityType, entityId, newName, appId },
+    originalMessage: { entityType, entityId, newName, appId, undo },
   }: ForwardedMessage<RestructureUpdateMessage>): void {
     switch (entityType) {
       case 'APP':
         this.landscapeRestructure.updateApplicationName(
           newName,
           entityId,
-          true
+          true,
+          undo
         );
         break;
       case 'PACKAGE':
-        this.landscapeRestructure.updatePackageName(newName, entityId, true);
+        this.landscapeRestructure.updatePackageName(
+          newName,
+          entityId,
+          true,
+          undo
+        );
         break;
       case 'SUBPACKAGE':
-        this.landscapeRestructure.updateSubPackageName(newName, entityId, true);
+        this.landscapeRestructure.updateSubPackageName(
+          newName,
+          entityId,
+          true,
+          undo
+        );
         break;
       case 'CLAZZ':
         this.landscapeRestructure.updateClassName(
           newName,
           entityId,
           appId as string,
-          true
+          true,
+          undo
         );
     }
   }
 
   onRestructureCreateOrDelete({
-    originalMessage: { action, entityType, name, language, entityId },
+    originalMessage: { action, entityType, name, language, entityId, undo },
   }: ForwardedMessage<RestructureCreateOrDeleteMessage>): void {
     if (action === 'CREATE') {
       switch (entityType) {
@@ -309,17 +420,20 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       switch (entityType) {
         case 'APP':
           this.landscapeRestructure.deleteCollaborativeApplication(
-            entityId as string
+            entityId as string,
+            undo as boolean
           );
           break;
         case 'PACKAGE':
           this.landscapeRestructure.deleteCollaborativePackage(
-            entityId as string
+            entityId as string,
+            undo as boolean
           );
           break;
         case 'CLAZZ':
           this.landscapeRestructure.deleteCollaborativeClass(
-            entityId as string
+            entityId as string,
+            undo as boolean
           );
           break;
       }
@@ -350,6 +464,101 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       targetClassId,
       methodName
     );
+  }
+
+  onRestructureDeleteCommunication({
+    originalMessage: { undo },
+  }: ForwardedMessage<RestructureDeleteCommunicationMessage>): void {
+    this.landscapeRestructure.deleteCommunication(undefined, undo, true);
+  }
+
+  onRestructureRenameOperationMessage({
+    originalMessage: { clazzId, originalName, newName },
+  }: ForwardedMessage<RestructureRenameOperationMessage>): void {
+    const landscapeData =
+      this.landscapeRestructure.landscapeData?.structureLandscapeData;
+    const clazz = getClassById(
+      landscapeData as StructureLandscapeData,
+      clazzId
+    );
+    this.landscapeRestructure.updateOperationName(
+      clazz as Class,
+      originalName,
+      newName,
+      true
+    );
+  }
+
+  onRestructureRestoreApp({
+    originalMessage: { appId, undoCutOperation },
+  }: ForwardedMessage<RestructureRestoreAppMessage>): void {
+    const landscapeData =
+      this.landscapeRestructure.landscapeData?.structureLandscapeData;
+    const app = getApplicationInLandscapeById(
+      landscapeData as StructureLandscapeData,
+      appId
+    );
+    this.landscapeRestructure.restoreApplication(
+      app as Application,
+      undoCutOperation,
+      true
+    );
+  }
+  onRestructureRestorePackage({
+    originalMessage: { pckgId, undoCutOperation },
+  }: ForwardedMessage<RestructureRestorePackageMessage>): void {
+    const landscapeData =
+      this.landscapeRestructure.landscapeData?.structureLandscapeData;
+    const pckg = getPackageById(
+      landscapeData as StructureLandscapeData,
+      pckgId
+    );
+    this.landscapeRestructure.restorePackage(
+      pckg as Package,
+      undoCutOperation,
+      true
+    );
+  }
+
+  onRestructureRestoreClass({
+    originalMessage: { appId, clazzId, undoCutOperation },
+  }: ForwardedMessage<RestructureRestoreClassMessage>): void {
+    const landscapeData =
+      this.landscapeRestructure.landscapeData?.structureLandscapeData;
+    const app = getApplicationInLandscapeById(
+      landscapeData as StructureLandscapeData,
+      appId
+    );
+    const clazz = getClassById(
+      landscapeData as StructureLandscapeData,
+      clazzId
+    );
+    this.landscapeRestructure.restoreClass(
+      app as Application,
+      clazz as Class,
+      undoCutOperation
+    );
+  }
+
+  onChangeLogRemoveEntry({
+    originalMessage: { entryIds },
+  }: ForwardedMessage<ChangeLogRemoveEntryMessage>): void {
+    if (entryIds.length > 1) {
+      const entries: BaseChangeLogEntry[] = [];
+      entryIds.forEach((id) => {
+        const foundEntry = this.changeLog.changeLogEntries.find(
+          (entry) => entry.id === id
+        );
+        entries.push(foundEntry as BaseChangeLogEntry);
+      });
+      this.changeLog.removeEntries(entries, true);
+    } else {
+      this.changeLog.removeEntry(this.changeLog.changeLogEntries[0], true);
+    }
+  }
+
+  onChangeLogRestoreEntriesMessage(): void {
+    this.changeLog.restoreDeletedEntries(true);
   }
 
   onMousePingUpdate({
