@@ -61,6 +61,7 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 
 type MeshModelTextureMapping = {
   action: MeshAction;
@@ -260,7 +261,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   async toggleRestructureModeLocally() {
     this.restructureMode = !this.restructureMode;
-    this.trigger('openDataSelection');
+    AlertifyHandler.showAlertifyMessage('works');
+    this.trigger('openSettingsSidebar');
     this.trigger('restructureComponent', 'restructure-landscape');
     await new Promise((f) => setTimeout(f, 500));
     this.trigger('restructureMode');
@@ -1108,6 +1110,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           null,
           app.id
         );
+
+      let shouldUndo = undo;
+      if (!shouldUndo && app.id.includes('newApp')) {
+        shouldUndo = true;
+      }
       // Create wrapper for Communication, since it can change inside the function
       const wrapper = {
         comms: this.allClassCommunications,
@@ -1118,10 +1125,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData?.structureLandscapeData,
         wrapper,
         app,
-        undo
+        shouldUndo
       );
 
-      if (!undo) {
+      if (!shouldUndo) {
         this.processDeletedAppData(app);
 
         // Updating deleted communications
@@ -1182,6 +1189,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           pckg.id
         );
 
+      let shouldUndo = undo;
+
+      if (!shouldUndo && pckg.id.includes('newPackage')) {
+        shouldUndo = true;
+      }
+
       let app: Application | undefined;
       if (pckg.parent) {
         app = getApplicationFromSubPackage(
@@ -1206,17 +1219,17 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.structureLandscapeData,
         wrapper,
         pckg,
-        undo
+        shouldUndo
       );
 
       // Apply the Minus texture either on the whole Application or a Package with its children
       if (isApplication(wrapper.meshTodelete)) {
-        if (!undo) {
+        if (!shouldUndo) {
           this.processDeletedAppData(wrapper.meshTodelete);
           this.deletedClassCommunications.push(wrapper.deletedComms);
         }
       } else if (isPackage(wrapper.meshTodelete)) {
-        if (!undo) {
+        if (!shouldUndo) {
           this.deletedClassCommunications.push(wrapper.deletedComms);
           // Create Changelog Entry
           if (app && wrapper.meshTodelete.parent) {
@@ -1345,6 +1358,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           clazz.id
         );
 
+      let shouldUndo = undo;
+
+      if (!shouldUndo && clazz.id.includes('newClass')) {
+        shouldUndo = true;
+      }
+
       const application = getApplicationFromClass(
         this.landscapeData.structureLandscapeData,
         clazz
@@ -1361,10 +1380,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData.structureLandscapeData,
         wrapper,
         clazz,
-        undo
+        shouldUndo
       );
 
-      if (!undo) {
+      if (!shouldUndo) {
         this.deletedClassCommunications.push(wrapper.deletedComms);
         // this.classCommunication = wrapper.comms;
         // this.applicationRepo.clear();
