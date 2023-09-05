@@ -34,46 +34,62 @@ postMessage(true);
 
 /******* Define flatData *******/
 
-function calculateFlatData(application: ReducedApplication) {
+type FlatData = {
+  fqn: string;
+  className: string;
+  applicationName: string;
+  applicationModelId: string;
+  methodName: string;
+  hashCode: string;
+  modelId: string;
+};
+
+export function calculateFlatData(
+  application: ReducedApplication
+): Map<string, FlatData> {
   return calculateStaticData(application);
+}
 
-  function calculateStaticData(application: ReducedApplication) {
-    const topLevelPackages = application.packages;
+function calculateStaticData(application: ReducedApplication) {
+  const topLevelPackages = application.packages;
 
-    let returnValue = new Map();
+  let returnValue = new Map<string, FlatData>();
 
-    for (const node of topLevelPackages) {
-      returnValue = new Map([...returnValue, ...collectFqns(node)]);
-    }
-
-    return returnValue;
-
-    function collectFqns(node: ReducedComponent, parentFqn?: string) {
-      let flatDataMap = new Map();
-
-      const currentName = parentFqn ? parentFqn + '.' + node.name : node.name;
-
-      node.classes.forEach((clazz) => {
-        clazz.methods.forEach((method) => {
-          flatDataMap.set(method.hashCode, {
-            fqn: `${currentName}.${clazz.name}`,
-            className: `${clazz.name}`,
-            applicationName: `${application.name}`,
-            applicationModelId: `${application.id}`,
-            methodName: method.name,
-            hashCode: method.hashCode,
-            modelId: clazz.id,
-          });
-        });
-      });
-
-      node.subPackages.forEach((subPack) => {
-        flatDataMap = new Map([
-          ...flatDataMap,
-          ...collectFqns(subPack, currentName),
-        ]);
-      });
-      return flatDataMap;
-    }
+  for (const node of topLevelPackages) {
+    returnValue = new Map([...returnValue, ...collectFqns(application, node)]);
   }
+
+  return returnValue;
+}
+
+function collectFqns(
+  application: ReducedApplication,
+  node: ReducedComponent,
+  parentFqn?: string
+) {
+  let flatDataMap = new Map<string, FlatData>();
+
+  const currentName = parentFqn ? parentFqn + '.' + node.name : node.name;
+
+  node.classes.forEach((clazz) => {
+    clazz.methods.forEach((method) => {
+      flatDataMap.set(method.hashCode, {
+        fqn: `${currentName}.${clazz.name}`,
+        className: `${clazz.name}`,
+        applicationName: `${application.name}`,
+        applicationModelId: `${application.id}`,
+        methodName: method.name,
+        hashCode: method.hashCode,
+        modelId: clazz.id,
+      });
+    });
+  });
+
+  node.subPackages.forEach((subPack) => {
+    flatDataMap = new Map([
+      ...flatDataMap,
+      ...collectFqns(application, subPack, currentName),
+    ]);
+  });
+  return flatDataMap;
 }
