@@ -96,7 +96,6 @@
     "ember-svg-jar": "^2.4.4",
     "ember-template-lint": "^5.11.2",
     "ember-try": "^3.0.0",
-    "ember-web-workers": "^1.0.0",
     "ember-welcome-page": "^7.0.2",
     "esbuild": "0.19.2",
     "eslint": "^8.47.0",

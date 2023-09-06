@@ -4,9 +4,9 @@ const args = new Set(process.argv.slice(2));
 
 const ctx = await esbuild.context({
     entryPoints: [
-        'workers/city-layouter.ts',
-        'workers/metrics-worker.ts',
-        'workers/flat-data-worker.ts',
+        //'workers/city-layouter.ts',
+        //'workers/metrics-worker.ts',
+        //'workers/flat-data-worker.ts',
         'workers/main-worker.ts'
     ],
     outdir: 'public/assets/web-workers',
