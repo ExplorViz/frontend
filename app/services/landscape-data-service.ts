@@ -2,8 +2,14 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import type LandscapeTokenService from './landscape-token';
 import type Auth from './auth';
-import type { DataUpdate } from 'workers/landscape-data-worker/LandscapeDataContext';
-import type { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import type {
+  DataUpdate,
+  WorkerApplicationData,
+} from 'workers/landscape-data-worker/LandscapeDataContext';
+import type {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import type TimestampRepository from './repos/timestamp-repository';
 import type ApplicationRenderer from './application-renderer';
@@ -93,6 +99,10 @@ export default class LandscapeDataService extends Service.extend(Evented) {
         update.drawableClassCommunications;
     }
 
+    if (update.appData) {
+      this.latestData.appData = update.appData;
+    }
+
     this.trigger(LandscapeDataUpdateEventName, this.latestData);
   }
 
@@ -119,6 +129,7 @@ export type LocalLandscapeData = Partial<{
   structure: StructureLandscapeData;
   dynamic: DynamicLandscapeData;
   drawableClassCommunications: DrawableClassCommunication[];
+  appData: Map<Application['id'], WorkerApplicationData>;
 }>;
 
 declare module '@ember/service' {

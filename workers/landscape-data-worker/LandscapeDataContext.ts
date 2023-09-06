@@ -4,9 +4,13 @@ import computeDrawableClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
+  Application,
   preProcessAndEnhanceStructureLandscape,
   type StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { CityLayout, computeLayoutForApplication } from 'workers/city-layouter';
+import { calculateFlatData, FlatData } from 'workers/flat-data-worker';
+import { calculateHeatmapMetrics, Metric } from 'workers/metrics-worker';
 
 export default class LandscapeDataContext {
   readonly token: string;
@@ -53,6 +57,11 @@ export default class LandscapeDataContext {
 
     if (structureUpdated || dynamicUpdated) {
       update.drawableClassCommunications = computeDrawableClassCommunication(
+        this.latestProcessedStructureData,
+        this.latestDynamicData
+      );
+
+      update.appData = computeApplicationData(
         this.latestProcessedStructureData,
         this.latestDynamicData
       );
@@ -150,6 +159,30 @@ function computeTotalRequests(dynamicData: DynamicLandscapeData): number {
   return total;
 }
 
+function computeApplicationData(
+  structure: StructureLandscapeData,
+  dynamic: DynamicLandscapeData
+) {
+  const data = new Map<Application['id'], WorkerApplicationData>();
+  const applications = structure.nodes.map((node) => node.applications).flat();
+
+  for (const application of applications) {
+    const layout = computeLayoutForApplication(application, dynamic);
+    const metrics = calculateHeatmapMetrics(application, dynamic);
+    const flatData = calculateFlatData(application);
+
+    data.set(application.id, { layout, metrics, flatData });
+  }
+
+  return data;
+}
+
+export type WorkerApplicationData = {
+  layout: CityLayout;
+  metrics: Metric[];
+  flatData: Map<string, FlatData>;
+};
+
 /**
  * Generates a unique string ID
  * See: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -175,6 +208,7 @@ export type DataUpdate = {
   dynamic: DynamicLandscapeData;
   timestamp: Timestamp;
   drawableClassCommunications?: DrawableClassCommunication[];
+  appData?: Map<Application['id'], WorkerApplicationData>;
 };
 
 export type BackendInfo = {

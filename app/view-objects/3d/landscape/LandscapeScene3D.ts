@@ -10,7 +10,6 @@ import type DetachedMenuRenderer from 'virtual-reality/services/detached-menu-re
 import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 import { inject as service } from '@ember/service';
@@ -24,13 +23,11 @@ import calculateCommunications from 'explorviz-frontend/utils/calculate-communic
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
+import { WorkerApplicationData } from 'workers/landscape-data-worker/LandscapeDataContext';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
   readonly threeScene: THREE.Scene;
-
-  @service
-  private readonly worker!: EmberWebWorker;
 
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
@@ -86,12 +83,12 @@ export default class LandscapeScene3D implements Updatable {
   }
 
   async updateData(data: LocalLandscapeData): Promise<void> {
-    if (!data.drawableClassCommunications) {
+    if (!data.drawableClassCommunications || !data.appData) {
       console.error('no drawable class communication');
       return; // TODO
     }
 
-    const drawableClassCommunications = data.drawableClassCommunications;
+    const { drawableClassCommunications, appData } = data;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -100,14 +97,17 @@ export default class LandscapeScene3D implements Updatable {
     const nodes = data.structure?.nodes ?? [];
 
     const nodeLinks: any[] = [];
-    for (let i = 0; i < nodes.length; ++i) {
-      const node = nodes[i];
-      for (let j = 0; j < node.applications.length; ++j) {
-        const application = node.applications[j];
-        // TODO tiwe: do these in parallel?
-        const applicationData = await this.updateApplicationData(
+    for (const node of nodes) {
+      for (const application of node.applications) {
+        const workerData = appData.get(application.id);
+
+        if (workerData === undefined) {
+          throw new Error(`No worker data for ${application.id}`);
+        }
+
+        const applicationData = this.updateApplicationData(
           application,
-          data.dynamic!,
+          workerData,
           drawableClassCommunications
         );
 
@@ -210,52 +210,31 @@ export default class LandscapeScene3D implements Updatable {
     this.forceGraph.graph.graphData(data);
   }
 
-  private async updateApplicationData(
+  private updateApplicationData(
     application: Application,
-    dynamicData: DynamicLandscapeData,
+    data: WorkerApplicationData,
     drawableClassCommunications: DrawableClassCommunication[]
-  ): Promise<ApplicationData> {
-    const workerPayload = {
-      structure: application,
-      dynamic: dynamicData,
-    };
-
-    const cityLayout = this.worker.postMessage('city-layouter', workerPayload);
-    const heatmapMetrics = this.worker.postMessage(
-      'metrics-worker',
-      workerPayload
-    );
-    const flatData = this.worker.postMessage('flat-data-worker', workerPayload);
-
-    const results = await Promise.all([cityLayout, heatmapMetrics, flatData]);
-
+  ): ApplicationData {
     let applicationData = this.applicationRepo.getById(application.id);
     if (applicationData) {
-      applicationData.updateApplication(application, results[0], results[2]);
+      applicationData.updateApplication(
+        application,
+        data.layout,
+        data.flatData
+      );
     } else {
       applicationData = new ApplicationData(
         application,
-        results[0],
-        results[2]
+        data.layout,
+        data.flatData
       );
     }
     applicationData.drawableClassCommunications = calculateCommunications(
       applicationData.application,
       drawableClassCommunications
     );
-    calculateHeatmap(applicationData.heatmapData, results[1]);
+    calculateHeatmap(applicationData.heatmapData, data.metrics);
     this.applicationRepo.add(applicationData);
     return applicationData;
   }
 }
-
-// type CommunicationLink = {
-//   source: GraphNode;
-//   target: GraphNode;
-//   value: number | undefined;
-//   communicationData: DrawableClassCommunication;
-// };
-
-type EmberWebWorker = {
-  postMessage(workerName: string, payload: any): Promise<any>;
-};

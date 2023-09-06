@@ -1,18 +1,19 @@
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { ReducedApplication, ReducedComponent } from './worker-types';
 
 // Wait for the initial message event.
-self.addEventListener(
-  'message',
-  (e) => {
-    const structureData = e.data.structure;
-    //const dynamicData = e.data.dynamic;
+// self.addEventListener(
+//   'message',
+//   (e) => {
+//     const structureData = e.data.structure;
+//     //const dynamicData = e.data.dynamic;
 
-    const flatData = calculateFlatData(structureData);
+//     const flatData = calculateFlatData(structureData);
 
-    postMessage(flatData);
-  },
-  false
-);
+//     postMessage(flatData);
+//   },
+//   false
+// );
 
 // example output
 
@@ -30,11 +31,11 @@ self.addEventListener(
 //]
 
 // Ping the Ember service to say that everything is ok.
-postMessage(true);
+//postMessage(true);
 
 /******* Define flatData *******/
 
-type FlatData = {
+export type FlatData = {
   fqn: string;
   className: string;
   applicationName: string;
@@ -45,9 +46,10 @@ type FlatData = {
 };
 
 export function calculateFlatData(
-  application: ReducedApplication
+  application: ReducedApplication | Application
 ): Map<string, FlatData> {
-  return calculateStaticData(application);
+  // TODO: Fix types
+  return calculateStaticData(application as unknown as ReducedApplication);
 }
 
 function calculateStaticData(application: ReducedApplication) {

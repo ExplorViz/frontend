@@ -12,22 +12,23 @@ import {
   getAllSpanHashCodesFromTraces,
   getHashCodeToClassMap,
 } from './utils';
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
-// Wait for the initial message event.
-self.addEventListener(
-  'message',
-  (e) => {
-    const structureData = e.data.structure;
-    const dynamicData = e.data.dynamic;
+// // Wait for the initial message event.
+// self.addEventListener(
+//   'message',
+//   (e) => {
+//     const structureData = e.data.structure;
+//     const dynamicData = e.data.dynamic;
 
-    const cityLayout = applyBoxLayout(structureData, dynamicData);
-    postMessage(cityLayout);
-  },
-  false
-);
+//     const cityLayout = applyBoxLayout(structureData, dynamicData);
+//     postMessage(cityLayout);
+//   },
+//   false
+// );
 
-// Ping the Ember service to say that everything is ok.
-postMessage(true);
+// // Ping the Ember service to say that everything is ok.
+// postMessage(true);
 
 /******* Define Layouter *******/
 
@@ -40,14 +41,14 @@ type ComponentLayout = {
   positionZ: number;
 };
 
-type CityLayout = Map<ReducedClass['id'], ComponentLayout>;
+export type CityLayout = Map<ReducedClass['id'], ComponentLayout>;
 
 type InstanceCounts = Map<ReducedClass['id'], number>;
 
 const INSET_SPACE = 4.0;
 const OPENED_COMPONENT_HEIGHT = 1.5;
 
-export function applyBoxLayout(
+function applyBoxLayout(
   application: ReducedApplication,
   allLandscapeTraces: Trace[]
 ): CityLayout {
@@ -101,6 +102,17 @@ export function applyBoxLayout(
   });
 
   return layoutMap;
+}
+
+export function computeLayoutForApplication(
+  application: Application,
+  dynamicData: Trace[]
+) {
+  // TODO: Fix types
+  return applyBoxLayout(
+    application as unknown as ReducedApplication,
+    dynamicData
+  );
 }
 
 // Helper functions

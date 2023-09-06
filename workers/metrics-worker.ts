@@ -1,3 +1,4 @@
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
   getAllClassesInApplication,
   getAllSpanHashCodesFromTraces,
@@ -10,27 +11,28 @@ import type {
   Trace,
   Span,
 } from './worker-types';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 
 // Wait for the initial message event.
-self.addEventListener(
-  'message',
-  (e) => {
-    const structureData = e.data.structure;
-    const dynamicData = e.data.dynamic;
+// self.addEventListener(
+//   'message',
+//   (e) => {
+//     const structureData = e.data.structure;
+//     const dynamicData = e.data.dynamic;
 
-    const metrics = calculateMetrics(structureData, dynamicData);
+//     const metrics = calculateMetrics(structureData, dynamicData);
 
-    postMessage(metrics);
-  },
-  false
-);
+//     postMessage(metrics);
+//   },
+//   false
+// );
 
-// Ping the Ember service to say that everything is ok.
-postMessage(true);
+// // Ping the Ember service to say that everything is ok.
+// postMessage(true);
 
 /******* Define Metrics *******/
 
-type Metric = {
+export type Metric = {
   name: string;
   mode: string;
   description: string;
@@ -41,7 +43,7 @@ type Metric = {
 
 type ClassToValueMap = Map<ReducedClass['id'], number>;
 
-export function calculateMetrics(
+function calculateMetrics(
   application: ReducedApplication,
   allLandscapeTraces: Trace[]
 ): Metric[] {
@@ -76,6 +78,17 @@ export function calculateMetrics(
   metrics.push(overallRequestCountMetric);
 
   return metrics;
+}
+
+export function calculateHeatmapMetrics(
+  application: Application,
+  dynamicData: DynamicLandscapeData
+) {
+  // TODO: fix types
+  return calculateMetrics(
+    application as unknown as ReducedApplication,
+    dynamicData
+  );
 }
 
 function calcInstanceCountMetric(
