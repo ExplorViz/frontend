@@ -183,6 +183,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   createCommunication(methodName: string, collabMode: boolean = false) {
+    if (this.sourceClass === this.targetClass) return;
+
     if (!collabMode)
       this.sender.sendRestructureCommunicationMessage(
         this.sourceClass?.id as string,
@@ -671,13 +673,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     collabMode: boolean = false
   ) {
     if (!collabMode) {
-      // this.sender.sendRestructureCreateOrDeleteMessage(
-      //   EntityType.App,
-      //   MeshAction.Create,
-      //   appName,
-      //   language,
-      //   null
-      // );
+      this.sender.sendRestructureRestoreClassMessage(
+        app.id,
+        clazz.id,
+        undoCutOperation
+      );
     }
 
     this.deletedDataModels.removeObject(clazz);
@@ -831,72 +831,59 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           // Apply Minus texture for deleted Meshes
         } else if (elem.action === MeshAction.Delete) {
           if (elem.meshType === EntityType.App) {
-            const appliedTexture = this.findAppliedTexture(
-              elem.originApp as Application
-            );
-            if (!appliedTexture) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                mesh.changeTexture(elem.texturePath);
-              });
-            }
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              mesh.changeTexture(elem.texturePath);
+            });
           } else if (
             elem.meshType === EntityType.Package ||
             elem.meshType === EntityType.SubPackage
           ) {
-            const appliedTexture = this.findAppliedTexture(
-              elem.pckg as Package
+            const allSubPackages = getSubPackagesOfPackage(
+              elem.pckg as Package,
+              true
             );
-            if (!appliedTexture) {
-              const allSubPackages = getSubPackagesOfPackage(
-                elem.pckg as Package,
-                true
-              );
-              const allClassesInPackage = getClassesInPackage(
-                elem.pckg as Package,
-                true
-              );
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
+            const allClassesInPackage = getClassesInPackage(
+              elem.pckg as Package,
+              true
+            );
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectComponent =
+                mesh instanceof ComponentMesh &&
+                mesh.dataModel.id === elem.pckg?.id;
+              const isCorrectClass =
+                mesh instanceof ClazzMesh &&
+                mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectComponent || isCorrectClass) {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              allSubPackages.forEach((pckg) => {
                 const isCorrectComponent =
                   mesh instanceof ComponentMesh &&
-                  mesh.dataModel.id === elem.pckg?.id;
-                const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
-                if (isCorrectComponent || isCorrectClass) {
+                  mesh.dataModel.id === pckg.id;
+                if (isCorrectComponent) {
                   mesh.changeTexture(elem.texturePath);
                 }
               });
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
-                allSubPackages.forEach((pckg) => {
-                  const isCorrectComponent =
-                    mesh instanceof ComponentMesh &&
-                    mesh.dataModel.id === pckg.id;
-                  if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath);
-                  }
-                });
 
-                allClassesInPackage.forEach((clazz) => {
-                  const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
-                  if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath, 1);
-                  }
-                });
-              });
-            }
-          } else if (elem.meshType === EntityType.Clazz) {
-            const appliedTexture = this.findAppliedTexture(elem.clazz as Class);
-            if (!appliedTexture) {
-              currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              allClassesInPackage.forEach((clazz) => {
                 const isCorrectClass =
-                  mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id;
+                  mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
                 if (isCorrectClass) {
                   mesh.changeTexture(elem.texturePath, 1);
                 }
               });
-            }
+            });
+          } else if (elem.meshType === EntityType.Clazz) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              const isCorrectClass =
+                mesh instanceof ClazzMesh &&
+                mesh.dataModel.id === elem.clazz?.id;
+              if (isCorrectClass) {
+                mesh.changeTexture(elem.texturePath, 1);
+              }
+            });
           }
           // Apply Hashtag texture for renamed operations
         } else if (elem.action === MeshAction.Rename) {

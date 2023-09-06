@@ -150,7 +150,8 @@ export default class Changelog extends Service.extend({
       app
     ) as AppChangeLogEntry;
     let originalAppName = '';
-    this.deletedChangeLogEntries.push(this.changeLogEntries);
+
+    this.storeDeletedEntries();
 
     this.changeLogEntries = this.changeLogEntries.filter((entry) => {
       if (!(entry instanceof CommunicationChangeLogEntry)) {
@@ -175,9 +176,7 @@ export default class Changelog extends Service.extend({
 
   deletePackageEntry(app: Application, pckg: Package) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
-    this.deletedChangeLogEntries.push(this.changeLogEntries);
-
-    this.removeLogEntriesUnderPackage(app, pckg);
+    this.storeDeletedEntries();
 
     let originalPckgName = '';
 
@@ -200,12 +199,21 @@ export default class Changelog extends Service.extend({
     if (originalPckgName !== '') {
       pckgLogEntry.originalPckgName = originalPckgName;
     }
+
     this.changeLogEntries.push(pckgLogEntry);
+  }
+
+  private storeDeletedEntries() {
+    const deletedEntries: BaseChangeLogEntry[] = [];
+    this.changeLogEntries.forEach((entry) => {
+      deletedEntries.push(entry);
+    });
+    this.deletedChangeLogEntries.push(deletedEntries);
   }
 
   deleteSubPackageEntry(app: Application, pckg: Package) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
-    this.deletedChangeLogEntries.push(this.changeLogEntries);
+    this.storeDeletedEntries();
 
     this.removeLogEntriesUnderPackage(app, pckg);
 
@@ -236,7 +244,7 @@ export default class Changelog extends Service.extend({
   deleteClassEntry(app: Application, clazz: Class) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
     const commEntry = this.findCommunicationLogEntry(clazz);
-    this.deletedChangeLogEntries.push(this.changeLogEntries);
+    this.storeDeletedEntries();
 
     // Remove Communication Log Entry
     if (commEntry) this.changeLogEntries.removeObject(commEntry);
@@ -385,6 +393,7 @@ export default class Changelog extends Service.extend({
       .firstObject as BaseChangeLogEntry[];
 
     this.changeLogEntries = deletedEntries;
+
     this.deletedChangeLogEntries.removeObject(deletedEntries);
   }
 
@@ -450,9 +459,10 @@ export default class Changelog extends Service.extend({
         logEntry.app?.id === app.id
       ) {
         const ancestorPackages = getAncestorPackages(logEntry.pckg as Package);
-        const affectedLogEntry = ancestorPackages.some(
-          (ancestorPackages) => ancestorPackages.id === pckg.id
-        );
+        const affectedLogEntry =
+          ancestorPackages.some(
+            (ancestorPackages) => ancestorPackages.id === pckg.id
+          ) || logEntry.pckg?.id === pckg.id;
         if (affectedLogEntry) {
           entriesToRemove.push(logEntry);
         }
@@ -492,8 +502,10 @@ export default class Changelog extends Service.extend({
         }
       }
     });
-    if (this.changeLogEntries.length)
+
+    if (entriesToRemove.length) {
       this.changeLogEntries.removeObjects(entriesToRemove);
+    }
   }
 
   removeEntry(entry: BaseChangeLogEntry, collabMode: boolean = false) {

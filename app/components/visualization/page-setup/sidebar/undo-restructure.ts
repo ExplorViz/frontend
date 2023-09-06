@@ -117,12 +117,12 @@ export default class UndoRestructure extends Component {
         }
       }
 
-      // TODO RESTORE DELTED ENTRIES RESTORES ALMOST ALL EXCEPT 1 FOR THE COLLABORATIVE PARTNER
       if (lastElement.action === MeshAction.Delete) {
         if (lastElement instanceof AppChangeLogEntry) {
           const { app } = lastElement;
           this.changeLog.restoreDeletedEntries();
           this.landscapeRestructure.restoreApplication(app as Application);
+          return;
         } else if (
           lastElement instanceof PackageChangeLogEntry ||
           lastElement instanceof SubPackageChangeLogEntry
@@ -138,6 +138,7 @@ export default class UndoRestructure extends Component {
             clazz as Class
           );
         }
+
         this.changeLog.removeEntry(lastElement);
       }
 

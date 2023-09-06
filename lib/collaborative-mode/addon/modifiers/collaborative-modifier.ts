@@ -536,7 +536,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.landscapeRestructure.restoreClass(
       app as Application,
       clazz as Class,
-      undoCutOperation
+      undoCutOperation,
+      true
     );
   }
 
@@ -551,9 +552,14 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         );
         entries.push(foundEntry as BaseChangeLogEntry);
       });
+
       this.changeLog.removeEntries(entries, true);
     } else {
-      this.changeLog.removeEntry(this.changeLog.changeLogEntries[0], true);
+      const foundEntry = this.changeLog.changeLogEntries.find(
+        (entry) => entry.id === entryIds[0]
+      );
+
+      this.changeLog.removeEntry(foundEntry as BaseChangeLogEntry, true);
     }
   }
 
