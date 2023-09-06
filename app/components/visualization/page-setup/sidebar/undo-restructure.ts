@@ -31,12 +31,17 @@ export default class UndoRestructure extends Component {
   changeLog!: Changelog;
 
   get canUndo() {
+    return this.landscapeRestructure.restructureMode;
+  }
+
+  get undoDisabled() {
     return this.changeLog.changeLogEntries.length > 0;
   }
 
   @action
   undoAction() {
     const entries = this.changeLog.changeLogEntries;
+    if (!entries.length) return;
     const lastElementIndex = entries.length - 1;
     const lastElement = entries[lastElementIndex];
     const bundledCreateEntries = this.isCreateBundle(
