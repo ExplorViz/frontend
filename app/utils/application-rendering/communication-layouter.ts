@@ -14,6 +14,7 @@ import {
 let minRequests = 0;
 let maximumRequests = 0;
 
+// TODO: Remove side-effect (minRequests, maximumRequests)
 export function calculatePipeSize(
   drawableClassCommunications: DrawableClassCommunication[]
 ) {
@@ -49,7 +50,7 @@ export function calculatePipeSize(
     if (range !== 0) {
       normalizedRequests =
         (clazzCommunication.totalRequests - minRequests) / range;
-      // normalize request count to [0.2, 1] interval
+      // normalize request count to [0.5, 1.2] interval
       range = 1 - 0.3;
       normalizedRequests = normalizedRequests * range + 0.5;
     }

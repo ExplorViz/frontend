@@ -81,12 +81,17 @@ export default class LandscapeScene3D implements Updatable {
   }
 
   async updateData(data: LocalLandscapeData): Promise<void> {
-    if (!data.drawableClassCommunications || !data.appData) {
-      console.error('no drawable class communication');
+    if (
+      !data.drawableClassCommunications ||
+      !data.appData ||
+      !data.interAppCommunications
+    ) {
+      console.error('incomplete data', data);
       return;
     }
 
-    const { drawableClassCommunications, appData } = data;
+    const { drawableClassCommunications, interAppCommunications, appData } =
+      data;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -148,10 +153,10 @@ export default class LandscapeScene3D implements Updatable {
       }
     }
 
-    const interAppCommunications = drawableClassCommunications.filter(
-      (x) => x.sourceApp !== x.targetApp
-    );
+    // TODO: This could be moved to the worker as well but has
+    //       a small side-effects that has to be removed first.
     const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
+    
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
@@ -227,6 +232,7 @@ export default class LandscapeScene3D implements Updatable {
       this.applicationRepo.add(applicationData);
     }
     applicationData.drawableClassCommunications = data.communication;
+
     calculateHeatmap(applicationData.heatmapData, data.metrics);
 
     return applicationData;

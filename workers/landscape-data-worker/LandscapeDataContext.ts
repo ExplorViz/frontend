@@ -62,6 +62,10 @@ export default class LandscapeDataContext {
         this.latestDynamicData
       );
 
+      update.interAppCommunications = update.drawableClassCommunications.filter(
+        (x) => x.sourceApp !== x.targetApp
+      );
+
       update.appData = computeApplicationData(
         this.latestProcessedStructureData,
         this.latestDynamicData,
@@ -220,6 +224,7 @@ export type DataUpdate = {
   timestamp: Timestamp;
   drawableClassCommunications?: DrawableClassCommunication[];
   appData?: Map<Application['id'], WorkerApplicationData>;
+  interAppCommunications?: DrawableClassCommunication[];
 };
 
 export type BackendInfo = {

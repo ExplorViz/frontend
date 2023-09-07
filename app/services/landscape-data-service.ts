@@ -99,6 +99,10 @@ export default class LandscapeDataService extends Service.extend(Evented) {
         update.drawableClassCommunications;
     }
 
+    if (update.interAppCommunications) {
+      this.latestData.interAppCommunications = update.interAppCommunications;
+    }
+
     if (update.appData) {
       this.latestData.appData = update.appData;
     }
@@ -129,6 +133,7 @@ export type LocalLandscapeData = Partial<{
   structure: StructureLandscapeData;
   dynamic: DynamicLandscapeData;
   drawableClassCommunications: DrawableClassCommunication[];
+  interAppCommunications: DrawableClassCommunication[];
   appData: Map<Application['id'], WorkerApplicationData>;
 }>;
 
