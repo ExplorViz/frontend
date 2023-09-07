@@ -5,13 +5,17 @@ import computeDrawableClassCommunication, {
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
-  Application,
+  type Application,
   preProcessAndEnhanceStructureLandscape,
   type StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { CityLayout, computeLayoutForApplication } from 'workers/city-layouter';
-import { calculateFlatData, FlatData } from 'workers/flat-data-worker';
-import { calculateHeatmapMetrics, Metric } from 'workers/metrics-worker';
+import type { ApplicationHeatmapData } from 'heatmap/services/heatmap-configuration';
+import {
+  type CityLayout,
+  computeLayoutForApplication,
+} from 'workers/city-layouter';
+import { calculateFlatData, type FlatData } from 'workers/flat-data-worker';
+import { calculateHeatmapData } from 'workers/metrics-worker';
 
 export default class LandscapeDataContext {
   readonly token: string;
@@ -178,13 +182,13 @@ function computeApplicationData(
     performance.mark(`appData-${application.id}`);
 
     const layout = computeLayoutForApplication(application, dynamic);
-    const metrics = calculateHeatmapMetrics(application, dynamic);
+    const heatmap = calculateHeatmapData(application, dynamic);
     const flatData = calculateFlatData(application);
     const communication = calculateCommunications(
       application,
       drawableClassCommunications
     );
-    data.set(application.id, { layout, metrics, flatData, communication });
+    data.set(application.id, { layout, heatmap, flatData, communication });
   }
   performance.mark('appData-completed');
 
@@ -193,7 +197,7 @@ function computeApplicationData(
 
 export type WorkerApplicationData = {
   layout: CityLayout;
-  metrics: Metric[];
+  heatmap: ApplicationHeatmapData;
   flatData: Map<string, FlatData>;
   communication: DrawableClassCommunication[];
 };

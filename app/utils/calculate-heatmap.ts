@@ -8,7 +8,7 @@ const windowSize = 9;
 export default function calculateHeatmap(
   applicationHeatmap: ApplicationHeatmapData,
   newScores: Metric[]
-) {
+): void {
   applicationHeatmap.latestClazzMetricScores = newScores;
   function roundToTwoDecimalPlaces(num: number): number {
     return Math.round((num + Number.EPSILON) * 100) / 100;

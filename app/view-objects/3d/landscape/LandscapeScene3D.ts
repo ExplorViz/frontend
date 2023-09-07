@@ -18,7 +18,6 @@ import ForceGraph, {
 } from 'explorviz-frontend/rendering/application/force-graph';
 import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
 import { WorkerApplicationData } from 'workers/landscape-data-worker/LandscapeDataContext';
@@ -156,7 +155,7 @@ export default class LandscapeScene3D implements Updatable {
     // TODO: This could be moved to the worker as well but has
     //       a small side-effects that has to be removed first.
     const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
-    
+
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
@@ -218,22 +217,12 @@ export default class LandscapeScene3D implements Updatable {
   ): ApplicationData {
     let applicationData = this.applicationRepo.getById(application.id);
     if (applicationData) {
-      applicationData.updateApplication(
-        application,
-        data.layout,
-        data.flatData
-      );
+      applicationData.updateApplication(application, data);
     } else {
-      applicationData = new ApplicationData(
-        application,
-        data.layout,
-        data.flatData
-      );
+      applicationData = new ApplicationData(application, data);
       this.applicationRepo.add(applicationData);
     }
     applicationData.drawableClassCommunications = data.communication;
-
-    calculateHeatmap(applicationData.heatmapData, data.metrics);
 
     return applicationData;
   }

@@ -12,6 +12,8 @@ import type {
   Span,
 } from './worker-types';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import type { ApplicationHeatmapData } from 'heatmap/services/heatmap-configuration';
 
 // Wait for the initial message event.
 // self.addEventListener(
@@ -80,15 +82,27 @@ function calculateMetrics(
   return metrics;
 }
 
-export function calculateHeatmapMetrics(
+export function calculateHeatmapData(
   application: Application,
   dynamicData: DynamicLandscapeData
-) {
+): ApplicationHeatmapData {
   // TODO: fix types
-  return calculateMetrics(
+  const metrics = calculateMetrics(
     application as unknown as ReducedApplication,
     dynamicData
   );
+
+  const heatmapData = {
+    metrics: [],
+    latestClazzMetricScores: [],
+    metricsArray: [[]],
+    differenceMetricScores: new Map<string, Metric[]>(),
+    aggregatedMetricScores: new Map<string, Metric>(),
+  } as ApplicationHeatmapData;
+
+  calculateHeatmap(heatmapData, metrics);
+
+  return heatmapData;
 }
 
 function calcInstanceCountMetric(
