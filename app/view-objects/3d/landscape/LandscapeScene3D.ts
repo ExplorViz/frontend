@@ -8,7 +8,6 @@ import type VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import type IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import type DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
@@ -19,7 +18,6 @@ import ForceGraph, {
 } from 'explorviz-frontend/rendering/application/force-graph';
 import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
@@ -85,7 +83,7 @@ export default class LandscapeScene3D implements Updatable {
   async updateData(data: LocalLandscapeData): Promise<void> {
     if (!data.drawableClassCommunications || !data.appData) {
       console.error('no drawable class communication');
-      return; // TODO
+      return;
     }
 
     const { drawableClassCommunications, appData } = data;
@@ -107,8 +105,7 @@ export default class LandscapeScene3D implements Updatable {
 
         const applicationData = this.updateApplicationData(
           application,
-          workerData,
-          drawableClassCommunications
+          workerData
         );
 
         // create or update applicationObject3D
@@ -212,8 +209,7 @@ export default class LandscapeScene3D implements Updatable {
 
   private updateApplicationData(
     application: Application,
-    data: WorkerApplicationData,
-    drawableClassCommunications: DrawableClassCommunication[]
+    data: WorkerApplicationData
   ): ApplicationData {
     let applicationData = this.applicationRepo.getById(application.id);
     if (applicationData) {
@@ -228,13 +224,11 @@ export default class LandscapeScene3D implements Updatable {
         data.layout,
         data.flatData
       );
+      this.applicationRepo.add(applicationData);
     }
-    applicationData.drawableClassCommunications = calculateCommunications(
-      applicationData.application,
-      drawableClassCommunications
-    );
+    applicationData.drawableClassCommunications = data.communication;
     calculateHeatmap(applicationData.heatmapData, data.metrics);
-    this.applicationRepo.add(applicationData);
+
     return applicationData;
   }
 }

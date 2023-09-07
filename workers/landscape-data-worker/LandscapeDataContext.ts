@@ -2,6 +2,7 @@ import type { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repo
 import computeDrawableClassCommunication, {
   DrawableClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
 import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import {
   Application,
@@ -63,7 +64,8 @@ export default class LandscapeDataContext {
 
       update.appData = computeApplicationData(
         this.latestProcessedStructureData,
-        this.latestDynamicData
+        this.latestDynamicData,
+        update.drawableClassCommunications
       );
     }
 
@@ -161,18 +163,26 @@ function computeTotalRequests(dynamicData: DynamicLandscapeData): number {
 
 function computeApplicationData(
   structure: StructureLandscapeData,
-  dynamic: DynamicLandscapeData
+  dynamic: DynamicLandscapeData,
+  drawableClassCommunications: DrawableClassCommunication[]
 ) {
   const data = new Map<Application['id'], WorkerApplicationData>();
   const applications = structure.nodes.map((node) => node.applications).flat();
 
+  // TODO: If this part is too slow it could be done by multiple workers in parallel:
   for (const application of applications) {
+    performance.mark(`appData-${application.id}`);
+
     const layout = computeLayoutForApplication(application, dynamic);
     const metrics = calculateHeatmapMetrics(application, dynamic);
     const flatData = calculateFlatData(application);
-
-    data.set(application.id, { layout, metrics, flatData });
+    const communication = calculateCommunications(
+      application,
+      drawableClassCommunications
+    );
+    data.set(application.id, { layout, metrics, flatData, communication });
   }
+  performance.mark('appData-completed');
 
   return data;
 }
@@ -181,6 +191,7 @@ export type WorkerApplicationData = {
   layout: CityLayout;
   metrics: Metric[];
   flatData: Map<string, FlatData>;
+  communication: DrawableClassCommunication[];
 };
 
 /**

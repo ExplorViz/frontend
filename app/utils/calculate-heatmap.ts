@@ -1,4 +1,4 @@
-import {
+import type {
   ApplicationHeatmapData,
   Metric,
 } from 'heatmap/services/heatmap-configuration';
