@@ -185,21 +185,23 @@ export default class LandscapeScene3D implements Updatable {
       }
     }
 
+    // This updates the scene:
     this.setGraphData(gData);
 
     // send new data to ide
-    const cls: CommunicationLink[] = [];
-    communicationLinks.forEach((element) => {
-      const meshIDs = element.communicationData.id.split('_');
-      const tempCL: CommunicationLink = {
-        meshID: element.communicationData.id,
-        sourceMeshID: meshIDs[0],
-        targetMeshID: meshIDs[1],
-        methodName: meshIDs[2],
-      };
-      cls.push(tempCL);
-    });
-    this.ideWebsocketFacade.refreshVizData(cls);
+    // TODO: consider moving this out of LandscapeScene3D.updateData
+    this.ideWebsocketFacade.refreshVizData(
+      communicationLinks.map((element) => {
+        const meshIDs = element.communicationData.id.split('_');
+        const tempCL: CommunicationLink = {
+          meshID: element.communicationData.id,
+          sourceMeshID: meshIDs[0],
+          targetMeshID: meshIDs[1],
+          methodName: meshIDs[2],
+        };
+        return tempCL;
+      })
+    );
   }
 
   // TODO tiwe: remove?
