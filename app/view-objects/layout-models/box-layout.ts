@@ -13,6 +13,10 @@ export default class BoxLayout {
 
   depth: number = 1;
 
+  constructor() {
+    console.log('new box layout');
+  }
+
   get position() {
     return new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
   }
@@ -26,9 +30,9 @@ export default class BoxLayout {
   get center() {
     // Calculate middle for each dimension => center point
     const centerPoint = new THREE.Vector3(
-      this.positionX + (this.width - this.positionX) / 2.0,
-      this.positionY + (this.height - this.positionY) / 2.0,
-      this.positionZ + (this.depth - this.positionZ) / 2.0
+      this.positionX + 0.5 * this.width,
+      this.positionY + 0.5 * this.height,
+      this.positionZ + 0.5 * this.depth
     );
 
     return centerPoint;

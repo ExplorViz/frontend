@@ -18,6 +18,7 @@ module('Unit | View Object | layout-models/box-layout', function (hooks) {
     assert.ok(positionComponentsEqual);
   });
 
+  // TODO: why did this not fail?
   test('center is calculated correctly', function (assert) {
     const boxLayout = new BoxLayout();
     boxLayout.position = new THREE.Vector3(10, 20, 30);
