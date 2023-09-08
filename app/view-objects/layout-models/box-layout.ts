@@ -1,3 +1,4 @@
+import type { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import * as THREE from 'three';
 
 export default class BoxLayout {
@@ -13,8 +14,15 @@ export default class BoxLayout {
 
   depth: number = 1;
 
-  constructor() {
-    console.log('new box layout');
+  public static fromLayoutData(layoutData: LayoutData): BoxLayout {
+    const boxLayout = new BoxLayout();
+    boxLayout.positionX = layoutData.positionX;
+    boxLayout.positionY = layoutData.positionY;
+    boxLayout.positionZ = layoutData.positionZ;
+    boxLayout.width = layoutData.width;
+    boxLayout.height = layoutData.height;
+    boxLayout.depth = layoutData.depth;
+    return boxLayout;
   }
 
   get position() {

@@ -467,13 +467,7 @@ export default class ApplicationRenderer extends Service.extend({
     const boxLayoutMap: Map<string, BoxLayout> = new Map();
 
     layoutedApplication.forEach((value, key) => {
-      const boxLayout = new BoxLayout();
-      boxLayout.positionX = value.positionX;
-      boxLayout.positionY = value.positionY;
-      boxLayout.positionZ = value.positionZ;
-      boxLayout.width = value.width;
-      boxLayout.height = value.height;
-      boxLayout.depth = value.depth;
+      const boxLayout = BoxLayout.fromLayoutData(value);
       boxLayoutMap.set(key, boxLayout);
     });
 
