@@ -1,16 +1,17 @@
+import type Owner from '@ember/owner';
+import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import type Configuration from 'explorviz-frontend/services/configuration';
+import type LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import type ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import type ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import type Owner from '@ember/owner';
 // @ts-ignore: no types atm
 import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
-import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 

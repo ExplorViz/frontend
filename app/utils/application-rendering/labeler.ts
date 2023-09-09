@@ -49,6 +49,7 @@ export function addApplicationLabels(
   colors: ApplicationColors,
   labelAll: boolean = false
 ) {
+  performance.mark('addApplicationLabels-start');
   /**
    * Adds labels to all box meshes of a given application
    */
@@ -67,6 +68,7 @@ export function addApplicationLabels(
       }
     }
   });
+  performance.mark('addApplicationLabels-end');
 }
 
 /**

@@ -136,10 +136,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObjetc3D.getModelId()
-    );
-    return applicationData?.drawableClassCommunications;
+    return applicationObjetc3D.data.drawableClassCommunications;
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
@@ -210,11 +207,13 @@ export default class ApplicationRenderer extends Service.extend({
     restoreComponentState(applicationObject3D, applicationState.openComponents);
 
     // Add labels to application
+    performance.mark('addApplicationLabels-start');
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
       this.configuration.applicationColors
     );
+    performance.mark('addApplicationLabels-end');
 
     this.addCommunication(applicationObject3D);
 
@@ -244,11 +243,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObject3D.getModelId()
-    );
+    const applicationData = applicationObject3D.data;
+
     const drawableClassCommunications =
-      applicationData?.drawableClassCommunications;
+      applicationData.drawableClassCommunications;
 
     if (drawableClassCommunications) {
       this.appCommRendering.addCommunication(
@@ -443,7 +441,9 @@ export default class ApplicationRenderer extends Service.extend({
     application.removeAllCommunication();
   }
 
-  forEachOpenApplication(forEachFunction: (app: ApplicationObject3D) => void) {
+  private forEachOpenApplication(
+    forEachFunction: (app: ApplicationObject3D) => void
+  ) {
     this.getOpenApplications().forEach((application) => {
       forEachFunction.call(this, application);
     });
