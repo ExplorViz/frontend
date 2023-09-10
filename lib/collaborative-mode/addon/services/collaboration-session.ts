@@ -36,7 +36,6 @@ import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
 import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
-import SynchronizationSession from './synchronization-session';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -65,9 +64,6 @@ export default class CollaborationSession extends Service.extend({
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
-
-  @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
