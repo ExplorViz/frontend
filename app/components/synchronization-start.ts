@@ -12,6 +12,7 @@ import { tracked } from '@glimmer/tracking';
 interface SynchronizationStartArgs {
   deviceId: number;
   roomId: string;
+  tokenId: string;
 }
 
 export default class SynchronizationStart extends Component<SynchronizationStartArgs> {
@@ -38,12 +39,16 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     created: 1551631224242,
     ownerId: 'github|123456',
     sharedUsersIds: [],
-    value: '26844195-7235-4254-a17b-0f7fb49adb0a',
+    value: this.args.tokenId,
   };
 
   // Check for updates on query params
   checkQueryParams() {
-    return this.args.deviceId > -99 && this.args.roomId !== '';
+    return (
+      this.args.deviceId > -99 &&
+      this.args.roomId !== '' &&
+      this.args.tokenId !== ''
+    );
   }
 
   async routeToVisualization(token: LandscapeToken) {

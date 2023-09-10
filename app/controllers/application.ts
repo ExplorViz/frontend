@@ -14,12 +14,15 @@ import { tracked } from '@glimmer/tracking';
  */
 export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
+
   @tracked
-  queryParams = ['deviceId', 'roomId'];
+  queryParams = ['deviceId', 'roomId', 'tokenId'];
   @tracked
   deviceId = -99;
   @tracked
   roomId = '';
+  @tracked
+  tokenId = '';
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
