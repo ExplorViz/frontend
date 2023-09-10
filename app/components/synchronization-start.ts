@@ -7,8 +7,6 @@ import LandscapeTokenService, {
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
 import SynchronizeService from 'virtual-reality/services/synchronizing';
-import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
-import { tracked } from '@glimmer/tracking';
 interface SynchronizationStartArgs {
   deviceId: number;
   roomId: string;
@@ -31,15 +29,18 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   @service('synchronize')
   private synchronizeService!: SynchronizeService;
 
-  @tracked
-  rooms: RoomListRecord[] = [];
-
   token = {
-    alias: 'Distributed PetClinic Sample',
+    alias:
+      this.args.tokenId === 'intro'
+        ? 'Intro Software Landscape'
+        : 'Evaluation Software Landscape',
     created: 1551631224242,
     ownerId: 'github|123456',
     sharedUsersIds: [],
-    value: this.args.tokenId,
+    value:
+      this.args.tokenId === 'intro'
+        ? '17844195-6144-4254-a17b-0f7fb49adb0a' // Intro landscape
+        : '26844195-7235-4254-a17b-0f7fb49adb0a', // Evaluation landscape
   };
 
   // Check for updates on query params
