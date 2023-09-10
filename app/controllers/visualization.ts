@@ -38,6 +38,7 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -73,6 +74,9 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
+
+  @service('synchronization-session')
+  synchronizationSession!: SynchronizationSession;
 
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
@@ -131,7 +135,12 @@ export default class VisualizationController extends Controller {
   }
 
   get showTimeline() {
-    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+    return (
+      !this.showAR &&
+      !this.showVR &&
+      !this.isSingleLandscapeMode &&
+      !this.synchronizationSession.isSynchronizationSession
+    );
   }
 
   @action
@@ -392,8 +401,8 @@ export default class VisualizationController extends Controller {
   async onInitialLandscape({
     landscape,
   }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+    //detachedMenus,
+    InitialLandscapeMessage): Promise<void> {
     //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
     this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.

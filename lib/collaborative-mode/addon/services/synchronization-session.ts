@@ -32,6 +32,7 @@ export default class SynchronizationSession extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
+  isSynchronizationSession: boolean = false;
   // The id of the connected device
   deviceId!: number;
   // synchronisation-room-id
@@ -52,11 +53,13 @@ export default class SynchronizationSession extends Service {
   /* Sets up important Ids: Essentially manages and starts synchronization behaviour
   1) deviceId: Detection of device to request correct (a) projector angle and (b) yaw/pitch/roll angles.
   2) roomId: Sets the room name to this and impacts which room is hosted or joined by synchronization user.
-  3) userId & userName: Sets user identification to choose the correct instance which gets synchronized or will be synchronized to the main.
+  3) isSynchronizationSession: General identifier for synchronization process.
+  4) userId & userName: Sets user identification to choose the correct instance which gets synchronized or will be synchronized to the main.
   */
   setUpIds(dId: number, rId: string) {
     this.deviceId = dId;
     this.roomId = rId;
+    this.isSynchronizationSession = true;
     this.localUser.userId = dId === 0 ? 'Main' : 'Projector ' + dId;
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
   }
