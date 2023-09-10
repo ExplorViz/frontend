@@ -8,6 +8,8 @@ import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 
+const tmpMatrix = new THREE.Matrix4();
+
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
  *
@@ -18,14 +20,9 @@ export function addMeshToApplication(
   mesh: BoxMesh,
   applicationObject3D: ApplicationObject3D
 ) {
-  const layoutPosition = mesh.layout.position;
   const applicationCenter = applicationObject3D.layout.center;
 
-  const centerPoint = new THREE.Vector3(
-    layoutPosition.x + mesh.layout.width / 2.0,
-    layoutPosition.y + mesh.layout.height / 2.0,
-    layoutPosition.z + mesh.layout.depth / 2.0
-  );
+  const centerPoint = mesh.layout.center;
 
   centerPoint.sub(applicationCenter);
 
@@ -91,15 +88,33 @@ export function addComponentAndChildrenToScene(
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  const mesh = new ComponentMesh(
-    componentLayout,
-    component,
-    color,
-    highlightedEntityColor
-  );
+  // const mesh = new ComponentMesh(
+  //   componentLayout,
+  //   component,
+  //   color,
+  //   highlightedEntityColor
+  // );
 
-  addMeshToApplication(mesh, applicationObject3D);
-  updateMeshVisiblity(mesh, applicationObject3D);
+  const open = Math.random() > 0.5;
+  const instanceIndex = applicationObject3D.getNextInstanceIndex();
+  tmpMatrix.makeScale(
+    componentLayout.width,
+    open ? 1.5 : componentLayout.height,
+    componentLayout.depth
+  );
+  const position = componentLayout.center.sub(
+    applicationObject3D.layout.center
+  );
+  if (open) {
+    position.y -= 0.5 * componentLayout.height;
+    position.y += 1.5 / 2;
+  }
+  tmpMatrix.setPosition(position);
+  applicationObject3D.instancedMesh.setMatrixAt(instanceIndex, tmpMatrix);
+  applicationObject3D.instancedMesh.setColorAt(instanceIndex, color);
+
+  // addMeshToApplication(mesh, applicationObject3D);
+  // updateMeshVisiblity(mesh, applicationObject3D);
 
   const clazzes = component.classes;
   const children = component.subPackages;
@@ -151,6 +166,8 @@ export function addFoundationAndChildrenToApplication(
   if (!applicationLayout) {
     return;
   }
+
+  applicationObject3D.resetInstanceIndex();
 
   const { foundationColor, highlightedEntityColor } = applicationColors;
 

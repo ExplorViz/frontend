@@ -11,6 +11,9 @@ import BaseMesh from '../base-mesh';
 import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 
+const boxGeometry = new THREE.BoxGeometry(1.0, 1.0, 1.0);
+const componentMaterial = new THREE.MeshLambertMaterial();
+
 /**
  * This extended Object3D adds additional functionality to
  * add and retrieve application regarded meshes efficiently and
@@ -47,11 +50,22 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: BaseMesh | Trace | null = null;
 
+  instancedMesh: THREE.InstancedMesh;
+
+  private lastInstanceIndex = -1;
+
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
     this.data = data;
     this.boxLayoutMap = boxLayoutMap;
+
+    this.instancedMesh = new THREE.InstancedMesh(
+      boxGeometry,
+      componentMaterial,
+      512
+    );
+    this.add(this.instancedMesh);
   }
 
   get layout() {
@@ -61,6 +75,15 @@ export default class ApplicationObject3D extends THREE.Object3D {
     }
 
     return new BoxLayout();
+  }
+
+  getNextInstanceIndex(): number {
+    this.lastInstanceIndex++;
+    return this.lastInstanceIndex;
+  }
+
+  resetInstanceIndex(): void {
+    this.lastInstanceIndex = -1;
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
