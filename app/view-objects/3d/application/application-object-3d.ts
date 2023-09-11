@@ -195,6 +195,14 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.content.toggleComponent(index);
   }
 
+  updateModel(colors: ApplicationColors, openComponentIds?: Set<string>): void {
+    if (this.foundationMesh) {
+      this.foundationMesh.removeFromParent();
+    }
+    this.createFoundation(colors);
+    this.content.update(openComponentIds);
+  }
+
   getBoxLayout(id: string) {
     return this.boxLayoutMap.get(id);
   }

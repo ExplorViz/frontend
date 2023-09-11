@@ -35,6 +35,7 @@ export default class InstancedContent {
     this.app3d = app3d;
     this.colors = colors;
 
+    // TODO: count components and classes in worker
     this.components = new THREE.InstancedMesh(boxGeometry, pkgMaterial, 512);
     this.classes = new THREE.InstancedMesh(
       boxGeometry,
@@ -46,13 +47,10 @@ export default class InstancedContent {
     this.components.castShadow = true;
     this.classes.castShadow = true;
 
-    this.components.position.sub(app3d.layout.center);
-    this.classes.position.sub(app3d.layout.center);
-
     app3d.add(this.components);
     app3d.add(this.classes);
 
-    this.update();
+    this.init();
   }
 
   toggleComponent(index: number): boolean {
@@ -135,6 +133,18 @@ export default class InstancedContent {
     this.hoverIndex = -1;
   }
 
+  update(openComponentIds?: Set<string>): void {
+    // Remove old data:
+    this.openComponentsIds.clear();
+    this.componentData.length = 0;
+    this.componentDataById.clear();
+    this.classData.clear();
+
+    openComponentIds?.forEach((id) => this.openComponentsIds.add(id));
+
+    this.init();
+  }
+
   private updateVisibilityOfChildren(
     component: Package,
     visible: boolean,
@@ -162,7 +172,11 @@ export default class InstancedContent {
     }
   }
 
-  private update(): void {
+  private init(): void {
+    const position = new THREE.Vector3(0, 0, 0).sub(this.app3d.layout.center);
+    this.components.position.copy(position);
+    this.classes.position.copy(position);
+
     const application = this.app3d.data.application;
     this.offset.copy(this.getLayout(application.id).center);
 

@@ -195,12 +195,10 @@ export default class ApplicationRenderer extends Service.extend({
         : addApplicationArgs;
 
     if (layoutChanged) {
-      // applicationObject3D.removeAllEntities();
-      // // Add new meshes to application
-      // EntityRendering.addFoundationAndChildrenToApplication(
-      //   applicationObject3D,
-      //   this.configuration.applicationColors
-      // );
+      applicationObject3D.updateModel(
+        this.configuration.applicationColors,
+        applicationState.openComponents
+      );
     }
 
     // Restore state of components highlighting
