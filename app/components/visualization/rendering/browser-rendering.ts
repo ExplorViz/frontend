@@ -364,7 +364,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleDoubleClick(intersection: THREE.Intersection) {
     if (intersection) {
-      this.handleDoubleClickOnMesh(intersection.object);
+      this.handleDoubleClickOnMesh(intersection.object, intersection);
     }
   }
 
@@ -386,19 +386,31 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
   }
   @action
-  handleDoubleClickOnMesh(mesh: THREE.Object3D) {
+  handleDoubleClickOnMesh(
+    mesh: THREE.Object3D,
+    intersection?: THREE.Intersection
+  ) {
+    const applicationObject3D = mesh.parent as ApplicationObject3D;
+
     if (mesh instanceof ComponentMesh) {
-      const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
         this.applicationRenderer.toggleComponent(mesh, applicationObject3D);
       }
       // Close all components since foundation shall never be closed itself
-    } else if (mesh instanceof FoundationMesh) {
-      const applicationObject3D = mesh.parent;
+      return;
+    }
+
+    if (mesh instanceof FoundationMesh) {
       if (applicationObject3D instanceof ApplicationObject3D) {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
       }
+      return;
+    }
+
+    if (intersection && mesh instanceof THREE.InstancedMesh) {
+      applicationObject3D.toggleComponentByIndex(intersection.instanceId!);
+      return;
     }
   }
 

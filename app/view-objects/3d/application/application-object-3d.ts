@@ -191,6 +191,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.globeMesh.position.copy(centerPoint);
   }
 
+  toggleComponentByIndex(index: number) {
+    this.content.toggleComponent(index);
+  }
+
   getBoxLayout(id: string) {
     return this.boxLayoutMap.get(id);
   }
@@ -251,20 +255,12 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * application and returns a set with ids of the opened components.
    */
   get openComponentIds() {
-    const openComponentIds: Set<string> = new Set();
-
-    this.componentMeshes.forEach((componentMesh) => {
-      if (componentMesh.opened) {
-        openComponentIds.add(componentMesh.getModelId());
-      }
-    });
-
-    return openComponentIds;
+    return structuredClone(this.content.openComponentsIds);
   }
 
   /**
    * Sets the visiblity of all component meshes with the current application
-   * @param opaccity Determines how opaque / visible component meshes should be
+   * @param opacity Determines how opaque / visible component meshes should be
    */
   setBoxMeshOpacity(opacity = 1) {
     this.getBoxMeshes().forEach((mesh) => {
@@ -412,6 +408,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * Disposes all meshes inside this object and clears all maps and sets
    */
   removeAllEntities() {
+    // TODO
     this.getAllMeshes().forEach((mesh) => {
       mesh.disposeRecursively();
       mesh.deleteFromParent();
