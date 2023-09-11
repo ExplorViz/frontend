@@ -23,7 +23,7 @@ export default class InstancedContent {
 
   private componentData: ComponentData[] = [];
   private componentDataById = new Map<string, ComponentData>();
-  private classesVisibleState: boolean[] = [];
+  private classData = new Map<string, ClassData>();
 
   readonly openComponentsIds = new Set<string>();
 
@@ -71,6 +71,7 @@ export default class InstancedContent {
     this.updateVisibilityOfChildren(component, newOpenState);
 
     this.components.instanceMatrix!.needsUpdate = true;
+    this.classes.instanceMatrix!.needsUpdate = true;
 
     return newOpenState;
   }
@@ -79,6 +80,12 @@ export default class InstancedContent {
     component: Package,
     visible: boolean
   ): void {
+    for (const clazz of component.classes) {
+      const data = this.classData.get(clazz.id)!;
+      const layout = this.getLayout(clazz.id);
+      this.updateClassInstance(data.index, layout, visible);
+    }
+
     for (const pkg of component.subPackages) {
       const data = this.componentDataById.get(pkg.id)!;
       const layout = this.getLayout(pkg.id);
@@ -143,11 +150,22 @@ export default class InstancedContent {
     this.components.setMatrixAt(index, tmpMatrix);
   }
 
+  private updateClassInstance(
+    index: number,
+    layout: BoxLayout,
+    visible: boolean
+  ): void {
+    setupMatrix(layout, false, visible);
+    this.classes.setMatrixAt(index, tmpMatrix);
+  }
+
   private addClass(clazz: Class, visible: boolean): void {
     const layout = this.getLayout(clazz.id);
     setupMatrix(layout, false, visible);
-    const index = this.classesVisibleState.push(visible) - 1;
-    this.classes.setMatrixAt(index, tmpMatrix);
+    const index = this.classData.size;
+    this.classData.set(clazz.id, { visible, index });
+
+    this.updateClassInstance(index, layout, visible);
     this.classes.setColorAt(index, this.colors.clazzColor);
   }
 
@@ -189,5 +207,10 @@ type ComponentData = {
   visible: boolean;
   opened: boolean;
   component: Package;
+  index: number;
+};
+
+type ClassData = {
+  visible: boolean;
   index: number;
 };
