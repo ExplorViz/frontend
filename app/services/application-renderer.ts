@@ -184,7 +184,8 @@ export default class ApplicationRenderer extends Service.extend({
     } else {
       applicationObject3D = new VrApplicationObject3D(
         applicationData,
-        boxLayoutMap
+        boxLayoutMap,
+        this.configuration.applicationColors
       );
     }
 
@@ -194,13 +195,12 @@ export default class ApplicationRenderer extends Service.extend({
         : addApplicationArgs;
 
     if (layoutChanged) {
-      applicationObject3D.removeAllEntities();
-
-      // Add new meshes to application
-      EntityRendering.addFoundationAndChildrenToApplication(
-        applicationObject3D,
-        this.configuration.applicationColors
-      );
+      // applicationObject3D.removeAllEntities();
+      // // Add new meshes to application
+      // EntityRendering.addFoundationAndChildrenToApplication(
+      //   applicationObject3D,
+      //   this.configuration.applicationColors
+      // );
     }
 
     // Restore state of components highlighting

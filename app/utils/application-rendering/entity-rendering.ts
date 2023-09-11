@@ -8,8 +8,6 @@ import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 
-const tmpMatrix = new THREE.Matrix4();
-
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
  *
@@ -88,33 +86,15 @@ export function addComponentAndChildrenToScene(
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  // const mesh = new ComponentMesh(
-  //   componentLayout,
-  //   component,
-  //   color,
-  //   highlightedEntityColor
-  // );
-
-  const open = Math.random() > 0.5;
-  const instanceIndex = applicationObject3D.getNextInstanceIndex();
-  tmpMatrix.makeScale(
-    componentLayout.width,
-    open ? 1.5 : componentLayout.height,
-    componentLayout.depth
+  const mesh = new ComponentMesh(
+    componentLayout,
+    component,
+    color,
+    highlightedEntityColor
   );
-  const position = componentLayout.center.sub(
-    applicationObject3D.layout.center
-  );
-  if (open) {
-    position.y -= 0.5 * componentLayout.height;
-    position.y += 1.5 / 2;
-  }
-  tmpMatrix.setPosition(position);
-  applicationObject3D.instancedMesh.setMatrixAt(instanceIndex, tmpMatrix);
-  applicationObject3D.instancedMesh.setColorAt(instanceIndex, color);
 
-  // addMeshToApplication(mesh, applicationObject3D);
-  // updateMeshVisiblity(mesh, applicationObject3D);
+  addMeshToApplication(mesh, applicationObject3D);
+  updateMeshVisiblity(mesh, applicationObject3D);
 
   const clazzes = component.classes;
   const children = component.subPackages;
@@ -166,8 +146,6 @@ export function addFoundationAndChildrenToApplication(
   if (!applicationLayout) {
     return;
   }
-
-  applicationObject3D.resetInstanceIndex();
 
   const { foundationColor, highlightedEntityColor } = applicationColors;
 

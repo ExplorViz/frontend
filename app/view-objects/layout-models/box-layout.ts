@@ -61,4 +61,8 @@ export default class BoxLayout {
     this.positionY *= scalar;
     this.positionZ *= scalar;
   }
+
+  clone(): BoxLayout {
+    return BoxLayout.fromLayoutData(this);
+  }
 }
