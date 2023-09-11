@@ -14,7 +14,9 @@ const tmpMatrix = new THREE.Matrix4();
 
 export default class InstancedContent {
   private readonly app3d: ApplicationObject3D;
-  private readonly classMaterial = new THREE.MeshLambertMaterial();
+  private readonly classMaterial = new THREE.MeshLambertMaterial({
+    transparent: true,
+  });
 
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
@@ -22,7 +24,7 @@ export default class InstancedContent {
   private offset = new THREE.Vector3();
 
   private componentData: ComponentData[] = [];
-  private componentDataById = new Map<string, ComponentData>();
+  private readonly componentDataById = new Map<string, ComponentData>();
   private classData = new Map<string, ClassData>();
 
   readonly openComponentsIds = new Set<string>();
@@ -68,7 +70,7 @@ export default class InstancedContent {
       : true;
     this.updateComponentInstance(index, layout, newOpenState, parentVisible);
 
-    this.updateVisibilityOfChildren(component, newOpenState);
+    this.updateVisibilityOfChildren(component, newOpenState, false);
 
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
@@ -76,14 +78,49 @@ export default class InstancedContent {
     return newOpenState;
   }
 
+  openOrCloseAllComponents(open: boolean): void {
+    for (const data of this.componentData) {
+      const id = data.component.id;
+      const currentlyOpen = this.openComponentsIds.has(id);
+      if (open === currentlyOpen) {
+        continue;
+      }
+
+      if (open) {
+        this.openComponentsIds.add(id);
+      } else {
+        this.openComponentsIds.delete(id);
+      }
+
+      const parentVisible = data.component.parent
+        ? this.openComponentsIds.has(data.component.parent.id)
+        : true;
+      this.updateComponentInstance(
+        data.index,
+        this.getLayout(id),
+        open,
+        parentVisible
+      );
+      this.updateVisibilityOfChildren(data.component, open, true);
+    }
+
+    this.components.instanceMatrix!.needsUpdate = true;
+    this.classes.instanceMatrix!.needsUpdate = true;
+  }
+
   private updateVisibilityOfChildren(
     component: Package,
-    visible: boolean
+    visible: boolean,
+    classesOnly: boolean
   ): void {
     for (const clazz of component.classes) {
       const data = this.classData.get(clazz.id)!;
       const layout = this.getLayout(clazz.id);
       this.updateClassInstance(data.index, layout, visible);
+    }
+
+    if (classesOnly) {
+      return;
     }
 
     for (const child of component.subPackages) {
@@ -93,7 +130,7 @@ export default class InstancedContent {
       this.updateComponentInstance(data.index, layout, opened, visible);
 
       if (opened) {
-        this.updateVisibilityOfChildren(child, visible);
+        this.updateVisibilityOfChildren(child, visible, false);
       }
     }
   }

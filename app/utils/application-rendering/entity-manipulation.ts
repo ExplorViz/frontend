@@ -147,15 +147,7 @@ export function closeComponentMesh(
  * @param applicationObject3D Application object which contains the components
  */
 export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
-  const application = applicationObject3D.data.application;
-
-  // Close each component
-  application.packages.forEach((component) => {
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
-    if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D);
-    }
-  });
+  applicationObject3D.content.openOrCloseAllComponents(false);
 }
 
 /**
@@ -184,13 +176,7 @@ export function openComponentsRecursively(
  * @param applicationObject3D Application object which contains the components
  */
 export function openAllComponents(applicationObject3D: ApplicationObject3D) {
-  applicationObject3D.data.application.packages.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh) {
-      openComponentMesh(mesh, applicationObject3D);
-    }
-    openComponentsRecursively(child, applicationObject3D);
-  });
+  applicationObject3D.content.openOrCloseAllComponents(true);
 }
 
 /**
