@@ -8,7 +8,6 @@ import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SynchronizeService from 'virtual-reality/services/synchronizing';
-import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
 interface SynchronizationArgs {
   removeComponent(componentPath: string): void;
