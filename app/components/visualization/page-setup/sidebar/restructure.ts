@@ -5,10 +5,7 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import {
-  StructureLandscapeData,
-  isClass,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
@@ -62,12 +59,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   methodName: string = '';
 
   @tracked
-  sourceClass: string = '';
-
-  @tracked
-  targetClass: string = '';
-
-  @tracked
   changelog: string = '';
 
   @tracked
@@ -83,13 +74,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   createAppBtnDisabled: boolean = true;
 
   @tracked
-  communicationBtnDisabled: boolean = true;
-
-  @tracked
   uploadIssueBtnDisabled: boolean = false;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
+  }
+
+  get _sourceClass() {
+    return this.landscapeRestructure.sourceClass?.name;
+  }
+
+  get _targetClass() {
+    return this.landscapeRestructure.targetClass?.name;
   }
 
   @action
@@ -120,24 +116,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  addSourceClassFromClipboard() {
-    if (isClass(this.landscapeRestructure.clippedMesh)) {
-      this.sourceClass = this.clip_board;
-      this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass('source');
-    }
-  }
-
-  @action
-  addTargetClassFromClipboard() {
-    if (isClass(this.landscapeRestructure.clippedMesh)) {
-      this.targetClass = this.clip_board;
-      this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass('target');
-    }
-  }
-
-  @action
   updateNewAppName(event: InputEvent) {
     const target = event.target as HTMLInputElement;
     this.appName = target.value;
@@ -155,7 +133,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   updateMethodName(event: InputEvent) {
     const target = event.target as HTMLInputElement;
     this.methodName = target.value;
-    this.canCreateCommunication();
   }
 
   @action
@@ -181,28 +158,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   resetSourceClass() {
-    this.sourceClass = '';
-    this.canCreateCommunication();
+    this.landscapeRestructure.sourceClass = null;
   }
 
   @action
   resetTargetClass() {
-    this.targetClass = '';
-    this.canCreateCommunication();
+    this.landscapeRestructure.targetClass = null;
   }
 
   @action
   canSaveCredentials() {
     this.saveCredBtnDisabled = this.token === '' || this.issueURL === '';
     if (this.uploadURL) this.canUpload();
-  }
-
-  @action
-  canCreateCommunication() {
-    this.communicationBtnDisabled =
-      this.methodName === '' ||
-      this.sourceClass === '' ||
-      this.targetClass === '';
   }
 
   @action
@@ -274,32 +241,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     localStorage.setItem('gitUpload', this.uploadURL);
   }
 
-  // @action
-  // checkForPlusKey(index: number, event: KeyboardEvent) {
-  //   if (event.key === '+') {
-  //     const target = event.target as HTMLTextAreaElement;
-  //     const content = target.value;
-  //     const splitIndex = target.selectionStart;
-
-  //     const contentBeforePlus = content.substring(0, splitIndex - 1);
-  //     const contentAfterPlus = content.substring(splitIndex);
-
-  //     const updatedCurrentIssue = {
-  //       ...this.issues[index],
-  //       content: contentBeforePlus,
-  //     };
-
-  //     this.issues = [
-  //       ...this.issues.slice(0, index),
-  //       updatedCurrentIssue,
-  //       ...this.issues.slice(index + 1),
-  //       { title: '', content: contentAfterPlus },
-  //     ];
-
-  //     event.preventDefault();
-  //   }
-  // }
-
   @action
   canUpload() {
     const hasScreenshot = this.issues.some(
@@ -370,7 +311,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
     formData.append('file', imgFile);
 
-    const res = await fetch('http://localhost:8080/api/v4/projects/1/uploads', {
+    const res = await fetch(this.uploadURL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.token}`,

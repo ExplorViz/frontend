@@ -330,7 +330,6 @@ export function removePackageFromApplication(
 }
 
 export function removeClassFromPackage(
-  landscapeStructure: StructureLandscapeData,
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
@@ -343,35 +342,21 @@ export function removeClassFromPackage(
 ) {
   const parentPackage = clazzToRemove.parent;
   if (parentPackage) {
-    // if parent Package has more than 1 element, then remove the class from it else remove the parent Package
-    if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
-      //wrapper.meshTodelete = clazzToRemove;
-      if (undo) {
-        parentPackage.classes = parentPackage.classes.filter(
-          (clzz) => clzz.id != clazzToRemove.id
-        );
-      }
-      if (wrapper.comms.length > 0) {
-        if (undo || isCutOperation) {
-          updateAffectedCommunications(
-            [clazzToRemove],
-            wrapper,
-            destinationApplication
-          );
-        } else {
-          removeAffectedCommunications([clazzToRemove], wrapper);
-        }
-      }
-    } else {
-      removePackageFromApplication(
-        landscapeStructure,
-        wrapper,
-        parentPackage,
-        undo,
-        destinationApplication,
-        isCutOperation,
-        clazzToRemove.parent
+    if (undo) {
+      parentPackage.classes = parentPackage.classes.filter(
+        (clzz) => clzz.id != clazzToRemove.id
       );
+    }
+    if (wrapper.comms.length > 0) {
+      if (undo || isCutOperation) {
+        updateAffectedCommunications(
+          [clazzToRemove],
+          wrapper,
+          destinationApplication
+        );
+      } else {
+        removeAffectedCommunications([clazzToRemove], wrapper);
+      }
     }
   }
 }
@@ -422,39 +407,17 @@ export function cutAndInsertPackage(
       inserClipToDestinationApp(clipToDestination, clippedPackage);
       destinationApplication = clipToDestination;
     }
-    if (parentPackage.subPackages.length + parentPackage.classes.length <= 1) {
-      removePackageFromApplication(
-        landscapeStructure,
+    // Update communications if the package contains classes involved in communications
+    if (wrapper.comms.length > 0) {
+      const classesInPackage = getClassesInPackage(clippedPackage);
+
+      updateAffectedCommunications(
+        classesInPackage,
         wrapper,
-        parentPackage,
-        false,
-        destinationApplication,
-        true,
-        clippedPackage
+        destinationApplication
       );
-    } else {
-      // Remove the moved package from its parent's subpackages
-      // parentPackage.subPackages = parentPackage.subPackages.filter(
-      //   (packg: Package) => packg.id != clippedPackage.id
-      // );
-      // wrapper.meshTodelete = clippedPackage;
-
-      // Update communications if the package contains classes involved in communications
-      if (wrapper.comms.length > 0) {
-        const classesInPackage = getClassesInPackage(clippedPackage);
-
-        updateAffectedCommunications(
-          classesInPackage,
-          wrapper,
-          destinationApplication
-        );
-      }
     }
   } else {
-    const application = getApplicationFromPackage(
-      landscapeStructure,
-      clippedPackage.id
-    );
     let destinationApplication: Application | undefined;
 
     if (isPackage(clipToDestination)) {
@@ -478,32 +441,14 @@ export function cutAndInsertPackage(
       inserClipToDestinationApp(clipToDestination, clippedPackage);
     }
 
-    if (application && application.packages.length <= 1) {
-      removeApplication(
-        landscapeStructure,
+    // Update communications if the package contains classes involved in communications
+    if (wrapper.comms.length > 0) {
+      const classesInPackage = getClassesInPackage(clippedPackage);
+      updateAffectedCommunications(
+        classesInPackage,
         wrapper,
-        application,
-        false,
-        destinationApplication,
-        true,
-        clippedPackage
+        destinationApplication
       );
-    } else if (application && application.packages.length > 1) {
-      // Remove the moved package from its parent application's packages
-      // application.packages = application.packages.filter(
-      //   (packg) => packg.id !== clippedPackage.id
-      // );
-      //wrapper.meshTodelete = clippedPackage;
-
-      // Update communications if the package contains classes involved in communications
-      if (wrapper.comms.length > 0) {
-        const classesInPackage = getClassesInPackage(clippedPackage);
-        updateAffectedCommunications(
-          classesInPackage,
-          wrapper,
-          destinationApplication
-        );
-      }
     }
   }
 }
@@ -526,8 +471,6 @@ export function cutAndInsertClass(
     updatedComms?: DrawableClassCommunication[];
   }
 ) {
-  const parentPackage = clippedClass.parent;
-
   // Verify if the destination is a package
   if (isPackage(clipToDestination)) {
     let destinationApplication: Application | undefined;
@@ -545,26 +488,13 @@ export function cutAndInsertClass(
         clipToDestination.id
       );
 
-    if (parentPackage.subPackages.length + parentPackage.classes.length <= 1) {
-      removePackageFromApplication(
-        landscapeStructure,
-        commsWrapper,
-        parentPackage,
-        false,
-        destinationApplication,
-        true,
-        clippedClass
-      );
-    } else {
-      removeClassFromPackage(
-        landscapeStructure,
-        commsWrapper,
-        clippedClass,
-        false,
-        destinationApplication,
-        true
-      );
-    }
+    removeClassFromPackage(
+      commsWrapper,
+      clippedClass,
+      false,
+      destinationApplication,
+      true
+    );
 
     // Add the moved class to the destination package's classes
     clipToDestination.classes.push(clippedClass);
@@ -591,31 +521,25 @@ export function changeID(
     const allSubPackages = getSubPackagesOfPackage(wrapper.entity, true);
     const allClassesInPackge = getClassesInPackage(wrapper.entity, true);
 
-    wrapper.entity.name = id + wrapper.entity.name;
     wrapper.entity.id = id + wrapper.entity.id;
 
     allSubPackages.forEach((pckg) => {
-      pckg.name = id + pckg.name;
       pckg.id = id + pckg.id;
     });
 
     allClassesInPackge.forEach((clazz) => {
-      clazz.name = id + clazz.name;
       clazz.id = id + clazz.id;
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
           method.hashCode = id + method.hashCode;
-          method.name = id + method.name;
         });
       }
     });
   } else {
-    wrapper.entity.name = id + wrapper.entity.name;
     wrapper.entity.id = id + wrapper.entity.id;
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
         method.hashCode = id + method.hashCode;
-        method.name = id + method.name;
       });
     }
   }
@@ -640,31 +564,25 @@ export function restoreID(
     const allSubPackages = getSubPackagesOfPackage(wrapper.entity, true);
     const allClassesInPackage = getClassesInPackage(wrapper.entity, true);
 
-    wrapper.entity.name = removePrependFromID(wrapper.entity.name, prependID);
     wrapper.entity.id = removePrependFromID(wrapper.entity.id, prependID);
 
     allSubPackages.forEach((pckg) => {
-      pckg.name = removePrependFromID(pckg.name, prependID);
       pckg.id = removePrependFromID(pckg.id, prependID);
     });
 
     allClassesInPackage.forEach((clazz) => {
-      clazz.name = removePrependFromID(clazz.name, prependID);
       clazz.id = removePrependFromID(clazz.id, prependID);
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
           method.hashCode = removePrependFromID(method.hashCode, prependID);
-          method.name = removePrependFromID(method.name, prependID);
         });
       }
     });
   } else {
-    wrapper.entity.name = removePrependFromID(wrapper.entity.name, prependID);
     wrapper.entity.id = removePrependFromID(wrapper.entity.id, prependID);
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
         method.hashCode = removePrependFromID(method.hashCode, prependID);
-        method.name = removePrependFromID(method.name, prependID);
       });
     }
   }

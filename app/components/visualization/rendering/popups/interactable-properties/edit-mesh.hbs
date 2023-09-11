@@ -100,5 +100,17 @@
         Cut
       </BsTooltip>
     </BsButton>
+    <BsButton @type='secondary' {{on 'click' this.setCommunicationSource}}>
+      {{svg-jar 'repo-pull-16' class='octicon align-right'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Communication Source
+      </BsTooltip>
+    </BsButton>
+    <BsButton @type='secondary' {{on 'click' this.setCommunicationTarget}}>
+      {{svg-jar 'repo-push-16' class='octicon align-right'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Communication Target
+      </BsTooltip>
+    </BsButton>
   {{/if}}
 {{/if}}

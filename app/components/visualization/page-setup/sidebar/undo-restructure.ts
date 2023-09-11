@@ -160,27 +160,22 @@ export default class UndoRestructure extends Component {
           } else if (isPackage(origin)) {
             this.landscapeRestructure.restorePackage(origin, true);
           }
+          //this.landscapeRestructure.removeInsertTexture(pckg as Package);
         } else if (lastElement instanceof SubPackageChangeLogEntry) {
           const { origin, pckg } = lastElement;
 
-          if (pckg?.parent) {
-            this.landscapeRestructure.deleteSubPackageFromPopup(
-              pckg as Package,
-              false,
-              true
-            );
-          } else {
-            this.landscapeRestructure.deletePackageFromPopup(
-              pckg as Package,
-              false,
-              true
-            );
-          }
+          this.landscapeRestructure.deletePackageFromPopup(
+            pckg as Package,
+            false,
+            true
+          );
+
           if (isApplication(origin)) {
             this.landscapeRestructure.restoreApplication(origin, true);
           } else if (isPackage(origin)) {
             this.landscapeRestructure.restorePackage(origin, true);
           }
+          //this.landscapeRestructure.removeInsertTexture(pckg as Package);
         } else if (lastElement instanceof ClassChangeLogEntry) {
           const { origin, clazz } = lastElement;
 

@@ -121,15 +121,9 @@
         <input
           id='srcClass'
           class='form-control mr-2'
-          value={{this.sourceClass}}
+          value={{this._sourceClass}}
           disabled
         />
-        <button
-          type='button'
-          class='btn btn-dark'
-          title='Paste Source Class'
-          onclick={{this.addSourceClassFromClipboard}}
-        >{{svg-jar 'copy-16' class='octicon align-right'}}</button>
         <button
           style='margin-left: 5px;'
           type='button'
@@ -145,15 +139,9 @@
         <input
           id='targetClass'
           class='form-control mr-2'
-          value={{this.targetClass}}
+          value={{this._targetClass}}
           disabled
         />
-        <button
-          type='button'
-          class='btn btn-dark'
-          title='Paste TargetClass'
-          onclick={{this.addTargetClassFromClipboard}}
-        >{{svg-jar 'copy-16' class='octicon align-right'}}</button>
         <button
           style='margin-left: 5px;'
           type='button'
@@ -170,7 +158,6 @@
           {{on 'click' this.createCommunication}}
           @type='secondary'
           @outline={{true}}
-          disabled={{this.communicationBtnDisabled}}
         >
           Generate Communication
         </BsButton>

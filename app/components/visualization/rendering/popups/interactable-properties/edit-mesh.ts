@@ -108,6 +108,16 @@ export default class EditMesh extends Component<Args> {
   }
 
   @action
+  setCommunicationSource() {
+    this.landscapeRestructure.setCommunicationSourceClass(this.args.entity);
+  }
+
+  @action
+  setCommunicationTarget() {
+    this.landscapeRestructure.setCommunicationTargetClass(this.args.entity);
+  }
+
+  @action
   insertMesh() {
     this.landscapeRestructure.insertPackageOrClassFromPopup(this.args.entity);
   }

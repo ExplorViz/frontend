@@ -153,7 +153,7 @@ export default class Changelog extends Service.extend(Evented, {
     this.trigger('showChangeLog');
   }
 
-  deleteAppEntry(app: Application) {
+  deleteAppEntry(app: Application, undoInsert: boolean = false) {
     const foundEntry = this.findBaseChangeLogEntry(
       EntityType.App,
       app
@@ -174,9 +174,14 @@ export default class Changelog extends Service.extend(Evented, {
     });
     if (foundEntry) {
       if (foundEntry.action === MeshAction.Create) {
+        this.trigger('showChangeLog');
         return;
       }
       originalAppName = foundEntry.originalAppName as string;
+    }
+
+    if (undoInsert) {
+      return;
     }
     const appLogEntry = new AppChangeLogEntry(MeshAction.Delete, app);
     if (originalAppName !== '') appLogEntry.originalAppName = originalAppName;
@@ -184,9 +189,15 @@ export default class Changelog extends Service.extend(Evented, {
     this.trigger('showChangeLog');
   }
 
-  deletePackageEntry(app: Application, pckg: Package) {
+  deletePackageEntry(
+    app: Application,
+    pckg: Package,
+    undoInsert: boolean = false
+  ) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
     this.storeDeletedEntries();
+
+    this.removeLogEntriesUnderPackage(app, pckg);
 
     let originalPckgName = '';
 
@@ -195,10 +206,15 @@ export default class Changelog extends Service.extend(Evented, {
         (entry) => entry.pckg?.id !== pckg.id
       );
       if (foundEntry.action === MeshAction.Create) {
+        this.trigger('showChangeLog');
         return;
       } else if (foundEntry.action === MeshAction.Rename) {
         originalPckgName = foundEntry.originalPckgName as string;
       }
+    }
+
+    if (undoInsert) {
+      return;
     }
 
     const pckgLogEntry = new PackageChangeLogEntry(
@@ -222,7 +238,11 @@ export default class Changelog extends Service.extend(Evented, {
     this.deletedChangeLogEntries.push(deletedEntries);
   }
 
-  deleteSubPackageEntry(app: Application, pckg: Package) {
+  deleteSubPackageEntry(
+    app: Application,
+    pckg: Package,
+    undoInsert: boolean = false
+  ) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
     this.storeDeletedEntries();
 
@@ -235,10 +255,15 @@ export default class Changelog extends Service.extend(Evented, {
         (entry) => entry.pckg?.id !== pckg.id
       );
       if (foundEntry.action === MeshAction.Create) {
+        this.trigger('showChangeLog');
         return;
       } else if (foundEntry.action === MeshAction.Rename) {
         originalPckgName = foundEntry.originalPckgName as string;
       }
+    }
+
+    if (undoInsert) {
+      return;
     }
 
     const pckgLogEntry = new SubPackageChangeLogEntry(
@@ -253,7 +278,11 @@ export default class Changelog extends Service.extend(Evented, {
     this.trigger('showChangeLog');
   }
 
-  deleteClassEntry(app: Application, clazz: Class) {
+  deleteClassEntry(
+    app: Application,
+    clazz: Class,
+    undoInsert: boolean = false
+  ) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
     const commEntry = this.findCommunicationLogEntry(clazz);
     this.storeDeletedEntries();
@@ -267,10 +296,15 @@ export default class Changelog extends Service.extend(Evented, {
         (entry) => entry.clazz?.id !== clazz.id
       );
       if (foundEntry.action === MeshAction.Create) {
+        this.trigger('showChangeLog');
         return;
       } else if (foundEntry.action === MeshAction.Rename) {
         originalClazzName = foundEntry.originalClazzName as string;
       }
+    }
+
+    if (undoInsert) {
+      return;
     }
 
     const clazzLogEntry = new ClassChangeLogEntry(
