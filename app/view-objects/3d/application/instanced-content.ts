@@ -55,7 +55,7 @@ export default class InstancedContent {
     const componentData = this.componentData[index];
     const component = componentData.component;
     const layout = this.getLayout(component.id);
-    const newOpenState = !componentData.opened;
+    const newOpenState = !this.openComponentsIds.has(component.id);
 
     if (newOpenState) {
       this.openComponentsIds.add(component.id);
@@ -86,13 +86,14 @@ export default class InstancedContent {
       this.updateClassInstance(data.index, layout, visible);
     }
 
-    for (const pkg of component.subPackages) {
-      const data = this.componentDataById.get(pkg.id)!;
-      const layout = this.getLayout(pkg.id);
-      this.updateComponentInstance(data.index, layout, data.opened, visible);
+    for (const child of component.subPackages) {
+      const data = this.componentDataById.get(child.id)!;
+      const layout = this.getLayout(child.id);
+      const opened = this.openComponentsIds.has(child.id);
+      this.updateComponentInstance(data.index, layout, opened, visible);
 
-      if (data.opened) {
-        this.updateVisibilityOfChildren(pkg, visible);
+      if (opened) {
+        this.updateVisibilityOfChildren(child, visible);
       }
     }
   }
@@ -124,7 +125,7 @@ export default class InstancedContent {
         : this.colors.componentOddColor;
 
     const index = this.componentData.length;
-    this.componentData.push({ visible, opened, component, index });
+    this.componentData.push({ visible, component, index });
     this.componentDataById.set(component.id, this.componentData[index]);
     this.updateComponentInstance(index, layout, opened, visible);
     this.components.setColorAt(index, color);
@@ -205,7 +206,6 @@ function setupMatrix(
 
 type ComponentData = {
   visible: boolean;
-  opened: boolean;
   component: Package;
   index: number;
 };
