@@ -240,7 +240,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @action
   deleteCommunication(
-    comm?: DrawableClassCommunication, // Later for deleting existing comms
+    _comm: DrawableClassCommunication | undefined, // Later for deleting existing comms
     undo: boolean = false,
     collabMode: boolean = false
   ) {
