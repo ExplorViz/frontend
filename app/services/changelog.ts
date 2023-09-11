@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import Evented from '@ember/object/evented';
 import {
   Application,
   Class,
@@ -22,7 +23,7 @@ import { DrawableClassCommunication } from 'explorviz-frontend/utils/application
 import { tracked } from '@glimmer/tracking';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
-export default class Changelog extends Service.extend({
+export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
 }) {
   @service('vr-message-sender')
@@ -39,6 +40,8 @@ export default class Changelog extends Service.extend({
 
     this.changeLogEntries.push(appLogEntry);
     this.createPackageEntry(app, pckg, clazz, appLogEntry);
+
+    this.trigger('showChangeLog');
   }
 
   createPackageEntry(
@@ -68,6 +71,7 @@ export default class Changelog extends Service.extend({
       this.changeLogEntries.push(pckgLogEntry);
       this.createClassEntry(app, clazz, pckgLogEntry);
     }
+    this.trigger('showChangeLog');
   }
 
   createClassEntry(
@@ -82,6 +86,7 @@ export default class Changelog extends Service.extend({
     );
     if (pckgEntry) clazzLogEntry.createdWithPackage = pckgEntry;
     this.changeLogEntries.push(clazzLogEntry);
+    this.trigger('showChangeLog');
   }
 
   renameAppEntry(app: Application, newName: string) {
@@ -94,6 +99,7 @@ export default class Changelog extends Service.extend({
     } else {
       foundEntry.newName = newName;
     }
+    this.trigger('showChangeLog');
   }
 
   renamePackageEntry(app: Application, pckg: Package, newName: string) {
@@ -110,6 +116,7 @@ export default class Changelog extends Service.extend({
     } else {
       foundEntry.newName = newName;
     }
+    this.trigger('showChangeLog');
   }
 
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
@@ -126,6 +133,7 @@ export default class Changelog extends Service.extend({
     } else {
       foundEntry.newName = newName;
     }
+    this.trigger('showChangeLog');
   }
 
   renameClassEntry(app: Application, clazz: Class, newName: string) {
@@ -142,6 +150,7 @@ export default class Changelog extends Service.extend({
     } else {
       foundEntry.newName = newName;
     }
+    this.trigger('showChangeLog');
   }
 
   deleteAppEntry(app: Application) {
@@ -172,6 +181,7 @@ export default class Changelog extends Service.extend({
     const appLogEntry = new AppChangeLogEntry(MeshAction.Delete, app);
     if (originalAppName !== '') appLogEntry.originalAppName = originalAppName;
     this.changeLogEntries.push(appLogEntry);
+    this.trigger('showChangeLog');
   }
 
   deletePackageEntry(app: Application, pckg: Package) {
@@ -201,6 +211,7 @@ export default class Changelog extends Service.extend({
     }
 
     this.changeLogEntries.push(pckgLogEntry);
+    this.trigger('showChangeLog');
   }
 
   private storeDeletedEntries() {
@@ -239,6 +250,7 @@ export default class Changelog extends Service.extend({
       pckgLogEntry.originalPckgName = originalPckgName;
     }
     this.changeLogEntries.push(pckgLogEntry);
+    this.trigger('showChangeLog');
   }
 
   deleteClassEntry(app: Application, clazz: Class) {
@@ -270,6 +282,7 @@ export default class Changelog extends Service.extend({
       clazzLogEntry.originalClazzName = originalClazzName;
     }
     this.changeLogEntries.push(clazzLogEntry);
+    this.trigger('showChangeLog');
   }
 
   cutAndInsertPackageEntry(
@@ -298,6 +311,7 @@ export default class Changelog extends Service.extend({
       pckgLogEntry.setOrigin(origin);
       this.changeLogEntries.push(pckgLogEntry);
     }
+    this.trigger('showChangeLog');
   }
 
   cutAndInsertSubPackageEntry(
@@ -326,6 +340,7 @@ export default class Changelog extends Service.extend({
       pckgLogEntry.setOrigin(origin);
       this.changeLogEntries.push(pckgLogEntry);
     }
+    this.trigger('showChangeLog');
   }
 
   cutAndInsertClassEntry(
@@ -356,6 +371,7 @@ export default class Changelog extends Service.extend({
       clazzLogEntry.setOrigin(origin);
       this.changeLogEntries.push(clazzLogEntry);
     }
+    this.trigger('showChangeLog');
   }
 
   communicationEntry(communication: DrawableClassCommunication) {
@@ -364,6 +380,7 @@ export default class Changelog extends Service.extend({
       communication
     );
     this.changeLogEntries.push(commEntry);
+    this.trigger('showChangeLog');
   }
 
   /**
@@ -395,6 +412,7 @@ export default class Changelog extends Service.extend({
     this.changeLogEntries = deletedEntries;
 
     this.deletedChangeLogEntries.removeObject(deletedEntries);
+    this.trigger('showChangeLog');
   }
 
   private findBaseChangeLogEntry(
@@ -514,6 +532,7 @@ export default class Changelog extends Service.extend({
     }
 
     this.changeLogEntries.removeObject(entry);
+    this.trigger('showChangeLog');
   }
 
   removeEntries(entries: BaseChangeLogEntry[], collabMode: boolean = false) {
@@ -526,6 +545,7 @@ export default class Changelog extends Service.extend({
     }
 
     this.changeLogEntries.removeObjects(entries);
+    this.trigger('showChangeLog');
   }
 
   private removeExternCommunicationsInsidePackage(

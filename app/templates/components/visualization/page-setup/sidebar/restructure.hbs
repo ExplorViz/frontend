@@ -1,4 +1,5 @@
 {{add-listener this.landscapeRestructure 'restructureMode' this.toggleRestructureMode}}
+{{add-listener this.changeLog 'showChangeLog' this.showChangelog}}
 
 <div class='sidebar-component-close' {{on 'click' this.close}}>
   {{svg-jar 'x-16' class='octicon'}}
@@ -205,13 +206,6 @@
           value={{this.changelog}}
           readonly
         ></textarea>
-        <ul></ul>
-        <button
-          type='button'
-          class='btn btn-light'
-          title='Show Changelog'
-          onclick={{this.showChangelog}}
-        >{{svg-jar 'checklist-16' class='octicon align-right'}}</button>
       </div>
     </div>
 

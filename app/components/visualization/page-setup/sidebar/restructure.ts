@@ -12,6 +12,7 @@ import {
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import Changelog from 'explorviz-frontend/services/changelog';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -32,6 +33,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @service('changelog')
+  changeLog!: Changelog;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
