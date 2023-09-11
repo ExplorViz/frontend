@@ -1187,6 +1187,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Updating deleted communications
         this.deletedClassCommunications.push(wrapper.deletedComms);
       } else {
+        // Removes existing Changelog entry
+        this.changeLog.deleteAppEntry(app);
         // Remove all meshes of the application
         const appObject3D: ApplicationObject3D | undefined =
           this.applicationRenderer.getApplicationById(app.id);
@@ -1281,6 +1283,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         if (!shouldUndo) {
           this.processDeletedAppData(wrapper.meshTodelete);
           this.deletedClassCommunications.push(wrapper.deletedComms);
+        } else {
+          // Removes existing Changelog Entry
+          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
         }
       } else if (isPackage(wrapper.meshTodelete)) {
         if (!shouldUndo) {
@@ -1301,6 +1306,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             originApp: app as Application,
             pckg: wrapper.meshTodelete,
           });
+        } else {
+          // Removes existing Changelog Entry
+          if (app && wrapper.meshTodelete.parent) {
+            this.changeLog.deleteSubPackageEntry(app, wrapper.meshTodelete);
+          } else if (app && !wrapper.meshTodelete.parent) {
+            this.changeLog.deletePackageEntry(app, wrapper.meshTodelete);
+          }
         }
         // this.classCommunication = wrapper.comms;
         // this.applicationRepo.clear();
@@ -1493,6 +1505,24 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             // Create Changelog Entry
             this.changeLog.deleteAppEntry(wrapper.meshTodelete);
           }
+        }
+      } else {
+        // Removing existing Create Entry
+        if (isClass(wrapper.meshTodelete)) {
+          this.changeLog.deleteClassEntry(application as Application, clazz);
+        } else if (isPackage(wrapper.meshTodelete)) {
+          if ((wrapper.meshTodelete as Package).parent)
+            this.changeLog.deleteSubPackageEntry(
+              application as Application,
+              wrapper.meshTodelete
+            );
+          else
+            this.changeLog.deletePackageEntry(
+              application as Application,
+              wrapper.meshTodelete
+            );
+        } else if (isApplication(wrapper.meshTodelete)) {
+          this.changeLog.deleteAppEntry(wrapper.meshTodelete);
         }
       }
 
