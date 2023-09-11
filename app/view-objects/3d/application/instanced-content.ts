@@ -7,6 +7,7 @@ import type {
   Class,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 
 const boxGeometry = new THREE.BoxGeometry(1.0, 1.0, 1.0);
 const pkgMaterial = new THREE.MeshLambertMaterial();
@@ -17,7 +18,6 @@ export default class InstancedContent {
   private readonly classMaterial = new THREE.MeshLambertMaterial({
     transparent: true,
   });
-
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
   private colors: ApplicationColors;
@@ -25,7 +25,9 @@ export default class InstancedContent {
 
   private componentData: ComponentData[] = [];
   private readonly componentDataById = new Map<string, ComponentData>();
-  private classData = new Map<string, ClassData>();
+  private readonly classData = new Map<string, ClassData>();
+  private hoverIndex = -1;
+  private previousColor = new THREE.Color();
 
   readonly openComponentsIds = new Set<string>();
 
@@ -106,6 +108,31 @@ export default class InstancedContent {
 
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
+  }
+
+  applyHoverEffect(index: number, colorShift = 1.1): void {
+    if (this.hoverIndex === index) {
+      return;
+    }
+    if (this.hoverIndex >= 0) {
+      this.resetHoverEffect();
+    }
+
+    this.components.getColorAt(index, this.previousColor);
+    const color = calculateColorBrightness(this.previousColor, colorShift);
+    this.components.setColorAt(index, color);
+    this.components.instanceColor!.needsUpdate = true;
+    this.hoverIndex = index;
+  }
+
+  resetHoverEffect(): void {
+    if (this.hoverIndex < 0) {
+      return;
+    }
+
+    this.components.setColorAt(this.hoverIndex, this.previousColor);
+    this.components.instanceColor!.needsUpdate = true;
+    this.hoverIndex = -1;
   }
 
   private updateVisibilityOfChildren(

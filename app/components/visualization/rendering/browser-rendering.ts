@@ -33,8 +33,9 @@ import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import {
-  EntityMesh,
+  type HoverableMesh,
   isEntityMesh,
+  EntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
@@ -105,7 +106,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   renderingLoop!: RenderingLoop;
 
-  hoveredObject: EntityMesh | null = null;
+  hoveredObject: HoverableMesh | null = null;
 
   controls!: MapControls;
 
@@ -419,10 +420,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object);
+      this.handleMouseMoveOnMesh(intersection.object, intersection);
     } else if (this.hoveredObject) {
-      this.hoveredObject.resetHoverEffect();
-      this.hoveredObject = null;
+      if (this.hoveredObject instanceof THREE.InstancedMesh) {
+        const application3DObject = this.hoveredObject
+          .parent as ApplicationObject3D;
+        application3DObject.content.resetHoverEffect();
+      } else {
+        this.hoveredObject.resetHoverEffect();
+        this.hoveredObject = null;
+      }
     }
     this.popupHandler.hover(intersection?.object);
   }
@@ -438,22 +445,27 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
+  handleMouseMoveOnMesh(
+    mesh?: THREE.Object3D,
+    intersection?: THREE.Intersection
+  ) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
     // Update hover effect
-    if (
-      isEntityMesh(mesh) &&
-      enableAppHoverEffects &&
-      !this.heatmapConf.heatmapActive
-    ) {
-      if (this.hoveredObject) {
-        this.hoveredObject.resetHoverEffect();
-      }
+    if (enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
+      if (mesh instanceof THREE.InstancedMesh) {
+        const applicationObject3D = mesh.parent as ApplicationObject3D;
+        applicationObject3D.content.applyHoverEffect(intersection!.instanceId!);
+      } else if (isEntityMesh(mesh)) {
+        // TODO
+        if (this.hoveredObject) {
+          (this.hoveredObject as EntityMesh).resetHoverEffect();
+        }
 
-      this.hoveredObject = mesh;
-      mesh.applyHoverEffect();
+        this.hoveredObject = mesh as HoverableMesh;
+        mesh.applyHoverEffect();
+      }
     }
 
     // Hide popups when mouse moves

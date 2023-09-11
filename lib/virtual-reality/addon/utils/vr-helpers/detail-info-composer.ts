@@ -265,6 +265,11 @@ export type EntityMesh =
   | ClazzCommunicationMesh
   | FoundationMesh;
 
+export type HoverableMesh =
+  | FoundationMesh
+  | THREE.InstancedMesh
+  | ClazzCommunicationMesh;
+
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
     object instanceof ComponentMesh ||
