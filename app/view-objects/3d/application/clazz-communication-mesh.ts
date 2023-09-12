@@ -112,8 +112,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.position.copy(end.add(start).divideScalar(2));
   }
 
+  renderRecursiveCommunication(applicationCenter = new THREE.Vector3()) {
+    this.applicationCenter = applicationCenter;
+    const { layout } = this;
+
+    // Place sphere for communication above corresponding class
+    this.position.copy(
+      new THREE.Vector3().subVectors(layout.startPoint, applicationCenter)
+    );
+    this.geometry = new THREE.SphereGeometry(0.5);
+
+    return;
+  }
+
   /**
-   * Renders the communication mesh as straight cylinder geometry.
+   * Renders the communication mesh as cylinder geometry.
    *
    * @param applicationCenter The center point of the application.
    * @param curveHeight Max height of the communication. Default 0.0
@@ -124,6 +137,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     curveHeight = 0.0,
     desiredSegments = 20
   ) {
+    // Handle recursive communication
+    if (this.isRecursiveCommunication()) {
+      this.renderRecursiveCommunication(applicationCenter);
+      return;
+    }
+
     this.applicationCenter = applicationCenter;
     this.curveHeight = curveHeight;
     const { layout } = this;
@@ -179,10 +198,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const arrowWidth = width + layout.lineThickness / 2;
 
     const start = new THREE.Vector3();
-    start.subVectors(startPoint, applicationCenter);
-
     const end = new THREE.Vector3();
-    end.subVectors(endPoint, applicationCenter);
+
+    if (!this.isRecursiveCommunication()) {
+      start.subVectors(startPoint, applicationCenter);
+      end.subVectors(endPoint, applicationCenter);
+    }
 
     this.addArrow(start, end, arrowWidth, yOffset, color);
 
@@ -292,6 +313,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   canBeIntersected() {
     return true;
+  }
+
+  isRecursiveCommunication() {
+    return (
+      this.layout.model.sourceClass.id === this.layout.model.targetClass.id
+    );
   }
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
