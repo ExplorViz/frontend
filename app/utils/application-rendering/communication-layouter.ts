@@ -185,7 +185,7 @@ export default function applyCommunicationLayout(
 
       if (
         parentComponent === null || // parent must be the foundation
-        isComponentOpened(application.id)
+        isComponentOpened(parentComponent.id)
       ) {
         let sourceEntity: Class | Package | null = null;
         let targetEntity: Class | Package | null = null;
