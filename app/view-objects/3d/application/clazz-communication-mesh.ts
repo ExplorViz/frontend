@@ -3,15 +3,19 @@ import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
+import ApplicationObject3D from './application-object-3d';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
   layout: CommunicationLayout;
 
-  potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
+  potentialBidirectionalArrowData: [THREE.Vector3, THREE.Vector3] | undefined;
+
+  private app3d: ApplicationObject3D;
 
   constructor(
+    app3d: ApplicationObject3D,
     layout: CommunicationLayout,
     dataModel: ClazzCommuMeshDataModel,
     defaultColor: THREE.Color,
@@ -20,6 +24,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     super(defaultColor, highlightingColor);
     this.layout = layout;
     this.dataModel = dataModel;
+    this.app3d = app3d;
 
     this.material = new THREE.MeshBasicMaterial({
       color: defaultColor,
@@ -183,7 +188,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.addArrow(end, start, arrowWidth, yOffset, color);
     } else {
       // save arrow for potential upcoming use
-      this.potentialBidirectionalArrow = this.getArrow(
+      this.potentialBidirectionalArrowData = this.getArrow(
         end,
         start,
         arrowWidth,
@@ -194,8 +199,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   addBidirectionalArrow() {
-    if (this.dataModel.bidirectional && this.potentialBidirectionalArrow) {
-      this.add(this.potentialBidirectionalArrow);
+    if (this.dataModel.bidirectional && this.potentialBidirectionalArrowData) {
+      this.app3d.arrows.addArrow(...this.potentialBidirectionalArrowData);
     }
   }
 
@@ -215,6 +220,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     yOffset: number,
     color: number
   ) {
+    color;
+
     const dir = new THREE.Vector3().subVectors(end, start);
     const len = dir.length();
     // Do not draw precisely in the middle to leave a
@@ -230,18 +237,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headWidth = Math.max(0.5, width);
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
+    length;
 
     if (this.dataModel.drawableClassCommus.firstObject) {
-      const arrow = new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
-        dir,
-        origin,
-        length,
-        color,
-        headLength,
-        headWidth
-      );
-      this.add(arrow);
+      // const arrow = new CommunicationArrowMesh(
+      //   this.dataModel.drawableClassCommus.firstObject,
+      //   dir,
+      //   origin,
+      //   length,
+      //   color,
+      //   headLength,
+      //   headWidth
+      // );
+      // this.add(arrow);
+      this.app3d.arrows.addArrow(origin, dir);
     }
   }
 
@@ -251,7 +260,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     width: number,
     yOffset: number,
     color: number
-  ) {
+  ): [THREE.Vector3, THREE.Vector3] | undefined {
+    if (!this.dataModel.drawableClassCommus.firstObject) {
+      return undefined;
+    }
+
+    color;
+
     const dir = new THREE.Vector3().subVectors(end, start);
     const len = dir.length();
     // Do not draw precisely in the middle to leave a
@@ -267,19 +282,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headWidth = Math.max(0.5, width);
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
+    length;
 
-    if (this.dataModel.drawableClassCommus.firstObject) {
-      return new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
-        dir,
-        origin,
-        length,
-        color,
-        headLength,
-        headWidth
-      );
-    }
-    return undefined;
+    return [origin, dir];
   }
 
   canBeIntersected() {

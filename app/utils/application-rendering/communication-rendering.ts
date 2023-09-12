@@ -90,6 +90,9 @@ export default class CommunicationRendering {
 
     // Remove old communication
     applicationObject3D.removeAllCommunication();
+    applicationObject3D.arrows.reset(
+      applicationObject3D.data.counts.communications
+    );
 
     // Compute communication Layout
     const commLayoutMap = applyCommunicationLayout(
@@ -164,6 +167,7 @@ export default class CommunicationRendering {
         );
 
         const pipe = new ClazzCommunicationMesh(
+          applicationObject3D,
           commLayout,
           clazzCommuMeshData,
           communicationColor,

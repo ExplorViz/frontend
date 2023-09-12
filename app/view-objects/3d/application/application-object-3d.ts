@@ -12,6 +12,7 @@ import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import InstancedContent from './instanced-content';
 import type { ApplicationColors } from 'explorviz-frontend/services/configuration';
+import CommunicationArrows from './communication-arrows';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -51,6 +52,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   content: InstancedContent;
 
+  arrows: CommunicationArrows;
+
   constructor(
     data: ApplicationData,
     boxLayoutMap: Map<string, BoxLayout>,
@@ -64,6 +67,13 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     this.createFoundation(colors);
     this.content = new InstancedContent(this, colors, openComponentIds);
+
+    const arrowWidth = 1.0 + 0.5 * 1.0; // TODO
+    this.arrows = new CommunicationArrows(
+      this,
+      data.counts.communications * 2,
+      arrowWidth
+    );
   }
 
   private createFoundation(colors: ApplicationColors): void {

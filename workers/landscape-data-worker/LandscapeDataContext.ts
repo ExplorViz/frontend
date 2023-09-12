@@ -16,7 +16,7 @@ import {
 } from 'workers/city-layouter';
 import { calculateFlatData, type FlatData } from 'workers/flat-data-worker';
 import { calculateHeatmapData } from 'workers/metrics-worker';
-import { ClassAndPackageCounts, countClassesAndPackages } from 'workers/utils';
+import { countClassesAndPackages } from 'workers/utils';
 
 export default class LandscapeDataContext {
   readonly token: string;
@@ -189,7 +189,10 @@ function computeApplicationData(
       application,
       drawableClassCommunications
     );
-    const counts = countClassesAndPackages(application);
+    const counts = {
+      ...countClassesAndPackages(application),
+      communications: drawableClassCommunications.length, // TODO: filter only this application
+    };
     data.set(application.id, {
       layout,
       heatmap,
@@ -208,7 +211,13 @@ export type WorkerApplicationData = {
   heatmap: ApplicationHeatmapData;
   flatData: Map<string, FlatData>;
   communication: DrawableClassCommunication[];
-  counts: ClassAndPackageCounts;
+  counts: Counts;
+};
+
+export type Counts = {
+  classes: number;
+  packages: number;
+  communications: number;
 };
 
 /**
