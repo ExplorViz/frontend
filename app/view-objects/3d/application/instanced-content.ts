@@ -15,9 +15,7 @@ const tmpMatrix = new THREE.Matrix4();
 
 export default class InstancedContent {
   private readonly app3d: ApplicationObject3D;
-  private readonly classMaterial = new THREE.MeshLambertMaterial({
-    transparent: true,
-  });
+  private readonly classMaterial = new THREE.MeshLambertMaterial();
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
   private colors: ApplicationColors;

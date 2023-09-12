@@ -185,5 +185,7 @@ export default class CommunicationRendering {
         positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
       }
     });
+
+    applicationObject3D.arrows.allArrowsAdded();
   }
 }

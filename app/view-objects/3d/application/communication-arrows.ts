@@ -1,23 +1,21 @@
 import * as THREE from 'three';
-import ApplicationObject3D from './application-object-3d';
 
-const tmpMatrix = new THREE.Matrix4().makeScale(1, 1, 1);
+const tmpMatrix = new THREE.Matrix4();
 const tmpQuaternion = new THREE.Quaternion();
-const initialDirection = new THREE.Vector3(1, 0, 0);
+const initialDirection = new THREE.Vector3(0, 1, 0);
+const magicScaleValues = new THREE.Vector3(1.25, 2.6, 1.25); // TODO: why
 
 export default class CommunicationArrows extends THREE.Object3D {
-  private readonly app3d: ApplicationObject3D;
   private arrowGeometry: THREE.BufferGeometry;
   private arrowMaterial = new THREE.MeshBasicMaterial();
   private instancedMesh!: THREE.InstancedMesh;
   private arrowIndex: number = -1;
 
-  constructor(app3d: ApplicationObject3D, count: number, width: number) {
+  constructor(count: number, width: number) {
     super();
-    this.app3d = app3d;
 
     const headWidth = Math.max(0.5, width);
-    const headLength = Math.min(2 * headWidth /*, 0.3 * len*/);
+    const headLength = 2 * headWidth;
     const length = headLength + 0.00001; // body of arrow not visible
 
     this.arrowGeometry = new THREE.ArrowHelper(
@@ -29,18 +27,24 @@ export default class CommunicationArrows extends THREE.Object3D {
       headWidth
     ).cone.geometry;
 
-    this.reset(count);
+    this.arrowMaterial.color = new THREE.Color(0x000000);
 
-    this.add(this.instancedMesh);
+    this.reset(count);
   }
 
   reset(count: number): void {
+    if (this.instancedMesh) {
+      this.instancedMesh.removeFromParent();
+    }
+
     this.instancedMesh = new THREE.InstancedMesh(
       this.arrowGeometry,
       this.arrowMaterial,
       count
     );
+    this.instancedMesh.count = 0;
     this.arrowIndex = -1;
+    this.add(this.instancedMesh);
   }
 
   /**
@@ -53,9 +57,19 @@ export default class CommunicationArrows extends THREE.Object3D {
     // Compute instance matrix
     tmpQuaternion.setFromUnitVectors(initialDirection, dir);
     tmpMatrix.makeRotationFromQuaternion(tmpQuaternion);
-    tmpMatrix.setPosition(origin);
+    tmpMatrix.scale(magicScaleValues);
+    const position = origin.clone().addScaledVector(dir, magicScaleValues.y);
+    tmpMatrix.setPosition(position);
     this.instancedMesh.setMatrixAt(index, tmpMatrix);
 
     this.instancedMesh.count = index + 1;
+  }
+
+  allArrowsAdded(): void {
+    this.instancedMesh.instanceMatrix.needsUpdate = true;
+  }
+
+  get count(): number {
+    return this.instancedMesh.count;
   }
 }
