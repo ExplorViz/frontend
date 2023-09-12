@@ -121,7 +121,8 @@ export default class SynchronizationSession extends Service {
   }
 
   /**
-   * CALCULATE FOV AND ASPECT CONSIDERING PROJECTOR ANGLES
+   * Sets up projection matrix by configuring aspect, fov,
+   * rotations according to yaw, pitch and roll in the mpcdi file.
    */
   setUpCamera() {
     // Set up fov and aspect
@@ -137,6 +138,20 @@ export default class SynchronizationSession extends Service {
         this.localUser.camera.near,
         this.localUser.camera.near,
         this.localUser.camera.far
+      )
+    );
+
+    // Set up Yaw, Pitch and Roll
+    this.localUser.camera.projectionMatrix.multiply(
+      new THREE.Matrix4().makeRotationFromQuaternion(
+        this.projectorQuaternion?.quaternion
+      )
+    );
+
+    // consider dometilt AFTER synchronisation, shifting all projections to the center of dome
+    this.localUser.camera.projectionMatrix.multiply(
+      new THREE.Matrix4().makeRotationFromQuaternion(
+        this.getDomeTiltQuaternion()
       )
     );
   }

@@ -23,9 +23,10 @@ export default class SynchronizeService extends Service {
 
   cameraControls: CameraControls | null = null;
 
+  // In case we want to implement a deactivation of synchronization
   private synchronizationStartQuaternion: THREE.Quaternion =
     new THREE.Quaternion();
-
+  // In case we want to implement a deactivation of synchronization
   private synchronizationStartPosition: THREE.Vector3 = new THREE.Vector3();
 
   get isSynchronized() {
@@ -43,26 +44,10 @@ export default class SynchronizeService extends Service {
 
       // Rotation test
       const mainQuaternion = this.main.camera.model.quaternion.clone();
-
       this.localUser.camera.quaternion.copy(mainQuaternion);
-      this.localUser.camera.updateProjectionMatrix();
 
-      // Considering projector angles to set up fov and aspect using projection matrix
+      // Set up projector configuration
       this.synchronizationSession.setUpCamera();
-
-      // manipulate main's quaternion
-      this.localUser.camera.projectionMatrix.multiply(
-        new THREE.Matrix4().makeRotationFromQuaternion(
-          this.synchronizationSession.projectorQuaternion?.quaternion
-        )
-      );
-
-      // consider dometilt AFTER synchronisation, shifting all projections to the center of dome
-      this.localUser.camera.projectionMatrix.multiply(
-        new THREE.Matrix4().makeRotationFromQuaternion(
-          this.synchronizationSession.getDomeTiltQuaternion()
-        )
-      );
     }
   }
 
