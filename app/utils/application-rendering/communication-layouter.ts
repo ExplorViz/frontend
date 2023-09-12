@@ -1,11 +1,9 @@
 import * as THREE from 'three';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ComponentMesh from '../../view-objects/3d/application/component-mesh';
-import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
+import type BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import type ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import CommunicationLayout from '../../view-objects/layout-models/communication-layout';
-import { DrawableClassCommunication } from './class-communication-computer';
-import {
+import type { DrawableClassCommunication } from './class-communication-computer';
+import type {
   Application,
   Class,
   Package,
@@ -120,11 +118,7 @@ export default function applyCommunicationLayout(
 
     if (!parentComponent) return component;
 
-    // Check open status in corresponding component mesh
-    const parentMesh = applicationObject3D.getBoxMeshbyModelId(
-      parentComponent.id
-    );
-    if (parentMesh instanceof ComponentMesh && parentMesh.opened) {
+    if (isComponentOpened(parentComponent.id)) {
       return component;
     }
 
@@ -174,6 +168,10 @@ export default function applyCommunicationLayout(
     return commonComponent;
   }
 
+  function isComponentOpened(id: string): boolean {
+    return applicationObject3D.content.isComponentOpened(id);
+  }
+
   /**
    * Calculates start and end positions for all drawable communications
    */
@@ -181,27 +179,13 @@ export default function applyCommunicationLayout(
     if (drawableClassCommunications.length === 0) {
       return;
     }
-    for (let i = 0; i < drawableClassCommunications.length; i++) {
-      const classCommunication: DrawableClassCommunication =
-        drawableClassCommunications[i];
-
+    for (const classCommunication of drawableClassCommunications) {
       const parentComponent =
         getParentComponentOfDrawableCommunication(classCommunication);
 
-      let parentMesh;
-
-      if (parentComponent === null) {
-        // common ancestor must be the foundation
-        parentMesh = applicationObject3D.getBoxMeshbyModelId(application.id);
-      } else {
-        parentMesh = applicationObject3D.getBoxMeshbyModelId(
-          parentComponent.id
-        );
-      }
-
       if (
-        (parentMesh instanceof ComponentMesh && parentMesh.opened) ||
-        parentMesh instanceof FoundationMesh
+        parentComponent === null || // common ancestor must be the foundation
+        isComponentOpened(application.id)
       ) {
         let sourceEntity: Class | Package | null = null;
         let targetEntity: Class | Package | null = null;
@@ -210,16 +194,10 @@ export default function applyCommunicationLayout(
         const targetClazz = classCommunication.targetClass;
 
         const sourceParent = sourceClazz.parent;
-        const sourceParentMesh = applicationObject3D.getBoxMeshbyModelId(
-          sourceParent.id
-        );
 
         // Determine where the communication should begin
         // (clazz or component - based upon their visiblity)
-        if (
-          sourceParentMesh instanceof ComponentMesh &&
-          sourceParentMesh.opened
-        ) {
+        if (isComponentOpened(sourceParent.id)) {
           sourceEntity = classCommunication.sourceClass;
         } else {
           sourceEntity =
@@ -227,16 +205,10 @@ export default function applyCommunicationLayout(
         }
 
         const targetParent = targetClazz.parent;
-        const targetParentMesh = applicationObject3D.getBoxMeshbyModelId(
-          targetParent.id
-        );
 
         // Determine where the communication should end
         // (clazz or component - based upon their visiblity)
-        if (
-          targetParentMesh instanceof ComponentMesh &&
-          targetParentMesh.opened
-        ) {
+        if (isComponentOpened(targetParent.id)) {
           targetEntity = classCommunication.targetClass;
         } else {
           targetEntity =

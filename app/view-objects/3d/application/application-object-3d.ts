@@ -70,7 +70,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     const arrowWidth = 1.0 + 0.5 * 1.0; // TODO
     this.arrows = new CommunicationArrows(
-      data.counts.communications * 2,
+      data.drawableClassCommunications.length * 2,
       arrowWidth
     );
     this.add(this.arrows);

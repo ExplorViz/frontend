@@ -1,6 +1,7 @@
 import type ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
+import * as THREE from 'three';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
@@ -119,6 +120,9 @@ export function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
   } else if (mesh instanceof CommunicationArrowMesh) {
     console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
     return 'Not implemented CommunicationArrowMesh';
+  } else if (mesh instanceof THREE.InstancedMesh) {
+    console.warn(`Cannot (yet) get id from mesh (instanced mesh)`);
+    return 'Not implemented';
   } else {
     //
     console.error(typeof mesh, ' --- Mesh Type not Supported!');

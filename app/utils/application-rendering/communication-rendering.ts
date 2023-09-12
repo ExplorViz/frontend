@@ -89,13 +89,14 @@ export default class CommunicationRendering {
     const viewCenterPoint = applicationLayout.center;
 
     // Remove old communication
-    applicationObject3D.removeAllCommunication();
+    applicationObject3D.removeAllCommunication(); // TODO
     applicationObject3D.arrows.reset(
-      applicationObject3D.data.counts.communications
+      applicationObject3D.data.drawableClassCommunications.length * 2
     );
 
     // Compute communication Layout
     const commLayoutMap = applyCommunicationLayout(
+      // TODO
       applicationObject3D,
       applicationObject3D.boxLayoutMap,
       drawableClassCommunications
@@ -129,11 +130,11 @@ export default class CommunicationRendering {
         endCoordsAsString + startCoordsAsString;
 
       // Check if pipe already exists for another method call (same direction)
-      if (positionToClazzCommMesh.get(combinedCoordsAsString)) {
+      if (positionToClazzCommMesh.has(combinedCoordsAsString)) {
         // exists, therefore update pipe with additional information
         const existingClazzCommuDataModel = positionToClazzCommMesh.get(
           combinedCoordsAsString
-        )?.dataModel;
+        )!.dataModel;
 
         if (existingClazzCommuDataModel) {
           // update existing clazz commu data model

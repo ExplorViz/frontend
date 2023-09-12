@@ -32,7 +32,7 @@ export default class CommunicationArrows extends THREE.Object3D {
     this.reset(count);
   }
 
-  reset(count: number): void {
+  reset(maxNumberOfArrows: number): void {
     if (this.instancedMesh) {
       this.instancedMesh.removeFromParent();
     }
@@ -40,7 +40,7 @@ export default class CommunicationArrows extends THREE.Object3D {
     this.instancedMesh = new THREE.InstancedMesh(
       this.arrowGeometry,
       this.arrowMaterial,
-      count
+      maxNumberOfArrows
     );
     this.instancedMesh.count = 0;
     this.arrowIndex = -1;

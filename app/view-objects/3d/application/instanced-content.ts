@@ -149,6 +149,10 @@ export default class InstancedContent {
     this.init();
   }
 
+  isComponentOpened(id: string): boolean {
+    return this.openComponentIds.has(id);
+  }
+
   private updateVisibilityOfChildren(
     component: Package,
     visible: boolean,

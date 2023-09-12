@@ -6,7 +6,6 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
@@ -200,9 +199,6 @@ export default class ApplicationRenderer extends Service.extend({
         applicationState.openComponents
       );
     }
-
-    // Restore state of components highlighting
-    restoreComponentState(applicationObject3D, applicationState.openComponents);
 
     // Add labels to application
     performance.mark('addApplicationLabels-start');

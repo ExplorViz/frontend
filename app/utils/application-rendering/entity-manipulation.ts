@@ -197,24 +197,6 @@ export function toggleComponentMeshState(
 }
 
 /**
- * Takes a set of open component ids and opens them.
- *
- * @param applicationObject3D Application object which contains the components
- * @param openComponentIds Set with ids of opened components
- */
-export function restoreComponentState(
-  applicationObject3D: ApplicationObject3D,
-  openComponentIds?: Set<string>
-) {
-  openComponentIds?.forEach((componentId) => {
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
-    if (componentMesh instanceof ComponentMesh) {
-      openComponentMesh(componentMesh, applicationObject3D);
-    }
-  });
-}
-
-/**
  * Opens components of the application until at least two components are visible.
  *
  * @param applicationObject3D Application object
