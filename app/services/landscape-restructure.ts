@@ -279,10 +279,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       this.createdClassCommunication.push(classCommunication);
 
-      this.commModelTextureMappings.push({
-        action: MeshAction.Create,
-        texturePath: 'images/plus.png',
+      this.commModelColorMappings.push({
+        action: MeshAction.Communication,
         comm: classCommunication,
+        color: new THREE.Color(0xbc42f5),
       });
 
       this.trigger(
