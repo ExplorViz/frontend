@@ -252,7 +252,7 @@ export default class VrMessageSender extends Service {
       event: 'restructure_rename_operation',
       commId: commId,
       newName: newName,
-      undo: undo
+      undo: undo,
     });
   }
 

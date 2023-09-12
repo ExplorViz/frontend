@@ -124,12 +124,12 @@ export default class UndoRestructure extends Component {
             false,
             true
           );
-        } else if(lastElement instanceof CommunicationChangeLogEntry) {
+        } else if (lastElement instanceof CommunicationChangeLogEntry) {
           const { communication, originalOperationName } = lastElement;
           this.landscapeRestructure.updateOperationName(
             communication as DrawableClassCommunication,
             originalOperationName as string
-          )
+          );
         }
       }
 

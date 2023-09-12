@@ -236,8 +236,6 @@ export default class Changelog extends Service.extend(Evented, {
       deletedEntries.push(entry);
     });
     this.deletedChangeLogEntries.push(deletedEntries);
-    
-    
   }
 
   deleteSubPackageEntry(
@@ -419,11 +417,20 @@ export default class Changelog extends Service.extend(Evented, {
     this.trigger('showChangeLog');
   }
 
-  renameOperationEntry(communication: DrawableClassCommunication, newName: string) {
-    const foundEntry = this.findCommunicationLogEntryByClass(communication.sourceClass);
+  renameOperationEntry(
+    communication: DrawableClassCommunication,
+    newName: string
+  ) {
+    const foundEntry = this.findCommunicationLogEntryByClass(
+      communication.sourceClass
+    );
 
-    if(foundEntry && foundEntry instanceof CommunicationChangeLogEntry && foundEntry.communication) {
-      if(foundEntry.action === MeshAction.Create) {
+    if (
+      foundEntry &&
+      foundEntry instanceof CommunicationChangeLogEntry &&
+      foundEntry.communication
+    ) {
+      if (foundEntry.action === MeshAction.Create) {
         foundEntry.communication.operationName = newName;
       } else if (foundEntry.action === MeshAction.Rename) {
         foundEntry.newName = newName;
@@ -450,7 +457,7 @@ export default class Changelog extends Service.extend(Evented, {
     let originalName = communication.operationName;
     if (foundEntry) {
       this.changeLogEntries.removeObject(foundEntry);
-      if(foundEntry.action === MeshAction.Create) {
+      if (foundEntry.action === MeshAction.Create) {
         this.trigger('showChangeLog');
         return;
       }
@@ -490,9 +497,6 @@ export default class Changelog extends Service.extend(Evented, {
     if (!collabMode) {
       this.sender.sendChangeLogRestoreEntriesMessage();
     }
-
-    
-    
 
     const deletedEntries = this.deletedChangeLogEntries.reverse()
       .firstObject as BaseChangeLogEntry[];

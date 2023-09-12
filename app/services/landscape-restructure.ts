@@ -43,10 +43,7 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'explorviz-frontend/utils/package-helpers';
-import {
-  getClassById,
-  getClassMethodByName,
-} from 'explorviz-frontend/utils/class-helpers';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   MeshAction,
@@ -86,7 +83,11 @@ type CommModelTextureMapping = {
   comm: DrawableClassCommunication;
 };
 
-type diverseDataModel = Application | Package | Class | DrawableClassCommunication;
+type diverseDataModel =
+  | Application
+  | Package
+  | Class
+  | DrawableClassCommunication;
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -316,7 +317,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
         commMesh?.changeColor(commColor);
         this.deletedDataModels.removeObject(comm);
-        
       }
     } else {
       const newCreatedComm = comm.id.includes(' => ');
@@ -333,7 +333,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       this.changeLog.deleteCommunicationEntry(comm);
       this.deletedDataModels.push(comm);
-      
     }
     this.trigger(
       'restructureLandscapeData',
@@ -628,14 +627,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       );
     }
 
-    if(!undo) {
+    if (!undo) {
       this.changeLog.renameOperationEntry(communication, newName);
       communication.operationName = newName;
-  
+
       const updatedComms = this.updatedClassCommunications.lastObject;
       const updatedComm = updatedComms?.firstObject;
-  
-      if(updatedComm?.id === communication.id) {
+
+      if (updatedComm?.id === communication.id) {
         updatedComm.operationName = newName;
       } else {
         this.updatedClassCommunications.push([communication]);
@@ -644,7 +643,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.updatedClassCommunications.pop();
       communication.operationName = newName;
     }
-
 
     this.trigger(
       'restructureLandscapeData',

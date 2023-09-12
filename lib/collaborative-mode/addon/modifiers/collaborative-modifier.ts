@@ -483,7 +483,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   onRestructureRenameOperationMessage({
     originalMessage: { commId, newName, undo },
   }: ForwardedMessage<RestructureRenameOperationMessage>): void {
-
     const comm = this.landscapeRestructure.allClassCommunications.find(
       (comm) => comm.id === commId
     );
