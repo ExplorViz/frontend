@@ -25,6 +25,7 @@ export abstract class BaseChangeLogEntry {
 
   wasInserted?: boolean;
 
+  originalOperationName?: string;
   communication?: DrawableClassCommunication;
 
   constructor(
@@ -46,6 +47,7 @@ export abstract class BaseChangeLogEntry {
     this.originalAppName = app?.name;
     this.originalPckgName = pckg?.name;
     this.originalClazzName = clazz?.name;
+    this.originalOperationName = communication?.operationName;
   }
 
   abstract get _logText(): string;
@@ -303,6 +305,8 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
+  newName?: string;
+
   constructor(action: MeshAction, communication: DrawableClassCommunication) {
     super(action, undefined, undefined, undefined, communication);
   }
@@ -311,8 +315,10 @@ export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
     switch (this.action) {
       case MeshAction.Create:
         return `-Add a method call "${this.communication?.operationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
+      case MeshAction.Rename:
+        return `-Rename the method call "${this.originalOperationName}" to "${this.newName}" in "${this.communication?.sourceClass.name}" of Application "${this.communication?.sourceApp?.name}" targeting "${this.communication?.targetClass.name}" in Application "${this.communication?.targetApp?.name}"\n`;
       case MeshAction.Delete:
-        return `-Delete the method call "${this.communication?.operationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
+        return `-Delete the method call "${this.originalOperationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
       default:
         return `COMMUNICATION LOG ERROR\n`;
     }

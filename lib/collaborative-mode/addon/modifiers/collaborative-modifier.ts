@@ -481,19 +481,18 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }
 
   onRestructureRenameOperationMessage({
-    originalMessage: { clazzId, originalName, newName },
+    originalMessage: { commId, newName, undo },
   }: ForwardedMessage<RestructureRenameOperationMessage>): void {
-    const landscapeData =
-      this.landscapeRestructure.landscapeData?.structureLandscapeData;
-    const clazz = getClassById(
-      landscapeData as StructureLandscapeData,
-      clazzId
+
+    const comm = this.landscapeRestructure.allClassCommunications.find(
+      (comm) => comm.id === commId
     );
+
     this.landscapeRestructure.updateOperationName(
-      clazz as Class,
-      originalName,
+      comm as DrawableClassCommunication,
       newName,
-      true
+      true,
+      undo
     );
   }
 

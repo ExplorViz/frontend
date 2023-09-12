@@ -57,9 +57,9 @@ export type RestructureDeleteCommunicationMessage = {
 
 export type RestructureRenameOperationMessage = {
   event: typeof RESTRUCTURE_RENAME_OPERATION_EVENT;
-  clazzId: string;
-  originalName: string;
+  commId: string;
   newName: string;
+  undo: boolean;
 };
 
 export type RestructureRestoreAppMessage = {

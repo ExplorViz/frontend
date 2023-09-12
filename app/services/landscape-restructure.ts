@@ -86,7 +86,7 @@ type CommModelTextureMapping = {
   comm: DrawableClassCommunication;
 };
 
-type diverseDataModel = Application | Package | Class;
+type diverseDataModel = Application | Package | Class | DrawableClassCommunication;
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -315,6 +315,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
 
         commMesh?.changeColor(commColor);
+        this.deletedDataModels.removeObject(comm);
+        
       }
     } else {
       const newCreatedComm = comm.id.includes(' => ');
@@ -330,6 +332,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
 
       this.changeLog.deleteCommunicationEntry(comm);
+      this.deletedDataModels.push(comm);
+      
     }
     this.trigger(
       'restructureLandscapeData',
@@ -611,31 +615,36 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   updateOperationName(
-    clazz: Class,
-    originalName: string,
+    communication: DrawableClassCommunication,
     newName: string,
-    collabMode: boolean = false
+    collabMode: boolean = false,
+    undo: boolean = false
   ) {
     if (!collabMode) {
       this.sender.sendRestructureRenameOperationMessage(
-        clazz.id,
-        originalName,
-        newName
+        communication.id,
+        newName,
+        undo
       );
     }
 
-    const opt = getClassMethodByName(clazz, originalName);
-
-    //User created Comms are not found with getClassMethodByName
-    const newCommunication = this.createdClassCommunication.find(
-      (comm) => comm.targetClass === clazz && comm.operationName === opt?.name
-    );
-
-    if (newCommunication) {
-      newCommunication.operationName = newName;
+    if(!undo) {
+      this.changeLog.renameOperationEntry(communication, newName);
+      communication.operationName = newName;
+  
+      const updatedComms = this.updatedClassCommunications.lastObject;
+      const updatedComm = updatedComms?.firstObject;
+  
+      if(updatedComm?.id === communication.id) {
+        updatedComm.operationName = newName;
+      } else {
+        this.updatedClassCommunications.push([communication]);
+      }
+    } else {
+      this.updatedClassCommunications.pop();
+      communication.operationName = newName;
     }
 
-    if (opt) opt.name = newName;
 
     this.trigger(
       'restructureLandscapeData',

@@ -244,15 +244,15 @@ export default class VrMessageSender extends Service {
   }
 
   sendRestructureRenameOperationMessage(
-    clazzId: string,
-    originalName: string,
-    newName: string
+    commId: string,
+    newName: string,
+    undo: boolean
   ) {
     this.webSocket.send<RestructureRenameOperationMessage>({
       event: 'restructure_rename_operation',
-      clazzId: clazzId,
-      originalName: originalName,
+      commId: commId,
       newName: newName,
+      undo: undo
     });
   }
 

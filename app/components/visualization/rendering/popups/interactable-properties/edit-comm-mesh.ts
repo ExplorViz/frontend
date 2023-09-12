@@ -17,4 +17,8 @@ export default class EditCommMesh extends Component<Args> {
   deleteComm() {
     this.landscapeRestructure.deleteCommunication(this.args.drawableClassComm);
   }
+
+  get isDeleted() {
+    return !(this.landscapeRestructure.deletedDataModels.some((entity) => entity === this.args.drawableClassComm));
+  }
 }
