@@ -73,7 +73,7 @@ export class AppChangeLogEntry extends BaseChangeLogEntry {
       case MeshAction.Delete:
         return `-Delete the Application with the name "${this.originalAppName}"\n`;
       default:
-        return `LOG ERROR\n`;
+        return `APP LOG ERROR\n`;
     }
   }
 
@@ -113,7 +113,7 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
         }
         return `Unhandled CutInsert case`;
       default:
-        return `LOG ERROR\n`;
+        return `PACKAGE LOG ERROR\n`;
     }
   }
 
@@ -194,7 +194,7 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
         }
         return `Unhandled CutInsert case`;
       default:
-        return `LOG ERROR\n`;
+        return `SUBPACKAGE LOG ERROR\n`;
     }
   }
 
@@ -272,7 +272,7 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
       case MeshAction.CutInsert:
         return `-Move the Class "${this.clazz?.name}" under the Package "${this.pckg?.name}" from the Application "${this.app?.name}" to the Package "${this.destinationPckg?.name}" inside the Application "${this.destinationApp?.name}"\n`;
       default:
-        return `LOG ERROR\n`;
+        return `CLASS LOG ERROR\n`;
     }
   }
 
@@ -308,6 +308,13 @@ export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
   }
 
   get _logText(): string {
-    return `-Add a method call "${this.communication?.operationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
+    switch (this.action) {
+      case MeshAction.Create:
+        return `-Add a method call "${this.communication?.operationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
+      case MeshAction.Delete:
+        return `-Delete the method call "${this.communication?.operationName}" from "${this.communication?.sourceClass.name}" inside the Application "${this.communication?.sourceApp?.name}" to "${this.communication?.targetClass.name}" inside the Application "${this.communication?.targetApp?.name} "\n`;
+      default:
+        return `COMMUNICATION LOG ERROR\n`;
+    }
   }
 }

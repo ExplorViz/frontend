@@ -22,6 +22,7 @@ import {
   isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationFromClass } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 
 export default class UndoRestructure extends Component {
   @service('landscape-restructure')
@@ -81,7 +82,11 @@ export default class UndoRestructure extends Component {
             true
           );
         } else if (lastElement instanceof CommunicationChangeLogEntry) {
-          this.landscapeRestructure.deleteCommunication(undefined, true);
+          const { communication } = lastElement;
+          this.landscapeRestructure.deleteCommunication(
+            communication as DrawableClassCommunication,
+            true
+          );
         }
       }
 
@@ -141,6 +146,12 @@ export default class UndoRestructure extends Component {
           this.landscapeRestructure.restoreClass(
             app as Application,
             clazz as Class
+          );
+        } else if (lastElement instanceof CommunicationChangeLogEntry) {
+          const { communication } = lastElement;
+          this.landscapeRestructure.deleteCommunication(
+            communication as DrawableClassCommunication,
+            true
           );
         }
 

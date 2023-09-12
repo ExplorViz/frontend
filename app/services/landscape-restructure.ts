@@ -62,6 +62,7 @@ import {
 } from 'explorviz-frontend/utils/application-helpers';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import UserSettings from './user-settings';
 
 type MeshModelTextureMapping = {
   action: MeshAction;
@@ -70,12 +71,19 @@ type MeshModelTextureMapping = {
   originApp: Application;
   pckg?: Package;
   clazz?: Class;
+  comm?: DrawableClassCommunication;
 };
 
 type CommModelColorMapping = {
   action: MeshAction;
   comm: DrawableClassCommunication;
   color: THREE.Color;
+};
+
+type CommModelTextureMapping = {
+  action: MeshAction;
+  texturePath: string;
+  comm: DrawableClassCommunication;
 };
 
 type diverseDataModel = Application | Package | Class;
@@ -88,6 +96,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('changelog')
   changeLog!: Changelog;
@@ -122,6 +133,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   commModelColorMappings: CommModelColorMapping[] = [];
 
+  /**
+   * Storing all Communication Meshes with corresponding texture
+   */
+  @tracked
+  commModelTextureMappings: CommModelTextureMapping[] = [];
+
   @tracked
   deletedDataModels: diverseDataModel[] = [];
 
@@ -153,8 +170,17 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   updatedClassCommunications: DrawableClassCommunication[][] = [];
 
+  /**
+   * Storing all communications that will be completely deleted from the visual
+   */
   @tracked
-  deletedClassCommunications: DrawableClassCommunication[][] = [];
+  completelyDeletedClassCommunications: DrawableClassCommunication[][] = [];
+
+  /**
+   * Storing all communication that will be deleted and shown visually
+   */
+  @tracked
+  deletedClassCommunications: DrawableClassCommunication[] = [];
 
   @tracked
   sourceClass: Class | null = null;
@@ -233,7 +259,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       // Create Communication between 2 Classes
       const classCommunication: DrawableClassCommunication = {
-        id: this.sourceClass.name + ' => ' + this.targetClass.name,
+        id:
+          this.sourceClass.name +
+          ' => ' +
+          this.targetClass.name +
+          '|' +
+          methodName,
         totalRequests: 1,
         sourceClass: this.sourceClass,
         targetClass: this.targetClass,
@@ -247,10 +278,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       this.createdClassCommunication.push(classCommunication);
 
-      this.commModelColorMappings.push({
-        action: MeshAction.Communication,
+      this.commModelTextureMappings.push({
+        action: MeshAction.Create,
+        texturePath: 'images/plus.png',
         comm: classCommunication,
-        color: new THREE.Color(0xff00a6),
       });
 
       this.trigger(
@@ -263,7 +294,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @action
   deleteCommunication(
-    _comm: DrawableClassCommunication | undefined, // Later for deleting existing comms
+    comm: DrawableClassCommunication,
     undo: boolean = false,
     collabMode: boolean = false
   ) {
@@ -271,7 +302,34 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.sender.sendRestructureDeleteCommunicationMessage(undo);
     }
     if (undo) {
-      this.createdClassCommunication.pop();
+      const newCreatedComm = comm.id.includes(' => ');
+      if (newCreatedComm) {
+        this.createdClassCommunication.pop();
+        this.commModelColorMappings.pop();
+      } else {
+        this.deletedClassCommunications.pop();
+        const commMapping = this.commModelColorMappings.popObject();
+        const commMesh = this.getCommMesh(commMapping);
+        const commColor = new THREE.Color(
+          this.userSettings.applicationSettings.communicationColor.value
+        );
+
+        commMesh?.changeColor(commColor);
+      }
+    } else {
+      const newCreatedComm = comm.id.includes(' => ');
+      if (newCreatedComm) {
+        this.createdClassCommunication.pop();
+      } else {
+        this.deletedClassCommunications.push(comm);
+        this.commModelColorMappings.push({
+          action: MeshAction.Communication,
+          comm: comm,
+          color: new THREE.Color(0x1c1c1c),
+        });
+      }
+
+      this.changeLog.deleteCommunicationEntry(comm);
     }
     this.trigger(
       'restructureLandscapeData',
@@ -619,7 +677,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
       restoreID({ entity: app }, 'removed|');
     } else {
-      this.deletedClassCommunications.pop();
+      this.completelyDeletedClassCommunications.pop();
     }
     this.trigger(
       'restructureLandscapeData',
@@ -673,7 +731,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         pckg
       );
     } else {
-      this.deletedClassCommunications.pop();
+      this.completelyDeletedClassCommunications.pop();
     }
 
     this.trigger(
@@ -739,7 +797,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         clazz
       );
     } else {
-      this.deletedClassCommunications.pop();
+      this.completelyDeletedClassCommunications.pop();
     }
     this.trigger(
       'restructureLandscapeData',
@@ -823,19 +881,44 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   applyColorMappings() {
     if (this.restructureMode) {
       this.commModelColorMappings.forEach((elem) => {
-        // Distinguish between internal comms and external comms
-        if (elem.comm.sourceApp === elem.comm.targetApp) {
-          const appModel = this.applicationRenderer.getApplicationById(
-            elem.comm.sourceApp?.id as string
-          );
-          const commMesh = appModel?.commIdToMesh.get(elem.comm.id);
+        const commMesh = this.getCommMesh(elem);
 
-          commMesh?.changeColor(elem.color);
-        } else {
-          const commMesh = this.linkRenderer.getLinkById(elem.comm.id);
-          commMesh?.changeColor(elem.color);
-        }
+        commMesh?.changeColor(elem.color);
       });
+    }
+  }
+
+  private getCommMesh(elem: CommModelColorMapping) {
+    // Distinguish between internal comms and external comms
+    if (elem.comm.sourceApp === elem.comm.targetApp) {
+      const appModel = this.applicationRenderer.getApplicationById(
+        elem.comm.sourceApp?.id as string
+      );
+
+      const newCreatedComm = elem.comm.id.includes(' => ');
+      if (newCreatedComm) {
+        const commMesh = appModel?.commIdToMesh.get(elem.comm.id);
+        return commMesh;
+      } else {
+        // A communication can consist of multiple function calls. The id looks something this: XXX_XXX_operationName
+        // The operatioName represents the name of the first function.
+        // We need to remove this suffix to get a base ID of the form: XXX_XXX
+        const suffixToRemove = '_' + elem.comm.operationName;
+        const meshId = elem.comm.id.replace(suffixToRemove, '');
+
+        // Now that we have an Id of the form: XXX_XXX we are only missing the _operationName suffix.
+        // We'll look for a key in the 'commIdToMesh' map that starts with our base ID.
+        if (appModel) {
+          for (const key of appModel.commIdToMesh.keys()) {
+            if (key.startsWith(meshId)) {
+              return appModel?.commIdToMesh.get(key);
+            }
+          }
+        }
+      }
+    } else {
+      const commMesh = this.linkRenderer.getLinkById(elem.comm.id);
+      return commMesh;
     }
   }
 
@@ -1240,7 +1323,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.processDeletedAppData(app);
 
         // Updating deleted communications
-        this.deletedClassCommunications.push(wrapper.deletedComms);
+        this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
       } else {
         // Removes existing Changelog entry
         this.changeLog.deleteAppEntry(app, true);
@@ -1323,7 +1406,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       );
 
       if (!shouldUndo) {
-        this.deletedClassCommunications.push(wrapper.deletedComms);
+        this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
         // Create Changelog Entry
         if (app && pckg.parent) {
           this.changeLog.deleteSubPackageEntry(app, pckg);
@@ -1485,7 +1568,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       removeClassFromPackage(wrapper, clazz, shouldUndo);
 
       if (!shouldUndo) {
-        this.deletedClassCommunications.push(wrapper.deletedComms);
+        this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
         this.meshModelTextureMappings.push({
           action: MeshAction.Delete,
           meshType: EntityType.Clazz,

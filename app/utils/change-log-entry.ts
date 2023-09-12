@@ -11,4 +11,5 @@ export enum EntityType {
   Package = 'PACKAGE',
   SubPackage = 'SUBPACKAGE',
   Clazz = 'CLAZZ',
+  Communication = 'COMMUNICATION',
 }

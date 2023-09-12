@@ -284,7 +284,7 @@ export default class Changelog extends Service.extend(Evented, {
     undoInsert: boolean = false
   ) {
     const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
-    const commEntry = this.findCommunicationLogEntry(clazz);
+    const commEntry = this.findCommunicationLogEntryByClass(clazz);
     this.storeDeletedEntries();
 
     // Remove Communication Log Entry
@@ -417,6 +417,26 @@ export default class Changelog extends Service.extend(Evented, {
     this.trigger('showChangeLog');
   }
 
+  deleteCommunicationEntry(communication: DrawableClassCommunication) {
+    const foundEntry = this.findCommunicationLogEntryByClass(
+      communication.sourceClass
+    );
+
+    if (foundEntry) {
+      this.changeLogEntries.removeObject(foundEntry);
+      this.trigger('showChangeLog');
+      return;
+    }
+
+    const commEntry = new CommunicationChangeLogEntry(
+      MeshAction.Delete,
+      communication
+    );
+
+    this.changeLogEntries.push(commEntry);
+    this.trigger('showChangeLog');
+  }
+
   /**
    * Retrieves the log text for all changelog entries.
    * @returns string with all log texts with each seperated by a new line
@@ -483,7 +503,7 @@ export default class Changelog extends Service.extend(Evented, {
     }
   }
 
-  private findCommunicationLogEntry(
+  private findCommunicationLogEntryByClass(
     clazz: Class
   ): BaseChangeLogEntry | undefined {
     return this.changeLogEntries.find(
