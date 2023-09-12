@@ -419,6 +419,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       mesh.deleteFromParent();
     });
     this.commIdToMesh.clear();
+    this.arrows.reset(0);
   }
 
   /**
