@@ -192,8 +192,12 @@ export default class VisualizationController extends Controller {
 
   @action
   updateTimestampList() {
+    if (!this.landscapeTokenService.token) {
+      this.debug('No token available to update timestamp list');
+      return;
+    }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token!.value;
+    const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
