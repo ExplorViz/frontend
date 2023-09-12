@@ -29,18 +29,24 @@ export default class InstancedContent {
   private hoverIndex = -1;
   private previousColor = new THREE.Color();
 
-  readonly openComponentsIds = new Set<string>();
+  readonly openComponentIds;
 
-  constructor(app3d: ApplicationObject3D, colors: ApplicationColors) {
+  constructor(
+    app3d: ApplicationObject3D,
+    colors: ApplicationColors,
+    openComponentIds?: Set<string>
+  ) {
     this.app3d = app3d;
     this.colors = colors;
+    this.openComponentIds = openComponentIds ?? new Set();
 
-    // TODO: count components and classes in worker
-    this.components = new THREE.InstancedMesh(boxGeometry, pkgMaterial, 512);
-    this.classes = new THREE.InstancedMesh(
-      boxGeometry,
+    this.components = createInstancedMesh(
+      pkgMaterial,
+      app3d.data.counts.packages
+    );
+    this.classes = createInstancedMesh(
       this.classMaterial,
-      512
+      app3d.data.counts.classes
     );
 
     this.components.receiveShadow = true;
@@ -57,16 +63,16 @@ export default class InstancedContent {
     const componentData = this.componentData[index];
     const component = componentData.component;
     const layout = this.getLayout(component.id);
-    const newOpenState = !this.openComponentsIds.has(component.id);
+    const newOpenState = !this.openComponentIds.has(component.id);
 
     if (newOpenState) {
-      this.openComponentsIds.add(component.id);
+      this.openComponentIds.add(component.id);
     } else {
-      this.openComponentsIds.delete(component.id);
+      this.openComponentIds.delete(component.id);
     }
 
     const parentVisible = component.parent
-      ? this.openComponentsIds.has(component.parent.id)
+      ? this.openComponentIds.has(component.parent.id)
       : true;
     this.updateComponentInstance(index, layout, newOpenState, parentVisible);
 
@@ -81,19 +87,19 @@ export default class InstancedContent {
   openOrCloseAllComponents(open: boolean): void {
     for (const data of this.componentData) {
       const id = data.component.id;
-      const currentlyOpen = this.openComponentsIds.has(id);
+      const currentlyOpen = this.openComponentIds.has(id);
       if (open === currentlyOpen) {
         continue;
       }
 
       if (open) {
-        this.openComponentsIds.add(id);
+        this.openComponentIds.add(id);
       } else {
-        this.openComponentsIds.delete(id);
+        this.openComponentIds.delete(id);
       }
 
       const parentVisible = data.component.parent
-        ? this.openComponentsIds.has(data.component.parent.id)
+        ? this.openComponentIds.has(data.component.parent.id)
         : true;
       this.updateComponentInstance(
         data.index,
@@ -135,12 +141,12 @@ export default class InstancedContent {
 
   update(openComponentIds?: Set<string>): void {
     // Remove old data:
-    this.openComponentsIds.clear();
+    this.openComponentIds.clear();
     this.componentData.length = 0;
     this.componentDataById.clear();
     this.classData.clear();
 
-    openComponentIds?.forEach((id) => this.openComponentsIds.add(id));
+    openComponentIds?.forEach((id) => this.openComponentIds.add(id));
 
     this.init();
   }
@@ -163,7 +169,7 @@ export default class InstancedContent {
     for (const child of component.subPackages) {
       const data = this.componentDataById.get(child.id)!;
       const layout = this.getLayout(child.id);
-      const opened = this.openComponentsIds.has(child.id);
+      const opened = this.openComponentIds.has(child.id);
       this.updateComponentInstance(data.index, layout, opened, visible);
 
       if (opened) {
@@ -173,6 +179,16 @@ export default class InstancedContent {
   }
 
   private init(): void {
+    this.hoverIndex = -1;
+
+    const counts = this.app3d.data.counts;
+    if (counts.classes !== this.classes.count) {
+      this.classes = createInstancedMesh(this.classMaterial, counts.classes);
+    }
+    if (counts.packages !== this.components.count) {
+      this.components = createInstancedMesh(pkgMaterial, counts.packages);
+    }
+
     const position = new THREE.Vector3(0, 0, 0).sub(this.app3d.layout.center);
     this.components.position.copy(position);
     this.classes.position.copy(position);
@@ -196,7 +212,7 @@ export default class InstancedContent {
   ): void {
     const layout = this.getLayout(component.id);
 
-    const opened = this.openComponentsIds.has(component.id);
+    const opened = this.openComponentIds.has(component.id);
     const color =
       level % 2 === 0
         ? this.colors.componentEvenColor
@@ -280,6 +296,13 @@ function setupMatrix(
   }
 
   tmpMatrix.setPosition(position);
+}
+
+function createInstancedMesh(
+  material: THREE.Material,
+  count: number
+): THREE.InstancedMesh {
+  return new THREE.InstancedMesh(boxGeometry, material, count);
 }
 
 type ComponentData = {

@@ -3,6 +3,7 @@ import type { DrawableClassCommunication } from 'explorviz-frontend/utils/applic
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import type { ApplicationHeatmapData } from 'heatmap/services/heatmap-configuration';
 import type { WorkerApplicationData } from 'workers/landscape-data-worker/LandscapeDataContext';
+import type { ClassAndPackageCounts } from 'workers/utils';
 
 export default class ApplicationData {
   application: Application;
@@ -15,11 +16,14 @@ export default class ApplicationData {
 
   drawableClassCommunications: DrawableClassCommunication[] = [];
 
+  counts: ClassAndPackageCounts;
+
   constructor(application: Application, data: WorkerApplicationData) {
     this.application = application;
     this.layoutData = data.layout;
     this.flatData = data.flatData;
     this.heatmapData = data.heatmap;
+    this.counts = data.counts;
   }
 
   updateApplication(newApplication: Application, data: WorkerApplicationData) {

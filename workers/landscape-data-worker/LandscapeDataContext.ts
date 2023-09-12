@@ -16,6 +16,7 @@ import {
 } from 'workers/city-layouter';
 import { calculateFlatData, type FlatData } from 'workers/flat-data-worker';
 import { calculateHeatmapData } from 'workers/metrics-worker';
+import { ClassAndPackageCounts, countClassesAndPackages } from 'workers/utils';
 
 export default class LandscapeDataContext {
   readonly token: string;
@@ -188,7 +189,14 @@ function computeApplicationData(
       application,
       drawableClassCommunications
     );
-    data.set(application.id, { layout, heatmap, flatData, communication });
+    const counts = countClassesAndPackages(application);
+    data.set(application.id, {
+      layout,
+      heatmap,
+      flatData,
+      communication,
+      counts,
+    });
   }
   performance.mark('appData-completed');
 
@@ -200,6 +208,7 @@ export type WorkerApplicationData = {
   heatmap: ApplicationHeatmapData;
   flatData: Map<string, FlatData>;
   communication: DrawableClassCommunication[];
+  counts: ClassAndPackageCounts;
 };
 
 /**

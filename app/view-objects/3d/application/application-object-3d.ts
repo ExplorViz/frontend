@@ -54,7 +54,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
   constructor(
     data: ApplicationData,
     boxLayoutMap: Map<string, BoxLayout>,
-    colors: ApplicationColors
+    colors: ApplicationColors,
+    openComponentIds?: Set<string>
   ) {
     super();
 
@@ -62,7 +63,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.boxLayoutMap = boxLayoutMap;
 
     this.createFoundation(colors);
-    this.content = new InstancedContent(this, colors);
+    this.content = new InstancedContent(this, colors, openComponentIds);
   }
 
   private createFoundation(colors: ApplicationColors): void {
@@ -76,8 +77,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
       colors.highlightedEntityColor
     );
 
-    mesh.position.copy(layout.center);
-    mesh.position.sub(layout.center);
     this.add(mesh);
   }
 
@@ -263,7 +262,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * application and returns a set with ids of the opened components.
    */
   get openComponentIds() {
-    return structuredClone(this.content.openComponentsIds);
+    return structuredClone(this.content.openComponentIds);
   }
 
   /**

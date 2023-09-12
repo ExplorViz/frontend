@@ -1,3 +1,4 @@
+import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
   ReducedApplication,
   ReducedClass,
@@ -29,6 +30,31 @@ export function getAllComponentsInApplication(
   });
   return components;
 }
+
+export function countClassesAndPackages(
+  application: Application
+): ClassAndPackageCounts {
+  // TODO: fix types
+  const allComponents = getAllComponentsInApplication(
+    application as unknown as ReducedApplication
+  );
+
+  let classes = 0;
+
+  for (const component of allComponents) {
+    classes += component.classes.length;
+  }
+
+  return {
+    classes,
+    packages: allComponents.length,
+  };
+}
+
+export type ClassAndPackageCounts = {
+  classes: number;
+  packages: number;
+};
 
 function getAllComponents(component: ReducedComponent): ReducedComponent[] {
   const components: ReducedComponent[] = [];

@@ -7,7 +7,6 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import { removeHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
@@ -185,7 +184,8 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D = new VrApplicationObject3D(
         applicationData,
         boxLayoutMap,
-        this.configuration.applicationColors
+        this.configuration.applicationColors,
+        addApplicationArgs.openComponents
       );
     }
 
