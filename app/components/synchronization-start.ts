@@ -40,16 +40,12 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     value:
       this.args.tokenId === 'intro'
         ? '17844195-6144-4254-a17b-0f7fb49adb0a' // Intro landscape
-        : '26844195-7235-4254-a17b-0f7fb49adb0a', // Evaluation landscape
+        : '12444195-6144-4254-a17b-asdgfewefg', // Evaluation landscape
   };
 
   // Check for updates on query params
   checkQueryParams() {
-    return (
-      this.args.deviceId > -99 &&
-      this.args.roomId !== '' &&
-      this.args.tokenId !== ''
-    );
+    return this.args.deviceId > -99 && this.args.roomId !== '';
   }
 
   async routeToVisualization(token: LandscapeToken) {
