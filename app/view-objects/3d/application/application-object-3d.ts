@@ -13,6 +13,7 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import InstancedContent from './instanced-content';
 import type { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import CommunicationArrows from './communication-arrows';
+import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -210,6 +211,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     }
     this.createFoundation(colors);
     this.content.update(openComponentIds);
+  }
+
+  getOpenedComponents(): Package[] {
+    return this.content.getOpenedComponents();
   }
 
   getBoxLayout(id: string) {

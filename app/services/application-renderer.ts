@@ -200,6 +200,8 @@ export default class ApplicationRenderer extends Service.extend({
       );
     }
 
+    this.addCommunication(applicationObject3D);
+
     // Add labels to application
     performance.mark('addApplicationLabels-start');
     Labeler.addApplicationLabels(
@@ -208,8 +210,6 @@ export default class ApplicationRenderer extends Service.extend({
       this.configuration.applicationColors
     );
     performance.mark('addApplicationLabels-end');
-
-    this.addCommunication(applicationObject3D);
 
     applicationState.highlightedComponents?.forEach((highlightedComponent) => {
       this.highlightingService.hightlightComponentLocallyByTypeAndId(

@@ -50,6 +50,7 @@ export default class InstancedContent {
     this.components.receiveShadow = true;
     this.components.castShadow = true;
     this.classes.castShadow = true;
+    this.classes.receiveShadow = true;
 
     app3d.add(this.components);
     app3d.add(this.classes);
@@ -151,6 +152,12 @@ export default class InstancedContent {
 
   isComponentOpened(id: string): boolean {
     return this.openComponentIds.has(id);
+  }
+
+  getOpenedComponents(): Package[] {
+    return this.componentData
+      .filter((data) => this.openComponentIds.has(data.component.id))
+      .map((data) => data.component);
   }
 
   private updateVisibilityOfChildren(
