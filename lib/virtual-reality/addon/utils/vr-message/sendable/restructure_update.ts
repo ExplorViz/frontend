@@ -52,6 +52,7 @@ export type RestructureCommunicationMessage = {
 export type RestructureDeleteCommunicationMessage = {
   event: typeof RESTRUCTURE_DELETE_COMMUNICATION_EVENT;
   undo: boolean;
+  commId: string;
 };
 
 export type RestructureRenameOperationMessage = {

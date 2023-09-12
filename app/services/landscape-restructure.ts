@@ -299,7 +299,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     collabMode: boolean = false
   ) {
     if (!collabMode) {
-      this.sender.sendRestructureDeleteCommunicationMessage(undo);
+      this.sender.sendRestructureDeleteCommunicationMessage(undo, comm.id);
     }
     if (undo) {
       const newCreatedComm = comm.id.includes(' => ');
@@ -915,6 +915,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             }
           }
         }
+
+        // Should never happen!
+        console.log('Communication Mesh was not found');
+        return undefined;
       }
     } else {
       const commMesh = this.linkRenderer.getLinkById(elem.comm.id);

@@ -10,6 +10,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import {
@@ -467,9 +468,16 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }
 
   onRestructureDeleteCommunication({
-    originalMessage: { undo },
+    originalMessage: { undo, commId },
   }: ForwardedMessage<RestructureDeleteCommunicationMessage>): void {
-    this.landscapeRestructure.deleteCommunication(undefined, undo, true);
+    const comm = this.landscapeRestructure.allClassCommunications.find(
+      (comm) => comm.id === commId
+    );
+    this.landscapeRestructure.deleteCommunication(
+      comm as DrawableClassCommunication,
+      undo,
+      true
+    );
   }
 
   onRestructureRenameOperationMessage({

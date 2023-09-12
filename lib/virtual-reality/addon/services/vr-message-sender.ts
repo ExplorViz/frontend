@@ -235,10 +235,11 @@ export default class VrMessageSender extends Service {
     });
   }
 
-  sendRestructureDeleteCommunicationMessage(undo: boolean) {
+  sendRestructureDeleteCommunicationMessage(undo: boolean, commId: string) {
     this.webSocket.send<RestructureDeleteCommunicationMessage>({
       event: 'restructure_delete_communication',
       undo: undo,
+      commId: commId,
     });
   }
 
