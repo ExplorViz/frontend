@@ -89,18 +89,17 @@ export default class CommunicationRendering {
     const viewCenterPoint = applicationLayout.center;
 
     // Remove old communication
-    applicationObject3D.removeAllCommunication(); // TODO
+    applicationObject3D.removeAllCommunication();
     applicationObject3D.arrows.reset(
       applicationObject3D.data.drawableClassCommunications.length * 2
     );
 
     // Compute communication Layout
     const commLayoutMap = applyCommunicationLayout(
-      // TODO
       applicationObject3D,
       applicationObject3D.boxLayoutMap,
       drawableClassCommunications
-    );
+    ); // TODO: size if all components open is 32 instead of 896
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =

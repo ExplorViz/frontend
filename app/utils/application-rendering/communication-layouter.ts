@@ -184,7 +184,7 @@ export default function applyCommunicationLayout(
         getParentComponentOfDrawableCommunication(classCommunication);
 
       if (
-        parentComponent === null || // common ancestor must be the foundation
+        parentComponent === null || // parent must be the foundation
         isComponentOpened(application.id)
       ) {
         let sourceEntity: Class | Package | null = null;

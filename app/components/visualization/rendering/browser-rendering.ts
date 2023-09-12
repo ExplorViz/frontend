@@ -455,7 +455,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // Update hover effect
     if (enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
       if (mesh instanceof THREE.InstancedMesh) {
-        const applicationObject3D = mesh.parent as ApplicationObject3D;
+        const applicationObject3D = getApplicationObject3D(mesh);
         applicationObject3D.content.applyHoverEffect(intersection!.instanceId!);
       } else if (isEntityMesh(mesh)) {
         // TODO
@@ -568,4 +568,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (!glExtension) return;
     glExtension.loseContext();
   }
+}
+
+function getApplicationObject3D(object: THREE.Object3D): ApplicationObject3D {
+  if (object instanceof ApplicationObject3D) {
+    return object;
+  }
+
+  if (!object.parent) {
+    console.error(`mesh has no parent`, object);
+    throw new Error('No parent!');
+  }
+
+  return getApplicationObject3D(object.parent);
 }
