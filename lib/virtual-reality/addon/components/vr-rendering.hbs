@@ -4,23 +4,46 @@
     {{did-insert this.outerDivInserted}}
     {{did-resize this.resize debounce=100}}
   >
-    <canvas
-      class='main-content-majority'
-      {{did-insert this.canvasInserted}}
-      {{interaction-modifier
-        raycastObjects=this.scene
-        camera=this.localUser.defaultCamera
-        singleClick=this.handleSingleClick
-        doubleClick=this.handleDoubleClick
-        mouseMove=this.handleMouseMove
-      }}
-      {{heatmap-renderer camera=this.camera scene=this.scene}}
-      {{collaborative-modifier
-        raycastObject3D=this.scene
-        camera=this.localUser.defaultCamera
-      }}
-    >
-    </canvas>
+
+    {{#if @debugMode}}
+      <canvas
+        class='main-content-majority'
+        {{did-insert this.canvasInserted}}
+        {{interaction-modifier
+          raycastObjects=this.scene
+          camera=this.localUser.defaultCamera
+          singleClick=this.handleSingleClick
+          doubleClick=this.handleDoubleClick
+          mouseMove=this.handleMouseMove
+        }}
+        {{heatmap-renderer camera=this.camera scene=this.scene}}
+        {{collaborative-modifier
+          raycastObject3D=this.scene
+          camera=this.localUser.defaultCamera
+        }}
+      >
+      </canvas>
+    {{else}}
+      <canvas
+        hidden
+        class='main-content-majority'
+        {{did-insert this.canvasInserted}}
+        {{interaction-modifier
+          raycastObjects=this.scene
+          camera=this.localUser.defaultCamera
+          singleClick=this.handleSingleClick
+          doubleClick=this.handleDoubleClick
+          mouseMove=this.handleMouseMove
+        }}
+        {{heatmap-renderer camera=this.camera scene=this.scene}}
+        {{collaborative-modifier
+          raycastObject3D=this.scene
+          camera=this.localUser.defaultCamera
+        }}
+      >
+      </canvas>
+    {{/if}}
+
     {{#if this.loadNewLandscape.isRunning}}
       <Visualization::Rendering::LoadingIndicator
         @text='Loading New Landscape'
@@ -35,5 +58,6 @@
     @renderer={{this.renderer}}
     @onSessionStartedCallback={{this.onVrSessionStarted}}
     @onSessionEndedCallback={{this.onVrSessionEnded}}
+    @debugMode={{@debugMode}}
   />
 </VrDropArea>

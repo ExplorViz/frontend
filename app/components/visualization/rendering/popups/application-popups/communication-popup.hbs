@@ -118,13 +118,9 @@
         </tr>
         {{! Name }}
         <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'comment-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{drawableClassCommu.operationName}}
-          </td>
+          <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
+            @communication={{drawableClassCommu}}
+          />
         </tr>
         {{! Requests }}
         <tr>

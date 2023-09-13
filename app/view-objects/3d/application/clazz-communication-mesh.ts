@@ -3,7 +3,8 @@ import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
-import ApplicationObject3D from './application-object-3d';
+import type ApplicationObject3D from './application-object-3d';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -13,6 +14,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   potentialBidirectionalArrowData: [THREE.Vector3, THREE.Vector3] | undefined;
 
   private app3d: ApplicationObject3D;
+
+  curveHeight: number = 0.0;
+
+  applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
   constructor(
     app3d: ApplicationObject3D,
@@ -45,6 +50,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    */
   turnTransparent(opacity = 0.3) {
     super.turnTransparent(opacity);
+
     this.children.forEach((childObject) => {
       if (childObject instanceof CommunicationArrowMesh) {
         childObject.turnTransparent(opacity);
@@ -66,11 +72,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   unhighlight(): void {
     super.unhighlight();
-    this.children.forEach((childObject) => {
-      if (childObject instanceof CommunicationArrowMesh) {
-        childObject.turnOpaque();
-      }
-    });
+    // this.children.forEach((childObject) => {
+    //   if (childObject instanceof CommunicationArrowMesh) {
+    //     childObject.turnOpaque();
+    //   }
+    // });
   }
 
   /**
@@ -111,8 +117,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.position.copy(end.add(start).divideScalar(2));
   }
 
+  renderRecursiveCommunication(applicationCenter = new THREE.Vector3()) {
+    this.applicationCenter = applicationCenter;
+    const { layout } = this;
+
+    // Place sphere for communication above corresponding class
+    this.position.copy(
+      new THREE.Vector3().subVectors(layout.startPoint, applicationCenter)
+    );
+    this.geometry = new THREE.SphereGeometry(0.5);
+
+    return;
+  }
+
   /**
-   * Renders the communication mesh as straight cylinder geometry.
+   * Renders the communication mesh as cylinder geometry.
    *
    * @param applicationCenter The center point of the application.
    * @param curveHeight Max height of the communication. Default 0.0
@@ -123,6 +142,14 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     curveHeight = 0.0,
     desiredSegments = 20
   ) {
+    // Handle recursive communication
+    if (this.isRecursiveCommunication()) {
+      this.renderRecursiveCommunication(applicationCenter);
+      return;
+    }
+
+    this.applicationCenter = applicationCenter;
+    this.curveHeight = curveHeight;
     const { layout } = this;
 
     const start = new THREE.Vector3();
@@ -176,10 +203,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const arrowWidth = width + layout.lineThickness / 2;
 
     const start = new THREE.Vector3();
-    start.subVectors(startPoint, applicationCenter);
-
     const end = new THREE.Vector3();
-    end.subVectors(endPoint, applicationCenter);
+
+    if (!this.isRecursiveCommunication()) {
+      start.subVectors(startPoint, applicationCenter);
+      end.subVectors(endPoint, applicationCenter);
+    }
 
     this.addArrow(start, end, arrowWidth, yOffset, color);
 
@@ -289,5 +318,33 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   canBeIntersected() {
     return true;
+  }
+
+  isRecursiveCommunication() {
+    return (
+      this.layout.model.sourceClass.id === this.layout.model.targetClass.id
+    );
+  }
+
+  applyHoverEffect(arg?: VisualizationMode | number): void {
+    if (arg === 'vr' && this.isHovered === false) {
+      this.layout.lineThickness *= 5;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+      super.applyHoverEffect();
+    } else if (this.isHovered === false) {
+      super.applyHoverEffect();
+    }
+  }
+
+  resetHoverEffect(mode?: VisualizationMode): void {
+    if (this.isHovered) {
+      super.resetHoverEffect();
+      if (mode === 'vr') {
+        this.layout.lineThickness /= 5;
+        this.geometry.dispose();
+        this.render(this.applicationCenter, this.curveHeight);
+      }
+    }
   }
 }

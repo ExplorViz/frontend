@@ -27,7 +27,9 @@ export default class PingMenu extends AnimatedMenu {
 
   updatePing(controller: VRController) {
     controller.updateIntersectedObject();
-    this.mesh?.updateIntersection(controller.intersectedObject?.point ?? null);
+    this.mesh?.updateIntersection(
+      controller.intersectedObject?.point ?? undefined
+    );
   }
 
   get enableControllerRay() {

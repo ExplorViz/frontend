@@ -24,9 +24,7 @@ export function calculatePipeSize(
 
     // Generate a list with all requests
     drawableClassCommunications.forEach((clazzCommunication) => {
-      if (clazzCommunication.sourceClass !== clazzCommunication.targetClass) {
-        requestsList.push(clazzCommunication.totalRequests);
-      }
+      requestsList.push(clazzCommunication.totalRequests);
     });
 
     return requestsList;
@@ -89,6 +87,7 @@ export default function applyCommunicationLayout(
       if (maybeCommunicationLayout) {
         // normalize request count to [0, 1] interval
         let range = maximumRequests - minRequests;
+
         let normalizedRequests = 1;
         if (range !== 0) {
           normalizedRequests =
@@ -231,6 +230,12 @@ export default function applyCommunicationLayout(
           // commLayout.endY = targetLayout.positionY + 0.05;
           commLayout.endY = targetLayout.positionY;
           commLayout.endZ = targetLayout.positionZ + targetLayout.depth / 2.0;
+        }
+
+        // Place recursive communication slightly above class
+        if (sourceEntity.id === targetEntity.id) {
+          commLayout.startY += 2.0;
+          commLayout.endY += 2.0;
         }
       }
     }

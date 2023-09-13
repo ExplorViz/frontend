@@ -168,9 +168,10 @@
     "simpleheat": "^0.4.0",
     "socket.io-client": "^4.7.2",
     "stats.js": "^0.17.0",
-    "three": "0.152.2",
+    "three": "^0.152.2",
     "three-forcegraph": "^1.41.10",
-    "vanilla-picker": "^2.12.2"
+    "three-mesh-ui": "^6.5.4",
+    "vanilla-picker": "^2.12.1"
   },
   "overrides": {
     "ember-cli-ifa": "~0.10.0"

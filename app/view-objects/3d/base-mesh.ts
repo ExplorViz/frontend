@@ -29,6 +29,41 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
+  changeTexture(texturePath: string, repeat: number = 5) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      const loader = new THREE.TextureLoader();
+
+      const texture = loader.load(
+        texturePath,
+        function textureSettings(texture) {
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.offset.set(0, 0);
+          texture.repeat.set(repeat, repeat);
+        }
+      );
+
+      this.material.map = texture;
+      this.material.blending = THREE.NormalBlending;
+
+      this.material.needsUpdate = true;
+    }
+  }
+
+  changeColor(color: THREE.Color) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      this.defaultColor = color;
+      this.material.needsUpdate = true;
+    }
+  }
+
   highlight() {
     this.highlighted = true;
     if (
@@ -48,7 +83,6 @@ export default abstract class BaseMesh<
       this.material instanceof MeshLineMaterial
     ) {
       this.material.color = this.defaultColor;
-      this.changeOpacity(this.defaultOpacity);
     }
   }
 
@@ -100,8 +134,10 @@ export default abstract class BaseMesh<
     ) {
       if (this.highlighted) {
         this.material.color = this.highlightingColor;
+        this.material.needsUpdate = true;
       } else {
         this.material.color = this.defaultColor;
+        this.material.needsUpdate = true;
       }
     }
   }
@@ -111,6 +147,7 @@ export default abstract class BaseMesh<
     if (this.material instanceof THREE.Material) {
       this.material.opacity = opacity;
       this.material.transparent = isTransparent;
+      this.material.needsUpdate = true;
     }
   }
 
@@ -148,5 +185,11 @@ export default abstract class BaseMesh<
         }
       }
     });
+  }
+
+  set scaleAll(all: number) {
+    this.scale.x += all;
+    this.scale.y += all;
+    this.scale.z += all;
   }
 }

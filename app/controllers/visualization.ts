@@ -10,6 +10,8 @@ import LocalUser, {
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, {
   Timestamp,
@@ -40,6 +42,15 @@ import {
   LandscapeDataUpdateEventName,
   type LocalLandscapeData,
 } from 'explorviz-frontend/services/landscape-data-service';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {
+  SerializedApp,
+  SerializedDetachedMenu,
+  SerializedHighlightedComponent,
+} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import { timeout } from 'ember-concurrency';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -62,6 +73,8 @@ export const earthTexture = new THREE.TextureLoader().load(
 export default class VisualizationController extends Controller {
   @service('landscape-data-service')
   landscapeDataService!: LandscapeDataService;
+
+  @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
 
@@ -86,6 +99,15 @@ export default class VisualizationController extends Controller {
 
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -112,6 +134,15 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
+
+  @tracked
+  vrSupported: boolean = false;
+
+  @tracked
+  buttonText: string = '';
+
+  @tracked
+  flag: boolean = false; // default value
 
   private debug = debugLogger();
 
@@ -164,13 +195,49 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  receiveNewLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    this.debug('receiveNewLandscapeData');
+    if (!this.visualizationPaused) {
+      this.updateLandscape(structureData, dynamicData);
+      if (this.timelineTimestamps.lastObject) {
+        this.timestampService.timestamp =
+          this.timelineTimestamps.lastObject?.timestamp;
+      }
+    }
+  }
+
+  @action
+  restructureLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    this.updateLandscape(structureData, dynamicData);
+  }
+
+  updateLandscape(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    this.landscapeData = {
+      structureLandscapeData: structureData,
+      dynamicLandscapeData: dynamicData,
+    };
+  }
+
+  @action
   switchToAR() {
     this.switchToMode('ar');
   }
 
   @action
   switchToVR() {
-    this.switchToMode('vr');
+    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
+    if (this.vrSupported) {
+      this.switchToMode('vr');
+    }
   }
 
   @action
@@ -403,11 +470,32 @@ export default class VisualizationController extends Controller {
   // user handling end
   async onInitialLandscape({
     landscape,
+    openApps,
+    detachedMenus,
+    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-    //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
-    this.updateTimestamp(landscape.timestamp);
+    this.linkRenderer.flag = true;
+    while (this.linkRenderer.flag) {
+      await timeout(50);
+    }
+    // now we can be sure our linkRenderer has all extern links
+
+    this.roomSerializer.serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+      highlightedExternCommunicationLinks:
+        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+    };
+
+    // this.applicationRenderer.restoreFromSerialization(
+    //   this.roomSerializer.serializedRoom
+    // );
+
+    this.applicationRenderer.highlightingService.updateHighlighting();
+    await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
   }
@@ -437,6 +525,29 @@ export default class VisualizationController extends Controller {
 
     if (this.allLandscapeDataExistsAndNotEmpty !== notEmpty) {
       this.allLandscapeDataExistsAndNotEmpty = notEmpty;
+    }
+  }
+
+  /**
+   * Checks the current status of WebXR in the browser and if compatible
+   * devices are connected. Sets the tracked properties
+   * 'buttonText' and 'vrSupported' accordingly.
+   */
+  @action
+  async updateVrStatus() {
+    if ('xr' in navigator) {
+      this.vrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+
+      if (this.vrSupported) {
+        this.buttonText = 'Enter VR';
+      } else if (window.isSecureContext === false) {
+        this.buttonText = 'WEBXR NEEDS HTTPS';
+      } else {
+        this.buttonText = 'WEBXR NOT AVAILABLE';
+      }
+    } else {
+      this.buttonText = 'WEBXR NOT SUPPORTED';
     }
   }
 }

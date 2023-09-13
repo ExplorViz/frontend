@@ -454,7 +454,7 @@ export default class ArRendering extends Component<Args> {
     if (intersection) {
       this.handleSecondaryInputOn(intersection);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.removeHighlightingForAllApplications(true);
     }
   }
 
@@ -687,7 +687,7 @@ export default class ArRendering extends Component<Args> {
       object instanceof ClazzMesh ||
       object instanceof ClazzCommunicationMesh
     ) {
-      this.highlightingService.highlight(object);
+      this.highlightingService.highlight(object, true, this.localUser.color);
     }
   }
 
