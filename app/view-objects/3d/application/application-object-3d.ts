@@ -14,7 +14,7 @@ import InstancedContent from './instanced-content';
 import type { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import CommunicationArrows from './communication-arrows';
 import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 

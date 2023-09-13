@@ -52,6 +52,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
+import LandscapeDataService from './landscape-data-service';
 
 type MeshModelTextureMapping = {
   action: ChangeLogAction;
@@ -84,6 +85,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('landscape-data-service')
+  readonly landscapeDataService!: LandscapeDataService;
 
   @tracked
   public restructureMode: boolean = false;
@@ -218,14 +222,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Application name
         app.name = name;
 
-        this.trigger(
-          'restructureLandscapeData',
+        await this.landscapeDataService.changeData(
           this.landscapeData.structureLandscapeData,
           this.landscapeData.dynamicLandscapeData
         );
 
         // Wait for changes to take effect
-        await new Promise((f) => setTimeout(f, 3000));
+        await new Promise((f) => setTimeout(f, 3000)); // TODO: still necessary?
 
         this.meshModelTextureMappings.push({
           action: ChangeLogAction.Rename,
@@ -259,14 +262,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Package name
         pckg.name = name;
 
-        this.trigger(
-          'restructureLandscapeData',
+        await this.landscapeDataService.changeData(
           this.landscapeData.structureLandscapeData,
           this.landscapeData.dynamicLandscapeData
         );
 
         // Wait for changes to take effect
-        await new Promise((f) => setTimeout(f, 5000));
+        await new Promise((f) => setTimeout(f, 5000)); // TODO
 
         this.meshModelTextureMappings.push({
           action: ChangeLogAction.Rename,
@@ -297,14 +299,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Package name
         pckg.name = name;
 
-        this.trigger(
-          'restructureLandscapeData',
+        await this.landscapeDataService.changeData(
           this.landscapeData.structureLandscapeData,
           this.landscapeData.dynamicLandscapeData
         );
 
         // Wait for changes to take effect
-        await new Promise((f) => setTimeout(f, 5000));
+        await new Promise((f) => setTimeout(f, 5000)); // TODO
 
         this.meshModelTextureMappings.push({
           action: ChangeLogAction.Rename,

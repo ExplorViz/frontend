@@ -5,8 +5,9 @@ import type {
 } from './landscape-data-worker/LandscapeDataContext';
 import LandscapeDataContext from './landscape-data-worker/LandscapeDataContext';
 import type { OrderTuple, VizDataRaw } from 'explorviz-frontend/ide/shared';
-import {} from 'explorviz-frontend/ide/shared';
 import { convertVizDataToOrderTuple } from './ide/prepare-viz-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 
 let currentDataContext: LandscapeDataContext | undefined;
 let backendInfo: BackendInfo | undefined;
@@ -44,6 +45,24 @@ const api = {
 
   prepareVizDataForIDE(vizDataRaw: VizDataRaw): OrderTuple[] {
     return convertVizDataToOrderTuple(vizDataRaw);
+  },
+
+  changeData(
+    landscapeToken: string,
+    structure: StructureLandscapeData,
+    dynamic: DynamicLandscapeData
+  ): DataUpdate {
+    if (
+      landscapeToken === null ||
+      !currentDataContext ||
+      currentDataContext.token !== landscapeToken
+    ) {
+      throw new Error();
+    }
+
+    currentDataContext.replaceData(structure, dynamic);
+
+    throw new Error('Not implemented');
   },
 };
 

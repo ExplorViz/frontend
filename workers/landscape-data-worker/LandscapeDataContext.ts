@@ -39,15 +39,31 @@ export default class LandscapeDataContext {
     };
   }
 
-  async update(
-    endTime: number,
-    accessToken: string | undefined
-  ): Promise<DataUpdate> {
+  async update(endTime: number, accessToken?: string): Promise<DataUpdate> {
     const [structureUpdated, dynamicUpdated] = await Promise.all([
       this.updateStructureData(accessToken),
       this.updateDynamicData(endTime, accessToken),
     ]);
 
+    return this.handleUpdatedData(endTime, structureUpdated, dynamicUpdated);
+  }
+
+  replaceData(
+    structure: StructureLandscapeData,
+    dynamic: DynamicLandscapeData
+  ): DataUpdate {
+    this.latestProcessedStructureData = structure;
+    this.latestDynamicData = dynamic;
+    this.lastDynamicResponse = undefined;
+    this.lastStructureResponse = undefined;
+    return this.handleUpdatedData(Date.now(), true, true);
+  }
+
+  private handleUpdatedData(
+    endTime: number,
+    structureUpdated: boolean,
+    dynamicUpdated: boolean
+  ): DataUpdate {
     const timestamp = {
       id: uuidv4(),
       timestamp: endTime,

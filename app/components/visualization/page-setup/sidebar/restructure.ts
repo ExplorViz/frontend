@@ -9,11 +9,10 @@ import {
   StructureLandscapeData,
   isClass,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
-  landscapeData: LandscapeData;
   restructureLandscape: (
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -30,6 +29,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @service('landscape-data-service')
+  landscapeDataService!: LandscapeDataService;
 
   @tracked
   token: string = localStorage.getItem('gitAPIToken') || '';
@@ -86,7 +88,11 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   toggleRestructureMode() {
     this.restructureMode = this.landscapeRestructure.toggleRestructureMode();
     if (this.restructureMode) {
-      this.landscapeRestructure.setLandscapeData(this.args.landscapeData);
+      const data = this.landscapeDataService.getLatest();
+      this.landscapeRestructure.setLandscapeData({
+        structureLandscapeData: data.structure!,
+        dynamicLandscapeData: data.dynamic!,
+      });
 
       this.args.resetLandscapeListenerPolling();
       if (!this.args.visualizationPaused) {

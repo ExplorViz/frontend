@@ -61,9 +61,7 @@ function computeClassCommunicationRecursively(
 
 export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData,
-  restructureMode: boolean,
-  classCommunication: DrawableClassCommunication[]
+  landscapeDynamicData: DynamicLandscapeData
 ) {
   performance.mark('computeDrawableClassCommunication-start');
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
@@ -132,18 +130,6 @@ export default function computeDrawableClassCommunication(
   const drawableClassCommunications = [
     ...aggregatedDrawableClassCommunications.values(),
   ];
-
-  if (restructureMode && classCommunication) {
-    classCommunication.forEach((comm) => {
-      drawableClassCommunications.push(comm);
-    });
-  }
-
-  if (restructureMode && classCommunication) {
-    classCommunication.forEach((comm) => {
-      drawableClassCommunications.push(comm);
-    });
-  }
 
   performance.mark('computeDrawableClassCommunication-end');
   return drawableClassCommunications;

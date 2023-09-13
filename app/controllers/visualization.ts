@@ -11,7 +11,6 @@ import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, {
   Timestamp,
@@ -192,39 +191,6 @@ export default class VisualizationController extends Controller {
     const currentToken = this.landscapeTokenService.token!.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
-  }
-
-  @action
-  receiveNewLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.debug('receiveNewLandscapeData');
-    if (!this.visualizationPaused) {
-      this.updateLandscape(structureData, dynamicData);
-      if (this.timelineTimestamps.lastObject) {
-        this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.timestamp;
-      }
-    }
-  }
-
-  @action
-  restructureLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.updateLandscape(structureData, dynamicData);
-  }
-
-  updateLandscape(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.landscapeData = {
-      structureLandscapeData: structureData,
-      dynamicLandscapeData: dynamicData,
-    };
   }
 
   @action

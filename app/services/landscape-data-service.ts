@@ -16,6 +16,7 @@ import type ApplicationRenderer from './application-renderer';
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import type { NewTimestampPayload } from './repos/timestamp-repository';
 import type WorkerService from './worker-service';
+import type LandscapeRestructure from './landscape-restructure';
 
 export const DataUpdateIntervalInSeconds = 10;
 export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
@@ -32,6 +33,8 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   readonly timestampRepo!: TimestampRepository;
   @service('application-renderer')
   readonly applicationRenderer!: ApplicationRenderer;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   startPolling(): void {
     if (this.interval !== undefined) {
@@ -57,6 +60,25 @@ export default class LandscapeDataService extends Service.extend(Evented) {
 
   getLatest(): Readonly<LocalLandscapeData> {
     return this.latestData;
+  }
+
+  async changeData(
+    structure: StructureLandscapeData,
+    dynamic: DynamicLandscapeData
+  ): Promise<void> {
+    const landscapeToken = this.tokenService.token;
+    if (landscapeToken === null) {
+      throw new Error('No landscape token.');
+    }
+
+    const remote = await this.workerService.getRemote();
+
+    const update = await remote.changeData(
+      landscapeToken.value,
+      structure,
+      dynamic
+    );
+    await this.handleUpdate(update);
   }
 
   /**

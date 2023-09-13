@@ -21,6 +21,7 @@ import { calculatePipeSize } from 'explorviz-frontend/utils/application-renderin
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
 import { WorkerApplicationData } from 'workers/landscape-data-worker/LandscapeDataContext';
+import LocalUser from 'collaborative-mode/services/local-user';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -40,6 +41,9 @@ export default class LandscapeScene3D implements Updatable {
 
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   private constructor(owner: Owner, scene: THREE.Scene) {
     setOwner(this, owner);
@@ -171,8 +175,13 @@ export default class LandscapeScene3D implements Updatable {
     const { serializedRoom } = this.roomSerializer;
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+
+      if (this.localUser.visualizationMode === 'vr') {
+        this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      } else if (this.localUser.visualizationMode === 'browser') {
+        //restore(serializedRoom.detachedMenus); // browser popups not restorable?
+      }
+
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
