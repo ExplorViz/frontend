@@ -9,7 +9,7 @@ import {
 import {
   MeshAction,
   EntityType,
-} from 'explorviz-frontend/utils/change-log-entry';
+} from 'explorviz-frontend/utils/restructure-helper';
 import { getAncestorPackages } from 'explorviz-frontend/utils/package-helpers';
 import {
   AppChangeLogEntry,

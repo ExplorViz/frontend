@@ -36,7 +36,7 @@ import {
 import {
   MeshAction,
   EntityType,
-} from 'explorviz-frontend/utils/change-log-entry';
+} from 'explorviz-frontend/utils/restructure-helper';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import { AllHighlightsResetMessage } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 import {

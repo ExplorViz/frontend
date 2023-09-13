@@ -1,4 +1,4 @@
-import { MeshAction } from './change-log-entry';
+import { MeshAction } from './restructure-helper';
 import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import {
   Application,

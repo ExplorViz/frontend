@@ -22,6 +22,22 @@ import {
   getSubPackagesOfPackage,
 } from './package-helpers';
 
+export enum EntityType {
+  App = 'APP',
+  Package = 'PACKAGE',
+  SubPackage = 'SUBPACKAGE',
+  Clazz = 'CLAZZ',
+  Communication = 'COMMUNICATION',
+}
+
+export enum MeshAction {
+  Create = 'CREATE',
+  Rename = 'RENAME',
+  Delete = 'DELETE',
+  CutInsert = 'CUTINSERT',
+  Communication = 'COMMUNICATION',
+}
+
 export function setClassName(app: Application, id: string) {
   const allClassesInApplication = getAllClassesInApplication(app);
   const classToRename = allClassesInApplication.find((cls) => cls.id === id);

@@ -48,7 +48,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import {
   MeshAction,
   EntityType,
-} from 'explorviz-frontend/utils/change-log-entry';
+} from 'explorviz-frontend/utils/restructure-helper';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import LinkRenderer from './link-renderer';
@@ -75,12 +75,6 @@ type CommModelColorMapping = {
   action: MeshAction;
   comm: DrawableClassCommunication;
   color: THREE.Color;
-};
-
-type CommModelTextureMapping = {
-  action: MeshAction;
-  texturePath: string;
-  comm: DrawableClassCommunication;
 };
 
 type diverseDataModel =
@@ -133,12 +127,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
    */
   @tracked
   commModelColorMappings: CommModelColorMapping[] = [];
-
-  /**
-   * Storing all Communication Meshes with corresponding texture
-   */
-  @tracked
-  commModelTextureMappings: CommModelTextureMapping[] = [];
 
   @tracked
   deletedDataModels: diverseDataModel[] = [];
