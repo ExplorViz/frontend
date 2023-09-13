@@ -11,7 +11,7 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
-import { MeshAction } from 'explorviz-frontend/utils/change-log-entry';
+import { MeshAction } from 'explorviz-frontend/utils/restructure-helper';
 import {
   Application,
   Class,
@@ -49,6 +49,7 @@ export default class UndoRestructure extends Component {
       lastElement,
       []
     )?.reverse();
+
     if (bundledCreateEntries?.length) {
       const entry = bundledCreateEntries.firstObject;
       if (entry instanceof AppChangeLogEntry) {
@@ -240,6 +241,10 @@ export default class UndoRestructure extends Component {
     if (entry instanceof PackageChangeLogEntry) {
       if (entry.createdWithApp) {
         bundledEntries.push(entry, entry.createdWithApp);
+        return bundledEntries;
+      }
+      if (bundledEntries.length) {
+        bundledEntries.push(entry);
         return bundledEntries;
       }
     }

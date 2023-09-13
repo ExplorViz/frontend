@@ -385,7 +385,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             undoMapping as MeshModelTextureMapping
           );
         }
-
         // Set new Application name
         app.name = name;
 
@@ -912,7 +911,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         }
 
         // Should never happen!
-        console.log('Communication Mesh was not found');
+
         return undefined;
       }
     } else {
@@ -1034,7 +1033,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             }
           } else if (elem.meshType === EntityType.Package) {
             const appliedTexture = this.findAppliedTexture(
-              elem.pckg as Package
+              elem.pckg as Package,
+              MeshAction.CutInsert
             );
 
             if (!appliedTexture) {
@@ -1044,7 +1044,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
               componentMesh?.changeTexture(elem.texturePath);
             }
           } else if (elem.meshType === EntityType.Clazz) {
-            const appliedTexture = this.findAppliedTexture(elem.clazz as Class);
+            const appliedTexture = this.findAppliedTexture(
+              elem.clazz as Class,
+              MeshAction.CutInsert
+            );
             if (!appliedTexture) {
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
                 elem.clazz?.id as string
@@ -1105,14 +1108,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   private findAppliedTexture(
-    elem: Application | Package | Class
+    elem: Application | Package | Class,
+    action?: MeshAction
   ): MeshModelTextureMapping | undefined {
     return this.meshModelTextureMappings.find(
       (entry) =>
         (entry.originApp === elem ||
           entry.pckg === elem ||
           entry.clazz === elem) &&
-        entry.action === MeshAction.Create
+        (entry.action === MeshAction.Create || entry.action === action)
     );
   }
 

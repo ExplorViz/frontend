@@ -97,13 +97,20 @@ export default class Changelog extends Service.extend(Evented, {
       appLogEntry.newName = newName;
       this.changeLogEntries.push(appLogEntry);
     } else {
-      foundEntry.newName = newName;
+      if (foundEntry.app && foundEntry.action === MeshAction.Create) {
+        foundEntry.app.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
     this.trigger('showChangeLog');
   }
 
   renamePackageEntry(app: Application, pckg: Package, newName: string) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Package,
+      pckg
+    ) as PackageChangeLogEntry;
 
     if (!foundEntry) {
       const pckgLogEntry = new PackageChangeLogEntry(
@@ -114,13 +121,23 @@ export default class Changelog extends Service.extend(Evented, {
       pckgLogEntry.newName = newName;
       this.changeLogEntries.push(pckgLogEntry);
     } else {
-      foundEntry.newName = newName;
+      if (
+        foundEntry.action === MeshAction.Create ||
+        foundEntry.action === MeshAction.CutInsert
+      ) {
+        foundEntry.pckg.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
     this.trigger('showChangeLog');
   }
 
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.SubPackage,
+      pckg
+    ) as SubPackageChangeLogEntry;
 
     if (!foundEntry) {
       const pckgLogEntry = new SubPackageChangeLogEntry(
@@ -131,15 +148,25 @@ export default class Changelog extends Service.extend(Evented, {
       pckgLogEntry.newName = newName;
       this.changeLogEntries.push(pckgLogEntry);
     } else {
-      foundEntry.newName = newName;
+      if (
+        foundEntry.action === MeshAction.Create ||
+        foundEntry.action === MeshAction.CutInsert
+      ) {
+        foundEntry.pckg.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
     this.trigger('showChangeLog');
   }
 
   renameClassEntry(app: Application, clazz: Class, newName: string) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
 
-    if (!foundEntry) {
+    if (!foundEntry || foundEntry.action === MeshAction.CutInsert) {
       const clazzLogEntry = new ClassChangeLogEntry(
         MeshAction.Rename,
         app,
@@ -148,7 +175,11 @@ export default class Changelog extends Service.extend(Evented, {
       clazzLogEntry.newName = newName;
       this.changeLogEntries.push(clazzLogEntry);
     } else {
-      foundEntry.newName = newName;
+      if (foundEntry.action === MeshAction.Create) {
+        foundEntry.clazz.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
     this.trigger('showChangeLog');
   }
@@ -194,16 +225,21 @@ export default class Changelog extends Service.extend(Evented, {
     pckg: Package,
     undoInsert: boolean = false
   ) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.Package, pckg);
-    this.storeDeletedEntries();
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Package,
+      pckg
+    ) as PackageChangeLogEntry;
 
+    if (!undoInsert) this.storeDeletedEntries();
+
+    // We don't want to undo the undo, thats why we dont store the data then
     this.removeLogEntriesUnderPackage(app, pckg);
 
     let originalPckgName = '';
 
     if (foundEntry) {
       this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
+        (entry: PackageChangeLogEntry) => entry.pckg?.id !== pckg.id
       );
       if (foundEntry.action === MeshAction.Create) {
         this.trigger('showChangeLog');
@@ -243,8 +279,13 @@ export default class Changelog extends Service.extend(Evented, {
     pckg: Package,
     undoInsert: boolean = false
   ) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
-    this.storeDeletedEntries();
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.SubPackage,
+      pckg
+    ) as SubPackageChangeLogEntry;
+
+    // We don't want to undo the undo, thats why we dont store the data then
+    if (!undoInsert) this.storeDeletedEntries();
 
     this.removeLogEntriesUnderPackage(app, pckg);
 
@@ -252,7 +293,7 @@ export default class Changelog extends Service.extend(Evented, {
 
     if (foundEntry) {
       this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
+        (entry: SubPackageChangeLogEntry) => entry.pckg?.id !== pckg.id
       );
       if (foundEntry.action === MeshAction.Create) {
         this.trigger('showChangeLog');
@@ -283,9 +324,14 @@ export default class Changelog extends Service.extend(Evented, {
     clazz: Class,
     undoInsert: boolean = false
   ) {
-    const foundEntry = this.findBaseChangeLogEntry(EntityType.Clazz, clazz);
-    const commEntry = this.findCommunicationLogEntryByClass(clazz);
-    this.storeDeletedEntries();
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
+    const commEntry = this.findCommunicationLogEntry(clazz);
+
+    // We don't want to undo the undo, thats why we dont store the data then
+    if (!undoInsert) this.storeDeletedEntries();
 
     // Remove Communication Log Entry
     if (commEntry) this.changeLogEntries.removeObject(commEntry);
@@ -293,7 +339,7 @@ export default class Changelog extends Service.extend(Evented, {
     let originalClazzName = '';
     if (foundEntry) {
       this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.clazz?.id !== clazz.id
+        (entry: ClassChangeLogEntry) => entry.clazz?.id !== clazz.id
       );
       if (foundEntry.action === MeshAction.Create) {
         this.trigger('showChangeLog');
@@ -345,6 +391,7 @@ export default class Changelog extends Service.extend(Evented, {
       pckgLogEntry.setOrigin(origin);
       this.changeLogEntries.push(pckgLogEntry);
     }
+
     this.trigger('showChangeLog');
   }
 
@@ -358,6 +405,7 @@ export default class Changelog extends Service.extend(Evented, {
     const foundEntry =
       this.findBaseChangeLogEntry(EntityType.SubPackage, pckg) ||
       this.findBaseChangeLogEntry(EntityType.Package, pckg);
+
     if (foundEntry) {
       if (foundEntry.action == MeshAction.Create) {
         this.updateCreateLogEntries(app, pckg, destination, landscapeData);
@@ -414,6 +462,7 @@ export default class Changelog extends Service.extend(Evented, {
       communication
     );
     this.changeLogEntries.push(commEntry);
+
     this.trigger('showChangeLog');
   }
 
@@ -421,9 +470,7 @@ export default class Changelog extends Service.extend(Evented, {
     communication: DrawableClassCommunication,
     newName: string
   ) {
-    const foundEntry = this.findCommunicationLogEntryByClass(
-      communication.sourceClass
-    );
+    const foundEntry = this.findCommunicationLogEntry(communication.id, true);
 
     if (
       foundEntry &&
@@ -450,9 +497,10 @@ export default class Changelog extends Service.extend(Evented, {
   }
 
   deleteCommunicationEntry(communication: DrawableClassCommunication) {
-    const foundEntry = this.findCommunicationLogEntryByClass(
-      communication.sourceClass
-    );
+    const foundEntry = this.findCommunicationLogEntry(
+      communication.id,
+      true
+    ) as CommunicationChangeLogEntry;
     this.storeDeletedEntries();
     let originalName = communication.operationName;
     if (foundEntry) {
@@ -472,6 +520,7 @@ export default class Changelog extends Service.extend(Evented, {
     commEntry.originalOperationName = originalName;
 
     this.changeLogEntries.push(commEntry);
+
     this.trigger('showChangeLog');
   }
 
@@ -541,15 +590,26 @@ export default class Changelog extends Service.extend(Evented, {
     }
   }
 
-  private findCommunicationLogEntryByClass(
-    clazz: Class
+  private findCommunicationLogEntry(
+    clazzOrId: Class | string,
+    searchById: boolean = false
   ): BaseChangeLogEntry | undefined {
-    return this.changeLogEntries.find(
-      (entry) =>
-        entry instanceof CommunicationChangeLogEntry &&
-        (entry.communication?.sourceClass === clazz ||
-          entry.communication?.targetClass === clazz)
-    );
+    return this.changeLogEntries.find((entry) => {
+      if (entry instanceof CommunicationChangeLogEntry) {
+        if (searchById) {
+          return (
+            entry.communication?.sourceClass.id === clazzOrId ||
+            entry.communication?.targetClass.id === clazzOrId
+          );
+        } else {
+          return (
+            entry.communication?.sourceClass === clazzOrId ||
+            entry.communication?.targetClass === clazzOrId
+          );
+        }
+      }
+      return false;
+    });
   }
 
   /**
@@ -695,7 +755,7 @@ export default class Changelog extends Service.extend(Evented, {
           pckg.id === entry.pckg?.id
         ) {
           entry.updateOrigin(destination, landscapeData);
-        } else {
+        } else if (entry instanceof ClassChangeLogEntry) {
           const ancestorPackages = getAncestorPackages(entry.pckg as Package);
           const affectedEntry =
             entry.pckg?.id === pckg.id ||
@@ -734,7 +794,10 @@ export default class Changelog extends Service.extend(Evented, {
         if (entry.pckg?.id === pckg.id) {
           entry.setDestination(destination, landscapeData);
         }
-      } else {
+      } else if (
+        entry instanceof ClassChangeLogEntry &&
+        entry.destinationApp?.id === app.id
+      ) {
         const ancestorPackages = getAncestorPackages(entry.pckg as Package);
         const affectedEntry =
           entry.pckg?.id === pckg.id ||

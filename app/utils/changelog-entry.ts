@@ -18,36 +18,17 @@ export abstract class BaseChangeLogEntry {
   action: MeshAction;
   originalAppName?: string;
   app?: Application;
-  originalPckgName?: string;
-  pckg?: Package;
-  originalClazzName?: string;
-  clazz?: Class;
 
   wasInserted?: boolean;
 
-  originalOperationName?: string;
-  communication?: DrawableClassCommunication;
+  newName?: string;
 
-  constructor(
-    action: MeshAction,
-    app?: Application,
-    pckg?: Package,
-    clazz?: Class,
-    communication?: DrawableClassCommunication
-  ) {
-    this.id = sha256(
-      action + app?.id + pckg?.id + clazz?.id + communication?.id
-    ).toString();
+  constructor(id: string, action: MeshAction, app?: Application) {
+    this.id = id;
     this.action = action;
     this.app = app;
-    this.pckg = pckg;
-    this.clazz = clazz;
-    this.communication = communication;
 
     this.originalAppName = app?.name;
-    this.originalPckgName = pckg?.name;
-    this.originalClazzName = clazz?.name;
-    this.originalOperationName = communication?.operationName;
   }
 
   abstract get _logText(): string;
@@ -60,10 +41,9 @@ export abstract class BaseChangeLogEntry {
 export class AppChangeLogEntry extends BaseChangeLogEntry {
   createdPckg?: PackageChangeLogEntry;
 
-  newName?: string;
-
   constructor(action: MeshAction, app: Application) {
-    super(action, app);
+    const id = sha256(action + app.id).toString();
+    super(id, action, app);
   }
 
   get _logText(): string {
@@ -85,10 +65,11 @@ export class AppChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class PackageChangeLogEntry extends BaseChangeLogEntry {
+  pckg: Package;
+  originalPckgName: string;
+
   createdClass?: ClassChangeLogEntry;
   createdWithApp?: AppChangeLogEntry;
-
-  newName?: string;
 
   destinationApp?: Application;
   destinationPckg?: Package;
@@ -96,7 +77,10 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
   origin?: Application | Package;
 
   constructor(action: MeshAction, app: Application, pckg: Package) {
-    super(action, app, pckg);
+    const id = sha256(action + app.id + pckg.id).toString();
+    super(id, action, app);
+    this.pckg = pckg;
+    this.originalPckgName = pckg.name;
   }
 
   get _logText(): string {
@@ -167,9 +151,10 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
-  createdClass?: ClassChangeLogEntry;
+  pckg: Package;
+  originalPckgName: string;
 
-  newName?: string;
+  createdClass?: ClassChangeLogEntry;
 
   destinationApp?: Application;
   destinationPckg?: Package;
@@ -177,7 +162,10 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
   origin?: Application | Package;
 
   constructor(action: MeshAction, app: Application, pckg: Package) {
-    super(action, app, pckg);
+    const id = sha256(action + app.id + pckg.id).toString();
+    super(id, action, app);
+    this.pckg = pckg;
+    this.originalPckgName = pckg.name;
   }
 
   get _logText(): string {
@@ -244,9 +232,13 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class ClassChangeLogEntry extends BaseChangeLogEntry {
-  createdWithPackage?: PackageChangeLogEntry | SubPackageChangeLogEntry;
+  pckg: Package;
+  originalPckgName: string;
 
-  newName?: string;
+  clazz: Class;
+  originalClazzName: string;
+
+  createdWithPackage?: PackageChangeLogEntry | SubPackageChangeLogEntry;
 
   destinationApp?: Application;
   destinationPckg?: Package;
@@ -254,7 +246,13 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
   origin?: Application | Package | Class;
 
   constructor(action: MeshAction, app: Application, clazz: Class) {
-    super(action, app, clazz.parent, clazz);
+    const id = sha256(action + app.id + clazz.parent.id + clazz.id).toString();
+    super(id, action, app);
+    this.pckg = clazz.parent;
+    this.clazz = clazz;
+
+    this.originalPckgName = clazz.parent.name;
+    this.originalClazzName = clazz.name;
   }
 
   set _createdWithPackage(
@@ -305,10 +303,14 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
-  newName?: string;
+  communication: DrawableClassCommunication;
+  originalOperationName: string;
 
   constructor(action: MeshAction, communication: DrawableClassCommunication) {
-    super(action, undefined, undefined, undefined, communication);
+    const id = sha256(action + communication.id).toString();
+    super(id, action, undefined);
+    this.communication = communication;
+    this.originalOperationName = communication?.operationName;
   }
 
   get _logText(): string {
