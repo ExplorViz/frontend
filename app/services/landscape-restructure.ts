@@ -11,7 +11,7 @@ import {
   removeApplication,
   removeClassFromPackage,
   removePackageFromApplication,
-  setClassName,
+  getClassInApplicationById,
   createPackage,
   createClass,
   changeID,
@@ -563,7 +563,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         appId
       );
       if (application) {
-        const clazzToRename = setClassName(application, id);
+        const clazzToRename = getClassInApplicationById(application, id);
 
         if (clazzToRename) {
           if (!undo) {
@@ -1318,21 +1318,19 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         deletedComms: [],
       };
 
-      removeApplication(
-        this.landscapeData?.structureLandscapeData,
-        wrapper,
-        app,
-        shouldUndo
-      );
-
       if (!shouldUndo) {
+        const classesInApplication = getAllClassesInApplication(app);
+        removeAffectedCommunications(classesInApplication, wrapper);
         this.processDeletedAppData(app);
 
         // Updating deleted communications
         this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
       } else {
+        removeApplication(this.landscapeData.structureLandscapeData, app);
+
         // Removes existing Changelog entry
         this.changeLog.deleteAppEntry(app, true);
+
         // Remove all meshes of the application
         const appObject3D: ApplicationObject3D | undefined =
           this.applicationRenderer.getApplicationById(app.id);

@@ -11,7 +11,6 @@ import {
   isPackage,
   Method,
   isApplication,
-  isClass,
 } from './landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
@@ -38,13 +37,28 @@ export enum MeshAction {
   Communication = 'COMMUNICATION',
 }
 
-export function setClassName(app: Application, id: string) {
+/**
+ * Finds a class from an application based on the class ID.
+ *
+ * @param app The target application to search within.
+ * @param id The ID of the class to retrieve.
+ * @returns The class matching the given ID, or undefined if not found.
+ */
+export function getClassInApplicationById(app: Application, id: string) {
   const allClassesInApplication = getAllClassesInApplication(app);
   const classToRename = allClassesInApplication.find((cls) => cls.id === id);
 
   return classToRename;
 }
 
+/**
+ * Adds a new node with an application to the landscape
+ *
+ * @param appName The name of the new application.
+ * @param language The programming language of the application.
+ * @param counter A unique identifier to aid in creating unique entities.
+ * @returns The newly created node with its child entities.
+ */
 export function addFoundationToLandscape(
   appName: string,
   language: string,
@@ -82,6 +96,13 @@ export function addFoundationToLandscape(
   return myNode;
 }
 
+/**
+ * Creates a new package with the given ID and name.
+ *
+ * @param id The unique identifier for the package.
+ * @param name The name of the package.
+ * @returns A new package object.
+ */
 export function createPackage(id: string, name: string) {
   const newPckg: Package = {
     id: id,
@@ -93,6 +114,13 @@ export function createPackage(id: string, name: string) {
   return newPckg;
 }
 
+/**
+ * Creates a new class with the given ID and name.
+ *
+ * @param id The unique identifier for the class.
+ * @param name The name of the class.
+ * @returns A new class object.
+ */
 export function createClass(id: string, name: string) {
   const newClass: Partial<Class> = {
     id: id,
@@ -103,6 +131,13 @@ export function createClass(id: string, name: string) {
   return newClass;
 }
 
+/**
+ * Adds a method to a class. If the method is a copy, the hash code will simply be the method name itself.
+ *
+ * @param clazz The class to which the method will be added.
+ * @param methodName The name of the method.
+ * @param isCopy A flag indicating if the method is a copy.
+ */
 export function addMethodToClass(
   clazz: Class,
   methodName: string,
@@ -164,64 +199,27 @@ export function copyClassContent(clazzToCopy: Class) {
   return copiedClass;
 }
 
+/**
+ * Removes an application in the landscape
+ * @param landscapeStructure The landscape data which contains the app
+ * @param app The application that needs to be removed
+ */
 export function removeApplication(
   landscapeStructure: StructureLandscapeData,
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
-    deletedComms?: DrawableClassCommunication[];
-  },
-  app: Application,
-  undo: boolean,
-  destinationApplication?: Application,
-  isCutOperation?: boolean,
-  cuttedMesh?: Package | Class
+  app: Application
 ) {
-  if (wrapper.comms.length > 0) {
-    let classesInApplication: Class[] = [];
-    if (isCutOperation) {
-      if (isClass(cuttedMesh)) {
-        classesInApplication = [cuttedMesh];
-      } else if (isPackage(cuttedMesh)) {
-        classesInApplication = getClassesInPackage(cuttedMesh);
-      }
-    } else {
-      classesInApplication = getAllClassesInApplication(app);
-    }
-    if (undo || isCutOperation) {
-      // if any class in application is part of a communication and information about source and target app has changed then update it
-      updateAffectedCommunications(
-        classesInApplication,
-        wrapper,
-        destinationApplication
-      );
-    } else {
-      // if any class in application is part of a communication then remove it
-      removeAffectedCommunications(classesInApplication, wrapper);
-    }
+  const parentNode = app.parent;
+
+  //If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
+  if (parentNode.applications.length <= 1) {
+    landscapeStructure.nodes = landscapeStructure.nodes.filter(
+      (node) => node.id != parentNode.id
+    );
+  } else {
+    parentNode.applications = parentNode.applications.filter(
+      (appl) => appl.id != app.id
+    );
   }
-
-  if (undo) {
-    const parentNode = app.parent;
-    // If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
-    if (parentNode.applications.length <= 1) {
-      landscapeStructure.nodes = landscapeStructure.nodes.filter(
-        (node) => node.id != parentNode.id
-      );
-    } else {
-      parentNode.applications = parentNode.applications.filter(
-        (appl) => appl.id != app.id
-      );
-    }
-  }
-
-  wrapper.meshTodelete = app;
-  // if (commsWrapper.app) {
-  //   commsWrapper.app = app;
-  // }
-
-  //app.packages = [];
 }
 
 /**
