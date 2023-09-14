@@ -18,6 +18,8 @@ import {
   copyPackageContent,
   copyClassContent,
   restoreID,
+  removeAffectedCommunications,
+  canDeleteClass,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
@@ -1564,13 +1566,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
         comms: this.allClassCommunications,
-        meshTodelete: clazz,
         deletedComms: [],
       };
 
-      removeClassFromPackage(wrapper, clazz, shouldUndo);
-
       if (!shouldUndo) {
+        removeAffectedCommunications([clazz], wrapper);
         this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
         this.meshModelTextureMappings.push({
           action: MeshAction.Delete,
@@ -1585,29 +1585,19 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
         this.deletedDataModels.push(clazz);
       } else {
-        // Removing existing Create Entry
-        if (isClass(wrapper.meshTodelete)) {
-          this.changeLog.deleteClassEntry(
-            application as Application,
-            clazz,
-            true
-          );
-        } else if (isPackage(wrapper.meshTodelete)) {
-          if ((wrapper.meshTodelete as Package).parent)
-            this.changeLog.deleteSubPackageEntry(
-              application as Application,
-              wrapper.meshTodelete,
-              true
-            );
-          else
-            this.changeLog.deletePackageEntry(
-              application as Application,
-              wrapper.meshTodelete,
-              true
-            );
-        } else if (isApplication(wrapper.meshTodelete)) {
-          this.changeLog.deleteAppEntry(wrapper.meshTodelete, true);
+        if(!canDeleteClass(clazz)){
+          AlertifyHandler.showAlertifyError('Class cannot be removed');
+          return;
         }
+        
+        removeClassFromPackage(clazz);
+        
+        // Removing existing Create Entry
+        this.changeLog.deleteClassEntry(
+          application as Application,
+          clazz,
+          true
+        );
       }
 
       this.trigger(

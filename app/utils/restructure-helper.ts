@@ -345,36 +345,29 @@ export function removePackageFromApplication(
   }
 }
 
+/**
+ * Removes a class within a package. The class communications are appropriately updated.
+ * @param clazzToRemove The class that needs to be removed
+ */
 export function removeClassFromPackage(
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
-  },
   clazzToRemove: Class,
-  undo: boolean,
-  destinationApplication?: Application,
-  isCutOperation?: boolean
 ) {
   const parentPackage = clazzToRemove.parent;
   if (parentPackage) {
-    if (undo) {
-      parentPackage.classes = parentPackage.classes.filter(
-        (clzz) => clzz.id != clazzToRemove.id
-      );
-    }
-    if (wrapper.comms.length > 0) {
-      if (undo || isCutOperation) {
-        updateAffectedCommunications(
-          [clazzToRemove],
-          wrapper,
-          destinationApplication
-        );
-      } else {
-        removeAffectedCommunications([clazzToRemove], wrapper);
-      }
-    }
+    parentPackage.classes = parentPackage.classes.filter(
+      (clzz => clzz.id != clazzToRemove.id)
+    );
   }
+}
+
+/**
+ * Determines whether a class can be removed or not
+ * @param clazzToRemove The class to approve of the removal
+ * @returns Approval of removal
+ */
+export function canDeleteClass(clazzToRemove: Class) {
+  const parentPackage = clazzToRemove.parent;
+  return parentPackage.classes.length + parentPackage.subPackages.length > 1
 }
 
 /**
@@ -504,13 +497,9 @@ export function cutAndInsertClass(
         clipToDestination.id
       );
 
-    removeClassFromPackage(
-      commsWrapper,
-      clippedClass,
-      false,
-      destinationApplication,
-      true
-    );
+    if(commsWrapper.comms.length) {
+      updateAffectedCommunications([clippedClass], commsWrapper, destinationApplication);
+    }
 
     // Add the moved class to the destination package's classes
     clipToDestination.classes.push(clippedClass);
@@ -650,7 +639,7 @@ function insertClipToDestinationPackage(
   clippedPackage.parent = clipToDestination;
 }
 
-function removeAffectedCommunications(
+export function removeAffectedCommunications(
   classesInApplication: Class[],
   commsWrapper: {
     comms: DrawableClassCommunication[];
@@ -658,10 +647,6 @@ function removeAffectedCommunications(
   }
 ) {
   classesInApplication.forEach((clazz) =>
-    // (commsWrapper.comms = commsWrapper.comms.filter(
-    //   (comm) =>
-    //     comm.sourceClass.id !== clazz.id && comm.targetClass.id !== clazz.id
-    // ))
     {
       const commsToDelete = commsWrapper.comms.filter(
         (comm) =>
