@@ -1585,13 +1585,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
         this.deletedDataModels.push(clazz);
       } else {
-        if(!canDeleteClass(clazz)){
+        if (!canDeleteClass(clazz)) {
           AlertifyHandler.showAlertifyError('Class cannot be removed');
           return;
         }
-        
+
         removeClassFromPackage(clazz);
-        
+
         // Removing existing Create Entry
         this.changeLog.deleteClassEntry(
           application as Application,

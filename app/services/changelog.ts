@@ -331,7 +331,7 @@ export default class Changelog extends Service.extend(Evented, {
     const commEntry = this.findCommunicationLogEntry(clazz);
 
     // We don't want to undo the undo, thats why we dont store the data then
-    if (!undoInsert){
+    if (!undoInsert) {
       this.storeDeletedEntries();
     }
 
@@ -549,7 +549,8 @@ export default class Changelog extends Service.extend(Evented, {
       this.sender.sendChangeLogRestoreEntriesMessage();
     }
 
-    const deletedEntries = this.deletedChangeLogEntries.popObject() as BaseChangeLogEntry[];
+    const deletedEntries =
+      this.deletedChangeLogEntries.popObject() as BaseChangeLogEntry[];
 
     this.changeLogEntries = deletedEntries;
 

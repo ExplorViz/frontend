@@ -349,13 +349,11 @@ export function removePackageFromApplication(
  * Removes a class within a package. The class communications are appropriately updated.
  * @param clazzToRemove The class that needs to be removed
  */
-export function removeClassFromPackage(
-  clazzToRemove: Class,
-) {
+export function removeClassFromPackage(clazzToRemove: Class) {
   const parentPackage = clazzToRemove.parent;
   if (parentPackage) {
     parentPackage.classes = parentPackage.classes.filter(
-      (clzz => clzz.id != clazzToRemove.id)
+      (clzz) => clzz.id != clazzToRemove.id
     );
   }
 }
@@ -367,7 +365,7 @@ export function removeClassFromPackage(
  */
 export function canDeleteClass(clazzToRemove: Class) {
   const parentPackage = clazzToRemove.parent;
-  return parentPackage.classes.length + parentPackage.subPackages.length > 1
+  return parentPackage.classes.length + parentPackage.subPackages.length > 1;
 }
 
 /**
@@ -497,8 +495,12 @@ export function cutAndInsertClass(
         clipToDestination.id
       );
 
-    if(commsWrapper.comms.length) {
-      updateAffectedCommunications([clippedClass], commsWrapper, destinationApplication);
+    if (commsWrapper.comms.length) {
+      updateAffectedCommunications(
+        [clippedClass],
+        commsWrapper,
+        destinationApplication
+      );
     }
 
     // Add the moved class to the destination package's classes
@@ -646,15 +648,13 @@ export function removeAffectedCommunications(
     deletedComms?: DrawableClassCommunication[];
   }
 ) {
-  classesInApplication.forEach((clazz) =>
-    {
-      const commsToDelete = commsWrapper.comms.filter(
-        (comm) =>
-          comm.sourceClass.id === clazz.id || comm.targetClass.id === clazz.id
-      );
-      commsWrapper.deletedComms?.pushObjects(commsToDelete);
-    }
-  );
+  classesInApplication.forEach((clazz) => {
+    const commsToDelete = commsWrapper.comms.filter(
+      (comm) =>
+        comm.sourceClass.id === clazz.id || comm.targetClass.id === clazz.id
+    );
+    commsWrapper.deletedComms?.pushObjects(commsToDelete);
+  });
 }
 
 function cleanUpAncestor(
