@@ -224,129 +224,43 @@ export function removeApplication(
   //app.packages = [];
 }
 
+/**
+ * Removes a package within an application
+ * @param pckgToRemove The package that needs to be removed
+ * @param app The application where the package resides in
+ */
 export function removePackageFromApplication(
-  landscapeStructure: StructureLandscapeData,
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
-    deletedComms?: DrawableClassCommunication[];
-  },
   pckgToRemove: Package,
-  undo: boolean,
-  destinationApplication?: Application,
-  isCutOperation?: boolean,
-  cuttedMesh?: Package | Class
+  app: Application
 ) {
   const parentPackage = pckgToRemove.parent;
 
-  // if parent is another package then remove current package from parents subpackage list, else remove the whole application
   if (parentPackage) {
-    const applicationWrapper: { app: Application | undefined } = {
-      app: undefined,
-    };
-    let deleteApp = false;
-
-    // if parent package has more than 1 element, then remove the current package from its child packages, else check for the next ancestors
-    if (parentPackage.subPackages.length + parentPackage.classes.length > 1) {
-      wrapper.meshTodelete = pckgToRemove;
-      if (undo) {
-        parentPackage.subPackages = parentPackage.subPackages.filter(
-          (packg) => packg.id != pckgToRemove.id
-        );
-      }
-      //delete pckgToRemove.parent;
-    } else {
-      // check if there is one ancestor package, that fulfills the condition of having more than 1 child elements. If not then we delete the whole application
-      deleteApp = cleanUpAncestor(
-        landscapeStructure,
-        parentPackage,
-        applicationWrapper,
-        wrapper,
-        undo
-      );
-    }
-
-    if (deleteApp && applicationWrapper.app) {
-      removeApplication(
-        landscapeStructure,
-        wrapper,
-        applicationWrapper.app,
-        undo,
-        destinationApplication,
-        isCutOperation,
-        cuttedMesh
-      );
-    } else if (!deleteApp && wrapper.comms.length > 0) {
-      let classesInPackage: Class[] = [];
-      if (isCutOperation) {
-        if (isClass(cuttedMesh)) {
-          classesInPackage = [cuttedMesh];
-        } else if (isPackage(cuttedMesh)) {
-          classesInPackage = getClassesInPackage(cuttedMesh);
-        }
-      } else {
-        classesInPackage = getClassesInPackage(pckgToRemove);
-      }
-      //const classesInPackage = isCutOperation? getClassesInPackage(cuttedMesh as Package) : getClassesInPackage(pckgToRemove); ///HIER IST DAS PROBLEM FÜR CUT INSERT!!!!
-      if (undo || isCutOperation) {
-        // if any class in package is part of a communication and information about source and target app has changed then update it
-        updateAffectedCommunications(
-          classesInPackage,
-          wrapper,
-          destinationApplication
-        );
-      } else {
-        // if any class in package is part of a communication then remove it
-        removeAffectedCommunications(classesInPackage, wrapper);
-      }
-    }
-  } else {
-    const parentApplication = getApplicationFromPackage(
-      landscapeStructure,
-      pckgToRemove.id
+    parentPackage.subPackages = parentPackage.subPackages.filter(
+      (packg) => packg.id != pckgToRemove.id
     );
-
-    // if applications only package is this package, then remove whole application, else remove package from applications package list
-    if (parentApplication && parentApplication.packages.length <= 1) {
-      removeApplication(
-        landscapeStructure,
-        wrapper,
-        parentApplication,
-        undo,
-        destinationApplication,
-        isCutOperation,
-        cuttedMesh
-      );
-    } else if (parentApplication && parentApplication.packages.length > 1) {
-      wrapper.meshTodelete = pckgToRemove;
-      if (undo) {
-        parentApplication.packages = parentApplication.packages.filter(
-          (pckg) => pckg.id !== pckgToRemove.id
-        );
-      }
-
-      if (wrapper.comms.length > 0) {
-        // if any class in application is part of a communication then remove it
-        const classesInPackage = getClassesInPackage(pckgToRemove);
-        if (undo) {
-          // if any class in package is part of a communication and information about source and target app has changed then update it
-          updateAffectedCommunications(
-            classesInPackage,
-            wrapper,
-            destinationApplication
-          );
-        } else {
-          // if any class in package is part of a communication then remove it
-          removeAffectedCommunications(classesInPackage, wrapper);
-        }
-      }
-    }
+  } else {
+    app.packages = app.packages.filter((pckg) => pckg.id !== pckgToRemove.id);
   }
 }
 
 /**
- * Removes a class within a package. The class communications are appropriately updated.
+ * Determines whether a package can be removed or not
+ * @param pckgToRemove The package to approve the removal
+ * @param app The application where the package resides in
+ * @returns Approve of removal
+ */
+export function canDeletePackage(pckgToRemove: Package, app: Application) {
+  const parentPackage = pckgToRemove.parent;
+  if (parentPackage) {
+    return parentPackage.subPackages.length + parentPackage.classes.length > 1;
+  } else {
+    return app && app.packages.length > 1;
+  }
+}
+
+/**
+ * Removes a class within a package.
  * @param clazzToRemove The class that needs to be removed
  */
 export function removeClassFromPackage(clazzToRemove: Class) {
@@ -655,178 +569,4 @@ export function removeAffectedCommunications(
     );
     commsWrapper.deletedComms?.pushObjects(commsToDelete);
   });
-}
-
-function cleanUpAncestor(
-  landscapeStructure: StructureLandscapeData,
-  parentPackage: Package,
-  applicationWrapper: { app: Application | undefined },
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-  },
-  isCutOperation?: boolean
-) {
-  const ancestorPackages = getAncestorPackages(parentPackage);
-  /*  case 1: ancestor is the top Package meaning the highest on the hierarchy.
-      case 2: there are multiple ancestors. We need to find the nearest ancestor with more than 1 element in it
-      case 3: there are no ancestors since the current package is top Package, so we investigate the application
-  */
-  if (ancestorPackages.length == 1)
-    return handleTopPackageAncestor(
-      landscapeStructure,
-      parentPackage,
-      ancestorPackages,
-      applicationWrapper,
-      wrapper,
-      isCutOperation
-    );
-  else if (ancestorPackages.length > 1)
-    return handlePackageAncestors(
-      landscapeStructure,
-      parentPackage,
-      ancestorPackages,
-      applicationWrapper,
-      wrapper,
-      isCutOperation
-    );
-  else
-    return handleApplicationAncestor(
-      landscapeStructure,
-      parentPackage,
-      applicationWrapper,
-      wrapper,
-      isCutOperation
-    );
-}
-
-function handleApplicationAncestor(
-  landscapeStructure: StructureLandscapeData,
-  parentPackage: Package,
-  applicationWrapper: { app: Application | undefined },
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-  },
-  isCutOperation?: boolean
-) {
-  //check if the whole application has still more than 1 packages and if so then remove only the top package else the whole application
-  applicationWrapper.app = getApplicationFromPackage(
-    landscapeStructure,
-    parentPackage.id
-  );
-  return hasAppEnoughPackages(
-    applicationWrapper,
-    parentPackage,
-    wrapper,
-    isCutOperation
-  );
-}
-
-function handlePackageAncestors(
-  landscapeStructure: StructureLandscapeData,
-  parentPackage: Package,
-  ancestorPackages: Package[],
-  applicationWrapper: { app: Application | undefined },
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-  },
-  isCutOperation?: boolean
-) {
-  // find an ancestor that has more than 1 element
-  const foundPackage: Package | undefined = ancestorPackages.find(
-    (pckg) => pckg.subPackages.length + pckg.classes.length > 1
-  );
-  // when found delete the subpackage with the clipped object inside else check if the whole application has still more
-  // packages and if so then remove only the top package else the whole application
-  if (foundPackage) {
-    let subPackageToRemove = parentPackage;
-    const indexOfSubPackage = ancestorPackages.indexOf(foundPackage) - 1;
-    if (indexOfSubPackage >= 0)
-      subPackageToRemove = ancestorPackages[indexOfSubPackage];
-    wrapper.meshTodelete = subPackageToRemove;
-    if (isCutOperation) {
-      foundPackage.subPackages = foundPackage.subPackages.filter(
-        (pckg) => pckg.id != subPackageToRemove.id
-      );
-    }
-    return false;
-  } else {
-    const topPackage = ancestorPackages[ancestorPackages.length - 1];
-    applicationWrapper.app = getApplicationFromPackage(
-      landscapeStructure,
-      ancestorPackages[ancestorPackages.length - 1].id
-    );
-    return hasAppEnoughPackages(applicationWrapper, topPackage, wrapper);
-  }
-  return true;
-}
-
-function hasAppEnoughPackages(
-  applicationWrapper: { app: Application | undefined },
-  topPackage: Package,
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-  },
-  isCutOperation?: boolean
-) {
-  // if the application has enough packages, then remove only the package else mark the app for delete
-  if (applicationWrapper.app) {
-    if (applicationWrapper.app.packages.length > 1) {
-      wrapper.meshTodelete = topPackage;
-      if (isCutOperation) {
-        applicationWrapper.app.packages =
-          applicationWrapper.app.packages.filter(
-            (pckg: Package) => pckg.id != topPackage.id
-          );
-      }
-      return false;
-    }
-  }
-  return true;
-}
-
-function handleTopPackageAncestor(
-  landscapeStructure: StructureLandscapeData,
-  parentPackage: Package,
-  ancestorPackages: Package[],
-  applicationWrapper: { app: Application | undefined },
-  wrapper: {
-    comms: DrawableClassCommunication[];
-    meshTodelete?: Application | Package | Class;
-  },
-  isCutOperation?: boolean
-) {
-  const topPackage = ancestorPackages.firstObject;
-  // if top package has more than 1 element then remove the subpackage with the clipped object else check if the whole application has still more
-  // packages and if so then remove only the top package else the whole application
-  if (
-    topPackage &&
-    topPackage.subPackages.length + topPackage.classes.length > 1
-  ) {
-    wrapper.meshTodelete = parentPackage;
-    if (isCutOperation) {
-      topPackage.subPackages = topPackage.subPackages.filter(
-        (pckg) => pckg.id != parentPackage.id
-      );
-    }
-    return false;
-  } else if (
-    topPackage &&
-    topPackage?.subPackages.length + topPackage.classes.length <= 1
-  ) {
-    applicationWrapper.app = getApplicationFromPackage(
-      landscapeStructure,
-      topPackage.id
-    );
-    return hasAppEnoughPackages(
-      applicationWrapper,
-      topPackage,
-      wrapper,
-      isCutOperation
-    );
-  }
-  return true;
 }

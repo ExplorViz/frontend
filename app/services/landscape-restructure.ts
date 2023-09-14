@@ -20,6 +20,7 @@ import {
   restoreID,
   removeAffectedCommunications,
   canDeleteClass,
+  canDeletePackage,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
@@ -1399,19 +1400,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
         comms: this.allClassCommunications,
-        meshTodelete: pckg,
         deletedComms: [],
       };
 
-      removePackageFromApplication(
-        this.landscapeData.structureLandscapeData,
-        wrapper,
-        pckg,
-        shouldUndo
-      );
-
       if (!shouldUndo) {
+        const classesInPackge = getClassesInPackage(pckg);
+        removeAffectedCommunications(classesInPackge, wrapper);
         this.completelyDeletedClassCommunications.push(wrapper.deletedComms);
+
         // Create Changelog Entry
         if (app && pckg.parent) {
           this.changeLog.deleteSubPackageEntry(app, pckg);
@@ -1429,20 +1425,17 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           pckg: pckg,
         });
       } else {
-        if (isApplication(wrapper.meshTodelete)) {
-          // Removes existing Changelog Entry
-          this.changeLog.deleteAppEntry(wrapper.meshTodelete, true);
-        } else if (isPackage(wrapper.meshTodelete)) {
-          // Removes existing Changelog Entry
-          if (app && wrapper.meshTodelete.parent) {
-            this.changeLog.deleteSubPackageEntry(
-              app,
-              wrapper.meshTodelete,
-              true
-            );
-          } else if (app && !wrapper.meshTodelete.parent) {
-            this.changeLog.deletePackageEntry(app, wrapper.meshTodelete, true);
-          }
+        if (!canDeletePackage(pckg, app as Application)) {
+          AlertifyHandler.showAlertifyError('Package cannot be removed');
+          return;
+        }
+        removePackageFromApplication(pckg, app as Application);
+
+        // Removes existing Changelog Entry
+        if (pckg.parent) {
+          this.changeLog.deleteSubPackageEntry(app as Application, pckg, true);
+        } else {
+          this.changeLog.deletePackageEntry(app as Application, pckg, true);
         }
       }
 
