@@ -65,7 +65,10 @@ export default function computeDrawableClassCommunication(
   restructureMode: boolean,
   classCommunication: DrawableClassCommunication[],
   updatedClassCommunication: DrawableClassCommunication[][],
-  deletedClassCommunication: DrawableClassCommunication[][]
+  deletedClassCommunication: Map<
+    string,
+    DrawableClassCommunication[]
+  > = new Map()
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -145,15 +148,17 @@ export default function computeDrawableClassCommunication(
       });
     }
 
-    if (deletedClassCommunication.length) {
+    if (deletedClassCommunication.size) {
       const allDeletedComms: DrawableClassCommunication[] = [];
-      deletedClassCommunication.flat().forEach((deletedComm) => {
-        const foundComm = drawableClassCommunications.filter(
-          (comm) =>
-            comm.id === deletedComm.id ||
-            comm.operationName === deletedComm.operationName
-        );
-        if (foundComm) allDeletedComms.pushObjects(foundComm);
+      deletedClassCommunication.forEach((value) => {
+        value.forEach((deletedComm) => {
+          const foundComm = drawableClassCommunications.filter(
+            (comm) =>
+              comm.id === deletedComm.id ||
+              comm.operationName === deletedComm.operationName
+          );
+          if (foundComm.length) allDeletedComms.pushObjects(foundComm);
+        });
       });
 
       drawableClassCommunications.removeObjects(allDeletedComms);

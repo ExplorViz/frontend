@@ -10,6 +10,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
+import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -232,6 +233,11 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const screenshotDataURL = canvas.toDataURL('image/png');
     this.issues[index].screenshots.pushObject(screenshotDataURL);
     this.canUpload();
+  }
+
+  @action
+  deleteEntry(entry: BaseChangeLogEntry) {
+    console.log(entry._logText);
   }
 
   @action

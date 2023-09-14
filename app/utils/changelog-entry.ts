@@ -12,15 +12,19 @@ import {
   getApplicationFromSubPackage,
 } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
+import { tracked } from '@glimmer/tracking';
 
 export abstract class BaseChangeLogEntry {
   id: string;
   action: MeshAction;
   originalAppName?: string;
+
+  @tracked
   app?: Application;
 
   wasInserted?: boolean;
 
+  @tracked
   newName?: string;
 
   constructor(id: string, action: MeshAction, app?: Application) {
