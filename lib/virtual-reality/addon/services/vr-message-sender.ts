@@ -291,7 +291,7 @@ export default class VrMessageSender extends Service {
   sendChangeLogRestoreEntriesMessage(key: string) {
     this.webSocket.send<ChangeLogRestoreEntriesMessage>({
       event: 'changelog_restore_entries',
-      key: key
+      key: key,
     });
   }
 

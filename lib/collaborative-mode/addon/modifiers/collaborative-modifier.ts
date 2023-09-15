@@ -570,8 +570,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
-  onChangeLogRestoreEntriesMessage( {
-    originalMessage: { key }
+  onChangeLogRestoreEntriesMessage({
+    originalMessage: { key },
   }: ForwardedMessage<ChangeLogRestoreEntriesMessage>): void {
     this.changeLog.restoreDeletedEntries(key, true);
   }
