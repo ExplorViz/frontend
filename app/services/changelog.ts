@@ -572,7 +572,7 @@ export default class Changelog extends Service.extend(Evented, {
    */
   restoreDeletedEntries(key: string, collabMode: boolean = false) {
     if (!collabMode) {
-      this.sender.sendChangeLogRestoreEntriesMessage();
+      this.sender.sendChangeLogRestoreEntriesMessage(key);
     }
     const deletedEntries = this.deletedChangeLogEntries.get(key);
     if (!deletedEntries?.length) return;

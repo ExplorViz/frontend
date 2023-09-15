@@ -37,6 +37,7 @@ import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
+  ChangeLogRestoreEntriesMessage,
 } from 'virtual-reality/utils/vr-message/sendable/changelog_update';
 import {
   ComponentUpdateMessage,
@@ -569,8 +570,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
-  onChangeLogRestoreEntriesMessage(): void {
-    this.changeLog.restoreDeletedEntries(true);
+  onChangeLogRestoreEntriesMessage( {
+    originalMessage: { key }
+  }: ForwardedMessage<ChangeLogRestoreEntriesMessage>): void {
+    this.changeLog.restoreDeletedEntries(key, true);
   }
 
   onMousePingUpdate({

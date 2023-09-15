@@ -8,4 +8,5 @@ export type ChangeLogRemoveEntryMessage = {
 
 export type ChangeLogRestoreEntriesMessage = {
   event: typeof CHANGELOG_RESTORE_ENTRIES_EVENT;
+  key: string;
 };
