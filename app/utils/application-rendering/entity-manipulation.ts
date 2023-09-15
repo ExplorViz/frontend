@@ -153,11 +153,9 @@ export function closeAllComponents(
   applicationObject3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {
-  const application = applicationObject3D.data.application;
-
   // Close each component
   applicationObject3D.content.openOrCloseAllComponents(false);
-  // TODO: use keepHighlighted
+  keepHighlighted; // TODO: use keepHighlighted
 }
 
 /**
@@ -199,7 +197,7 @@ export function openAllComponents(
   sender: VrMessageSender
 ) {
   applicationObject3D.content.openOrCloseAllComponents(true);
-  // TODO
+  sender; // TODO
   // sender.sendComponentUpdate(
   //   applicationObject3D.getModelId(),
   //   mesh.getModelId(),
