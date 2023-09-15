@@ -23,9 +23,10 @@ export type ProjectorConfigurations = {
   projectorAngles: ProjectorAngles;
 };
 
-// Quaternion which actually getting used in synchronization
+// Quaternion which actually getting used for synchronization and shifting the projection according to usability
 export type ProjectorQuaternion = {
-  quaternion: THREE.Quaternion;
+  synchronizationQuaternion: THREE.Quaternion;
+  domeTiltQuaternion: THREE.Quaternion;
 };
 
 export default class SynchronizationSession extends Service {
@@ -44,7 +45,7 @@ export default class SynchronizationSession extends Service {
   projectorQuaternion!: ProjectorQuaternion;
 
   // domeTilt for moving the projection into center of dome
-  private domeTilt: number = 21;
+  private domeTilt: number = 45;
 
   /** ###########################################################################
    *  ############### SYNCHRONIZATION START: SERVICE SET UP
@@ -65,7 +66,7 @@ export default class SynchronizationSession extends Service {
   }
 
   setProjectorConfigurations(projectorConfiguration: ProjectorConfigurations) {
-    this.setProjectorYawPitchRoll(projectorConfiguration.yawPitchRoll);
+    this.setProjectorQuaternion(projectorConfiguration.yawPitchRoll);
     this.setProjectorAngle(projectorConfiguration.projectorAngles);
   }
 
@@ -94,6 +95,22 @@ export default class SynchronizationSession extends Service {
     return domeTiltQuaternion;
   }
 
+  // Sets projector yaw, pitch and roll angles of the device.
+  // Device detection same as projector angle
+  setProjectorQuaternion(yawPitchRoll: YawPitchRoll) {
+    this.projectorQuaternion = {
+      synchronizationQuaternion: new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(
+          -yawPitchRoll.pitch * DEG2RAD, // NEGATIVE Pitch
+          yawPitchRoll.yaw * DEG2RAD, // Yaw
+          yawPitchRoll.roll * DEG2RAD, // Roll
+          'ZXY'
+        )
+      ),
+      domeTiltQuaternion: this.getDomeTiltQuaternion(),
+    };
+  }
+
   // Sets the projector angles of the device: Detection of device via payload at start of synchronization
   // Could implement a test case for this, but need to save the mpcdi informations for that in frontend?!
   setProjectorAngle(projectorAngles: any) {
@@ -105,20 +122,7 @@ export default class SynchronizationSession extends Service {
     };
   }
 
-  // Sets projector yaw, pitch and roll angles of the device.
-  // Device detection same as projector angle
-  setProjectorYawPitchRoll(yawPitchRoll: YawPitchRoll) {
-    this.projectorQuaternion = {
-      quaternion: new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(
-          -yawPitchRoll.pitch * DEG2RAD, // NEGATIVE Pitch
-          yawPitchRoll.yaw * DEG2RAD, // Yaw
-          yawPitchRoll.roll * DEG2RAD, // Roll
-          'ZXY'
-        )
-      ),
-    };
-  }
+
 
   /**
    * Sets up projection matrix by configuring aspect, fov,
@@ -144,14 +148,14 @@ export default class SynchronizationSession extends Service {
     // Set up Yaw, Pitch and Roll
     this.localUser.camera.projectionMatrix.multiply(
       new THREE.Matrix4().makeRotationFromQuaternion(
-        this.projectorQuaternion?.quaternion
+        this.projectorQuaternion.synchronizationQuaternion
       )
     );
 
     // consider dometilt AFTER synchronisation, shifting all projections to the center of dome
     this.localUser.camera.projectionMatrix.multiply(
       new THREE.Matrix4().makeRotationFromQuaternion(
-        this.getDomeTiltQuaternion()
+        this.projectorQuaternion.domeTiltQuaternion
       )
     );
   }
