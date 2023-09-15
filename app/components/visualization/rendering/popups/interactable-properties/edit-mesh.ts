@@ -92,11 +92,11 @@ export default class EditMesh extends Component<Args> {
   @action
   deleteMesh() {
     if (this.isEntityApplication)
-      this.landscapeRestructure.deleteAppFromPopup(this.args.entity);
+      this.landscapeRestructure.deleteApp(this.args.entity);
     else if (this.isEntityPackage)
-      this.landscapeRestructure.deletePackageFromPopup(this.args.entity);
+      this.landscapeRestructure.deletePackage(this.args.entity);
     else if (this.isEntityClass)
-      this.landscapeRestructure.deleteClassFromPopup(this.args.entity);
+      this.landscapeRestructure.deleteClass(this.args.entity);
   }
 
   @action

@@ -64,7 +64,7 @@ export default function computeDrawableClassCommunication(
   landscapeDynamicData: DynamicLandscapeData,
   restructureMode: boolean,
   classCommunication: DrawableClassCommunication[],
-  updatedClassCommunication: DrawableClassCommunication[][],
+  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
   deletedClassCommunication: Map<
     string,
     DrawableClassCommunication[]
@@ -164,8 +164,12 @@ export default function computeDrawableClassCommunication(
       drawableClassCommunications.removeObjects(allDeletedComms);
     }
 
-    if (updatedClassCommunication.length) {
-      const allUpdatedComms = updatedClassCommunication.flat();
+    if (updatedClassCommunications.size) {
+      const allUpdatedComms: DrawableClassCommunication[] = [];
+
+      updatedClassCommunications.forEach((value) => {
+        allUpdatedComms.push(...value);
+      });
 
       drawableClassCommunications.pushObjects(allUpdatedComms);
       const removeUnwantedComms = drawableClassCommunications.filter(

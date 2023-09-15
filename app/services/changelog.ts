@@ -33,7 +33,7 @@ export default class Changelog extends Service.extend(Evented, {
   changeLogEntries: BaseChangeLogEntry[] = [];
 
   // Necessary for the created Packages and Classes that are not in the baseChangeLogEntries!!
-  deletedChangeLogEntries: BaseChangeLogEntry[][] = [];
+  deletedChangeLogEntries: Map<string, BaseChangeLogEntry[]> = new Map();
 
   get _changeLogEntries() {
     return this.changeLogEntries;
@@ -107,6 +107,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
+    this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -134,6 +135,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
+    this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -161,6 +163,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
+    this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -185,6 +188,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
+    this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -195,7 +199,7 @@ export default class Changelog extends Service.extend(Evented, {
     ) as AppChangeLogEntry;
     let originalAppName = '';
 
-    this.storeDeletedEntries();
+    this.storeDeletedEntries(app.id);
 
     this.changeLogEntries = this.changeLogEntries.filter((entry) => {
       if (!(entry instanceof CommunicationChangeLogEntry)) {
@@ -218,10 +222,18 @@ export default class Changelog extends Service.extend(Evented, {
     if (undoInsert) {
       return;
     }
+
     const appLogEntry = new AppChangeLogEntry(MeshAction.Delete, app);
+    this.addToDeletedEntriesMap(app.id, appLogEntry);
+
     if (originalAppName !== '') appLogEntry.originalAppName = originalAppName;
     this.changeLogEntries.pushObject(appLogEntry);
     //this.trigger('showChangeLog');
+  }
+
+  addToDeletedEntriesMap(key: string, entry: BaseChangeLogEntry) {
+    const deletedEntries = this.deletedChangeLogEntries.get(key);
+    deletedEntries?.pushObject(entry);
   }
 
   deletePackageEntry(
@@ -234,7 +246,7 @@ export default class Changelog extends Service.extend(Evented, {
       pckg
     ) as PackageChangeLogEntry;
 
-    if (!undoInsert) this.storeDeletedEntries();
+    if (!undoInsert) this.storeDeletedEntries(pckg.id);
 
     // We don't want to undo the undo, thats why we dont store the data then
     this.removeLogEntriesUnderPackage(app, pckg);
@@ -262,6 +274,9 @@ export default class Changelog extends Service.extend(Evented, {
       app,
       pckg
     );
+
+    this.addToDeletedEntriesMap(pckg.id, pckgLogEntry);
+
     if (originalPckgName !== '') {
       pckgLogEntry.originalPckgName = originalPckgName;
     }
@@ -270,12 +285,13 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  private storeDeletedEntries() {
+  private storeDeletedEntries(key: string) {
+    if (!this.changeLogEntries.length) return;
     const deletedEntries: BaseChangeLogEntry[] = [];
     this.changeLogEntries.forEach((entry) => {
       deletedEntries.pushObject(entry);
     });
-    this.deletedChangeLogEntries.pushObject(deletedEntries);
+    this.deletedChangeLogEntries.set(key, deletedEntries);
   }
 
   deleteSubPackageEntry(
@@ -289,7 +305,7 @@ export default class Changelog extends Service.extend(Evented, {
     ) as SubPackageChangeLogEntry;
 
     // We don't want to undo the undo, thats why we dont store the data then
-    if (!undoInsert) this.storeDeletedEntries();
+    if (!undoInsert) this.storeDeletedEntries(pckg.id);
 
     this.removeLogEntriesUnderPackage(app, pckg);
 
@@ -316,6 +332,8 @@ export default class Changelog extends Service.extend(Evented, {
       app,
       pckg
     );
+
+    this.addToDeletedEntriesMap(pckg.id, pckgLogEntry);
     if (originalPckgName !== '') {
       pckgLogEntry.originalPckgName = originalPckgName;
     }
@@ -336,7 +354,7 @@ export default class Changelog extends Service.extend(Evented, {
 
     // We don't want to undo the undo, thats why we dont store the data then
     if (!undoInsert) {
-      this.storeDeletedEntries();
+      this.storeDeletedEntries(clazz.id);
     }
 
     // Remove Communication Log Entry
@@ -364,6 +382,8 @@ export default class Changelog extends Service.extend(Evented, {
       app,
       clazz
     );
+
+    this.addToDeletedEntriesMap(clazz.id, clazzLogEntry);
     if (originalClazzName !== '') {
       clazzLogEntry.originalClazzName = originalClazzName;
     }
@@ -499,6 +519,8 @@ export default class Changelog extends Service.extend(Evented, {
     commEntry.newName = newName;
 
     this.changeLogEntries.pushObject(commEntry);
+
+    this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -507,7 +529,7 @@ export default class Changelog extends Service.extend(Evented, {
       communication.id,
       true
     ) as CommunicationChangeLogEntry;
-    this.storeDeletedEntries();
+    this.storeDeletedEntries(communication.id);
     let originalName = communication.operationName;
     if (foundEntry) {
       this.changeLogEntries.removeObject(foundEntry);
@@ -548,15 +570,33 @@ export default class Changelog extends Service.extend(Evented, {
    * Restores entries that were previously removed due to a delete operation.
    * It fetches the last set of deleted entries and puts them into the main log.
    */
-  restoreDeletedEntries(collabMode: boolean = false) {
+  restoreDeletedEntries(key: string, collabMode: boolean = false) {
     if (!collabMode) {
       this.sender.sendChangeLogRestoreEntriesMessage();
     }
+    const deletedEntries = this.deletedChangeLogEntries.get(key);
+    if (!deletedEntries?.length) return;
 
-    const deletedEntries =
-      this.deletedChangeLogEntries.popObject() as BaseChangeLogEntry[];
+    const lastEntry = deletedEntries.popObject();
 
-    this.changeLogEntries = deletedEntries;
+    const index = this.changeLogEntries.findIndex(
+      (entry) => entry.id === lastEntry?.id
+    );
+
+    this.changeLogEntries.splice(0, index + 1, ...deletedEntries);
+    this.changeLogEntries = [...this.changeLogEntries];
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      const index = deletedList.findIndex((deleted) => {
+        return deleted.id === lastEntry.id;
+      });
+
+      if (index === -1) continue;
+
+      deletedList.splice(0, index + 1, ...deletedEntries);
+    }
+
+    this.deletedChangeLogEntries.delete(key);
 
     //this.trigger('showChangeLog');
   }
@@ -614,10 +654,39 @@ export default class Changelog extends Service.extend(Evented, {
     });
   }
 
-  findEntry(id: string, action: MeshAction) {
-    return this.changeLogEntries.find(
-      (entry) => entry.id === id && entry.action === action
-    );
+  isCreateBundle(
+    entry: BaseChangeLogEntry,
+    bundledEntries: BaseChangeLogEntry[]
+  ): BaseChangeLogEntry[] | undefined {
+    if (
+      entry instanceof AppChangeLogEntry ||
+      entry instanceof CommunicationChangeLogEntry
+    ) {
+      return undefined;
+    }
+
+    if (entry instanceof PackageChangeLogEntry) {
+      if (entry.createdWithApp) {
+        bundledEntries.push(entry, entry.createdWithApp);
+        return bundledEntries;
+      }
+      if (bundledEntries.length) {
+        bundledEntries.push(entry);
+        return bundledEntries;
+      }
+    }
+
+    if (entry instanceof SubPackageChangeLogEntry && bundledEntries.length) {
+      bundledEntries.push(entry);
+      return bundledEntries;
+    }
+
+    if (entry instanceof ClassChangeLogEntry && entry.createdWithPackage) {
+      bundledEntries.push(entry);
+      return this.isCreateBundle(entry.createdWithPackage, bundledEntries);
+    }
+
+    return undefined;
   }
 
   /**
