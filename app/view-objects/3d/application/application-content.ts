@@ -13,7 +13,7 @@ const boxGeometry = new THREE.BoxGeometry(1.0, 1.0, 1.0);
 const pkgMaterial = new THREE.MeshLambertMaterial();
 const tmpMatrix = new THREE.Matrix4();
 
-export default class InstancedContent {
+export default class ApplicationContent {
   private readonly app3d: ApplicationObject3D;
   private readonly classMaterial = new THREE.MeshLambertMaterial();
   private components: THREE.InstancedMesh;
@@ -158,6 +158,10 @@ export default class InstancedContent {
     return this.componentData
       .filter((data) => this.openComponentIds.has(data.component.id))
       .map((data) => data.component);
+  }
+
+  get applicationId(): string {
+    return this.app3d.data.application.id;
   }
 
   private updateVisibilityOfChildren(

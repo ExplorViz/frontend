@@ -15,7 +15,7 @@ export type EntityType =
   | typeof HEATMAP_ENTITY_TYPE
   | typeof SPECTATE_VIEW_ENTITY_TYPE;
 
-const entityTypes = [
+const entityTypes = new Set([
   NODE_ENTITY_TYPE,
   APPLICATION_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
@@ -23,8 +23,8 @@ const entityTypes = [
   CLASS_COMMUNICATION_ENTITY_TYPE,
   HEATMAP_ENTITY_TYPE,
   SPECTATE_VIEW_ENTITY_TYPE,
-];
+]);
 
 export function isEntityType(entityType: any): entityType is EntityType {
-  return typeof entityType === 'string' && entityTypes.includes(entityType);
+  return typeof entityType === 'string' && entityTypes.has(entityType);
 }

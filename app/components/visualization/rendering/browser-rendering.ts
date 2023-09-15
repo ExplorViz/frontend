@@ -493,7 +493,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.hoveredObject = null;
       }
     }
-    this.popupHandler.hover(intersection?.object);
+    const object = intersection.object;
+    this.popupHandler.hover(
+      isEntityMesh(object) ? object.getModelId() : undefined
+    );
   }
 
   @action

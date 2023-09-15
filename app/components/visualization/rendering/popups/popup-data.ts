@@ -69,4 +69,12 @@ export default class PopupData {
     this.menuId = menuId;
     this.hovered = hovered;
   }
+
+  get modelId(): string {
+    if (this.mesh) {
+      return this.mesh.getModelId();
+    }
+
+    return this.entity.id;
+  }
 }

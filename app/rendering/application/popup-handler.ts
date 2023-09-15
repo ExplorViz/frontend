@@ -67,7 +67,7 @@ export default class PopupHandler {
     this.updateMeshReference(popup);
 
     const { mesh } = popup;
-    const entityId = mesh.getModelId();
+    const entityId = popup.modelId;
     const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
     worldPosition.y += 0.3;
 
@@ -101,7 +101,7 @@ export default class PopupHandler {
 
   @action
   pinPopup(popup: PopupData) {
-    this.pinPopupLocally(popup.mesh.getModelId());
+    this.pinPopupLocally(popup.modelId);
   }
 
   @action
@@ -154,16 +154,10 @@ export default class PopupHandler {
   }
 
   @action
-  hover(mesh?: THREE.Object3D) {
-    if (isEntityMesh(mesh)) {
-      this.popupData.forEach((pd) => {
-        pd.hovered = pd.entity.id === mesh.getModelId();
-      });
-    } else {
-      this.popupData.forEach((pd) => {
-        pd.hovered = false;
-      });
-    }
+  hover(modelId?: string) {
+    this.popupData.forEach((pd) => {
+      pd.hovered = pd.entity.id === modelId;
+    });
   }
 
   @action

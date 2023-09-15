@@ -161,7 +161,7 @@ function addComponentLabel(
   const parentAspectRatio = layout.width / layout.depth;
 
   // Adjust desired text size with possible scaling
-  const textSize = (2.0 / layout.width) * parentAspectRatio;
+  const textSize = 2.0 * parentAspectRatio;
   // Text should look like it is written on the parent's box (no height required)
   const textHeight = 0.0;
 
@@ -205,7 +205,7 @@ function addComponentLabel(
   const foundationOffset = 1.5;
   textMesh.position.x = -0.5 * layout.width + foundationOffset / layout.width;
 
-  textMesh.position.y += layout.center.y + 5;
+  textMesh.position.y += layout.center.y;
 
   application.add(textMesh);
   console.log('added label', text, textMesh.position);
