@@ -106,6 +106,81 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
+  toggleCheckBox(index: number) {
+    const checkBox = document.getElementById(
+      'checkbox-' + index
+    ) as HTMLInputElement;
+    const card = document.getElementById('card-' + index) as HTMLDivElement;
+    checkBox.checked = !checkBox.checked;
+
+    if (checkBox.checked) {
+      card.classList.add('bg-secondary');
+      card.classList.add('text-white');
+    } else {
+      card.classList.remove('bg-secondary');
+      card.classList.remove('text-white');
+    }
+  }
+
+  @action
+  toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById(
+      'selectAll'
+    ) as HTMLInputElement;
+    const isChecked = selectAllCheckbox.checked;
+
+    for (let i = 0; i < this.logTexts.length; i++) {
+      const checkBox = document.getElementById(
+        'checkbox-' + i
+      ) as HTMLInputElement;
+      const card = document.getElementById('card-' + i) as HTMLDivElement;
+
+      if (isChecked && !checkBox.checked) {
+        checkBox.checked = true;
+        card.classList.add('bg-secondary');
+        card.classList.add('text-white');
+      } else if (!isChecked && checkBox.checked) {
+        checkBox.checked = false;
+        card.classList.remove('bg-secondary');
+        card.classList.remove('text-white');
+      }
+    }
+  }
+
+  @action
+  addSelectedEntriesToIssue(issueIndex: number) {
+    const issue = this.issues[issueIndex];
+    let newContent = issue.content;
+
+    for (let i = 0; i < this.logTexts.length; i++) {
+      const checkbox = document.getElementById(
+        'checkbox-' + i
+      ) as HTMLInputElement;
+
+      if (checkbox && checkbox.checked) {
+        const entry = this.logTexts[i];
+        newContent += `${entry}\n`;
+      }
+    }
+
+    const updatedIssue = {
+      ...issue,
+      content: newContent,
+    };
+
+    const updatedIssues = [];
+    for (const [index, issue] of this.issues.entries()) {
+      if (index === issueIndex) {
+        updatedIssues.push(updatedIssue);
+      } else {
+        updatedIssues.push(issue);
+      }
+    }
+
+    this.issues = updatedIssues;
+  }
+
+  @action
   close() {
     this.args.removeComponent('restructure-landscape');
   }
