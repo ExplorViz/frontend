@@ -762,6 +762,10 @@ export default class Changelog extends Service.extend(Evented, {
     }
 
     this.changeLogEntries.removeObject(entry);
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      deletedList.removeObject(entry);
+    }
     //this.trigger('showChangeLog');
   }
 
@@ -775,6 +779,10 @@ export default class Changelog extends Service.extend(Evented, {
     }
 
     this.changeLogEntries.removeObjects(entries);
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      deletedList.removeObjects(entries);
+    }
     //this.trigger('showChangeLog');
   }
 
