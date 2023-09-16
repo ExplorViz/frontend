@@ -190,7 +190,7 @@
         {{#each this.changeLog._changeLogEntries as |entry index|}}
           <div class="card">
             <div class="card-body">
-              <p class="text-muted" style="user-select: none;">#{{add index 1}}</p>
+              <p class={{this.getActionColor entry.action}} style="user-select: none;">#{{add index 1}}</p>
               <div class="d-flex justify-content-between align-items-center">
                 <p>{{entry._logText}}</p>
                 <button
