@@ -10,8 +10,6 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
-import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
-import { MeshAction } from 'explorviz-frontend/utils/restructure-helper';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -61,7 +59,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   methodName: string = '';
 
   @tracked
-  changelog: string = '';
+  logTexts: string[] = [];
 
   @tracked
   issues: { title: string; content: string; screenshots: string[] }[] = [];
@@ -91,8 +89,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  getActionColor(action: MeshAction) {
-    switch (action) {
+  getActionColor(index: number) {
+    const logEntry = this.changeLog.changeLogEntries[index];
+    switch (logEntry?.action) {
       case 'CREATE':
         return 'text-primary';
       case 'RENAME':
@@ -213,7 +212,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @action
   showChangelog() {
     const changelog = this.landscapeRestructure.changeLog.getChangeLog();
-    this.changelog = changelog;
+    this.logTexts = changelog;
   }
 
   @action
@@ -253,7 +252,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  deleteEntry(entry: BaseChangeLogEntry) {
+  deleteEntry(index: number) {
+    const entry = this.changeLog.changeLogEntries[index];
     const bundledCreateEntries = this.changeLog
       .isCreateBundle(entry, [])
       ?.reverse();

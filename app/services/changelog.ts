@@ -107,7 +107,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
-    this.changeLogEntries = [...this.changeLogEntries];
+    //this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -135,7 +135,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
-    this.changeLogEntries = [...this.changeLogEntries];
+    //this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -163,7 +163,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
-    this.changeLogEntries = [...this.changeLogEntries];
+    //this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -188,7 +188,7 @@ export default class Changelog extends Service.extend(Evented, {
         foundEntry.newName = newName;
       }
     }
-    this.changeLogEntries = [...this.changeLogEntries];
+    //this.changeLogEntries = [...this.changeLogEntries];
     //this.trigger('showChangeLog');
   }
 
@@ -557,13 +557,14 @@ export default class Changelog extends Service.extend(Evented, {
    * @returns string with all log texts with each seperated by a new line
    */
   getChangeLog() {
-    let description = '';
-
+    //let description = '';
+    const logTexts: string[] = [];
     this.changeLogEntries.forEach((entry) => {
-      description = description.concat(entry._logText, '\n');
+      // description = description.concat(entry._logText, '\n');
+      logTexts.pushObject(entry._logText);
     });
 
-    return description;
+    return logTexts;
   }
 
   /**

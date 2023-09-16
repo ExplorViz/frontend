@@ -1,5 +1,5 @@
 {{add-listener this.landscapeRestructure 'restructureMode' this.toggleRestructureMode}}
-{{add-listener this.changeLog 'showChangeLog' this.showChangelog}}
+{{add-listener this.landscapeRestructure 'showChangeLog' this.showChangelog}}
 
 <div class='sidebar-component-close' {{on 'click' this.close}}>
   {{svg-jar 'x-16' class='octicon'}}
@@ -187,18 +187,18 @@
     <div class='ml-3'>
       <div class='d-flex flex-column justify-content-between' style="max-height: 600px; overflow-y: auto;">
         <label for='changelog'></label>
-        {{#each this.changeLog._changeLogEntries as |entry index|}}
+        {{#each this.logTexts as |entry index|}}
           <div class="card">
             <div class="card-body">
-              <p class={{this.getActionColor entry.action}} style="user-select: none;">#{{add index 1}}</p>
+              <p class={{this.getActionColor index}} style="user-select: none;">#{{add index 1}}</p>
               <div class="d-flex justify-content-between align-items-center">
-                <p>{{entry._logText}}</p>
+                <p>{{entry}}</p>
                 <button
                   type='button'
                   style='padding: 0; margin: 0;'
                   class='btn btn-sm link-secondary'
                   title='Delete Entry'
-                  onclick={{fn this.deleteEntry entry}}
+                  onclick={{fn this.deleteEntry index}}
                   >{{svg-jar 'x-16' class='octicon'}}</button>
               </div>
             </div>

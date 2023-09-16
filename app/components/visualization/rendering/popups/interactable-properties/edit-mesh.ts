@@ -78,15 +78,15 @@ export default class EditMesh extends Component<Args> {
   @action
   addPackage() {
     if (this.isEntityApplication)
-      this.landscapeRestructure.addPackageFromPopup(this.args.entity);
+      this.landscapeRestructure.addPackage(this.args.entity);
     else if (this.isEntityPackage)
-      this.landscapeRestructure.addSubPackageFromPopup(this.args.entity);
+      this.landscapeRestructure.addSubPackage(this.args.entity);
   }
 
   @action
   addClass() {
     if (this.isEntityPackage)
-      this.landscapeRestructure.addClassFromPopup(this.args.entity);
+      this.landscapeRestructure.addClass(this.args.entity);
   }
 
   @action
@@ -102,9 +102,9 @@ export default class EditMesh extends Component<Args> {
   @action
   cutMesh() {
     if (this.isEntityPackage)
-      this.landscapeRestructure.cutPackageFromPopup(this.args.entity);
+      this.landscapeRestructure.cutPackage(this.args.entity);
     else if (this.isEntityClass)
-      this.landscapeRestructure.cutClassFromPopup(this.args.entity);
+      this.landscapeRestructure.cutClass(this.args.entity);
   }
 
   @action
@@ -119,6 +119,6 @@ export default class EditMesh extends Component<Args> {
 
   @action
   insertMesh() {
-    this.landscapeRestructure.insertPackageOrClassFromPopup(this.args.entity);
+    this.landscapeRestructure.insertPackageOrClass(this.args.entity);
   }
 }

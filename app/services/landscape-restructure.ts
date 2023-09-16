@@ -286,7 +286,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         comm: classCommunication,
         color: new THREE.Color(0xbc42f5),
       });
-
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -336,6 +336,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.changeLog.deleteCommunicationEntry(comm);
       this.deletedDataModels.pushObject(comm);
     }
+    this.trigger('showChangeLog');
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -402,6 +403,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Application name
         app.name = name;
 
+        this.trigger('showChangeLog');
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -466,6 +468,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Package name
         pckg.name = name;
 
+        this.trigger('showChangeLog');
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -526,6 +529,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         // Set new Package name
         pckg.name = name;
 
+        this.trigger('showChangeLog');
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -604,6 +608,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           // Set new Class name
           clazzToRename.name = name;
 
+          this.trigger('showChangeLog');
           this.trigger(
             'restructureLandscapeData',
             this.landscapeData.structureLandscapeData,
@@ -644,6 +649,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       communication.operationName = newName;
     }
 
+    this.trigger('showChangeLog');
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -685,6 +691,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     } else {
       this.completelyDeletedClassCommunications.delete(app.id);
     }
+
+    this.trigger('showChangeLog');
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -743,6 +751,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.completelyDeletedClassCommunications.delete(pckg.id);
     }
 
+    this.trigger('showChangeLog');
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -810,6 +819,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     } else {
       this.completelyDeletedClassCommunications.delete(clazz.id);
     }
+
+    this.trigger('showChangeLog');
     this.trigger(
       'restructureLandscapeData',
       this.landscapeData?.structureLandscapeData,
@@ -880,6 +891,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         clazz: clazz as Class,
       });
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1142,10 +1154,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       pckgId
     );
-    this.addSubPackageFromPopup(pckg as Package, true);
+    this.addSubPackage(pckg as Package, true);
   }
 
-  addSubPackageFromPopup(pckg: Package, collabMode: boolean = false) {
+  addSubPackage(pckg: Package, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -1184,6 +1196,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           clazz: newClass as Class,
         });
 
+        this.trigger('showChangeLog');
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -1199,10 +1212,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       appId
     );
-    this.addPackageFromPopup(app as Application, true);
+    this.addPackage(app as Application, true);
   }
 
-  addPackageFromPopup(app: Application, collabMode: boolean = false) {
+  addPackage(app: Application, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -1238,6 +1251,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         clazz: newClass as Class,
       });
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1252,10 +1266,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.landscapeData?.structureLandscapeData as StructureLandscapeData,
       pckgId
     );
-    this.addClassFromPopup(pckg as Package, true);
+    this.addClass(pckg as Package, true);
   }
 
-  addClassFromPopup(pckg: Package, collabMode: boolean = false) {
+  addClass(pckg: Package, collabMode: boolean = false) {
     if (this.landscapeData?.structureLandscapeData) {
       if (!collabMode)
         this.sender.sendRestructureCreateOrDeleteMessage(
@@ -1288,6 +1302,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           clazz: clazz as Class,
         });
 
+        this.trigger('showChangeLog');
         this.trigger(
           'restructureLandscapeData',
           this.landscapeData.structureLandscapeData,
@@ -1358,6 +1373,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         }
       }
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1459,6 +1475,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         }
       }
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1618,6 +1635,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
       }
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1626,12 +1644,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  cutPackageFromPopup(pckg: Package) {
+  cutPackage(pckg: Package) {
     this.clipboard = pckg.name;
     this.clippedMesh = pckg;
   }
 
-  cutClassFromPopup(clazz: Class) {
+  cutClass(clazz: Class) {
     this.clipboard = clazz.name;
     this.clippedMesh = clazz;
   }
@@ -1664,13 +1682,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData?.structureLandscapeData as StructureLandscapeData,
         destinationId
       );
-      this.insertPackageOrClassFromPopup(app as Application, true);
+      this.insertPackageOrClass(app as Application, true);
     } else {
       const pckg = getPackageById(
         this.landscapeData?.structureLandscapeData as StructureLandscapeData,
         destinationId
       );
-      this.insertPackageOrClassFromPopup(pckg as Package, true);
+      this.insertPackageOrClass(pckg as Package, true);
     }
   }
 
@@ -1689,7 +1707,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     return undefined;
   }
 
-  insertPackageOrClassFromPopup(
+  insertPackageOrClass(
     destination: Application | Package,
     collabMode: boolean = false
   ) {
@@ -1819,6 +1837,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
       }
 
+      this.trigger('showChangeLog');
       this.trigger(
         'restructureLandscapeData',
         this.landscapeData.structureLandscapeData,
@@ -1852,6 +1871,12 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       } else if (entry instanceof ClassChangeLogEntry) {
         const { clazz } = entry;
         this.deleteClass(clazz as Class, false, true);
+      } else if (
+        entry instanceof PackageChangeLogEntry ||
+        entry instanceof SubPackageChangeLogEntry
+      ) {
+        const { pckg } = entry;
+        this.deletePackage(pckg as Package, false, true);
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication } = entry;
         this.deleteCommunication(
@@ -1977,6 +2002,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
 
     this.changeLog.removeEntry(entry);
+    this.trigger('showChangeLog');
   }
 
   removeMeshModelTextureMapping(
