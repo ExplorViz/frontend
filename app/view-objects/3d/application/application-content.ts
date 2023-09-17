@@ -8,6 +8,9 @@ import type {
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
+import type ApplicationData from 'explorviz-frontend/utils/application-data';
+
+const LABEL_HEIGHT = 8.0; // TODO: import this (import from city-layouter not working!)
 
 const boxGeometry = new THREE.BoxGeometry(1.0, 1.0, 1.0);
 const pkgMaterial = new THREE.MeshLambertMaterial();
@@ -18,6 +21,7 @@ export default class ApplicationContent {
   private readonly classMaterial = new THREE.MeshLambertMaterial();
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
+  private componentLabels: THREE.InstancedMesh;
   private colors: ApplicationColors;
   private offset = new THREE.Vector3();
 
@@ -46,6 +50,7 @@ export default class ApplicationContent {
       this.classMaterial,
       app3d.data.counts.classes
     );
+    this.componentLabels = createLabelMesh(app3d.data);
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -54,6 +59,7 @@ export default class ApplicationContent {
 
     app3d.add(this.components);
     app3d.add(this.classes);
+    app3d.add(this.componentLabels);
 
     this.init();
   }
@@ -79,6 +85,7 @@ export default class ApplicationContent {
 
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
+    this.componentLabels.instanceMatrix!.needsUpdate = true;
 
     return newOpenState;
   }
@@ -111,6 +118,7 @@ export default class ApplicationContent {
 
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
+    this.componentLabels.instanceMatrix!.needsUpdate = true;
   }
 
   applyHoverEffect(index: number, colorShift = 1.1): void {
@@ -205,6 +213,7 @@ export default class ApplicationContent {
     const position = new THREE.Vector3(0, 0, 0).sub(this.app3d.layout.center);
     this.components.position.copy(position);
     this.classes.position.copy(position);
+    this.componentLabels.position.copy(position);
 
     const application = this.app3d.data.application;
     this.offset.copy(this.getLayout(application.id).center);
@@ -216,6 +225,7 @@ export default class ApplicationContent {
     // Send updated data to GPU with the next render
     this.components.instanceMatrix!.needsUpdate = true;
     this.components.instanceColor!.needsUpdate = true;
+    this.componentLabels.instanceMatrix!.needsUpdate = true;
   }
 
   private addComponentsAndChildren(
@@ -254,8 +264,20 @@ export default class ApplicationContent {
     opened: boolean,
     visible: boolean
   ): void {
-    setupMatrix(layout, opened, visible);
+    setupBoxMatrix(layout, opened, visible);
     this.components.setMatrixAt(index, tmpMatrix);
+
+    const id = this.componentData[index].component.id;
+    const labelIndex = this.app3d.data.labels.layout.get(id)?.index;
+
+    if (labelIndex === undefined) {
+      throw new Error(
+        `Missing label "${this.componentData[index].component.name}"`
+      );
+    }
+
+    setupLabelMatrix(layout, opened, visible);
+    this.componentLabels.setMatrixAt(labelIndex, tmpMatrix);
   }
 
   private updateClassInstance(
@@ -263,13 +285,13 @@ export default class ApplicationContent {
     layout: BoxLayout,
     visible: boolean
   ): void {
-    setupMatrix(layout, false, visible);
+    setupBoxMatrix(layout, false, visible);
     this.classes.setMatrixAt(index, tmpMatrix);
   }
 
   private addClass(clazz: Class, visible: boolean): void {
     const layout = this.getLayout(clazz.id);
-    setupMatrix(layout, false, visible);
+    setupBoxMatrix(layout, false, visible);
     const index = this.classData.size;
     this.classData.set(clazz.id, { visible, index });
 
@@ -288,7 +310,7 @@ export default class ApplicationContent {
   }
 }
 
-function setupMatrix(
+function setupBoxMatrix(
   layout: BoxLayout,
   opened: boolean,
   visible: boolean
@@ -311,11 +333,102 @@ function setupMatrix(
   tmpMatrix.setPosition(position);
 }
 
+function setupLabelMatrix(
+  componentLayout: BoxLayout,
+  opened: boolean,
+  visible: boolean
+) {
+  if (!visible) {
+    tmpMatrix.makeScale(0, 0, 0);
+    return;
+  }
+
+  // TODO: why x0.5?
+  tmpMatrix.makeScale(
+    0.5 * LABEL_HEIGHT,
+    0.5,
+    0.5 * 0.9 * componentLayout.width
+  );
+
+  const position = componentLayout.center;
+
+  if (opened) {
+    position.y -= 0.5 * componentLayout.height;
+    position.y += 1.5 + 1e-3;
+    position.x += 0.5 * LABEL_HEIGHT - 0.5 * componentLayout.depth;
+  } else {
+    position.y += 0.5 * componentLayout.height + 1e-3;
+  }
+
+  tmpMatrix.setPosition(position);
+}
+
 function createInstancedMesh(
   material: THREE.Material,
   count: number
 ): THREE.InstancedMesh {
   return new THREE.InstancedMesh(boxGeometry, material, count);
+}
+
+function createLabelMesh(data: ApplicationData) {
+  const texture = new THREE.Texture(data.labels.texture);
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.needsUpdate = true;
+
+  const planeGeometry = new THREE.PlaneGeometry(1, 1);
+  planeGeometry.rotateX(-0.5 * Math.PI);
+  planeGeometry.rotateY(-0.5 * Math.PI);
+
+  // Make label width & height available to the vertex shader:
+  const shaderData = new Float32Array(
+    Array.from(data.labels.layout.values())
+      .map((label) => [label.width, label.bottom])
+      .flat()
+  );
+  const attribute = new THREE.InstancedBufferAttribute(shaderData, 2, false, 1);
+  attribute.needsUpdate = true;
+  planeGeometry.setAttribute('labelLayoutData', attribute);
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.FrontSide,
+    transparent: true,
+  });
+
+  material.onBeforeCompile = (shader) => {
+    // Modify shader to use custom UV coordinates per instance:
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <uv_pars_vertex>',
+        `#include <uv_pars_vertex>
+      uniform float labelHeight;
+      attribute vec2 labelLayoutData;`
+      )
+      .replace(
+        '#include <uv_vertex>',
+        `#include <uv_vertex>
+      float labelWidth = labelLayoutData.x;
+      float labelYOffset = labelLayoutData.y;
+      vec2 customUV = MAP_UV * vec2(labelWidth, labelHeight) + vec2(0.0, labelYOffset);
+      vMapUv = ( mapTransform * vec3( customUV, 1 ) ).xy;`
+      );
+    shader.uniforms['labelHeight'] = { value: data.labels.labelHeight };
+  };
+
+  const mesh = new THREE.InstancedMesh(
+    planeGeometry,
+    material,
+    data.labels.layout.size
+  );
+
+  // Hide all labels initially:
+  tmpMatrix.makeScale(0, 0, 0);
+  for (let i = 0; i < data.labels.layout.size; i++) {
+    mesh.setMatrixAt(i, tmpMatrix);
+  }
+
+  return mesh;
 }
 
 type ComponentData = {

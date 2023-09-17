@@ -20,8 +20,8 @@ import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
-import { WorkerApplicationData } from 'workers/landscape-data-worker/LandscapeDataContext';
-import LocalUser from 'collaborative-mode/services/local-user';
+import type { WorkerApplicationData } from 'workers/landscape-data-worker/landscape-data-context';
+import type LocalUser from 'collaborative-mode/services/local-user';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;

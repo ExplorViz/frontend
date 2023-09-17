@@ -2,8 +2,8 @@ import * as Comlink from 'comlink';
 import type {
   BackendInfo,
   DataUpdate,
-} from './landscape-data-worker/LandscapeDataContext';
-import LandscapeDataContext from './landscape-data-worker/LandscapeDataContext';
+} from './landscape-data-worker/landscape-data-context';
+import LandscapeDataContext from './landscape-data-worker/landscape-data-context';
 import type { OrderTuple, VizDataRaw } from 'explorviz-frontend/ide/shared';
 import { convertVizDataToOrderTuple } from './ide/prepare-viz-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';

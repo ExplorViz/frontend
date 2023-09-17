@@ -71,7 +71,7 @@ export function addApplicationLabels(
   });
   for (const component of application.getOpenedComponents()) {
     const layout = application.getBoxLayout(component.id)!;
-    addComponentLabel(component, layout, font, componentTextColor, application);
+    //addComponentLabel(component, layout, font, componentTextColor, application);
   }
   performance.mark('addApplicationLabels-end');
 }
@@ -162,14 +162,17 @@ function addComponentLabel(
 
   // Adjust desired text size with possible scaling
   const textSize = 2.0 * parentAspectRatio;
+  console.log(
+    'font-size',
+    component.name,
+    textSize,
+    layout.width,
+    layout.depth
+  );
   // Text should look like it is written on the parent's box (no height required)
   const textHeight = 0.0;
 
   const text = component.name;
-
-  // if (text === 'springframework') {
-  //   debugger;
-  // }
 
   const geometry = new TextGeometry(text, {
     font,
@@ -190,6 +193,7 @@ function addComponentLabel(
   if (textWidth > desiredWidth) {
     scaleFactor = desiredWidth / textWidth;
     geometry.scale(scaleFactor, scaleFactor, scaleFactor);
+    console.log('scaled down', scaleFactor);
   }
 
   geometry.center();
@@ -208,7 +212,6 @@ function addComponentLabel(
   textMesh.position.y += layout.center.y;
 
   application.add(textMesh);
-  console.log('added label', text, textMesh.position);
 }
 
 /**

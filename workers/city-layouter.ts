@@ -41,18 +41,22 @@ type ComponentLayout = {
   positionZ: number;
 };
 
-export type CityLayout = Map<ReducedClass['id'], ComponentLayout>;
+export type CityLayout = Map<
+  ReducedClass['id'] | ReducedComponent['id'],
+  ComponentLayout
+>;
 
 type InstanceCounts = Map<ReducedClass['id'], number>;
 
 const INSET_SPACE = 4.0;
+export const LABEL_HEIGHT = 2 * INSET_SPACE;
 const OPENED_COMPONENT_HEIGHT = 1.5;
 
 function applyBoxLayout(
   application: ReducedApplication,
   allLandscapeTraces: Trace[]
 ): CityLayout {
-  const layoutMap = new Map<ReducedClass['id'], ComponentLayout>();
+  const layoutMap = new Map<string, ComponentLayout>();
   const instanceCountMap = new Map<ReducedClass['id'], number>();
 
   layoutMap.set(application.id, {
@@ -576,10 +580,10 @@ function layoutGeneric(
 
   children.forEach((child) => {
     const childData = layoutMap.get(child.id)!;
-    childData.positionX = childData.positionX + INSET_SPACE;
+    childData.positionX = childData.positionX + LABEL_HEIGHT - INSET_SPACE;
   });
 
-  rootSegment.width += INSET_SPACE;
+  rootSegment.width += LABEL_HEIGHT - INSET_SPACE;
 
   return rootSegment;
 

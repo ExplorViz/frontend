@@ -478,7 +478,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMove(intersection: THREE.Intersection) {
+  handleMouseMove(intersection?: THREE.Intersection) {
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
@@ -493,7 +493,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.hoveredObject = null;
       }
     }
-    const object = intersection.object;
+    const object = intersection?.object;
     this.popupHandler.hover(
       isEntityMesh(object) ? object.getModelId() : undefined
     );

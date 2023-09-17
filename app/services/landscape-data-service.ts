@@ -5,7 +5,7 @@ import type Auth from './auth';
 import type {
   DataUpdate,
   WorkerApplicationData,
-} from 'workers/landscape-data-worker/LandscapeDataContext';
+} from 'workers/landscape-data-worker/landscape-data-context';
 import type {
   Application,
   StructureLandscapeData,

@@ -16,7 +16,15 @@ import {
 } from 'workers/city-layouter';
 import { calculateFlatData, type FlatData } from 'workers/flat-data-worker';
 import { calculateHeatmapData } from 'workers/metrics-worker';
-import { ClassAndPackageCounts, countClassesAndPackages } from 'workers/utils';
+import {
+  type ClassAndPackageCounts,
+  countClassesAndPackages,
+} from 'workers/utils';
+import {
+  type ApplicationLabelData,
+  generatePackageLabels,
+} from './label-generator';
+import * as Comlink from 'comlink';
 
 export default class LandscapeDataContext {
   readonly token: string;
@@ -94,7 +102,15 @@ export default class LandscapeDataContext {
       );
     }
 
-    return update;
+    const transfers: Transferable[] = [];
+
+    if (update.appData) {
+      update.appData.forEach((data) =>
+        transfers.push(data.labels.texture.data.buffer)
+      );
+    }
+
+    return Comlink.transfer(update, transfers);
   }
 
   private async updateStructureData(
@@ -206,6 +222,7 @@ function computeApplicationData(
       drawableClassCommunications
     );
     const counts = countClassesAndPackages(application);
+    const labels = generatePackageLabels(application, layout);
 
     data.set(application.id, {
       layout,
@@ -213,6 +230,7 @@ function computeApplicationData(
       flatData,
       communication,
       counts,
+      labels,
     });
   }
   performance.mark('appData-completed');
@@ -226,6 +244,7 @@ export type WorkerApplicationData = {
   flatData: Map<string, FlatData>;
   communication: DrawableClassCommunication[];
   counts: ClassAndPackageCounts;
+  labels: ApplicationLabelData;
 };
 
 /**
