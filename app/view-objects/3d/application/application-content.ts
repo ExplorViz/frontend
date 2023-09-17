@@ -344,21 +344,19 @@ function setupLabelMatrix(
   }
 
   // TODO: why x0.5?
-  tmpMatrix.makeScale(
-    0.5 * LABEL_HEIGHT,
-    0.5,
-    0.5 * 0.9 * componentLayout.width
-  );
+  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.9 * componentLayout.depth);
 
   const position = componentLayout.center;
 
   if (opened) {
-    position.y -= 0.5 * componentLayout.height;
-    position.y += 1.5 + 1e-3;
-    position.x += 0.5 * LABEL_HEIGHT - 0.5 * componentLayout.depth;
+    position.y += 1.5 - 0.5 * componentLayout.height;
+    position.x -= 0.5 * componentLayout.width - 0.25 * LABEL_HEIGHT;
   } else {
-    position.y += 0.5 * componentLayout.height + 1e-3;
+    position.y += 0.5 * componentLayout.height;
   }
+
+  // Fix Z-fighting
+  position.y += 1e-3;
 
   tmpMatrix.setPosition(position);
 }

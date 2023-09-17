@@ -47,15 +47,11 @@ export function generatePackageLabels(
   const textureLayout: LabelLayoutMap = new Map();
 
   packages.forEach(({ name, id }, i) => {
-    const boxWidth = layout.get(id)!.width;
+    const boxWidth = layout.get(id)!.depth;
     const maxWidth = Math.min(maxTextureWidth, ratio * boxWidth);
+    const y = i * lineHeight;
 
-    ctx.fillText(
-      name,
-      0.5 * maxWidth,
-      (i + 1) * lineHeight - padding,
-      maxWidth
-    );
+    ctx.fillText(name, 0.5 * maxWidth, y + lineHeight - padding, maxWidth);
 
     textureLayout.set(id, {
       width: maxWidth / width,
