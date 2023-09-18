@@ -7,20 +7,31 @@ import {
   Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
+import { setOwner } from '@ember/application';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { inject as service } from '@ember/service';
 
 export default class CameraControls {
-  private camera: PerspectiveCamera | OrthographicCamera;
+  @service('user-settings')
+  userSettings!: UserSettings;
+
+  private camera: PerspectiveCamera;
+
+  private orthographicCamera: OrthographicCamera;
 
   controls: MapControls;
 
   enabled: boolean = true;
 
   constructor(
-    camera: PerspectiveCamera | OrthographicCamera,
+    owner: any,
+    camera: PerspectiveCamera,
+    orthographicCamera: OrthographicCamera,
     canvas: HTMLCanvasElement
   ) {
+    setOwner(this, owner);
     this.camera = camera;
-
+    this.orthographicCamera = orthographicCamera;
     const controls = new MapControls(this.camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.3;

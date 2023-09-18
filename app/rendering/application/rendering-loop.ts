@@ -11,7 +11,7 @@ const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
-  orthographicCamera: THREE.OrthographicCamera;
+  orthographicCamera: THREE.OrthographicCamera | undefined;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -32,7 +32,7 @@ export default class RenderingLoop {
 
   camera: THREE.Camera;
 
-  orthographicCamera: THREE.OrthographicCamera;
+  orthographicCamera: THREE.OrthographicCamera | undefined;
 
   scene: THREE.Scene;
 
@@ -76,7 +76,10 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
-      if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+      if (
+        this.orthographicCamera &&
+        this.userSettings.applicationSettings.useOrthographicCamera.value
+      ) {
         this.renderer.render(this.scene, this.orthographicCamera);
       } else {
         this.renderer.render(this.scene, this.camera);

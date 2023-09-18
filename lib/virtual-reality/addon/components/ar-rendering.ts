@@ -218,6 +218,7 @@ export default class ArRendering extends Component<Args> {
     );
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
