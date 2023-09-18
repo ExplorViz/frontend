@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import {
   Box3,
+  Camera,
   Object3D,
   OrthographicCamera,
   PerspectiveCamera,
@@ -21,7 +22,8 @@ export default class CameraControls {
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
 
-  activeControls: MapControls;
+  activeControls!: MapControls;
+  activeCamera!: PerspectiveCamera | OrthographicCamera;
 
   enabled: boolean = true;
 
@@ -53,23 +55,20 @@ export default class CameraControls {
       );
     }
 
+    this.setActiveControls();
+  }
+
+  private setActiveControls() {
     if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
       this.activeControls = this.orthographicCameraControls!;
+      this.activeCamera = this.orthographicCamera!;
     } else {
       this.activeControls = this.perspectiveCameraControls;
+      this.activeCamera = this.perspectiveCamera;
     }
-    owner.addObserver(
-      'this.userSettings.applicationSettings.useOrthographicCamera',
-      owner,
-      'cameraChanged'
-    );
   }
 
-  cameraChanged() {
-    console.log('asdasdasd');
-  }
-
-  fitCameraToBox(
+  private fitCameraToBox(
     duration: number = 0,
     box: Box3,
     keepCameraPerspective = true
@@ -87,7 +86,7 @@ export default class CameraControls {
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
     const origin = keepCameraPerspective
-      ? this.perspectiveCamera.position
+      ? this.activeCamera.position
       : new Vector3(1, 1, 1);
     const direction = center
       .clone()
@@ -102,12 +101,12 @@ export default class CameraControls {
     if (duration > 0) {
       this.panCameraTo(position, center, duration);
     } else {
-      this.perspectiveCamera.position.copy(position);
-      this.perspectiveCameraControls.target.copy(center);
+      this.activeCamera.position.copy(position);
+      this.activeControls.target.copy(center);
     }
   }
 
-  getBoxForSelection(...selection: Object3D[]) {
+  private getBoxForSelection(...selection: Object3D[]) {
     const box = new Box3();
     selection.forEach((object) => {
       box.expandByObject(object);
@@ -117,38 +116,41 @@ export default class CameraControls {
   }
 
   focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
+    this.setActiveControls();
     this.fitCameraToBox(duration, this.getBoxForSelection(...selection));
   }
 
   resetCameraFocusOn(duration: number = 1, ...selection: Object3D[]) {
+    this.setActiveControls();
     this.fitCameraToBox(duration, this.getBoxForSelection(...selection), false);
   }
 
-  panCameraTo(position: Vector3, target: Vector3, duration: number) {
-    gsap.to(this.perspectiveCamera.position, {
+  private panCameraTo(position: Vector3, target: Vector3, duration: number) {
+    gsap.to(this.activeCamera.position, {
       duration,
       x: position.x,
       y: position.y,
       z: position.z,
       onUpdate: () => {
-        this.perspectiveCamera.updateProjectionMatrix();
+        this.activeCamera.updateProjectionMatrix();
       },
     });
 
-    gsap.to(this.perspectiveCameraControls.target, {
+    gsap.to(this.activeControls.target, {
       duration,
       x: target.x,
       y: target.y,
       z: target.z,
       onUpdate: () => {
-        this.perspectiveCameraControls.update();
+        this.activeControls.update();
       },
     });
   }
 
   tick() {
     if (this.enabled) {
-      this.perspectiveCameraControls.update();
+      this.setActiveControls();
+      this.activeControls.update();
     }
   }
 }
