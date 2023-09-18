@@ -11,6 +11,7 @@ const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -31,6 +32,8 @@ export default class RenderingLoop {
 
   camera: THREE.Camera;
 
+  orthographicCamera: THREE.OrthographicCamera;
+
   scene: THREE.Scene;
 
   renderer: THREE.WebGLRenderer;
@@ -42,6 +45,7 @@ export default class RenderingLoop {
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
+    this.orthographicCamera = args.orthographicCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;

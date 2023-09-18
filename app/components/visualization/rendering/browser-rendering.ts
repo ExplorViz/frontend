@@ -161,16 +161,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene = defaultScene();
     this.scene.background = this.configuration.landscapeColors.backgroundColor;
 
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
-      1.0,
-      0.1,
-      100
-    );
-    this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
-
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
@@ -316,14 +306,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const aspectRatio = width / height;
     const frustumSize = 5;
 
-    /*const camera = new THREE.OrthographicCamera(
-      width / -2,
-      width / 2,
-      height / 2,
-      height / -2
-    );*/
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      aspectRatio,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
+    this.scene.add(this.localUser.defaultCamera);
 
-    let camera = new THREE.OrthographicCamera(
+    const ortographicCamera = new THREE.OrthographicCamera(
       (-aspectRatio * frustumSize) / 2,
       (aspectRatio * frustumSize) / 2,
       frustumSize / 2,
@@ -332,12 +325,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       100
     );
 
-    this.localUser.defaultCamera = camera;
-
-    //this.camera.position.set(0, 0, 0);
-
-    this.camera.position.setFromSphericalCoords(10, Math.PI / 3, Math.PI / 4);
-    this.camera.lookAt(this.scene.position);
+    ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    ortographicCamera.lookAt(this.scene.position);
     // controls
     this.cameraControls = new CameraControls(this.camera, this.canvas);
 
@@ -345,20 +338,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
-        //setTimeout(() => {
-        //this.cameraControls.resetCameraFocusOn(
-        //  1.2,
-        //   ...this.applicationRenderer.getOpenApplications()
-        // );
-        //}, 200);
+        setTimeout(() => {
+          this.cameraControls.resetCameraFocusOn(
+            1.2,
+            ...this.applicationRenderer.getOpenApplications()
+          );
+        }, 200);
         this.initDone = true;
       }
     });
-    //this.updatables.push(this.cameraControls);
+    this.updatables.push(this.cameraControls);
     this.updatables.push(this.localUser);
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
