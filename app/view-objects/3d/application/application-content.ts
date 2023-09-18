@@ -344,7 +344,7 @@ function setupLabelMatrix(
   }
 
   // TODO: why x0.5?
-  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.9 * componentLayout.depth);
+  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.5 * componentLayout.depth);
 
   const position = componentLayout.center;
 
