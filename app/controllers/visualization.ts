@@ -170,6 +170,10 @@ export default class VisualizationController extends Controller {
     return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
   }
 
+  get showXRButton() {
+    return this.userSettings.applicationSettings.showXRButton.value;
+  }
+
   @action
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);

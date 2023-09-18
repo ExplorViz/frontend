@@ -4,6 +4,7 @@ export type SettingGroup =
   | 'Hover Effects'
   | 'Communication'
   | 'Popup'
+  | 'Extended Reality'
   | 'Debugging';
 
 export type LandscapeColorSettingId =
@@ -47,6 +48,8 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
+export type ApplicationXRSettingId = 'showXRButton';
+
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
@@ -61,6 +64,7 @@ export type ApplicationSettingId =
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
   | ApplicationDebugSettingId
+  | ApplicationXRSettingId
   | ApplicationPopupSettingId;
 
 export type LandscapeColorSettings = Record<
@@ -109,11 +113,14 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
+export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
+
 export type ApplicationSettings = ApplicationColorSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
   ApplicationPopupSettings &
+  ApplicationXRSettings &
   ApplicationCommunicationSettings;
 
 export type LandscapeSettings = LandscapeColorSettings &

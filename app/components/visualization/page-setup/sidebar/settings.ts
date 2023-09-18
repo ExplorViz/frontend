@@ -53,6 +53,7 @@ export default class Settings extends Component<Args> {
       Communication: [],
       Highlighting: [],
       Popup: [],
+      'Extended Reality': [],
       Debugging: [],
     };
 
@@ -87,6 +88,7 @@ export default class Settings extends Component<Args> {
         Communication: [],
         Highlighting: [],
         Popup: [],
+        'Extended Reality': [],
         Debugging: [],
       };
 
