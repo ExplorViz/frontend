@@ -121,4 +121,12 @@ export default class EditMesh extends Component<Args> {
   insertMesh() {
     this.landscapeRestructure.insertPackageOrClass(this.args.entity);
   }
+
+  @action
+  pasteMesh() {
+    if (isPackage(this.landscapeRestructure.clippedMesh))
+      this.landscapeRestructure.pastePackage(this.args.entity);
+    else if (isClass(this.landscapeRestructure.clippedMesh))
+      this.landscapeRestructure.pasteClass(this.args.entity);
+  }
 }

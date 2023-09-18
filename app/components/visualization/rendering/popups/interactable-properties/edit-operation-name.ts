@@ -47,7 +47,7 @@ export default class EditOperationName extends Component<Args> {
 
   save() {
     if (this.args.communication.operationName !== this.operationName) {
-      this.landscapeRestructure.updateOperationName(
+      this.landscapeRestructure.renameOperation(
         this.args.communication,
         this.operationName
       );

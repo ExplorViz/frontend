@@ -53,17 +53,14 @@ export default class InteractiveHeader extends Component<Args> {
   save() {
     if (this.args.entity.name !== this.name) {
       if (isApplication(this.args.entity))
-        this.landscapeRestructure.updateApplicationName(
+        this.landscapeRestructure.renameApplication(
           this.name,
           this.args.entity.id
         );
       else if (isPackage(this.args.entity))
-        this.landscapeRestructure.updatePackageName(
-          this.name,
-          this.args.entity.id
-        );
+        this.landscapeRestructure.renamePackage(this.name, this.args.entity.id);
       else if (isClass(this.args.entity))
-        this.landscapeRestructure.updateClassName(
+        this.landscapeRestructure.renameClass(
           this.name,
           this.args.entity.id,
           this.args.appId

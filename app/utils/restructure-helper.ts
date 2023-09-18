@@ -29,10 +29,11 @@ export enum EntityType {
   Communication = 'COMMUNICATION',
 }
 
-export enum MeshAction {
+export enum RestructureAction {
   Create = 'CREATE',
   Rename = 'RENAME',
   Delete = 'DELETE',
+  CopyPaste = 'COPYPASTE',
   CutInsert = 'CUTINSERT',
   Communication = 'COMMUNICATION',
 }
@@ -280,6 +281,85 @@ export function canDeleteClass(clazzToRemove: Class) {
   return parentPackage.classes.length + parentPackage.subPackages.length > 1;
 }
 
+export function pastePackage(
+  landscapeStructure: StructureLandscapeData,
+  copiedPackage: Package,
+  pasteToDestination: Application | Package,
+  wrapper: {
+    idCounter: number;
+    comms: DrawableClassCommunication[];
+    copiedComms: DrawableClassCommunication[];
+  }
+) {
+  let destinationApplication: Application | undefined;
+
+  if (isPackage(pasteToDestination)) {
+    // Get the main application containing the destimination package
+    const firstPackage = getAncestorPackages(pasteToDestination);
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
+      );
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        pasteToDestination.id
+      );
+
+    // Insert the package to be moved under the destination package
+    insertPackageToPackage(pasteToDestination, copiedPackage);
+  } else {
+    // If the destination is an application, insert the package directly under it
+    insertPackageToApplication(pasteToDestination, copiedPackage);
+    destinationApplication = pasteToDestination;
+  }
+
+  // Copy the communications
+  if (wrapper.comms.length > 0) {
+    const classesInPackage = getClassesInPackage(copiedPackage);
+
+    copyCommunications(classesInPackage, wrapper, destinationApplication);
+  }
+}
+
+export function pasteClass(
+  landscapeStructure: StructureLandscapeData,
+  copiedClass: Class,
+  pasteToDestination: Package,
+  commsWrapper: {
+    idCounter: number;
+    comms: DrawableClassCommunication[];
+    copiedComms: DrawableClassCommunication[];
+  }
+) {
+  // Verify if the destination is a package
+  if (isPackage(pasteToDestination)) {
+    let destinationApplication: Application | undefined;
+    const firstPackage = getAncestorPackages(pasteToDestination);
+
+    // Find the application of destination package
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
+      );
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        pasteToDestination.id
+      );
+
+    if (commsWrapper.comms.length) {
+      copyCommunications([copiedClass], commsWrapper, destinationApplication);
+    }
+
+    // Add the copied class to the destination package's classes
+    pasteToDestination.classes.push(copiedClass);
+    copiedClass.parent = pasteToDestination;
+  }
+}
+
 /**
  * Cuts a specified package from its current location in the landscape structure and inserts it into a given destination,
  * which can be another package or an application. The class communications are appropriately updated.
@@ -299,76 +379,39 @@ export function cutAndInsertPackage(
     updatedComms: DrawableClassCommunication[];
   }
 ) {
-  const parentPackage = wrapper.meshTodelete?.parent as Package;
+  let destinationApplication: Application | undefined;
 
-  // Determine if the package to be moved has a parent package. If it doesn't it means the package is directly under the application
-  if (parentPackage) {
-    let destinationApplication: Application | undefined;
-
-    if (isPackage(clipToDestination)) {
-      // Get the main application containing the destination package
-      const firstPackage = getAncestorPackages(clipToDestination);
-      if (firstPackage.length > 0)
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          firstPackage[firstPackage.length - 1].id
-        );
-      else
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          clipToDestination.id
-        );
-
-      // Insert the package to be moved under the destination package
-      insertClipToDestinationPackage(clipToDestination, clippedPackage);
-    } else {
-      // If the destination is an application, insert the package directly under it
-      inserClipToDestinationApp(clipToDestination, clippedPackage);
-      destinationApplication = clipToDestination;
-    }
-    // Update communications if the package contains classes involved in communications
-    if (wrapper.comms.length > 0) {
-      const classesInPackage = getClassesInPackage(clippedPackage);
-
-      updateAffectedCommunications(
-        classesInPackage,
-        wrapper,
-        destinationApplication
+  if (isPackage(clipToDestination)) {
+    // Get the main application containing the destimination package
+    const firstPackage = getAncestorPackages(clipToDestination);
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
       );
-    }
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        clipToDestination.id
+      );
+
+    // Insert the package to be moved under the destination package
+    insertPackageToPackage(clipToDestination, clippedPackage);
   } else {
-    let destinationApplication: Application | undefined;
+    // If the destination is an application, insert the package directly under it
+    insertPackageToApplication(clipToDestination, clippedPackage);
+    destinationApplication = clipToDestination;
+  }
 
-    if (isPackage(clipToDestination)) {
-      // Get the main application containing the destination package
-      const firstPackage = getAncestorPackages(clipToDestination);
-      if (firstPackage.length > 0)
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          firstPackage[firstPackage.length - 1].id
-        );
-      else
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          clipToDestination.id
-        );
+  // Update communications if the package contains classes involved in communications
+  if (wrapper.comms.length > 0) {
+    const classesInPackage = getClassesInPackage(clippedPackage);
 
-      // Insert the package to be moved under the destination package
-      insertClipToDestinationPackage(clipToDestination, clippedPackage);
-    } else {
-      destinationApplication = clipToDestination;
-      inserClipToDestinationApp(clipToDestination, clippedPackage);
-    }
-
-    // Update communications if the package contains classes involved in communications
-    if (wrapper.comms.length > 0) {
-      const classesInPackage = getClassesInPackage(clippedPackage);
-      updateAffectedCommunications(
-        classesInPackage,
-        wrapper,
-        destinationApplication
-      );
-    }
+    updateAffectedCommunications(
+      classesInPackage,
+      wrapper,
+      destinationApplication
+    );
   }
 }
 
@@ -537,7 +580,50 @@ function updateAffectedCommunications(
   );
 }
 
-function inserClipToDestinationApp(
+function copyCommunications(
+  classesInPackage: Class[],
+  commsWrapper: {
+    idCounter: number;
+    comms: DrawableClassCommunication[];
+    copiedComms: DrawableClassCommunication[];
+  },
+  destinationApplication: Application | undefined
+) {
+  classesInPackage.forEach((clazz) =>
+    commsWrapper.comms.forEach((comms) => {
+      if (comms.sourceClass.id === clazz.id) {
+        const copiedComms = copyCommunication(comms, commsWrapper.idCounter);
+        copiedComms.sourceClass = clazz;
+        copiedComms.sourceApp = destinationApplication;
+        commsWrapper.copiedComms.push(copiedComms);
+      } else if (comms.targetClass.id === clazz.id) {
+        const copiedComms = copyCommunication(comms, commsWrapper.idCounter);
+        copiedComms.targetClass = clazz;
+        copiedComms.targetApp = destinationApplication;
+        commsWrapper.copiedComms.push(copiedComms);
+      }
+    })
+  );
+}
+
+function copyCommunication(
+  commToCopy: DrawableClassCommunication,
+  idCounter: number
+) {
+  const comm: DrawableClassCommunication = {
+    id: 'copied' + idCounter + '|' + commToCopy.id,
+    totalRequests: commToCopy.totalRequests,
+    sourceClass: commToCopy.sourceClass,
+    targetClass: commToCopy.targetClass,
+    operationName: 'copied' + idCounter + '|' + commToCopy.operationName,
+    sourceApp: commToCopy.sourceApp,
+    targetApp: commToCopy.targetApp,
+  };
+
+  return comm;
+}
+
+function insertPackageToApplication(
   clipToDestination: Application,
   clippedPackage: Package
 ) {
@@ -545,7 +631,7 @@ function inserClipToDestinationApp(
   delete clippedPackage.parent;
 }
 
-function insertClipToDestinationPackage(
+function insertPackageToPackage(
   clipToDestination: Package,
   clippedPackage: Package
 ) {

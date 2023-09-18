@@ -53,6 +53,8 @@ import {
 } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
+  RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+  RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
   RESTRUCTURE_CREATE_OR_DELETE_EVENT,
   RESTRUCTURE_CUT_AND_INSERT_EVENT,
   RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
@@ -63,6 +65,8 @@ import {
   RESTRUCTURE_RESTORE_PACKAGE_EVENT,
   RESTRUCTURE_UPDATE_EVENT,
   RestructureCommunicationMessage,
+  RestructureCopyAndPasteClassMessage,
+  RestructureCopyAndPastePackageMessage,
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
   RestructureDeleteCommunicationMessage,
@@ -118,6 +122,16 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       RESTRUCTURE_CREATE_OR_DELETE_EVENT,
       this,
       this.onRestructureCreateOrDelete
+    );
+    this.webSocket.on(
+      RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
+      this,
+      this.onRestructureCopyAndPastePackage
+    );
+    this.webSocket.on(
+      RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+      this,
+      this.onRestructureCopyAndPasteClass
     );
     this.webSocket.on(
       RESTRUCTURE_CUT_AND_INSERT_EVENT,
@@ -195,6 +209,16 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       RESTRUCTURE_CREATE_OR_DELETE_EVENT,
       this,
       this.onRestructureCreateOrDelete
+    );
+    this.webSocket.off(
+      RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
+      this,
+      this.onRestructureCopyAndPastePackage
+    );
+    this.webSocket.off(
+      RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+      this,
+      this.onRestructureCopyAndPasteClass
     );
     this.webSocket.off(
       RESTRUCTURE_CUT_AND_INSERT_EVENT,
@@ -360,7 +384,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }: ForwardedMessage<RestructureUpdateMessage>): void {
     switch (entityType) {
       case 'APP':
-        this.landscapeRestructure.updateApplicationName(
+        this.landscapeRestructure.renameApplication(
           newName,
           entityId,
           true,
@@ -368,15 +392,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         );
         break;
       case 'PACKAGE':
-        this.landscapeRestructure.updatePackageName(
-          newName,
-          entityId,
-          true,
-          undo
-        );
+        this.landscapeRestructure.renamePackage(newName, entityId, true, undo);
         break;
       case 'SUBPACKAGE':
-        this.landscapeRestructure.updateSubPackageName(
+        this.landscapeRestructure.renameSubPackage(
           newName,
           entityId,
           true,
@@ -384,7 +403,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         );
         break;
       case 'CLAZZ':
-        this.landscapeRestructure.updateClassName(
+        this.landscapeRestructure.renameClass(
           newName,
           entityId,
           appId as string,
@@ -442,6 +461,25 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
+  onRestructureCopyAndPastePackage({
+    originalMessage: { destinationEntity, destinationId, clippedEntityId },
+  }: ForwardedMessage<RestructureCopyAndPastePackageMessage>): void {
+    this.landscapeRestructure.pasteCollaborativePackage(
+      destinationEntity,
+      destinationId,
+      clippedEntityId
+    );
+  }
+
+  onRestructureCopyAndPasteClass({
+    originalMessage: { destinationId, clippedEntityId },
+  }: ForwardedMessage<RestructureCopyAndPasteClassMessage>): void {
+    this.landscapeRestructure.pasteCollaborativeClass(
+      destinationId,
+      clippedEntityId
+    );
+  }
+
   onRestructureCutAndInsert({
     originalMessage: {
       destinationEntity,
@@ -461,7 +499,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   onRestructureCommunication({
     originalMessage: { sourceClassId, targetClassId, methodName },
   }: ForwardedMessage<RestructureCommunicationMessage>): void {
-    this.landscapeRestructure.createCollaborativeCommunication(
+    this.landscapeRestructure.addCollaborativeCommunication(
       sourceClassId,
       targetClassId,
       methodName
@@ -488,7 +526,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       (comm) => comm.id === commId
     );
 
-    this.landscapeRestructure.updateOperationName(
+    this.landscapeRestructure.renameOperation(
       comm as DrawableClassCommunication,
       newName,
       true,

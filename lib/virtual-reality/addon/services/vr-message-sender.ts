@@ -23,6 +23,8 @@ import {
 import { ControllerId } from '../utils/vr-message/util/controller_id';
 import {
   RestructureCommunicationMessage,
+  RestructureCopyAndPasteClassMessage,
+  RestructureCopyAndPastePackageMessage,
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
   RestructureDeleteCommunicationMessage,
@@ -34,7 +36,7 @@ import {
   RestructureUpdateMessage,
 } from 'virtual-reality/utils/vr-message/sendable/restructure_update';
 import {
-  MeshAction,
+  RestructureAction,
   EntityType,
 } from 'explorviz-frontend/utils/restructure-helper';
 import { JoinVrMessage } from 'virtual-reality/utils/vr-message/sendable/join_vr';
@@ -190,7 +192,7 @@ export default class VrMessageSender extends Service {
 
   sendRestructureCreateOrDeleteMessage(
     entityType: EntityType,
-    action: MeshAction,
+    action: RestructureAction,
     name: string | null,
     language: string | null,
     entityId: string | null,
@@ -204,6 +206,30 @@ export default class VrMessageSender extends Service {
       language: language,
       entityId: entityId,
       undo: undo,
+    });
+  }
+
+  sendRestructureCopyAndPastePackageMessage(
+    destinationEntity: string,
+    destinationId: string,
+    clippedEntityId: string
+  ) {
+    this.webSocket.send<RestructureCopyAndPastePackageMessage>({
+      event: 'restructure_copy_paste_package',
+      destinationEntity: destinationEntity,
+      destinationId: destinationId,
+      clippedEntityId: clippedEntityId,
+    });
+  }
+
+  sendRestructureCopyAndPasteClassMessage(
+    destinationId: string,
+    clippedEntityId: string
+  ) {
+    this.webSocket.send<RestructureCopyAndPasteClassMessage>({
+      event: 'restructure_copy_paste_class',
+      destinationId: destinationId,
+      clippedEntityId: clippedEntityId,
     });
   }
 

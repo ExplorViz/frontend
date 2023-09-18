@@ -1,6 +1,14 @@
 export const RESTRUCTURE_MODE_UPDATE_EVENT = 'restructure_mode_update';
 export const RESTRUCTURE_UPDATE_EVENT = 'restructure_update';
 export const RESTRUCTURE_CREATE_OR_DELETE_EVENT = 'restructure_create_delete';
+export const RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT =
+  'restructure_copy_paste_package';
+export const RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT =
+  'restructure_copy_paste_class';
+export const RESTRUCTURE_UNDO_COPY_AND_PASTE_PACKAGE_EVENT =
+  'restructure_undo_copy_paste_package';
+export const RESTRUCTURE_UNDO_COPY_AND_PASTE_CLASS_EVENT =
+  'restructure_undo_copy_paste_class';
 export const RESTRUCTURE_CUT_AND_INSERT_EVENT = 'restructure_cut_insert';
 export const RESTRUCTURE_COMMUNICATION_EVENT = 'restructure_communication';
 export const RESTRUCTURE_DELETE_COMMUNICATION_EVENT =
@@ -32,6 +40,19 @@ export type RestructureCreateOrDeleteMessage = {
   language: string | null;
   entityId: string | null;
   undo: boolean;
+};
+
+export type RestructureCopyAndPastePackageMessage = {
+  event: typeof RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT;
+  destinationEntity: string;
+  destinationId: string;
+  clippedEntityId: string;
+};
+
+export type RestructureCopyAndPasteClassMessage = {
+  event: typeof RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT;
+  destinationId: string;
+  clippedEntityId: string;
 };
 
 export type RestructureCutAndInsertMessage = {

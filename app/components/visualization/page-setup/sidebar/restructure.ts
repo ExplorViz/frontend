@@ -271,7 +271,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   createCommunication() {
-    this.landscapeRestructure.createCommunication(this.methodName);
+    this.landscapeRestructure.addCommunication(this.methodName);
   }
 
   @action
