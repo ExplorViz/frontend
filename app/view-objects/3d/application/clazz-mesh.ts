@@ -43,6 +43,8 @@ export default class ClazzMesh extends BoxMesh {
       super.applyHoverEffect();
     } else if (typeof arg === 'number' && this.isHovered === false) {
       super.applyHoverEffect(arg);
+    } else if (this.isHovered === false) {
+      super.applyHoverEffect();
     }
   }
 
