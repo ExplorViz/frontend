@@ -42,6 +42,10 @@ export default class CommunicationArrows extends THREE.Object3D {
       this.arrowMaterial,
       maxNumberOfArrows
     );
+    this.instancedMesh.userData = {
+      raycastInvisible: true,
+    };
+    this.instancedMesh.name = 'Instanced Mesh for Arrows';
     this.instancedMesh.count = 0;
     this.arrowIndex = -1;
     this.add(this.instancedMesh);

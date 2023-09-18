@@ -40,6 +40,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import type FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -432,7 +433,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   toggleComponentLocally(
-    componentMesh: ComponentMesh,
+    componentMesh: ComponentMesh | FakeInstanceMesh<Package>,
     applicationObject3D: ApplicationObject3D
   ) {
     EntityManipulation.toggleComponentMeshState(
@@ -444,7 +445,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   toggleComponent(
-    componentMesh: ComponentMesh,
+    componentMesh: ComponentMesh | FakeInstanceMesh<Package>,
     applicationObject3D: ApplicationObject3D
   ) {
     this.toggleComponentLocally(componentMesh, applicationObject3D);

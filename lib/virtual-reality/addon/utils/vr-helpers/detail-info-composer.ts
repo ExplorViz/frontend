@@ -20,6 +20,7 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from '../vr-message/util/entity_type';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 
 export type DetailedInfo = {
   title: string;
@@ -256,6 +257,7 @@ export default function composeContent(
 }
 
 export type EntityMesh =
+  | FakeInstanceMesh
   | ComponentMesh
   | ClazzMesh
   | ClazzCommunicationMesh
@@ -263,11 +265,12 @@ export type EntityMesh =
 
 export type HoverableMesh =
   | FoundationMesh
-  | THREE.InstancedMesh
+  | FakeInstanceMesh
   | ClazzCommunicationMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
+    object instanceof FakeInstanceMesh ||
     object instanceof ComponentMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
@@ -276,11 +279,13 @@ export function isEntityMesh(object: any): object is EntityMesh {
 }
 
 export function getIdOfEntity(entity: EntityMesh): string {
-  const model = entity.dataModel;
-  return model.id;
+  return entity.getModelId();
 }
 
 export function getTypeOfEntity(entity: EntityMesh): EntityType {
+  if (entity instanceof FakeInstanceMesh) {
+    return entity.getType();
+  }
   if (entity instanceof ComponentMesh) {
     return COMPONENT_ENTITY_TYPE;
   }

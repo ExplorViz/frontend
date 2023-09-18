@@ -13,6 +13,7 @@ import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -52,10 +53,15 @@ export function openComponentsByList(
  * @param applicationObject3D Application object which contains the mesh
  */
 export function openComponentMesh(
-  mesh: ComponentMesh,
+  mesh: ComponentMesh | FakeInstanceMesh,
   applicationObject3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
+    return;
+  }
+
+  if (mesh instanceof FakeInstanceMesh) {
+    applicationObject3D.content.toggleComponent(mesh.instanceIndex);
     return;
   }
 
@@ -96,11 +102,16 @@ export function openComponentMesh(
  * @param applicationObject3D Application object which contains the mesh
  */
 export function closeComponentMesh(
-  mesh: ComponentMesh,
+  mesh: ComponentMesh | FakeInstanceMesh,
   applicationObject3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {
   if (!mesh.opened) {
+    return;
+  }
+
+  if (mesh instanceof FakeInstanceMesh) {
+    applicationObject3D.content.toggleComponent(mesh.instanceIndex);
     return;
   }
 
@@ -214,7 +225,7 @@ export function openAllComponents(
  * @param applicationObject3D Application object which contains the mesh
  */
 export function toggleComponentMeshState(
-  mesh: ComponentMesh,
+  mesh: ComponentMesh | FakeInstanceMesh<Package>,
   applicationObject3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {

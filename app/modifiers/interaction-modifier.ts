@@ -8,6 +8,7 @@ import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
@@ -140,11 +141,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
-  get raycastObjects(): Object3D | Object3D[] {
+  get raycastObjects(): Object3D[] {
     const { raycastObjects } = this.namedArgs;
-    return raycastObjects instanceof Object3D
-      ? [raycastObjects]
-      : raycastObjects;
+    const list =
+      raycastObjects instanceof Object3D ? [raycastObjects] : raycastObjects;
+    return list.filter((obj) => obj.userData?.raycastInvisible !== true);
   }
 
   get camera(): THREE.Camera {
@@ -321,7 +322,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     }
   }
 
-  raycast(event: MouseEvent) {
+  raycast(event: MouseEvent): THREE.Intersection | null {
     const rect = this.canvas.getBoundingClientRect();
     const width = this.canvas.clientWidth / this.rendererResolutionMultiplier;
     const height = this.canvas.clientHeight / this.rendererResolutionMultiplier;
@@ -330,16 +331,25 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const y = -((event.y - rect.top) / height) * 2 + 1;
 
     const origin = new Vector2(x, y);
-    const possibleObjects =
-      this.raycastObjects instanceof Object3D
-        ? [this.raycastObjects]
-        : this.raycastObjects;
+    const possibleObjects = this.raycastObjects;
 
-    return this.raycaster.raycasting(
+    const intersection = this.raycaster.raycasting(
       origin,
       this.namedArgs.camera,
       possibleObjects
     );
+
+    if (intersection?.object instanceof THREE.InstancedMesh) {
+      return {
+        ...intersection,
+        object: FakeInstanceMesh.getInstance(
+          intersection.object,
+          intersection.instanceId!
+        ),
+      };
+    }
+
+    return intersection;
   }
 
   createPointerStopEvent() {

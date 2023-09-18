@@ -7,6 +7,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -106,6 +107,8 @@ export function getVizData(
 
 export function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
   if (mesh instanceof FoundationMesh) {
+    return mesh.dataModel.id;
+  } else if (mesh instanceof FakeInstanceMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {
     return mesh.dataModel.id;

@@ -49,6 +49,7 @@ import PopupData from './popups/popup-data';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -401,7 +402,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleDoubleClick(intersection: THREE.Intersection) {
     if (intersection) {
-      this.handleDoubleClickOnMesh(intersection.object, intersection);
+      this.handleDoubleClickOnMesh(intersection.object);
     }
   }
 
@@ -439,10 +440,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
   }
   @action
-  handleDoubleClickOnMesh(
-    mesh: THREE.Object3D,
-    intersection?: THREE.Intersection
-  ) {
+  handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     const applicationObject3D = getApplicationObject3D(mesh.parent!);
 
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
@@ -455,7 +453,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     }
 
-    if (mesh instanceof ComponentMesh) {
+    if (mesh instanceof ComponentMesh || mesh instanceof FakeInstanceMesh) {
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
         this.applicationRenderer.toggleComponent(mesh, applicationObject3D);
@@ -470,11 +468,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
       return;
     }
-
-    if (intersection && mesh instanceof THREE.InstancedMesh) {
-      applicationObject3D.toggleComponentByIndex(intersection.instanceId!);
-      return;
-    }
   }
 
   @action
@@ -482,16 +475,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object, intersection);
+      this.handleMouseMoveOnMesh(intersection.object);
     } else if (this.hoveredObject) {
-      if (this.hoveredObject instanceof THREE.InstancedMesh) {
-        const application3DObject = this.hoveredObject
-          .parent as ApplicationObject3D;
-        application3DObject.content.resetHoverEffect();
-      } else {
-        this.hoveredObject.resetHoverEffect();
-        this.hoveredObject = null;
-      }
+      this.hoveredObject.resetHoverEffect();
+      this.hoveredObject = null;
     }
     const object = intersection?.object;
     this.popupHandler.hover(
@@ -510,19 +497,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(
-    mesh?: THREE.Object3D,
-    intersection?: THREE.Intersection
-  ) {
+  handleMouseMoveOnMesh(mesh?: THREE.Object3D) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
     // Update hover effect
     if (enableAppHoverEffects && !this.heatmapConf.heatmapActive) {
-      if (mesh instanceof THREE.InstancedMesh) {
-        const applicationObject3D = getApplicationObject3D(mesh);
-        applicationObject3D.content.applyHoverEffect(intersection!.instanceId!);
-      } else if (isEntityMesh(mesh)) {
+      if (isEntityMesh(mesh)) {
         // TODO
         if (this.hoveredObject) {
           (this.hoveredObject as EntityMesh).resetHoverEffect();

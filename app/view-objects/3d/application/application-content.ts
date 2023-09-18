@@ -43,10 +43,12 @@ export default class ApplicationContent {
     this.openComponentIds = openComponentIds ?? new Set();
 
     this.components = createInstancedMesh(
+      'Instanced mesh for Classes',
       pkgMaterial,
       app3d.data.counts.packages
     );
     this.classes = createInstancedMesh(
+      'Instanced mesh for Classes',
       this.classMaterial,
       app3d.data.counts.classes
     );
@@ -136,6 +138,21 @@ export default class ApplicationContent {
     this.hoverIndex = index;
   }
 
+  getDataModel(mesh: THREE.InstancedMesh, index: number): Package | Class {
+    if (this.components === mesh) {
+      return this.componentData[index].component;
+    } else if (this.classes === mesh) {
+      throw new Error('Not yet implemented.'); // TODO
+    }
+
+    if (mesh.parent === this.app3d.arrows) {
+      console.log('its arrows', mesh);
+    }
+
+    console.error(mesh, index);
+    throw new Error(`No data model for instanced mesh and index ${index}.`);
+  }
+
   resetHoverEffect(): void {
     if (this.hoverIndex < 0) {
       return;
@@ -204,10 +221,18 @@ export default class ApplicationContent {
 
     const counts = this.app3d.data.counts;
     if (counts.classes !== this.classes.count) {
-      this.classes = createInstancedMesh(this.classMaterial, counts.classes);
+      this.classes = createInstancedMesh(
+        'Instanced mesh for Classes',
+        this.classMaterial,
+        counts.classes
+      );
     }
     if (counts.packages !== this.components.count) {
-      this.components = createInstancedMesh(pkgMaterial, counts.packages);
+      this.components = createInstancedMesh(
+        'Instanced mesh for Components',
+        pkgMaterial,
+        counts.packages
+      );
     }
 
     const position = new THREE.Vector3(0, 0, 0).sub(this.app3d.layout.center);
@@ -362,10 +387,15 @@ function setupLabelMatrix(
 }
 
 function createInstancedMesh(
+  name: string,
   material: THREE.Material,
-  count: number
+  count: number,
+  raycastInvisible = false
 ): THREE.InstancedMesh {
-  return new THREE.InstancedMesh(boxGeometry, material, count);
+  const mesh = new THREE.InstancedMesh(boxGeometry, material, count);
+  mesh.userData = { raycastInvisible };
+  mesh.name = name;
+  return mesh;
 }
 
 function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
@@ -436,6 +466,11 @@ function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
     material,
     data.labels.layout.size
   );
+
+  mesh.userData = {
+    raycastInvisible: true,
+  };
+  mesh.name = 'LabelMesh';
 
   // Hide all labels initially:
   tmpMatrix.makeScale(0, 0, 0);

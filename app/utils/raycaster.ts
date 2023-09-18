@@ -9,6 +9,7 @@ export function defaultRaycastFilter(
   return !(
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
+    intersection.object.userData?.raycastInvisible ||
     isChildOfText(intersection)
   );
 }
