@@ -124,7 +124,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   controls!: MapControls;
 
-  private ortographicCamera: THREE.OrthographicCamera;
+  ortographicCamera!: THREE.OrthographicCamera;
   private frustumSize = 5;
 
   cameraControls!: CameraControls;

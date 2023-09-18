@@ -15,31 +15,58 @@ export default class CameraControls {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  private camera: PerspectiveCamera;
+  private perspectiveCamera: PerspectiveCamera;
+  private orthographicCamera: OrthographicCamera | undefined;
 
-  private orthographicCamera: OrthographicCamera;
+  perspectiveCameraControls: MapControls;
+  orthographicCameraControls: MapControls | undefined;
 
-  controls: MapControls;
+  activeControls: MapControls;
 
   enabled: boolean = true;
 
   constructor(
     owner: any,
-    camera: PerspectiveCamera,
-    orthographicCamera: OrthographicCamera,
+    perspectiveCamera: PerspectiveCamera,
+    orthographicCamera: OrthographicCamera | undefined,
     canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
-    this.camera = camera;
+    this.perspectiveCamera = perspectiveCamera;
     this.orthographicCamera = orthographicCamera;
-    const controls = new MapControls(this.camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.3;
-    controls.minDistance = 0.1;
-    controls.maxDistance = 1000;
-    controls.maxPolarAngle = Math.PI / 2;
-    controls.mouseButtons.MIDDLE = undefined;
-    this.controls = controls;
+
+    this.perspectiveCameraControls = new MapControls(
+      this.perspectiveCamera,
+      canvas
+    );
+    this.perspectiveCameraControls.enableDamping = true;
+    this.perspectiveCameraControls.dampingFactor = 0.3;
+    this.perspectiveCameraControls.minDistance = 0.1;
+    this.perspectiveCameraControls.maxDistance = 1000;
+    this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
+    this.perspectiveCameraControls.mouseButtons.MIDDLE = undefined;
+
+    if (orthographicCamera) {
+      this.orthographicCameraControls = new MapControls(
+        this.orthographicCamera!,
+        canvas
+      );
+    }
+
+    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+      this.activeControls = this.orthographicCameraControls!;
+    } else {
+      this.activeControls = this.perspectiveCameraControls;
+    }
+    owner.addObserver(
+      'this.userSettings.applicationSettings.useOrthographicCamera',
+      owner,
+      'cameraChanged'
+    );
+  }
+
+  cameraChanged() {
+    console.log('asdasdasd');
   }
 
   fitCameraToBox(
@@ -54,13 +81,13 @@ export default class CameraControls {
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
     const fitHeightDistance =
-      maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
-    const fitWidthDistance = fitHeightDistance / this.camera.aspect;
+      maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
+    const fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
     const distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
     const origin = keepCameraPerspective
-      ? this.camera.position
+      ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
     const direction = center
       .clone()
@@ -75,8 +102,8 @@ export default class CameraControls {
     if (duration > 0) {
       this.panCameraTo(position, center, duration);
     } else {
-      this.camera.position.copy(position);
-      this.controls.target.copy(center);
+      this.perspectiveCamera.position.copy(position);
+      this.perspectiveCameraControls.target.copy(center);
     }
   }
 
@@ -98,30 +125,30 @@ export default class CameraControls {
   }
 
   panCameraTo(position: Vector3, target: Vector3, duration: number) {
-    gsap.to(this.camera.position, {
+    gsap.to(this.perspectiveCamera.position, {
       duration,
       x: position.x,
       y: position.y,
       z: position.z,
       onUpdate: () => {
-        this.camera.updateProjectionMatrix();
+        this.perspectiveCamera.updateProjectionMatrix();
       },
     });
 
-    gsap.to(this.controls.target, {
+    gsap.to(this.perspectiveCameraControls.target, {
       duration,
       x: target.x,
       y: target.y,
       z: target.z,
       onUpdate: () => {
-        this.controls.update();
+        this.perspectiveCameraControls.update();
       },
     });
   }
 
   tick() {
     if (this.enabled) {
-      this.controls.update();
+      this.perspectiveCameraControls.update();
     }
   }
 }

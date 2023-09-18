@@ -6,6 +6,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
@@ -32,6 +33,7 @@ interface NamedArgs {
   mousePositionX: number;
   rendererResolutionMultiplier: number;
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera;
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
@@ -78,6 +80,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -148,7 +153,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    return this.namedArgs.camera;
+    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+      return this.namedArgs.orthographicCamera;
+    } else {
+      return this.namedArgs.camera;
+    }
   }
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
@@ -335,11 +344,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         ? [this.raycastObjects]
         : this.raycastObjects;
 
-    return this.raycaster.raycasting(
-      origin,
-      this.namedArgs.camera,
-      possibleObjects
-    );
+    return this.raycaster.raycasting(origin, this.camera, possibleObjects);
   }
 
   createPointerStopEvent() {
