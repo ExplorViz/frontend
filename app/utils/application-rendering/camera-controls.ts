@@ -1,15 +1,24 @@
 import gsap from 'gsap';
-import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import {
+  Box3,
+  Object3D,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Vector3,
+} from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 
 export default class CameraControls {
-  private camera: PerspectiveCamera;
+  private camera: PerspectiveCamera | OrthographicCamera;
 
   controls: MapControls;
 
   enabled: boolean = true;
 
-  constructor(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
+  constructor(
+    camera: PerspectiveCamera | OrthographicCamera,
+    canvas: HTMLCanvasElement
+  ) {
     this.camera = camera;
 
     const controls = new MapControls(this.camera, canvas);

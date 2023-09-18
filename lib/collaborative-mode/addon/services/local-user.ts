@@ -28,7 +28,7 @@ export default class LocalUser extends Service.extend({
   color: THREE.Color | undefined;
 
   @tracked
-  defaultCamera!: THREE.PerspectiveCamera;
+  defaultCamera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
 
   @tracked
   visualizationMode: VisualizationMode = 'browser';

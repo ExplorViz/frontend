@@ -313,6 +313,31 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
 
+    const aspectRatio = width / height;
+    const frustumSize = 5;
+
+    /*const camera = new THREE.OrthographicCamera(
+      width / -2,
+      width / 2,
+      height / 2,
+      height / -2
+    );*/
+
+    let camera = new THREE.OrthographicCamera(
+      (-aspectRatio * frustumSize) / 2,
+      (aspectRatio * frustumSize) / 2,
+      frustumSize / 2,
+      -frustumSize / 2,
+      0.1,
+      100
+    );
+
+    this.localUser.defaultCamera = camera;
+
+    //this.camera.position.set(0, 0, 0);
+
+    this.camera.position.setFromSphericalCoords(10, Math.PI / 3, Math.PI / 4);
+    this.camera.lookAt(this.scene.position);
     // controls
     this.cameraControls = new CameraControls(this.camera, this.canvas);
 
@@ -320,16 +345,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
-        setTimeout(() => {
-          this.cameraControls.resetCameraFocusOn(
-            1.2,
-            ...this.applicationRenderer.getOpenApplications()
-          );
-        }, 200);
+        //setTimeout(() => {
+        //this.cameraControls.resetCameraFocusOn(
+        //  1.2,
+        //   ...this.applicationRenderer.getOpenApplications()
+        // );
+        //}, 200);
         this.initDone = true;
       }
     });
-    this.updatables.push(this.cameraControls);
+    //this.updatables.push(this.cameraControls);
     this.updatables.push(this.localUser);
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
