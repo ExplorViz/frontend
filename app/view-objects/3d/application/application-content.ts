@@ -344,7 +344,7 @@ function setupLabelMatrix(
   }
 
   // TODO: why x0.5?
-  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.5 * componentLayout.depth);
+  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.9 * componentLayout.depth);
 
   const position = componentLayout.center;
 
@@ -356,7 +356,7 @@ function setupLabelMatrix(
   }
 
   // Fix Z-fighting
-  position.y += 1e-3;
+  position.y += 0.01;
 
   tmpMatrix.setPosition(position);
 }
@@ -372,6 +372,7 @@ function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
   const texture = new THREE.Texture(data.labels.texture);
   texture.magFilter = THREE.LinearFilter;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.anisotropy = 4;
   texture.needsUpdate = true;
 
   const planeGeometry = new THREE.PlaneGeometry(1, 1);
@@ -421,7 +422,7 @@ function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
       .replace(
         '#include <map_fragment>',
         `float textAlpha = texture2D(map, vMapUv).r;
-        vec4 sampledDiffuseColor = vec4(textColor, textAlpha * textAlpha);
+        vec4 sampledDiffuseColor = vec4(textColor, textAlpha);
         diffuseColor *= sampledDiffuseColor;        `
       );
 

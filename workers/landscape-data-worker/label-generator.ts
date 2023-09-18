@@ -1,7 +1,7 @@
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { CityLayout, LABEL_HEIGHT } from 'workers/city-layouter';
+import { type CityLayout, LABEL_HEIGHT } from 'workers/city-layouter';
 import { getAllComponentsInApplication } from 'workers/utils';
-import { ReducedApplication } from 'workers/worker-types';
+import { type ReducedApplication } from 'workers/worker-types';
 
 export type ApplicationLabelData = {
   texture: ImageData;
@@ -22,9 +22,11 @@ export function generatePackageLabels(
     application as unknown as ReducedApplication // TODO: fix type
   );
 
+  const actualLabelHeight = 0.5 * LABEL_HEIGHT; /// TODO: why?
+
   const fontSize = 48;
   const lineHeight = 64;
-  const ratio = lineHeight / LABEL_HEIGHT;
+  const ratio = lineHeight / actualLabelHeight;
 
   const width = 384;
   const height = lineHeight * packages.length;
@@ -47,8 +49,9 @@ export function generatePackageLabels(
 
   packages.forEach(({ name, id }, i) => {
     const boxWidth = layout.get(id)!.depth;
-    const planeWidth = 0.9 * ratio * boxWidth;
-    const maxWidth = Math.min(width - 2, planeWidth);
+    const widthInTexture = ratio * boxWidth;
+    const maxWidth = Math.min(width - 2, widthInTexture);
+    //console.log('width', name, widthInTexture, maxWidth);
 
     ctx.font = `bold ${fontSize}px sans-serif`;
     const textWidth = ctx.measureText(name).width;
@@ -60,7 +63,10 @@ export function generatePackageLabels(
 
     const y = i * lineHeight;
 
-    ctx.fillText(name, 0.5 * maxWidth + 1, y + 0.5 * lineHeight, maxWidth);
+    //ctx.fillRect(0, y, 10, 10);
+    //ctx.fillRect(maxWidth - 10, y + lineHeight - 10, 10, 10);
+
+    ctx.fillText(name, 0.5 * maxWidth, y + 0.5 * lineHeight, maxWidth);
 
     textureLayout.set(id, {
       width: maxWidth / width,
