@@ -76,7 +76,12 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
-      this.renderer.render(this.scene, this.camera);
+      if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+        this.renderer.render(this.scene, this.orthographicCamera);
+      } else {
+        this.renderer.render(this.scene, this.camera);
+      }
+
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render
         this.zoomHandler.renderZoomCamera(this.renderer, this.scene);

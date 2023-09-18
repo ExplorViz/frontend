@@ -4,6 +4,7 @@ export type SettingGroup =
   | 'Hover Effects'
   | 'Communication'
   | 'Popup'
+  | 'Camera'
   | 'Extended Reality'
   | 'Debugging';
 
@@ -48,6 +49,8 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
+export type ApplicationCameraSettingId = 'useOrthographicCamera';
+
 export type ApplicationXRSettingId = 'showXRButton';
 
 export type ApplicationDebugSettingId =
@@ -64,6 +67,7 @@ export type ApplicationSettingId =
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
   | ApplicationDebugSettingId
+  | ApplicationCameraSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
 
@@ -113,6 +117,11 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
+export type ApplicationCameraSettings = Record<
+  ApplicationCameraSettingId,
+  FlagSetting
+>;
+
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
@@ -120,6 +129,7 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
   ApplicationPopupSettings &
+  ApplicationCameraSettings &
   ApplicationXRSettings &
   ApplicationCommunicationSettings;
 
