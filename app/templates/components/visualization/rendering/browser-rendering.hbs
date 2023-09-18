@@ -21,7 +21,7 @@
       {{#unless @showSettingsSidebar}}
         <div class='sidebar-open-button foreground mt-6'>
           <BsButton
-            id='settingsOpener'
+            id='undoAction'
             @onClick={{@openSettingsSidebar}}
             @type='secondary'
             @outline={{true}}
@@ -187,6 +187,8 @@
                     @visualizationPaused={{@visualizationPaused}}
                     @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
                     @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
+                    @removeTimestampListener={{@removeTimestampListener}}
+                    @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
                 {{#if (eq componentName 'xr-vscode-extension-settings')}}

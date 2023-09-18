@@ -93,6 +93,19 @@ export default class WebSocketService extends Service.extend(Evented) {
     if (this.isWebSocketOpen()) this.currentSocket.send(JSON.stringify(msg));
   }
 
+  // removeCircularReferences() {
+  //   const seen = new WeakSet();
+  //   return (key, value) => {
+  //     if (typeof value === 'object' && value !== null) {
+  //       if (seen.has(value)) {
+  //         return;
+  //       }
+  //       seen.add(value);
+  //     }
+  //     return value;
+  //   }
+  // }
+
   isWebSocketOpen(): boolean {
     return this.currentSocket && this.currentSocket.readyState() === 1;
   }
