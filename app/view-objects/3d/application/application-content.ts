@@ -50,7 +50,7 @@ export default class ApplicationContent {
       this.classMaterial,
       app3d.data.counts.classes
     );
-    this.componentLabels = createLabelMesh(app3d.data);
+    this.componentLabels = createLabelMesh(app3d.data, colors);
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -368,7 +368,7 @@ function createInstancedMesh(
   return new THREE.InstancedMesh(boxGeometry, material, count);
 }
 
-function createLabelMesh(data: ApplicationData) {
+function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
   const texture = new THREE.Texture(data.labels.texture);
   texture.magFilter = THREE.LinearFilter;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -411,7 +411,23 @@ function createLabelMesh(data: ApplicationData) {
       vec2 customUV = MAP_UV * vec2(labelWidth, labelHeight) + vec2(0.0, labelYOffset);
       vMapUv = ( mapTransform * vec3( customUV, 1 ) ).xy;`
       );
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <map_pars_fragment>',
+        `#include <map_pars_fragment>
+        uniform vec3 textColor;`
+      )
+      .replace(
+        '#include <map_fragment>',
+        `float textAlpha = texture2D(map, vMapUv).r;
+        vec4 sampledDiffuseColor = vec4(textColor, textAlpha * textAlpha);
+        diffuseColor *= sampledDiffuseColor;        `
+      );
+
+    // TODO: Make uniforms accessible outside of this scope
     shader.uniforms['labelHeight'] = { value: data.labels.labelHeight };
+    shader.uniforms['textColor'] = { value: colors.componentTextColor };
   };
 
   const mesh = new THREE.InstancedMesh(
