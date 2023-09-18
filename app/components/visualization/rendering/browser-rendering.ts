@@ -511,6 +511,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     } else {
       this.popupHandler.removePopup(entityId);
     }
+
+    // remove potential toggle effect
+    const mesh = this.applicationRenderer.getMeshById(entityId);
+    if (mesh?.isHovered) {
+      mesh.resetHoverEffect();
+    }
   }
 
   @action
