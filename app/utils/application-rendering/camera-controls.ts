@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import {
   Box3,
-  Camera,
   Object3D,
   OrthographicCamera,
   PerspectiveCamera,
