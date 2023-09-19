@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ApplicationObject3D from './application-object-3d';
 import {
   COMPONENT_ENTITY_TYPE,
-  EntityType,
+  type EntityType,
 } from 'virtual-reality/utils/vr-message/util/entity_type';
 import type {
   Class,
@@ -93,6 +93,14 @@ export default class FakeInstanceMesh<
 
   get opened(): boolean {
     return this.app3d.content.isComponentOpened(this.dataModel.id);
+  }
+
+  get highlighted(): boolean {
+    return false; // TODO
+  }
+
+  get highlightingColor(): THREE.Color {
+    return new THREE.Color('red'); // TODO
   }
 }
 

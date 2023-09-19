@@ -39,7 +39,7 @@ export default class PopupCoordinator extends Component<IArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
-  element!: HTMLDivElement;
+  declare element: HTMLDivElement;
 
   lastMousePosition: Position2D = {
     x: 0,
