@@ -288,6 +288,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.ortographicCamera.top = this.frustumSize / 2;
     this.ortographicCamera.bottom = -this.frustumSize / 2;
 
+    this.ortographicCamera.userData.aspect = newAspectRatio;
+
     this.ortographicCamera.updateProjectionMatrix();
   }
 
@@ -328,13 +330,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.add(this.localUser.defaultCamera);
 
     this.ortographicCamera = new THREE.OrthographicCamera(
-      (-aspectRatio * this.frustumSize) / 2,
-      (aspectRatio * this.frustumSize) / 2,
-      this.frustumSize / 2,
-      -this.frustumSize / 2,
+      -aspectRatio * this.frustumSize,
+      aspectRatio * this.frustumSize,
+      this.frustumSize,
+      -this.frustumSize,
       0.1,
       100
     );
+
+    this.ortographicCamera.userData.aspect = aspectRatio;
 
     this.ortographicCamera.position.setFromSphericalCoords(
       10,

@@ -20,10 +20,6 @@ export default class CameraControls {
 
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
-
-  activeControls!: MapControls;
-  activeCamera!: PerspectiveCamera | OrthographicCamera;
-
   enabled: boolean = true;
 
   constructor(
@@ -52,22 +48,17 @@ export default class CameraControls {
         this.orthographicCamera!,
         canvas
       );
-    }
 
-    this.setActiveControls();
-  }
-
-  private setActiveControls() {
-    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
-      this.activeControls = this.orthographicCameraControls!;
-      this.activeCamera = this.orthographicCamera!;
-    } else {
-      this.activeControls = this.perspectiveCameraControls;
-      this.activeCamera = this.perspectiveCamera;
+      this.orthographicCameraControls.enableDamping = true;
+      this.orthographicCameraControls.dampingFactor = 0.3;
+      this.orthographicCameraControls.minDistance = 0.1;
+      this.orthographicCameraControls.maxDistance = 1000;
+      this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
+      this.orthographicCameraControls.mouseButtons.MIDDLE = undefined;
     }
   }
 
-  private fitCameraToBox(
+  private fitCamerasToBox(
     duration: number = 0,
     box: Box3,
     keepCameraPerspective = true
@@ -78,16 +69,20 @@ export default class CameraControls {
     box.getCenter(center);
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance =
+
+    // fit perspective camera
+
+    let fitHeightDistance =
       maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
-    const fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
-    const distance =
+    let fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
+
+    let distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
-    const origin = keepCameraPerspective
-      ? this.activeCamera.position
+    let origin = keepCameraPerspective
+      ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
-    const direction = center
+    let direction = center
       .clone()
       .sub(origin)
       .normalize()
@@ -96,12 +91,57 @@ export default class CameraControls {
     // camera.near = distance / 100;
     // camera.far = distance * 100;
 
-    const position = center.clone().sub(direction);
+    let position = center.clone().sub(direction);
     if (duration > 0) {
-      this.panCameraTo(position, center, duration);
+      this.panCameraTo(
+        position,
+        center,
+        duration,
+        this.perspectiveCamera,
+        this.perspectiveCameraControls
+      );
     } else {
-      this.activeCamera.position.copy(position);
-      this.activeControls.target.copy(center);
+      this.perspectiveCamera.position.copy(position);
+      this.perspectiveCameraControls.target.copy(center);
+    }
+
+    // fit ortho camera
+
+    if (this.orthographicCamera && this.orthographicCameraControls) {
+      fitHeightDistance =
+        maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
+
+      fitWidthDistance =
+        fitHeightDistance / this.orthographicCamera.userData.aspect;
+
+      distance =
+        0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
+
+      origin = keepCameraPerspective
+        ? this.orthographicCamera.position
+        : new Vector3(1, 1, 1);
+      direction = center
+        .clone()
+        .sub(origin)
+        .normalize()
+        .multiplyScalar(distance);
+
+      // camera.near = distance / 100;
+      // camera.far = distance * 100;
+
+      position = center.clone().sub(direction);
+      if (duration > 0) {
+        this.panCameraTo(
+          position,
+          center,
+          duration,
+          this.orthographicCamera,
+          this.orthographicCameraControls
+        );
+      } else {
+        this.orthographicCamera.position.copy(position);
+        this.orthographicCameraControls.target.copy(center);
+      }
     }
   }
 
@@ -115,41 +155,51 @@ export default class CameraControls {
   }
 
   focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
-    this.setActiveControls();
-    this.fitCameraToBox(duration, this.getBoxForSelection(...selection));
+    this.fitCamerasToBox(duration, this.getBoxForSelection(...selection));
   }
 
   resetCameraFocusOn(duration: number = 1, ...selection: Object3D[]) {
-    this.setActiveControls();
-    this.fitCameraToBox(duration, this.getBoxForSelection(...selection), false);
+    this.fitCamerasToBox(
+      duration,
+      this.getBoxForSelection(...selection),
+      false
+    );
   }
 
-  private panCameraTo(position: Vector3, target: Vector3, duration: number) {
-    gsap.to(this.activeCamera.position, {
+  private panCameraTo(
+    position: Vector3,
+    target: Vector3,
+    duration: number,
+    camera: PerspectiveCamera | OrthographicCamera,
+    cameraControls: MapControls
+  ) {
+    gsap.to(camera.position, {
       duration,
       x: position.x,
       y: position.y,
       z: position.z,
       onUpdate: () => {
-        this.activeCamera.updateProjectionMatrix();
+        camera.updateProjectionMatrix();
       },
     });
 
-    gsap.to(this.activeControls.target, {
+    gsap.to(cameraControls.target, {
       duration,
       x: target.x,
       y: target.y,
       z: target.z,
       onUpdate: () => {
-        this.activeControls.update();
+        cameraControls.update();
       },
     });
   }
 
   tick() {
     if (this.enabled) {
-      this.setActiveControls();
-      this.activeControls.update();
+      this.perspectiveCameraControls.update();
+      if (this.orthographicCameraControls) {
+        this.orthographicCameraControls.update();
+      }
     }
   }
 }
