@@ -7,9 +7,6 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { Package } from '../landscape-schemes/structure-data';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -56,23 +53,19 @@ export function addApplicationLabels(
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
+  const { clazzTextColor, foundationTextColor } = colors;
 
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
-        addClazzTextLabel(mesh, font, clazzTextColor);
+        addClazzTextLabel(mesh, font, clazzTextColor); // TODO
       } else if (mesh instanceof FoundationMesh) {
         addBoxTextLabel(mesh, font, foundationTextColor);
       }
     }
   });
-  for (const component of application.getOpenedComponents()) {
-    const layout = application.getBoxLayout(component.id)!;
-    //addComponentLabel(component, layout, font, componentTextColor, application);
-  }
   performance.mark('addApplicationLabels-end');
 }
 
@@ -144,82 +137,4 @@ function addClazzTextLabel(
   labelMesh.rotation.z = -(Math.PI / 3);
 
   clazzMesh.add(labelMesh);
-}
-
-const componentTextMaterial = new THREE.MeshBasicMaterial({
-  transparent: true,
-  opacity: 0.99,
-});
-
-function addComponentLabel(
-  component: Package,
-  layout: BoxLayout,
-  font: Font,
-  color: THREE.Color,
-  application: ApplicationObject3D
-): void {
-  const parentAspectRatio = layout.width / layout.depth;
-
-  // Adjust desired text size with possible scaling
-  const textSize = 2.0 * parentAspectRatio;
-  console.log(
-    'font-size',
-    component.name,
-    textSize,
-    layout.width,
-    layout.depth
-  );
-  // Text should look like it is written on the parent's box (no height required)
-  const textHeight = 0.0;
-
-  const text = component.name;
-
-  const geometry = new TextGeometry(text, {
-    font,
-    size: textSize,
-    height: textHeight,
-    curveSegments: 1,
-  });
-
-  componentTextMaterial.color = color;
-
-  const textDimensions = computeBoxSize(geometry);
-  const textWidth = textDimensions.x;
-
-  let scaleFactor = 1;
-
-  // Handle too long labels, expect labels to be (at most) 90% the width of the parent's mesh
-  const desiredWidth = layout.depth * 0.9; // TODO: width?
-  if (textWidth > desiredWidth) {
-    scaleFactor = desiredWidth / textWidth;
-    geometry.scale(scaleFactor, scaleFactor, scaleFactor);
-    console.log('scaled down', scaleFactor);
-  }
-
-  geometry.center();
-  const textMesh = new THREE.Mesh(geometry, componentTextMaterial);
-
-  // Set y-position just above the box of the parent mesh
-  textMesh.position.y = 0.5 * layout.height + 0.01;
-
-  // Align text with component parent
-  textMesh.rotation.x = -(Math.PI / 2);
-  textMesh.rotation.z = -(Math.PI / 2);
-
-  const foundationOffset = 1.5;
-  textMesh.position.x = -0.5 * layout.width + foundationOffset / layout.width;
-
-  textMesh.position.y += layout.center.y;
-
-  application.add(textMesh);
-}
-
-/**
- * Updates bounding box of geometry and returns respective dimensions
- */
-function computeBoxSize(geometry: THREE.BufferGeometry) {
-  geometry.computeBoundingBox();
-  const boxDimensions = new THREE.Vector3();
-  geometry.boundingBox?.getSize(boxDimensions);
-  return boxDimensions;
 }
