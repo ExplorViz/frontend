@@ -6,7 +6,7 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-scene-3d';
 import HeatmapConfiguration, {
   Metric,
 } from 'heatmap/services/heatmap-configuration';

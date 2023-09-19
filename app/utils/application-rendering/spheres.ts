@@ -1,4 +1,4 @@
-import type LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
+import type LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-scene-3d';
 import * as THREE from 'three';
 
 export default class Spheres {

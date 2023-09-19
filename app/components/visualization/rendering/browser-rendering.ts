@@ -43,7 +43,7 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import LandscapeDataService, {
   LandscapeDataUpdateEventName,
 } from 'explorviz-frontend/services/landscape-data-service';
-import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-scene-3d';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';

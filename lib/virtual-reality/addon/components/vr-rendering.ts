@@ -84,7 +84,7 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from '../utils/vr-message/util/controller_id';
-import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/LandscapeScene3D';
+import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-scene-3d';
 import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-button';
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
