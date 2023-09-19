@@ -77,9 +77,9 @@ export function generatePackageLabels(
   });
 
   // TODO: remove
-  offscreen
-    .convertToBlob()
-    .then((blob) => console.log('url', URL.createObjectURL(blob)));
+  // offscreen
+  //   .convertToBlob()
+  //   .then((blob) => console.log('url', URL.createObjectURL(blob)));
 
   return {
     texture: ctx.getImageData(0, 0, width, height),
