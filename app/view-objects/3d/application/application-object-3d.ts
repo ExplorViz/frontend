@@ -71,6 +71,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.data = data;
     this.boxLayoutMap = boxLayoutMap;
 
+    this.name = data.application.name;
+
     this.createFoundation(colors);
     this.content = new ApplicationContent(this, colors, openComponentIds);
 

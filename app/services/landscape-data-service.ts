@@ -23,7 +23,7 @@ export const LandscapeDataUpdateEventName = 'LandscapeDataUpdate';
 export const NewTimestampEventName = 'NewTimestamp';
 
 export default class LandscapeDataService extends Service.extend(Evented) {
-  private readonly latestData: LocalLandscapeData = {};
+  private latestData: LocalLandscapeData = {};
   private interval: number | undefined;
 
   @service('worker-service') readonly workerService!: WorkerService;
@@ -108,6 +108,12 @@ export default class LandscapeDataService extends Service.extend(Evented) {
   }
 
   private async handleUpdate(update: DataUpdate) {
+    if (this.latestData.token !== update.token) {
+      this.latestData = {
+        token: update.token,
+      };
+    }
+
     this.latestData.dynamic = update.dynamic;
     this.latestData.structure = update.structure;
 
@@ -138,6 +144,13 @@ export default class LandscapeDataService extends Service.extend(Evented) {
       return;
     }
 
+    if (
+      this.latestData.token &&
+      this.latestData.token !== landscapeToken.value
+    ) {
+      this.latestData = { token: landscapeToken.value };
+    }
+
     const update = await this.fetchData(endTime);
     await this.handleUpdate(update);
   }
@@ -157,6 +170,7 @@ export type LocalLandscapeData = Partial<{
   drawableClassCommunications: DrawableClassCommunication[];
   interAppCommunications: DrawableClassCommunication[];
   appData: Map<Application['id'], WorkerApplicationData>;
+  token: string;
 }>;
 
 declare module '@ember/service' {

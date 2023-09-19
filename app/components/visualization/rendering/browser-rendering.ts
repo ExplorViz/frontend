@@ -42,6 +42,7 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import LandscapeDataService, {
   LandscapeDataUpdateEventName,
+  type LocalLandscapeData,
 } from 'explorviz-frontend/services/landscape-data-service';
 import LandscapeScene3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-scene-3d';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
@@ -50,6 +51,7 @@ import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rend
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
+import type LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -105,6 +107,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
+  @service('landscape-token') readonly tokenService!: LandscapeTokenService;
+
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
@@ -155,9 +159,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   debug = debugLogger('BrowserRendering');
 
+  private readonly landscapeToken: string;
+
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
     this.debug('Constructor called');
+    if (!this.tokenService.token) {
+      throw new Error('No landscape token.');
+    }
+    this.landscapeToken = this.tokenService.token.value;
     // scene
     this.scene = LandscapeScene3D.createDefault(
       getOwner(this)!,
@@ -200,15 +210,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.landscapeDataService.on(
       LandscapeDataUpdateEventName,
-      this.scene,
-      this.scene.updateData
+      this,
+      this.handleLandscapeUpdate
     );
 
     // TODO
     setTimeout(
-      () => this.scene.updateData(this.landscapeDataService.getLatest()),
+      () => this.handleLandscapeUpdate(this.landscapeDataService.getLatest()),
       0
     );
+  }
+
+  private handleLandscapeUpdate(data: Readonly<LocalLandscapeData>): void {
+    if (!data.token || data.token !== this.landscapeToken) {
+      return;
+    }
+    this.scene.updateData(data);
   }
 
   async tick(delta: number) {
@@ -629,8 +646,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.graph.graphData([]);
     this.landscapeDataService.off(
       LandscapeDataUpdateEventName,
-      this.scene,
-      this.scene.updateData
+      this,
+      this.handleLandscapeUpdate
     );
 
     this.debug('Cleaned up application rendering');
