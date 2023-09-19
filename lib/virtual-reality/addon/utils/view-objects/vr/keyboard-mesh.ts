@@ -14,9 +14,9 @@ const objsToTest: any[] = [];
 const colors = {
   keyboardBack: 0x858585,
   panelBack: 0x262626,
-  button: 0x363636,
-  hovered: 0x1c1c1c,
-  selected: 0xffffff, //0x109c5d,
+  button: 0x555555,
+  hovered: 0x000000,//0x1c1c1c,
+  selected: 0xFF0000, //0x109c5d,
 };
 
 export default class KeyboardMesh
