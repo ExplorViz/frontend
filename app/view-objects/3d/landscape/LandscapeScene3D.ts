@@ -22,6 +22,7 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { Object3D } from 'three';
 import type { WorkerApplicationData } from 'workers/landscape-data-worker/landscape-data-context';
 import type LocalUser from 'collaborative-mode/services/local-user';
+import type LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -44,6 +45,9 @@ export default class LandscapeScene3D implements Updatable {
 
   @service('local-user')
   localUser!: LocalUser;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   private constructor(owner: Owner, scene: THREE.Scene) {
     setOwner(this, owner);
@@ -155,6 +159,9 @@ export default class LandscapeScene3D implements Updatable {
         });
       }
     }
+
+    // Apply restructure textures in restructure mode
+    this.landscapeRestructure.applyTextureMappings();
 
     // TODO: This could be moved to the worker as well but has
     //       a small side-effects that has to be removed first.

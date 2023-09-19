@@ -1,0 +1,13 @@
+{{#if this.isDeleted}}
+    <tr>
+        <td class='text-nowrap align-top'></td>
+        <td class='text-right text-break pl-1'>
+        <BsButton @type='danger' {{on 'click' this.deleteComm}}>
+            {{svg-jar 'trash-16' class='octicon align-right'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+            Delete
+            </BsTooltip>
+        </BsButton>
+        </td>
+    </tr>
+{{/if}}

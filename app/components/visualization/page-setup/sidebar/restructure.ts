@@ -5,12 +5,11 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import {
-  StructureLandscapeData,
-  isClass,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
 import LandscapeDataService from 'explorviz-frontend/services/landscape-data-service';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import Changelog from 'explorviz-frontend/services/changelog';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   restructureLandscape: (
@@ -20,6 +19,7 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   visualizationPaused: boolean;
   toggleVisualizationUpdating: () => void;
   resetLandscapeListenerPolling: () => void;
+  removeTimestampListener: () => void;
   removeComponent(componentPath: string): void;
 }
 
@@ -33,11 +33,20 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('landscape-data-service')
   landscapeDataService!: LandscapeDataService;
 
+  @service('changelog')
+  changeLog!: Changelog;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
   @tracked
   token: string = localStorage.getItem('gitAPIToken') || '';
 
   @tracked
-  repo: string = localStorage.getItem('gitRepo') || '';
+  issueURL: string = localStorage.getItem('gitIssue') || '';
+
+  @tracked
+  uploadURL: string = localStorage.getItem('gitUpload') || '';
 
   @tracked
   appName: string = '';
@@ -52,13 +61,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   methodName: string = '';
 
   @tracked
-  sourceClass: string = '';
-
-  @tracked
-  targetClass: string = '';
-
-  @tracked
-  changelog: string = '';
+  logTexts: string[] = [];
 
   @tracked
   issues: { title: string; content: string; screenshots: string[] }[] = [];
@@ -73,10 +76,110 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   createAppBtnDisabled: boolean = true;
 
   @tracked
-  communicationBtnDisabled: boolean = true;
+  uploadIssueBtnDisabled: boolean = false;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
+  }
+
+  get _sourceClass() {
+    return this.landscapeRestructure.sourceClass?.name;
+  }
+
+  get _targetClass() {
+    return this.landscapeRestructure.targetClass?.name;
+  }
+
+  @action
+  getActionColor(index: number) {
+    const logEntry = this.changeLog.changeLogEntries[index];
+    switch (logEntry?.action) {
+      case 'CREATE':
+        return 'text-primary';
+      case 'RENAME':
+        return 'text-secondary';
+      case 'DELETE':
+        return 'text-danger';
+      case 'CUTINSERT':
+        return 'text-warning';
+      default:
+        return '';
+    }
+  }
+
+  @action
+  toggleCheckBox(index: number) {
+    const checkBox = document.getElementById(
+      'checkbox-' + index
+    ) as HTMLInputElement;
+    const card = document.getElementById('card-' + index) as HTMLDivElement;
+    checkBox.checked = !checkBox.checked;
+
+    if (checkBox.checked) {
+      card.classList.add('bg-secondary');
+      card.classList.add('text-white');
+    } else {
+      card.classList.remove('bg-secondary');
+      card.classList.remove('text-white');
+    }
+  }
+
+  @action
+  toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById(
+      'selectAll'
+    ) as HTMLInputElement;
+    const isChecked = selectAllCheckbox.checked;
+
+    for (let i = 0; i < this.logTexts.length; i++) {
+      const checkBox = document.getElementById(
+        'checkbox-' + i
+      ) as HTMLInputElement;
+      const card = document.getElementById('card-' + i) as HTMLDivElement;
+
+      if (isChecked && !checkBox.checked) {
+        checkBox.checked = true;
+        card.classList.add('bg-secondary');
+        card.classList.add('text-white');
+      } else if (!isChecked && checkBox.checked) {
+        checkBox.checked = false;
+        card.classList.remove('bg-secondary');
+        card.classList.remove('text-white');
+      }
+    }
+  }
+
+  @action
+  addSelectedEntriesToIssue(issueIndex: number) {
+    const issue = this.issues[issueIndex];
+    let newContent = issue.content;
+
+    for (let i = 0; i < this.logTexts.length; i++) {
+      const checkbox = document.getElementById(
+        'checkbox-' + i
+      ) as HTMLInputElement;
+
+      if (checkbox && checkbox.checked) {
+        const entry = this.logTexts[i];
+        newContent += `${entry}\n`;
+      }
+    }
+
+    const updatedIssue = {
+      ...issue,
+      content: newContent,
+    };
+
+    const updatedIssues = [];
+    for (const [index, issue] of this.issues.entries()) {
+      if (index === issueIndex) {
+        updatedIssues.push(updatedIssue);
+      } else {
+        updatedIssues.push(issue);
+      }
+    }
+
+    this.issues = updatedIssues;
   }
 
   @action
@@ -86,9 +189,12 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   toggleRestructureMode() {
-    this.restructureMode = this.landscapeRestructure.toggleRestructureMode();
+    this.restructureMode = this.landscapeRestructure.restructureMode;
     if (this.restructureMode) {
       const data = this.landscapeDataService.getLatest();
+      if (this.collaborationSession.isOnline) {
+        this.args.removeTimestampListener();
+      }
       this.landscapeRestructure.setLandscapeData({
         structureLandscapeData: data.structure!,
         dynamicLandscapeData: data.dynamic!,
@@ -105,24 +211,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         this.args.toggleVisualizationUpdating();
       }
       AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
-    }
-  }
-
-  @action
-  addSourceClassFromClipboard() {
-    if (isClass(this.landscapeRestructure.clippedMesh)) {
-      this.sourceClass = this.clip_board;
-      this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass('source');
-    }
-  }
-
-  @action
-  addTargetClassFromClipboard() {
-    if (isClass(this.landscapeRestructure.clippedMesh)) {
-      this.targetClass = this.clip_board;
-      this.canCreateCommunication();
-      this.landscapeRestructure.setSourceOrTargetClass('target');
     }
   }
 
@@ -144,7 +232,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   updateMethodName(event: InputEvent) {
     const target = event.target as HTMLInputElement;
     this.methodName = target.value;
-    this.canCreateCommunication();
   }
 
   @action
@@ -155,35 +242,33 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  updateRepo(event: InputEvent) {
+  updateIssueURL(event: InputEvent) {
     const target = event.target as HTMLInputElement;
-    this.repo = target.value;
+    this.issueURL = target.value;
+    this.canSaveCredentials();
+  }
+
+  @action
+  updateUploadURL(event: InputEvent) {
+    const target = event.target as HTMLInputElement;
+    this.uploadURL = target.value;
     this.canSaveCredentials();
   }
 
   @action
   resetSourceClass() {
-    this.sourceClass = '';
-    this.canCreateCommunication();
+    this.landscapeRestructure.sourceClass = null;
   }
 
   @action
   resetTargetClass() {
-    this.targetClass = '';
-    this.canCreateCommunication();
+    this.landscapeRestructure.targetClass = null;
   }
 
   @action
   canSaveCredentials() {
-    this.saveCredBtnDisabled = this.token === '' || this.repo === '';
-  }
-
-  @action
-  canCreateCommunication() {
-    this.communicationBtnDisabled =
-      this.methodName === '' ||
-      this.sourceClass === '' ||
-      this.targetClass === '';
+    this.saveCredBtnDisabled = this.token === '' || this.issueURL === '';
+    if (this.uploadURL) this.canUpload();
   }
 
   @action
@@ -208,8 +293,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   showChangelog() {
-    const changelog = this.landscapeRestructure.changeLog.getChangeLogs();
-    this.changelog = changelog;
+    const changelog = this.landscapeRestructure.changeLog.getChangeLog();
+    this.logTexts = changelog;
   }
 
   @action
@@ -237,6 +322,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @action
   deleteScreenshot(issueIndex: number, screenshotIndex: number) {
     this.issues[issueIndex].screenshots.removeAt(screenshotIndex);
+    this.canUpload();
   }
 
   @action
@@ -244,39 +330,41 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const canvas = this.landscapeRestructure.canvas;
     const screenshotDataURL = canvas.toDataURL('image/png');
     this.issues[index].screenshots.pushObject(screenshotDataURL);
+    this.canUpload();
+  }
+
+  @action
+  deleteEntry(index: number) {
+    const entry = this.changeLog.changeLogEntries[index];
+    const bundledCreateEntries = this.changeLog
+      .isCreateBundle(entry, [])
+      ?.reverse();
+
+    if (bundledCreateEntries?.length) {
+      this.landscapeRestructure.undoBundledEntries(bundledCreateEntries);
+    } else {
+      this.landscapeRestructure.undoEntry(entry);
+    }
   }
 
   @action
   saveGitlabCredentials() {
     localStorage.setItem('gitAPIToken', this.token);
-    localStorage.setItem('gitRepo', this.repo);
+    localStorage.setItem('gitIssue', this.issueURL);
+    localStorage.setItem('gitUpload', this.uploadURL);
   }
 
-  // @action
-  // checkForPlusKey(index: number, event: KeyboardEvent) {
-  //   if (event.key === '+') {
-  //     const target = event.target as HTMLTextAreaElement;
-  //     const content = target.value;
-  //     const splitIndex = target.selectionStart;
-
-  //     const contentBeforePlus = content.substring(0, splitIndex - 1);
-  //     const contentAfterPlus = content.substring(splitIndex);
-
-  //     const updatedCurrentIssue = {
-  //       ...this.issues[index],
-  //       content: contentBeforePlus,
-  //     };
-
-  //     this.issues = [
-  //       ...this.issues.slice(0, index),
-  //       updatedCurrentIssue,
-  //       ...this.issues.slice(index + 1),
-  //       { title: '', content: contentAfterPlus },
-  //     ];
-
-  //     event.preventDefault();
-  //   }
-  // }
+  @action
+  canUpload() {
+    const hasScreenshot = this.issues.some(
+      (issue) => issue.screenshots && issue.screenshots.length > 0
+    );
+    if (hasScreenshot) {
+      this.uploadIssueBtnDisabled = this.uploadURL === '';
+    } else {
+      this.uploadIssueBtnDisabled = false;
+    }
+  }
 
   @action
   async uploadIssueToGitLab() {
@@ -295,7 +383,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
           .join('\n')}`;
 
         // Upload the issue
-        const response = await fetch(this.repo, {
+        const response = await fetch(this.issueURL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -308,6 +396,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         });
 
         if (!response.ok) {
+          AlertifyHandler.showAlertifyError(
+            `Failed to upload issue: ${issue.title}`
+          );
           throw new Error(`Failed to upload issue: ${issue.title}`);
         }
 
@@ -333,7 +424,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
     formData.append('file', imgFile);
 
-    const res = await fetch('http://localhost:8080/api/v4/projects/1/uploads', {
+    const res = await fetch(this.uploadURL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.token}`,

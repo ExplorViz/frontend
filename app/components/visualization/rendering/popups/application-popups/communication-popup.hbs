@@ -142,6 +142,11 @@
             }}% )
           </td>
         </tr>
+        {{#if this.landscapeRestructure.restructureMode}}  
+          <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
+            @drawableClassComm={{drawableClassCommu}}
+          />
+        {{/if}}
         {{#if (lt index (sub @communication.drawableClassCommus.length 1))}}
           <hr />
         {{/if}}

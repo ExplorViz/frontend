@@ -159,6 +159,10 @@ export default class VisualizationController extends Controller {
     return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
   }
 
+  get showXRButton() {
+    return this.userSettings.applicationSettings.showXRButton.value;
+  }
+
   @action
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
@@ -186,9 +190,24 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+  }
+
+  @action
   updateTimestampList() {
+    if (!this.landscapeTokenService.token) {
+      this.debug('No token available to update timestamp list');
+      return;
+    }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token!.value;
+    const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
