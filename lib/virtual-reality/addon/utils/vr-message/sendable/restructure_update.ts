@@ -1,6 +1,7 @@
 export const RESTRUCTURE_MODE_UPDATE_EVENT = 'restructure_mode_update';
 export const RESTRUCTURE_UPDATE_EVENT = 'restructure_update';
 export const RESTRUCTURE_CREATE_OR_DELETE_EVENT = 'restructure_create_delete';
+export const RESTRUCTURE_DUPLICATE_APP = 'restructure_duplicate_app';
 export const RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT =
   'restructure_copy_paste_package';
 export const RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT =
@@ -40,6 +41,11 @@ export type RestructureCreateOrDeleteMessage = {
   language: string | null;
   entityId: string | null;
   undo: boolean;
+};
+
+export type RestructureDuplicateAppMessage = {
+  event: typeof RESTRUCTURE_DUPLICATE_APP;
+  appId: string;
 };
 
 export type RestructureCopyAndPastePackageMessage = {

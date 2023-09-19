@@ -76,6 +76,11 @@ export default class EditMesh extends Component<Args> {
   }
 
   @action
+  duplicateApp() {
+    this.landscapeRestructure.duplicateApp(this.args.entity);
+  }
+
+  @action
   addPackage() {
     if (this.isEntityApplication)
       this.landscapeRestructure.addPackage(this.args.entity);

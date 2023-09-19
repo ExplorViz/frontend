@@ -23,6 +23,7 @@ import {
   canDeletePackage,
   pastePackage,
   pasteClass,
+  duplicateApplication,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
@@ -396,6 +397,48 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   setLandscapeData(newData: LandscapeData | null) {
     this.landscapeData = newData;
+  }
+
+  duplicateApp(app: Application, collabMode: boolean = false) {
+    if (this.landscapeData?.structureLandscapeData) {
+      if (!collabMode) {
+        this.sender.sendRestructureDuplicateAppMessage(app.id);
+      }
+
+      const wrapper = {
+        idCounter: this.newMeshCounter,
+        comms: this.allClassCommunications,
+        copiedComms: [],
+      };
+
+      const duplicatedApp = duplicateApplication(
+        this.landscapeData.structureLandscapeData,
+        app,
+        wrapper
+      );
+
+      this.newMeshCounter++;
+
+      this.changeLog.duplicateAppEntry(duplicatedApp);
+
+      this.meshModelTextureMappings.push({
+        action: RestructureAction.CopyPaste,
+        meshType: EntityType.App,
+        texturePath: 'images/x.png',
+        app: duplicatedApp,
+      });
+
+      const key = 'DUPLICATED|' + duplicatedApp.id;
+
+      this.copiedClassCommunications.set(key, wrapper.copiedComms);
+
+      this.trigger('showChangeLog');
+      this.trigger(
+        'restructureLandscapeData',
+        this.landscapeData.structureLandscapeData,
+        this.landscapeData.dynamicLandscapeData
+      );
+    }
   }
 
   renameApplication(
@@ -884,6 +927,22 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     );
   }
 
+  undoDuplicateApp(app: Application) {
+    const undoMapping = this.meshModelTextureMappings.find(
+      (mapping) =>
+        mapping.action === RestructureAction.CopyPaste &&
+        mapping.meshType === EntityType.App &&
+        mapping.app === app
+    );
+    this.meshModelTextureMappings.removeObject(
+      undoMapping as MeshModelTextureMapping
+    );
+
+    const keyToRemove = 'DUPLICATED|' + app.id;
+
+    this.copiedClassCommunications.delete(keyToRemove);
+  }
+
   undoCopyPackage(app: Application, pckg: Package) {
     const undoMapping = this.meshModelTextureMappings.find(
       (mapping) =>
@@ -1155,7 +1214,15 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           }
           // Apply X texture for copied Meshes
         } else if (elem.action === RestructureAction.CopyPaste) {
-          if (elem.meshType === EntityType.Package) {
+          if (elem.meshType === EntityType.App) {
+            currentAppModel?.modelIdToMesh.forEach((mesh) => {
+              if (mesh instanceof ClazzMesh) {
+                mesh.changeTexture(elem.texturePath, 1);
+              } else {
+                mesh.changeTexture(elem.texturePath);
+              }
+            });
+          } else if (elem.meshType === EntityType.Package) {
             const allSubPackages = getSubPackagesOfPackage(
               elem.pckg as Package,
               true
@@ -1446,7 +1513,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
 
       let shouldUndo = undo;
-      if (!shouldUndo && app.id.includes('newApp')) {
+      if (
+        !shouldUndo &&
+        (app.id.includes('newApp') || app.id.includes('duplicated'))
+      ) {
         shouldUndo = true;
       }
       // Create wrapper for Communication, since it can change inside the function
@@ -1468,6 +1538,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
       } else {
         removeApplication(this.landscapeData.structureLandscapeData, app);
+
+        // Removes the duplicate texture and comms
+        if (app.id.includes('duplicated')) this.undoDuplicateApp(app);
 
         // Removes existing Changelog entry
         this.changeLog.deleteAppEntry(app, true);
@@ -2282,7 +2355,10 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
 
     if (entry.action === RestructureAction.CopyPaste) {
-      if (
+      if (entry instanceof AppChangeLogEntry) {
+        const { app } = entry;
+        this.deleteApp(app as Application, false, true);
+      } else if (
         entry instanceof PackageChangeLogEntry ||
         entry instanceof SubPackageChangeLogEntry
       ) {

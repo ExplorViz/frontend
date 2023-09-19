@@ -97,6 +97,53 @@ export function addFoundationToLandscape(
   return myNode;
 }
 
+export function duplicateApplication(
+  landscapeData: StructureLandscapeData,
+  app: Application,
+  wrapper: {
+    idCounter: number;
+    comms: DrawableClassCommunication[];
+    copiedComms: DrawableClassCommunication[];
+  }
+) {
+  const originalNode = app.parent;
+  const duplicatedNode: Node = {
+    id: originalNode.id,
+    ipAddress: originalNode.ipAddress,
+    hostName: originalNode.hostName,
+    applications: [],
+  };
+
+  const duplicatedApp: Application = {
+    id: app.id,
+    name: app.name,
+    language: app.language,
+    instanceId: app.instanceId,
+    parent: duplicatedNode,
+    packages: [],
+  };
+
+  duplicatedNode.applications.pushObject(duplicatedApp);
+
+  app.packages.forEach((pckg) => {
+    const duplicatedPackage = copyPackageContent(pckg);
+    duplicatedApp.packages.pushObject(duplicatedPackage);
+  });
+
+  // Copy the communications
+  if (wrapper.comms.length > 0) {
+    const classesInApp = getAllClassesInApplication(duplicatedApp);
+
+    copyCommunications(classesInApp, wrapper, duplicatedApp);
+  }
+
+  changeID({ entity: duplicatedApp }, 'duplicated|');
+
+  landscapeData.nodes.pushObject(duplicatedNode);
+
+  return duplicatedApp;
+}
+
 /**
  * Creates a new package with the given ID and name.
  *
@@ -469,6 +516,11 @@ export function changeID(
   id: string
 ) {
   if (isApplication(wrapper.entity)) {
+    const node = wrapper.entity.parent;
+    node.id = id + node.id;
+
+    wrapper.entity.id = id + wrapper.entity.id;
+
     const allPackages = getAllPackagesInApplication(wrapper.entity);
     const allClasses = getAllClassesInApplication(wrapper.entity);
 
@@ -589,21 +641,34 @@ function copyCommunications(
   },
   destinationApplication: Application | undefined
 ) {
+  const copiedCommsMap = new Map();
   classesInPackage.forEach((clazz) =>
     commsWrapper.comms.forEach((comms) => {
-      if (comms.sourceClass.id === clazz.id) {
-        const copiedComms = copyCommunication(comms, commsWrapper.idCounter);
-        copiedComms.sourceClass = clazz;
-        copiedComms.sourceApp = destinationApplication;
-        commsWrapper.copiedComms.push(copiedComms);
-      } else if (comms.targetClass.id === clazz.id) {
-        const copiedComms = copyCommunication(comms, commsWrapper.idCounter);
-        copiedComms.targetClass = clazz;
-        copiedComms.targetApp = destinationApplication;
-        commsWrapper.copiedComms.push(copiedComms);
+      if (
+        comms.sourceClass.id === clazz.id ||
+        comms.targetClass.id === clazz.id
+      ) {
+        let copiedComms;
+        // If this communication has already been copied, retrieve the copy from the map, otherwise create a new copy and store it in the map
+        if (copiedCommsMap.has(comms.id)) {
+          copiedComms = copiedCommsMap.get(comms.id);
+        } else {
+          copiedComms = copyCommunication(comms, commsWrapper.idCounter);
+          copiedCommsMap.set(comms.id, copiedComms);
+        }
+
+        if (comms.sourceClass.id === clazz.id) {
+          copiedComms.sourceClass = clazz;
+          copiedComms.sourceApp = destinationApplication;
+        }
+        if (comms.targetClass.id === clazz.id) {
+          copiedComms.targetClass = clazz;
+          copiedComms.targetApp = destinationApplication;
+        }
       }
     })
   );
+  commsWrapper.copiedComms = Array.from(copiedCommsMap.values());
 }
 
 function copyCommunication(

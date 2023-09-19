@@ -63,6 +63,12 @@
       
     {{/if}}
   {{else if this.isEntityApplication}}
+    <BsButton @type='info' {{on 'click' this.duplicateApp}}>
+      {{svg-jar 'stack-16' class='octicon align-right'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Duplicate
+      </BsTooltip>
+    </BsButton>
     <BsButton
       style={{html-safe
         (concat

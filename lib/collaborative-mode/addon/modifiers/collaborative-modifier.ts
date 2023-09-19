@@ -58,6 +58,7 @@ import {
   RESTRUCTURE_CREATE_OR_DELETE_EVENT,
   RESTRUCTURE_CUT_AND_INSERT_EVENT,
   RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+  RESTRUCTURE_DUPLICATE_APP,
   RESTRUCTURE_MODE_UPDATE_EVENT,
   RESTRUCTURE_RENAME_OPERATION_EVENT,
   RESTRUCTURE_RESTORE_APP_EVENT,
@@ -70,6 +71,7 @@ import {
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
   RestructureDeleteCommunicationMessage,
+  RestructureDuplicateAppMessage,
   RestructureRenameOperationMessage,
   RestructureRestoreAppMessage,
   RestructureRestoreClassMessage,
@@ -178,6 +180,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onChangeLogRestoreEntriesMessage
     );
+    this.webSocket.on(
+      RESTRUCTURE_DUPLICATE_APP,
+      this,
+      this.onRestructureDuplicateApp
+    );
 
     registerDestructor(this, this.cleanup);
   }
@@ -264,6 +271,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       CHANGELOG_RESTORE_ENTRIES_EVENT,
       this,
       this.onChangeLogRestoreEntriesMessage
+    );
+    this.webSocket.off(
+      RESTRUCTURE_DUPLICATE_APP,
+      this,
+      this.onRestructureDuplicateApp
     );
   }
 
@@ -459,6 +471,17 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
           break;
       }
     }
+  }
+
+  onRestructureDuplicateApp({
+    originalMessage: { appId },
+  }: ForwardedMessage<RestructureDuplicateAppMessage>): void {
+    const app = getApplicationInLandscapeById(
+      this.landscapeRestructure.landscapeData
+        ?.structureLandscapeData as StructureLandscapeData,
+      appId
+    );
+    this.landscapeRestructure.duplicateApp(app as Application, true);
   }
 
   onRestructureCopyAndPastePackage({

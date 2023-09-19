@@ -208,14 +208,20 @@ export default class Changelog extends Service.extend(Evented, {
 
     this.changeLogEntries = this.changeLogEntries.filter((entry) => {
       if (!(entry instanceof CommunicationChangeLogEntry)) {
-        if (
-          entry.action === RestructureAction.CopyPaste &&
-          (entry instanceof PackageChangeLogEntry ||
+        if (entry.action === RestructureAction.CopyPaste) {
+          if (entry instanceof AppChangeLogEntry) {
+            return entry.app?.id !== app.id;
+          } else if (
+            entry instanceof PackageChangeLogEntry ||
             entry instanceof SubPackageChangeLogEntry ||
-            entry instanceof ClassChangeLogEntry)
-        ) {
-          // We only want to remove the copy&paste entry when we delete the destination of the copied and not the source!
-          return entry.destinationApp?.id !== app.id;
+            entry instanceof ClassChangeLogEntry
+          ) {
+            // We only want to remove the copy&paste entry when we delete the destination of the copied and not the source!
+            return entry.destinationApp?.id !== app.id;
+          } else {
+            // should never happen, since there are no copy paste actions for comms
+            return;
+          }
         } else {
           return entry.app?.id !== app.id;
         }
@@ -404,6 +410,11 @@ export default class Changelog extends Service.extend(Evented, {
     }
     this.changeLogEntries.pushObject(clazzLogEntry);
     //this.trigger('showChangeLog');
+  }
+
+  duplicateAppEntry(app: Application) {
+    const appLogEntry = new AppChangeLogEntry(RestructureAction.CopyPaste, app);
+    this.changeLogEntries.pushObject(appLogEntry);
   }
 
   copyPackageEntry(

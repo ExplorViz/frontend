@@ -51,6 +51,8 @@ export class AppChangeLogEntry extends BaseChangeLogEntry {
         return `-Rename the Application "${this.originalAppName}" to "${this.newName}"\n`;
       case RestructureAction.Delete:
         return `-Delete the Application with the name "${this.originalAppName}"\n`;
+      case RestructureAction.CopyPaste:
+        return `-Duplicate the Application "${this.originalAppName}"\n`;
       default:
         return `APP LOG ERROR\n`;
     }

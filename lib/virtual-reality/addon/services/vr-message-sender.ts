@@ -28,6 +28,7 @@ import {
   RestructureCreateOrDeleteMessage,
   RestructureCutAndInsertMessage,
   RestructureDeleteCommunicationMessage,
+  RestructureDuplicateAppMessage,
   RestructureModeUpdateMessage,
   RestructureRenameOperationMessage,
   RestructureRestoreAppMessage,
@@ -206,6 +207,13 @@ export default class VrMessageSender extends Service {
       language: language,
       entityId: entityId,
       undo: undo,
+    });
+  }
+
+  sendRestructureDuplicateAppMessage(appId: string) {
+    this.webSocket.send<RestructureDuplicateAppMessage>({
+      event: 'restructure_duplicate_app',
+      appId: appId,
     });
   }
 
