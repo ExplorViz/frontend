@@ -47,6 +47,7 @@ import PopupData from './popups/popup-data';
 import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -115,6 +116,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   popupHandler: PopupHandler;
 
   renderer!: THREE.WebGLRenderer;
+
+  cssRendrerer!: CSS3DRenderer;
 
   updatables: any[] = [];
 
@@ -285,6 +288,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Update renderer and camera according to canvas size
     this.renderer.setSize(width, height);
+    this.cssRendrerer.setSize(width, height);
+
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -306,11 +311,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       canvas: this.canvas,
       preserveDrawingBuffer: true,
     });
+    this.cssRendrerer = new CSS3DRenderer();
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(width, height);
+    this.cssRendrerer.setSize(width, height);
     this.debug('Renderer set up');
 
     // controls
@@ -336,6 +343,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       camera: this.camera,
       scene: this.scene,
       renderer: this.renderer,
+      cssRenderer: this.cssRendrerer,
       updatables: this.updatables,
     });
     this.renderingLoop.start();
