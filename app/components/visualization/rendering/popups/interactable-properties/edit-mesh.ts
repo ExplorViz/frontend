@@ -119,7 +119,7 @@ export default class EditMesh extends Component<Args> {
 
   @action
   insertMesh() {
-    this.landscapeRestructure.insertPackageOrClass(this.args.entity);
+    this.landscapeRestructure.movePackageOrClass(this.args.entity);
   }
 
   @action

@@ -203,6 +203,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       if (this.args.visualizationPaused) {
         this.args.toggleVisualizationUpdating();
       }
+      this.landscapeRestructure.resetLandscapeRestructure();
       AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
     }
   }

@@ -39,6 +39,11 @@ export default class Changelog extends Service.extend(Evented, {
     return this.changeLogEntries;
   }
 
+  resetChangeLog() {
+    this.changeLogEntries = [];
+    this.deletedChangeLogEntries = new Map();
+  }
+
   createAppEntry(app: Application, pckg: Package, clazz: Class) {
     const appLogEntry = new AppChangeLogEntry(RestructureAction.Create, app);
 

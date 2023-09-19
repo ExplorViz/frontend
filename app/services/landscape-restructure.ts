@@ -73,6 +73,7 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
+import LandscapeListener from './landscape-listener';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -109,6 +110,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('changelog')
   changeLog!: Changelog;
+
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
@@ -198,6 +202,29 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @tracked
   targetClass: Class | null = null;
+
+  resetLandscapeRestructure() {
+    this.restructureMode = false;
+    this.landscapeData = null;
+    this.newMeshCounter = 1;
+    this.meshModelTextureMappings = [];
+    this.commModelColorMappings = [];
+    this.deletedDataModels = [];
+    this.clipboard = '';
+    this.clippedMesh = null;
+    this.createdClassCommunication = [];
+    this.allClassCommunications = [];
+    this.copiedClassCommunications = new Map();
+    this.updatedClassCommunications = new Map();
+    this.completelyDeletedClassCommunications = new Map();
+    this.deletedClassCommunications = [];
+    this.sourceClass = null;
+    this.targetClass = null;
+    this.changeLog.resetChangeLog();
+    this.trigger('showChangeLog');
+
+    this.landscapeListener.initLandscapePolling();
+  }
 
   setSourceOrTargetClass(type: string) {
     if (type == 'source' && isClass(this.clippedMesh))
@@ -1813,13 +1840,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.landscapeData?.structureLandscapeData as StructureLandscapeData,
         destinationId
       );
-      this.insertPackageOrClass(app as Application, true);
+      this.movePackageOrClass(app as Application, true);
     } else {
       const pckg = getPackageById(
         this.landscapeData?.structureLandscapeData as StructureLandscapeData,
         destinationId
       );
-      this.insertPackageOrClass(pckg as Package, true);
+      this.movePackageOrClass(pckg as Package, true);
     }
   }
 
@@ -2001,7 +2028,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
   }
 
-  insertPackageOrClass(
+  movePackageOrClass(
     destination: Application | Package,
     collabMode: boolean = false
   ) {
