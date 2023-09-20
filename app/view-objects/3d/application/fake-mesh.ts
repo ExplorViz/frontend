@@ -42,6 +42,7 @@ export default class FakeInstanceMesh<
       this.mesh,
       this.instanceIndex
     ) as T;
+    this.name = `FakeMesh for ${this.dataModel.name}`;
   }
 
   static getInstance(
@@ -59,6 +60,8 @@ export default class FakeInstanceMesh<
     }
     fakeInstances.get(app3d)!.set(instancedMesh, instance);
     return instance;
+
+    // TODO: cleanup
   }
 
   /**
@@ -68,6 +71,9 @@ export default class FakeInstanceMesh<
    * @param colorShift Specifies color shift: <1 is darker and >1 is lighter
    */
   applyHoverEffect(colorShift = 1.1): void {
+    if (this.isClass) {
+      return; // TODO : handle class
+    }
     this.app3d.content.applyHoverEffect(this.instanceIndex, colorShift);
     this.isHovered = true;
   }
@@ -76,6 +82,9 @@ export default class FakeInstanceMesh<
    * Restores original color of mesh which had a hover effect
    */
   resetHoverEffect(): void {
+    if (this.isClass) {
+      return; // TODO : handle class
+    }
     if (!this.isHovered) {
       return;
     }
@@ -101,6 +110,37 @@ export default class FakeInstanceMesh<
 
   get highlightingColor(): THREE.Color {
     return new THREE.Color('red'); // TODO
+  }
+
+  unhighlight(): void {
+    console.log('un-highlighting');
+    if (this.isClass) {
+      return; // TODO : handle class
+    }
+
+    this.app3d.content.resetComponentColor(this.instanceIndex);
+  }
+
+  highlight(): void {
+    console.log('highlighting');
+    if (this.isClass) {
+      return; // TODO : handle class
+    }
+    // TODO: store highlighting color for each instance
+    this.app3d.content.updateComponentColor(
+      this.instanceIndex,
+      new THREE.Color('red')
+    );
+  }
+
+  isTransparent(): boolean {
+    return false;
+  }
+
+  turnOpaque(): void {}
+
+  get isClass(): boolean {
+    return 'methods' in this.dataModel;
   }
 }
 

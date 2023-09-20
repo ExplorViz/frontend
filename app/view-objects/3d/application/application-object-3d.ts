@@ -17,6 +17,7 @@ import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-da
 import type { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
+import FakeInstanceMesh from './fake-mesh';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -237,12 +238,24 @@ export default class ApplicationObject3D extends THREE.Object3D {
    *
    * @param id The mesh's id to lookup
    */
-  getBoxMeshbyModelId(id: string) {
+  getBoxMeshbyModelId(id: string): BaseMesh | FakeInstanceMesh | undefined {
+    const fakeMesh = this.content.getFakeMeshById(id);
+    if (fakeMesh && !fakeMesh.isClass) {
+      return fakeMesh;
+    }
     return this.modelIdToMesh.get(id);
   }
 
-  getMeshById(id: string) {
-    return this.getBoxMeshbyModelId(id) || this.getCommMeshByModelId(id);
+  getMeshById(id: string): BaseMesh | FakeInstanceMesh | undefined {
+    const boxMesh = this.getBoxMeshbyModelId(id);
+    if (boxMesh) {
+      return boxMesh;
+    }
+    const fakeMesh = this.content.getFakeMeshById(id);
+    if (fakeMesh) {
+      return fakeMesh;
+    }
+    return this.getCommMeshByModelId(id);
   }
 
   /**
@@ -290,7 +303,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.openComponentIds.forEach((openId) => {
       const componentMesh = this.getMeshById(openId);
       if (componentMesh) {
-        if (componentMesh.material.opacity !== 1) {
+        if (componentMesh.isTransparent()) {
           transparentComponentIds.add(openId);
         }
       }
@@ -323,7 +336,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
         }
       }
 
-      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
+      if (this.getBoxMeshbyModelId(clazz.id)?.isTransparent()) {
         transparentComponentIds.add(clazz.id);
       }
     });

@@ -25,6 +25,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -38,6 +39,7 @@ export function isHighlightableMesh(
   object: THREE.Object3D
 ): object is HighlightableMesh {
   return (
+    object instanceof FakeInstanceMesh ||
     object instanceof ComponentMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||

@@ -9,6 +9,7 @@ import type {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import type ApplicationData from 'explorviz-frontend/utils/application-data';
+import FakeInstanceMesh from './fake-mesh';
 
 const LABEL_HEIGHT = 8.0; // TODO: import this (import from city-layouter not working!)
 
@@ -18,7 +19,7 @@ const tmpMatrix = new THREE.Matrix4();
 
 export default class ApplicationContent {
   private readonly app3d: ApplicationObject3D;
-  private readonly classMaterial = new THREE.MeshLambertMaterial();
+  private readonly classMaterial = new THREE.MeshBasicMaterial();
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
   private componentLabels: THREE.InstancedMesh;
@@ -29,8 +30,6 @@ export default class ApplicationContent {
   private readonly componentDataById = new Map<string, ComponentData>();
   private readonly classData = new Map<string, ClassData>();
   private hoverIndex = -1;
-  private previousColor = new THREE.Color();
-  private highlightingColor: THREE.Color;
 
   readonly openComponentIds;
 
@@ -41,7 +40,6 @@ export default class ApplicationContent {
   ) {
     this.app3d = app3d;
     this.colors = colors;
-    this.highlightingColor = colors.highlightedEntityColor;
     this.openComponentIds = openComponentIds ?? new Set();
 
     this.components = createInstancedMesh(
@@ -133,11 +131,18 @@ export default class ApplicationContent {
       this.resetHoverEffect();
     }
 
-    this.components.getColorAt(index, this.previousColor);
-    const color = calculateColorBrightness(this.previousColor, colorShift);
-    this.components.setColorAt(index, color);
-    this.components.instanceColor!.needsUpdate = true;
+    const previousColor = new THREE.Color();
+    this.components.getColorAt(index, previousColor);
+    const color = calculateColorBrightness(previousColor, colorShift);
+    this.updateComponentColor(index, color);
     this.hoverIndex = index;
+  }
+
+  updateComponentColor(index: number, color: THREE.Color, update = true): void {
+    this.components.setColorAt(index, color);
+    if (update) {
+      this.components.instanceColor!.needsUpdate = true;
+    }
   }
 
   getDataModel(mesh: THREE.InstancedMesh, index: number): Package | Class {
@@ -155,13 +160,31 @@ export default class ApplicationContent {
     throw new Error(`No data model for instanced mesh and index ${index}.`);
   }
 
+  getFakeMeshById(id: string): FakeInstanceMesh | undefined {
+    const component = this.componentDataById.get(id);
+    if (component) {
+      return FakeInstanceMesh.getInstance(this.components, component.index);
+    }
+
+    const clazz = this.classData.get(id);
+    if (clazz) {
+      return; // TODO
+    }
+
+    return undefined;
+  }
+
+  resetComponentColor(index: number): void {
+    const data = this.componentData[index];
+    this.updateComponentColor(index, componentColor(this.colors, data.level));
+  }
+
   resetHoverEffect(): void {
     if (this.hoverIndex < 0) {
       return;
     }
 
-    this.components.setColorAt(this.hoverIndex, this.previousColor);
-    this.components.instanceColor!.needsUpdate = true;
+    this.resetComponentColor(this.hoverIndex);
     this.hoverIndex = -1;
   }
 
@@ -188,8 +211,8 @@ export default class ApplicationContent {
   }
 
   setHighlightingColor(color: THREE.Color): void {
-    this.highlightingColor = color;
-    // TODO: update highlighted instances
+    color;
+    // TODO: update all (highlighted?) instances
   }
 
   get applicationId(): string {
@@ -268,16 +291,18 @@ export default class ApplicationContent {
     const layout = this.getLayout(component.id);
 
     const opened = this.openComponentIds.has(component.id);
-    const color =
-      level % 2 === 0
-        ? this.colors.componentEvenColor
-        : this.colors.componentOddColor;
 
     const index = this.componentData.length;
-    this.componentData.push({ visible, component, index });
+    this.componentData.push({
+      visible,
+      component,
+      index,
+      level,
+      highlighted: false,
+    });
     this.componentDataById.set(component.id, this.componentData[index]);
     this.updateComponentInstance(index, layout, opened, visible);
-    this.components.setColorAt(index, color);
+    this.updateComponentColor(index, componentColor(this.colors, level), false);
 
     // Add classes of given component
     for (const clazz of component.classes) {
@@ -488,10 +513,19 @@ function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
   return mesh;
 }
 
+function componentColor(colors: ApplicationColors, level: number) {
+  const color =
+    level % 2 === 0 ? colors.componentEvenColor : colors.componentOddColor;
+
+  return color;
+}
+
 type ComponentData = {
   visible: boolean;
   component: Package;
   index: number;
+  level: number;
+  highlighted: boolean;
 };
 
 type ClassData = {

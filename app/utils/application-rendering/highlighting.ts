@@ -24,6 +24,7 @@ import { getClassAncestorPackages } from '../class-helpers';
 import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
 /**
  * Restores default color and transparency for all application meshes
  *
@@ -187,7 +188,7 @@ export function highlight(
   applicationObject3D: ApplicationObject3D
 ) {
   const mesh = applicationObject3D.getMeshById(meshId) as
-    | ComponentMesh
+    | FakeInstanceMesh
     | ClazzMesh
     | ClazzCommunicationMesh
     | FoundationMesh;

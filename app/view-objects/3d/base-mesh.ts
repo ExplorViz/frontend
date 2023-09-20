@@ -187,6 +187,13 @@ export default abstract class BaseMesh<
     });
   }
 
+  isTransparent(): boolean {
+    if (this.material instanceof THREE.Material) {
+      return this.material.transparent && this.material.opacity < 1.0;
+    }
+    return false;
+  }
+
   set scaleAll(all: number) {
     this.scale.x += all;
     this.scale.y += all;
