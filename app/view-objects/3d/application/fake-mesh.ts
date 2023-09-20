@@ -9,18 +9,11 @@ import type {
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
-const fakeInstances = new WeakMap<
-  ApplicationObject3D,
-  WeakMap<THREE.InstancedMesh, FakeInstanceMesh>
->();
-
 type PackageOrClass = Package | Class;
 
 export default class FakeInstanceMesh<
   T extends PackageOrClass = PackageOrClass,
 > extends THREE.Mesh {
-  isHovered: boolean;
-
   readonly dataModel: T;
   readonly instanceIndex: number;
   readonly parent: THREE.Object3D;
@@ -34,7 +27,6 @@ export default class FakeInstanceMesh<
     index: number
   ) {
     super();
-    this.isHovered = false;
     this.parent = this.app3d = app3d;
     this.instanceIndex = index;
     this.mesh = instancedMesh;
@@ -50,18 +42,7 @@ export default class FakeInstanceMesh<
     index: number
   ): FakeInstanceMesh {
     const app3d = getApplicationObject3D(instancedMesh);
-    const previousInstance = fakeInstances.get(app3d)?.get(instancedMesh);
-    if (previousInstance && previousInstance.instanceIndex === index) {
-      return previousInstance;
-    }
-    const instance = new FakeInstanceMesh(app3d, instancedMesh, index);
-    if (!fakeInstances.has(app3d)) {
-      fakeInstances.set(app3d, new WeakMap());
-    }
-    fakeInstances.get(app3d)!.set(instancedMesh, instance);
-    return instance;
-
-    // TODO: cleanup
+    return new FakeInstanceMesh(app3d, instancedMesh, index);
   }
 
   /**
@@ -75,7 +56,6 @@ export default class FakeInstanceMesh<
       return; // TODO : handle class
     }
     this.app3d.content.applyHoverEffect(this.instanceIndex, colorShift);
-    this.isHovered = true;
   }
 
   /**
@@ -89,7 +69,6 @@ export default class FakeInstanceMesh<
       return;
     }
     this.app3d.content.resetHoverEffect();
-    this.isHovered = false;
   }
 
   getModelId(): string {
@@ -105,7 +84,7 @@ export default class FakeInstanceMesh<
   }
 
   get highlighted(): boolean {
-    return false; // TODO
+    return this.app3d.content.isComponentHighlighted(this.dataModel.id);
   }
 
   get highlightingColor(): THREE.Color {
@@ -113,24 +92,18 @@ export default class FakeInstanceMesh<
   }
 
   unhighlight(): void {
-    console.log('un-highlighting');
     if (this.isClass) {
-      return; // TODO : handle class
+      return; // TODO: handle class
     }
 
-    this.app3d.content.resetComponentColor(this.instanceIndex);
+    this.app3d.content.unhighlightComponent(this.dataModel.id);
   }
 
   highlight(): void {
-    console.log('highlighting');
     if (this.isClass) {
-      return; // TODO : handle class
+      return; // TODO: handle class
     }
-    // TODO: store highlighting color for each instance
-    this.app3d.content.updateComponentColor(
-      this.instanceIndex,
-      new THREE.Color('red')
-    );
+    this.app3d.content.highlightComponent(this.dataModel.id);
   }
 
   isTransparent(): boolean {
@@ -141,6 +114,16 @@ export default class FakeInstanceMesh<
 
   get isClass(): boolean {
     return 'methods' in this.dataModel;
+  }
+
+  get isHovered(): boolean {
+    const hoveredModel = this.app3d.content.getHoveredModel();
+    if (!hoveredModel) {
+      return false;
+    }
+    return (
+      this.dataModel === hoveredModel || this.dataModel.id === hoveredModel.id
+    );
   }
 }
 

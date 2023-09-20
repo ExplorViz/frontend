@@ -128,22 +128,15 @@ export default class ApplicationContent {
       return;
     }
     if (this.hoverIndex >= 0) {
+      // Remove the hover effect from a different component:
       this.resetHoverEffect();
     }
 
     const previousColor = new THREE.Color();
     this.components.getColorAt(index, previousColor);
-    this.componentData[this.hoverIndex].previousColor = previousColor;
     const color = calculateColorBrightness(previousColor, colorShift);
     this.updateComponentColor(index, color);
     this.hoverIndex = index;
-  }
-
-  updateComponentColor(index: number, color: THREE.Color, update = true): void {
-    this.components.setColorAt(index, color);
-    if (update) {
-      this.components.instanceColor!.needsUpdate = true;
-    }
   }
 
   getDataModel(mesh: THREE.InstancedMesh, index: number): Package | Class {
@@ -177,9 +170,12 @@ export default class ApplicationContent {
 
   resetComponentColor(index: number): void {
     const data = this.componentData[index];
-    const color = data.previousColor ?? componentColor(this.colors, data.level);
+    const highlightedColor =
+      data.highlightingColor ?? this.colors.highlightedEntityColor;
+    const color = data.highlighted
+      ? highlightedColor
+      : componentColor(this.colors, data.level);
     this.updateComponentColor(index, color);
-    data.previousColor = undefined;
   }
 
   resetHoverEffect(): void {
@@ -189,6 +185,14 @@ export default class ApplicationContent {
 
     this.resetComponentColor(this.hoverIndex);
     this.hoverIndex = -1;
+  }
+
+  getHoveredModel(): Package | undefined {
+    if (this.hoverIndex < 0) {
+      return undefined;
+    }
+
+    return this.componentData[this.hoverIndex].component;
   }
 
   update(openComponentIds?: Set<string>): void {
@@ -207,6 +211,29 @@ export default class ApplicationContent {
     return this.openComponentIds.has(id);
   }
 
+  isComponentHighlighted(id: string): boolean {
+    return this.componentDataById.get(id)?.highlighted ?? false;
+  }
+
+  highlightComponent(id: string): void {
+    const data = this.componentDataById.get(id);
+    if (!data || data.highlighted) {
+      return;
+    }
+    const color = data.highlightingColor ?? this.colors.highlightedEntityColor;
+    data.highlighted = true;
+    this.updateComponentColor(data.index, color);
+  }
+
+  unhighlightComponent(id: string): void {
+    const data = this.componentDataById.get(id);
+    if (!data || !data.highlighted) {
+      return;
+    }
+    data.highlighted = false;
+    this.resetComponentColor(data.index);
+  }
+
   getOpenedComponents(): Package[] {
     return this.componentData
       .filter((data) => this.openComponentIds.has(data.component.id))
@@ -220,6 +247,17 @@ export default class ApplicationContent {
 
   get applicationId(): string {
     return this.app3d.data.application.id;
+  }
+
+  private updateComponentColor(
+    index: number,
+    color: THREE.Color,
+    update = true
+  ): void {
+    this.components.setColorAt(index, color);
+    if (update) {
+      this.components.instanceColor!.needsUpdate = true;
+    }
   }
 
   private updateVisibilityOfChildren(
@@ -529,7 +567,7 @@ type ComponentData = {
   index: number;
   level: number;
   highlighted: boolean;
-  previousColor?: THREE.Color;
+  highlightingColor?: THREE.Color;
 };
 
 type ClassData = {
