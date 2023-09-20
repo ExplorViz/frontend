@@ -133,6 +133,7 @@ export default class ApplicationContent {
 
     const previousColor = new THREE.Color();
     this.components.getColorAt(index, previousColor);
+    this.componentData[this.hoverIndex].previousColor = previousColor;
     const color = calculateColorBrightness(previousColor, colorShift);
     this.updateComponentColor(index, color);
     this.hoverIndex = index;
@@ -176,7 +177,9 @@ export default class ApplicationContent {
 
   resetComponentColor(index: number): void {
     const data = this.componentData[index];
-    this.updateComponentColor(index, componentColor(this.colors, data.level));
+    const color = data.previousColor ?? componentColor(this.colors, data.level);
+    this.updateComponentColor(index, color);
+    data.previousColor = undefined;
   }
 
   resetHoverEffect(): void {
@@ -526,6 +529,7 @@ type ComponentData = {
   index: number;
   level: number;
   highlighted: boolean;
+  previousColor?: THREE.Color;
 };
 
 type ClassData = {
