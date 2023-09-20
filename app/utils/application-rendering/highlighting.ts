@@ -32,15 +32,14 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 export function removeAllHighlighting(
   applicationObject3D: ApplicationObject3D
 ) {
-  const meshes = applicationObject3D.getAllMeshes();
+  const meshes = applicationObject3D.getCommMeshes();
 
   meshes.forEach((mesh) => {
-    removeHighlighting(
-      mesh as ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
-      applicationObject3D
-    );
+    removeHighlighting(mesh, applicationObject3D);
   });
   applicationObject3D.highlightedEntity = null;
+
+  // TODO: remove highlighting from instanced content
 }
 
 /**

@@ -30,6 +30,7 @@ export default class ApplicationContent {
   private readonly classData = new Map<string, ClassData>();
   private hoverIndex = -1;
   private previousColor = new THREE.Color();
+  private highlightingColor: THREE.Color;
 
   readonly openComponentIds;
 
@@ -40,6 +41,7 @@ export default class ApplicationContent {
   ) {
     this.app3d = app3d;
     this.colors = colors;
+    this.highlightingColor = colors.highlightedEntityColor;
     this.openComponentIds = openComponentIds ?? new Set();
 
     this.components = createInstancedMesh(
@@ -183,6 +185,11 @@ export default class ApplicationContent {
     return this.componentData
       .filter((data) => this.openComponentIds.has(data.component.id))
       .map((data) => data.component);
+  }
+
+  setHighlightingColor(color: THREE.Color): void {
+    this.highlightingColor = color;
+    // TODO: update highlighted instances
   }
 
   get applicationId(): string {

@@ -268,13 +268,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return new Set([...this.commIdToMesh.values()]);
   }
 
-  /**
-   * Returns a set containing all communication and box meshes inside this application
-   */
-  getAllMeshes(): Set<BaseMesh> {
-    return new Set([...this.getBoxMeshes(), ...this.getCommMeshes()]);
-  }
-
   get foundationMesh() {
     return this.getBoxMeshbyModelId(this.data.application.id);
   }
@@ -445,7 +438,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * @param color Color for highlighting of objects within the application.
    */
   setHighlightingColor(color: THREE.Color) {
-    this.getAllMeshes().forEach((mesh) => {
+    this.content.setHighlightingColor(color);
+    this.getCommMeshes().forEach((mesh) => {
       mesh.highlightingColor = color;
       mesh.updateColor();
     });
@@ -498,8 +492,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * Disposes all meshes inside this object and clears all maps and sets
    */
   removeAllEntities() {
-    // TODO
-    this.getAllMeshes().forEach((mesh) => {
+    // TODO: content + arrows?
+    this.getCommMeshes().forEach((mesh) => {
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });
