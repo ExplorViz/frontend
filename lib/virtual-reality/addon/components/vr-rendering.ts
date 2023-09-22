@@ -449,6 +449,7 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: KeyboardMesh,
       triggerDown: (event) => event.target.triggerDown(event.controller),
+      triggerUp: (event) => event.target.triggerUp(),
       hover: (event) => event.target.applyHover(event.controller),
       resetHover: (event) => event.target.resetHover(event.controller),
       //TODO: triggerPress which works only for backspace
