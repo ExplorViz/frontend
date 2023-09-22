@@ -10,24 +10,15 @@
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
     <label class='bold'>Current Configuration Environment: </label>
-    <label>Testing</label>
-  </div>
-  <div>
-    <input class='syncPadding' type="file" id="file-upload" accept=".txt,.json" {{on 'change' this.handleFileUpload}}>
+    <label>ARENA2</label>
   </div>
 
-     
   <label class='bold'>Connected Devices</label>
   <ul>
     {{#each this.users as |user|}}
       <li style={{html-safe user.style}}>
-        <div
-          class='nav-link-with-cursor'
-          title='Synchronize'
-          {{on 'click' (fn this.synchronize user.id)}}
-        >
+        <div>
           {{user.name}}
-          {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
         </div>
       </li>
     {{/each}}

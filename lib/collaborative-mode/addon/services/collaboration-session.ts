@@ -259,7 +259,7 @@ export default class CollaborationSession extends Service.extend({
       try {
         let response: RoomCreatedResponse | SynchronizationStartedResponse;
 
-        if (synchronization === null) {
+        if (synchronization === undefined) {
           response = await this.roomService.createRoom();
           if (response !== null)
             this.joinRoom(response.roomId, { checkConnectionStatus: false });

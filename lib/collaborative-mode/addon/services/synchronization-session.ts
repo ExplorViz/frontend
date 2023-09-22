@@ -65,6 +65,14 @@ export default class SynchronizationSession extends Service {
     this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
   }
 
+  destroyIds() {
+    this.deviceId = -99;
+    this.roomId = '';
+    this.isSynchronizationSession = false;
+    this.localUser.userId = 'unknown';
+    this.localUser.userName = 'unknown';
+  }
+
   setProjectorConfigurations(projectorConfiguration: ProjectorConfigurations) {
     this.setProjectorQuaternion(projectorConfiguration.yawPitchRoll);
     this.setProjectorAngle(projectorConfiguration.projectorAngles);
