@@ -30,17 +30,11 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   private synchronizeService!: SynchronizeService;
 
   token = {
-    alias:
-      this.args.tokenId === 'intro'
-        ? 'Intro Software Landscape'
-        : 'Evaluation Software Landscape',
+    alias: 'Query parameterized landscape name',
     created: 1551631224242,
     ownerId: 'github|123456',
     sharedUsersIds: [],
-    value:
-      this.args.tokenId === 'intro'
-        ? '17844195-6144-4254-a17b-0f7fb49adb0a' // Intro landscape
-        : '12444195-6144-4254-a17b-asdgfewefg', // Evaluation landscape
+    value: this.args.tokenId !== null ? this.args.tokenId : '17844195-6144-4254-a17b-0f7fb49adb0a',
   };
 
   // Check for updates on query params
