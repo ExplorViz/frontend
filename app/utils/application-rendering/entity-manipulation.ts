@@ -264,10 +264,11 @@ export function restoreComponentState(
       if (
         componentMesh instanceof ClazzMesh &&
         componentMesh.dataModel.id.includes('new')
-      )
-        return; // Without this, a new created class will be transparent
-
-      componentMesh.turnTransparent(opacity);
+      ) {
+        // Without this, a new created class will be transparent
+      } else {
+        componentMesh.turnTransparent(opacity);
+      }
     }
   });
 }
