@@ -248,6 +248,7 @@ export function restoreComponentState(
   transparentComponentIds?: Set<string>,
   opacity?: number
 ) {
+  console.log('restoreComponentState');
   openComponentIds?.forEach((componentId) => {
     const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
@@ -259,12 +260,13 @@ export function restoreComponentState(
   transparentComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
-    // Without this, a new created class will be transparent
-    const isNotNewClass =
-      componentMesh instanceof ClazzMesh &&
-      !componentMesh.dataModel.id.includes('new');
+    if (componentMesh) {
+      if (
+        componentMesh instanceof ClazzMesh &&
+        componentMesh.dataModel.id.includes('new')
+      )
+        return; // Without this, a new created class will be transparent
 
-    if (componentMesh && isNotNewClass) {
       componentMesh.turnTransparent(opacity);
     }
   });

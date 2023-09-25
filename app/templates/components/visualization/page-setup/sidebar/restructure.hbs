@@ -1,4 +1,8 @@
-{{add-listener this.landscapeRestructure 'restructureMode' this.toggleRestructureMode}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureMode'
+  this.toggleRestructureMode
+}}
 {{add-listener this.landscapeRestructure 'showChangeLog' this.showChangelog}}
 
 <div class='sidebar-component-close' {{on 'click' this.close}}>
@@ -23,7 +27,7 @@
   </div>
 
   {{#if this.landscapeRestructure.restructureMode}}
-    <h6 class="mb-3 mt-3"><strong>Gitlab Credentials</strong></h6>
+    <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
       <label for='token'>API Token:</label>
       <div class='d-flex justify-content-between'>
@@ -185,24 +189,49 @@
 
     <h6 class='mb-3 mt-3'><strong>Changelog</strong></h6>
     <div class='ml-3'>
-      <div class='d-flex flex-column justify-content-between' style="max-height: 600px; overflow-y: auto;">
+      <div
+        class='d-flex flex-column justify-content-between'
+        style='max-height: 600px; overflow-y: auto;'
+      >
         <label for='changelog'></label>
         {{#if this.logTexts.length}}
           <label for='selectAll'></label>
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="selectAll" onclick={{this.toggleSelectAll}}>
-            <label class="form-check-label" for="selectAll">Select All</label>
+          <div class='form-check'>
+            <input
+              class='form-check-input'
+              type='checkbox'
+              value=''
+              id='selectAll'
+              onclick={{this.toggleSelectAll}}
+            />
+            <label class='form-check-label' for='selectAll'>Select All</label>
           </div>
         {{/if}}
         {{#each this.logTexts as |entry index|}}
-          <div id="card-{{index}}" class="card" onclick={{fn this.toggleCheckBox index}} style="cursor: pointer;">
-            <div class="card-body">
-              <div class="form-check position-relative" hidden>
-                <input class="form-check-input position-absolute top-50 start-50 translate-middle" type="checkbox" value="" id="checkbox-{{index}}">
-                <label class="form-check-label" for="checkbox-{{index}}"></label>
+          <div
+            id='card-{{index}}'
+            class='card'
+            onclick={{fn this.toggleCheckBox index}}
+            style='cursor: pointer;'
+          >
+            <div class='card-body'>
+              <div class='form-check position-relative' hidden>
+                <input
+                  class='form-check-input position-absolute top-50 start-50 translate-middle'
+                  type='checkbox'
+                  value=''
+                  id='checkbox-{{index}}'
+                />
+                <label
+                  class='form-check-label'
+                  for='checkbox-{{index}}'
+                ></label>
               </div>
-              <p class={{this.getActionColor index}} style="user-select: none;">#{{add index 1}}</p>
-              <div class="d-flex justify-content-between align-items-center">
+              <p
+                class={{this.getActionColor index}}
+                style='user-select: none;'
+              >#{{add index 1}}</p>
+              <div class='d-flex justify-content-between align-items-center'>
                 <p>{{entry}}</p>
                 <button
                   type='button'
@@ -210,7 +239,7 @@
                   class='btn btn-sm link-secondary'
                   title='Delete Entry'
                   onclick={{fn this.deleteEntry index}}
-                  >{{svg-jar 'x-16' class='octicon'}}</button>
+                >{{svg-jar 'x-16' class='octicon'}}</button>
               </div>
             </div>
           </div>
@@ -265,18 +294,21 @@
           >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
         </div>
         <ul></ul>
-        <ul id="ember-power-select-multiple-options-ember141" class="ember-power-select-multiple-options">
+        <ul
+          id='ember-power-select-multiple-options-ember141'
+          class='ember-power-select-multiple-options'
+        >
           {{#each issue.screenshots as |screenshot screenshotIndex|}}
-              <li class="ember-power-select-multiple-option">
-                <button
-                    type='button'
-                    style='padding: 0; margin: 0;'
-                    class='btn btn-sm link-secondary'
-                    title='Delete Screenshot'
-                    onclick={{fn this.deleteScreenshot index screenshotIndex}}
-                >{{svg-jar 'x-16' class='octicon'}}</button>
-                <span>Screenshot{{screenshotIndex}}</span>
-              </li>
+            <li class='ember-power-select-multiple-option'>
+              <button
+                type='button'
+                style='padding: 0; margin: 0;'
+                class='btn btn-sm link-secondary'
+                title='Delete Screenshot'
+                onclick={{fn this.deleteScreenshot index screenshotIndex}}
+              >{{svg-jar 'x-16' class='octicon'}}</button>
+              <span>Screenshot{{screenshotIndex}}</span>
+            </li>
           {{/each}}
         </ul>
       </div>
