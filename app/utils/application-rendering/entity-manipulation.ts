@@ -13,6 +13,7 @@ import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import TWEEN from '@tweenjs/tween.js';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -59,12 +60,15 @@ export function openComponentMesh(
     return;
   }
 
-  mesh.height = 1.5;
-
-  // Reset y coordinate
-  mesh.position.y -= mesh.layout.height / 2;
-  // Set y coordinate according to open component height
-  mesh.position.y += 1.5 / 2;
+  new TWEEN.Tween(mesh.position)
+    .to(
+      {
+        y: mesh.position.y - mesh.height + 1.5,
+      },
+      250
+    )
+    .easing(TWEEN.Easing.Cubic.Out)
+    .start();
 
   mesh.opened = true;
   mesh.visible = true;
@@ -104,12 +108,15 @@ export function closeComponentMesh(
     return;
   }
 
-  mesh.height = mesh.layout.height;
-
-  // Reset y coordinate
-  mesh.position.y -= 1.5 / 2;
-  // Set y coordinate according to closed component height
-  mesh.position.y += mesh.layout.height / 2;
+  new TWEEN.Tween(mesh.position)
+    .to(
+      {
+        y: mesh.position.y + mesh.height - 1.5,
+      },
+      500
+    )
+    .easing(TWEEN.Easing.Cubic.Out)
+    .start();
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);

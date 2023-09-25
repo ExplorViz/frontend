@@ -7,6 +7,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import TWEEN from '@tweenjs/tween.js';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -35,11 +36,29 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
 
   // Foundation is labeled like an opened component
   if (boxMesh instanceof FoundationMesh || boxMesh.opened) {
-    // Position Label just above the bottom edge
-    label.position.x =
-      -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+    new TWEEN.Tween(label.position)
+      .to(
+        {
+          x:
+            -boxMesh.geometry.parameters.width / 2 +
+            foundationOffset / boxMesh.width,
+        },
+        250
+      )
+      .easing(TWEEN.Easing.Cubic.Out)
+      // .onUpdate(() => render())
+      .start();
   } else {
-    label.position.x = 0;
+    new TWEEN.Tween(label.position)
+      .to(
+        {
+          x: 0,
+        },
+        500
+      )
+      .easing(TWEEN.Easing.Cubic.Out)
+      // .onUpdate(() => render())
+      .start();
   }
 }
 

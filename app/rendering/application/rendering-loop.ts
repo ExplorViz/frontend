@@ -6,6 +6,7 @@ import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
+import TWEEN from '@tweenjs/tween.js';
 
 const clock = new Clock();
 
@@ -94,6 +95,10 @@ export default class RenderingLoop {
 
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
+
+    // Update Tween.JS animations
+    TWEEN.update();
+
     for (let i = 0; i < this.updatables.length; i++) {
       this.updatables[i].tick(delta, frame);
     }
