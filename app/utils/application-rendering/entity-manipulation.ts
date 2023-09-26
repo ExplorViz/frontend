@@ -248,7 +248,6 @@ export function restoreComponentState(
   transparentComponentIds?: Set<string>,
   opacity?: number
 ) {
-  console.log('restoreComponentState');
   openComponentIds?.forEach((componentId) => {
     const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
