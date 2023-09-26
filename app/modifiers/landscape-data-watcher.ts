@@ -207,6 +207,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
+      this.highlightingService.updateHighlighting();
     }
     this.graph.graphData(gData);
 
