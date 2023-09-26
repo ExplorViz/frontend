@@ -314,7 +314,12 @@ export default class VrRendering extends Component<Args> {
     this.renderer.xr.enabled = true;
     this.localUser.xr = this.renderer.xr;
 
-    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      undefined,
+      this.canvas
+    );
     this.updatables.push(this.cameraControls);
 
     this.initDone = true;
@@ -701,6 +706,7 @@ export default class VrRendering extends Component<Args> {
     // Start main loop.
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
