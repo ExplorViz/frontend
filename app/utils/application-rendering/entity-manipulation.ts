@@ -13,7 +13,7 @@ import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import TWEEN from '@tweenjs/tween.js';
+import gsap from 'gsap';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -60,15 +60,15 @@ export function openComponentMesh(
     return;
   }
 
-  new TWEEN.Tween(mesh.position)
-    .to(
-      {
-        y: mesh.position.y - mesh.height + 1.5,
-      },
-      250
-    )
-    .easing(TWEEN.Easing.Cubic.Out)
-    .start();
+  gsap.to(mesh, {
+    duration: 0.25,
+    height: 1.5,
+  });
+
+  gsap.to(mesh.position, {
+    duration: 0.25,
+    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+  });
 
   mesh.opened = true;
   mesh.visible = true;
@@ -108,15 +108,15 @@ export function closeComponentMesh(
     return;
   }
 
-  new TWEEN.Tween(mesh.position)
-    .to(
-      {
-        y: mesh.position.y + mesh.height - 1.5,
-      },
-      500
-    )
-    .easing(TWEEN.Easing.Cubic.Out)
-    .start();
+  gsap.to(mesh, {
+    duration: 0.5,
+    height: mesh.layout.height,
+  });
+
+  gsap.to(mesh.position, {
+    duration: 0.5,
+    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+  });
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
