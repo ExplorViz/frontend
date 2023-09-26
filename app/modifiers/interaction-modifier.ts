@@ -268,6 +268,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    // Treat shift + single click as double click
+    if (event.shiftKey) {
+      this.onDoubleClick(event);
+      return;
+    }
     this.mouseClickCounter++;
 
     // Counter could be zero when mouse is in motion or one when mouse has stopped
