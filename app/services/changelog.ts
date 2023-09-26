@@ -468,7 +468,7 @@ export default class Changelog extends Service.extend(Evented, {
     this.changeLogEntries.pushObject(clazzLogEntry);
   }
 
-  cutAndInsertPackageEntry(
+  movePackageEntry(
     app: Application,
     pckg: Package,
     destination: Application | Package,
@@ -498,7 +498,7 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  cutAndInsertSubPackageEntry(
+  moveSubPackageEntry(
     app: Application,
     pckg: Package,
     destination: Application | Package,
@@ -528,7 +528,7 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  cutAndInsertClassEntry(
+  moveClassEntry(
     app: Application,
     clazz: Class,
     destination: Package,

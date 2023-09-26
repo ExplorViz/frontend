@@ -328,6 +328,7 @@ export function canDeleteClass(clazzToRemove: Class) {
   return parentPackage.classes.length + parentPackage.subPackages.length > 1;
 }
 
+// TODO this and cutAndInsertPackage have almost identical code! Needs to be refactored!!!!
 export function pastePackage(
   landscapeStructure: StructureLandscapeData,
   copiedPackage: Package,
@@ -412,14 +413,14 @@ export function pasteClass(
  * which can be another package or an application. The class communications are appropriately updated.
  * @param landscapeStructure The data structure representing the current state of the landscape.
  * @param clippedPackage The package that is intended to be moved.
- * @param clipToDestination The destination where the package should be inserted. This can be either an application or another package.
+ * @param destination The destination where the package should be inserted. This can be either an application or another package.
  * @param wrapper Contains data on drawable class communications and an optional mesh object that might need deletion
  *                after the package move operation.
  */
-export function cutAndInsertPackage(
+export function movePackage(
   landscapeStructure: StructureLandscapeData,
   clippedPackage: Package,
-  clipToDestination: Application | Package,
+  destination: Application | Package,
   wrapper: {
     comms: DrawableClassCommunication[];
     meshTodelete?: Application | Package | Class;
@@ -428,9 +429,9 @@ export function cutAndInsertPackage(
 ) {
   let destinationApplication: Application | undefined;
 
-  if (isPackage(clipToDestination)) {
+  if (isPackage(destination)) {
     // Get the main application containing the destimination package
-    const firstPackage = getAncestorPackages(clipToDestination);
+    const firstPackage = getAncestorPackages(destination);
     if (firstPackage.length > 0)
       destinationApplication = getApplicationFromPackage(
         landscapeStructure,
@@ -439,15 +440,15 @@ export function cutAndInsertPackage(
     else
       destinationApplication = getApplicationFromPackage(
         landscapeStructure,
-        clipToDestination.id
+        destination.id
       );
 
     // Insert the package to be moved under the destination package
-    insertPackageToPackage(clipToDestination, clippedPackage);
+    insertPackageToPackage(destination, clippedPackage);
   } else {
     // If the destination is an application, insert the package directly under it
-    insertPackageToApplication(clipToDestination, clippedPackage);
-    destinationApplication = clipToDestination;
+    insertPackageToApplication(destination, clippedPackage);
+    destinationApplication = destination;
   }
 
   // Update communications if the package contains classes involved in communications
@@ -470,7 +471,7 @@ export function cutAndInsertPackage(
  * @param clipToDestination The destination package where the class will be moved to.
  * @param commsWrapper Contains an array of class communications.
  */
-export function cutAndInsertClass(
+export function moveClass(
   landscapeStructure: StructureLandscapeData,
   clippedClass: Class,
   clipToDestination: Package,
@@ -689,19 +690,19 @@ function copyCommunication(
 }
 
 function insertPackageToApplication(
-  clipToDestination: Application,
+  destinationApp: Application,
   clippedPackage: Package
 ) {
-  clipToDestination.packages.push(clippedPackage);
+  destinationApp.packages.push(clippedPackage);
   delete clippedPackage.parent;
 }
 
 function insertPackageToPackage(
-  clipToDestination: Package,
+  destinationPckg: Package,
   clippedPackage: Package
 ) {
-  clipToDestination.subPackages.push(clippedPackage);
-  clippedPackage.parent = clipToDestination;
+  destinationPckg.subPackages.push(clippedPackage);
+  clippedPackage.parent = destinationPckg;
 }
 
 export function removeAffectedCommunications(

@@ -6,8 +6,8 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import {
   addFoundationToLandscape,
   addMethodToClass,
-  cutAndInsertPackage,
-  cutAndInsertClass,
+  movePackage,
+  moveClass,
   removeApplication,
   removeClassFromPackage,
   removePackageFromApplication,
@@ -2136,7 +2136,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         meshTextureMapping.meshType = EntityType.Package;
         meshTextureMapping.pckg = cuttedPackage;
 
-        cutAndInsertPackage(
+        movePackage(
           this.landscapeData.structureLandscapeData,
           cuttedPackage,
           destination,
@@ -2145,7 +2145,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
         // Create Changelog Entry
         if (this.clippedMesh.parent && app) {
-          this.changeLog.cutAndInsertSubPackageEntry(
+          this.changeLog.moveSubPackageEntry(
             app,
             cuttedPackage,
             destination,
@@ -2153,7 +2153,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             this.landscapeData.structureLandscapeData
           );
         } else if (!this.clippedMesh.parent && app) {
-          this.changeLog.cutAndInsertPackageEntry(
+          this.changeLog.movePackageEntry(
             app,
             cuttedPackage,
             destination,
@@ -2181,7 +2181,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         meshTextureMapping.meshType = EntityType.Clazz;
         meshTextureMapping.clazz = cuttedClass;
 
-        cutAndInsertClass(
+        moveClass(
           this.landscapeData.structureLandscapeData,
           cuttedClass,
           destination as Package,
@@ -2189,7 +2189,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         );
 
         // Create Changelog Entry
-        this.changeLog.cutAndInsertClassEntry(
+        this.changeLog.moveClassEntry(
           app,
           cuttedClass,
           destination as Package,
