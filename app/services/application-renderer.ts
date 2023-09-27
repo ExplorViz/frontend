@@ -212,7 +212,9 @@ export default class ApplicationRenderer extends Service.extend({
 
       let layoutChanged = true;
       if (applicationObject3D) {
-        layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
+        // Maps cannot be compared directly. Thus, we compare their size.
+        layoutChanged =
+          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
 
         applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
@@ -231,27 +233,28 @@ export default class ApplicationRenderer extends Service.extend({
 
       if (layoutChanged) {
         applicationObject3D.removeAllEntities();
+
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
           this.configuration.applicationColors
         );
+
+        // Restore state of open packages and transparent components (packages and clazzes)
+        restoreComponentState(
+          applicationObject3D,
+          applicationState.openComponents,
+          applicationState.transparentComponents,
+          this.highlightingService.opacity
+        );
+
+        // Add labels to application
+        Labeler.addApplicationLabels(
+          applicationObject3D,
+          this.font,
+          this.configuration.applicationColors
+        );
       }
-
-      // Restore state of open packages and transparent components (packages and clazzes)
-      restoreComponentState(
-        applicationObject3D,
-        applicationState.openComponents,
-        applicationState.transparentComponents,
-        this.highlightingService.opacity
-      );
-
-      // Add labels to application
-      Labeler.addApplicationLabels(
-        applicationObject3D,
-        this.font,
-        this.configuration.applicationColors
-      );
 
       this.addCommunication(applicationObject3D);
 
