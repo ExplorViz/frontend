@@ -11,7 +11,7 @@ import {
   darkLandscapeColors,
   defaultApplicationColors,
   defaultLandscapeColors,
-  visuallyImpairedApplicationColors,
+  blueApplicationColors,
   visuallyImpairedLandscapeColors,
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
@@ -187,8 +187,8 @@ export default class UserSettings extends Service {
     } else if (scheme === 'dark') {
       applicationColors = darkApplicationColors;
       landscapeColors = darkLandscapeColors;
-    } else if (scheme === 'impaired') {
-      applicationColors = visuallyImpairedApplicationColors;
+    } else if (scheme === 'blue') {
+      applicationColors = blueApplicationColors;
       landscapeColors = visuallyImpairedLandscapeColors;
     }
 

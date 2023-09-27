@@ -36,8 +36,8 @@ export default class Settings extends Component<Args> {
 
   colorSchemes: { name: string; id: ColorScheme }[] = [
     { name: 'Default', id: 'default' },
-    { name: 'Vision Impairment', id: 'impaired' },
     { name: 'Classic (Initial)', id: 'classic' },
+    { name: 'Blue', id: 'blue' },
     { name: 'Dark', id: 'dark' },
   ];
 

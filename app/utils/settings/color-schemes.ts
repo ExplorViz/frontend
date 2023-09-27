@@ -1,4 +1,4 @@
-export type ColorScheme = 'default' | 'classic' | 'dark' | 'impaired';
+export type ColorScheme = 'default' | 'classic' | 'blue' | 'dark';
 
 export const defaultApplicationColors = {
   foundationColor: '#d2d2d2', // grey
@@ -46,11 +46,11 @@ export const classicLandscapeColors = {
   backgroundColor: '#ffffff', // white
 };
 
-export const visuallyImpairedApplicationColors = {
+export const blueApplicationColors = {
   foundationColor: '#c7c7c7', // light grey
   componentOddColor: '#015a6e', // deep teal
   componentEvenColor: '#0096be', // light blue
-  clazzColor: '#f7f7f7', // white
+  clazzColor: '#f300cb', // magenta
   highlightedEntityColor: '#ff0000', // red
   componentTextColor: '#ffffff', // white
   clazzTextColor: '#ffffff', // white
