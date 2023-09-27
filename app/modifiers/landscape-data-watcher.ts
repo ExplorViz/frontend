@@ -100,6 +100,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.dynamicLandscapeData,
       this.landscapeRestructure.restructureMode,
       this.landscapeRestructure.createdClassCommunication,
+      this.landscapeRestructure.copiedClassCommunications,
       this.landscapeRestructure.updatedClassCommunications,
       this.landscapeRestructure.completelyDeletedClassCommunications
     );

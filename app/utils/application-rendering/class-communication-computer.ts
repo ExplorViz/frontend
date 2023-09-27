@@ -64,6 +64,7 @@ export default function computeDrawableClassCommunication(
   landscapeDynamicData: DynamicLandscapeData,
   restructureMode: boolean,
   classCommunication: DrawableClassCommunication[],
+  copiedClassCommunications: Map<string, DrawableClassCommunication[]>,
   updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
   deletedClassCommunication: Map<
     string,
@@ -145,6 +146,12 @@ export default function computeDrawableClassCommunication(
     if (classCommunication.length) {
       classCommunication.forEach((comm) => {
         drawableClassCommunications.push(comm);
+      });
+    }
+
+    if (copiedClassCommunications.size) {
+      copiedClassCommunications.forEach((value) => {
+        drawableClassCommunications.pushObjects(value);
       });
     }
 
