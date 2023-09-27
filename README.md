@@ -33,7 +33,7 @@ The API documentation is available [here](https://explorviz.github.io/explorviz-
 
 ## Deployment
 
-Use our Docker images as described in our [Wiki](https://github.com/ExplorViz/docs/wiki).
+Use our Docker images as described in our [deployment](https://github.com/ExplorViz/deployment) repository.
 
 ## Development
 
@@ -44,6 +44,7 @@ You will need the following things properly installed on your computer.
 - [Git](https://git-scm.com/)
 - [Node.js 16](https://nodejs.org/) (with npm 8.13.2 or higher)
 - [Ember CLI](https://cli.emberjs.com/release/)
+- [Docker](https://www.docker.com) for (mocked) backend
 
 ### Installation
 
@@ -54,10 +55,10 @@ You will need the following things properly installed on your computer.
 ### Running / Development
 
 - Copy configuration file: `cp .env .env-custom`
-- In `.env-custom`: change `AUTH0_ENABLED` to false.
-- Start application: `DOTENV=.env-custom ember s`
+- In `.env-custom`: change value of `AUTH0_ENABLED` to *false*
+- Start application: `npm run dev`
 - Start mocked backend: `cd .dev && docker compose up -d`
-- Open frontend at [http://localhost:4200](http://localhost:4200).
+- Open frontend at [http://localhost:4200](http://localhost:4200)
 
 ### Code Generators
 

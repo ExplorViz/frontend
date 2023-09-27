@@ -19,6 +19,7 @@
     "lint:js": "eslint . --cache",
     "lint:js:fix": "eslint . --fix",
     "typescript": "tsc",
+    "dev": "DOTENV=.env-custom ember serve --environment=development",
     "start": "ember serve",
     "test": "npm-run-all lint test:*",
     "test:ember": "ember test"
