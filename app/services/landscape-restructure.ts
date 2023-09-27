@@ -192,12 +192,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     DrawableClassCommunication[]
   > = new Map();
 
-  /**
-   * Storing all communication that will be deleted and shown visually
-   */
-  @tracked
-  deletedClassCommunications: DrawableClassCommunication[] = [];
-
   @tracked
   sourceClass: Class | null = null;
 
@@ -218,7 +212,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.copiedClassCommunications = new Map();
     this.updatedClassCommunications = new Map();
     this.completelyDeletedClassCommunications = new Map();
-    this.deletedClassCommunications = [];
     this.sourceClass = null;
     this.targetClass = null;
     this.changeLog.resetChangeLog();
@@ -294,6 +287,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.targetClass
       );
 
+      // This function may be unnecessary
       addMethodToClass(this.targetClass, methodName);
 
       // Create Communication between 2 Classes
@@ -340,15 +334,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     if (!collabMode) {
       this.sender.sendRestructureDeleteCommunicationMessage(undo, comm.id);
     }
+    const newCreatedComm = comm.id.includes(' => ');
     if (undo) {
-      const newCreatedComm = comm.id.includes(' => ');
       if (newCreatedComm) {
         this.createdClassCommunication.removeObject(comm);
         this.commModelColorMappings.pop();
       } else {
-        this.deletedClassCommunications.removeObject(comm);
-        const commMapping = this.commModelColorMappings.popObject();
-        const commMesh = this.getCommMesh(commMapping);
+        const commMapping = this.commModelColorMappings.find(
+          (commMap) =>
+            commMap.action === RestructureAction.Communication &&
+            commMap.comm === comm
+        );
+        this.commModelColorMappings.removeObject(
+          commMapping as CommModelColorMapping
+        );
+        const commMesh = this.getCommMesh(commMapping as CommModelColorMapping);
         const commColor = new THREE.Color(
           this.userSettings.applicationSettings.communicationColor.value
         );
@@ -357,11 +357,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.deletedDataModels.removeObject(comm);
       }
     } else {
-      const newCreatedComm = comm.id.includes(' => ');
       if (newCreatedComm) {
         this.createdClassCommunication.removeObject(comm);
       } else {
-        this.deletedClassCommunications.pushObject(comm);
         this.commModelColorMappings.push({
           action: RestructureAction.Communication,
           comm: comm,
@@ -737,11 +735,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   restoreApplication(
     app: Application,
-    undoCutOperation: boolean = false,
+    undoMoveOperation: boolean = false,
     collabMode: boolean = false
   ) {
     if (!collabMode) {
-      this.sender.sendRestructureRestoreAppMessage(app.id, undoCutOperation);
+      this.sender.sendRestructureRestoreAppMessage(app.id, undoMoveOperation);
     }
 
     this.restoreDeletedAppData(app as Application);
@@ -754,7 +752,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.meshModelTextureMappings.removeObject(
       undoMapping as MeshModelTextureMapping
     );
-    if (undoCutOperation) {
+    if (undoMoveOperation) {
       if (this.createdClassCommunication.length) {
         this.createdClassCommunication.forEach((comm) => {
           if (!comm.sourceApp) {
@@ -780,13 +778,13 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   restorePackage(
     pckg: Package,
-    undoCutOperation: boolean = false,
+    undoMoveOperation: boolean = false,
     collabMode: boolean = false
   ) {
     if (!collabMode) {
       this.sender.sendRestructureRestorePackageMessage(
         pckg.id,
-        undoCutOperation
+        undoMoveOperation
       );
     }
 
@@ -802,7 +800,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     );
 
     // Cut or Undo Operation? In case of Cut we also need to restore the communications!
-    if (undoCutOperation) {
+    if (undoMoveOperation) {
       const keyToRemove = 'CUTINSERT|' + pckg.id;
 
       this.updatedClassCommunications.delete(keyToRemove);
@@ -840,14 +838,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   restoreClass(
     app: Application,
     clazz: Class,
-    undoCutOperation: boolean = false,
+    undoMoveOperation: boolean = false,
     collabMode: boolean = false
   ) {
     if (!collabMode) {
       this.sender.sendRestructureRestoreClassMessage(
         app.id,
         clazz.id,
-        undoCutOperation
+        undoMoveOperation
       );
     }
 
@@ -862,7 +860,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.meshModelTextureMappings.removeObject(
       undoMapping as MeshModelTextureMapping
     );
-    if (undoCutOperation) {
+    if (undoMoveOperation) {
       const keyToRemove = 'CUTINSERT|' + clazz.id;
 
       this.updatedClassCommunications.delete(keyToRemove);
