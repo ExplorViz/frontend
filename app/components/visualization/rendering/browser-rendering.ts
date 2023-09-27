@@ -162,7 +162,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.debug('Constructor called');
     // scene
     this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.background =
+      this.configuration.applicationColors.backgroundColor;
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph

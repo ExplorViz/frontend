@@ -9,9 +9,6 @@ import {
   ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
-  LandscapeColorSettings,
-  LandscapeSettingId,
-  LandscapeSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
@@ -79,140 +76,68 @@ export default class Settings extends Component<Args> {
     return settingGroupToSettingIds;
   }
 
-  get landscapeSettingsSortedByGroup() {
-    const { landscapeSettings } = this.userSettings;
-
-    const settingGroupToSettingIds: Record<SettingGroup, LandscapeSettingId[]> =
-      {
-        'Hover Effects': [],
-        Colors: [],
-        Communication: [],
-        Highlighting: [],
-        Popup: [],
-        Camera: [],
-        'Extended Reality': [],
-        Debugging: [],
-      };
-
-    let settingId: keyof LandscapeSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in landscapeSettings) {
-      const setting = landscapeSettings[settingId];
-      settingGroupToSettingIds[setting.group].push(settingId);
-    }
-
-    let settingGroupId: SettingGroup;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingGroupId in settingGroupToSettingIds) {
-      const settingArray = settingGroupToSettingIds[settingGroupId];
-      settingArray.sort(
-        (settingId1, settingId2) =>
-          landscapeSettings[settingId1].orderNumber -
-          landscapeSettings[settingId2].orderNumber
-      );
-    }
-
-    return settingGroupToSettingIds;
-  }
-
   @action
-  updateRangeSetting(
-    name: ApplicationSettingId | LandscapeSettingId,
-    event?: Event
-  ) {
+  updateRangeSetting(name: ApplicationSettingId, event?: Event) {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
 
-    if (this.args.isLandscapeView) {
-      const settingId = name as LandscapeSettingId;
-      try {
-        this.userSettings.updateLandscapeSetting(settingId, input);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
-      }
-    } else {
-      const settingId = name as ApplicationSettingId;
-      try {
-        this.userSettings.updateApplicationSetting(settingId, input);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
-      }
-
-      switch (settingId) {
-        case 'transparencyIntensity':
-          if (this.args.updateHighlighting) {
-            this.args.updateHighlighting();
-          }
-          break;
-        case 'commArrowSize':
-          if (this.args.redrawCommunication && this.args.updateHighlighting) {
-            this.args.redrawCommunication();
-            this.args.updateHighlighting();
-          }
-          break;
-        case 'curvyCommHeight':
-          if (this.args.redrawCommunication && this.args.updateHighlighting) {
-            this.args.redrawCommunication();
-            this.args.updateHighlighting();
-          }
-          break;
-        default:
-          break;
-      }
+    const settingId = name as ApplicationSettingId;
+    try {
+      this.userSettings.updateApplicationSetting(settingId, input);
+    } catch (e) {
+      AlertifyHandler.showAlertifyError(e.message);
     }
-  }
 
-  @action
-  updateFlagSetting(
-    name: ApplicationSettingId | LandscapeSettingId,
-    value: boolean
-  ) {
-    if (this.args.isLandscapeView) {
-      const settingId = name as LandscapeSettingId;
-      try {
-        this.userSettings.updateLandscapeSetting(settingId, value);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
-      }
-    } else {
-      const settingId = name as ApplicationSettingId;
-      try {
-        if (
-          this.collaborationSession.connectionStatus === 'online' &&
-          settingId === 'keepHighlightingOnOpenOrClose'
-        ) {
-          AlertifyHandler.showAlertifyWarning(
-            'Switching Mode Not Allowed In Collaboration Session'
-          );
-          return;
+    switch (settingId) {
+      case 'transparencyIntensity':
+        if (this.args.updateHighlighting) {
+          this.args.updateHighlighting();
         }
-        this.userSettings.updateApplicationSetting(settingId, value);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
-      }
+        break;
+      case 'commArrowSize':
+        if (this.args.redrawCommunication && this.args.updateHighlighting) {
+          this.args.redrawCommunication();
+          this.args.updateHighlighting();
+        }
+        break;
+      case 'curvyCommHeight':
+        if (this.args.redrawCommunication && this.args.updateHighlighting) {
+          this.args.redrawCommunication();
+          this.args.updateHighlighting();
+        }
+        break;
+      default:
+        break;
     }
   }
 
   @action
-  updateColorSetting(
-    name: ApplicationSettingId | LandscapeSettingId,
-    value: string
-  ) {
-    if (this.args.isLandscapeView) {
-      const settingId = name as LandscapeSettingId;
-      try {
-        this.userSettings.updateLandscapeSetting(settingId, value);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
+  updateFlagSetting(name: ApplicationSettingId, value: boolean) {
+    const settingId = name as ApplicationSettingId;
+    try {
+      if (
+        this.collaborationSession.connectionStatus === 'online' &&
+        settingId === 'keepHighlightingOnOpenOrClose'
+      ) {
+        AlertifyHandler.showAlertifyWarning(
+          'Switching Mode Not Allowed In Collaboration Session'
+        );
+        return;
       }
-    } else {
-      const settingId = name as ApplicationSettingId;
-      try {
-        this.userSettings.updateApplicationSetting(settingId, value);
-      } catch (e) {
-        AlertifyHandler.showAlertifyError(e.message);
-      }
+      this.userSettings.updateApplicationSetting(settingId, value);
+    } catch (e) {
+      AlertifyHandler.showAlertifyError(e.message);
+    }
+  }
+
+  @action
+  updateColorSetting(name: ApplicationSettingId, value: string) {
+    const settingId = name as ApplicationSettingId;
+    try {
+      this.userSettings.updateApplicationSetting(settingId, value);
+    } catch (e) {
+      AlertifyHandler.showAlertifyError(e.message);
     }
   }
 
@@ -223,21 +148,13 @@ export default class Settings extends Component<Args> {
   }
 
   applyColorsFromUserSettings() {
-    const { landscapeColors, applicationColors } = this.configuration;
+    const { applicationColors } = this.configuration;
 
-    let settingId: keyof LandscapeColorSettings;
+    let settingId: keyof ApplicationColorSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in landscapeColors) {
-      this.configuration.landscapeColors[settingId].set(
-        this.userSettings.landscapeSettings[settingId].value
-      );
-    }
-
-    let settingId2: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId2 in applicationColors) {
-      this.configuration.applicationColors[settingId2].set(
-        this.userSettings.applicationSettings[settingId2].value
+    for (settingId in applicationColors) {
+      this.configuration.applicationColors[settingId].set(
+        this.userSettings.applicationSettings[settingId].value
       );
     }
 

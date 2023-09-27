@@ -214,7 +214,8 @@ export default class VrRendering extends Component<Args> {
 
     this.scene = vrScene();
     // this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.background =
+      this.configuration.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
