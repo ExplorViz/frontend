@@ -600,6 +600,10 @@ export default class ApplicationRenderer extends Service.extend({
     this.highlightingService.updateHighlighting();
   }
 
+  cleanup() {
+    this.openApplicationsMap.clear();
+  }
+
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
     const boxLayoutMap: Map<string, BoxLayout> = new Map();
 
