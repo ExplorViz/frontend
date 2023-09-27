@@ -8,7 +8,7 @@ import {
   ColorScheme,
   darkApplicationColors,
   defaultApplicationColors,
-  visuallyImpairedApplicationColors,
+  blueApplicationColors,
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
@@ -110,8 +110,8 @@ export default class UserSettings extends Service {
       applicationColors = classicApplicationColors;
     } else if (scheme === 'dark') {
       applicationColors = darkApplicationColors;
-    } else if (scheme === 'impaired') {
-      applicationColors = visuallyImpairedApplicationColors;
+    } else if (scheme === 'blue') {
+      applicationColors = blueApplicationColors;
     }
 
     let settingId: keyof ApplicationColorSettings;
