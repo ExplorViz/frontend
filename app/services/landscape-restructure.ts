@@ -349,7 +349,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       if (newCreatedComm) {
         this.createdClassCommunication.removeObject(comm);
       } else {
-
         // Apply the original color back
         const commMesh = this.getCommMesh(commMapping as CommModelColorMapping);
         const commColor = new THREE.Color(
