@@ -462,7 +462,8 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
-    this.applicationRepo.clear();
+    this.applicationRepo.cleanup();
+    this.applicationRenderer.cleanup();
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
