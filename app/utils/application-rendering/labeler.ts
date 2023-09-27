@@ -34,13 +34,17 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
   label.rotation.x = -(Math.PI / 2);
   label.rotation.z = -(Math.PI / 2);
 
+  const xPosOfOpenedBox =
+    -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+
   // Foundation is labeled like an opened component
-  if (boxMesh instanceof FoundationMesh || boxMesh.opened) {
+  if (boxMesh instanceof FoundationMesh) {
+    // Do not animate label on foundation since it is always opened
+    label.position.x = xPosOfOpenedBox;
+  } else if (boxMesh.opened) {
     gsap.to(label.position, {
       duration: 0.25,
-      x:
-        -boxMesh.geometry.parameters.width / 2 +
-        foundationOffset / boxMesh.width,
+      x: xPosOfOpenedBox,
     });
   } else {
     gsap.to(label.position, {
