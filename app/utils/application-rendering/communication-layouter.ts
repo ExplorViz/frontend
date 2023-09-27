@@ -11,9 +11,6 @@ import {
   Package,
 } from '../landscape-schemes/structure-data';
 
-let minRequests = 0;
-let maximumRequests = 0;
-
 export function calculatePipeSize(
   drawableClassCommunications: DrawableClassCommunication[]
 ) {
@@ -36,20 +33,18 @@ export function calculatePipeSize(
 
   const requestsList = gatherRequestsIntoList();
 
-  minRequests = Math.min(...requestsList);
-  maximumRequests = Math.max(...requestsList);
+  const maximumRequests = Math.max(...requestsList);
 
   const pipeSizeMap = new Map<string, number>();
   drawableClassCommunications.forEach((clazzCommunication) => {
-    // normalize request count to [0, 1] interval
-    let range = maximumRequests - minRequests;
     let normalizedRequests = 1;
-    if (range !== 0) {
-      normalizedRequests =
-        (clazzCommunication.totalRequests - minRequests) / range;
-      // normalize request count to [0.2, 1] interval
-      range = 1 - 0.3;
-      normalizedRequests = normalizedRequests * range + 0.5;
+    if (maximumRequests !== 0) {
+      normalizedRequests = clazzCommunication.totalRequests / maximumRequests;
+    }
+
+    // The relatively small requests should be visible as well
+    if (normalizedRequests < 0.2) {
+      normalizedRequests = 0.2;
     }
 
     // Apply line thickness depending on calculated request category
@@ -70,41 +65,6 @@ export default function applyCommunicationLayout(
   const { application } = applicationObject3D.data;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
-  // HELPER FUNCTIONS
-
-  /**
-   * Calculates the size of the pipes regarding the number of requests
-   */
-  function calculatePipeSizeFromQuantiles() {
-    // Constant factors for rendering communication lines (pipes)
-    const LINE_THICKNESS_FACTOR = 0.5;
-
-    // const minRequests = Math.min(...requestsList);
-    // const maximumRequests = Math.max(...requestsList);
-
-    drawableClassCommunications.forEach((clazzCommunication) => {
-      const maybeCommunicationLayout = layoutMap.get(clazzCommunication.id);
-
-      if (maybeCommunicationLayout) {
-        // normalize request count to [0, 1] interval
-        let range = maximumRequests - minRequests;
-
-        let normalizedRequests = 1;
-        if (range !== 0) {
-          normalizedRequests =
-            (clazzCommunication.totalRequests - minRequests) / range;
-          // normalize request count to [0.2, 1] interval
-          range = 1 - 0.3;
-          normalizedRequests = normalizedRequests * range + 0.5;
-        }
-
-        // Apply line thickness depending on calculated request category
-        maybeCommunicationLayout.lineThickness =
-          normalizedRequests * LINE_THICKNESS_FACTOR;
-      }
-    });
-  } // END calculatePipeSizeFromQuantiles
-
   /**
    * Returns the first parent component which is open
    * or - if it does not exist - the deepest closed component
@@ -179,6 +139,9 @@ export default function applyCommunicationLayout(
     if (drawableClassCommunications.length === 0) {
       return;
     }
+
+    const lineThicknessMap = calculatePipeSize(drawableClassCommunications);
+
     for (let i = 0; i < drawableClassCommunications.length; i++) {
       const classCommunication: DrawableClassCommunication =
         drawableClassCommunications[i];
@@ -264,9 +227,10 @@ export default function applyCommunicationLayout(
           commLayout.startY += 2.0;
           commLayout.endY += 2.0;
         }
+
+        commLayout.lineThickness = lineThicknessMap.get(classCommunication.id)!;
       }
     }
-    calculatePipeSizeFromQuantiles();
   }
 
   function layoutInAndOutCommunication(
