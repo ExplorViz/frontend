@@ -44,6 +44,7 @@ You will need the following things properly installed on your computer.
 - [Git](https://git-scm.com/)
 - [Node.js 16](https://nodejs.org/) (with npm 8.13.2 or higher)
 - [Ember CLI](https://cli.emberjs.com/release/)
+- [Docker](https://www.docker.com) for (mocked) backend
 
 ### Installation
 
