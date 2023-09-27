@@ -93,7 +93,7 @@ export class PackageChangeLogEntry extends BaseChangeLogEntry {
           return `-Copy the Package "${this.pckg?.name}" from the Application "${this.app?.name}" inside the Application "${this.destinationApp.name}"\n`;
         }
         return `Unhandled CutInsert case`;
-      case RestructureAction.CutInsert:
+      case RestructureAction.Move:
         if (this.destinationPckg && this.destinationApp) {
           return `-Move the Package "${this.pckg?.name}" from the Application "${this.app?.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"\n`;
         } else if (!this.destinationPckg && this.destinationApp) {
@@ -181,7 +181,7 @@ export class SubPackageChangeLogEntry extends BaseChangeLogEntry {
           return `-Copy the Subpackage "${this.pckg?.name}" from the Application "${this.app?.name}" inside the Application "${this.destinationApp.name}"\n`;
         }
         return `Unhandled CutInsert case`;
-      case RestructureAction.CutInsert:
+      case RestructureAction.Move:
         if (this.destinationPckg && this.destinationApp) {
           return `-Move the Subpackage "${this.pckg?.name}" from the Application "${this.app?.name}" to the Package "${this.destinationPckg.name}" inside the Application "${this.destinationApp.name}"\n`;
         } else if (!this.destinationPckg && this.destinationApp) {
@@ -272,7 +272,7 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
         return `-Delete the Class with the name "${this.originalClazzName}" under the package "${this.pckg?.name}" inside the Application "${this.app?.name}"\n`;
       case RestructureAction.CopyPaste:
         return `-Copy the Class "${this.clazz?.name}" under the Package "${this.pckg?.name}" from the Application "${this.app?.name}" to the Package "${this.destinationPckg?.name}" inside the Application "${this.destinationApp?.name}"\n`;
-      case RestructureAction.CutInsert:
+      case RestructureAction.Move:
         return `-Move the Class "${this.clazz?.name}" under the Package "${this.pckg?.name}" from the Application "${this.app?.name}" to the Package "${this.destinationPckg?.name}" inside the Application "${this.destinationApp?.name}"\n`;
       default:
         return `CLASS LOG ERROR\n`;

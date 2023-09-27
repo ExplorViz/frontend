@@ -133,7 +133,7 @@ export default class Changelog extends Service.extend(Evented, {
     } else {
       if (
         foundEntry.action === RestructureAction.Create ||
-        foundEntry.action === RestructureAction.CutInsert
+        foundEntry.action === RestructureAction.Move
       ) {
         foundEntry.pckg.name = newName;
       } else {
@@ -161,7 +161,7 @@ export default class Changelog extends Service.extend(Evented, {
     } else {
       if (
         foundEntry.action === RestructureAction.Create ||
-        foundEntry.action === RestructureAction.CutInsert
+        foundEntry.action === RestructureAction.Move
       ) {
         foundEntry.pckg.name = newName;
       } else {
@@ -178,7 +178,7 @@ export default class Changelog extends Service.extend(Evented, {
       clazz
     ) as ClassChangeLogEntry;
 
-    if (!foundEntry || foundEntry.action === RestructureAction.CutInsert) {
+    if (!foundEntry || foundEntry.action === RestructureAction.Move) {
       const clazzLogEntry = new ClassChangeLogEntry(
         RestructureAction.Rename,
         app,
@@ -267,9 +267,9 @@ export default class Changelog extends Service.extend(Evented, {
       pckg
     ) as PackageChangeLogEntry;
 
+    // We don't want to undo the undo, thats why we dont store the data then
     if (!undoInsert) this.storeDeletedEntries(pckg.id);
 
-    // We don't want to undo the undo, thats why we dont store the data then
     this.removeLogEntriesUnderPackage(app, pckg);
 
     let originalPckgName = '';
@@ -486,7 +486,7 @@ export default class Changelog extends Service.extend(Evented, {
       }
     } else {
       const pckgLogEntry = new PackageChangeLogEntry(
-        RestructureAction.CutInsert,
+        RestructureAction.Move,
         app,
         pckg
       );
@@ -517,7 +517,7 @@ export default class Changelog extends Service.extend(Evented, {
       }
     } else {
       const pckgLogEntry = new SubPackageChangeLogEntry(
-        RestructureAction.CutInsert,
+        RestructureAction.Move,
         app,
         pckg
       );
@@ -548,7 +548,7 @@ export default class Changelog extends Service.extend(Evented, {
       }
     } else {
       const clazzLogEntry = new ClassChangeLogEntry(
-        RestructureAction.CutInsert,
+        RestructureAction.Move,
         app,
         clazz
       );

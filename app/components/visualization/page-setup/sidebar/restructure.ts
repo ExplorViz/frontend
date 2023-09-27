@@ -98,7 +98,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         return 'text-secondary';
       case 'DELETE':
         return 'text-danger';
-      case 'CUTINSERT':
+      case 'MOVE':
         return 'text-warning';
       default:
         return '';

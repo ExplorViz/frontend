@@ -336,18 +336,21 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     }
     const newCreatedComm = comm.id.includes(' => ');
     if (undo) {
+      // Remove the black color Mapping
+      const commMapping = this.commModelColorMappings.find(
+        (commMap) =>
+          commMap.action === RestructureAction.Communication &&
+          commMap.comm === comm
+      );
+      this.commModelColorMappings.removeObject(
+        commMapping as CommModelColorMapping
+      );
+
       if (newCreatedComm) {
         this.createdClassCommunication.removeObject(comm);
-        this.commModelColorMappings.pop();
       } else {
-        const commMapping = this.commModelColorMappings.find(
-          (commMap) =>
-            commMap.action === RestructureAction.Communication &&
-            commMap.comm === comm
-        );
-        this.commModelColorMappings.removeObject(
-          commMapping as CommModelColorMapping
-        );
+
+        // Apply the original color back
         const commMesh = this.getCommMesh(commMapping as CommModelColorMapping);
         const commColor = new THREE.Color(
           this.userSettings.applicationSettings.communicationColor.value
@@ -801,7 +804,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
     // Cut or Undo Operation? In case of Cut we also need to restore the communications!
     if (undoMoveOperation) {
-      const keyToRemove = 'CUTINSERT|' + pckg.id;
+      const keyToRemove = 'MOVE|' + pckg.id;
 
       this.updatedClassCommunications.delete(keyToRemove);
 
@@ -817,7 +820,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         });
       }
       this.removeMeshModelTextureMapping(
-        RestructureAction.CutInsert,
+        RestructureAction.Move,
         EntityType.Package,
         app as Application,
         pckg
@@ -861,7 +864,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       undoMapping as MeshModelTextureMapping
     );
     if (undoMoveOperation) {
-      const keyToRemove = 'CUTINSERT|' + clazz.id;
+      const keyToRemove = 'MOVE|' + clazz.id;
 
       this.updatedClassCommunications.delete(keyToRemove);
 
@@ -886,7 +889,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         });
       }
       this.removeMeshModelTextureMapping(
-        RestructureAction.CutInsert,
+        RestructureAction.Move,
         EntityType.Clazz,
         app,
         clazz.parent,
@@ -918,7 +921,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       ) as Application;
     }
     this.removeMeshModelTextureMapping(
-      RestructureAction.CutInsert,
+      RestructureAction.Move,
       EntityType.Package,
       app,
       element
@@ -1189,7 +1192,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           } else if (elem.meshType === EntityType.Package) {
             const appliedTexture = this.findAppliedTexture(
               elem.pckg as Package,
-              RestructureAction.CutInsert
+              RestructureAction.Move
             );
 
             if (!appliedTexture) {
@@ -1201,7 +1204,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           } else if (elem.meshType === EntityType.Clazz) {
             const appliedTexture = this.findAppliedTexture(
               elem.clazz as Class,
-              RestructureAction.CutInsert
+              RestructureAction.Move
             );
             if (!appliedTexture) {
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
@@ -1260,7 +1263,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
             clazzMesh?.changeTexture(elem.texturePath, 2);
           }
           // Apply Slash texture for inserted Meshes
-        } else if (elem.action === RestructureAction.CutInsert) {
+        } else if (elem.action === RestructureAction.Move) {
           if (elem.meshType === EntityType.Package) {
             const appliedTexture = this.findAppliedTexture(
               elem.pckg as Package
@@ -2120,7 +2123,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       };
 
       const meshTextureMapping: Partial<MeshModelTextureMapping> = {
-        action: RestructureAction.CutInsert,
+        action: RestructureAction.Move,
         texturePath: 'images/slash.png',
       };
 
@@ -2210,7 +2213,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
 
       // const key = this.changeLog.changeLogEntries.lastObject?.id;
-      const key = 'CUTINSERT|' + this.clippedMesh?.id;
+      const key = 'MOVE|' + this.clippedMesh?.id;
 
       this.updatedClassCommunications.set(key, wrapper.updatedComms);
 
@@ -2369,7 +2372,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
     }
 
-    if (entry.action === RestructureAction.CutInsert) {
+    if (entry.action === RestructureAction.Move) {
       if (
         entry instanceof PackageChangeLogEntry ||
         entry instanceof SubPackageChangeLogEntry

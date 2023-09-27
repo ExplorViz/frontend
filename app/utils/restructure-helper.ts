@@ -34,7 +34,7 @@ export enum RestructureAction {
   Rename = 'RENAME',
   Delete = 'DELETE',
   CopyPaste = 'COPYPASTE',
-  CutInsert = 'CUTINSERT',
+  Move = 'MOVE',
   Communication = 'COMMUNICATION',
 }
 
