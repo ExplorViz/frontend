@@ -7,7 +7,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 

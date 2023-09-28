@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface Args {
   readonly dynamicData: DynamicLandscapeData;

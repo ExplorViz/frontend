@@ -4,7 +4,7 @@ import {
   DynamicLandscapeData,
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import {
   Application,

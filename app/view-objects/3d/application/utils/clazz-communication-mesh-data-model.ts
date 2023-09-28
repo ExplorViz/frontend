@@ -1,10 +1,10 @@
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 // TODO might need to refactor as simple type
 
 export default class ClazzCommuMeshDataModel {
-  drawableClassCommus: DrawableClassCommunication[];
+  aggregatedClassCommunication: AggregatedClassCommunication;
 
   bidirectional: boolean;
 
@@ -16,12 +16,12 @@ export default class ClazzCommuMeshDataModel {
 
   constructor(
     application: Application,
-    drawableClassCommus: DrawableClassCommunication[],
+    aggregatedClassCommunication: AggregatedClassCommunication,
     bidirectional: boolean,
     id: string
   ) {
     this.application = application;
-    this.drawableClassCommus = drawableClassCommus;
+    this.aggregatedClassCommunication = aggregatedClassCommunication;
     this.bidirectional = bidirectional;
 
     this.id = id;

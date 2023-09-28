@@ -7,7 +7,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Package,
@@ -24,7 +24,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 export type HightlightComponentArgs = {
   entityType: string;
@@ -112,7 +112,7 @@ export default class HighlightingService extends Service.extend({
       .getOpenApplications()
       .forEach((applicationObject3D) => {
         this.removeHighlightingLocally(applicationObject3D);
-        applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
+        applicationObject3D.aggregatedClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
       });
 
     if (sendMessage) {
@@ -132,10 +132,10 @@ export default class HighlightingService extends Service.extend({
   // }
 
   updateHighlighting(value: number = this.opacity) {
-    const { allLinks, drawableComm, applications } = this.getParams();
+    const { allLinks, aggregatedComm, applications } = this.getParams();
     Highlighting.updateHighlighting(
       applications,
-      drawableComm,
+      aggregatedComm,
       allLinks,
       value
     );
@@ -143,20 +143,20 @@ export default class HighlightingService extends Service.extend({
 
   getParams(): {
     allLinks: ClazzCommunicationMesh[];
-    drawableComm: DrawableClassCommunication[];
+    aggregatedComm: AggregatedClassCommunication[];
     applications: ApplicationObject3D[];
   } {
     const allLinks = this.linkRenderer.getAllLinks();
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D: ApplicationObject3D) => {
-      const drawableComms =
-        this.applicationRenderer.getDrawableClassCommunications(
+      const aggregatedComms =
+        this.applicationRenderer.getAggregatedClassCommunications(
           applicationObject3D
         );
-      drawableComms.forEach(
-        (drawableClassCommunication: DrawableClassCommunication) => {
+      aggregatedComms.forEach(
+        (aggregatedClassCommunication: AggregatedClassCommunication) => {
           const link = this.applicationRenderer.getMeshById(
-            drawableClassCommunication.id
+            aggregatedClassCommunication.id
           );
           if (link) {
             // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
@@ -166,22 +166,22 @@ export default class HighlightingService extends Service.extend({
       );
     });
 
-    let drawableComm: DrawableClassCommunication[] = [];
+    let aggregatedComm: AggregatedClassCommunication[] = [];
     allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.drawableClassCommus;
-      drawableComm = [...drawableComm, ...linkCommunications];
+      const linkCommunications = link.dataModel.aggregatedClassCommunication;
+      aggregatedComm = [...aggregatedComm, linkCommunications];
     });
 
     return {
       allLinks: allLinks,
-      drawableComm: drawableComm,
+      aggregatedComm: aggregatedComm,
       applications: applications,
     };
   }
 
   @action
   highlightModel(
-    entity: Package | Class | DrawableClassCommunication,
+    entity: Package | Class | AggregatedClassCommunication,
     applicationObject3D: ApplicationObject3D
   ) {
     Highlighting.highlightModel(entity, applicationObject3D);
@@ -222,10 +222,10 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
 
-    const drawableClassComm = mesh.dataModel.drawableClassCommus.firstObject;
-    if (drawableClassComm) {
-      const sourceApp = drawableClassComm.sourceApp;
-      const targetApp = drawableClassComm.targetApp;
+    const aggregatedClassComm = mesh.dataModel.aggregatedClassCommunication;
+    if (aggregatedClassComm) {
+      const sourceApp = aggregatedClassComm.sourceApp;
+      const targetApp = aggregatedClassComm.targetApp;
 
       if (sourceApp && targetApp) {
         const sourceApplicationObject =
@@ -235,7 +235,7 @@ export default class HighlightingService extends Service.extend({
 
         if (sourceApplicationObject && targetApplicationObject) {
           Highlighting.highlightExternCommunicationLine(
-            drawableClassComm,
+            aggregatedClassComm,
             sourceApplicationObject,
             targetApplicationObject
           );
@@ -251,8 +251,8 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     structureData: StructureLandscapeData
   ) {
-    const drawableClassCommunications =
-      this.applicationRenderer.getDrawableClassCommunications(
+    const aggregatedClassCommunications =
+      this.applicationRenderer.getAggregatedClassCommunications(
         applicationObject3D
       );
 
@@ -261,7 +261,7 @@ export default class HighlightingService extends Service.extend({
       trace,
       traceStep,
       applicationObject3D,
-      drawableClassCommunications,
+      aggregatedClassCommunications,
       structureData,
       this.opacity
     );

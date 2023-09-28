@@ -24,7 +24,7 @@ import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/ent
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';

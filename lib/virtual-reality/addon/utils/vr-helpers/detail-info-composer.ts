@@ -150,7 +150,7 @@ function composeClazzContent(
   return content;
 }
 
-function composeDrawableClazzCommunicationContent(
+function composeAggregatedClassCommunicationContent(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
@@ -161,13 +161,10 @@ function composeDrawableClazzCommunicationContent(
   const content: DetailedInfo = { title, entries: [] };
 
   // # of aggregated requests
-  let aggregatedReqCount = 0;
+  const aggregatedReqCount =
+    communication.aggregatedClassCommunication.totalRequests;
 
-  communication.drawableClassCommus.forEach((drawableClassComm) => {
-    aggregatedReqCount += drawableClassComm.totalRequests;
-  });
-
-  if (communication.drawableClassCommus.length > 1) {
+  if (communication.aggregatedClassCommunication.methodCalls.length > 1) {
     content.entries.push({
       key: 'Aggregated request count:',
       value: `${aggregatedReqCount} ( 100% )`,
@@ -176,7 +173,7 @@ function composeDrawableClazzCommunicationContent(
     // # of unique method calls
     content.entries.push({
       key: 'Number of unique methods:',
-      value: `${communication.drawableClassCommus.length}`,
+      value: `${communication.aggregatedClassCommunication.methodCalls.length}`,
     });
 
     content.entries.push({
@@ -186,49 +183,53 @@ function composeDrawableClazzCommunicationContent(
   }
 
   // add information for each unique method call
-  communication.drawableClassCommus.forEach((drawableCommu, index) => {
-    const commuHasExternalApp =
-      applicationId !== drawableCommu.sourceApp?.id ||
-      applicationId !== drawableCommu.targetApp?.id;
+  communication.aggregatedClassCommunication.methodCalls.forEach(
+    (aggregatedMethodCall, index) => {
+      const commuHasExternalApp =
+        applicationId !== aggregatedMethodCall.sourceApp?.id ||
+        applicationId !== aggregatedMethodCall.targetApp?.id;
 
-    // Call hierarchy
-    // content.entries.push({
-    //   key: 'Src / Tgt Class:',
-    //   value: `${drawableCommu.sourceClass.name} -> ${
-    //     drawableCommu.targetClass.name
-    //    }`,
-    // });
+      // Call hierarchy
+      // content.entries.push({
+      //   key: 'Src / Tgt Class:',
+      //   value: `${aggregatedMethodCall.sourceClass.name} -> ${
+      //     aggregatedMethodCall.targetClass.name
+      //    }`,
+      // });
 
-    if (commuHasExternalApp) {
-      // App hierarchy
+      if (commuHasExternalApp) {
+        // App hierarchy
+        content.entries.push({
+          key: 'Src / Tgt App:',
+          value: `${aggregatedMethodCall.sourceApp?.name} -> ${aggregatedMethodCall.targetApp?.name}`,
+        });
+      }
+
+      // Name of called operation
       content.entries.push({
-        key: 'Src / Tgt App:',
-        value: `${drawableCommu.sourceApp?.name} -> ${drawableCommu.targetApp?.name}`,
+        key: 'Called Op.:',
+        value: `${aggregatedMethodCall.operationName}`,
       });
-    }
 
-    // Name of called operation
-    content.entries.push({
-      key: 'Called Op.:',
-      value: `${drawableCommu.operationName}`,
-    });
-
-    // Request count
-    content.entries.push({
-      key: 'Request count:',
-      value: `${drawableCommu.totalRequests} ( ${Math.round(
-        (drawableCommu.totalRequests / aggregatedReqCount) * 100
-      )}% )`,
-    });
-
-    // Spacer
-    if (index < communication.drawableClassCommus.length) {
+      // Request count
       content.entries.push({
-        key: '---',
-        value: '',
+        key: 'Request count:',
+        value: `${aggregatedMethodCall.totalRequests} ( ${Math.round(
+          (aggregatedMethodCall.totalRequests / aggregatedReqCount) * 100
+        )}% )`,
       });
+
+      // Spacer
+      if (
+        index < communication.aggregatedClassCommunication.methodCalls.length
+      ) {
+        content.entries.push({
+          key: '---',
+          value: '',
+        });
+      }
     }
-  });
+  );
 
   return content;
 }
@@ -247,7 +248,7 @@ export default function composeContent(
   } else if (object instanceof ClazzMesh) {
     content = composeClazzContent(object, applicationRepo);
   } else if (object instanceof ClazzCommunicationMesh) {
-    content = composeDrawableClazzCommunicationContent(object);
+    content = composeAggregatedClassCommunicationContent(object);
   } else if (object instanceof FoundationMesh) {
     content = composeFoundationContent(object);
   }
@@ -289,40 +290,40 @@ export function getCommunicationSourceClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceClass?.name;
+  return communication.aggregatedClassCommunication.sourceClass.name;
 }
 
 export function getCommunicationTargetClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetClass?.name;
+  return communication.aggregatedClassCommunication.targetClass.name;
 }
 
 export function getCommunicationSourceAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceApp?.id;
+  return communication.aggregatedClassCommunication.sourceApp.id;
 }
 
 export function getCommunicationTargetAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetApp?.id;
+  return communication.aggregatedClassCommunication.targetApp.id;
 }
 
 export function getCommunicationSourceClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceClass?.id;
+  return communication.aggregatedClassCommunication.sourceClass.id;
 }
 
 export function getCommunicationTargetClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetClass?.id;
+  return communication.aggregatedClassCommunication.targetClass.id;
 }

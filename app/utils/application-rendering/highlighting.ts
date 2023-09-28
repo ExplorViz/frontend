@@ -12,18 +12,19 @@ import {
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
 import {
-  DrawableClassCommunication,
-  isDrawableClassCommunication,
-} from './class-communication-computer';
-import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from '../application-helpers';
 import { getClassesInPackage } from '../package-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
-import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
+import {
+  isTrace,
+  Span,
+  Trace,
+} from '../landscape-schemes/dynamic/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
 /**
  * Restores default color and transparency for all application meshes
  *
@@ -130,49 +131,49 @@ export function turnComponentAndAncestorsOpaque(
 /**
  * (Un)Highlights a given extern (!) communication line
  *
- * @param drawableClassCommunication Communication which shall be (un)highlighted
+ * @param aggregatedClassCommunication Communication which shall be (un)highlighted
  * @param sourceApplicationObject3D The application mesh which contains the source clazz of mesh
  *  @param targetApplicationObject3D The application mesh which contains the target clazz of mesh
  */
 
 export function highlightExternCommunicationLine(
-  drawableClassCommunication: DrawableClassCommunication,
+  aggregatedClassCommunication: AggregatedClassCommunication,
   sourceApplicationObject3D: ApplicationObject3D,
   targetApplicationObject3D: ApplicationObject3D
 ) {
   let notFoundSource = true;
-  sourceApplicationObject3D.drawableClassCommSet.forEach(
-    (drawableClassComm) => {
-      if (drawableClassComm.id === drawableClassCommunication.id) {
+  sourceApplicationObject3D.aggregatedClassCommSet.forEach(
+    (aggregatedClassComm) => {
+      if (aggregatedClassComm.id === aggregatedClassCommunication.id) {
         notFoundSource = false;
-        sourceApplicationObject3D.drawableClassCommSet.delete(
-          drawableClassComm
+        sourceApplicationObject3D.aggregatedClassCommSet.delete(
+          aggregatedClassComm
         );
       }
     }
   );
 
   if (notFoundSource) {
-    sourceApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
+    sourceApplicationObject3D.aggregatedClassCommSet.add(
+      aggregatedClassCommunication
     );
   }
 
   let notFoundTarget = true;
-  targetApplicationObject3D.drawableClassCommSet.forEach(
-    (drawableClassComm) => {
-      if (drawableClassComm.id === drawableClassCommunication.id) {
+  targetApplicationObject3D.aggregatedClassCommSet.forEach(
+    (aggregatedClassComm) => {
+      if (aggregatedClassComm.id === aggregatedClassCommunication.id) {
         notFoundTarget = false;
-        targetApplicationObject3D.drawableClassCommSet.delete(
-          drawableClassComm
+        targetApplicationObject3D.aggregatedClassCommSet.delete(
+          aggregatedClassComm
         );
       }
     }
   );
 
   if (notFoundTarget) {
-    targetApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
+    targetApplicationObject3D.aggregatedClassCommSet.add(
+      aggregatedClassCommunication
     );
   }
 }
@@ -198,7 +199,7 @@ export function highlight(
 
   const datamodel =
     mesh.dataModel instanceof ClazzCommuMeshDataModel
-      ? mesh.dataModel.drawableClassCommus.firstObject
+      ? mesh.dataModel.aggregatedClassCommunication
       : mesh.dataModel;
 
   if (!datamodel) {
@@ -234,7 +235,7 @@ export function highlight(
  * @param applicationObject3D Application mesh which contains the entity
  */
 export function highlightModel(
-  entity: Package | Class | DrawableClassCommunication,
+  entity: Package | Class | AggregatedClassCommunication,
   applicationObject3D: ApplicationObject3D
 ) {
   highlight(entity.id, applicationObject3D);
@@ -251,7 +252,7 @@ export function highlightTrace(
   trace: Trace,
   traceStep: string,
   applicationObject3D: ApplicationObject3D,
-  communication: DrawableClassCommunication[],
+  communication: AggregatedClassCommunication[],
   landscapeStructureData: StructureLandscapeData,
   opacity: number
 ) {
@@ -259,7 +260,7 @@ export function highlightTrace(
 
   applicationObject3D.highlightedEntity = trace;
 
-  const drawableComms = communication;
+  const aggregatedComms = communication;
 
   // All clazzes in application
   const allClazzesAsArray = getAllClassesInApplication(
@@ -338,7 +339,7 @@ export function highlightTrace(
     }
   });
 
-  drawableComms.forEach((comm) => {
+  aggregatedComms.forEach((comm) => {
     const { sourceClass, targetClass, id } = comm;
 
     const commMesh = applicationObject3D.getCommMeshByModelId(id);
@@ -451,7 +452,7 @@ export function turnAllCommunicationLinksTransparentAndUnhighlighted(
  */
 export function updateHighlighting(
   applicationObject3DList: ApplicationObject3D[],
-  communication: DrawableClassCommunication[],
+  communication: AggregatedClassCommunication[],
   allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
@@ -496,17 +497,16 @@ export function updateHighlighting(
             containedClazzes.add(model);
             // Add source and target clazz of communication
           } else if (
-            isDrawableClassCommunication(
-              (model as ClazzCommuMeshDataModel).drawableClassCommus
-                ?.firstObject
-            )
+            (model as ClazzCommuMeshDataModel)
+              .aggregatedClassCommunication instanceof
+            AggregatedClassCommunication
           ) {
             baseMesh.highlight();
             baseMesh.turnOpaque();
             const sourceClass = (model as ClazzCommuMeshDataModel)
-              .drawableClassCommus.firstObject?.sourceClass;
+              .aggregatedClassCommunication.sourceClass;
             const targetClass = (model as ClazzCommuMeshDataModel)
-              .drawableClassCommus.firstObject?.targetClass;
+              .aggregatedClassCommunication.targetClass;
             if (sourceClass && targetClass) {
               containedClazzes.add(sourceClass);
               containedClazzes.add(targetClass);
@@ -558,14 +558,14 @@ export function updateHighlighting(
       });
     }
 
-    application.drawableClassCommSet.forEach((drawableClassComm) => {
+    application.aggregatedClassCommSet.forEach((aggregatedClassComm) => {
       allLinks.forEach((link) => {
         //TODO: replace list with map so we don't have to iterate each time
-        if (link.getModelId() === drawableClassComm.id) {
+        if (link.getModelId() === aggregatedClassComm.id) {
           link.turnOpaque();
           link.highlight();
-          allInvolvedClazzesFinal.add(drawableClassComm.sourceClass);
-          allInvolvedClazzesFinal.add(drawableClassComm.targetClass);
+          allInvolvedClazzesFinal.add(aggregatedClassComm.sourceClass);
+          allInvolvedClazzesFinal.add(aggregatedClassComm.targetClass);
         }
       });
     });

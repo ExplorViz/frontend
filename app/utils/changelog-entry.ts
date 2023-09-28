@@ -1,5 +1,4 @@
 import { RestructureAction } from './restructure-helper';
-import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import {
   Application,
   Class,
@@ -13,6 +12,7 @@ import {
 } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import { tracked } from '@glimmer/tracking';
+import AggregatedClassCommunication from './landscape-schemes/dynamic/aggregated-class-communication';
 
 export abstract class BaseChangeLogEntry {
   id: string;
@@ -306,12 +306,12 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
-  communication: DrawableClassCommunication;
+  communication: AggregatedClassCommunication;
   originalOperationName: string;
 
   constructor(
     action: RestructureAction,
-    communication: DrawableClassCommunication
+    communication: AggregatedClassCommunication
   ) {
     const id = sha256(action + communication.id).toString();
     super(id, action, undefined);

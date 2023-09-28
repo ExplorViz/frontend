@@ -14,12 +14,12 @@ import {
 } from './landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
-import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
 } from './package-helpers';
+import AggregatedClassCommunication from './landscape-schemes/dynamic/aggregated-class-communication';
 
 export enum EntityType {
   App = 'APP',
@@ -102,8 +102,8 @@ export function duplicateApplication(
   app: Application,
   wrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    copiedComms: AggregatedClassCommunication[];
   }
 ) {
   const originalNode = app.parent;
@@ -335,8 +335,8 @@ export function pastePackage(
   pasteToDestination: Application | Package,
   wrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    copiedComms: AggregatedClassCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -377,8 +377,8 @@ export function pasteClass(
   pasteToDestination: Package,
   commsWrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    copiedComms: AggregatedClassCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -414,7 +414,7 @@ export function pasteClass(
  * @param landscapeStructure The data structure representing the current state of the landscape.
  * @param clippedPackage The package that is intended to be moved.
  * @param destination The destination where the package should be inserted. This can be either an application or another package.
- * @param wrapper Contains data on drawable class communications and an optional mesh object that might need deletion
+ * @param wrapper Contains data on aggregated class communications and an optional mesh object that might need deletion
  *                after the package move operation.
  */
 export function movePackage(
@@ -422,9 +422,9 @@ export function movePackage(
   clippedPackage: Package,
   destination: Application | Package,
   wrapper: {
-    comms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms: DrawableClassCommunication[];
+    updatedComms: AggregatedClassCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -476,9 +476,9 @@ export function moveClass(
   clippedClass: Class,
   clipToDestination: Package,
   commsWrapper: {
-    comms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
+    updatedComms?: AggregatedClassCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -613,11 +613,13 @@ function removePrependFromID(changedID: string, prepend: string) {
 function updateAffectedCommunications(
   classesInPackage: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    updatedComms?: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    updatedComms?: AggregatedClassCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
+  if (!destinationApplication) return;
+
   classesInPackage.forEach((clazz) =>
     commsWrapper.comms.forEach((comms) => {
       if (comms.sourceClass.id === clazz.id) {
@@ -637,8 +639,8 @@ function copyCommunications(
   classesInPackage: Class[],
   commsWrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    copiedComms: AggregatedClassCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
@@ -673,17 +675,22 @@ function copyCommunications(
 }
 
 function copyCommunication(
-  commToCopy: DrawableClassCommunication,
+  commToCopy: AggregatedClassCommunication,
   idCounter: number
 ) {
-  const comm: DrawableClassCommunication = {
+  const comm: AggregatedClassCommunication = {
     id: 'copied' + idCounter + '|' + commToCopy.id,
+    isRecursive: commToCopy.isRecursive,
+    isBidirectional: commToCopy.isBidirectional,
+    methodCalls: commToCopy.methodCalls,
     totalRequests: commToCopy.totalRequests,
+    normalizedRequestCount: commToCopy.normalizedRequestCount,
     sourceClass: commToCopy.sourceClass,
     targetClass: commToCopy.targetClass,
     operationName: 'copied' + idCounter + '|' + commToCopy.operationName,
     sourceApp: commToCopy.sourceApp,
     targetApp: commToCopy.targetApp,
+    addMethodCalls: () => {},
   };
 
   return comm;
@@ -708,8 +715,8 @@ function insertPackageToPackage(
 export function removeAffectedCommunications(
   classesInApplication: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    deletedComms?: DrawableClassCommunication[];
+    comms: AggregatedClassCommunication[];
+    deletedComms?: AggregatedClassCommunication[];
   }
 ) {
   classesInApplication.forEach((clazz) => {

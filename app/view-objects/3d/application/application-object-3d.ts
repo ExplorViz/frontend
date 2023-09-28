@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import { tracked } from '@glimmer/tracking';
 import { earthTexture } from 'explorviz-frontend/controllers/visualization';
@@ -10,9 +10,9 @@ import ClazzCommunicationMesh from './clazz-communication-mesh';
 import BaseMesh from '../base-mesh';
 import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -50,7 +50,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
 
-  drawableClassCommSet: Set<DrawableClassCommunication> = new Set();
+  aggregatedClassCommSet: Set<AggregatedClassCommunication> = new Set();
 
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();

@@ -1,8 +1,8 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -19,7 +19,7 @@ export default class ApplicationRepository extends Service.extend({
   /**
    * Storing all communications in the landscape
    */
-  allClassCommunications: DrawableClassCommunication[] = [];
+  allClassCommunications: AggregatedClassCommunication[] = [];
 
   getById(applicationId: string) {
     return this.applications.get(applicationId);

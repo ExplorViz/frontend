@@ -10,9 +10,9 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 import {
   Application,
   Class,
@@ -536,7 +536,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       (comm) => comm.id === commId
     );
     this.landscapeRestructure.deleteCommunication(
-      comm as DrawableClassCommunication,
+      comm as AggregatedClassCommunication,
       undo,
       true
     );
@@ -550,7 +550,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
 
     this.landscapeRestructure.renameOperation(
-      comm as DrawableClassCommunication,
+      comm as AggregatedClassCommunication,
       newName,
       true,
       undo

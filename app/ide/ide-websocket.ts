@@ -236,17 +236,17 @@ export default class IdeWebsocket {
         application.getModelId()
       );
 
-      const drawableClassCommunications =
-        applicationData?.drawableClassCommunications;
+      const aggregatedClassCommunications =
+        applicationData?.aggregatedClassCommunications;
 
-      // console.log(drawableClassCommunications)
+      // console.log(aggregatedClassCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if (
-        drawableClassCommunications &&
-        drawableClassCommunications.length != 0
+        aggregatedClassCommunications &&
+        aggregatedClassCommunications.length != 0
       ) {
-        drawableClassCommunications.forEach((element) => {
+        aggregatedClassCommunications.forEach((element) => {
           const meshIDs = element.id.split('_');
           const tempCL: CommunicationLink = {
             meshID: element.id,

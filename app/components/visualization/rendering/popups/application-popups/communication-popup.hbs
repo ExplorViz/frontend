@@ -7,7 +7,9 @@
   <table class='w-100'>
     <tbody>
       {{! Aggregated Information }}
-      {{#if (gt @communication.drawableClassCommus.length 1)}}
+      {{#if
+        (gt @communication.aggregatedClassCommunication.methodCalls.length 1)
+      }}
         {{! Aggregated request count }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
@@ -15,7 +17,7 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{this.calculateAggregatedRequestCount}}
+            {{@communication.aggregatedClassCommunication.totalRequests}}
             ( 100% )
           </td>
         </tr>
@@ -23,12 +25,15 @@
         <tr>
           <td class='text-nowrap align-top'>#</td>
           <td class='text-right text-break pl-1'>
-            {{@communication.drawableClassCommus.length}}
+            {{@communication.aggregatedClassCommunication.methodCalls.length}}
           </td>
         </tr>
         <hr />
       {{/if}}
-      {{#each @communication.drawableClassCommus as |drawableClassCommu index|}}
+      {{#each
+        @communication.aggregatedClassCommunication.methodCalls
+        as |aggregatedClassCommu index|
+      }}
         {{! Relationship }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
@@ -36,7 +41,7 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{#if (eq drawableClassCommu.sourceApp.id this.application.id)}}
+            {{#if (eq aggregatedClassCommu.sourceApp.id this.application.id)}}
               <button
                 type='button'
                 class='buttonToLink'
@@ -44,38 +49,40 @@
                   'click'
                   (fn
                     this.highlightEntity
-                    drawableClassCommu.sourceClass
-                    drawableClassCommu.sourceApp.id
+                    aggregatedClassCommu.sourceClass
+                    aggregatedClassCommu.sourceApp.id
                   )
                 }}
               >
-                {{drawableClassCommu.sourceClass.name}}
+                {{aggregatedClassCommu.sourceClass.name}}
                 <BsTooltip @placement='top' @triggerEvents='hover'>
                   Application:
-                  {{drawableClassCommu.sourceApp.name}}
+                  {{aggregatedClassCommu.sourceApp.name}}
                 </BsTooltip>
               </button>
             {{else}}
-              {{drawableClassCommu.sourceClass.name}}
+              {{aggregatedClassCommu.sourceClass.name}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
-                {{drawableClassCommu.sourceApp.name}}
+                {{aggregatedClassCommu.sourceApp.name}}
               </BsTooltip>
             {{/if}}
-            {{#unless (eq drawableClassCommu.sourceApp.id this.application.id)}}
+            {{#unless
+              (eq aggregatedClassCommu.sourceApp.id this.application.id)
+            }}
               (<button
                 type='button'
                 class='buttonToLink'
                 {{on
                   'click'
-                  (fn @showApplication drawableClassCommu.sourceApp.id)
+                  (fn @showApplication aggregatedClassCommu.sourceApp.id)
                 }}
               >
-                {{drawableClassCommu.sourceApp.name}}
+                {{aggregatedClassCommu.sourceApp.name}}
               </button>)
             {{/unless}}
             {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            {{#if (eq drawableClassCommu.targetApp.id this.application.id)}}
+            {{#if (eq aggregatedClassCommu.targetApp.id this.application.id)}}
               <button
                 type='button'
                 class='buttonToLink'
@@ -83,15 +90,15 @@
                   'click'
                   (fn
                     this.highlightEntity
-                    drawableClassCommu.targetClass
-                    drawableClassCommu.targetApp.id
+                    aggregatedClassCommu.targetClass
+                    aggregatedClassCommu.targetApp.id
                   )
                 }}
               >
-                {{drawableClassCommu.targetClass.name}}
+                {{aggregatedClassCommu.targetClass.name}}
                 <BsTooltip @placement='top' @triggerEvents='hover'>
                   Application:
-                  {{drawableClassCommu.targetApp.name}}
+                  {{aggregatedClassCommu.targetApp.name}}
                 </BsTooltip>
               </button>
             {{else}}
@@ -102,15 +109,15 @@
                   'click'
                   (fn
                     this.highlightEntity
-                    drawableClassCommu.targetClass
-                    drawableClassCommu.targetApp.id
+                    aggregatedClassCommu.targetClass
+                    aggregatedClassCommu.targetApp.id
                   )
                 }}
               >
-                {{drawableClassCommu.targetClass.name}}
+                {{aggregatedClassCommu.targetClass.name}}
                 <BsTooltip @placement='top' @triggerEvents='hover'>
                   Application:
-                  {{drawableClassCommu.targetApp.name}}
+                  {{aggregatedClassCommu.targetApp.name}}
                 </BsTooltip>
               </button>
             {{/if}}
@@ -119,7 +126,7 @@
         {{! Name }}
         <tr>
           <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
-            @communication={{drawableClassCommu}}
+            @communication={{aggregatedClassCommu}}
           />
         </tr>
         {{! Requests }}
@@ -129,12 +136,12 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{drawableClassCommu.totalRequests}}
+            {{aggregatedClassCommu.totalRequests}}
             (
             {{round
               (mult
                 (div
-                  drawableClassCommu.totalRequests
+                  aggregatedClassCommu.totalRequests
                   this.calculateAggregatedRequestCount
                 )
                 100
@@ -144,10 +151,10 @@
         </tr>
         {{#if this.landscapeRestructure.restructureMode}}
           <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
-            @drawableClassComm={{drawableClassCommu}}
+            @aggregatedClassComm={{aggregatedClassCommu}}
           />
         {{/if}}
-        {{#if (lt index (sub @communication.drawableClassCommus.length 1))}}
+        {{#if (lt index (sub @communication.aggregatedClassCommus.length 1))}}
           <hr />
         {{/if}}
       {{/each}}

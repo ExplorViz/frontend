@@ -152,11 +152,11 @@ export default class ApplicationRenderer extends Service.extend({
     return null;
   }
 
-  getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
+  getAggregatedClassCommunications(applicationObjetc3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(
       applicationObjetc3D.getModelId()
     );
-    return applicationData?.drawableClassCommunications || [];
+    return applicationData?.aggregatedClassCommunications || [];
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
@@ -298,7 +298,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationObject3D.resetRotation();
 
       // delete all extern comminication links so we can replace them with the current ones later on
-      //applicationObject3D.drawableClassCommSet.clear();
+      //applicationObject3D.aggregatedClassCommSet.clear();
       return applicationObject3D;
     }
   );
@@ -307,10 +307,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.appCommRendering.addCommunication(
-      applicationObject3D,
-      this.applicationRepo.allClassCommunications
-    );
+    this.appCommRendering.addCommunication(applicationObject3D);
   }
 
   @action
@@ -515,10 +512,8 @@ export default class ApplicationRenderer extends Service.extend({
 
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
-      const drawableComm = this.getDrawableClassCommunications(application)!;
-
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application, drawableComm);
+        this.appCommRendering.addCommunication(application);
       } else {
         application.removeAllCommunication();
       }
@@ -573,7 +568,7 @@ export default class ApplicationRenderer extends Service.extend({
       // room.openApps.forEach((app) => {
       //   const appObj = this.getApplicationById(app.id);
       //   if (appObj) {
-      //     appObj.drawableClassCommSet.clear();
+      //     appObj.aggregatedClassCommSet.clear();
       //   }
       // });
 

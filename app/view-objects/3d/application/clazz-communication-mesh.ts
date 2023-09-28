@@ -260,9 +260,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.drawableClassCommus.firstObject) {
+    if (this.dataModel.aggregatedClassCommunication) {
       const arrow = new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
+        this.dataModel.aggregatedClassCommunication,
         dir,
         origin,
         length,
@@ -297,9 +297,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.drawableClassCommus.firstObject) {
+    if (this.dataModel.aggregatedClassCommunication) {
       return new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
+        this.dataModel.aggregatedClassCommunication,
         dir,
         origin,
         length,

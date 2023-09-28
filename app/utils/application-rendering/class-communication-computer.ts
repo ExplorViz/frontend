@@ -1,6 +1,9 @@
-import { DynamicLandscapeData, Span } from '../landscape-schemes/dynamic-data';
 import {
-  Application,
+  DynamicLandscapeData,
+  Span,
+} from '../landscape-schemes/dynamic/dynamic-data';
+import AggregatedMethodCall from '../landscape-schemes/dynamic/aggregated-method-call';
+import {
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
@@ -8,8 +11,8 @@ import {
   getHashCodeToClassMap,
   getApplicationFromClass,
 } from '../landscape-structure-helpers';
-import isObject from '../object-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
+import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
 
 function computeClassCommunicationRecursively(
   span: Span,
@@ -59,7 +62,7 @@ function computeClassCommunicationRecursively(
   return classCommunications;
 }
 
-export default function computeDrawableClassCommunication(
+export default function computeAggregatedClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicData: DynamicLandscapeData
 ) {
@@ -86,10 +89,7 @@ export default function computeDrawableClassCommunication(
     }
   });
 
-  const aggregatedDrawableClassCommunications = new Map<
-    string,
-    DrawableClassCommunication
-  >();
+  const methodCalls = new Map<string, AggregatedMethodCall>();
 
   totalClassCommunications.forEach(
     ({ sourceClass, targetClass, operationName }) => {
@@ -107,63 +107,97 @@ export default function computeDrawableClassCommunication(
         targetClass
       );
 
+      if (!sourceApp || !targetApp) {
+        console.error('Application for class communication not found!');
+        return;
+      }
+
       // Find all identical method calls based on their source
       // and target app / class
       // and aggregate identical method calls with exactly same source
       // and target app / class within a single representative
-      const drawableClassCommunication =
-        aggregatedDrawableClassCommunications.get(sourceTargetClassMethodId);
+      const maybeMethodCall = methodCalls.get(sourceTargetClassMethodId);
 
-      if (!drawableClassCommunication) {
-        aggregatedDrawableClassCommunications.set(sourceTargetClassMethodId, {
-          id: sourceTargetClassMethodId,
-          totalRequests: 1,
-          sourceClass,
-          targetClass,
-          operationName,
-          sourceApp,
-          targetApp,
-        });
+      if (!maybeMethodCall) {
+        methodCalls.set(
+          sourceTargetClassMethodId,
+          new AggregatedMethodCall(
+            sourceTargetClassMethodId,
+            sourceApp,
+            sourceClass,
+            targetApp,
+            targetClass,
+            operationName
+          )
+        );
       } else {
-        drawableClassCommunication.totalRequests++;
+        maybeMethodCall.addSpan();
       }
     }
   );
 
-  const drawableClassCommunications = [
-    ...aggregatedDrawableClassCommunications.values(),
-  ];
+  const aggregatedClassCommunications = new Map<
+    string,
+    AggregatedClassCommunication
+  >();
 
-  return drawableClassCommunications;
+  methodCalls.forEach((methodCall) => {
+    const classIds = [
+      methodCall.sourceClass.id,
+      methodCall.targetClass.id,
+    ].sort();
+    const communicationId = classIds[0] + '_' + classIds[1];
+    const maybeClassCommunication =
+      aggregatedClassCommunications.get(communicationId);
+
+    if (maybeClassCommunication) {
+      maybeClassCommunication.addMethodCalls(methodCall);
+    } else {
+      const newCommunication = new AggregatedClassCommunication(
+        communicationId,
+        methodCall.sourceApp,
+        methodCall.sourceClass,
+        methodCall.targetApp,
+        methodCall.targetClass,
+        methodCall.operationName
+      );
+      newCommunication.addMethodCalls(methodCall);
+      aggregatedClassCommunications.set(communicationId, newCommunication);
+    }
+  });
+
+  const classCommunications = [...aggregatedClassCommunications.values()];
+
+  return classCommunications;
 }
 
 export function computeRestructuredClassCommunication(
-  drawableClassCommunications: DrawableClassCommunication[],
-  classCommunication: DrawableClassCommunication[],
-  copiedClassCommunications: Map<string, DrawableClassCommunication[]>,
-  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
+  aggregatedClassCommunications: AggregatedClassCommunication[],
+  classCommunication: AggregatedClassCommunication[],
+  copiedClassCommunications: Map<string, AggregatedClassCommunication[]>,
+  updatedClassCommunications: Map<string, AggregatedClassCommunication[]>,
   deletedClassCommunication: Map<
     string,
-    DrawableClassCommunication[]
+    AggregatedClassCommunication[]
   > = new Map()
 ) {
   if (classCommunication.length) {
     classCommunication.forEach((comm) => {
-      drawableClassCommunications.push(comm);
+      aggregatedClassCommunications.push(comm);
     });
   }
 
   if (copiedClassCommunications.size) {
     copiedClassCommunications.forEach((value) => {
-      drawableClassCommunications.pushObjects(value);
+      aggregatedClassCommunications.pushObjects(value);
     });
   }
 
   if (deletedClassCommunication.size) {
-    const allDeletedComms: DrawableClassCommunication[] = [];
+    const allDeletedComms: AggregatedClassCommunication[] = [];
     deletedClassCommunication.forEach((value) => {
       value.forEach((deletedComm) => {
-        const foundComm = drawableClassCommunications.filter(
+        const foundComm = aggregatedClassCommunications.filter(
           (comm) =>
             comm.id === deletedComm.id ||
             comm.operationName === deletedComm.operationName
@@ -172,50 +206,32 @@ export function computeRestructuredClassCommunication(
       });
     });
 
-    drawableClassCommunications.removeObjects(allDeletedComms);
+    aggregatedClassCommunications.removeObjects(allDeletedComms);
   }
 
   if (updatedClassCommunications.size) {
-    const allUpdatedComms: DrawableClassCommunication[] = [];
+    const allUpdatedComms: AggregatedClassCommunication[] = [];
 
     updatedClassCommunications.forEach((value) => {
       allUpdatedComms.push(...value);
     });
 
-    drawableClassCommunications.pushObjects(allUpdatedComms);
-    const removeUnwantedComms = drawableClassCommunications.filter(
+    aggregatedClassCommunications.pushObjects(allUpdatedComms);
+    const removeUnwantedComms = aggregatedClassCommunications.filter(
       (comm) =>
         !comm.operationName.includes('removed') &&
         !comm.sourceClass.id.includes('removed') &&
         !comm.targetClass.id.includes('removed')
     );
-    drawableClassCommunications.clear();
-    drawableClassCommunications.pushObjects(removeUnwantedComms);
+    aggregatedClassCommunications.clear();
+    aggregatedClassCommunications.pushObjects(removeUnwantedComms);
   }
 
-  return drawableClassCommunications;
-}
-
-export function isDrawableClassCommunication(
-  x: any
-): x is DrawableClassCommunication {
-  return (
-    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests')
-  );
+  return aggregatedClassCommunications;
 }
 
 interface ClassCommunication {
   sourceClass: Class;
   targetClass: Class;
   operationName: string;
-}
-
-export interface DrawableClassCommunication {
-  id: string;
-  totalRequests: number;
-  sourceClass: Class;
-  targetClass: Class;
-  operationName: string;
-  sourceApp: Application | undefined;
-  targetApp: Application | undefined;
 }

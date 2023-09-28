@@ -35,7 +35,6 @@ import {
   isPackage,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
@@ -75,6 +74,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import LandscapeListener from './landscape-listener';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -87,7 +87,7 @@ type MeshModelTextureMapping = {
 
 type CommModelColorMapping = {
   action: RestructureAction;
-  comm: DrawableClassCommunication;
+  comm: AggregatedClassCommunication;
   color: THREE.Color;
 };
 
@@ -95,7 +95,7 @@ type diverseDataModel =
   | Application
   | Package
   | Class
-  | DrawableClassCommunication;
+  | AggregatedClassCommunication;
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -161,26 +161,26 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
    * Storing all communications created by user
    */
   @tracked
-  createdClassCommunication: DrawableClassCommunication[] = [];
+  createdClassCommunication: AggregatedClassCommunication[] = [];
 
   /**
    * Storing all communications in the landscape
    */
   @tracked
-  allClassCommunications: DrawableClassCommunication[] = [];
+  allClassCommunications: AggregatedClassCommunication[] = [];
 
   /**
    * Storing all copied communications
    */
   @tracked
-  copiedClassCommunications: Map<string, DrawableClassCommunication[]> =
+  copiedClassCommunications: Map<string, AggregatedClassCommunication[]> =
     new Map();
 
   /**
    * Storing all communications that have been updated
    */
   @tracked
-  updatedClassCommunications: Map<string, DrawableClassCommunication[]> =
+  updatedClassCommunications: Map<string, AggregatedClassCommunication[]> =
     new Map();
 
   /**
@@ -189,14 +189,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   completelyDeletedClassCommunications: Map<
     string,
-    DrawableClassCommunication[]
+    AggregatedClassCommunication[]
   > = new Map();
 
   /**
    * Storing all communication that will be deleted and shown visually
    */
   @tracked
-  deletedClassCommunications: DrawableClassCommunication[] = [];
+  deletedClassCommunications: AggregatedClassCommunication[] = [];
 
   @tracked
   sourceClass: Class | null = null;
@@ -297,19 +297,24 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       addMethodToClass(this.targetClass, methodName);
 
       // Create Communication between 2 Classes
-      const classCommunication: DrawableClassCommunication = {
+      const classCommunication: AggregatedClassCommunication = {
         id:
           this.sourceClass.name +
           ' => ' +
           this.targetClass.name +
           '|' +
           methodName,
+        methodCalls: [],
+        isRecursive: this.sourceClass.name === this.targetClass.name,
+        isBidirectional: false,
         totalRequests: 1,
+        normalizedRequestCount: 1,
         sourceClass: this.sourceClass,
         targetClass: this.targetClass,
         operationName: methodName,
-        sourceApp: sourceApp,
-        targetApp: targetApp,
+        sourceApp: sourceApp!,
+        targetApp: targetApp!,
+        addMethodCalls: () => {},
       };
 
       // Create the Changelog Entry
@@ -333,7 +338,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @action
   deleteCommunication(
-    comm: DrawableClassCommunication,
+    comm: AggregatedClassCommunication,
     undo: boolean = false,
     collabMode: boolean = false
   ) {
@@ -698,7 +703,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   renameOperation(
-    communication: DrawableClassCommunication,
+    communication: AggregatedClassCommunication,
     newName: string,
     collabMode: boolean = false,
     undo: boolean = false
@@ -807,7 +812,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       this.updatedClassCommunications.delete(keyToRemove);
 
-      const app = this.getApp(pckg);
+      const app = this.getApp(pckg)!;
       if (this.createdClassCommunication.length) {
         this.createdClassCommunication.forEach((comm) => {
           if (!comm.sourceApp) {
@@ -1960,7 +1965,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
       const app = this.getApp(this.clippedMesh as Package) as Application;
 
-      const copiedClassCommunications: DrawableClassCommunication[] = [];
+      const copiedClassCommunications: AggregatedClassCommunication[] = [];
 
       const wrapper = {
         idCounter: this.newMeshCounter,
@@ -2044,7 +2049,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
       const app = this.getApp(this.clippedMesh as Class) as Application;
 
-      const copiedClassCommunications: DrawableClassCommunication[] = [];
+      const copiedClassCommunications: AggregatedClassCommunication[] = [];
 
       const wrapper = {
         idCounter: this.newMeshCounter,
@@ -2112,7 +2117,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       const app = this.getApp(this.clippedMesh as Package | Class);
 
-      const updatedClassCommunications: DrawableClassCommunication[] = [];
+      const updatedClassCommunications: AggregatedClassCommunication[] = [];
 
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
@@ -2274,7 +2279,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication } = entry;
         this.deleteCommunication(
-          communication as DrawableClassCommunication,
+          communication as AggregatedClassCommunication,
           true
         );
       }
@@ -2317,7 +2322,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication, originalOperationName } = entry;
         this.renameOperation(
-          communication as DrawableClassCommunication,
+          communication as AggregatedClassCommunication,
           originalOperationName as string,
           false,
           true
@@ -2346,7 +2351,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         const { communication } = entry;
         this.changeLog.restoreDeletedEntries(communication.id as string);
         this.deleteCommunication(
-          communication as DrawableClassCommunication,
+          communication as AggregatedClassCommunication,
           true
         );
       }

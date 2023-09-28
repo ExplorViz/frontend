@@ -3,15 +3,15 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ComponentMesh from '../../view-objects/3d/application/component-mesh';
 import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
 import CommunicationLayout from '../../view-objects/layout-models/communication-layout';
-import { DrawableClassCommunication } from './class-communication-computer';
 import {
   Application,
   Class,
   Package,
 } from '../landscape-schemes/structure-data';
+import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
 
 export function calculatePipeSize(
-  drawableClassCommunications: DrawableClassCommunication[]
+  aggregatedClassCommunications: AggregatedClassCommunication[]
 ) {
   /**
    * Retrieves all requests and pushes them to a list for further processing
@@ -20,7 +20,7 @@ export function calculatePipeSize(
     const requestsList: number[] = [];
 
     // Generate a list with all requests
-    drawableClassCommunications.forEach((clazzCommunication) => {
+    aggregatedClassCommunications.forEach((clazzCommunication) => {
       requestsList.push(clazzCommunication.totalRequests);
     });
 
@@ -35,7 +35,7 @@ export function calculatePipeSize(
   const maximumRequests = Math.max(...requestsList);
 
   const pipeSizeMap = new Map<string, number>();
-  drawableClassCommunications.forEach((clazzCommunication) => {
+  aggregatedClassCommunications.forEach((clazzCommunication) => {
     let normalizedRequests = 1;
     if (maximumRequests !== 0) {
       normalizedRequests = clazzCommunication.totalRequests / maximumRequests;
@@ -58,10 +58,10 @@ export function calculatePipeSize(
 
 // Communication Layouting //
 export default function applyCommunicationLayout(
-  applicationObject3D: ApplicationObject3D,
-  allDrawableClassCommunications: DrawableClassCommunication[]
+  applicationObject3D: ApplicationObject3D
 ) {
-  const { application, drawableClassCommunications } = applicationObject3D.data;
+  const { application, aggregatedClassCommunications } =
+    applicationObject3D.data;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
@@ -90,8 +90,8 @@ export default function applyCommunicationLayout(
     return findFirstOpenOrLastClosedAncestorComponent(parentComponent);
   }
 
-  function getParentComponentOfDrawableCommunication(
-    communication: DrawableClassCommunication
+  function getParentComponentOfAggregatedCommunication(
+    communication: AggregatedClassCommunication
   ) {
     // Contains all parent components of source clazz incl. foundation in hierarchical order
     const sourceClassComponents: Package[] = [];
@@ -133,21 +133,21 @@ export default function applyCommunicationLayout(
   }
 
   /**
-   * Calculates start and end positions for all drawable communications
+   * Calculates start and end positions for all aggregated communications
    */
   function layoutEdges() {
-    if (drawableClassCommunications.length === 0) {
+    if (aggregatedClassCommunications.length === 0) {
       return;
     }
 
-    const lineThicknessMap = calculatePipeSize(allDrawableClassCommunications);
+    const lineThicknessMap = calculatePipeSize(aggregatedClassCommunications);
 
-    for (let i = 0; i < drawableClassCommunications.length; i++) {
-      const classCommunication: DrawableClassCommunication =
-        drawableClassCommunications[i];
+    for (let i = 0; i < aggregatedClassCommunications.length; i++) {
+      const classCommunication: AggregatedClassCommunication =
+        aggregatedClassCommunications[i];
 
       const parentComponent =
-        getParentComponentOfDrawableCommunication(classCommunication);
+        getParentComponentOfAggregatedCommunication(classCommunication);
 
       let parentMesh;
 
@@ -234,7 +234,7 @@ export default function applyCommunicationLayout(
   }
 
   function layoutInAndOutCommunication(
-    commu: DrawableClassCommunication,
+    commu: AggregatedClassCommunication,
     internalClazz: Class,
     centerCommuIcon: THREE.Vector3
   ) {
@@ -267,8 +267,8 @@ export default function applyCommunicationLayout(
     }
   }
 
-  function layoutDrawableCommunication(
-    commu: DrawableClassCommunication,
+  function layoutAggregatedCommunication(
+    commu: AggregatedClassCommunication,
     app: Application
   ) {
     const externalPortsExtension = new THREE.Vector3(3.0, 3.5, 3.0);
@@ -297,9 +297,9 @@ export default function applyCommunicationLayout(
 
   layoutEdges();
 
-  drawableClassCommunications.forEach((clazzcommunication) => {
+  aggregatedClassCommunications.forEach((clazzcommunication) => {
     if (layoutMap.has(clazzcommunication.id)) {
-      layoutDrawableCommunication(clazzcommunication, application);
+      layoutAggregatedCommunication(clazzcommunication, application);
     }
   });
 
