@@ -61,15 +61,7 @@ function computeClassCommunicationRecursively(
 
 export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData,
-  restructureMode: boolean,
-  classCommunication: DrawableClassCommunication[],
-  copiedClassCommunications: Map<string, DrawableClassCommunication[]>,
-  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
-  deletedClassCommunication: Map<
-    string,
-    DrawableClassCommunication[]
-  > = new Map()
+  landscapeDynamicData: DynamicLandscapeData
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -142,52 +134,63 @@ export default function computeDrawableClassCommunication(
     ...aggregatedDrawableClassCommunications.values(),
   ];
 
-  if (restructureMode) {
-    if (classCommunication.length) {
-      classCommunication.forEach((comm) => {
-        drawableClassCommunications.push(comm);
+  return drawableClassCommunications;
+}
+
+export function computeRestructuredClassCommunication(
+  drawableClassCommunications: DrawableClassCommunication[],
+  classCommunication: DrawableClassCommunication[],
+  copiedClassCommunications: Map<string, DrawableClassCommunication[]>,
+  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
+  deletedClassCommunication: Map<
+    string,
+    DrawableClassCommunication[]
+  > = new Map()
+) {
+  if (classCommunication.length) {
+    classCommunication.forEach((comm) => {
+      drawableClassCommunications.push(comm);
+    });
+  }
+
+  if (copiedClassCommunications.size) {
+    copiedClassCommunications.forEach((value) => {
+      drawableClassCommunications.pushObjects(value);
+    });
+  }
+
+  if (deletedClassCommunication.size) {
+    const allDeletedComms: DrawableClassCommunication[] = [];
+    deletedClassCommunication.forEach((value) => {
+      value.forEach((deletedComm) => {
+        const foundComm = drawableClassCommunications.filter(
+          (comm) =>
+            comm.id === deletedComm.id ||
+            comm.operationName === deletedComm.operationName
+        );
+        if (foundComm.length) allDeletedComms.pushObjects(foundComm);
       });
-    }
+    });
 
-    if (copiedClassCommunications.size) {
-      copiedClassCommunications.forEach((value) => {
-        drawableClassCommunications.pushObjects(value);
-      });
-    }
+    drawableClassCommunications.removeObjects(allDeletedComms);
+  }
 
-    if (deletedClassCommunication.size) {
-      const allDeletedComms: DrawableClassCommunication[] = [];
-      deletedClassCommunication.forEach((value) => {
-        value.forEach((deletedComm) => {
-          const foundComm = drawableClassCommunications.filter(
-            (comm) =>
-              comm.id === deletedComm.id ||
-              comm.operationName === deletedComm.operationName
-          );
-          if (foundComm.length) allDeletedComms.pushObjects(foundComm);
-        });
-      });
+  if (updatedClassCommunications.size) {
+    const allUpdatedComms: DrawableClassCommunication[] = [];
 
-      drawableClassCommunications.removeObjects(allDeletedComms);
-    }
+    updatedClassCommunications.forEach((value) => {
+      allUpdatedComms.push(...value);
+    });
 
-    if (updatedClassCommunications.size) {
-      const allUpdatedComms: DrawableClassCommunication[] = [];
-
-      updatedClassCommunications.forEach((value) => {
-        allUpdatedComms.push(...value);
-      });
-
-      drawableClassCommunications.pushObjects(allUpdatedComms);
-      const removeUnwantedComms = drawableClassCommunications.filter(
-        (comm) =>
-          !comm.operationName.includes('removed') &&
-          !comm.sourceClass.id.includes('removed') &&
-          !comm.targetClass.id.includes('removed')
-      );
-      drawableClassCommunications.clear();
-      drawableClassCommunications.pushObjects(removeUnwantedComms);
-    }
+    drawableClassCommunications.pushObjects(allUpdatedComms);
+    const removeUnwantedComms = drawableClassCommunications.filter(
+      (comm) =>
+        !comm.operationName.includes('removed') &&
+        !comm.sourceClass.id.includes('removed') &&
+        !comm.targetClass.id.includes('removed')
+    );
+    drawableClassCommunications.clear();
+    drawableClassCommunications.pushObjects(removeUnwantedComms);
   }
 
   return drawableClassCommunications;

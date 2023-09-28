@@ -14,6 +14,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeDrawableClassCommunication, {
   DrawableClassCommunication,
+  computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
@@ -95,15 +96,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-    const drawableClassCommunications = computeDrawableClassCommunication(
+    let drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData,
-      this.landscapeRestructure.restructureMode,
-      this.landscapeRestructure.createdClassCommunication,
-      this.landscapeRestructure.copiedClassCommunications,
-      this.landscapeRestructure.updatedClassCommunications,
-      this.landscapeRestructure.completelyDeletedClassCommunications
+      this.dynamicLandscapeData
     );
+
+    if (this.landscapeRestructure.restructureMode) {
+      drawableClassCommunications = computeRestructuredClassCommunication(
+        drawableClassCommunications,
+        this.landscapeRestructure.createdClassCommunication,
+        this.landscapeRestructure.copiedClassCommunications,
+        this.landscapeRestructure.updatedClassCommunications,
+        this.landscapeRestructure.completelyDeletedClassCommunications
+      );
+    }
 
     this.landscapeRestructure.allClassCommunications =
       drawableClassCommunications;
