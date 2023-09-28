@@ -156,7 +156,7 @@ export default class ApplicationRenderer extends Service.extend({
     const applicationData = this.applicationRepo.getById(
       applicationObjetc3D.getModelId()
     );
-    return applicationData?.drawableClassCommunications;
+    return applicationData?.drawableClassCommunications || [];
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
@@ -307,18 +307,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObject3D.getModelId()
+    this.appCommRendering.addCommunication(
+      applicationObject3D,
+      this.applicationRepo.allClassCommunications
     );
-    const drawableClassCommunications =
-      applicationData?.drawableClassCommunications;
-
-    if (drawableClassCommunications) {
-      this.appCommRendering.addCommunication(
-        applicationObject3D,
-        drawableClassCommunications
-      );
-    }
   }
 
   @action

@@ -13,6 +13,7 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -53,10 +54,11 @@ export default class LinkRenderer extends Service.extend({}) {
     _coords: any,
     link: GraphLink
   ) {
-    line.visible = this.linkVisible(link);
+    line.visible = this.isLinkVisible(link);
     if (!link.communicationData) {
       return true;
     }
+
     const drawableClassCommunication: DrawableClassCommunication =
       link.communicationData;
 
@@ -85,7 +87,12 @@ export default class LinkRenderer extends Service.extend({}) {
     const commLayout = new CommunicationLayout(drawableClassCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
-    commLayout.lineThickness = link.value;
+
+    const pipeMap = calculatePipeSize(
+      this.applicationRepo.allClassCommunications
+    );
+
+    commLayout.lineThickness = pipeMap.get(drawableClassCommunication.id) || 1;
     line.layout = commLayout;
     line.geometry.dispose();
 
@@ -102,7 +109,7 @@ export default class LinkRenderer extends Service.extend({}) {
   }
 
   @action
-  createLink(link: GraphLink) {
+  createMeshFromLink(link: GraphLink) {
     const drawableClazzComm = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
     const { id } = drawableClazzComm;
@@ -138,8 +145,7 @@ export default class LinkRenderer extends Service.extend({}) {
   }
 
   @action
-  linkVisible(link: GraphLink) {
-    // return false;
+  isLinkVisible(link: GraphLink) {
     if (!link.communicationData) {
       return false;
     }

@@ -83,7 +83,7 @@ export default class CommunicationRendering {
    */
   addCommunication(
     applicationObject3D: ApplicationObject3D,
-    drawableClassCommunications: DrawableClassCommunication[]
+    allDrawableClassCommunications: DrawableClassCommunication[]
   ) {
     if (!this.configuration.isCommRendered) return;
 
@@ -96,10 +96,8 @@ export default class CommunicationRendering {
       return;
     }
 
-    const viewCenterPoint = applicationLayout.center;
-
+    // Store colors of highlighting
     const oldHighlightedColors = new Map<string, THREE.Color>();
-
     applicationObject3D.getCommMeshes().forEach((mesh) => {
       if (mesh.highlighted) {
         oldHighlightedColors.set(
@@ -119,8 +117,7 @@ export default class CommunicationRendering {
     // Compute communication Layout
     const commLayoutMap = applyCommunicationLayout(
       applicationObject3D,
-      applicationObject3D.boxLayoutMap,
-      drawableClassCommunications
+      allDrawableClassCommunications
     );
 
     // Retrieve color preferences
@@ -130,83 +127,89 @@ export default class CommunicationRendering {
     const positionToClazzCommMesh = new Map<string, ClazzCommunicationMesh>();
 
     // Render all drawable communications
-    drawableClassCommunications.forEach((drawableClazzComm) => {
-      const commLayout = commLayoutMap.get(drawableClazzComm.id);
+    applicationObject3D.data.drawableClassCommunications.forEach(
+      (drawableClazzComm) => {
+        const commLayout = commLayoutMap.get(drawableClazzComm.id);
 
-      // No layouting information available due to hidden communication
-      if (!commLayout) {
-        return;
-      }
-
-      const start = new Vector3();
-      start.subVectors(commLayout.startPoint, viewCenterPoint);
-      const startCoordsAsString = `${start.x}.${start.y}.${start.z}`;
-
-      const end = new Vector3();
-      end.subVectors(commLayout.endPoint, viewCenterPoint);
-      const endCoordsAsString = `${end.x}.${end.y}.${end.z}`;
-
-      const combinedCoordsAsString = startCoordsAsString + endCoordsAsString;
-      const reversedCombinedCoordsAsString =
-        endCoordsAsString + startCoordsAsString;
-
-      // Check if pipe already exists for another method call (same direction)
-      if (positionToClazzCommMesh.get(combinedCoordsAsString)) {
-        // exists, therefore update pipe with additional information
-        const existingClazzCommuDataModel = positionToClazzCommMesh.get(
-          combinedCoordsAsString
-        )?.dataModel;
-
-        if (existingClazzCommuDataModel) {
-          // update existing clazz commu data model
-          // existingClazzCommuDataModel.bidirectional = true;
-          existingClazzCommuDataModel.drawableClassCommus.push(
-            drawableClazzComm
-          );
+        // No layouting information available due to hidden communication
+        if (!commLayout) {
+          return;
         }
-      } else if (positionToClazzCommMesh.get(reversedCombinedCoordsAsString)) {
-        // Check if pipe already exists for another method call (reverse direction)
-        const existingPipe = positionToClazzCommMesh.get(
-          reversedCombinedCoordsAsString
-        );
-        const existingClazzCommuDataModel = existingPipe?.dataModel;
 
-        if (existingPipe && existingClazzCommuDataModel) {
-          // update existing clazz commu data model
-          existingClazzCommuDataModel.bidirectional = true;
-          existingClazzCommuDataModel.drawableClassCommus.push(
-            drawableClazzComm
+        const viewCenterPoint = applicationLayout.center;
+
+        const start = new Vector3();
+        start.subVectors(commLayout.startPoint, viewCenterPoint);
+        const startCoordsAsString = `${start.x}.${start.y}.${start.z}`;
+
+        const end = new Vector3();
+        end.subVectors(commLayout.endPoint, viewCenterPoint);
+        const endCoordsAsString = `${end.x}.${end.y}.${end.z}`;
+
+        const combinedCoordsAsString = startCoordsAsString + endCoordsAsString;
+        const reversedCombinedCoordsAsString =
+          endCoordsAsString + startCoordsAsString;
+
+        // Check if pipe already exists for another method call (same direction)
+        if (positionToClazzCommMesh.get(combinedCoordsAsString)) {
+          // exists, therefore update pipe with additional information
+          const existingClazzCommuDataModel = positionToClazzCommMesh.get(
+            combinedCoordsAsString
+          )?.dataModel;
+
+          if (existingClazzCommuDataModel) {
+            // update existing clazz commu data model
+            // existingClazzCommuDataModel.bidirectional = true;
+            existingClazzCommuDataModel.drawableClassCommus.push(
+              drawableClazzComm
+            );
+          }
+        } else if (
+          positionToClazzCommMesh.get(reversedCombinedCoordsAsString)
+        ) {
+          // Check if pipe already exists for another method call (reverse direction)
+          const existingPipe = positionToClazzCommMesh.get(
+            reversedCombinedCoordsAsString
           );
-          this.addBidirectionalArrow(existingPipe);
+          const existingClazzCommuDataModel = existingPipe?.dataModel;
+
+          if (existingPipe && existingClazzCommuDataModel) {
+            // update existing clazz commu data model
+            existingClazzCommuDataModel.bidirectional = true;
+            existingClazzCommuDataModel.drawableClassCommus.push(
+              drawableClazzComm
+            );
+            this.addBidirectionalArrow(existingPipe);
+          }
+        } else {
+          // does not exist, therefore create pipe
+          const clazzCommuMeshData = new ClazzCommuMeshDataModel(
+            application,
+            [drawableClazzComm],
+            false,
+            drawableClazzComm.id
+          );
+
+          const oldColor = oldHighlightedColors.get(clazzCommuMeshData.id);
+
+          const pipe = new ClazzCommunicationMesh(
+            commLayout,
+            clazzCommuMeshData,
+            communicationColor,
+            oldColor ? oldColor : highlightedEntityColor
+          );
+
+          const curveHeight = this.computeCurveHeight(commLayout);
+
+          pipe.render(viewCenterPoint, curveHeight);
+
+          applicationObject3D.add(pipe);
+
+          this.addArrows(pipe, curveHeight, viewCenterPoint);
+
+          positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
         }
-      } else {
-        // does not exist, therefore create pipe
-        const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-          application,
-          [drawableClazzComm],
-          false,
-          drawableClazzComm.id
-        );
-
-        const oldColor = oldHighlightedColors.get(clazzCommuMeshData.id);
-
-        const pipe = new ClazzCommunicationMesh(
-          commLayout,
-          clazzCommuMeshData,
-          communicationColor,
-          oldColor ? oldColor : highlightedEntityColor
-        );
-
-        const curveHeight = this.computeCurveHeight(commLayout);
-
-        pipe.render(viewCenterPoint, curveHeight);
-
-        applicationObject3D.add(pipe);
-
-        this.addArrows(pipe, curveHeight, viewCenterPoint);
-
-        positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
       }
-    });
+    );
   }
 }

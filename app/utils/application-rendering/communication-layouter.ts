@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from '../../view-objects/3d/application/component-mesh';
 import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
@@ -53,16 +52,17 @@ export function calculatePipeSize(
       normalizedRequests * LINE_THICKNESS_FACTOR
     );
   });
+
   return pipeSizeMap;
 }
 
 // Communication Layouting //
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D,
-  boxLayoutMap: Map<string, BoxLayout>,
-  drawableClassCommunications: DrawableClassCommunication[]
+  allDrawableClassCommunications: DrawableClassCommunication[]
 ) {
-  const { application } = applicationObject3D.data;
+  const { application, drawableClassCommunications } = applicationObject3D.data;
+  const boxLayoutMap = applicationObject3D.boxLayoutMap;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
   /**
@@ -140,7 +140,7 @@ export default function applyCommunicationLayout(
       return;
     }
 
-    const lineThicknessMap = calculatePipeSize(drawableClassCommunications);
+    const lineThicknessMap = calculatePipeSize(allDrawableClassCommunications);
 
     for (let i = 0; i < drawableClassCommunications.length; i++) {
       const classCommunication: DrawableClassCommunication =

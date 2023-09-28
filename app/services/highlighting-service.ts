@@ -149,23 +149,21 @@ export default class HighlightingService extends Service.extend({
     const allLinks = this.linkRenderer.getAllLinks();
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D: ApplicationObject3D) => {
-      const drawableComm2 =
+      const drawableComms =
         this.applicationRenderer.getDrawableClassCommunications(
           applicationObject3D
         );
-      if (drawableComm2) {
-        drawableComm2.forEach(
-          (drawableClassCommunication: DrawableClassCommunication) => {
-            const link = this.applicationRenderer.getMeshById(
-              drawableClassCommunication.id
-            );
-            if (link) {
-              // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-              allLinks.push(link as ClazzCommunicationMesh);
-            }
+      drawableComms.forEach(
+        (drawableClassCommunication: DrawableClassCommunication) => {
+          const link = this.applicationRenderer.getMeshById(
+            drawableClassCommunication.id
+          );
+          if (link) {
+            // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
+            allLinks.push(link as ClazzCommunicationMesh);
           }
-        );
-      }
+        }
+      );
     });
 
     let drawableComm: DrawableClassCommunication[] = [];
@@ -259,16 +257,14 @@ export default class HighlightingService extends Service.extend({
       );
 
     this.applicationRenderer.openAllComponents(applicationObject3D);
-    if (drawableClassCommunications) {
-      Highlighting.highlightTrace(
-        trace,
-        traceStep,
-        applicationObject3D,
-        drawableClassCommunications!,
-        structureData,
-        this.opacity
-      );
-    }
+    Highlighting.highlightTrace(
+      trace,
+      traceStep,
+      applicationObject3D,
+      drawableClassCommunications,
+      structureData,
+      this.opacity
+    );
   }
 
   highlightComponent(

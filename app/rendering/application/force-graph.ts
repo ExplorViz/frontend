@@ -67,16 +67,16 @@ export default class ForceGraph {
       .warmupTicks(100)
       .linkColor(
         () =>
-          `#${this.configuration.landscapeColors.communicationColor.getHexString()}`
+          `#${this.configuration.applicationColors.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>
           `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`
       )
       .linkOpacity(0.4)
-      .linkThreeObject(this.linkRenderer.createLink)
+      .linkThreeObject(this.linkRenderer.createMeshFromLink)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
-      .linkVisibility(this.linkRenderer.linkVisible)
+      .linkVisibility(this.linkRenderer.isLinkVisible)
       .nodeAutoColorBy('node')
       .cooldownTicks(1)
       .d3Force(
