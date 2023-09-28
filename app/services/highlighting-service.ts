@@ -182,9 +182,13 @@ export default class HighlightingService extends Service.extend({
   @action
   highlightModel(
     entity: Package | Class | AggregatedClassCommunication,
-    applicationObject3D: ApplicationObject3D
+    applicationId: string
   ) {
-    Highlighting.highlightModel(entity, applicationObject3D);
+    const application =
+      this.applicationRenderer.getApplicationById(applicationId);
+    if (application) {
+      Highlighting.highlightModel(entity, application);
+    }
   }
 
   @action
