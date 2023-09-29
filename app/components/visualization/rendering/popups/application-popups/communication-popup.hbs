@@ -36,91 +36,64 @@
       }}
         {{! Relationship }}
         <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'arrow-switch-16'
-              class='octicon align-middle mr-1'
-            }}</td>
+          <td class='text-nowrap align-top'>
+            {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+          </td>
           <td class='text-right text-break pl-1'>
-            {{#if (eq aggregatedClassCommu.sourceApp.id this.application.id)}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    aggregatedClassCommu.sourceClass
-                    aggregatedClassCommu.sourceApp.id
-                  )
-                }}
-              >
-                {{aggregatedClassCommu.sourceClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{aggregatedClassCommu.sourceApp.name}}
-                </BsTooltip>
-              </button>
-            {{else}}
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  aggregatedClassCommu.sourceClass
+                  aggregatedClassCommu.sourceApp.id
+                )
+              }}
+            >
               {{aggregatedClassCommu.sourceClass.name}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
                 {{aggregatedClassCommu.sourceApp.name}}
               </BsTooltip>
-            {{/if}}
-            {{#unless
-              (eq aggregatedClassCommu.sourceApp.id this.application.id)
-            }}
-              (<button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn @showApplication aggregatedClassCommu.sourceApp.id)
-                }}
-              >
+            </button>
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  aggregatedClassCommu.sourceClass
+                  aggregatedClassCommu.sourceApp.id
+                )
+              }}
+            >
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
                 {{aggregatedClassCommu.sourceApp.name}}
-              </button>)
-            {{/unless}}
+              </BsTooltip>
+            </button>
             {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            {{#if (eq aggregatedClassCommu.targetApp.id this.application.id)}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    aggregatedClassCommu.targetClass
-                    aggregatedClassCommu.targetApp.id
-                  )
-                }}
-              >
-                {{aggregatedClassCommu.targetClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{aggregatedClassCommu.targetApp.name}}
-                </BsTooltip>
-              </button>
-            {{else}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    aggregatedClassCommu.targetClass
-                    aggregatedClassCommu.targetApp.id
-                  )
-                }}
-              >
-                {{aggregatedClassCommu.targetClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{aggregatedClassCommu.targetApp.name}}
-                </BsTooltip>
-              </button>
-            {{/if}}
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  aggregatedClassCommu.targetClass
+                  aggregatedClassCommu.targetApp.id
+                )
+              }}
+            >
+              {{aggregatedClassCommu.targetClass.name}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{aggregatedClassCommu.targetApp.name}}
+              </BsTooltip>
+            </button>
           </td>
         </tr>
         {{! Name }}
