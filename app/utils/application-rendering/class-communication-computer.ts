@@ -128,7 +128,7 @@ export default function computeAggregatedClassCommunication(
             targetApp,
             targetClass,
             operationName
-          )
+          ).addSpan()
         );
       } else {
         maybeMethodCall.addSpan();
@@ -166,9 +166,25 @@ export default function computeAggregatedClassCommunication(
     }
   });
 
-  const classCommunications = [...aggregatedClassCommunications.values()];
+  const computedCommunication = [...aggregatedClassCommunications.values()];
+  computeCommunicationMetrics(computedCommunication);
 
-  return classCommunications;
+  return computedCommunication;
+}
+
+function computeCommunicationMetrics(
+  aggregatedClassCommunications: AggregatedClassCommunication[]
+) {
+  aggregatedClassCommunications.forEach((communication) => {
+    const { totalRequests } = communication;
+    const maxRequests = Math.max(
+      ...aggregatedClassCommunications.map((x) => x.totalRequests)
+    );
+    if (maxRequests > 0) {
+      communication.metrics.normalizedRequestCount =
+        totalRequests / maxRequests;
+    }
+  });
 }
 
 export function computeRestructuredClassCommunication(

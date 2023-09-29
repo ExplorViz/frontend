@@ -684,7 +684,7 @@ function copyCommunication(
     isBidirectional: commToCopy.isBidirectional,
     methodCalls: commToCopy.methodCalls,
     totalRequests: commToCopy.totalRequests,
-    normalizedRequestCount: commToCopy.normalizedRequestCount,
+    metrics: commToCopy.metrics,
     sourceClass: commToCopy.sourceClass,
     targetClass: commToCopy.targetClass,
     operationName: 'copied' + idCounter + '|' + commToCopy.operationName,

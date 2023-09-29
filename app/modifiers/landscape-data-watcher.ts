@@ -15,7 +15,7 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import computeAggregatedClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
@@ -180,11 +180,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const interAppCommunications = aggregatedClassCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
-    const pipeSizeMap = calculatePipeSize(aggregatedClassCommunications);
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: pipeSizeMap.get(communication.id), // used for particles
+      value: calculateLineThickness(communication),
       communicationData: communication,
     }));
 

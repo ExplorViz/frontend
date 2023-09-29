@@ -7,13 +7,15 @@ export default class AggregatedClassCommunication {
   isRecursive: boolean = false;
   isBidirectional: boolean = false;
   totalRequests: number = 0;
-  // Normalized request count between 0 and 1
-  normalizedRequestCount: number = 1;
   sourceApp: Application;
   sourceClass: Class;
   targetApp: Application;
   targetClass: Class;
   operationName: string;
+
+  metrics = {
+    normalizedRequestCount: 1, // Normalized request count between 0 and 1
+  };
 
   constructor(
     id: string,

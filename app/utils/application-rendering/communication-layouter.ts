@@ -10,50 +10,19 @@ import {
 } from '../landscape-schemes/structure-data';
 import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
 
-export function calculatePipeSize(
-  aggregatedClassCommunications: AggregatedClassCommunication[]
+export function calculateLineThickness(
+  aggregatedClassCommunications: AggregatedClassCommunication
 ) {
-  /**
-   * Retrieves all requests and pushes them to a list for further processing
-   */
-  function gatherRequestsIntoList() {
-    const requestsList: number[] = [];
-
-    // Generate a list with all requests
-    aggregatedClassCommunications.forEach((clazzCommunication) => {
-      requestsList.push(clazzCommunication.totalRequests);
-    });
-
-    return requestsList;
-  }
-
-  // Constant factors for rendering communication lines (pipes)
+  // Constant factors for rendering communication lines
   const LINE_THICKNESS_FACTOR = 0.5;
 
-  const requestsList = gatherRequestsIntoList();
+  const normalizedRequestCount =
+    aggregatedClassCommunications.metrics.normalizedRequestCount < 0.2
+      ? 0.2
+      : aggregatedClassCommunications.metrics.normalizedRequestCount;
 
-  const maximumRequests = Math.max(...requestsList);
-
-  const pipeSizeMap = new Map<string, number>();
-  aggregatedClassCommunications.forEach((clazzCommunication) => {
-    let normalizedRequests = 1;
-    if (maximumRequests !== 0) {
-      normalizedRequests = clazzCommunication.totalRequests / maximumRequests;
-    }
-
-    // The relatively small requests should be visible as well
-    if (normalizedRequests < 0.2) {
-      normalizedRequests = 0.2;
-    }
-
-    // Apply line thickness depending on calculated request category
-    pipeSizeMap.set(
-      clazzCommunication.id,
-      normalizedRequests * LINE_THICKNESS_FACTOR
-    );
-  });
-
-  return pipeSizeMap;
+  // Apply line thickness depending on calculated request category
+  return normalizedRequestCount * LINE_THICKNESS_FACTOR;
 }
 
 // Communication Layouting //
@@ -139,9 +108,6 @@ export default function applyCommunicationLayout(
     if (aggregatedClassCommunications.length === 0) {
       return;
     }
-
-    const lineThicknessMap = calculatePipeSize(aggregatedClassCommunications);
-
     for (let i = 0; i < aggregatedClassCommunications.length; i++) {
       const classCommunication: AggregatedClassCommunication =
         aggregatedClassCommunications[i];
@@ -228,7 +194,7 @@ export default function applyCommunicationLayout(
           commLayout.endY += 2.0;
         }
 
-        commLayout.lineThickness = lineThicknessMap.get(classCommunication.id)!;
+        commLayout.lineThickness = calculateLineThickness(classCommunication);
       }
     }
   }

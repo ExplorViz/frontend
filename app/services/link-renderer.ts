@@ -12,7 +12,7 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 export default class LinkRenderer extends Service.extend({}) {
@@ -87,13 +87,9 @@ export default class LinkRenderer extends Service.extend({}) {
     const commLayout = new CommunicationLayout(aggregatedClassCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
-
-    const pipeMap = calculatePipeSize(
-      this.applicationRepo.allClassCommunications
+    commLayout.lineThickness = calculateLineThickness(
+      aggregatedClassCommunication
     );
-
-    commLayout.lineThickness =
-      pipeMap.get(aggregatedClassCommunication.id) || 1;
     line.layout = commLayout;
     line.geometry.dispose();
 

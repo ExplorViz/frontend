@@ -3,6 +3,7 @@ import { Application, Class } from '../structure-data';
 
 export default class AggregatedMethodCall {
   id: string = '';
+  // Spans might be added in the future, if needed
   //   spans: Span[] = [];
   totalRequests: number = 0;
   sourceApp: Application;
@@ -30,5 +31,6 @@ export default class AggregatedMethodCall {
   addSpan(/* span: Span */) {
     // this.spans.push(span);
     this.totalRequests++;
+    return this;
   }
 }
