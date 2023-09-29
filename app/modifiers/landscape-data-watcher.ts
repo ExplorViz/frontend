@@ -274,7 +274,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
       }
       applicationData.aggregatedClassCommunications =
-        aggregatedClassCommunication;
+        aggregatedClassCommunication.filter((communication) => {
+          return (
+            communication.sourceApp.id === application.id &&
+            communication.targetApp.id === application.id
+          );
+        });
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);
       return applicationData;
