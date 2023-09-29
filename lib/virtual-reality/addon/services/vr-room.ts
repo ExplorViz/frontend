@@ -133,6 +133,7 @@ export default class VrRoomService extends Service {
     const roomPayload = this.buildInitialRoomPayload();
     const joinPayload = this.buildJoinLobbyPayload();
 
+    // Create synchronization specific payload
     if (roomPayload !== undefined && joinPayload !== null) {
       const payload: InitialSynchronizationPayload = {
         roomPayload: roomPayload,
@@ -143,9 +144,11 @@ export default class VrRoomService extends Service {
         throw new Error('invalid data');
       }
 
+      // addressing synchronization specific path in collaboration service
       const url = `${collaborationService}/v2/vr/synchronization`;
       const jsonResponse = await this.payloadResponse(payload, url);
 
+      // Setting up projector configurations contained by response
       if (isSynchronizationStartedResponse(jsonResponse)) {
         this.synchronizationSession.setProjectorConfigurations(
           jsonResponse.projectorConfigurations

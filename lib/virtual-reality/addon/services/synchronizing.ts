@@ -7,6 +7,10 @@ import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 
+/**
+ * Reuses scaffold from specate feature.
+ * Heart of the update cycle for the synchronization feature.
+ */
 export default class SynchronizeService extends Service {
   debug = debugLogger('synchronizeService');
 
@@ -42,8 +46,9 @@ export default class SynchronizeService extends Service {
       // Copy position and quaternion, then prepare or update the projectionmatrix
       this.localUser.camera.position.copy(this.main.camera.model.position);
 
-      // Rotation test
+      // Clones main's quaternion
       const mainQuaternion = this.main.camera.model.quaternion.clone();
+      // to then copying it into the instance, which is visualizing
       this.localUser.camera.quaternion.copy(mainQuaternion);
 
       // Set up projector configuration

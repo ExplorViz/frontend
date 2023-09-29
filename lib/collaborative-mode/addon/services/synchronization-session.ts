@@ -29,6 +29,11 @@ export type ProjectorQuaternion = {
   domeTiltQuaternion: THREE.Quaternion;
 };
 
+/**
+ * This class constists of all needed graphical information.
+ * Here, lay down also all manipulation and information-restructure functions
+ * to keep typesafety and a clear structure while processing the synchronization.
+ */
 export default class SynchronizationSession extends Service {
   @service('local-user')
   private localUser!: LocalUser;
