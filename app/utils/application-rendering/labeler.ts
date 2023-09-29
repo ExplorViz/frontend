@@ -6,6 +6,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import gsap from 'gsap';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -32,13 +33,23 @@ export function positionBoxLabel(boxMesh: ComponentMesh) {
   label.rotation.x = -(Math.PI / 2);
   label.rotation.z = -(Math.PI / 2);
 
+  const xPosOfOpenedBox =
+    -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+
   // Foundation is labeled like an opened component
-  if (boxMesh instanceof FoundationMesh || boxMesh.opened) {
-    // Position Label just above the bottom edge
-    label.position.x =
-      -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+  if (boxMesh instanceof FoundationMesh) {
+    // Do not animate label on foundation since it is always opened
+    label.position.x = xPosOfOpenedBox;
+  } else if (boxMesh.opened) {
+    gsap.to(label.position, {
+      duration: 0.25,
+      x: xPosOfOpenedBox,
+    });
   } else {
-    label.position.x = 0;
+    gsap.to(label.position, {
+      duration: 0.5,
+      x: 0,
+    });
   }
 }
 

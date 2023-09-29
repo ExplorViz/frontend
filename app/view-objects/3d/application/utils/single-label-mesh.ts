@@ -30,8 +30,6 @@ export function createSingleLabelMesh(
   };
   mesh.name = 'SingleLabelMesh';
 
-  console.log('foundation label', layout);
-
   return mesh;
 }
 

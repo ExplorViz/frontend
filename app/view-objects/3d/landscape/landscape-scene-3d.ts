@@ -23,6 +23,7 @@ import type { Object3D } from 'three';
 import type { WorkerApplicationData } from 'workers/landscape-data-worker/landscape-data-context';
 import type LocalUser from 'collaborative-mode/services/local-user';
 import type LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import type HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export default class LandscapeScene3D implements Updatable {
   private readonly forceGraph: ForceGraph;
@@ -48,6 +49,9 @@ export default class LandscapeScene3D implements Updatable {
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
   private constructor(owner: Owner, scene: THREE.Scene) {
     setOwner(this, owner);
@@ -199,6 +203,7 @@ export default class LandscapeScene3D implements Updatable {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
+      this.highlightingService.updateHighlighting();
     }
 
     // This updates the scene:

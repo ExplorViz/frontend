@@ -43,6 +43,7 @@
         {{interaction-modifier
           raycastObjects=this.raycastObjects
           camera=this.localUser.camera
+          orthographicCamera=this.ortographicCamera
           singleClick=this.handleSingleClick
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
@@ -165,7 +166,6 @@
                 {{#if (eq componentName 'settings')}}
                   <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
-                    @isLandscapeView={{false}}
                     @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
                     @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                     @updateColors={{this.updateColors}}

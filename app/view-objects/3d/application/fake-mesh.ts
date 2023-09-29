@@ -112,6 +112,8 @@ export default class FakeInstanceMesh<
 
   turnOpaque(): void {}
 
+  turnTransparent(): void {}
+
   get isClass(): boolean {
     return 'methods' in this.dataModel;
   }

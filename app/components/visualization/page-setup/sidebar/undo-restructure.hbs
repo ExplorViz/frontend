@@ -1,12 +1,12 @@
 {{#if this.canUndo}}
-<button
+  <button
     type='button'
     class='btn btn-light btn-outline-dark sidebar-button'
     title='Undo'
     aria-label='Undo'
     {{on 'click' this.undoAction}}
     {{!-- disabled={{this.undoDisabled}} --}}
->
+  >
     {{svg-jar 'reply-16' class='octicon align-middle'}}
-</button>
+  </button>
 {{/if}}

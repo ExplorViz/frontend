@@ -196,7 +196,9 @@ export default class ApplicationRenderer extends Service.extend({
 
     let layoutChanged = true;
     if (applicationObject3D) {
-      layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
+      // Maps cannot be compared directly. Thus, we compare their size.
+      layoutChanged =
+        boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
 
       applicationObject3D.boxLayoutMap = boxLayoutMap;
     } else {
@@ -222,13 +224,15 @@ export default class ApplicationRenderer extends Service.extend({
 
     this.addCommunication(applicationObject3D);
 
-    // Add labels to application
-    performance.mark('addApplicationLabels-start');
-    Labeler.addApplicationLabels(
-      applicationObject3D,
-      this.font,
-      this.configuration.applicationColors
-    );
+    if (layoutChanged) {
+      // Add labels to application
+      performance.mark('addApplicationLabels-start');
+      Labeler.addApplicationLabels(
+        applicationObject3D,
+        this.font,
+        this.configuration.applicationColors
+      );
+    }
     performance.mark('addApplicationLabels-end');
 
     this.addCommunication(applicationObject3D);
@@ -576,6 +580,10 @@ export default class ApplicationRenderer extends Service.extend({
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  cleanup() {
+    this.openApplicationsMap.clear();
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {

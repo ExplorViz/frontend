@@ -1,10 +1,30 @@
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
-{{add-listener this.landscapeRestructure 'restructureLandscapeData' this.restructureLandscapeData}}
-{{add-listener this.landscapeRestructure 'openSettingsSidebar' this.openSettingsSidebar}}
-{{add-listener this.landscapeRestructure 'restructureComponent' this.toggleSettingsSidebarComponent}}
-{{add-listener this.landscapeRestructure 'resetPolling' this.resetLandscapeListenerPolling}}
-{{add-listener this.landscapeRestructure 'toggelVisualization' this.toggleVisualizationUpdating}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureLandscapeData'
+  this.restructureLandscapeData
+}}
+{{add-listener
+  this.landscapeRestructure
+  'openSettingsSidebar'
+  this.openSettingsSidebar
+}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureComponent'
+  this.toggleSettingsSidebarComponent
+}}
+{{add-listener
+  this.landscapeRestructure
+  'resetPolling'
+  this.resetLandscapeListenerPolling
+}}
+{{add-listener
+  this.landscapeRestructure
+  'toggelVisualization'
+  this.toggleVisualizationUpdating
+}}
 
 {{did-insert this.setupListeners}}
 <div id='vizspace' {{sync-state}}>

@@ -21,6 +21,7 @@
     "typescript": "tsc",
     "start": "concurrently \"npm:build:worker:watch\" \"ember serve\"",
     "start:prod": "npm run build:worker && ember serve --environment=production",
+    "dev": "DOTENV=.env-custom ember serve --environment=development",
     "test": "npm-run-all lint test:*",
     "test:ember": "ember test",
     "build:worker": "node build-workers.mjs build --minify",

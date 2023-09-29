@@ -6,6 +6,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fake-mesh';
@@ -33,6 +34,7 @@ interface NamedArgs {
   mousePositionX: number;
   rendererResolutionMultiplier: number;
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera;
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
@@ -79,6 +81,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -149,7 +154,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    return this.namedArgs.camera;
+    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+      return this.namedArgs.orthographicCamera;
+    } else {
+      return this.namedArgs.camera;
+    }
   }
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
@@ -269,6 +278,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    // Treat shift + single click as double click
+    if (event.shiftKey) {
+      this.onDoubleClick(event);
+      return;
+    }
     this.mouseClickCounter++;
 
     // Counter could be zero when mouse is in motion or one when mouse has stopped
@@ -335,7 +349,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
     const intersection = this.raycaster.raycasting(
       origin,
-      this.namedArgs.camera,
+      this.camera,
       possibleObjects
     );
 

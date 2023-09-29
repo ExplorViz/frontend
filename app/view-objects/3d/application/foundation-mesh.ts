@@ -2,7 +2,6 @@ import { Application } from 'explorviz-frontend/utils/landscape-schemes/structur
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';
-import ComponentLabelMesh from './component-label-mesh';
 import { createSingleLabelMesh } from './utils/single-label-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import type { ApplicationColors } from 'explorviz-frontend/services/configuration';

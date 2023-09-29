@@ -139,6 +139,12 @@ export default function computeDrawableClassCommunication(
       });
     }
 
+    if (copiedClassCommunications.size) {
+      copiedClassCommunications.forEach((value) => {
+        drawableClassCommunications.pushObjects(value);
+      });
+    }
+
     if (deletedClassCommunication.size) {
       const allDeletedComms: DrawableClassCommunication[] = [];
       deletedClassCommunication.forEach((value) => {
