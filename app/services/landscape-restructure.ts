@@ -296,7 +296,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       addMethodToClass(this.targetClass, methodName);
 
-      // Create Communication between 2 Classes
+      // Create model of communication between two classes
       const classCommunication: AggregatedClassCommunication = {
         id:
           this.sourceClass.name +
