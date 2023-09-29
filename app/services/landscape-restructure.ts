@@ -305,7 +305,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           '|' +
           methodName,
         methodCalls: [],
-        isRecursive: this.sourceClass.name === this.targetClass.name,
+        isRecursive: this.sourceClass.id === this.targetClass.id,
         isBidirectional: false,
         totalRequests: 1,
         metrics: { normalizedRequestCount: 1 },

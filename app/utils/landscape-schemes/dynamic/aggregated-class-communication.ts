@@ -38,10 +38,11 @@ export default class AggregatedClassCommunication {
     this.totalRequests += aggregatedMethodCall.totalRequests;
 
     if (
-      aggregatedMethodCall.sourceClass.id !==
+      aggregatedMethodCall.sourceClass.id ===
       aggregatedMethodCall.targetClass.id
     ) {
       this.isRecursive = true;
+      this.isBidirectional = true; // Implied by recursion
       return;
     }
 

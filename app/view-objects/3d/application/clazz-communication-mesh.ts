@@ -138,7 +138,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     desiredSegments = 20
   ) {
     // Handle recursive communication
-    if (this.isRecursiveCommunication()) {
+    if (this.dataModel.aggregatedClassCommunication.isRecursive) {
       this.renderRecursiveCommunication(applicationCenter);
       return;
     }
@@ -200,7 +200,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const start = new THREE.Vector3();
     const end = new THREE.Vector3();
 
-    if (!this.isRecursiveCommunication()) {
+    if (!this.dataModel.aggregatedClassCommunication.isRecursive) {
       start.subVectors(startPoint, applicationCenter);
       end.subVectors(endPoint, applicationCenter);
     }
@@ -316,12 +316,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   canBeIntersected() {
     return true;
-  }
-
-  isRecursiveCommunication() {
-    return (
-      this.layout.model.sourceClass.id === this.layout.model.targetClass.id
-    );
   }
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
