@@ -13,6 +13,7 @@ import {
 } from '../landscape-schemes/structure-data';
 import {
   getAllClassesInApplication,
+  getAllClassIdsInApplication,
   getAllPackagesInApplication,
 } from '../application-helpers';
 import { getClassesInPackage } from '../package-helpers';
@@ -129,56 +130,6 @@ export function turnComponentAndAncestorsOpaque(
 }
 
 /**
- * (Un)Highlights a given extern (!) communication line
- *
- * @param aggregatedClassCommunication Communication which shall be (un)highlighted
- * @param sourceApplicationObject3D The application mesh which contains the source clazz of mesh
- *  @param targetApplicationObject3D The application mesh which contains the target clazz of mesh
- */
-
-export function highlightExternCommunicationLine(
-  aggregatedClassCommunication: AggregatedClassCommunication,
-  sourceApplicationObject3D: ApplicationObject3D,
-  targetApplicationObject3D: ApplicationObject3D
-) {
-  let notFoundSource = true;
-  sourceApplicationObject3D.aggregatedClassCommSet.forEach(
-    (aggregatedClassComm) => {
-      if (aggregatedClassComm.id === aggregatedClassCommunication.id) {
-        notFoundSource = false;
-        sourceApplicationObject3D.aggregatedClassCommSet.delete(
-          aggregatedClassComm
-        );
-      }
-    }
-  );
-
-  if (notFoundSource) {
-    sourceApplicationObject3D.aggregatedClassCommSet.add(
-      aggregatedClassCommunication
-    );
-  }
-
-  let notFoundTarget = true;
-  targetApplicationObject3D.aggregatedClassCommSet.forEach(
-    (aggregatedClassComm) => {
-      if (aggregatedClassComm.id === aggregatedClassCommunication.id) {
-        notFoundTarget = false;
-        targetApplicationObject3D.aggregatedClassCommSet.delete(
-          aggregatedClassComm
-        );
-      }
-    }
-  );
-
-  if (notFoundTarget) {
-    targetApplicationObject3D.aggregatedClassCommSet.add(
-      aggregatedClassCommunication
-    );
-  }
-}
-
-/**
  * (Un)Highlights a given mesh
  *
  * @param meshId Either component, clazz or clazz communication mesh id of the mesh which shall be (un)highlighted
@@ -206,14 +157,13 @@ export function highlight(
     return;
   }
 
-  //console.log("Status bevor Klick: TRANSPARENT:", mesh.material.transparent, " OPACITY:", mesh.material.opacity);
   if (mesh.highlighted) {
-    mesh.unhighlight();
     if (
       applicationObject3D.highlightedEntity &&
       !isTrace(applicationObject3D.highlightedEntity)
     ) {
       applicationObject3D.highlightedEntity.delete(meshId);
+      mesh.unhighlight();
     }
   } else {
     mesh.highlight();
@@ -263,10 +213,10 @@ export function highlightTrace(
   const aggregatedComms = communication;
 
   // All clazzes in application
-  const allClazzesAsArray = getAllClassesInApplication(
+  const allClassesAsArray = getAllClassesInApplication(
     applicationObject3D.data.application
   );
-  const allClazzes = new Set<Class>(allClazzesAsArray);
+  const allClazzes = new Set<Class>(allClassesAsArray);
 
   const involvedClazzes = new Set<Class>();
 
@@ -378,7 +328,7 @@ export function highlightTrace(
     getClassAncestorPackages(clazz).forEach((pckg) => componentSet.add(pckg));
   });
 
-  // turn clazzes and packages transparent, which are not involved in the trace
+  // turn classes and packages transparent, which are not involved in the trace
   nonInvolvedClazzes.forEach((clazz) => {
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(
@@ -411,37 +361,36 @@ export function turnAllPackagesAndClassesTransparent(
   applicationObject3DList: ApplicationObject3D[],
   opacity: number
 ) {
-  let allClazzesArray: Class[] = [];
+  let allClassIds: string[] = [];
   applicationObject3DList.forEach((application) => {
-    const allClazzesAsArray = getAllClassesInApplication(
+    const classIdsInApplication = getAllClassIdsInApplication(
       application.data.application
     );
-    allClazzesAsArray.forEach((clazz) => {
+    classIdsInApplication.forEach((classId) => {
       // set everything transparent at the beginning
-      const clazzMesh = application.getMeshById(clazz.id);
+      const clazzMesh = application.getMeshById(classId);
       if (clazzMesh instanceof ClazzMesh) {
         clazzMesh.turnTransparent(opacity);
         turnComponentAndAncestorsTransparent(
-          clazz.parent,
+          clazzMesh.dataModel.parent,
           application,
           new Set(),
           opacity
         );
       }
     });
-    allClazzesArray = [...allClazzesArray, ...allClazzesAsArray];
+    allClassIds = [...allClassIds, ...classIdsInApplication];
   });
 
-  return allClazzesArray;
+  return allClassIds;
 }
 
-export function turnAllCommunicationLinksTransparentAndUnhighlighted(
+export function turnAllCommunicationLinksTransparent(
   allLinks: ClazzCommunicationMesh[],
   opacity: number
 ) {
   allLinks.forEach((link) => {
     link.turnTransparent(opacity);
-    link.unhighlight();
   });
 }
 
@@ -458,27 +407,27 @@ export function updateHighlighting(
 ) {
   // Set everything transparent at the beginning ----------------------
 
-  const allClazzes = new Set(
+  const allClassIds = new Set(
     turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
   );
-  turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
+  turnAllCommunicationLinksTransparent(allLinks, opacity);
 
   // ------------------------------------------------------------------
 
   // Now we proceed to compute all involved clazzes in highlighted components
 
-  let allInvolvedClazzesFinal: Set<Class> = new Set();
+  let allHighlightedClassIds: Set<string> = new Set();
+  let allInvolvedClassIds: Set<string> = new Set();
 
   applicationObject3DList.forEach((application: ApplicationObject3D) => {
-    //console.log(application.data.application.name, ":::", application.highlightedEntity);
-
     const highlightedEntityIds = application.highlightedEntity;
     if (highlightedEntityIds && !isTrace(highlightedEntityIds)) {
       highlightedEntityIds.forEach((entityId: string) => {
         const baseMesh = application.getMeshById(entityId);
         if (baseMesh) {
           // Get all clazzes in selected component
-          const containedClazzes = new Set<Class>();
+          const highlightedClassIds = new Set<string>();
+          const involvedClassIds = new Set<string>();
 
           const model = (
             baseMesh as
@@ -489,12 +438,12 @@ export function updateHighlighting(
           ).dataModel;
           // Add all clazzes which are contained in a component
           if (isPackage(model)) {
-            getClassesInPackage(model).forEach((clss) =>
-              containedClazzes.add(clss)
+            getClassesInPackage(model).forEach((classInPackage) =>
+              highlightedClassIds.add(classInPackage.id)
             );
-            // Add clazz itself
+            // Add class itself
           } else if (isClass(model)) {
-            containedClazzes.add(model);
+            highlightedClassIds.add(model.id);
             // Add source and target clazz of communication
           } else if (
             (model as ClazzCommuMeshDataModel)
@@ -508,99 +457,115 @@ export function updateHighlighting(
             const targetClass = (model as ClazzCommuMeshDataModel)
               .aggregatedClassCommunication.targetClass;
             if (sourceClass && targetClass) {
-              containedClazzes.add(sourceClass);
-              containedClazzes.add(targetClass);
+              involvedClassIds.add(sourceClass.id);
+              involvedClassIds.add(targetClass.id);
             }
           } else if (isApplication(model)) {
             getAllPackagesInApplication(model).forEach((pckg) => {
-              getClassesInPackage(pckg).forEach((clss) =>
-                containedClazzes.add(clss)
+              getClassesInPackage(pckg).forEach((classInPackage) =>
+                highlightedClassIds.add(classInPackage.id)
               );
             });
           }
+          allHighlightedClassIds = new Set([
+            ...allHighlightedClassIds,
+            ...highlightedClassIds,
+          ]);
 
-          const containedClazzesArray = Array.from(containedClazzes);
-          const allInvolvedClazzes = new Set(containedClazzes);
-
-          if (!(baseMesh instanceof ClazzCommunicationMesh)) {
-            // For a highlighted intern communication all involved clazzes are already known
-            communication.forEach((comm) => {
-              const { sourceClass, targetClass, id } = comm;
-
-              // Add clazzes which communicate directly with highlighted entity
-              if (containedClazzesArray.findBy('id', sourceClass.id)) {
-                allInvolvedClazzes.add(targetClass);
-
-                for (const link of allLinks) {
-                  // TODO: helper function so we do not have to write this loop every time in the following
-                  if (link.getModelId() === id) {
-                    link.turnOpaque();
-                    break;
-                  }
-                }
-              } else if (containedClazzesArray.findBy('id', targetClass.id)) {
-                allInvolvedClazzes.add(sourceClass);
-                for (const link of allLinks) {
-                  // TODO: helper function so we do not have to write this loop every time in the following
-                  if (link.getModelId() === id) {
-                    link.turnOpaque();
-                    break;
-                  }
-                }
-              }
-            });
-          }
-
-          allInvolvedClazzes.forEach((clss) =>
-            allInvolvedClazzesFinal.add(clss)
-          );
+          allInvolvedClassIds = new Set([
+            ...allInvolvedClassIds,
+            ...involvedClassIds,
+          ]);
         }
       });
     }
-
-    application.aggregatedClassCommSet.forEach((aggregatedClassComm) => {
-      allLinks.forEach((link) => {
-        //TODO: replace list with map so we don't have to iterate each time
-        if (link.getModelId() === aggregatedClassComm.id) {
-          link.turnOpaque();
-          link.highlight();
-          allInvolvedClazzesFinal.add(aggregatedClassComm.sourceClass);
-          allInvolvedClazzesFinal.add(aggregatedClassComm.targetClass);
-        }
-      });
-    });
   });
 
-  if (allInvolvedClazzesFinal.size === 0) {
+  // --- Add classes that are involved via communication ---
+
+  // For a highlighted intern communication all involved classes are already known
+  communication.forEach((comm) => {
+    const { sourceClass, targetClass, id } = comm;
+
+    // Add classes which communicate directly with highlighted entity
+    if (allHighlightedClassIds.has(sourceClass.id)) {
+      allInvolvedClassIds.add(targetClass.id);
+
+      for (const link of allLinks) {
+        // TODO: helper function so we do not have to write this loop every time in the following
+        if (link.getModelId() === id) {
+          link.turnOpaque();
+          break;
+        }
+      }
+    } else if (allHighlightedClassIds.has(targetClass.id)) {
+      allInvolvedClassIds.add(sourceClass.id);
+      for (const link of allLinks) {
+        // TODO: helper function so we do not have to write this loop every time in the following
+        if (link.getModelId() === id) {
+          link.turnOpaque();
+          break;
+        }
+      }
+    }
+  });
+
+  // Address highlighting and opacity of communication between applications
+  allLinks.forEach((link) => {
+    if (link.highlighted) {
+      link.turnOpaque();
+      link.highlight();
+      allInvolvedClassIds.add(
+        link.dataModel.aggregatedClassCommunication.sourceClass.id
+      );
+      allInvolvedClassIds.add(
+        link.dataModel.aggregatedClassCommunication.targetClass.id
+      );
+    }
+  });
+
+  allInvolvedClassIds = new Set([
+    ...allInvolvedClassIds,
+    ...allHighlightedClassIds,
+  ]);
+
+  if (allInvolvedClassIds.size === 0) {
     // set everything opaque
 
     allLinks.forEach((link) => {
       link.turnOpaque();
     });
-    allInvolvedClazzesFinal = allClazzes; // we pretend that all clazzes are "selected" so everything gets opaque again
+    allInvolvedClassIds = allClassIds; // we pretend that all clazzes are "selected" so everything gets opaque again
   }
 
-  const allInvolvedClazzesArray = Array.from(allInvolvedClazzesFinal);
-
-  //console.log("allInvolvedClazzesArray", allInvolvedClazzesArray);
-
-  // Turn involved clazzes opaque
-  allInvolvedClazzesArray.forEach((clazz) => {
+  // Turn involved classes opaque
+  allInvolvedClassIds.forEach((classId) => {
     for (const application of applicationObject3DList) {
-      const classMesh = application.getBoxMeshbyModelId(clazz.id);
+      const classMesh = application.getBoxMeshbyModelId(classId);
 
-      if (classMesh) {
+      if (classMesh instanceof ClazzMesh) {
         classMesh.turnOpaque();
-        turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
+        turnComponentAndAncestorsOpaque(
+          classMesh.dataModel.parent,
+          application,
+          new Set()
+        );
         break;
       }
+    }
+  });
 
-      // the following code won't work for extern links
-      // if(applicationHasClass(application.data.application, clazz)){
-      //   application.getBoxMeshbyModelId(clazz.id)?.turnOpaque();
-      //   turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
-      //   break;
-      // }
+  // Turn all involved external links opaque
+  allLinks.forEach((link) => {
+    if (
+      allInvolvedClassIds.has(
+        link.dataModel.aggregatedClassCommunication.sourceClass.id
+      ) &&
+      allInvolvedClassIds.has(
+        link.dataModel.aggregatedClassCommunication.targetClass.id
+      )
+    ) {
+      link.turnOpaque();
     }
   });
 }

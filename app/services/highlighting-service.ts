@@ -32,7 +32,11 @@ export type HightlightComponentArgs = {
   color?: THREE.Color;
 };
 
-type HighlightableMesh = ComponentMesh | ClazzMesh | ClazzCommunicationMesh;
+type HighlightableMesh =
+  | FoundationMesh
+  | ComponentMesh
+  | ClazzMesh
+  | ClazzCommunicationMesh;
 
 export function isHighlightableMesh(
   object: THREE.Object3D
@@ -108,28 +112,23 @@ export default class HighlightingService extends Service.extend({
 
   @action
   removeHighlightingForAllApplications(sendMessage: boolean) {
-    this.applicationRenderer
-      .getOpenApplications()
-      .forEach((applicationObject3D) => {
-        this.removeHighlightingLocally(applicationObject3D);
-        applicationObject3D.aggregatedClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
-      });
+    const { allLinks, applications } = this.getParams();
+
+    // Remove highlighting from applications
+    applications.forEach((applicationObject3D) => {
+      this.removeHighlightingLocally(applicationObject3D);
+      applicationObject3D.aggregatedClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
+    });
+
+    // Remove highlighting from communication between applications
+    allLinks.forEach((link) => {
+      link.unhighlight();
+    });
 
     if (sendMessage) {
       this.sender.sendAllHighlightsReset();
     }
   }
-
-  // removeHighlightingsOfUser(userId : string){
-
-  //   const apps = this.applicationRenderer.getOpenApplications();
-  //   apps.forEach(app => {
-  //     const meshes = app.getAllMeshes();
-  //     Array.from(meshes).forEach(mesh => {
-  //       mesh
-  //     });
-  //   });
-  // }
 
   updateHighlighting(value: number = this.opacity) {
     const { allLinks, aggregatedComm, applications } = this.getParams();
@@ -226,26 +225,19 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
 
-    const aggregatedClassComm = mesh.dataModel.aggregatedClassCommunication;
-    if (aggregatedClassComm) {
-      const sourceApp = aggregatedClassComm.sourceApp;
-      const targetApp = aggregatedClassComm.targetApp;
-
-      if (sourceApp && targetApp) {
-        const sourceApplicationObject =
-          this.applicationRenderer.getApplicationById(sourceApp.id);
-        const targetApplicationObject =
-          this.applicationRenderer.getApplicationById(targetApp.id);
-
-        if (sourceApplicationObject && targetApplicationObject) {
-          Highlighting.highlightExternCommunicationLine(
-            aggregatedClassComm,
-            sourceApplicationObject,
-            targetApplicationObject
-          );
-        }
-      }
+    // Toggle highlighting
+    if (mesh.highlighted) {
+      this.removeHighlightingForAllApplications(false);
+      return;
     }
+
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.removeHighlightingForAllApplications(false);
+    }
+
+    mesh.highlight();
   }
 
   @action
@@ -313,28 +305,22 @@ export default class HighlightingService extends Service.extend({
 
   private hightlightMesh(
     application: ApplicationObject3D,
-    mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
+    mesh: FoundationMesh | ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
     application.setHighlightingColor(
       color || this.configuration.applicationColors.highlightedEntityColor
     );
 
-    if (
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      mesh.highlighted
-    ) {
-      this.removeHighlightingLocally(application);
+    if (mesh.highlighted) {
+      this.removeHighlightingForAllApplications(false);
       return;
     }
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      !mesh.highlighted
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
     ) {
-      this.removeHighlightingLocally(application);
-      Highlighting.highlight(mesh.getModelId(), application);
-      return;
+      this.removeHighlightingForAllApplications(false);
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
