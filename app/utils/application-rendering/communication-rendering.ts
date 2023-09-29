@@ -145,7 +145,6 @@ export default class CommunicationRendering {
         const clazzCommuMeshData = new ClazzCommuMeshDataModel(
           application,
           aggregatedClassComm,
-          aggregatedClassComm.isBidirectional,
           aggregatedClassComm.id
         );
 

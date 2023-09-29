@@ -2,7 +2,6 @@ import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here

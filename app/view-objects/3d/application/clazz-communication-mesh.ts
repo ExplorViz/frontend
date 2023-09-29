@@ -208,7 +208,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.addArrow(start, end, arrowWidth, yOffset, color);
 
     // Add 2nd arrow to visualize bidirectional communication
-    if (this.dataModel.bidirectional) {
+    if (this.dataModel.aggregatedClassCommunication.isBidirectional) {
       this.addArrow(end, start, arrowWidth, yOffset, color);
     } else {
       // save arrow for potential upcoming use
@@ -223,7 +223,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   addBidirectionalArrow() {
-    if (this.dataModel.bidirectional && this.potentialBidirectionalArrow) {
+    if (
+      this.dataModel.aggregatedClassCommunication.isBidirectional &&
+      this.potentialBidirectionalArrow
+    ) {
       this.add(this.potentialBidirectionalArrow);
     }
   }

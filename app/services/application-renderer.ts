@@ -297,8 +297,6 @@ export default class ApplicationRenderer extends Service.extend({
 
       applicationObject3D.resetRotation();
 
-      // delete all extern comminication links so we can replace them with the current ones later on
-      //applicationObject3D.aggregatedClassCommSet.clear();
       return applicationObject3D;
     }
   );
