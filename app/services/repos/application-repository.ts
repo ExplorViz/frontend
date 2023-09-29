@@ -16,11 +16,6 @@ export default class ApplicationRepository extends Service.extend({
   @tracked
   communications: ApplicationCommunication[] = [];
 
-  /**
-   * Storing all communications in the landscape
-   */
-  allClassCommunications: AggregatedClassCommunication[] = [];
-
   getById(applicationId: string) {
     return this.applications.get(applicationId);
   }

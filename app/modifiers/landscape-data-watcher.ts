@@ -112,7 +112,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.landscapeRestructure.allClassCommunications =
       aggregatedClassCommunications;
-    this.applicationRepo.allClassCommunications = aggregatedClassCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
