@@ -22,7 +22,7 @@ import {
 } from 'workers/utils';
 import {
   type ApplicationLabelData,
-  generatePackageLabels,
+  generatePackageAndFoundationLabels,
 } from './label-generator';
 import * as Comlink from 'comlink';
 
@@ -222,7 +222,7 @@ function computeApplicationData(
       drawableClassCommunications
     );
     const counts = countClassesAndPackages(application);
-    const labels = generatePackageLabels(application, layout);
+    const labels = generatePackageAndFoundationLabels(application, layout);
 
     data.set(application.id, {
       layout,

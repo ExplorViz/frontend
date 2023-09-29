@@ -10,6 +10,10 @@ import type {
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import type ApplicationData from 'explorviz-frontend/utils/application-data';
 import FakeInstanceMesh from './fake-mesh';
+import {
+  createLabelLayoutDataAttribute,
+  createLabelMaterial,
+} from './utils/label-material';
 
 const LABEL_HEIGHT = 8.0; // TODO: import this (import from city-layouter not working!)
 
@@ -52,7 +56,19 @@ export default class ApplicationContent {
       this.classMaterial,
       app3d.data.counts.classes
     );
-    this.componentLabels = createLabelMesh(app3d.data, colors);
+
+    this.componentLabels = createLabelMesh(
+      app3d.data,
+      app3d.labelTexture,
+      colors
+    );
+    // TODO: foundation label
+    // const foundationLayout = this.getLayout(app3d.data.application.id);
+    // setupLabelMatrix(foundationLayout, true, true);
+    // this.componentLabels.setMatrixAt(
+    //   app3d.data.labels.layout.get(app3d.data.application.id)!.index,
+    //   tmpMatrix
+    // );
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -168,16 +184,6 @@ export default class ApplicationContent {
     return undefined;
   }
 
-  resetComponentColor(index: number): void {
-    const data = this.componentData[index];
-    const highlightedColor =
-      data.highlightingColor ?? this.colors.highlightedEntityColor;
-    const color = data.highlighted
-      ? highlightedColor
-      : componentColor(this.colors, data.level);
-    this.updateComponentColor(index, color);
-  }
-
   resetHoverEffect(): void {
     if (this.hoverIndex < 0) {
       return;
@@ -234,6 +240,16 @@ export default class ApplicationContent {
     this.resetComponentColor(data.index);
   }
 
+  unhighlightAll(): void {
+    for (const data of this.componentData) {
+      if (data.highlighted) {
+        this.resetComponentColor(data.index, false);
+        data.highlighted = false;
+      }
+    }
+    this.components.instanceColor!.needsUpdate = true;
+  }
+
   getOpenedComponents(): Package[] {
     return this.componentData
       .filter((data) => this.openComponentIds.has(data.component.id))
@@ -241,12 +257,32 @@ export default class ApplicationContent {
   }
 
   setHighlightingColor(color: THREE.Color): void {
-    color;
-    // TODO: update all (highlighted?) instances
+    const isDefault = color.equals(this.colors.highlightedEntityColor);
+    for (const data of this.componentData) {
+      if (isDefault) {
+        if (data.highlightingColor) {
+          this.updateComponentColor(data.index, color, false);
+        }
+        delete data.highlightingColor;
+      } else {
+        data.highlightingColor = color;
+      }
+    }
+    this.components.instanceColor!.needsUpdate = true;
   }
 
   get applicationId(): string {
     return this.app3d.data.application.id;
+  }
+
+  private resetComponentColor(index: number, update: boolean = true): void {
+    const data = this.componentData[index];
+    const highlightedColor =
+      data.highlightingColor ?? this.colors.highlightedEntityColor;
+    const color = data.highlighted
+      ? highlightedColor
+      : componentColor(this.colors, data.level);
+    this.updateComponentColor(index, color, update);
   }
 
   private updateComponentColor(
@@ -406,6 +442,13 @@ export default class ApplicationContent {
 
     return layout;
   }
+
+  // private updateClassLabels() {
+  //   const visibleClasses = this.componentData
+  //     .filter((data) => data.visible)
+  //     .map((data) => data.component.classes)
+  //     .flat();
+  // }
 }
 
 function setupBoxMatrix(
@@ -471,68 +514,20 @@ function createInstancedMesh(
   return mesh;
 }
 
-function createLabelMesh(data: ApplicationData, colors: ApplicationColors) {
-  const texture = new THREE.Texture(data.labels.texture);
-  texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.anisotropy = 4;
-  texture.needsUpdate = true;
-
+function createLabelMesh(
+  data: ApplicationData,
+  texture: THREE.Texture,
+  colors: ApplicationColors
+): THREE.InstancedMesh {
   const planeGeometry = new THREE.PlaneGeometry(1, 1);
   planeGeometry.rotateX(-0.5 * Math.PI);
   planeGeometry.rotateY(-0.5 * Math.PI);
 
-  // Make label width & height available to the vertex shader:
-  const shaderData = new Float32Array(
-    Array.from(data.labels.layout.values())
-      .map((label) => [label.width, label.bottom])
-      .flat()
-  );
-  const attribute = new THREE.InstancedBufferAttribute(shaderData, 2, false, 1);
-  attribute.needsUpdate = true;
+  // Make label layout data available to the vertex shader:
+  const attribute = createLabelLayoutDataAttribute(data.labels);
   planeGeometry.setAttribute('labelLayoutData', attribute);
 
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.FrontSide,
-    transparent: true,
-  });
-
-  material.onBeforeCompile = (shader) => {
-    // Modify shader to use custom UV coordinates per instance:
-    shader.vertexShader = shader.vertexShader
-      .replace(
-        '#include <uv_pars_vertex>',
-        `#include <uv_pars_vertex>
-      uniform float labelHeight;
-      attribute vec2 labelLayoutData;`
-      )
-      .replace(
-        '#include <uv_vertex>',
-        `#include <uv_vertex>
-      float labelWidth = labelLayoutData.x;
-      float labelYOffset = labelLayoutData.y;
-      vec2 customUV = MAP_UV * vec2(labelWidth, labelHeight) + vec2(0.0, labelYOffset);
-      vMapUv = ( mapTransform * vec3( customUV, 1 ) ).xy;`
-      );
-
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <map_pars_fragment>',
-        `#include <map_pars_fragment>
-        uniform vec3 textColor;`
-      )
-      .replace(
-        '#include <map_fragment>',
-        `float textAlpha = texture2D(map, vMapUv).r;
-        vec4 sampledDiffuseColor = vec4(textColor, textAlpha);
-        diffuseColor *= sampledDiffuseColor;        `
-      );
-
-    // TODO: Make uniforms accessible outside of this scope
-    shader.uniforms['labelHeight'] = { value: data.labels.labelHeight };
-    shader.uniforms['textColor'] = { value: colors.componentTextColor };
-  };
+  const material = createLabelMaterial(texture, colors.componentTextColor);
 
   const mesh = new THREE.InstancedMesh(
     planeGeometry,

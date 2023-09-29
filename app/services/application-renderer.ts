@@ -151,7 +151,7 @@ export default class ApplicationRenderer extends Service.extend({
     return worldPosition;
   }
 
-  getMeshById(meshId: string): BaseMesh | undefined {
+  getMeshById(meshId: string): BaseMesh | FakeInstanceMesh | undefined {
     return (
       this.getBoxMeshByModelId(meshId) ||
       this.getCommunicationMeshById(meshId) ||

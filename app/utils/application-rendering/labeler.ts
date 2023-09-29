@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ClazzLabelMesh from 'explorviz-frontend/view-objects/3d/application/clazz-label-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { ApplicationColors } from 'explorviz-frontend/services/configuration';
@@ -15,7 +14,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
  *
  * @param boxMesh Mesh which is labeled
  */
-export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
+export function positionBoxLabel(boxMesh: ComponentMesh) {
   const label = boxMesh.labelMesh;
 
   if (!label) {
@@ -53,7 +52,7 @@ export function addApplicationLabels(
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { clazzTextColor, foundationTextColor } = colors;
+  const { clazzTextColor } = colors;
 
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
@@ -61,48 +60,10 @@ export function addApplicationLabels(
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
         addClazzTextLabel(mesh, font, clazzTextColor); // TODO
-      } else if (mesh instanceof FoundationMesh) {
-        addBoxTextLabel(mesh, font, foundationTextColor);
       }
     }
   });
   performance.mark('addApplicationLabels-end');
-}
-
-/**
- * Creates a label and adds it at a calculated position to the given
- * component or foundation mesh
- *
- * @param boxMesh The mesh which shall be labeled
- * @param font Desired font of the text
- * @param color Desired color of the text
- * @param minHeight Minimal height of font
- * @param minLength Minimal length (#letters) of text. More important than minHeight
- * @param scalar Allows to scale text size additionally
- */
-function addBoxTextLabel(
-  boxMesh: ComponentMesh | FoundationMesh,
-  font: Font,
-  color: THREE.Color,
-  minHeight = 1.5,
-  minLength = 4,
-  scalar = 1,
-  replace = false
-) {
-  if (boxMesh.labelMesh && !replace) return;
-  const labelMesh = new ComponentLabelMesh(
-    boxMesh,
-    font,
-    color,
-    minHeight,
-    minLength
-  );
-  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
-
-  boxMesh.labelMesh = labelMesh;
-  boxMesh.add(labelMesh);
-
-  positionBoxLabel(boxMesh);
 }
 
 /**

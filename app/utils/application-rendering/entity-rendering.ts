@@ -147,13 +147,12 @@ export function addFoundationAndChildrenToApplication(
     return;
   }
 
-  const { foundationColor, highlightedEntityColor } = applicationColors;
-
   const mesh = new FoundationMesh(
     applicationLayout,
     application,
-    foundationColor,
-    highlightedEntityColor
+    applicationObject3D.data,
+    applicationColors,
+    applicationObject3D.labelTexture
   );
 
   addMeshToApplication(mesh, applicationObject3D);

@@ -33,14 +33,13 @@ import FakeInstanceMesh from 'explorviz-frontend/view-objects/3d/application/fak
 export function removeAllHighlighting(
   applicationObject3D: ApplicationObject3D
 ) {
+  applicationObject3D.content.unhighlightAll();
   const meshes = applicationObject3D.getCommMeshes();
 
   meshes.forEach((mesh) => {
     removeHighlighting(mesh, applicationObject3D);
   });
   applicationObject3D.highlightedEntity = null;
-
-  // TODO: remove highlighting from instanced content
 }
 
 /**

@@ -1,20 +1,31 @@
 import type { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { type CityLayout, LABEL_HEIGHT } from 'workers/city-layouter';
-import { getAllComponentsInApplication } from 'workers/utils';
-import { type ReducedApplication } from 'workers/worker-types';
+import {
+  getAllClassesInApplication,
+  getAllComponentsInApplication,
+} from 'workers/utils';
+import type {
+  ReducedComponent,
+  ReducedApplication,
+} from 'workers/worker-types';
 
 export type ApplicationLabelData = {
   texture: ImageData;
   layout: LabelLayoutMap;
-  labelHeight: number; // relative to the texture height
 };
 
-type LabelLayoutMap = Map<
-  string,
-  { width: number; top: number; bottom: number; index: number }
->;
+type LabelLayoutMap = Map<string, LabelLayoutData>;
 
-export function generatePackageLabels(
+export type LabelLayoutData = {
+  width: number;
+  top: number;
+  bottom: number;
+  height: number;
+  index: number;
+  aspectRatio: number;
+};
+
+export function generatePackageAndFoundationLabels(
   application: Application,
   layout: CityLayout
 ): ApplicationLabelData {
@@ -22,7 +33,10 @@ export function generatePackageLabels(
     application as unknown as ReducedApplication // TODO: fix type
   );
 
-  const actualLabelHeight = 0.5 * LABEL_HEIGHT; /// TODO: why?
+  // Also add foundation label:
+  packages.push(application as unknown as ReducedComponent);
+
+  const actualLabelHeight = 0.5 * LABEL_HEIGHT; // TODO: why?
 
   const fontSize = 48;
   const lineHeight = 64;
@@ -31,19 +45,7 @@ export function generatePackageLabels(
   const width = 384;
   const height = lineHeight * packages.length;
 
-  const offscreen = new OffscreenCanvas(width, height);
-  const ctx = offscreen.getContext('2d');
-  if (!ctx) {
-    throw new Error();
-  }
-
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.fillStyle = 'rgb(255,255,255)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  //ctx.textRendering = 'optimizeLegibility';
+  const ctx = initCanvas(width, height);
 
   const textureLayout: LabelLayoutMap = new Map();
 
@@ -72,18 +74,72 @@ export function generatePackageLabels(
       width: maxWidth / width,
       top: (y + lineHeight) / height,
       bottom: (height - (y + lineHeight)) / height,
+      height: lineHeight / height,
       index: i,
+      aspectRatio: actualLabelHeight / boxWidth,
     });
   });
 
   // TODO: remove
-  // offscreen
+  // ctx.canvas
   //   .convertToBlob()
   //   .then((blob) => console.log('url', URL.createObjectURL(blob)));
 
   return {
     texture: ctx.getImageData(0, 0, width, height),
     layout: textureLayout,
-    labelHeight: lineHeight / height,
   };
+}
+
+export function generateClassLabels(application: Application) {
+  const classes = getAllClassesInApplication(
+    application as unknown as ReducedApplication
+  );
+
+  const width = 128;
+  const height = classes.length * 10; // TODO
+
+  const ctx = initCanvas(width, height);
+
+  const textureLayout: LabelLayoutMap = new Map();
+
+  classes.forEach(({ name, id }, i) => {
+    // TODO
+    ctx.fillText(name, 0.5 * width, 10 * i, width);
+
+    textureLayout.set(id, {
+      width: width,
+      top: (10 * i) / height,
+      bottom: (height - 0) / height,
+      height: 10 / height,
+      index: i,
+      aspectRatio: 1.0, // TODO
+    });
+  });
+
+  return {
+    texture: ctx.getImageData(0, 0, width, height),
+    layout: textureLayout,
+  };
+}
+
+function initCanvas(
+  width: number,
+  height: number
+): OffscreenCanvasRenderingContext2D {
+  const offscreen = new OffscreenCanvas(width, height);
+  const ctx = offscreen.getContext('2d');
+  if (!ctx) {
+    throw new Error();
+  }
+
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = 'rgb(255,255,255)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  //ctx.textRendering = 'optimizeLegibility';
+
+  return ctx;
 }

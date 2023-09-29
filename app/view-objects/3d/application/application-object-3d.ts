@@ -18,6 +18,7 @@ import type { DrawableClassCommunication } from 'explorviz-frontend/utils/applic
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import FakeInstanceMesh from './fake-mesh';
+import { createLabelTexture } from './utils/label-material';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -61,6 +62,8 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   arrows: CommunicationArrows;
 
+  labelTexture: THREE.Texture;
+
   constructor(
     data: ApplicationData,
     boxLayoutMap: Map<string, BoxLayout>,
@@ -74,6 +77,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     this.name = data.application.name;
 
+    this.labelTexture = createLabelTexture(data.labels.texture);
     this.createFoundation(colors);
     this.content = new ApplicationContent(this, colors, openComponentIds);
 
@@ -92,8 +96,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
     const mesh = new FoundationMesh(
       layout,
       application,
-      colors.foundationColor,
-      colors.highlightedEntityColor
+      this.data,
+      colors,
+      this.labelTexture
     );
 
     this.add(mesh);
@@ -262,6 +267,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * Returns a set containing all application regarded box meshes inside this application
    */
   getBoxMeshes() {
+    // TODO tiwe
     return new Set([...this.modelIdToMesh.values()]);
   }
 
