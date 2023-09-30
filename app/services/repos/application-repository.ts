@@ -23,7 +23,6 @@ export default class ApplicationRepository extends Service {
   }
 
   cleanup() {
-    this.communications = [];
     this.applications.clear();
     this.notifyPropertyChange('communications');
     this.notifyPropertyChange('applications');
