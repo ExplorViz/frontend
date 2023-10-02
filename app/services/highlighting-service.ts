@@ -286,8 +286,12 @@ export default class HighlightingService extends Service.extend({
       color || this.configuration.applicationColors.highlightedEntityColor
     );
 
-    if (mesh.highlighted) {
-      this.removeHighlightingForAllApplications(false);
+    if (
+      application.highlightedEntity instanceof Set &&
+      application.highlightedEntity.has(mesh.dataModel.id)
+    ) {
+      application.highlightedEntity.delete(mesh.dataModel.id);
+      mesh.unhighlight();
       return;
     }
 

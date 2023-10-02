@@ -452,6 +452,7 @@ function getAllSelectedClassIds(
       if (!baseMesh) {
         return;
       }
+      baseMesh.highlight();
       const selectedClassIds = new Set<string>();
 
       const model = (

@@ -48,6 +48,7 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -100,6 +101,9 @@ export default class VisualizationController extends Controller {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -508,6 +512,7 @@ export default class VisualizationController extends Controller {
     }
     // now we can be sure our linkRenderer has all extern links
 
+    // Serialized room is used in landscape-data-watcher
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
@@ -516,11 +521,7 @@ export default class VisualizationController extends Controller {
         highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
 
-    // this.applicationRenderer.restoreFromSerialization(
-    //   this.roomSerializer.serializedRoom
-    // );
-
-    this.applicationRenderer.highlightingService.updateHighlighting();
+    this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
