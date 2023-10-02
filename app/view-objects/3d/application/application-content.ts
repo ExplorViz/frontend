@@ -62,13 +62,6 @@ export default class ApplicationContent {
       app3d.labelTexture,
       colors
     );
-    // TODO: foundation label
-    // const foundationLayout = this.getLayout(app3d.data.application.id);
-    // setupLabelMatrix(foundationLayout, true, true);
-    // this.componentLabels.setMatrixAt(
-    //   app3d.data.labels.layout.get(app3d.data.application.id)!.index,
-    //   tmpMatrix
-    // );
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -78,6 +71,7 @@ export default class ApplicationContent {
     app3d.add(this.components);
     app3d.add(this.classes);
     app3d.add(this.componentLabels);
+    this.classes.frustumCulled = false;
 
     this.init();
   }
@@ -358,6 +352,10 @@ export default class ApplicationContent {
     this.components.instanceMatrix!.needsUpdate = true;
     this.components.instanceColor!.needsUpdate = true;
     this.componentLabels.instanceMatrix!.needsUpdate = true;
+    this.classes.instanceMatrix!.needsUpdate = true;
+
+    this.components.computeBoundingBox();
+    this.components.computeBoundingSphere();
   }
 
   private addComponentsAndChildren(

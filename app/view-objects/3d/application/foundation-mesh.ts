@@ -52,27 +52,7 @@ export default class FoundationMesh<
     this.labelMesh.position.x =
       -this.geometry.parameters.width / 2 + foundationOffset / this.width;
 
-    // const position = layout.center;
-    // position.y += 1.5 - 0.5 * layout.height + 0.01;
-    // position.x -= 0.5 * layout.width - 0.25 * LABEL_HEIGHT;
-    // this.labelMesh2.position.copy(position);
-    // const scale = new THREE.Vector3(0.5 * LABEL_HEIGHT, 1.0, 0.9 * layout.depth);
-    // scale.multiplyScalar(0.01);
-    // this.labelMesh2.scale.copy(scale);
-
     this.add(this.labelMesh);
-
-    // console.log('layout', layout.center);
-    // console.log(
-    //   'label position',
-    //   this.labelMesh2.getWorldPosition(new THREE.Vector3()),
-    //   this.getWorldPosition(new THREE.Vector3())
-    // );
-    // console.log(
-    //   'label scale',
-    //   this.labelMesh2.getWorldScale(new THREE.Vector3()),
-    //   this.getWorldScale(new THREE.Vector3())
-    // );
   }
 
   setDefaultMaterial() {
