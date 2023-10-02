@@ -224,7 +224,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.changeLog.resetChangeLog();
     this.trigger('showChangeLog');
 
-    this.landscapeListener.initLandscapePolling();
+    this.landscapeDataService.startPolling();
   }
 
   setSourceOrTargetClass(type: string) {
