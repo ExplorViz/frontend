@@ -3,7 +3,7 @@ import { Application, Class, Package, isClass } from '../structure-data';
 import AggregatedClassCommunication from './aggregated-class-communication';
 import AggregatedMethodCall from './aggregated-method-call';
 
-export default class PackageCommunication {
+export default class ComponentCommunication {
   id: string = '';
   classCommunications: AggregatedClassCommunication[] = [];
   methodCalls: AggregatedMethodCall[] = [];
