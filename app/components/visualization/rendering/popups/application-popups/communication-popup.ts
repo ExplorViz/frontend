@@ -24,7 +24,7 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get calculateAggregatedRequestCount() {
-    return this.args.communication.aggregatedClassCommunication.totalRequests;
+    return this.args.communication.communication.totalRequests;
   }
 
   @action

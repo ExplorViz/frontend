@@ -9,6 +9,8 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/applicat
 import LocalUser from 'collaborative-mode/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
+import { findFirstOpen } from '../link-helper';
+import ComponentCommunication from '../landscape-schemes/dynamic/package-communication';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -117,7 +119,7 @@ export default class CommunicationRendering {
     const { communicationColor, highlightedEntityColor } =
       this.configuration.applicationColors;
 
-    const positionToClazzCommMesh = new Map<string, ClazzCommunicationMesh>();
+    const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
     // Render all aggregated communications
     applicationObject3D.data.aggregatedClassCommunications.forEach(
@@ -133,20 +135,64 @@ export default class CommunicationRendering {
 
         const start = new Vector3();
         start.subVectors(commLayout.startPoint, viewCenterPoint);
-        const startCoordsAsString = `${start.x}.${start.y}.${start.z}`;
 
         const end = new Vector3();
         end.subVectors(commLayout.endPoint, viewCenterPoint);
-        const endCoordsAsString = `${end.x}.${end.y}.${end.z}`;
 
-        const combinedCoordsAsString = startCoordsAsString + endCoordsAsString;
-
-        // does not exist, therefore create pipe
-        const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-          application,
-          aggregatedClassComm,
-          aggregatedClassComm.id
+        const visibleSource = findFirstOpen(
+          applicationObject3D,
+          aggregatedClassComm.sourceClass
         );
+
+        const visibleTarget = findFirstOpen(
+          applicationObject3D,
+          aggregatedClassComm.targetClass
+        );
+
+        let clazzCommuMeshData!: ClazzCommuMeshDataModel;
+
+        if (
+          visibleSource.id !== aggregatedClassComm.sourceClass.id ||
+          visibleTarget.id !== aggregatedClassComm.targetClass.id
+        ) {
+          const ids = [visibleSource.id, visibleTarget.id].sort();
+          const componentCommunicationId = ids[0] + '_' + ids[1];
+
+          let componentCommunication: ComponentCommunication;
+          // Add communication to existing component communication
+          if (componentCommunicationMap.has(componentCommunicationId)) {
+            componentCommunication = componentCommunicationMap.get(
+              componentCommunicationId
+            )!;
+            componentCommunication.addClassCommunication(aggregatedClassComm);
+            return;
+            // Create new component communication
+          } else {
+            componentCommunication = new ComponentCommunication(
+              componentCommunicationId,
+              visibleSource,
+              visibleTarget,
+              aggregatedClassComm
+            );
+            clazzCommuMeshData = new ClazzCommuMeshDataModel(
+              application,
+              componentCommunication,
+              componentCommunication.id
+            );
+
+            componentCommunicationMap.set(
+              componentCommunicationId,
+              componentCommunication
+            );
+          }
+          // Create new communication between classes
+        } else {
+          clazzCommuMeshData = new ClazzCommuMeshDataModel(
+            application,
+            aggregatedClassComm,
+            aggregatedClassComm.id
+          );
+        }
 
         const oldColor = oldHighlightedColors.get(clazzCommuMeshData.id);
 
@@ -168,9 +214,10 @@ export default class CommunicationRendering {
         if (aggregatedClassComm.isBidirectional) {
           this.addBidirectionalArrow(pipe);
         }
-
-        positionToClazzCommMesh.set(combinedCoordsAsString, pipe);
       }
     );
+
+    // Apply highlighting properties to newly added communication
+    applicationObject3D.updateCommunicationMeshHighlighting();
   }
 }

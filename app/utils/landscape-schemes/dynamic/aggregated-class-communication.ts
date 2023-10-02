@@ -51,4 +51,8 @@ export default class AggregatedClassCommunication {
       this.isBidirectional = true;
     }
   }
+
+  getClasses() {
+    return [this.sourceClass, this.targetClass];
+  }
 }

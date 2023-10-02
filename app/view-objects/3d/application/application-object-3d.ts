@@ -408,9 +408,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.getCommMeshes().forEach((mesh) => {
       if (
         this.highlightedEntity instanceof Set &&
-        this.highlightedEntity.has(
-          mesh.dataModel.aggregatedClassCommunication.id
-        )
+        this.highlightedEntity.has(mesh.dataModel.communication.id)
       ) {
         mesh.highlight();
       }

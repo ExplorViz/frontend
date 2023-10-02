@@ -151,7 +151,7 @@ export function highlight(
 
   const datamodel =
     mesh.dataModel instanceof ClazzCommuMeshDataModel
-      ? mesh.dataModel.aggregatedClassCommunication
+      ? mesh.dataModel.communication
       : mesh.dataModel;
 
   if (!datamodel) {
@@ -405,11 +405,6 @@ export function updateHighlighting(
   communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  // Communication meshes are often replaced and need to be updated
-  applicationObject3DList.forEach((applicationObject3D) => {
-    applicationObject3D.updateCommunicationMeshHighlighting();
-  });
-
   // Set everything transparent at the beginning
   const allClassIds = new Set(
     turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
@@ -496,19 +491,20 @@ function getAllInvolvedClassIds(
 ) {
   const allInvolvedClassIds = new Set<string>();
   communicationMeshes.forEach((comm) => {
-    const { sourceClass, targetClass } =
-      comm.dataModel.aggregatedClassCommunication;
+    const involvedClasses = comm.dataModel.communication.getClasses();
+
+    let hasSelectedClass = false;
+    involvedClasses.forEach((involvedClass) => {
+      if (allSelectedClassIds.has(involvedClass.id)) {
+        hasSelectedClass = true;
+      }
+    });
 
     // Add classes which communicate directly with selected entities
-    if (comm.highlighted) {
-      allInvolvedClassIds.add(sourceClass.id);
-      allInvolvedClassIds.add(targetClass.id);
-    } else if (
-      allSelectedClassIds.has(sourceClass.id) ||
-      allSelectedClassIds.has(targetClass.id)
-    ) {
-      allInvolvedClassIds.add(sourceClass.id);
-      allInvolvedClassIds.add(targetClass.id);
+    if (comm.highlighted || hasSelectedClass) {
+      involvedClasses.forEach((involvedClass) => {
+        allInvolvedClassIds.add(involvedClass.id);
+      });
     }
   });
   return allInvolvedClassIds;
@@ -539,17 +535,15 @@ function turnCommunicationOpaque(
   selectedClassIds: Set<string>,
   communicationMeshes: ClazzCommunicationMesh[]
 ) {
-  communicationMeshes.forEach((link) => {
-    if (
-      selectedClassIds.has(
-        link.dataModel.aggregatedClassCommunication.sourceClass.id
-      ) ||
-      selectedClassIds.has(
-        link.dataModel.aggregatedClassCommunication.targetClass.id
-      ) ||
-      link.highlighted
-    ) {
-      link.turnOpaque();
+  communicationMeshes.forEach((comm) => {
+    let hasSelectedClass = false;
+    comm.dataModel.communication.getClasses().forEach((communicationClass) => {
+      if (selectedClassIds.has(communicationClass.id)) {
+        hasSelectedClass = true;
+      }
+    });
+    if (hasSelectedClass || comm.highlighted) {
+      comm.turnOpaque();
     }
   });
 }

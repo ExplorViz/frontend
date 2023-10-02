@@ -1,8 +1,9 @@
 import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import PackageCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/package-communication';
 import * as THREE from 'three';
 
 export default class CommunicationLayout {
-  model: AggregatedClassCommunication;
+  model: AggregatedClassCommunication | PackageCommunication;
 
   startX: number = -5;
 
@@ -20,7 +21,7 @@ export default class CommunicationLayout {
 
   pointsFor3D: THREE.Vector3[] = [];
 
-  constructor(model: AggregatedClassCommunication) {
+  constructor(model: AggregatedClassCommunication | PackageCommunication) {
     this.model = model;
   }
 

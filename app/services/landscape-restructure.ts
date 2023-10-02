@@ -315,6 +315,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         sourceApp: sourceApp!,
         targetApp: targetApp!,
         addMethodCalls: () => {},
+        getClasses: () => [this.sourceClass!, this.targetClass!],
       };
 
       // Create the Changelog Entry

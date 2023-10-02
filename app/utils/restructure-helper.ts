@@ -691,6 +691,7 @@ function copyCommunication(
     sourceApp: commToCopy.sourceApp,
     targetApp: commToCopy.targetApp,
     addMethodCalls: () => {},
+    getClasses: () => [commToCopy.sourceClass, commToCopy.targetClass],
   };
 
   return comm;

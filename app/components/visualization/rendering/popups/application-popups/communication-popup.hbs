@@ -7,9 +7,7 @@
   <table class='w-100'>
     <tbody>
       {{! Aggregated Information }}
-      {{#if
-        (gt @communication.aggregatedClassCommunication.methodCalls.length 1)
-      }}
+      {{#if (gt @communication.communication.methodCalls.length 1)}}
         {{! Aggregated request count }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
@@ -17,7 +15,7 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{@communication.aggregatedClassCommunication.totalRequests}}
+            {{@communication.communication.totalRequests}}
             ( 100% )
           </td>
         </tr>
@@ -25,13 +23,13 @@
         <tr>
           <td class='text-nowrap align-top'>#</td>
           <td class='text-right text-break pl-1'>
-            {{@communication.aggregatedClassCommunication.methodCalls.length}}
+            {{@communication.communication.methodCalls.length}}
           </td>
         </tr>
         <hr />
       {{/if}}
       {{#each
-        @communication.aggregatedClassCommunication.methodCalls
+        @communication.communication.methodCalls
         as |aggregatedClassCommu index|
       }}
         {{! Relationship }}

@@ -128,7 +128,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     desiredSegments = 20
   ) {
     // Handle recursive communication
-    if (this.dataModel.aggregatedClassCommunication.isRecursive) {
+    if (this.dataModel.communication.isRecursive) {
       this.renderRecursiveCommunication(applicationCenter);
       return;
     }
@@ -190,7 +190,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const start = new THREE.Vector3();
     const end = new THREE.Vector3();
 
-    if (!this.dataModel.aggregatedClassCommunication.isRecursive) {
+    if (!this.dataModel.communication.isRecursive) {
       start.subVectors(startPoint, applicationCenter);
       end.subVectors(endPoint, applicationCenter);
     }
@@ -198,7 +198,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.addArrow(start, end, arrowWidth, yOffset, color);
 
     // Add 2nd arrow to visualize bidirectional communication
-    if (this.dataModel.aggregatedClassCommunication.isBidirectional) {
+    if (this.dataModel.communication.isBidirectional) {
       this.addArrow(end, start, arrowWidth, yOffset, color);
     } else {
       // save arrow for potential upcoming use
@@ -214,7 +214,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   addBidirectionalArrow() {
     if (
-      this.dataModel.aggregatedClassCommunication.isBidirectional &&
+      this.dataModel.communication.isBidirectional &&
       this.potentialBidirectionalArrow
     ) {
       this.add(this.potentialBidirectionalArrow);
@@ -253,9 +253,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.aggregatedClassCommunication) {
+    if (this.dataModel.communication) {
       const arrow = new CommunicationArrowMesh(
-        this.dataModel.aggregatedClassCommunication,
+        this.dataModel.communication,
         dir,
         origin,
         length,
@@ -290,9 +290,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.aggregatedClassCommunication) {
+    if (this.dataModel.communication) {
       return new CommunicationArrowMesh(
-        this.dataModel.aggregatedClassCommunication,
+        this.dataModel.communication,
         dir,
         origin,
         length,

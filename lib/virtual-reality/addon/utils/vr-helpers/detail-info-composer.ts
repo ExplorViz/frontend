@@ -20,6 +20,7 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from '../vr-message/util/entity_type';
+import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
 
 export type DetailedInfo = {
   title: string;
@@ -153,18 +154,17 @@ function composeClazzContent(
 function composeAggregatedClassCommunicationContent(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  const applicationId = communication.application.id;
+  const communicationData = communicationMesh.dataModel;
+  const applicationId = communicationData.application.id;
 
   const title = 'Communication Information';
 
   const content: DetailedInfo = { title, entries: [] };
 
   // # of aggregated requests
-  const aggregatedReqCount =
-    communication.aggregatedClassCommunication.totalRequests;
+  const aggregatedReqCount = communicationData.communication.totalRequests;
 
-  if (communication.aggregatedClassCommunication.methodCalls.length > 1) {
+  if (communicationData.communication.methodCalls.length > 1) {
     content.entries.push({
       key: 'Aggregated request count:',
       value: `${aggregatedReqCount} ( 100% )`,
@@ -173,7 +173,7 @@ function composeAggregatedClassCommunicationContent(
     // # of unique method calls
     content.entries.push({
       key: 'Number of unique methods:',
-      value: `${communication.aggregatedClassCommunication.methodCalls.length}`,
+      value: `${communicationData.communication.methodCalls.length}`,
     });
 
     content.entries.push({
@@ -183,7 +183,7 @@ function composeAggregatedClassCommunicationContent(
   }
 
   // add information for each unique method call
-  communication.aggregatedClassCommunication.methodCalls.forEach(
+  communicationData.communication.methodCalls.forEach(
     (aggregatedMethodCall, index) => {
       const commuHasExternalApp =
         applicationId !== aggregatedMethodCall.sourceApp?.id ||
@@ -220,9 +220,7 @@ function composeAggregatedClassCommunicationContent(
       });
 
       // Spacer
-      if (
-        index < communication.aggregatedClassCommunication.methodCalls.length
-      ) {
+      if (index < communicationData.communication.methodCalls.length) {
         content.entries.push({
           key: '---',
           value: '',
@@ -289,41 +287,58 @@ export function getTypeOfEntity(entity: EntityMesh): EntityType {
 export function getCommunicationSourceClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.sourceClass.name;
+  // TODO: Take component communication into account
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof AggregatedClassCommunication) {
+    return communicationData.communication.sourceClass.name;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationTargetClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.targetClass.name;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof AggregatedClassCommunication) {
+    return communicationData.communication.targetClass.name;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationSourceAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.sourceApp.id;
+  const communicationData = communicationMesh.dataModel;
+  return communicationData.communication.sourceApp.id;
 }
 
 export function getCommunicationTargetAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.targetApp.id;
+  const communicationData = communicationMesh.dataModel;
+  return communicationData.communication.targetApp.id;
 }
 
 export function getCommunicationSourceClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.sourceClass.id;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof AggregatedClassCommunication) {
+    return communicationData.communication.sourceClass.id;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationTargetClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.aggregatedClassCommunication.targetClass.id;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof AggregatedClassCommunication) {
+    return communicationData.communication.targetClass.id;
+  } else {
+    return 'Composed Communication';
+  }
 }

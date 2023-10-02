@@ -126,7 +126,7 @@ export default class LinkRenderer extends Service.extend({}) {
     }
     const newMesh = new ClazzCommunicationMesh(
       // Note: Parameter layout is not used here
-      new CommunicationLayout(clazzCommuMeshData.aggregatedClassCommunication),
+      new CommunicationLayout(clazzCommuMeshData.communication),
       clazzCommuMeshData,
       communicationColor,
       highlightedEntityColor
