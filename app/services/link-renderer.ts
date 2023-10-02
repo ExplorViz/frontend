@@ -114,7 +114,6 @@ export default class LinkRenderer extends Service.extend({}) {
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.data.application,
       aggregatedClassComm,
-      false,
       id
     );
     const { communicationColor, highlightedEntityColor } =
@@ -135,6 +134,10 @@ export default class LinkRenderer extends Service.extend({}) {
     this.linkIdToMesh.set(id, newMesh);
 
     return newMesh;
+  }
+
+  getLinks() {
+    return Array.from(this.linkIdToMesh.values());
   }
 
   getLinkById(linkId: string) {

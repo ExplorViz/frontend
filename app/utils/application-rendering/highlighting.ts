@@ -26,6 +26,7 @@ import {
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
+
 /**
  * Restores default color and transparency for all application meshes
  *
@@ -132,7 +133,7 @@ export function turnComponentAndAncestorsOpaque(
 /**
  * (Un)Highlights a given mesh
  *
- * @param meshId Either component, clazz or clazz communication mesh id of the mesh which shall be (un)highlighted
+ * @param meshId Either component, class or class communication mesh id of the mesh which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
  */
 export function highlight(
@@ -386,10 +387,10 @@ export function turnAllPackagesAndClassesTransparent(
 }
 
 export function turnAllCommunicationLinksTransparent(
-  allLinks: ClazzCommunicationMesh[],
+  communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  allLinks.forEach((link) => {
+  communicationMeshes.forEach((link) => {
     link.turnTransparent(opacity);
   });
 }
@@ -401,144 +402,122 @@ export function turnAllCommunicationLinksTransparent(
  */
 export function updateHighlighting(
   applicationObject3DList: ApplicationObject3D[],
-  communication: AggregatedClassCommunication[],
-  allLinks: ClazzCommunicationMesh[],
+  communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  // Set everything transparent at the beginning ----------------------
+  // Communication meshes are often replaced and need to be updated
+  applicationObject3DList.forEach((applicationObject3D) => {
+    applicationObject3D.updateCommunicationMeshHighlighting();
+  });
 
+  // Set everything transparent at the beginning
   const allClassIds = new Set(
     turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
   );
-  turnAllCommunicationLinksTransparent(allLinks, opacity);
+  turnAllCommunicationLinksTransparent(communicationMeshes, opacity);
 
-  // ------------------------------------------------------------------
+  // Get all class ids of all selected components, inluding highlighted classes
+  const allSelectedClassIds = getAllSelectedClassIds(applicationObject3DList);
 
-  // Now we proceed to compute all involved clazzes in highlighted components
+  // Add classes which are involved via communication with selected classes
+  let allInvolvedClassIds = getAllInvolvedClassIds(
+    communicationMeshes,
+    allSelectedClassIds
+  );
 
-  let allHighlightedClassIds: Set<string> = new Set();
-  let allInvolvedClassIds: Set<string> = new Set();
-
-  applicationObject3DList.forEach((application: ApplicationObject3D) => {
-    const highlightedEntityIds = application.highlightedEntity;
-    if (highlightedEntityIds && !isTrace(highlightedEntityIds)) {
-      highlightedEntityIds.forEach((entityId: string) => {
-        const baseMesh = application.getMeshById(entityId);
-        if (baseMesh) {
-          // Get all clazzes in selected component
-          const highlightedClassIds = new Set<string>();
-          const involvedClassIds = new Set<string>();
-
-          const model = (
-            baseMesh as
-              | FoundationMesh
-              | ComponentMesh
-              | ClazzMesh
-              | ClazzCommunicationMesh
-          ).dataModel;
-          // Add all clazzes which are contained in a component
-          if (isPackage(model)) {
-            getClassesInPackage(model).forEach((classInPackage) =>
-              highlightedClassIds.add(classInPackage.id)
-            );
-            // Add class itself
-          } else if (isClass(model)) {
-            highlightedClassIds.add(model.id);
-            // Add source and target clazz of communication
-          } else if (
-            (model as ClazzCommuMeshDataModel)
-              .aggregatedClassCommunication instanceof
-            AggregatedClassCommunication
-          ) {
-            baseMesh.highlight();
-            baseMesh.turnOpaque();
-            const sourceClass = (model as ClazzCommuMeshDataModel)
-              .aggregatedClassCommunication.sourceClass;
-            const targetClass = (model as ClazzCommuMeshDataModel)
-              .aggregatedClassCommunication.targetClass;
-            if (sourceClass && targetClass) {
-              involvedClassIds.add(sourceClass.id);
-              involvedClassIds.add(targetClass.id);
-            }
-          } else if (isApplication(model)) {
-            getAllPackagesInApplication(model).forEach((pckg) => {
-              getClassesInPackage(pckg).forEach((classInPackage) =>
-                highlightedClassIds.add(classInPackage.id)
-              );
-            });
-          }
-          allHighlightedClassIds = new Set([
-            ...allHighlightedClassIds,
-            ...highlightedClassIds,
-          ]);
-
-          allInvolvedClassIds = new Set([
-            ...allInvolvedClassIds,
-            ...involvedClassIds,
-          ]);
-        }
-      });
-    }
-  });
-
-  // --- Add classes that are involved via communication ---
-
-  // For a highlighted intern communication all involved classes are already known
-  communication.forEach((comm) => {
-    const { sourceClass, targetClass, id } = comm;
-
-    // Add classes which communicate directly with highlighted entity
-    if (allHighlightedClassIds.has(sourceClass.id)) {
-      allInvolvedClassIds.add(targetClass.id);
-
-      for (const link of allLinks) {
-        // TODO: helper function so we do not have to write this loop every time in the following
-        if (link.getModelId() === id) {
-          link.turnOpaque();
-          break;
-        }
-      }
-    } else if (allHighlightedClassIds.has(targetClass.id)) {
-      allInvolvedClassIds.add(sourceClass.id);
-      for (const link of allLinks) {
-        // TODO: helper function so we do not have to write this loop every time in the following
-        if (link.getModelId() === id) {
-          link.turnOpaque();
-          break;
-        }
-      }
-    }
-  });
-
-  // Address highlighting and opacity of communication between applications
-  allLinks.forEach((link) => {
-    if (link.highlighted) {
-      link.turnOpaque();
-      link.highlight();
-      allInvolvedClassIds.add(
-        link.dataModel.aggregatedClassCommunication.sourceClass.id
-      );
-      allInvolvedClassIds.add(
-        link.dataModel.aggregatedClassCommunication.targetClass.id
-      );
-    }
-  });
-
+  // Before applying the highlighting, selected classes should also count as involved
   allInvolvedClassIds = new Set([
+    ...allSelectedClassIds,
     ...allInvolvedClassIds,
-    ...allHighlightedClassIds,
   ]);
 
   if (allInvolvedClassIds.size === 0) {
-    // set everything opaque
-
-    allLinks.forEach((link) => {
-      link.turnOpaque();
-    });
-    allInvolvedClassIds = allClassIds; // we pretend that all clazzes are "selected" so everything gets opaque again
+    // Turn all classes opaque again if nothing is selected
+    turnClassesOpaque(allClassIds, applicationObject3DList);
+    turnCommunicationOpaque(allClassIds, communicationMeshes);
+  } else {
+    // Turn classes and communication opaque again with respect to selected and involved classes
+    turnClassesOpaque(allInvolvedClassIds, applicationObject3DList);
+    turnCommunicationOpaque(allSelectedClassIds, communicationMeshes);
   }
+}
 
-  // Turn involved classes opaque
+function getAllSelectedClassIds(
+  applicationObject3DList: ApplicationObject3D[]
+) {
+  let allSelectedClassIds = new Set<string>();
+  applicationObject3DList.forEach((application: ApplicationObject3D) => {
+    const highlightedEntityIds = application.highlightedEntity;
+    if (!highlightedEntityIds || isTrace(highlightedEntityIds)) {
+      return;
+    }
+
+    highlightedEntityIds.forEach((entityId: string) => {
+      const baseMesh = application.getMeshById(entityId);
+      if (!baseMesh) {
+        return;
+      }
+      const selectedClassIds = new Set<string>();
+
+      const model = (
+        baseMesh as
+          | FoundationMesh
+          | ComponentMesh
+          | ClazzMesh
+          | ClazzCommunicationMesh
+      ).dataModel;
+      // Add all clazzes which are contained in a component
+      if (isPackage(model)) {
+        getClassesInPackage(model).forEach((classInPackage) =>
+          selectedClassIds.add(classInPackage.id)
+        );
+        // Add class itself
+      } else if (isClass(model)) {
+        selectedClassIds.add(model.id);
+      } else if (isApplication(model)) {
+        getAllPackagesInApplication(model).forEach((pckg) => {
+          getClassesInPackage(pckg).forEach((classInPackage) =>
+            selectedClassIds.add(classInPackage.id)
+          );
+        });
+      }
+      allSelectedClassIds = new Set([
+        ...allSelectedClassIds,
+        ...selectedClassIds,
+      ]);
+    });
+  });
+  return allSelectedClassIds;
+}
+
+function getAllInvolvedClassIds(
+  communicationMeshes: ClazzCommunicationMesh[],
+  allSelectedClassIds: Set<string>
+) {
+  const allInvolvedClassIds = new Set<string>();
+  communicationMeshes.forEach((comm) => {
+    const { sourceClass, targetClass } =
+      comm.dataModel.aggregatedClassCommunication;
+
+    // Add classes which communicate directly with selected entities
+    if (comm.highlighted) {
+      allInvolvedClassIds.add(sourceClass.id);
+      allInvolvedClassIds.add(targetClass.id);
+    } else if (
+      allSelectedClassIds.has(sourceClass.id) ||
+      allSelectedClassIds.has(targetClass.id)
+    ) {
+      allInvolvedClassIds.add(sourceClass.id);
+      allInvolvedClassIds.add(targetClass.id);
+    }
+  });
+  return allInvolvedClassIds;
+}
+
+function turnClassesOpaque(
+  allInvolvedClassIds: Set<string>,
+  applicationObject3DList: ApplicationObject3D[]
+) {
   allInvolvedClassIds.forEach((classId) => {
     for (const application of applicationObject3DList) {
       const classMesh = application.getBoxMeshbyModelId(classId);
@@ -554,16 +533,21 @@ export function updateHighlighting(
       }
     }
   });
+}
 
-  // Turn all involved external links opaque
-  allLinks.forEach((link) => {
+function turnCommunicationOpaque(
+  selectedClassIds: Set<string>,
+  communicationMeshes: ClazzCommunicationMesh[]
+) {
+  communicationMeshes.forEach((link) => {
     if (
-      allInvolvedClassIds.has(
+      selectedClassIds.has(
         link.dataModel.aggregatedClassCommunication.sourceClass.id
-      ) &&
-      allInvolvedClassIds.has(
+      ) ||
+      selectedClassIds.has(
         link.dataModel.aggregatedClassCommunication.targetClass.id
-      )
+      ) ||
+      link.highlighted
     ) {
       link.turnOpaque();
     }

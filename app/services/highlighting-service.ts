@@ -112,7 +112,7 @@ export default class HighlightingService extends Service.extend({
 
   @action
   removeHighlightingForAllApplications(sendMessage: boolean) {
-    const { allLinks, applications } = this.getParams();
+    const { communicationMeshes, applications } = this.getParams();
 
     // Remove highlighting from applications
     applications.forEach((applicationObject3D) => {
@@ -121,7 +121,7 @@ export default class HighlightingService extends Service.extend({
     });
 
     // Remove highlighting from communication between applications
-    allLinks.forEach((link) => {
+    communicationMeshes.forEach((link) => {
       link.unhighlight();
     });
 
@@ -131,49 +131,23 @@ export default class HighlightingService extends Service.extend({
   }
 
   updateHighlighting(value: number = this.opacity) {
-    const { allLinks, aggregatedComm, applications } = this.getParams();
-    Highlighting.updateHighlighting(
-      applications,
-      aggregatedComm,
-      allLinks,
-      value
-    );
+    const { communicationMeshes, applications } = this.getParams();
+    Highlighting.updateHighlighting(applications, communicationMeshes, value);
   }
 
   getParams(): {
-    allLinks: ClazzCommunicationMesh[];
-    aggregatedComm: AggregatedClassCommunication[];
+    communicationMeshes: ClazzCommunicationMesh[];
     applications: ApplicationObject3D[];
   } {
-    const allLinks = this.linkRenderer.getAllLinks();
+    const communicationMeshes = this.linkRenderer.getLinks();
+
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D: ApplicationObject3D) => {
-      const aggregatedComms =
-        this.applicationRenderer.getAggregatedClassCommunications(
-          applicationObject3D
-        );
-      aggregatedComms.forEach(
-        (aggregatedClassCommunication: AggregatedClassCommunication) => {
-          const link = this.applicationRenderer.getMeshById(
-            aggregatedClassCommunication.id
-          );
-          if (link) {
-            // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-            allLinks.push(link as ClazzCommunicationMesh);
-          }
-        }
-      );
-    });
-
-    let aggregatedComm: AggregatedClassCommunication[] = [];
-    allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.aggregatedClassCommunication;
-      aggregatedComm = [...aggregatedComm, linkCommunications];
+      communicationMeshes.push(...applicationObject3D.getCommMeshes());
     });
 
     return {
-      allLinks: allLinks,
-      aggregatedComm: aggregatedComm,
+      communicationMeshes: communicationMeshes,
       applications: applications,
     };
   }

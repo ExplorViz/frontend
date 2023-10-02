@@ -404,6 +404,19 @@ export default class ApplicationObject3D extends THREE.Object3D {
     });
   }
 
+  updateCommunicationMeshHighlighting() {
+    this.getCommMeshes().forEach((mesh) => {
+      if (
+        this.highlightedEntity instanceof Set &&
+        this.highlightedEntity.has(
+          mesh.dataModel.aggregatedClassCommunication.id
+        )
+      ) {
+        mesh.highlight();
+      }
+    });
+  }
+
   /**
    * Scales the application object such that its largest side matches the given value.
    *
