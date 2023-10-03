@@ -22,7 +22,7 @@ import {
 } from 'workers/utils';
 import {
   type ApplicationLabelData,
-  generatePackageAndFoundationLabels,
+  generateApplicationLabels,
 } from './label-generator';
 import * as Comlink from 'comlink';
 
@@ -105,9 +105,10 @@ export default class LandscapeDataContext {
     const transfers: Transferable[] = [];
 
     if (update.appData) {
-      update.appData.forEach((data) =>
-        transfers.push(data.labels.texture.data.buffer)
-      );
+      update.appData.forEach((data) => {
+        transfers.push(data.labels.components.texture.data.buffer);
+        transfers.push(data.labels.classes.texture.data.buffer);
+      });
     }
 
     return Comlink.transfer(update, transfers);
@@ -222,7 +223,7 @@ function computeApplicationData(
       drawableClassCommunications
     );
     const counts = countClassesAndPackages(application);
-    const labels = generatePackageAndFoundationLabels(application, layout);
+    const labels = generateApplicationLabels(application, layout);
 
     data.set(application.id, {
       layout,

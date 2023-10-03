@@ -152,7 +152,7 @@ export function addFoundationAndChildrenToApplication(
     application,
     applicationObject3D.data,
     applicationColors,
-    applicationObject3D.labelTexture
+    applicationObject3D.componentLabelTexture
   );
 
   addMeshToApplication(mesh, applicationObject3D);

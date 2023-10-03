@@ -10,8 +10,14 @@ import type {
 } from 'workers/worker-types';
 
 export type ApplicationLabelData = {
-  texture: ImageData;
-  layout: LabelLayoutMap;
+  components: {
+    texture: ImageData;
+    layout: LabelLayoutMap;
+  };
+  classes: {
+    texture: ImageData;
+    layout: LabelLayoutMap;
+  };
 };
 
 type LabelLayoutMap = Map<string, LabelLayoutData>;
@@ -25,10 +31,23 @@ export type LabelLayoutData = {
   aspectRatio: number;
 };
 
-export function generatePackageAndFoundationLabels(
+export function generateApplicationLabels(
   application: Application,
-  layout: CityLayout
+  componentLayout: CityLayout
 ): ApplicationLabelData {
+  return {
+    components: generatePackageAndFoundationLabels(
+      application,
+      componentLayout
+    ),
+    classes: generateClassLabels(application),
+  };
+}
+
+function generatePackageAndFoundationLabels(
+  application: Application,
+  componentLayout: CityLayout
+): ApplicationLabelData['components'] {
   const packages = getAllComponentsInApplication(
     application as unknown as ReducedApplication // TODO: fix type
   );
@@ -50,10 +69,9 @@ export function generatePackageAndFoundationLabels(
   const textureLayout: LabelLayoutMap = new Map();
 
   packages.forEach(({ name, id }, i) => {
-    const boxWidth = layout.get(id)!.depth;
+    const boxWidth = componentLayout.get(id)!.depth;
     const widthInTexture = ratio * boxWidth;
     const maxWidth = Math.min(width - 2, widthInTexture);
-    //console.log('width', name, widthInTexture, maxWidth);
 
     ctx.font = `bold ${fontSize}px sans-serif`;
     const textWidth = ctx.measureText(name).width;
@@ -80,42 +98,47 @@ export function generatePackageAndFoundationLabels(
     });
   });
 
-  // TODO: remove
-  // ctx.canvas
-  //   .convertToBlob()
-  //   .then((blob) => console.log('url', URL.createObjectURL(blob)));
-
   return {
     texture: ctx.getImageData(0, 0, width, height),
     layout: textureLayout,
   };
 }
 
-export function generateClassLabels(application: Application) {
+function generateClassLabels(
+  application: Application
+): ApplicationLabelData['classes'] {
   const classes = getAllClassesInApplication(
     application as unknown as ReducedApplication
   );
 
   const width = 128;
-  const height = classes.length * 10; // TODO
+  const lineHeight = 16;
+  const height = classes.length * lineHeight;
 
   const ctx = initCanvas(width, height);
+
+  const fontSize = Math.round(0.5 * lineHeight);
+  ctx.font = `bold ${fontSize}px sans-serif`;
 
   const textureLayout: LabelLayoutMap = new Map();
 
   classes.forEach(({ name, id }, i) => {
-    // TODO
-    ctx.fillText(name, 0.5 * width, 10 * i, width);
+    ctx.fillText(name, 0.5 * width, lineHeight * (i + 0.5), width);
 
     textureLayout.set(id, {
       width: width,
-      top: (10 * i) / height,
+      top: (lineHeight * i) / height,
       bottom: (height - 0) / height,
-      height: 10 / height,
+      height: lineHeight / height,
       index: i,
       aspectRatio: 1.0, // TODO
     });
   });
+
+  //TODO: remove
+  ctx.canvas
+    .convertToBlob()
+    .then((blob) => console.log('url', URL.createObjectURL(blob)));
 
   return {
     texture: ctx.getImageData(0, 0, width, height),

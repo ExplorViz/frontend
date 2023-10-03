@@ -62,7 +62,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   arrows: CommunicationArrows;
 
-  labelTexture: THREE.Texture;
+  componentLabelTexture: THREE.Texture;
+
+  classesLabelTexture: THREE.Texture;
 
   constructor(
     data: ApplicationData,
@@ -77,7 +79,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
     this.name = data.application.name;
 
-    this.labelTexture = createLabelTexture(data.labels.texture);
+    this.componentLabelTexture = createLabelTexture(
+      data.labels.components.texture
+    );
+    this.classesLabelTexture = createLabelTexture(data.labels.classes.texture);
     this.createFoundation(colors);
     this.content = new ApplicationContent(this, colors, openComponentIds);
 
@@ -98,7 +103,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       application,
       this.data,
       colors,
-      this.labelTexture
+      this.componentLabelTexture
     );
 
     this.add(mesh);

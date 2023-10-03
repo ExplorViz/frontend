@@ -59,7 +59,7 @@ export default class ApplicationContent {
 
     this.componentLabels = createLabelMesh(
       app3d.data,
-      app3d.labelTexture,
+      app3d.componentLabelTexture,
       colors
     );
 
@@ -400,7 +400,7 @@ export default class ApplicationContent {
     this.components.setMatrixAt(index, tmpMatrix);
 
     const id = this.componentData[index].component.id;
-    const labelIndex = this.app3d.data.labels.layout.get(id)?.index;
+    const labelIndex = this.app3d.data.labels.components.layout.get(id)?.index;
 
     if (labelIndex === undefined) {
       throw new Error(
@@ -530,7 +530,7 @@ function createLabelMesh(
   const mesh = new THREE.InstancedMesh(
     planeGeometry,
     material,
-    data.labels.layout.size
+    data.labels.components.layout.size
   );
 
   mesh.userData = {
@@ -540,7 +540,7 @@ function createLabelMesh(
 
   // Hide all labels initially:
   tmpMatrix.makeScale(0, 0, 0);
-  for (let i = 0; i < data.labels.layout.size; i++) {
+  for (let i = 0; i < data.labels.components.layout.size; i++) {
     mesh.setMatrixAt(i, tmpMatrix);
   }
 

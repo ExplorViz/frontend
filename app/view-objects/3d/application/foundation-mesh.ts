@@ -36,7 +36,7 @@ export default class FoundationMesh<
     // TODO: labeler.ts
     this.labelMesh = createSingleLabelMesh(
       texture,
-      data.labels.layout.get(foundation.id)!,
+      data.labels.components.layout.get(foundation.id)!,
       colors.foundationTextColor
     );
 
