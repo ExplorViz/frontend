@@ -698,7 +698,7 @@ export default class ArRendering extends Component<Args> {
       object instanceof ClazzMesh ||
       object instanceof ClazzCommunicationMesh
     ) {
-      this.highlightingService.highlight(object, true, this.localUser.color);
+      this.highlightingService.highlight(object, true);
     }
   }
 

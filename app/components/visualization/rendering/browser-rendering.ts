@@ -412,18 +412,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     if (isEntityMesh(mesh)) {
       if (mesh.parent instanceof ApplicationObject3D) {
-        this.applicationRenderer.highlight(
-          mesh,
-          mesh.parent,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
         // extern communication link
-        this.applicationRenderer.highlightExternLink(
-          mesh,
-          true,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlightExternLink(mesh, true);
       }
     }
   }

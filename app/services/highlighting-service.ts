@@ -51,16 +51,16 @@ export default class HighlightingService extends Service.extend({
     return this.userSettings.applicationSettings.transparencyIntensity.value;
   }
 
-  get highlightingColorStyle() {
-    let hexColor = '';
-    if (this.collaborationSession.isOnline && this.localUser.color) {
-      hexColor = this.localUser.color.getHexString();
+  get highlightingColor() {
+    if (this.collaborationSession.isOnline) {
+      return this.localUser.color;
     } else {
-      hexColor =
-        this.configuration.applicationColors.highlightedEntityColor.getHexString();
+      return this.configuration.applicationColors.highlightedEntityColor;
     }
+  }
 
-    return `color:#${hexColor}`;
+  get highlightingColorStyle() {
+    return `color:#${this.highlightingColor.getHexString()}`;
   }
 
   @action
@@ -115,7 +115,8 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlight(mesh: EntityMesh, sendMessage: boolean, color?: THREE.Color) {
+  highlight(mesh: EntityMesh, sendMessage: boolean, remoteColor?: THREE.Color) {
+    const color = remoteColor || this.highlightingColor;
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh, sendMessage, color); // Includes app-internal communication
@@ -130,16 +131,15 @@ export default class HighlightingService extends Service.extend({
     sendMessage: boolean,
     color?: THREE.Color
   ) {
-    if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-    ) {
-      this.removeHighlightingForAllApplications(false);
-    }
-
     mesh.highlightingColor =
       color || this.configuration.applicationColors.highlightedEntityColor;
     if (mesh.highlighted) {
       mesh.unhighlight();
+      if (
+        !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      ) {
+        this.removeHighlightingForAllApplications(false);
+      }
     } else {
       mesh.highlight();
     }
@@ -227,16 +227,10 @@ export default class HighlightingService extends Service.extend({
     );
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
+      !mesh.highlighted
     ) {
       this.removeHighlightingForAllApplications(false);
-    } else if (
-      application.highlightedEntity instanceof Set &&
-      application.highlightedEntity.has(mesh.dataModel.id)
-    ) {
-      application.highlightedEntity.delete(mesh.dataModel.id);
-      mesh.unhighlight();
-      return;
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
