@@ -362,7 +362,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onHighlightingUpdate({
     userId,
-    originalMessage: { appId, entityId, multiSelected },
+    originalMessage: { appId, entityId /*, multiSelected */ },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
@@ -382,7 +382,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       mesh,
       application,
       user.color,
-      multiSelected,
       false // whenever we receive messages we don't want to resend them
     );
   }

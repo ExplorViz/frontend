@@ -240,7 +240,6 @@ export default class CollaborationSession extends Service.extend({
               mesh,
               application,
               undefined,
-              false,
               false
             );
           }

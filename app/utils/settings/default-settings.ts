@@ -104,7 +104,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   enableMultipleHighlighting: {
-    value: false,
+    value: true,
     orderNumber: 3,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',

@@ -377,26 +377,10 @@ export default class ApplicationRenderer extends Service.extend({
     entity: any,
     applicationObject3D: ApplicationObject3D,
     color?: THREE.Color,
-    isMultiSelected = false,
     sendMessage = true
   ) {
     if (isEntityMesh(entity)) {
-      const oldValue =
-        this.configuration.userSettings.applicationSettings
-          .enableMultipleHighlighting.value; // TODO: Refactor all this including the call chain
-      if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-          isMultiSelected;
-      }
-
-      this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        oldValue || isMultiSelected;
       this.highlightingService.highlight(entity, sendMessage, color);
-
-      if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-          oldValue;
-      }
 
       this.updateApplicationObject3DAfterUpdate(applicationObject3D);
     }
