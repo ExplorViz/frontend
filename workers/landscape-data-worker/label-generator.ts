@@ -123,12 +123,15 @@ function generateClassLabels(
   const textureLayout: LabelLayoutMap = new Map();
 
   classes.forEach(({ name, id }, i) => {
-    ctx.fillText(name, 0.5 * width, lineHeight * (i + 0.5), width);
+    const top = lineHeight * i;
+    const bottom = top + lineHeight;
+    const displayText = name.length > 10 ? `${name.substring(0, 8)}...` : name;
+    ctx.fillText(displayText, 0.5 * width, 0.5 * (top + bottom), width);
 
     textureLayout.set(id, {
       width: width,
-      top: (lineHeight * i) / height,
-      bottom: (height - 0) / height,
+      top: top / height,
+      bottom: bottom / height,
       height: lineHeight / height,
       index: i,
       aspectRatio: 1.0, // TODO

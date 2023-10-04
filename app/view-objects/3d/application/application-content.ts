@@ -27,6 +27,7 @@ export default class ApplicationContent {
   private components: THREE.InstancedMesh;
   private classes: THREE.InstancedMesh;
   private componentLabels: THREE.InstancedMesh;
+  private classLabels: THREE.InstancedMesh;
   private colors: ApplicationColors;
   private offset = new THREE.Vector3();
 
@@ -47,20 +48,26 @@ export default class ApplicationContent {
     this.openComponentIds = openComponentIds ?? new Set();
 
     this.components = createInstancedMesh(
-      'Instanced mesh for Classes',
+      'InstancedMesh for Components',
       pkgMaterial,
       app3d.data.counts.packages
     );
     this.classes = createInstancedMesh(
-      'Instanced mesh for Classes',
+      'InstancedMesh for Classes',
       this.classMaterial,
       app3d.data.counts.classes
     );
 
     this.componentLabels = createLabelMesh(
-      app3d.data,
+      app3d.data.labels.components,
       app3d.componentLabelTexture,
-      colors
+      colors.componentTextColor
+    );
+
+    this.classLabels = createLabelMesh(
+      app3d.data.labels.classes,
+      app3d.classLabelTexture,
+      colors.clazzTextColor
     );
 
     this.components.receiveShadow = true;
@@ -408,7 +415,7 @@ export default class ApplicationContent {
       );
     }
 
-    setupLabelMatrix(layout, opened, visible);
+    setupComponentLabelMatrix(layout, opened, visible);
     this.componentLabels.setMatrixAt(labelIndex, tmpMatrix);
   }
 
@@ -472,7 +479,7 @@ function setupBoxMatrix(
   tmpMatrix.setPosition(position);
 }
 
-function setupLabelMatrix(
+function setupComponentLabelMatrix(
   componentLayout: BoxLayout,
   opened: boolean,
   visible: boolean
@@ -513,24 +520,24 @@ function createInstancedMesh(
 }
 
 function createLabelMesh(
-  data: ApplicationData,
+  data: ApplicationData['labels']['classes' | 'components'],
   texture: THREE.Texture,
-  colors: ApplicationColors
+  color: THREE.Color
 ): THREE.InstancedMesh {
   const planeGeometry = new THREE.PlaneGeometry(1, 1);
   planeGeometry.rotateX(-0.5 * Math.PI);
   planeGeometry.rotateY(-0.5 * Math.PI);
 
   // Make label layout data available to the vertex shader:
-  const attribute = createLabelLayoutDataAttribute(data.labels);
+  const attribute = createLabelLayoutDataAttribute(data);
   planeGeometry.setAttribute('labelLayoutData', attribute);
 
-  const material = createLabelMaterial(texture, colors.componentTextColor);
+  const material = createLabelMaterial(texture, color);
 
   const mesh = new THREE.InstancedMesh(
     planeGeometry,
     material,
-    data.labels.components.layout.size
+    data.layout.size
   );
 
   mesh.userData = {
@@ -540,7 +547,7 @@ function createLabelMesh(
 
   // Hide all labels initially:
   tmpMatrix.makeScale(0, 0, 0);
-  for (let i = 0; i < data.labels.components.layout.size; i++) {
+  for (let i = 0; i < data.layout.size; i++) {
     mesh.setMatrixAt(i, tmpMatrix);
   }
 

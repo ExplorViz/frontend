@@ -64,7 +64,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   componentLabelTexture: THREE.Texture;
 
-  classesLabelTexture: THREE.Texture;
+  classLabelTexture: THREE.Texture;
 
   constructor(
     data: ApplicationData,
@@ -82,7 +82,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.componentLabelTexture = createLabelTexture(
       data.labels.components.texture
     );
-    this.classesLabelTexture = createLabelTexture(data.labels.classes.texture);
+    this.classLabelTexture = createLabelTexture(data.labels.classes.texture);
     this.createFoundation(colors);
     this.content = new ApplicationContent(this, colors, openComponentIds);
 
