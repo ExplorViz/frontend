@@ -279,7 +279,7 @@ export default class CollaborationSession extends Service.extend({
     this.landscapeListener.initLandscapePolling();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
-    this.highlightingService.updateHighlightingForAllApplications();
+    this.highlightingService.updateHighlighting();
 
     this.disconnect();
   }

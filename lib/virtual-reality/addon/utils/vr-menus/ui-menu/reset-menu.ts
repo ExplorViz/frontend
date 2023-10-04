@@ -7,7 +7,7 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 
 export type ResetMenuArgs = UiMenuArgs & {
   owner: any;
@@ -101,7 +101,7 @@ export default class ResetMenu extends UiMenu {
       .getOpenApplications()
       .forEach((applicationObject) => {
         this.applicationRenderer.closeAllComponents(applicationObject);
-        removeAllHighlighting(applicationObject);
+        removeAllHighlightingFor(applicationObject);
       });
   }
 

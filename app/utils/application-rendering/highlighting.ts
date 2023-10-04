@@ -2,7 +2,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import {
   Class,
   isApplication,
@@ -32,7 +31,7 @@ import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregate
  *
  * @param applicationObject3D Application mesh of which the highlighting should be removed
  */
-export function removeAllHighlighting(
+export function removeAllHighlightingFor(
   applicationObject3D: ApplicationObject3D
 ) {
   const meshes = applicationObject3D.getAllMeshes();
@@ -133,14 +132,14 @@ export function turnComponentAndAncestorsOpaque(
 /**
  * (Un)Highlights a given mesh
  *
- * @param meshId Either component, class or class communication mesh id of the mesh which shall be (un)highlighted
+ * @param modelId Either component, class or class communication id of model which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
  */
 export function highlight(
-  meshId: string,
+  modelId: string,
   applicationObject3D: ApplicationObject3D
 ) {
-  const mesh = applicationObject3D.getMeshById(meshId) as
+  const mesh = applicationObject3D.getMeshById(modelId) as
     | ComponentMesh
     | ClazzMesh
     | ClazzCommunicationMesh
@@ -149,47 +148,19 @@ export function highlight(
     return;
   }
 
-  const datamodel =
-    mesh.dataModel instanceof ClazzCommuMeshDataModel
-      ? mesh.dataModel.communication
-      : mesh.dataModel;
-
-  if (!datamodel) {
-    return;
-  }
-
-  if (mesh.highlighted) {
-    if (
-      applicationObject3D.highlightedEntity &&
-      !isTrace(applicationObject3D.highlightedEntity)
-    ) {
-      applicationObject3D.highlightedEntity.delete(meshId);
-      mesh.unhighlight();
-    }
+  if (
+    mesh.highlighted &&
+    applicationObject3D.highlightedEntity instanceof Set
+  ) {
+    applicationObject3D.highlightedEntity.delete(modelId);
+    mesh.unhighlight();
   } else {
-    mesh.highlight();
-
-    if (
-      !applicationObject3D.highlightedEntity ||
-      isTrace(applicationObject3D.highlightedEntity)
-    ) {
+    if (!(applicationObject3D.highlightedEntity instanceof Set)) {
       applicationObject3D.highlightedEntity = new Set<string>();
     }
-    applicationObject3D.highlightedEntity.add(meshId);
+    mesh.highlight();
+    applicationObject3D.highlightedEntity.add(modelId);
   }
-}
-
-/**
- * Highlights the mesh which belongs to a given data model
- *
- * @param entity Component or clazz of which the corresponding mesh shall be highlighted
- * @param applicationObject3D Application mesh which contains the entity
- */
-export function highlightModel(
-  entity: Package | Class | AggregatedClassCommunication,
-  applicationObject3D: ApplicationObject3D
-) {
-  highlight(entity.id, applicationObject3D);
 }
 
 /**
@@ -207,7 +178,7 @@ export function highlightTrace(
   landscapeStructureData: StructureLandscapeData,
   opacity: number
 ) {
-  removeAllHighlighting(applicationObject3D);
+  removeAllHighlightingFor(applicationObject3D);
 
   applicationObject3D.highlightedEntity = trace;
 
@@ -358,7 +329,7 @@ export function highlightTrace(
  * @param opacity Opacity for transparency
  */
 
-export function turnAllPackagesAndClassesTransparent(
+export function turnComponentsAndClassesTransparent(
   applicationObject3DList: ApplicationObject3D[],
   opacity: number
 ) {
@@ -386,7 +357,7 @@ export function turnAllPackagesAndClassesTransparent(
   return allClassIds;
 }
 
-export function turnAllCommunicationLinksTransparent(
+export function turnCommunicationTransparent(
   communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
@@ -407,9 +378,9 @@ export function updateHighlighting(
 ) {
   // Set everything transparent at the beginning
   const allClassIds = new Set(
-    turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
+    turnComponentsAndClassesTransparent(applicationObject3DList, opacity)
   );
-  turnAllCommunicationLinksTransparent(communicationMeshes, opacity);
+  turnCommunicationTransparent(communicationMeshes, opacity);
 
   // Get all class ids of all selected components, inluding highlighted classes
   const allSelectedClassIds = getAllSelectedClassIds(applicationObject3DList);
@@ -555,3 +526,26 @@ export function removeHighlighting(
 ) {
   if (mesh.highlighted) highlight(mesh.getModelId(), applicationObject3D);
 }
+
+export function isHighlightableMesh(
+  object: THREE.Object3D
+): object is HighlightableMesh {
+  return (
+    object instanceof ComponentMesh ||
+    object instanceof ClazzMesh ||
+    object instanceof ClazzCommunicationMesh ||
+    object instanceof FoundationMesh
+  );
+}
+
+export type HightlightComponentArgs = {
+  entityType: string;
+  entityId: string;
+  color?: THREE.Color;
+};
+
+export type HighlightableMesh =
+  | FoundationMesh
+  | ComponentMesh
+  | ClazzMesh
+  | ClazzCommunicationMesh;

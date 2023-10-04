@@ -44,7 +44,7 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
@@ -477,7 +477,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       ) {
         const applicationObject3D = mesh.parent;
         if (applicationObject3D instanceof ApplicationObject3D)
-          removeAllHighlighting(applicationObject3D);
+          removeAllHighlightingFor(applicationObject3D);
       }
     }
 

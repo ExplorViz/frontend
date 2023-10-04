@@ -9,7 +9,10 @@ import CommunicationRendering from 'explorviz-frontend/utils/application-renderi
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import {
+  HightlightComponentArgs,
+  removeAllHighlightingFor,
+} from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -31,9 +34,6 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
-import HighlightingService, {
-  HightlightComponentArgs,
-} from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
@@ -45,6 +45,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import HighlightingService from './highlighting-service';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -531,7 +532,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   removeCommunication(application: ApplicationObject3D) {
     if (application.highlightedEntity instanceof ClazzCommunicationMesh) {
-      removeAllHighlighting(application);
+      removeAllHighlightingFor(application);
     }
 
     application.removeAllCommunication();

@@ -81,7 +81,7 @@
           @removePopup={{this.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
           @showApplication={{this.showApplication}}
-          @highlightModel={{this.highlightingService.highlightModel}}
+          @highlightById={{this.highlightingService.highlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
       {{/each}}
@@ -167,7 +167,7 @@
                 {{#if (eq componentName 'settings')}}
                   <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
-                    @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
+                    @updateHighlighting={{this.highlightingService.updateHighlighting}}
                     @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                     @updateColors={{this.updateColors}}
                     @removeComponent={{@removeComponent}}

@@ -48,7 +48,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   animationMixer: THREE.AnimationMixer | undefined;
 
   @tracked
-  highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
+  highlightedEntity: Set<string> | Trace | null = null; // Multiple entities may be highlighted at once
 
   aggregatedClassCommSet: Set<AggregatedClassCommunication> = new Set();
 
