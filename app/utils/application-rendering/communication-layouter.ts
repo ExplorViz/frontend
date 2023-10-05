@@ -9,20 +9,30 @@ import {
   Package,
 } from '../landscape-schemes/structure-data';
 import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
+import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
 
 export function calculateLineThickness(
-  aggregatedClassCommunications: AggregatedClassCommunication
+  communication: AggregatedClassCommunication | ComponentCommunication
 ) {
   // Constant factors for rendering communication lines
   const LINE_THICKNESS_FACTOR = 0.5;
 
-  const normalizedRequestCount =
-    aggregatedClassCommunications.metrics.normalizedRequestCount < 0.2
-      ? 0.2
-      : aggregatedClassCommunications.metrics.normalizedRequestCount;
+  // Normalized request count might be above 1 for component communication
+  const normalizedRequestCount = clamp(
+    communication.metrics.normalizedRequestCount,
+    0.5,
+    1.5
+  );
 
-  // Apply line thickness depending on calculated request category
+  // Apply line thickness depending on request count
   return normalizedRequestCount * LINE_THICKNESS_FACTOR;
+}
+
+/**
+ * Limits a value to a given range
+ */
+export function clamp(value: number, min: number, max: number) {
+  return value > max ? max : value < min ? min : value;
 }
 
 // Communication Layouting //

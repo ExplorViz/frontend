@@ -1,5 +1,7 @@
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import applyCommunicationLayout from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import applyCommunicationLayout, {
+  calculateLineThickness,
+} from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
@@ -10,7 +12,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
-import ComponentCommunication from '../landscape-schemes/dynamic/package-communication';
+import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -165,7 +167,16 @@ export default class CommunicationRendering {
               componentCommunicationId
             )!;
             componentCommunication.addClassCommunication(aggregatedClassComm);
-            return;
+            const mesh = applicationObject3D.getCommMeshByModelId(
+              componentCommunicationId
+            )!;
+            clazzCommuMeshData = mesh.dataModel;
+            mesh.geometry.dispose();
+            applicationObject3D.remove(mesh);
+
+            commLayout.lineThickness = calculateLineThickness(
+              componentCommunication
+            );
             // Create new component communication
           } else {
             componentCommunication = new ComponentCommunication(
