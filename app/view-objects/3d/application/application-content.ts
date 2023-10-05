@@ -20,6 +20,7 @@ const LABEL_HEIGHT = 8.0; // TODO: import this (import from city-layouter not wo
 const boxGeometry = new THREE.BoxGeometry(1.0, 1.0, 1.0);
 const pkgMaterial = new THREE.MeshLambertMaterial();
 const tmpMatrix = new THREE.Matrix4();
+const classLabelRotation = new THREE.Matrix4().makeRotationY(Math.PI / 5);
 
 export default class ApplicationContent {
   private readonly app3d: ApplicationObject3D;
@@ -69,6 +70,9 @@ export default class ApplicationContent {
       app3d.classLabelTexture,
       colors.clazzTextColor
     );
+    this.classLabels.material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0xff00ff),
+    });
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -78,7 +82,9 @@ export default class ApplicationContent {
     app3d.add(this.components);
     app3d.add(this.classes);
     app3d.add(this.componentLabels);
+    app3d.add(this.classLabels);
     this.classes.frustumCulled = false;
+    this.classLabels.frustumCulled = false;
 
     this.init();
   }
@@ -105,6 +111,7 @@ export default class ApplicationContent {
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
     this.componentLabels.instanceMatrix!.needsUpdate = true;
+    this.classLabels.instanceMatrix!.needsUpdate = true;
 
     return newOpenState;
   }
@@ -138,6 +145,7 @@ export default class ApplicationContent {
     this.components.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
     this.componentLabels.instanceMatrix!.needsUpdate = true;
+    this.classLabels.instanceMatrix!.needsUpdate = true;
   }
 
   applyHoverEffect(index: number, colorShift = 1.1): void {
@@ -347,6 +355,7 @@ export default class ApplicationContent {
     this.components.position.copy(position);
     this.classes.position.copy(position);
     this.componentLabels.position.copy(position);
+    this.classLabels.position.copy(position);
 
     const application = this.app3d.data.application;
     this.offset.copy(this.getLayout(application.id).center);
@@ -359,6 +368,7 @@ export default class ApplicationContent {
     this.components.instanceMatrix!.needsUpdate = true;
     this.components.instanceColor!.needsUpdate = true;
     this.componentLabels.instanceMatrix!.needsUpdate = true;
+    this.classLabels.instanceMatrix!.needsUpdate = true;
     this.classes.instanceMatrix!.needsUpdate = true;
 
     this.components.computeBoundingBox();
@@ -426,6 +436,8 @@ export default class ApplicationContent {
   ): void {
     setupBoxMatrix(layout, false, visible);
     this.classes.setMatrixAt(index, tmpMatrix);
+    setupClassLabelMatrix(layout, visible);
+    this.classLabels.setMatrixAt(index, tmpMatrix);
   }
 
   private addClass(clazz: Class, visible: boolean): void {
@@ -447,13 +459,6 @@ export default class ApplicationContent {
 
     return layout;
   }
-
-  // private updateClassLabels() {
-  //   const visibleClasses = this.componentData
-  //     .filter((data) => data.visible)
-  //     .map((data) => data.component.classes)
-  //     .flat();
-  // }
 }
 
 function setupBoxMatrix(
@@ -500,6 +505,24 @@ function setupComponentLabelMatrix(
   } else {
     position.y += 0.5 * componentLayout.height;
   }
+
+  // Fix Z-fighting
+  position.y += 0.01;
+
+  tmpMatrix.setPosition(position);
+}
+
+function setupClassLabelMatrix(classLayout: BoxLayout, visible: boolean) {
+  if (!visible) {
+    tmpMatrix.makeScale(0, 0, 0);
+    return;
+  }
+
+  tmpMatrix.makeScale(4, 1.0, 10); // TODO
+  tmpMatrix.premultiply(classLabelRotation);
+
+  const position = classLayout.center;
+  position.y += 0.5 * classLayout.height;
 
   // Fix Z-fighting
   position.y += 0.01;
