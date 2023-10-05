@@ -223,6 +223,7 @@ export default class ApplicationRenderer extends Service.extend({
           applicationData,
           boxLayoutMap
         );
+        this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
       const applicationState =
@@ -282,17 +283,15 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.hightlightComponentLocallyByTypeAndId(
-            applicationObject3D!,
-            highlightedComponent
+          this.highlightingService.highlightById(
+            highlightedComponent.entityId,
+            highlightedComponent.color
           );
         }
       );
       this.userSettings.applicationSettings.enableMultipleHighlighting.value =
         currentSetting;
       // ----------------------------------------
-
-      this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 

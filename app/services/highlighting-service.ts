@@ -107,10 +107,10 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightById(modelId: string, color?: THREE.Color) {
+  highlightById(modelId: string, color?: THREE.Color, sendMessage = false) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
-      this.highlight(mesh, true, color);
+      this.highlight(mesh, sendMessage, color);
     }
   }
 
@@ -121,7 +121,7 @@ export default class HighlightingService extends Service.extend({
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh, sendMessage, color); // Includes app-internal communication
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, true, color); // Communication between applications
+      this.highlightLink(mesh, sendMessage, color); // Communication between applications
     }
   }
 
@@ -204,16 +204,6 @@ export default class HighlightingService extends Service.extend({
             .enableMultipleHighlighting.value
         );
       }
-    }
-  }
-
-  hightlightComponentLocallyByTypeAndId(
-    application: ApplicationObject3D,
-    { entityId, color }: Highlighting.HightlightComponentArgs
-  ) {
-    const mesh = application.getMeshById(entityId);
-    if (mesh && Highlighting.isHighlightableMesh(mesh)) {
-      this.hightlightMesh(application, mesh, color);
     }
   }
 
