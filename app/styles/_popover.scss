@@ -37,9 +37,14 @@
 }
 
 .popover > button {
-  margin: 0;
+  margin: 0.2rem;
 }
 
-#popup-close-button:hover {
-  background-color: #dc3545;
+.popover > button[disabled] {
+  /* Ensure correct hover effect on popup even though button is disabled */
+  pointer-events: none;
+}
+
+#popup-close-button {
+  margin-left: 0.5rem;
 }

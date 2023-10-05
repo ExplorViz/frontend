@@ -27,6 +27,7 @@ export type SerializedApp = {
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
+  transparentComponents: string[];
   openComponents: string[];
   highlightedComponents: SerializedHighlightedComponent[];
 };
@@ -40,4 +41,6 @@ export type SerializedVrRoom = {
   landscape: SerializedLandscape;
   openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
+  highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
+  //transparentExternCommunicationLinks: string[];
 };

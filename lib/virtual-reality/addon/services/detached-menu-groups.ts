@@ -20,6 +20,7 @@ import {
 } from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
 import WebSocketService from './web-socket';
+import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('virtual-reality@vr-asset-repo')
@@ -209,7 +210,7 @@ export default class DetachedMenuGroupsService extends Service {
       metricIcon.addToObject(detachedMenuGroup);
       metricIcon.position.y -= 0.04;
       metricIcon.position.x -= 0.25;
-    } else {
+    } else if (!(menu instanceof SpectateViewMenu)) {
       const shareIcon: ActionIcon = new ActionIcon({
         textures: this.assetRepo.shareIconTextures,
         color: new THREE.Color(color),
@@ -217,7 +218,7 @@ export default class DetachedMenuGroupsService extends Service {
         radius: 0.04,
       });
       shareIcon.addToObject(detachedMenuGroup);
-      shareIcon.position.y -= 0.04;
+      // shareIcon.position.y -= 0.04;
       shareIcon.position.x -= 0.15;
 
       color = this.collaborationSession.getColor('');
@@ -229,7 +230,7 @@ export default class DetachedMenuGroupsService extends Service {
         radius: 0.04,
       });
       highlightIcon.addToObject(detachedMenuGroup);
-      highlightIcon.position.y -= 0.04;
+      // highlightIcon.position.y -= 0.04;
       highlightIcon.position.x -= 0.25;
     }
 
@@ -242,6 +243,7 @@ export default class DetachedMenuGroupsService extends Service {
   highlightComponent(entityId: string): Promise<boolean> {
     return new Promise((resolve) => {
       this.highlightingService.highlightById(entityId);
+      this.highlightingService.updateHighlighting();
       resolve(true);
     });
   }

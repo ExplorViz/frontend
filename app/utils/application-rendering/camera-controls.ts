@@ -42,7 +42,7 @@ export default class CameraControls {
     const origin = keepCameraPerspective
       ? this.camera.position
       : new Vector3(1, 1, 1);
-    const direction = this.controls.target
+    const direction = center
       .clone()
       .sub(origin)
       .normalize()

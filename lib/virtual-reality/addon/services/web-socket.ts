@@ -28,6 +28,8 @@ import { OBJECT_CLOSED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/r
 import { MENU_DETACHED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
+import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -39,7 +41,7 @@ const RECEIVABLE_EVENTS = [INITIAL_LANDSCAPE_EVENT, SELF_CONNECTED_EVENT, USER_C
   TIMESTAMP_UPDATE_TIMER_EVENT, MENU_DETACHED_EVENT, APP_OPENED_EVENT, COMPONENT_UPDATE_EVENT, HEATMAP_UPDATE_EVENT,
   HIGHLIGHTING_UPDATE_EVENT, MOUSE_PING_UPDATE_EVENT, PING_UPDATE_EVENT, TIMESTAMP_UPDATE_EVENT, USER_CONTROLLER_CONNECT_EVENT,
   USER_CONTROLLER_DISCONNECT_EVENT, USER_POSITIONS_EVENT, OBJECT_MOVED_EVENT, APP_CLOSED_EVENT, DETACHED_MENU_CLOSED_EVENT,
-  MENU_DETACHED_EVENT, SPECTATING_UPDATE_EVENT];
+  MENU_DETACHED_EVENT, SPECTATING_UPDATE_EVENT, ALL_HIGHLIGHTS_RESET_EVENT, JOIN_VR_EVENT];
 
 const RESPONSE_EVENTS = [OBJECT_CLOSED_RESPONSE_EVENT, MENU_DETACHED_RESPONSE_EVENT, OBJECT_GRABBED_RESPONSE_EVENT];
 
@@ -60,7 +62,7 @@ export default class WebSocketService extends Service.extend(Evented) {
   }
 
   private getSocketUrl() {
-    return collaborationService;
+    return collaborationService + collaborationSocketPath;
   }
 
   async initSocket(ticketId: string, mode: VisualizationMode) {

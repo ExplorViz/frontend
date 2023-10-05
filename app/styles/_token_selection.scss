@@ -1,29 +1,9 @@
 #token-selection-table {
-  > tbody > tr,
-  > thead > tr > th {
-    cursor: default;
-  }
-
   min-width: 400px;
   width: auto;
 }
 
 #token-selection-table > tbody > tr:hover {
-  background-color: #bfbfbf;
-  transition: all 0.1s ease-in-out;
-}
-
-#room-selection-table {
-  > tbody > tr,
-  > thead > tr > th {
-    cursor: default;
-  }
-
-  min-width: 400px;
-  width: auto;
-}
-
-#room-selection-table > tbody > tr:hover {
   background-color: #bfbfbf;
   transition: all 0.1s ease-in-out;
 }
@@ -46,6 +26,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.token-selection-row {
+  cursor: pointer;
 }
 
 .token-selection-icons {

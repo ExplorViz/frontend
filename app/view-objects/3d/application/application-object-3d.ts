@@ -10,6 +10,9 @@ import ClazzCommunicationMesh from './clazz-communication-mesh';
 import BaseMesh from '../base-mesh';
 import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -45,7 +48,9 @@ export default class ApplicationObject3D extends THREE.Object3D {
   animationMixer: THREE.AnimationMixer | undefined;
 
   @tracked
-  highlightedEntity: BaseMesh | Trace | null = null;
+  highlightedEntity: Set<string> | Trace | null = null; // In collab session multiple user can highlight one application
+
+  drawableClassCommSet: Set<DrawableClassCommunication> = new Set();
 
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();
@@ -233,6 +238,66 @@ export default class ApplicationObject3D extends THREE.Object3D {
     });
 
     return openComponentIds;
+  }
+
+  /**
+   * Iterates over all opened meshes which are currently added to the
+   * application and returns a set with ids of the transparent components.
+   */
+  get transparentComponentIds() {
+    const transparentComponentIds: Set<string> = new Set();
+
+    this.openComponentIds.forEach((openId) => {
+      const componentMesh = this.getMeshById(openId);
+      if (componentMesh) {
+        if (componentMesh.material.opacity !== 1) {
+          transparentComponentIds.add(openId);
+        }
+      }
+    });
+
+    // consider clazzes too
+    getAllClassesInApplication(this.data.application).forEach((clazz) => {
+      const clazzParentPackage = clazz.parent;
+
+      const pckg = findFirstOpenOrLastClosedAncestorComponent(
+        this,
+        clazzParentPackage
+      );
+      const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
+      if (pckgMesh instanceof ComponentMesh) {
+        //console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
+        if (pckgMesh.opened) {
+          pckgMesh.dataModel.subPackages.forEach((subPckg) => {
+            const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
+            if (
+              subPckgMesh instanceof ComponentMesh &&
+              subPckgMesh.material.opacity !== 1
+            ) {
+              transparentComponentIds.add(subPckg.id);
+            }
+          });
+        } else {
+          if (pckgMesh.material.opacity !== 1)
+            transparentComponentIds.add(pckg.id);
+        }
+      }
+
+      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
+        transparentComponentIds.add(clazz.id);
+      }
+    });
+
+    // intern links too
+    this.getCommMeshes().forEach((commMesh) => {
+      if (commMesh?.material.opacity !== 1) {
+        transparentComponentIds.add(commMesh.getModelId());
+      }
+    });
+
+    // TODO: extern links too (currently handled in vr-room-serializer.ts, serializeApplication function)
+
+    return transparentComponentIds;
   }
 
   /**

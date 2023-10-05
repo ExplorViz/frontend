@@ -2,6 +2,7 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -12,7 +13,9 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
+import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
 import {
   AppOpenedMessage,
   APP_OPENED_EVENT,
@@ -56,6 +59,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
     this.webSocket.on(
+      ALL_HIGHLIGHTS_RESET_EVENT,
+      this,
+      this.onAllHighlightsReset
+    );
+    this.webSocket.on(
       HIGHLIGHTING_UPDATE_EVENT,
       this,
       this.onHighlightingUpdate
@@ -91,6 +99,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   get canvas(): HTMLCanvasElement {
     assert(
@@ -145,34 +156,37 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
   }
 
+  onAllHighlightsReset(): void {
+    this.highlightingService.removeHighlightingForAllApplications(false);
+    this.highlightingService.updateHighlighting();
+  }
+
   onHighlightingUpdate({
     userId,
-    originalMessage: { isHighlighted, appId, entityType, entityId },
+    originalMessage: { appId, entityId, multiSelected },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
 
     const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) {
+      // extern communication link
       const mesh = this.applicationRenderer.getMeshById(entityId);
       if (mesh instanceof ClazzCommunicationMesh) {
-        this.highlightingService.highlightLink(mesh, user.color);
+        // multi selected extern links?
+        this.applicationRenderer.highlightExternLink(mesh, false, user.color);
       }
       return;
     }
 
-    if (isHighlighted) {
-      this.highlightingService.hightlightComponentLocallyByTypeAndId(
-        application,
-        {
-          entityType,
-          entityId,
-          color: user.color,
-        }
-      );
-    } else {
-      this.highlightingService.removeHighlightingLocally(application);
-    }
+    const mesh = application.getMeshById(entityId);
+    this.applicationRenderer.highlight(
+      mesh,
+      application,
+      user.color,
+      multiSelected,
+      false // whenever we receive messages we don't want to resend them
+    );
   }
 
   onMousePingUpdate({
@@ -191,5 +205,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         position: point,
       });
     }
+
+    const waypointIndicator = new WaypointIndicator({
+      target: remoteUser.mousePing.mesh,
+      color: remoteUser.color,
+    });
+    this.localUser.defaultCamera.add(waypointIndicator);
   }
 }

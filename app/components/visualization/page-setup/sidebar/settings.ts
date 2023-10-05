@@ -14,6 +14,7 @@ import {
   LandscapeSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
+import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 
 interface Args {
   isLandscapeView: boolean;
@@ -29,6 +30,9 @@ export default class Settings extends Component<Args> {
 
   @service('configuration')
   configuration!: Configuration;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   colorSchemes: { name: string; id: ColorScheme }[] = [
     { name: 'Default', id: 'default' },
@@ -170,6 +174,15 @@ export default class Settings extends Component<Args> {
     } else {
       const settingId = name as ApplicationSettingId;
       try {
+        if (
+          this.collaborationSession.connectionStatus === 'online' &&
+          settingId === 'keepHighlightingOnOpenOrClose'
+        ) {
+          AlertifyHandler.showAlertifyWarning(
+            'Switching Mode Not Allowed In Collaboration Session'
+          );
+          return;
+        }
         this.userSettings.updateApplicationSetting(settingId, value);
       } catch (e) {
         AlertifyHandler.showAlertifyError(e.message);

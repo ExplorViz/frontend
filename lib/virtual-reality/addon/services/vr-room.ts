@@ -19,7 +19,7 @@ import {
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import VrRoomSerializer from './vr-room-serializer';
 
-const { collaborationService } = ENV.backendAddresses;
+const { collaborationService, collaborationSocketPath } = ENV.backendAddresses;
 
 export default class VrRoomService extends Service {
   @service('auth')
@@ -32,10 +32,10 @@ export default class VrRoomService extends Service {
   private roomSerializer!: VrRoomSerializer;
 
   async listRooms(): Promise<RoomListRecord[]> {
-    const url = `${collaborationService}/rooms`;
+    const url = `${collaborationService}${collaborationSocketPath}/rooms`;
     const response = await fetch(url, {
       headers: {
-        //Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${this.auth.accessToken}`,
       },
     });
     const records = await response.json();
@@ -52,11 +52,11 @@ export default class VrRoomService extends Service {
       throw new Error('invalid data');
     }
 
-    const url = `${collaborationService}/room`;
+    const url = `${collaborationService}${collaborationSocketPath}/room`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        //Authorization: `Bearer ${this.auth.accessToken}`,
+         Authorization: `Bearer ${this.auth.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -82,11 +82,11 @@ export default class VrRoomService extends Service {
   }
 
   async joinLobby(roomId: string): Promise<LobbyJoinedResponse> {
-    const url = `${collaborationService}/room/${roomId}/lobby`;
+    const url = `${collaborationService}${collaborationSocketPath}/room/${roomId}/lobby`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        //Authorization: `Bearer ${this.auth.accessToken}`,
+         Authorization: `Bearer ${this.auth.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(this.buildJoinLobbyPayload()),

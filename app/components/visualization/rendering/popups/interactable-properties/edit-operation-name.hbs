@@ -1,0 +1,25 @@
+<td class='text-nowrap align-top'>{{svg-jar
+    'comment-16'
+    class='octicon align-middle mr-1'
+  }}</td>
+{{#if this.landscapeRestructure.restructureMode}}
+  <td class='text-right text-break pl-1'>
+    {{#if this.isEditing}}
+      <Input
+        aria-label='operation-name'
+        @value={{this.operationName}}
+        @enter={{this.handleEnter}}
+        {{on 'focusout' this.handleFocusOut}}
+      />
+    {{else}}
+      <div
+        style='cursor: text;'
+        {{on 'click' this.edit}}
+      >{{this.operationName}}</div>
+    {{/if}}
+  </td>
+{{else}}
+  <td class='text-right text-break pl-1'>
+    {{@communication.operationName}}
+  </td>
+{{/if}}

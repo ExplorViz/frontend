@@ -15,6 +15,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -41,13 +42,18 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
+import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import PopupData from './popups/popup-data';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly visualizationPaused: boolean;
   readonly selectedTimestampRecords: Timestamp[];
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   switchToVR(): void;
@@ -62,6 +68,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('configuration')
   configuration!: Configuration;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -83,6 +92,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
+  @service('virtual-reality@vr-room-serializer')
+  roomSerializer!: VrRoomSerializer;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -113,11 +128,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   initDone: boolean = false;
 
-  latestMouseMoveTimestamp = 0;
-
-  // 500ms delay before showing popups (to prevent flickering)
-  POPUP_DELAY = 500;
-
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
 
@@ -145,7 +155,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   debug = debugLogger('BrowserRendering');
 
   constructor(owner: any, args: BrowserRenderingArgs) {
-    console.log('constructor');
     super(owner, args);
     this.debug('Constructor called');
     // scene
@@ -160,6 +169,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       100
     );
     this.camera.position.set(5, 5, 5);
+    this.scene.add(this.localUser.defaultCamera);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -190,10 +200,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  tick(delta: number) {
+  async tick(delta: number) {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
+
+    if (this.initDone && this.linkRenderer.flag) {
+      this.linkRenderer.flag = false;
+    }
   }
 
   get rightClickMenuItems() {
@@ -219,9 +233,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openDataSelection },
+      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      { title: 'Enter VR', action: this.args.switchToVR },
+      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -257,6 +271,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.debug('Canvas inserted');
 
     this.canvas = canvas;
+    this.landscapeRestructure.canvas = canvas;
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
@@ -289,6 +304,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
+      preserveDrawingBuffer: true,
     });
 
     this.renderer.shadowMap.enabled = true;
@@ -305,7 +321,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.focusCameraOn(
+          this.cameraControls.resetCameraFocusOn(
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
@@ -333,7 +349,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideWebsocket.jumpToLocation(intersection.object);
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.removeHighlightingForAllApplications(true);
+      this.highlightingService.updateHighlighting();
     }
   }
 
@@ -347,13 +364,26 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    // User clicked on blank spot on the canvas
-    if (isEntityMesh(mesh)) {
-      this.highlightingService.highlight(mesh);
-    }
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
+      }
+    }
+
+    if (isEntityMesh(mesh)) {
+      if (mesh.parent instanceof ApplicationObject3D) {
+        this.applicationRenderer.highlight(
+          mesh,
+          mesh.parent,
+          this.localUser.color
+        );
+      } else {
+        // extern communication link
+        this.applicationRenderer.highlightExternLink(
+          mesh,
+          true,
+          this.localUser.color
+        );
       }
     }
   }
@@ -363,6 +393,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       this.handleDoubleClickOnMesh(intersection.object);
     }
+  }
+
+  @action
+  handleStrgDown() {
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        true;
+    }
+  }
+
+  @action
+  handleStrgUp() {
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      false;
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
@@ -384,6 +430,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
+    if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
+      if (
+        !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
+          .value
+      ) {
+        const applicationObject3D = mesh.parent;
+        if (applicationObject3D instanceof ApplicationObject3D)
+          removeAllHighlighting(applicationObject3D);
+      }
+    }
+
     if (mesh instanceof ComponentMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
@@ -401,8 +458,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection) {
-    this.latestMouseMoveTimestamp = Date.now();
-
+    // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
@@ -468,17 +524,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
     if (intersection) {
-      setTimeout(() => {
-        // Wait a specified time without mouse movement instead of showing popup immediately
-        if (Date.now() - this.latestMouseMoveTimestamp > this.POPUP_DELAY) {
-          this.popupHandler.addPopup({
-            mesh: intersection.object,
-            position: mouseOnCanvas,
-            replace: !this.appSettings.enableCustomPopupPosition.value,
-            hovered: true,
-          });
-        }
-      }, this.POPUP_DELAY);
+      this.popupHandler.addPopup({
+        mesh: intersection.object,
+        position: mouseOnCanvas,
+        replace: !this.appSettings.enableCustomPopupPosition.value,
+        hovered: true,
+      });
     }
   }
 
@@ -498,6 +549,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.args.landscapeData.dynamicLandscapeData,
       this.cameraControls
     );
+  }
+
+  restore(detachedMenu: SerializedDetachedMenu) {
+    const mesh = this.applicationRenderer.getMeshById(detachedMenu.entityId);
+    const applicationId = this.applicationRenderer.getApplicationIdByMeshId(
+      detachedMenu.entityId
+    );
+    if (mesh && applicationId && detachedMenu.userId) {
+      const popupDataInstance: PopupData = new PopupData({
+        mouseX: 5,
+        mouseY: 5,
+        mesh: mesh as EntityMesh,
+        entity: (mesh as EntityMesh).dataModel,
+        applicationId: applicationId,
+        wasMoved: false,
+        sharedBy: detachedMenu.userId,
+        isPinned: true,
+        menuId: detachedMenu.objectId,
+        hovered: false,
+      });
+
+      const popupData: PopupData[] = [popupDataInstance];
+      this.popupHandler.popupData = popupData;
+    }
   }
 
   @action
