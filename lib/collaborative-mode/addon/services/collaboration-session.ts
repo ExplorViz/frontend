@@ -260,7 +260,7 @@ export default class CollaborationSession extends Service.extend({
       this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
       switch (event) {
-        case "io client disconnect":
+        case 'io client disconnect':
           this.toastMessage.info('Successfully disconnected');
           break;
         default:
@@ -316,7 +316,10 @@ export default class CollaborationSession extends Service.extend({
       while (retries < maxRetries) {
         try {
           const response = await this.roomService.joinLobby(this.currentRoomId);
-          this.webSocket.initSocket(response.ticketId, this.localUser.visualizationMode);
+          this.webSocket.initSocket(
+            response.ticketId,
+            this.localUser.visualizationMode
+          );
           break; // Break out of the loop if successful
         } catch (e) {
           if (retries === maxRetries - 1) {
@@ -330,7 +333,7 @@ export default class CollaborationSession extends Service.extend({
           }
           retries++;
           console.error('Error: Unable to join lobby. Retrying...', e);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }

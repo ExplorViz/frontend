@@ -1,8 +1,8 @@
 export type Color = {
-  colorId: number,
-  red: number,
-  green: number,
-  blue: number
+  colorId: number;
+  red: number;
+  green: number;
+  blue: number;
 };
 
 export function isColor(color: any): color is Color {

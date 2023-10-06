@@ -2,19 +2,52 @@ import Service, { inject as service } from '@ember/service';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
-import { MOUSE_PING_UPDATE_EVENT, MousePingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
-import { PING_UPDATE_EVENT, PingUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import { TIMESTAMP_UPDATE_EVENT, TimestampUpdateMessage } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import {
+  MOUSE_PING_UPDATE_EVENT,
+  MousePingUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/ping_update';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import VRController from '../utils/vr-controller';
 import { getControllerPose } from '../utils/vr-helpers/vr-poses';
-import { APP_OPENED_EVENT, AppOpenedMessage } from '../utils/vr-message/sendable/app_opened';
-import { COMPONENT_UPDATE_EVENT, ComponentUpdateMessage } from '../utils/vr-message/sendable/component_update';
-import { HIGHLIGHTING_UPDATE_EVENT, HighlightingUpdateMessage } from '../utils/vr-message/sendable/highlighting_update';
-import { OBJECT_MOVED_EVENT, ObjectMovedMessage } from '../utils/vr-message/sendable/object_moved';
-import { OBJECT_RELEASED_EVENT, ObjectReleasedMessage } from '../utils/vr-message/sendable/object_released';
-import { SPECTATING_UPDATE_EVENT, SpectatingUpdateMessage } from '../utils/vr-message/sendable/spectating_update';
-import { USER_CONTROLLER_CONNECT_EVENT, UserControllerConnectMessage } from '../utils/vr-message/sendable/user_controller_connect';
-import { USER_CONTROLLER_DISCONNECT_EVENT, UserControllerDisconnectMessage } from '../utils/vr-message/sendable/user_controller_disconnect';
+import {
+  APP_OPENED_EVENT,
+  AppOpenedMessage,
+} from '../utils/vr-message/sendable/app_opened';
+import {
+  COMPONENT_UPDATE_EVENT,
+  ComponentUpdateMessage,
+} from '../utils/vr-message/sendable/component_update';
+import {
+  HIGHLIGHTING_UPDATE_EVENT,
+  HighlightingUpdateMessage,
+} from '../utils/vr-message/sendable/highlighting_update';
+import {
+  OBJECT_MOVED_EVENT,
+  ObjectMovedMessage,
+} from '../utils/vr-message/sendable/object_moved';
+import {
+  OBJECT_RELEASED_EVENT,
+  ObjectReleasedMessage,
+} from '../utils/vr-message/sendable/object_released';
+import {
+  SPECTATING_UPDATE_EVENT,
+  SpectatingUpdateMessage,
+} from '../utils/vr-message/sendable/spectating_update';
+import {
+  USER_CONTROLLER_CONNECT_EVENT,
+  UserControllerConnectMessage,
+} from '../utils/vr-message/sendable/user_controller_connect';
+import {
+  USER_CONTROLLER_DISCONNECT_EVENT,
+  UserControllerDisconnectMessage,
+} from '../utils/vr-message/sendable/user_controller_disconnect';
 import {
   ControllerPose,
   Pose,
@@ -163,16 +196,19 @@ export default class VrMessageSender extends Service {
   async sendControllerConnect(controller: VRController | undefined) {
     if (!controller?.connected) return;
 
-    const motionController = await controller.controllerModel
-      .motionControllerPromise;
-    this.webSocket.send<UserControllerConnectMessage>(USER_CONTROLLER_CONNECT_EVENT, {
-      event: 'user_controller_connect',
-      controller: {
-        assetUrl: motionController.assetUrl,
-        controllerId: controller.gamepadIndex,
-        ...getControllerPose(controller),
-      },
-    });
+    const motionController =
+      await controller.controllerModel.motionControllerPromise;
+    this.webSocket.send<UserControllerConnectMessage>(
+      USER_CONTROLLER_CONNECT_EVENT,
+      {
+        event: 'user_controller_connect',
+        controller: {
+          assetUrl: motionController.assetUrl,
+          controllerId: controller.gamepadIndex,
+          ...getControllerPose(controller),
+        },
+      }
+    );
   }
 
   async sendJoinVr() {
@@ -185,10 +221,13 @@ export default class VrMessageSender extends Service {
    * Informs the backend if a controller was connected/disconnected.
    */
   sendControllerDisconnect(controller: VRController) {
-    this.webSocket.send<UserControllerDisconnectMessage>( USER_CONTROLLER_DISCONNECT_EVENT, {
-      event: 'user_controller_disconnect',
-      controllerId: controller.gamepadIndex,
-    });
+    this.webSocket.send<UserControllerDisconnectMessage>(
+      USER_CONTROLLER_DISCONNECT_EVENT,
+      {
+        event: 'user_controller_disconnect',
+        controllerId: controller.gamepadIndex,
+      }
+    );
   }
 
   /**

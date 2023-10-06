@@ -56,7 +56,7 @@ export default class VrRoomService extends Service {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-         Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${this.auth.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -86,7 +86,7 @@ export default class VrRoomService extends Service {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-         Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${this.auth.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(this.buildJoinLobbyPayload()),
