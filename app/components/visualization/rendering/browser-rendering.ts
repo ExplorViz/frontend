@@ -35,13 +35,13 @@ import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
-import SynchronizeService from 'virtual-reality/services/synchronizing';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
+import ProjectorSynchronization from 'collaborative-mode/services/projector-synchronization';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -76,8 +76,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
 
-  @service('synchronize')
-  private synchronizeService!: SynchronizeService;
+  @service('projector-synchronization')
+  private projectorSynchronization!: ProjectorSynchronization;
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
@@ -170,7 +170,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // spectate
     this.updatables.push(this.spectateUserService);
     // synchronize
-    this.updatables.push(this.synchronizeService);
+    this.updatables.push(this.projectorSynchronization);
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
@@ -301,7 +301,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.cameraControls = new CameraControls(this.camera, this.canvas);
 
     this.spectateUserService.cameraControls = this.cameraControls;
-    this.synchronizeService.cameraControls = this.cameraControls;
+    this.projectorSynchronization.cameraControls = this.cameraControls;
 
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {

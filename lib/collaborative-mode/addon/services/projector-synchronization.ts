@@ -11,8 +11,8 @@ import SynchronizationSession from 'collaborative-mode/services/synchronization-
  * Reuses scaffold from specate feature.
  * Heart of the update cycle for the synchronization feature.
  */
-export default class SynchronizeService extends Service {
-  debug = debugLogger('synchronizeService');
+export default class ProjectorSynchronization extends Service {
+  debug = debugLogger('ProjectorSynchronization');
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -91,6 +91,6 @@ export default class SynchronizeService extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    synchronize: SynchronizeService;
+    synchronize: ProjectorSynchronization;
   }
 }

@@ -6,7 +6,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import { task, timeout } from 'ember-concurrency';
-import SynchronizeService from 'virtual-reality/services/synchronizing';
+import ProjectorSynchronization from 'collaborative-mode/services/projector-synchronization';
 interface SynchronizationStartArgs {
   deviceId: number;
   roomId: string;
@@ -32,7 +32,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   private synchronizationSession!: SynchronizationSession;
 
   @service('synchronize')
-  private synchronizeService!: SynchronizeService;
+  private synchronizeService!: ProjectorSynchronization;
 
   token = {
     alias: 'Query parameterized landscape name',
