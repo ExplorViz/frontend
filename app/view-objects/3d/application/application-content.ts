@@ -34,7 +34,8 @@ export default class ApplicationContent {
 
   private componentData: ComponentData[] = [];
   private readonly componentDataById = new Map<string, ComponentData>();
-  private readonly classData = new Map<string, ClassData>();
+  private readonly classData: ClassData[] = [];
+  private readonly classDataById = new Map<string, ClassData>();
   private hoverIndex = -1;
 
   readonly openComponentIds;
@@ -72,9 +73,6 @@ export default class ApplicationContent {
       colors.clazzTextColor
     );
     this.classLabels.name = 'LabelMesh Classes';
-    // this.classLabels.material = new THREE.MeshBasicMaterial({
-    //   color: new THREE.Color(0xff00ff),
-    // });
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -187,7 +185,7 @@ export default class ApplicationContent {
       return FakeInstanceMesh.getInstance(this.components, component.index);
     }
 
-    const clazz = this.classData.get(id);
+    const clazz = this.classDataById.get(id);
     if (clazz) {
       return; // TODO
     }
@@ -217,7 +215,8 @@ export default class ApplicationContent {
     this.openComponentIds.clear();
     this.componentData.length = 0;
     this.componentDataById.clear();
-    this.classData.clear();
+    this.classData.length = 0;
+    this.classDataById.clear();
 
     openComponentIds?.forEach((id) => this.openComponentIds.add(id));
 
@@ -313,7 +312,7 @@ export default class ApplicationContent {
     classesOnly: boolean
   ): void {
     for (const clazz of component.classes) {
-      const data = this.classData.get(clazz.id)!;
+      const data = this.classDataById.get(clazz.id)!;
       const layout = this.getLayout(clazz.id);
       this.updateClassInstance(data.index, layout, visible);
     }
@@ -438,15 +437,19 @@ export default class ApplicationContent {
   ): void {
     setupBoxMatrix(layout, false, visible);
     this.classes.setMatrixAt(index, tmpMatrix);
+    const classData = this.classData[index];
+    const labelData = this.app3d.data.labels.classes.layout.get(classData.id)!;
     setupClassLabelMatrix(layout, visible);
-    this.classLabels.setMatrixAt(index, tmpMatrix);
+    this.classLabels.setMatrixAt(labelData.index, tmpMatrix);
   }
 
   private addClass(clazz: Class, visible: boolean): void {
     const layout = this.getLayout(clazz.id);
     setupBoxMatrix(layout, false, visible);
-    const index = this.classData.size;
-    this.classData.set(clazz.id, { visible, index });
+    const index = this.classData.length;
+    const classData = { visible, index, labelIndex: -1, id: clazz.id };
+    this.classData.push(classData);
+    this.classDataById.set(clazz.id, classData);
 
     this.updateClassInstance(index, layout, visible);
     this.classes.setColorAt(index, this.colors.clazzColor);
@@ -520,7 +523,7 @@ function setupClassLabelMatrix(classLayout: BoxLayout, visible: boolean) {
     return;
   }
 
-  tmpMatrix.makeScale(1.5, 1.0, 6); // TODO
+  tmpMatrix.makeScale(1.3, 1.0, 5.5); // TODO
   tmpMatrix.premultiply(classLabelRotation);
 
   const position = classLayout.center;
@@ -598,4 +601,6 @@ type ComponentData = {
 type ClassData = {
   visible: boolean;
   index: number;
+  labelIndex: number;
+  id: string;
 };

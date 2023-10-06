@@ -29,6 +29,7 @@ export type LabelLayoutData = {
   height: number;
   index: number;
   aspectRatio: number;
+  id: string;
 };
 
 export function generateApplicationLabels(
@@ -96,6 +97,7 @@ function generatePackageAndFoundationLabels(
       height: lineHeight / height,
       index: i,
       aspectRatio: actualLabelHeight / boxWidth,
+      id,
     });
   });
 
@@ -138,6 +140,7 @@ function generateClassLabels(
       height: lineHeight / height,
       index: i,
       aspectRatio: 1.0, // TODO
+      id,
     });
   });
 
