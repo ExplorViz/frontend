@@ -17,16 +17,16 @@ export function createLabelMaterial(
       .replace(
         '#include <uv_pars_vertex>',
         `#include <uv_pars_vertex>
-      attribute vec3 labelLayoutData;`
+        attribute vec3 labelLayoutData;`
       )
       .replace(
         '#include <uv_vertex>',
         `#include <uv_vertex>
-      float labelWidth = labelLayoutData.x;
-      float labelHeight = labelLayoutData.y;
-      float labelYOffset = labelLayoutData.z;
-      vec2 customUV = MAP_UV * vec2(labelWidth, labelHeight) + vec2(0.0, labelYOffset);
-      vMapUv = ( mapTransform * vec3( customUV, 1 ) ).xy;`
+        float labelWidth = labelLayoutData.x;
+        float labelHeight = labelLayoutData.y;
+        float labelYOffset = labelLayoutData.z;
+        vec2 customUV = MAP_UV * vec2(labelWidth, labelHeight) + vec2(0.0, labelYOffset);
+        vMapUv = ( mapTransform * vec3( customUV, 1 ) ).xy;`
       );
 
     shader.fragmentShader = shader.fragmentShader

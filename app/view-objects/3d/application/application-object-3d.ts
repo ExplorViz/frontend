@@ -153,11 +153,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
       this.commIdToMesh.set(object.getModelId(), object);
     }
 
-    // Keep track of all components (e.g. to find opened components)
-    if (object instanceof ComponentMesh) {
-      this.componentMeshes.add(object);
-    }
-
     return this;
   }
 
@@ -228,6 +223,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       this.foundationMesh.removeFromParent();
     }
     this.createFoundation(colors);
+    // TODO: update textures
     this.content.update(openComponentIds);
   }
 
@@ -369,6 +365,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    * @param opacity Determines how opaque / visible component meshes should be
    */
   setBoxMeshOpacity(opacity = 1) {
+    // TODO
     this.getBoxMeshes().forEach((mesh) => {
       if (mesh instanceof BoxMesh) {
         if (opacity === 1) {

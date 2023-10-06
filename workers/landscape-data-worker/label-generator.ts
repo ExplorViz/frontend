@@ -65,6 +65,7 @@ function generatePackageAndFoundationLabels(
   const height = lineHeight * packages.length;
 
   const ctx = initCanvas(width, height);
+  ctx.textAlign = 'center';
 
   const textureLayout: LabelLayoutMap = new Map();
 
@@ -90,7 +91,7 @@ function generatePackageAndFoundationLabels(
 
     textureLayout.set(id, {
       width: maxWidth / width,
-      top: (y + lineHeight) / height,
+      top: y / height,
       bottom: (height - (y + lineHeight)) / height,
       height: lineHeight / height,
       index: i,
@@ -112,24 +113,26 @@ function generateClassLabels(
   );
 
   const width = 128;
-  const lineHeight = 16;
+  const lineHeight = 24;
   const height = classes.length * lineHeight;
 
   const ctx = initCanvas(width, height);
+  ctx.textAlign = 'left';
 
-  const fontSize = Math.round(0.5 * lineHeight);
+  const fontSize = Math.round(0.64 * lineHeight);
   ctx.font = `bold ${fontSize}px sans-serif`;
 
   const textureLayout: LabelLayoutMap = new Map();
 
   classes.forEach(({ name, id }, i) => {
     const top = lineHeight * i;
-    const bottom = top + lineHeight;
+    const bottom = height - (top + lineHeight);
     const displayText = name.length > 10 ? `${name.substring(0, 8)}...` : name;
-    ctx.fillText(displayText, 0.5 * width, 0.5 * (top + bottom), width);
+    ctx.fillText(displayText, 1, top + 0.5 * lineHeight, width - 1);
+    const textWidth = Math.min(ctx.measureText(displayText).width + 1, width);
 
     textureLayout.set(id, {
-      width: width,
+      width: textWidth / width,
       top: top / height,
       bottom: bottom / height,
       height: lineHeight / height,
@@ -163,7 +166,6 @@ function initCanvas(
   ctx.fillRect(0, 0, width, height);
 
   ctx.fillStyle = 'rgb(255,255,255)';
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   //ctx.textRendering = 'optimizeLegibility';
 

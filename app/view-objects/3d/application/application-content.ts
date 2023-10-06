@@ -64,15 +64,17 @@ export default class ApplicationContent {
       app3d.componentLabelTexture,
       colors.componentTextColor
     );
+    this.componentLabels.name = 'LabelMesh Components';
 
     this.classLabels = createLabelMesh(
       app3d.data.labels.classes,
       app3d.classLabelTexture,
       colors.clazzTextColor
     );
-    this.classLabels.material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(0xff00ff),
-    });
+    this.classLabels.name = 'LabelMesh Classes';
+    // this.classLabels.material = new THREE.MeshBasicMaterial({
+    //   color: new THREE.Color(0xff00ff),
+    // });
 
     this.components.receiveShadow = true;
     this.components.castShadow = true;
@@ -518,7 +520,7 @@ function setupClassLabelMatrix(classLayout: BoxLayout, visible: boolean) {
     return;
   }
 
-  tmpMatrix.makeScale(4, 1.0, 10); // TODO
+  tmpMatrix.makeScale(1.5, 1.0, 6); // TODO
   tmpMatrix.premultiply(classLabelRotation);
 
   const position = classLayout.center;
