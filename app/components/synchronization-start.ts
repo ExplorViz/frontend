@@ -44,7 +44,11 @@ export default class SynchronizationStart extends Component<SynchronizationStart
 
   // Check for updates on query params
   checkQueryParams() {
-    return this.args.deviceId > -99 && this.args.roomId !== '' && this.args.tokenId !== '';
+    return (
+      this.args.deviceId > -99 &&
+      this.args.roomId !== '' &&
+      this.args.tokenId !== ''
+    );
   }
 
   async routeToVisualization(token: LandscapeToken) {

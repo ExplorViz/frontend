@@ -16,7 +16,7 @@ interface SynchronizationArgs {
 /**
  * This class uses xr-collaboration as scaffold to visualize user identification.
  * Frontend component in the right-click menu's sidebar for the Synchronization Feature.
- * 
+ *
  */
 export default class Synchronization extends Component<SynchronizationArgs> {
   @service('local-user')

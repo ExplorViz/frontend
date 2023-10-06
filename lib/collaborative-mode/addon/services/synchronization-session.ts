@@ -135,8 +135,6 @@ export default class SynchronizationSession extends Service {
     };
   }
 
-
-
   /**
    * Sets up projection matrix by configuring aspect, fov,
    * rotations according to yaw, pitch and roll in the mpcdi file.
@@ -146,13 +144,13 @@ export default class SynchronizationSession extends Service {
     this.localUser.camera.projectionMatrix.copy(
       new THREE.Matrix4().makePerspective(
         -Math.tan(this.projectorAngles.left * DEG2RAD) *
-        this.localUser.camera.near,
+          this.localUser.camera.near,
         Math.tan(this.projectorAngles.right * DEG2RAD) *
-        this.localUser.camera.near,
+          this.localUser.camera.near,
         Math.tan(this.projectorAngles.down * DEG2RAD) *
-        this.localUser.camera.near,
+          this.localUser.camera.near,
         -Math.tan(this.projectorAngles.up * DEG2RAD) *
-        this.localUser.camera.near,
+          this.localUser.camera.near,
         this.localUser.camera.near,
         this.localUser.camera.far
       )
