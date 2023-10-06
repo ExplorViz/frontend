@@ -19,7 +19,7 @@ module('Integration | Component | synchronization-opener', function (hooks) {
     if (textContent === null) {
       assert.ok(null, 'no text content');
     } else {
-      assert.equal(textContent.trim(), 'Synchronization');
+      assert.equal(textContent.trim(), 'synchronization-controls');
     }
   });
 });

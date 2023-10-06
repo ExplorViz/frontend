@@ -34,7 +34,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import WebSocketService from 'virtual-reality/services/web-socket';
@@ -120,7 +120,7 @@ export default class VrRendering extends Component<Args> {
   private localUser!: LocalUser;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;

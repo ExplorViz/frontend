@@ -32,7 +32,7 @@ import MainMenu from '../utils/vr-menus/ui-menu/main-menu';
 import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
-import SpectateUserService from './spectate-user';
+import SpectateUser from '../../../collaborative-mode/addon/services/spectate-user';
 import VrRoomService from './vr-room';
 
 export default class VrMenuFactoryService extends Service {
@@ -49,7 +49,7 @@ export default class VrMenuFactoryService extends Service {
   private collaborationSession!: CollaborationSession;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;

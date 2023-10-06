@@ -1,17 +1,17 @@
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import TextbuttonItem from '../../items/textbutton-item';
 import TitleItem from '../../items/title-item';
 import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
 
 type OnlineMenuArgs = ConnectionBaseMenuArgs & {
-  spectateUserService: SpectateUserService;
+  spectateUserService: SpectateUser;
 };
 
 export default class OnlineMenu extends ConnectionBaseMenu {
   private remoteUserButtons: Map<string, TextbuttonItem>;
 
-  private spectateUserService: SpectateUserService;
+  private spectateUserService: SpectateUser;
 
   private disconnectButton?: TextbuttonItem;
 

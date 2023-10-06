@@ -7,13 +7,13 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 
-interface XrCollaborationArgs {
+interface CollaborationArgs {
   removeComponent(componentPath: string): void;
 }
 
-export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
+export default class CollaborationControls extends Component<CollaborationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -28,7 +28,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
   private collaborationSession!: CollaborationSession;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -53,7 +53,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
     return users.concat(remoteUsers);
   }
 
-  constructor(owner: any, args: XrCollaborationArgs) {
+  constructor(owner: any, args: CollaborationArgs) {
     super(owner, args);
 
     this.loadRooms(false);
@@ -98,6 +98,6 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
 
   @action
   close() {
-    this.args.removeComponent('xr-collaboration');
+    this.args.removeComponent('collaboration-controls');
   }
 }

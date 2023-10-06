@@ -34,7 +34,7 @@ import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
@@ -74,7 +74,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private highlightingService!: HighlightingService;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('projector-synchronization')
   private projectorSynchronization!: ProjectorSynchronization;

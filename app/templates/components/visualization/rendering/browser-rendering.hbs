@@ -89,13 +89,13 @@
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::XrCollaborationOpener
+              <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::SynchronizationOpener
                 @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
+              <Visualization::PageSetup::Navbar::VscodeExtensionSettingsOpener
                 @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
             </ul>
@@ -129,21 +129,21 @@
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
-                {{#if (eq componentName 'xr-collaboration')}}
+                {{#if (eq componentName 'collaboration-controls')}}
                   <h5 class='text-center'>Collaboration</h5>
-                  <Visualization::PageSetup::Sidebar::XrCollaboration
+                  <Visualization::PageSetup::Sidebar::CollaborationControls
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
-                {{#if (eq componentName 'synchronization')}}
+                {{#if (eq componentName 'synchronization-controls')}}
                   <h5 class='text-center'>Synchronization</h5>
-                  <Visualization::PageSetup::Sidebar::Synchronization
+                  <Visualization::PageSetup::Sidebar::SynchronizationControls
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
-                {{#if (eq componentName 'xr-vscode-extension-settings')}}
+                {{#if (eq componentName 'vscode-extension-settings')}}
                   <h5 class='text-center'>VSCode Extension Settings</h5>
-                  <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings
+                  <Visualization::PageSetup::Sidebar::VscodeExtensionSettings
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}

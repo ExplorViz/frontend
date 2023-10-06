@@ -18,7 +18,7 @@ interface SynchronizationArgs {
  * Frontend component in the right-click menu's sidebar for the Synchronization Feature.
  *
  */
-export default class Synchronization extends Component<SynchronizationArgs> {
+export default class SynchronizationControls extends Component<SynchronizationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -100,6 +100,6 @@ export default class Synchronization extends Component<SynchronizationArgs> {
 
   @action
   close() {
-    this.args.removeComponent('synchronization');
+    this.args.removeComponent('synchronization-controls');
   }
 }

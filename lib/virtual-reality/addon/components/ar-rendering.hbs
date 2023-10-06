@@ -179,7 +179,7 @@
         >
           <div class='explorviz-visualization-navbar foreground'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Navbar::XrCollaborationOpener
+              <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSidebarComponent={{@toggleSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::ArSettingsOpener
@@ -190,7 +190,7 @@
           {{#each @components as |componentName|}}
             <div class='card mt-3 foreground'>
               <div class='card-body d-flex flex-column'>
-                {{#if (eq componentName 'xr-collaboration')}}
+                {{#if (eq componentName 'collaboration-controls')}}
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::XrCollaboration
                     @removeComponent={{@removeComponent}}

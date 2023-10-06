@@ -18,9 +18,11 @@ import {
   SpectatingUpdateMessage,
   SPECTATING_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import WebSocketService, {
+  SELF_DISCONNECTED_EVENT,
+} from 'virtual-reality/services/web-socket';
 
-export default class SpectateUserService extends Service {
+export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
 
   @service('local-user')
@@ -228,6 +230,6 @@ export default class SpectateUserService extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'spectate-user': SpectateUserService;
+    'spectate-user': SpectateUser;
   }
 }
