@@ -9,8 +9,11 @@ import {
   Span,
 } from '../landscape-schemes/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
-import { removeHighlighting } from './highlighting';
 import CameraControls from './camera-controls';
+import { removeHighlighting } from './highlighting';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import gsap from 'gsap';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -57,12 +60,15 @@ export function openComponentMesh(
     return;
   }
 
-  mesh.height = 1.5;
+  gsap.to(mesh, {
+    duration: 0.25,
+    height: 1.5,
+  });
 
-  // Reset y coordinate
-  mesh.position.y -= mesh.layout.height / 2;
-  // Set y coordinate according to open component height
-  mesh.position.y += 1.5 / 2;
+  gsap.to(mesh.position, {
+    duration: 0.25,
+    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+  });
 
   mesh.opened = true;
   mesh.visible = true;
@@ -95,18 +101,22 @@ export function openComponentMesh(
  */
 export function closeComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean
 ) {
   if (!mesh.opened) {
     return;
   }
 
-  mesh.height = mesh.layout.height;
+  gsap.to(mesh, {
+    duration: 0.5,
+    height: mesh.layout.height,
+  });
 
-  // Reset y coordinate
-  mesh.position.y -= 1.5 / 2;
-  // Set y coordinate according to closed component height
-  mesh.position.y += mesh.layout.height / 2;
+  gsap.to(mesh.position, {
+    duration: 0.5,
+    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+  });
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
@@ -119,11 +129,11 @@ export function closeComponentMesh(
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
-        closeComponentMesh(childMesh, applicationObject3D);
+        closeComponentMesh(childMesh, applicationObject3D, keepHighlighted);
       }
       // Reset highlighting if highlighted entity is no longer visible
-      if (childMesh.highlighted) {
-        removeHighlighting(applicationObject3D);
+      if (!keepHighlighted && childMesh.highlighted) {
+        removeHighlighting(childMesh, applicationObject3D);
       }
     }
   });
@@ -134,8 +144,8 @@ export function closeComponentMesh(
     if (childMesh instanceof ClazzMesh) {
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
-      if (childMesh.highlighted) {
-        removeHighlighting(applicationObject3D);
+      if (!keepHighlighted && childMesh.highlighted) {
+        removeHighlighting(childMesh, applicationObject3D);
       }
     }
   });
@@ -146,14 +156,17 @@ export function closeComponentMesh(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
+export function closeAllComponents(
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean
+) {
   const application = applicationObject3D.data.application;
 
   // Close each component
   application.packages.forEach((component) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D);
+      closeComponentMesh(componentMesh, applicationObject3D, keepHighlighted);
     }
   });
 }
@@ -166,15 +179,24 @@ export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
  */
 export function openComponentsRecursively(
   component: Package,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  sender: VrMessageSender
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh) {
+    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
+      // !mesh.opened needed!
+
       openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(),
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh
+      );
     }
-    openComponentsRecursively(child, applicationObject3D);
+    openComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 
@@ -183,13 +205,22 @@ export function openComponentsRecursively(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function openAllComponents(applicationObject3D: ApplicationObject3D) {
+export function openAllComponents(
+  applicationObject3D: ApplicationObject3D,
+  sender: VrMessageSender
+) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh) {
+    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       openComponentMesh(mesh, applicationObject3D);
+      sender.sendComponentUpdate(
+        applicationObject3D.getModelId(),
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh
+      );
     }
-    openComponentsRecursively(child, applicationObject3D);
+    openComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 
@@ -201,10 +232,11 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D) {
  */
 export function toggleComponentMeshState(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  keepHighlighted: boolean
 ) {
   if (mesh.opened) {
-    closeComponentMesh(mesh, applicationObject3D);
+    closeComponentMesh(mesh, applicationObject3D, keepHighlighted);
   } else {
     openComponentMesh(mesh, applicationObject3D);
   }
@@ -215,15 +247,34 @@ export function toggleComponentMeshState(
  *
  * @param applicationObject3D Application object which contains the components
  * @param openComponentIds Set with ids of opened components
+ * @param transparentComponentIds Set with ids of transparent components
  */
 export function restoreComponentState(
   applicationObject3D: ApplicationObject3D,
-  openComponentIds?: Set<string>
+  openComponentIds?: Set<string>,
+  transparentComponentIds?: Set<string>,
+  opacity?: number
 ) {
   openComponentIds?.forEach((componentId) => {
+    const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+
+    if (boxMesh instanceof ComponentMesh) {
+      openComponentMesh(boxMesh, applicationObject3D);
+    }
+  });
+
+  transparentComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
-    if (componentMesh instanceof ComponentMesh) {
-      openComponentMesh(componentMesh, applicationObject3D);
+
+    if (componentMesh) {
+      if (
+        componentMesh instanceof ClazzMesh &&
+        componentMesh.dataModel.id.includes('new')
+      ) {
+        // Without this, a new created class will be transparent
+      } else {
+        componentMesh.turnTransparent(opacity);
+      }
     }
   });
 }

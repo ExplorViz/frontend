@@ -4,7 +4,9 @@ import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VRController from 'virtual-reality/utils/vr-controller';
+import { getPoses } from 'virtual-reality/utils/vr-helpers/vr-poses';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -13,6 +15,9 @@ export default class LocalUser extends Service.extend({
 }) {
   @service('configuration')
   configuration!: Configuration;
+
+  @service('vr-message-sender')
+  sender!: VrMessageSender;
 
   userId!: string;
 
@@ -75,6 +80,19 @@ export default class LocalUser extends Service.extend({
 
   tick(delta: number) {
     this.animationMixer.update(delta);
+
+    if (this.visualizationMode === 'vr') {
+      this.sendPositions();
+    }
+  }
+
+  sendPositions() {
+    const { camera, controller1, controller2 } = getPoses(
+      this.defaultCamera,
+      this.controller1,
+      this.controller2
+    );
+    this.sender.sendPoseUpdate(camera, controller1, controller2);
   }
 
   connected({
@@ -208,7 +226,7 @@ export default class LocalUser extends Service.extend({
    * This method is used to adapt the users view to the initial position
    */
   resetPositionAndRotation() {
-    this.userGroup.position.set(0, 0, 0);
+    this.teleportToPosition(new THREE.Vector3(0, 0, 0));
     this.defaultCamera.rotation.set(0, 0, 0);
   }
 

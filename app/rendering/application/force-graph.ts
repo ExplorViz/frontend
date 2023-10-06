@@ -67,7 +67,7 @@ export default class ForceGraph {
       .warmupTicks(100)
       .linkColor(
         () =>
-          `#${this.configuration.landscapeColors.communicationColor.getHexString()}`
+          `#${this.configuration.applicationColors.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>

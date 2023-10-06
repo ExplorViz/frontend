@@ -15,6 +15,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -42,13 +43,18 @@ import {
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import ProjectorSynchronization from 'collaborative-mode/services/projector-synchronization';
+import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import PopupData from './popups/popup-data';
+import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly visualizationPaused: boolean;
   readonly selectedTimestampRecords: Timestamp[];
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   switchToVR(): void;
@@ -63,6 +69,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('configuration')
   configuration!: Configuration;
+
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -88,6 +97,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
+  @service('virtual-reality@vr-room-serializer')
+  roomSerializer!: VrRoomSerializer;
+
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
@@ -112,6 +127,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   hoveredObject: EntityMesh | null = null;
 
   controls!: MapControls;
+
+  ortographicCamera!: THREE.OrthographicCamera;
+  private frustumSize = 5;
 
   cameraControls!: CameraControls;
 
@@ -148,9 +166,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.debug('Constructor called');
     // scene
     this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.background =
+      this.configuration.applicationColors.backgroundColor;
 
-    // // camera
+    // camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       80,
       1.0,
@@ -190,10 +209,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  tick(delta: number) {
+  async tick(delta: number) {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
+
+    if (this.initDone && this.linkRenderer.flag) {
+      this.linkRenderer.flag = false;
+    }
   }
 
   get rightClickMenuItems() {
@@ -219,9 +242,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openDataSelection },
+      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      { title: 'Enter VR', action: this.args.switchToVR },
+      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -257,6 +280,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.debug('Canvas inserted');
 
     this.canvas = canvas;
+    this.landscapeRestructure.canvas = canvas;
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
@@ -268,10 +292,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const width = outerDiv.clientWidth;
     const height = outerDiv.clientHeight;
 
-    // Update renderer and camera according to canvas size
+    const newAspectRatio = width / height;
+
+    // Update renderer and cameras according to canvas size
     this.renderer.setSize(width, height);
-    this.camera.aspect = width / height;
+    this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
+
+    this.ortographicCamera.left = (this.frustumSize * newAspectRatio) / -2;
+    this.ortographicCamera.right = (this.frustumSize * newAspectRatio) / 2;
+    this.ortographicCamera.top = this.frustumSize / 2;
+    this.ortographicCamera.bottom = -this.frustumSize / 2;
+
+    this.ortographicCamera.userData.aspect = newAspectRatio;
+
+    this.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -289,6 +324,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
+      preserveDrawingBuffer: true,
     });
 
     this.renderer.shadowMap.enabled = true;
@@ -297,8 +333,42 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
 
+    const aspectRatio = width / height;
+
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      aspectRatio,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
+    this.scene.add(this.localUser.defaultCamera);
+
+    this.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * this.frustumSize,
+      aspectRatio * this.frustumSize,
+      this.frustumSize,
+      -this.frustumSize,
+      0.1,
+      100
+    );
+
+    this.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.ortographicCamera.lookAt(this.scene.position);
     // controls
-    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      this.ortographicCamera,
+      this.canvas
+    );
 
     this.spectateUserService.cameraControls = this.cameraControls;
     this.projectorSynchronization.cameraControls = this.cameraControls;
@@ -307,7 +377,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.focusCameraOn(
+          this.cameraControls.resetCameraFocusOn(
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
@@ -320,6 +390,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: this.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -335,7 +406,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideWebsocket.jumpToLocation(intersection.object);
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.removeHighlightingForAllApplications(true);
+      this.highlightingService.updateHighlighting();
     }
   }
 
@@ -349,13 +421,26 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    // User clicked on blank spot on the canvas
-    if (isEntityMesh(mesh)) {
-      this.highlightingService.highlight(mesh);
-    }
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
+      }
+    }
+
+    if (isEntityMesh(mesh)) {
+      if (mesh.parent instanceof ApplicationObject3D) {
+        this.applicationRenderer.highlight(
+          mesh,
+          mesh.parent,
+          this.localUser.color
+        );
+      } else {
+        // extern communication link
+        this.applicationRenderer.highlightExternLink(
+          mesh,
+          true,
+          this.localUser.color
+        );
       }
     }
   }
@@ -365,6 +450,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       this.handleDoubleClickOnMesh(intersection.object);
     }
+  }
+
+  @action
+  handleStrgDown() {
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        true;
+    }
+  }
+
+  @action
+  handleStrgUp() {
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      false;
   }
 
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
@@ -385,6 +486,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
+    if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
+      if (
+        !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
+          .value
+      ) {
+        const applicationObject3D = mesh.parent;
+        if (applicationObject3D instanceof ApplicationObject3D)
+          removeAllHighlighting(applicationObject3D);
+      }
+    }
+
     if (mesh instanceof ComponentMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
@@ -455,6 +567,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     } else {
       this.popupHandler.removePopup(entityId);
     }
+
+    // remove potential toggle effect
+    const mesh = this.applicationRenderer.getMeshById(entityId);
+    if (mesh?.isHovered) {
+      mesh.resetHoverEffect();
+    }
   }
 
   @action
@@ -493,6 +611,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.args.landscapeData.dynamicLandscapeData,
       this.cameraControls
     );
+  }
+
+  restore(detachedMenu: SerializedDetachedMenu) {
+    const mesh = this.applicationRenderer.getMeshById(detachedMenu.entityId);
+    const applicationId = this.applicationRenderer.getApplicationIdByMeshId(
+      detachedMenu.entityId
+    );
+    if (mesh && applicationId && detachedMenu.userId) {
+      const popupDataInstance: PopupData = new PopupData({
+        mouseX: 5,
+        mouseY: 5,
+        mesh: mesh as EntityMesh,
+        entity: (mesh as EntityMesh).dataModel,
+        applicationId: applicationId,
+        wasMoved: false,
+        sharedBy: detachedMenu.userId,
+        isPinned: true,
+        menuId: detachedMenu.objectId,
+        hovered: false,
+      });
+
+      const popupData: PopupData[] = [popupDataInstance];
+      this.popupHandler.popupData = popupData;
+    }
   }
 
   @action

@@ -1,3 +1,4 @@
+import { getOwner } from '@ember/application';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
@@ -27,13 +28,20 @@ import TimeMenu from 'virtual-reality/utils/vr-menus/ui-menu/time-menu';
 import ToolMenu from 'virtual-reality/utils/vr-menus/ui-menu/tool-menu';
 import ConnectingMenu from '../utils/vr-menus/ui-menu/connection/connecting-menu';
 import OfflineMenu from '../utils/vr-menus/ui-menu/connection/offline-menu';
-import OnlineMenu from '../utils/vr-menus/ui-menu/connection/online-menu';
 import MainMenu from '../utils/vr-menus/ui-menu/main-menu';
 import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import SpectateUser from '../../../collaborative-mode/addon/services/spectate-user';
 import VrRoomService from './vr-room';
+import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
+import { AuxiliaryScrollMenu } from 'virtual-reality/utils/vr-menus/ui-menu/auxiliary-scroll-menu';
+import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
+import VrRendering from 'virtual-reality/components/vr-rendering';
+import VRController from 'virtual-reality/utils/vr-controller';
+import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
+import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
+import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -102,7 +110,7 @@ export default class VrMenuFactoryService extends Service {
 
   // #region CONNECTION MENUS
 
-  buildConnectionMenu(): ConnectionBaseMenu {
+  buildConnectionMenu(): ConnectionBaseMenu | InteractiveMenu {
     switch (this.collaborationSession.connectionStatus) {
       case 'connecting':
         return this.buildConnectingMenu();
@@ -129,11 +137,21 @@ export default class VrMenuFactoryService extends Service {
     });
   }
 
-  buildOnlineMenu(): OnlineMenu {
-    return new OnlineMenu({
-      collaborationSession: this.collaborationSession,
-      localUser: this.localUser,
-      spectateUserService: this.spectateUserService,
+  // Got replaced by OnlineMenu2
+  // buildOnlineMenu(): OnlineMenu {
+  //   return new OnlineMenu({
+  //     collaborationSession: this.collaborationSession,
+  //     localUser: this.localUser,
+  //     spectateUserService: this.spectateUserService,
+  //     menuFactory: this,
+  //   });
+  // }
+
+  buildOnlineMenu(): OnlineMenu2 {
+    return new OnlineMenu2({
+      owner: getOwner(this),
+      renderer: this.renderer,
+      scene: this.scene,
       menuFactory: this,
     });
   }
@@ -193,9 +211,23 @@ export default class VrMenuFactoryService extends Service {
 
   buildInfoMenu(object: EntityMesh): DetailInfoMenu {
     return new DetailInfoMenu({
-      object,
+      owner: getOwner(this),
+      object: object,
+      renderer: this.renderer,
       menuFactory: this,
-      applicationRepo: this.applicationRepo,
+    });
+  }
+
+  buildAuxiliaryMenu(
+    object: DetailInfoScrollarea,
+    controller: VRController,
+    renderer: VrRendering
+  ): AuxiliaryScrollMenu {
+    return new AuxiliaryScrollMenu({
+      object: object,
+      controller: controller,
+      renderer: renderer,
+      menuFactory: this,
     });
   }
 
@@ -216,6 +248,24 @@ export default class VrMenuFactoryService extends Service {
       scaleMenu1: new ScaleMenu({ sharedState, menuFactory: this }),
       scaleMenu2: new ScaleMenu({ sharedState, menuFactory: this }),
     };
+  }
+
+  buildSearchMenu(): SearchMenu {
+    return new SearchMenu({
+      owner: getOwner(this),
+      renderer: this.renderer,
+      menuFactory: this,
+    });
+  }
+
+  buildSpectateViewMenu(userId: string): SpectateViewMenu {
+    return new SpectateViewMenu({
+      owner: getOwner(this),
+      renderer: this.renderer,
+      scene: this.scene,
+      userId: userId,
+      menuFactory: this,
+    });
   }
 
   // #endregion TOOL MENUS
@@ -244,7 +294,7 @@ export default class VrMenuFactoryService extends Service {
 
   buildResetMenu(): ResetMenu {
     return new ResetMenu({
-      localUser: this.localUser,
+      owner: getOwner(this),
       online: this.collaborationSession.connectionStatus !== 'online',
       menuFactory: this,
       detachedMenuGroups: this.detachedMenuGroups,

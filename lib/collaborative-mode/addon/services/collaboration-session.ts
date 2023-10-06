@@ -36,6 +36,10 @@ import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
 import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -64,6 +68,15 @@ export default class CollaborationSession extends Service.extend({
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('user-settings')
+  private userSettings!: UserSettings;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -170,6 +183,8 @@ export default class CollaborationSession extends Service.extend({
       name: self.name,
       color: new THREE.Color(...self.color),
     });
+
+    this.userSettings.applyDefaultApplicationSettings(); // in collab mode keepHighlightingOnOpenOrClose is always enabled (default setting!) and cannot be switched in collaboration!
   }
 
   // Display to other users when another user joins the room
@@ -203,7 +218,7 @@ export default class CollaborationSession extends Service.extend({
    *
    * @param {JSON} data - Contains the id of the user that disconnected.
    */
-  onUserDisconnect({ id }: UserDisconnectedMessage) {
+  onUserDisconnect({ id, highlightedComponents }: UserDisconnectedMessage) {
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
@@ -213,6 +228,33 @@ export default class CollaborationSession extends Service.extend({
         color: `#${removedUser.color.getHexString()}`,
         time: 3.0,
       });
+    }
+
+    // walk trough all highlighted entities and unhighlight them
+    for (const highlightedEntityComponent of highlightedComponents) {
+      const { appId, entityId } = highlightedEntityComponent;
+      //console.log('appID:', appId, ' , entityID: ', entityId);
+      if (appId !== '') {
+        const application = this.applicationRenderer.getApplicationById(appId);
+        if (application) {
+          const mesh = application.getMeshById(entityId);
+          if (isEntityMesh(mesh)) {
+            this.applicationRenderer.highlight(
+              mesh,
+              application,
+              undefined,
+              false,
+              false
+            );
+          }
+        }
+      } else {
+        //extern Link
+        const link = this.linkRenderer.getLinkById(entityId);
+        if (link) {
+          this.applicationRenderer.highlightExternLink(link, false);
+        }
+      }
     }
   }
 

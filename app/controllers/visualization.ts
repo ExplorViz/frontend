@@ -12,6 +12,7 @@ import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository, {
@@ -39,6 +40,15 @@ import {
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {
+  SerializedApp,
+  SerializedDetachedMenu,
+  SerializedHighlightedComponent,
+} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import { timeout } from 'ember-concurrency';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -60,6 +70,8 @@ export const earthTexture = new THREE.TextureLoader().load(
  */
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
+
+  @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
 
@@ -90,16 +102,31 @@ export default class VisualizationController extends Controller {
   @service('web-socket')
   private webSocket!: WebSocketService;
 
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  showDataSelection = false;
+  showSettingsSidebar = false;
+
+  @tracked
+  showToolsSidebar = false;
 
   @tracked
   components: string[] = [];
+
+  @tracked
+  componentsToolsSidebar: string[] = [];
 
   @tracked
   isTimelineActive: boolean = true;
@@ -114,23 +141,32 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
+  vrSupported: boolean = false;
+
+  @tracked
+  buttonText: string = '';
+
+  @tracked
   elk = new ElkConstructor({
     workerUrl: './assets/web-workers/elk-worker.min.js',
   });
+
+  @tracked
+  flag: boolean = false; // default value
 
   debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length === 0
+      this.landscapeData.structureLandscapeData?.nodes.length === 0
     );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length > 0
+      this.landscapeData.structureLandscapeData?.nodes.length > 0
     );
   }
 
@@ -141,6 +177,10 @@ export default class VisualizationController extends Controller {
       !this.isSingleLandscapeMode &&
       !this.synchronizationSession.isSynchronizationSession
     );
+  }
+
+  get showXRButton() {
+    return this.userSettings.applicationSettings.showXRButton.value;
   }
 
   @action
@@ -164,9 +204,24 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+  }
+
+  @action
   updateTimestampList() {
+    if (!this.landscapeTokenService.token) {
+      this.debug('No token available to update timestamp list');
+      return;
+    }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token!.value;
+    const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
@@ -186,6 +241,14 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  @action
+  restructureLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    this.updateLandscape(structureData, dynamicData);
+  }
+
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -203,7 +266,10 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToVR() {
-    this.switchToMode('vr');
+    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
+    if (this.vrSupported) {
+      this.switchToMode('vr');
+    }
   }
 
   @action
@@ -249,18 +315,40 @@ export default class VisualizationController extends Controller {
   @action
   closeDataSelection() {
     this.debug('closeDataSelection');
-    this.showDataSelection = false;
+    this.showSettingsSidebar = false;
     this.components = [];
   }
 
   @action
-  openDataSelection() {
-    this.debug('openDataSelection');
-    this.showDataSelection = true;
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.componentsToolsSidebar = [];
   }
 
   @action
-  toggleSidebarComponent(component: string) {
+  openSettingsSidebar() {
+    this.debug('openSettingsSidebar');
+    this.showSettingsSidebar = true;
+  }
+
+  @action
+  openToolsSidebar() {
+    this.debug('openToolsSidebar');
+    this.showToolsSidebar = true;
+  }
+
+  @action
+  toggleToolsSidebarComponent(component: string) {
+    if (this.componentsToolsSidebar.includes(component)) {
+      this.removeToolsSidebarComponent(component);
+    } else {
+      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+    }
+  }
+
+  @action
+  toggleSettingsSidebarComponent(component: string) {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
@@ -280,6 +368,21 @@ export default class VisualizationController extends Controller {
       const components = [...this.components];
       components.splice(index, 1);
       this.components = components;
+    }
+  }
+
+  @action
+  removeToolsSidebarComponent(path: string) {
+    if (this.componentsToolsSidebar.length === 0) {
+      return;
+    }
+
+    const index = this.componentsToolsSidebar.indexOf(path);
+    // Remove existing sidebar component
+    if (index !== -1) {
+      const componentsToolsSidebar = [...this.componentsToolsSidebar];
+      componentsToolsSidebar.splice(index, 1);
+      this.componentsToolsSidebar = componentsToolsSidebar;
     }
   }
 
@@ -366,8 +469,10 @@ export default class VisualizationController extends Controller {
 
   willDestroy() {
     this.collaborationSession.disconnect();
+    this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
-    this.applicationRepo.clear();
+    this.applicationRepo.cleanup();
+    this.applicationRenderer.cleanup();
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -400,11 +505,32 @@ export default class VisualizationController extends Controller {
   // user handling end
   async onInitialLandscape({
     landscape,
+    openApps,
+    detachedMenus,
+    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
   }: //openApps,
   //detachedMenus,
   InitialLandscapeMessage): Promise<void> {
-    //this.roomSerializer.serializedRoom = { landscape, openApps, detachedMenus };
-    this.updateTimestamp(landscape.timestamp);
+    this.linkRenderer.flag = true;
+    while (this.linkRenderer.flag) {
+      await timeout(50);
+    }
+    // now we can be sure our linkRenderer has all extern links
+
+    this.roomSerializer.serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+      highlightedExternCommunicationLinks:
+        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+    };
+
+    // this.applicationRenderer.restoreFromSerialization(
+    //   this.roomSerializer.serializedRoom
+    // );
+
+    this.applicationRenderer.highlightingService.updateHighlighting();
+    await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
   }
@@ -421,6 +547,29 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
+  }
+
+  /**
+   * Checks the current status of WebXR in the browser and if compatible
+   * devices are connected. Sets the tracked properties
+   * 'buttonText' and 'vrSupported' accordingly.
+   */
+  @action
+  async updateVrStatus() {
+    if ('xr' in navigator) {
+      this.vrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+
+      if (this.vrSupported) {
+        this.buttonText = 'Enter VR';
+      } else if (window.isSecureContext === false) {
+        this.buttonText = 'WEBXR NEEDS HTTPS';
+      } else {
+        this.buttonText = 'WEBXR NOT AVAILABLE';
+      }
+    } else {
+      this.buttonText = 'WEBXR NOT SUPPORTED';
+    }
   }
 }
 

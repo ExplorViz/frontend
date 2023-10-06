@@ -11,6 +11,7 @@ const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera | undefined;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -31,6 +32,8 @@ export default class RenderingLoop {
 
   camera: THREE.Camera;
 
+  orthographicCamera: THREE.OrthographicCamera | undefined;
+
   scene: THREE.Scene;
 
   renderer: THREE.WebGLRenderer;
@@ -42,6 +45,7 @@ export default class RenderingLoop {
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
+    this.orthographicCamera = args.orthographicCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
@@ -73,7 +77,15 @@ export default class RenderingLoop {
 
       // render a frame
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.renderer.render(this.scene, this.camera);
+      if (
+        this.orthographicCamera &&
+        this.userSettings.applicationSettings.useOrthographicCamera.value
+      ) {
+        this.renderer.render(this.scene, this.orthographicCamera);
+      } else {
+        this.renderer.render(this.scene, this.camera);
+      }
+
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render
         this.zoomHandler.renderZoomCamera(this.renderer, this.scene);
@@ -95,6 +107,7 @@ export default class RenderingLoop {
 
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
+
     for (let i = 0; i < this.updatables.length; i++) {
       this.updatables[i].tick(delta, frame);
     }

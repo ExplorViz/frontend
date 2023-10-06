@@ -9,6 +9,7 @@ type OnlineMenuArgs = ConnectionBaseMenuArgs & {
 };
 
 export default class OnlineMenu extends ConnectionBaseMenu {
+  // THIS MENU WON'T BE USED AT THE MOMENT AND GOT REPLACED BY OnlineMenu2
   private remoteUserButtons: Map<string, TextbuttonItem>;
 
   private spectateUserService: SpectateUser;

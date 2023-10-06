@@ -97,7 +97,7 @@ export default abstract class UiMenu extends InteractiveMenu {
       color,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.8,
+      //opacity: 0,
     });
   }
 

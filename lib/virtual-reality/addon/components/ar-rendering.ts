@@ -27,8 +27,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ApplicationMesh from 'explorviz-frontend/view-objects/3d/landscape/application-mesh';
-import LandscapeObject3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -43,13 +41,13 @@ import {
 interface Args {
   readonly landscapeData: LandscapeData;
   readonly components: string[];
-  readonly showDataSelection: boolean;
+  readonly showSettingsSidebar: boolean;
   readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
-  toggleSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   removeComponent(component: string): void;
-  openDataSelection(): void;
+  openSettingsSidebar(): void;
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
 }
@@ -220,6 +218,7 @@ export default class ArRendering extends Component<Args> {
     );
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -466,7 +465,7 @@ export default class ArRendering extends Component<Args> {
     if (intersection) {
       this.handleSecondaryInputOn(intersection);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications();
+      this.highlightingService.removeHighlightingForAllApplications(true);
     }
   }
 
@@ -505,10 +504,7 @@ export default class ArRendering extends Component<Args> {
 
     const intersection = this.raycastCenter();
 
-    if (
-      !(intersection?.object.parent instanceof ApplicationObject3D) &&
-      !(intersection?.object.parent instanceof LandscapeObject3D)
-    ) {
+    if (!(intersection?.object.parent instanceof ApplicationObject3D)) {
       return;
     }
 
@@ -551,13 +547,6 @@ export default class ArRendering extends Component<Args> {
       }
       this.heatmapConf.setActiveApplication(applicationObject3D);
       this.heatmapConf.heatmapActive = true;
-    } else if (
-      intersection &&
-      intersection.object.parent instanceof LandscapeObject3D
-    ) {
-      AlertifyHandler.showAlertifyWarning(
-        'Heat Map only available for applications.'
-      );
     }
   }
 
@@ -585,7 +574,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   toggleSettingsPane() {
-    this.args.openDataSelection();
+    this.args.openSettingsSidebar();
   }
 
   @action
@@ -623,8 +612,7 @@ export default class ArRendering extends Component<Args> {
 
     if (
       intersection &&
-      (intersection.object.parent instanceof ApplicationObject3D ||
-        intersection.object.parent instanceof LandscapeObject3D)
+      intersection.object.parent instanceof ApplicationObject3D
     ) {
       const object = intersection.object.parent;
 
@@ -696,16 +684,10 @@ export default class ArRendering extends Component<Args> {
       }
     }
 
-    if (object instanceof ApplicationMesh) {
-      this.showApplication(object.getModelId());
-      // Handle application hits
-    } else if (object.parent instanceof ApplicationObject3D) {
+    // Handle application hits
+    if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);
     }
-  }
-
-  private showApplication(appId: string) {
-    this.applicationRenderer.openApplicationTask.perform(appId);
   }
 
   private handleSecondaryInputOn(intersection: THREE.Intersection) {
@@ -716,7 +698,7 @@ export default class ArRendering extends Component<Args> {
       object instanceof ClazzMesh ||
       object instanceof ClazzCommunicationMesh
     ) {
-      this.highlightingService.highlight(object);
+      this.highlightingService.highlight(object, true, this.localUser.color);
     }
   }
 
