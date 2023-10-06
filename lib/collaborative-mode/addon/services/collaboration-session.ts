@@ -309,15 +309,29 @@ export default class CollaborationSession extends Service.extend({
     if (!checkConnectionStatus || !this.isConnecting) {
       this.connectionStatus = 'connecting';
       this.currentRoomId = roomId;
-      try {
-        const response = await this.roomService.joinLobby(this.currentRoomId);
-        this.webSocket.initSocket(response.ticketId, this.localUser.visualizationMode);
-      } catch (e: any) {
-        this.connectionStatus = 'offline';
-        this.currentRoomId = null;
-        AlertifyHandler.showAlertifyError(
-          'Cannot reach Collaboration-Service.'
-        );
+
+      const delay = 100;
+      const maxRetries = 5; // Maximum number of retry attempts
+      let retries = 0;
+      while (retries < maxRetries) {
+        try {
+          const response = await this.roomService.joinLobby(this.currentRoomId);
+          this.webSocket.initSocket(response.ticketId, this.localUser.visualizationMode);
+          break; // Break out of the loop if successful
+        } catch (e) {
+          if (retries === maxRetries - 1) {
+            // If this is the last retry attempt, handle the error and break out of the loop
+            this.connectionStatus = 'offline';
+            this.currentRoomId = null;
+            AlertifyHandler.showAlertifyError(
+              'Cannot reach Collaboration-Service after multiple retries.'
+            );
+            break;
+          }
+          retries++;
+          console.error('Error: Unable to join lobby. Retrying...', e);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
     }
   }
