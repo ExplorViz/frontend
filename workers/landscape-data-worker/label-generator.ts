@@ -71,16 +71,18 @@ function generatePackageAndFoundationLabels(
   const textureLayout: LabelLayoutMap = new Map();
 
   packages.forEach(({ name, id }, i) => {
-    const boxWidth = componentLayout.get(id)!.depth;
+    const boxWidth = 0.9 * componentLayout.get(id)!.depth;
     const widthInTexture = ratio * boxWidth;
     const maxWidth = Math.min(width - 2, widthInTexture);
 
-    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.font = `${fontSize}px sans-serif`;
+    //@ts-ignore All browsers except Safari support this.
+    ctx.letterSpacing = '-1px';
     const textWidth = ctx.measureText(name).width;
 
     if (textWidth > maxWidth) {
-      const adjustedFontSize = Math.max(0.5 * fontSize, maxWidth / textWidth);
-      ctx.font = `bold ${adjustedFontSize}px sans-serif`;
+      const adjustedFontSize = Math.max(0.5, maxWidth / textWidth) * fontSize;
+      ctx.font = `${adjustedFontSize}px sans-serif`;
     }
 
     const y = i * lineHeight;
@@ -143,11 +145,6 @@ function generateClassLabels(
       id,
     });
   });
-
-  //TODO: remove
-  ctx.canvas
-    .convertToBlob()
-    .then((blob) => console.log('url', URL.createObjectURL(blob)));
 
   return {
     texture: ctx.getImageData(0, 0, width, height),
