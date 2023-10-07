@@ -7,12 +7,15 @@ export function createSingleLabelMesh(
   layout: LabelLayoutData,
   color: THREE.Color
 ): THREE.Mesh {
-  const planeGeometry = new THREE.PlaneGeometry(1, layout.aspectRatio);
+  const planeGeometry = new THREE.PlaneGeometry(
+    0.9 * layout.scale,
+    layout.aspectRatio
+  );
 
   const attribute = new THREE.BufferAttribute(
     new Float32Array(
       repeatArray(
-        [layout.width, layout.height, layout.bottom],
+        [layout.relWidth, layout.height, layout.bottom],
         planeGeometry.attributes.position.count
       )
     ),

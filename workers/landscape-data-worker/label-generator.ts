@@ -23,12 +23,14 @@ export type ApplicationLabelData = {
 type LabelLayoutMap = Map<string, LabelLayoutData>;
 
 export type LabelLayoutData = {
-  width: number;
+  relWidth: number;
   top: number;
   bottom: number;
   height: number;
   index: number;
-  aspectRatio: number;
+  aspectRatio: number; // TODO: remove
+  scale: number;
+  width: number;
   id: string;
 };
 
@@ -76,13 +78,17 @@ function generatePackageAndFoundationLabels(
     const maxWidth = Math.min(width - 2, widthInTexture);
 
     ctx.font = `${fontSize}px sans-serif`;
-    //@ts-ignore All browsers except Safari support this.
-    ctx.letterSpacing = '-1px';
-    const textWidth = ctx.measureText(name).width;
+    let textWidth = ctx.measureText(name).width;
+    let worldWidth = textWidth / ratio;
+    let scale = 1.0;
 
     if (textWidth > maxWidth) {
-      const adjustedFontSize = Math.max(0.5, maxWidth / textWidth) * fontSize;
+      const factor = Math.max(0.5, maxWidth / textWidth);
+      const adjustedFontSize = factor * fontSize;
       ctx.font = `${adjustedFontSize}px sans-serif`;
+      textWidth = ctx.measureText(name).width;
+      worldWidth = (factor * textWidth) / ratio;
+      scale = factor;
     }
 
     const y = i * lineHeight;
@@ -93,12 +99,14 @@ function generatePackageAndFoundationLabels(
     ctx.fillText(name, 0.5 * maxWidth, y + 0.5 * lineHeight, maxWidth);
 
     textureLayout.set(id, {
-      width: maxWidth / width,
+      relWidth: maxWidth / width,
       top: y / height,
       bottom: (height - (y + lineHeight)) / height,
       height: lineHeight / height,
       index: i,
       aspectRatio: actualLabelHeight / boxWidth,
+      scale,
+      width: worldWidth,
       id,
     });
   });
@@ -136,12 +144,14 @@ function generateClassLabels(
     const textWidth = Math.min(ctx.measureText(displayText).width + 1, width);
 
     textureLayout.set(id, {
-      width: textWidth / width,
+      relWidth: textWidth / width,
       top: top / height,
       bottom: bottom / height,
       height: lineHeight / height,
       index: i,
-      aspectRatio: 1.0, // TODO
+      aspectRatio: 1.0,
+      width: 1.0, // TODO: use textWidth
+      scale: 1.0,
       id,
     });
   });

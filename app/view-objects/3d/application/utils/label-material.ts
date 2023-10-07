@@ -54,7 +54,7 @@ export function createLabelLayoutDataAttribute(
 ): THREE.InstancedBufferAttribute {
   const shaderData = new Float32Array(
     Array.from(data.layout.values())
-      .map((label) => [label.width, label.height, label.bottom])
+      .map((label) => [label.relWidth, label.height, label.bottom])
       .flat()
   );
 

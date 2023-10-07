@@ -14,6 +14,7 @@ import {
   createLabelLayoutDataAttribute,
   createLabelMaterial,
 } from './utils/label-material';
+import { LabelLayoutData } from 'workers/landscape-data-worker/label-generator';
 
 const LABEL_HEIGHT = 8.0; // TODO: import this (import from city-layouter not working!)
 
@@ -410,24 +411,24 @@ export default class ApplicationContent {
 
   private updateComponentInstance(
     index: number,
-    layout: BoxLayout,
+    componentLayout: BoxLayout,
     opened: boolean,
     visible: boolean
   ): void {
-    setupBoxMatrix(layout, opened, visible);
+    setupBoxMatrix(componentLayout, opened, visible);
     this.components.setMatrixAt(index, tmpMatrix);
 
     const id = this.componentData[index].component.id;
-    const labelIndex = this.app3d.data.labels.components.layout.get(id)?.index;
+    const labelLayout = this.app3d.data.labels.components.layout.get(id);
 
-    if (labelIndex === undefined) {
+    if (labelLayout === undefined) {
       throw new Error(
         `Missing label "${this.componentData[index].component.name}"`
       );
     }
 
-    setupComponentLabelMatrix(layout, opened, visible);
-    this.componentLabels.setMatrixAt(labelIndex, tmpMatrix);
+    setupComponentLabelMatrix(componentLayout, labelLayout, opened, visible);
+    this.componentLabels.setMatrixAt(labelLayout.index, tmpMatrix);
   }
 
   private updateClassInstance(
@@ -491,6 +492,7 @@ function setupBoxMatrix(
 
 function setupComponentLabelMatrix(
   componentLayout: BoxLayout,
+  labelLayout: LabelLayoutData,
   opened: boolean,
   visible: boolean
 ) {
@@ -500,7 +502,11 @@ function setupComponentLabelMatrix(
   }
 
   // TODO: why x0.5?
-  tmpMatrix.makeScale(0.5 * LABEL_HEIGHT, 1.0, 0.9 * componentLayout.depth);
+  tmpMatrix.makeScale(
+    0.5 * LABEL_HEIGHT,
+    1.0,
+    0.9 * labelLayout.scale * componentLayout.depth
+  );
 
   const position = componentLayout.center;
 
