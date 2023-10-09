@@ -7,6 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
+import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
 
 interface CollaborationArgs {
@@ -26,9 +27,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
-
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
+
+  @service('synchronization-session')
+  private synchronizationSession!: SynchronizationSession;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -44,11 +47,13 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     }
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
-    ).map((user) => ({
-      name: user.userName,
-      style: `color:#${user.color.getHexString()}`,
-      id: user.userId,
-    }));
+    ).map((user) => {
+      return {
+        name: user.userName,
+        style: `color:#${user.color.getHexString()}`,
+        id: user.userId,
+      };
+    });
 
     return users.concat(remoteUsers);
   }
@@ -68,6 +73,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @action
   leaveSession() {
     AlertifyHandler.showAlertifyWarning('Disconnected from Room');
+    this.synchronizationSession.destroyIds();
     this.collaborationSession.disconnect();
   }
 
@@ -88,6 +94,12 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   spectate(id: string) {
+    if (this.synchronizationSession.isSynchronizationSession) {
+      AlertifyHandler.showAlertifyError(
+        'Cannot manually spectate in multi-projector mode'
+      );
+      return;
+    }
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
       this.spectateUserService.activate(remoteUser);

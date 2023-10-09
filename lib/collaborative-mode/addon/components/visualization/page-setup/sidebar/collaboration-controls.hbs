@@ -4,18 +4,22 @@
 
 <div>
   <label class='bold'>Status: </label>
-
   <label>{{this.collaborationSession.connectionStatus}}</label>
 </div>
 
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
-  <div>
-    <label class='bold'>Current Room: </label>
+  {{#if (this.synchronizationSession.isSynchronizationSession)}}
+    <div>
+      <label class='bold'>Current Configuration Environment: </label>
+      <label>ARENA2</label>
+    </div>
+  {{/if}}
 
-    <label>{{this.collaborationSession.currentRoomId}}</label>
-  </div>
-
-  <label class='bold'>Users</label>
+  {{#if (this.synchronizationSession.isSynchronizationSession)}}
+    <label class='bold'>Connected Devices</label>
+  {{else}}
+    <label class='bold'>Users</label>
+  {{/if}}
 
   <ul>
     {{#each this.users as |user|}}

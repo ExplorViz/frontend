@@ -137,9 +137,6 @@
               <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::SynchronizationOpener
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-              />
               <Visualization::PageSetup::Navbar::VscodeExtensionSettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -179,12 +176,6 @@
                 {{#if (eq componentName 'collaboration-controls')}}
                   <h5 class='text-center'>Collaboration</h5>
                   <Visualization::PageSetup::Sidebar::CollaborationControls
-                    @removeComponent={{@removeComponent}}
-                  />
-                {{/if}}
-                {{#if (eq componentName 'synchronization-controls')}}
-                  <h5 class='text-center'>Synchronization</h5>
-                  <Visualization::PageSetup::Sidebar::SynchronizationControls
                     @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
