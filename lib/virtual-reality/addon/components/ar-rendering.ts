@@ -46,7 +46,6 @@ interface Args {
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
-  removeComponent(component: string): void;
   openSettingsSidebar(): void;
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;

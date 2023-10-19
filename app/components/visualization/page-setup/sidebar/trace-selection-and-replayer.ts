@@ -17,7 +17,6 @@ interface Args {
   moveCameraTo(emberModel: Class | Span): void;
   highlightTrace(trace: Trace, traceStep: string): void;
   removeHighlighting(): void;
-  removeComponent(componentPath: string): void;
   readonly application: Application;
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
@@ -47,11 +46,6 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
     }
 
     this.selectedTrace = trace;
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('trace-selection');
   }
 
   willDestroy() {

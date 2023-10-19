@@ -21,7 +21,6 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   toggleVisualizationUpdating: () => void;
   resetLandscapeListenerPolling: () => void;
   removeTimestampListener: () => void;
-  removeComponent(componentPath: string): void;
 }
 
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
@@ -178,11 +177,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     }
 
     this.issues = updatedIssues;
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('restructure-landscape');
   }
 
   @action

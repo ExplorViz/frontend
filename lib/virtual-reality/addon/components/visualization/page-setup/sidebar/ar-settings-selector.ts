@@ -7,7 +7,6 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface ArSettingsSelectorArgs {
-  removeComponent(componentPath: string): void;
   updateCameraResolution(width: number, height: number): void;
   updateRendererResolution(multiplier: number): void;
 }
@@ -47,11 +46,6 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
     this.buttonPadding = ArSettingsSelector.getCssVminSize(
       '--ar-button-padding'
     );
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('ar-settings-selector');
   }
 
   @action

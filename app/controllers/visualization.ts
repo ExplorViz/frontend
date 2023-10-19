@@ -349,7 +349,6 @@ export default class VisualizationController extends Controller {
     return this.components.includes(component);
   }
 
-  @action
   removeComponent(path: string) {
     if (this.components.length === 0) {
       return;
