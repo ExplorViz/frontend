@@ -28,20 +28,12 @@
   justify-content: flex-end;
 }
 
-.sidebar-component-close {
-  cursor: pointer;
-  position: absolute;
-  right: 0;
-  top: 0;
-  border: 1px grey inherit;
-  padding-left: calc(0.25rem + 8px);
-  padding-right: calc(0.25rem + 8px);
-  padding-top: calc(0.25rem + 4px);
-  padding-bottom: 0.25rem;
+.active-opener{
+  font-weight: bold;
+}
 
-  &:hover {
-    background-color: #9bb3c4;
-  }
+.inactive-opener{
+  font-weight: normal;
 }
 
 .th-btn {

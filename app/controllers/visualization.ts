@@ -330,24 +330,25 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  toggleToolsSidebarComponent(component: string) {
+  toggleToolsSidebarComponent(component: string): boolean {
     if (this.componentsToolsSidebar.includes(component)) {
       this.removeToolsSidebarComponent(component);
     } else {
       this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
     }
+    return this.componentsToolsSidebar.includes(component);
   }
 
   @action
-  toggleSettingsSidebarComponent(component: string) {
+  toggleSettingsSidebarComponent(component: string): boolean {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
       this.components = [component, ...this.components];
     }
+    return this.components.includes(component);
   }
 
-  @action
   removeComponent(path: string) {
     if (this.components.length === 0) {
       return;
