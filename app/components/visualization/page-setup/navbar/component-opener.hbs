@@ -4,10 +4,8 @@
     title='Show/Hide {{@componentTitle}}'
     {{on 'click' this.toggleComponent}}
   >
-    {{#if this.isOpen}}
-      <div class='active-opener'>{{@componentTitle}}</div>
-    {{else}}
-      <div class='inactive-opener'>{{@componentTitle}}</div>
-    {{/if}}
+    <div
+      class={{if this.isOpen 'active-opener' 'inactive-opener'}}
+    >{{@componentTitle}}</div>
   </div>
 </li>
