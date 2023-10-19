@@ -1,9 +1,5 @@
-<li class='nav-item'>
-  <div
-    class='nav-link-with-cursor'
-    title='Configure settings'
-    {{on 'click' this.showSettings}}
-  >
-    Settings
-  </div>
-</li>
+<Visualization::PageSetup::Navbar::ComponentOpener
+  @componentTitle='Settings'
+  @componentId='settings'
+  @toggleComponent={{@toggleSettingsSidebarComponent}}
+/>

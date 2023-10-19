@@ -58,7 +58,10 @@ export default class Landscapes extends Controller {
   }
 
   @action
-  async deleteToken(tokenId: string) {
+  async deleteToken(tokenId: string, event: MouseEvent) {
+    // Avoid triggering selectToken() on underlying table row
+    event.stopPropagation();
+
     try {
       await this.sendTokenDeleteRequest(tokenId);
       AlertifyHandler.showAlertifySuccess('Token successfully deleted');

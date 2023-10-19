@@ -33,8 +33,10 @@ export default class ApplicationRepository extends Service.extend({
     this.notifyPropertyChange('applications');
   }
 
-  clear() {
+  cleanup() {
+    this.communications = [];
     this.applications.clear();
+    this.notifyPropertyChange('communications');
     this.notifyPropertyChange('applications');
   }
 }

@@ -7,6 +7,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
@@ -20,6 +21,9 @@ import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import LocalUser from 'collaborative-mode/services/local-user';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -49,8 +53,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
 
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
+
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
+
+  @service('local-user')
+  localUser!: LocalUser;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
+  @service('link-renderer')
+  linkRenderer!: LinkRenderer;
 
   @service
   private worker!: any;
@@ -67,20 +83,30 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     return this.landscapeData.dynamicLandscapeData;
   }
 
-  modify(_element: any, _positionalArgs: any[], { landscapeData, graph }: any) {
+  async modify(
+    _element: any,
+    _positionalArgs: any[],
+    { landscapeData, graph }: any
+  ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
-
     this.handleUpdatedLandscapeData.perform();
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-
     const drawableClassCommunications = computeDrawableClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData
+      this.dynamicLandscapeData,
+      this.landscapeRestructure.restructureMode,
+      this.landscapeRestructure.createdClassCommunication,
+      this.landscapeRestructure.copiedClassCommunications,
+      this.landscapeRestructure.updatedClassCommunications,
+      this.landscapeRestructure.completelyDeletedClassCommunications
     );
+
+    this.landscapeRestructure.allClassCommunications =
+      drawableClassCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -99,9 +125,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
 
         // create or update applicationObject3D
-        const app = await this.applicationRenderer.addApplicationTask.perform(
-          applicationData
-        );
+        const app =
+          await this.applicationRenderer.addApplicationTask.perform(
+            applicationData
+          );
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.findBy(
@@ -141,6 +168,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
+    // Apply restructure textures in restructure mode
+    this.landscapeRestructure.applyTextureMappings();
+
     const interAppCommunications = drawableClassCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
@@ -158,10 +188,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     };
 
     const { serializedRoom } = this.roomSerializer;
+
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      // TODO is it necessary to wait?
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+
+      if (this.localUser.visualizationMode === 'vr') {
+        this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      } else if (this.localUser.visualizationMode === 'browser') {
+        //restore(serializedRoom.detachedMenus); // browser popups not restorable?
+      }
+
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
@@ -172,6 +208,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
+      this.highlightingService.updateHighlighting();
     }
     this.graph.graphData(gData);
 
@@ -188,6 +225,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       cls.push(tempCL);
     });
     this.ideWebsocketFacade.refreshVizData(cls);
+
+    // apply new color for restructured communications in restructure mode
+    this.landscapeRestructure.applyColorMappings();
   });
 
   updateApplicationData = task(
@@ -207,13 +247,27 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         'metrics-worker',
         workerPayload
       );
-      const results = (await all([cityLayout, heatmapMetrics])) as any[];
+
+      const flatData = this.worker.postMessage(
+        'flat-data-worker',
+        workerPayload
+      );
+
+      const results = (await all([
+        cityLayout,
+        heatmapMetrics,
+        flatData,
+      ])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0]);
+        applicationData.updateApplication(application, results[0], results[2]);
       } else {
-        applicationData = new ApplicationData(application, results[0]);
+        applicationData = new ApplicationData(
+          application,
+          results[0],
+          results[2]
+        );
       }
       applicationData.drawableClassCommunications = calculateCommunications(
         applicationData.application,

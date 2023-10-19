@@ -61,7 +61,15 @@ function computeClassCommunicationRecursively(
 
 export default function computeDrawableClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData
+  landscapeDynamicData: DynamicLandscapeData,
+  restructureMode: boolean,
+  classCommunication: DrawableClassCommunication[],
+  copiedClassCommunications: Map<string, DrawableClassCommunication[]>,
+  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
+  deletedClassCommunication: Map<
+    string,
+    DrawableClassCommunication[]
+  > = new Map()
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -133,6 +141,54 @@ export default function computeDrawableClassCommunication(
   const drawableClassCommunications = [
     ...aggregatedDrawableClassCommunications.values(),
   ];
+
+  if (restructureMode) {
+    if (classCommunication.length) {
+      classCommunication.forEach((comm) => {
+        drawableClassCommunications.push(comm);
+      });
+    }
+
+    if (copiedClassCommunications.size) {
+      copiedClassCommunications.forEach((value) => {
+        drawableClassCommunications.pushObjects(value);
+      });
+    }
+
+    if (deletedClassCommunication.size) {
+      const allDeletedComms: DrawableClassCommunication[] = [];
+      deletedClassCommunication.forEach((value) => {
+        value.forEach((deletedComm) => {
+          const foundComm = drawableClassCommunications.filter(
+            (comm) =>
+              comm.id === deletedComm.id ||
+              comm.operationName === deletedComm.operationName
+          );
+          if (foundComm.length) allDeletedComms.pushObjects(foundComm);
+        });
+      });
+
+      drawableClassCommunications.removeObjects(allDeletedComms);
+    }
+
+    if (updatedClassCommunications.size) {
+      const allUpdatedComms: DrawableClassCommunication[] = [];
+
+      updatedClassCommunications.forEach((value) => {
+        allUpdatedComms.push(...value);
+      });
+
+      drawableClassCommunications.pushObjects(allUpdatedComms);
+      const removeUnwantedComms = drawableClassCommunications.filter(
+        (comm) =>
+          !comm.operationName.includes('removed') &&
+          !comm.sourceClass.id.includes('removed') &&
+          !comm.targetClass.id.includes('removed')
+      );
+      drawableClassCommunications.clear();
+      drawableClassCommunications.pushObjects(removeUnwantedComms);
+    }
+  }
 
   return drawableClassCommunications;
 }

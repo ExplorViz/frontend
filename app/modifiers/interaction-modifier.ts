@@ -6,6 +6,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
@@ -32,6 +33,7 @@ interface NamedArgs {
   mousePositionX: number;
   rendererResolutionMultiplier: number;
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera;
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
@@ -44,6 +46,8 @@ interface NamedArgs {
   pinch?(intersection: THREE.Intersection | null, delta: number): void;
   rotate?(intersection: THREE.Intersection | null, delta: number): void;
   pan?(intersection: THREE.Intersection | null, x: number, y: number): void;
+  strgDown?(): void;
+  strgUp?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -61,6 +65,8 @@ function cleanup(instance: InteractionModifierModifier) {
   canvas.removeEventListener('pointercancel', instance.onPointerCancel);
   canvas.removeEventListener('pointermove', instance.onPointerMove);
   canvas.removeEventListener('pointerstop', instance.onPointerStop);
+  document.removeEventListener('keydown', instance.onStrgDown);
+  document.removeEventListener('keyup', instance.onStrgUp);
 }
 
 export default class InteractionModifierModifier extends Modifier<InteractionModifierArgs> {
@@ -74,6 +80,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('vr-message-sender')
   private sender!: VrMessageSender;
@@ -126,6 +135,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.addEventListener('pointercancel', this.onPointerCancel);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
 
+      document.addEventListener('keydown', this.onStrgDown);
+      document.addEventListener('keyup', this.onStrgUp);
       this.createPointerStopEvent();
       this.canvas.addEventListener('pointerstop', this.onPointerStop);
 
@@ -142,7 +153,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    return this.namedArgs.camera;
+    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
+      return this.namedArgs.orthographicCamera;
+    } else {
+      return this.namedArgs.camera;
+    }
   }
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
@@ -161,6 +176,19 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.isMouseOnCanvas = false;
 
     this.namedArgs.mouseOut?.();
+  }
+
+  @action onStrgDown(event: KeyboardEvent) {
+    const key = event.key;
+    if (key === 'Control') {
+      this.namedArgs.strgDown?.();
+    }
+  }
+  @action onStrgUp(event: KeyboardEvent) {
+    const key = event.key;
+    if (key === 'Control') {
+      this.namedArgs.strgUp?.();
+    }
   }
 
   @action
@@ -249,6 +277,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    // Treat shift + single click as double click
+    if (event.shiftKey) {
+      this.onDoubleClick(event);
+      return;
+    }
     this.mouseClickCounter++;
 
     // Counter could be zero when mouse is in motion or one when mouse has stopped
@@ -316,11 +349,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         ? [this.raycastObjects]
         : this.raycastObjects;
 
-    return this.raycaster.raycasting(
-      origin,
-      this.namedArgs.camera,
-      possibleObjects
-    );
+    return this.raycaster.raycasting(origin, this.camera, possibleObjects);
   }
 
   createPointerStopEvent() {

@@ -535,6 +535,13 @@ function applyBoxLayout(application, allLandscapeTraces) {
     });
 
     rootSegment.width += INSET_SPACE;
+    //rootSegment.height += INSET_SPACE;
+    /*console.log('rootSegment:');
+    for (let property in rootSegment) {
+      if (rootSegment.hasOwnProperty(property)) {
+          console.log(`${property}: ${rootSegment[property]}`);
+      }
+    }*/
 
     return rootSegment;
 

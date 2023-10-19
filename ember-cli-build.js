@@ -10,9 +10,14 @@ module.exports = (defaults) => {
     sassOptions: {
       implementation: sass,
       includePaths: [
+        'lib/collaborative-mode/addon/styles',
         'lib/virtual-reality/addon/styles',
         'lib/heatmap/addon/styles',
       ],
+    },
+
+    'ember-cli-babel': {
+      enableTypeScriptTransform: true,
     },
 
     'ember-bootstrap': {

@@ -5,19 +5,12 @@ import isObject, {
 } from 'explorviz-frontend/utils/object-helpers';
 import {
   classicApplicationColors,
-  classicLandscapeColors,
   ColorScheme,
   darkApplicationColors,
-  darkLandscapeColors,
   defaultApplicationColors,
-  defaultLandscapeColors,
-  visuallyImpairedApplicationColors,
-  visuallyImpairedLandscapeColors,
+  blueApplicationColors,
 } from 'explorviz-frontend/utils/settings/color-schemes';
-import {
-  defaultApplicationSettings,
-  defaultLanscapeSettings,
-} from 'explorviz-frontend/utils/settings/default-settings';
+import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
   ApplicationColorSettings,
   ApplicationSettingId,
@@ -25,16 +18,10 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
-  LandscapeColorSettings,
-  LandscapeSettingId,
-  LandscapeSettings,
   RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 
 export default class UserSettings extends Service {
-  @tracked
-  landscapeSettings!: LandscapeSettings;
-
   @tracked
   applicationSettings!: ApplicationSettings;
 
@@ -42,34 +29,9 @@ export default class UserSettings extends Service {
     super(...arguments);
 
     try {
-      this.restoreLandscapeSettings();
-    } catch (e) {
-      this.applyDefaultLandscapeSettings();
-    }
-
-    try {
       this.restoreApplicationSettings();
     } catch (e) {
       this.applyDefaultApplicationSettings();
-    }
-  }
-
-  private restoreLandscapeSettings() {
-    const userLandscapeSettingsJSON = localStorage.getItem(
-      'userLandscapeSettings'
-    );
-
-    if (userLandscapeSettingsJSON === null) {
-      throw new Error('There are no landscape settings to restore');
-    }
-
-    const parsedLandscapeSettings = JSON.parse(userLandscapeSettingsJSON);
-
-    if (this.areValidLandscapeSettings(parsedLandscapeSettings)) {
-      this.set('landscapeSettings', parsedLandscapeSettings);
-    } else {
-      localStorage.removeItem('userLandscapeSettings');
-      throw new Error('Landscape settings are invalid');
     }
   }
 
@@ -92,13 +54,6 @@ export default class UserSettings extends Service {
     }
   }
 
-  applyDefaultLandscapeSettings() {
-    this.set(
-      'landscapeSettings',
-      JSON.parse(JSON.stringify(defaultLanscapeSettings))
-    );
-  }
-
   applyDefaultApplicationSettings() {
     this.set(
       'applicationSettings',
@@ -107,10 +62,6 @@ export default class UserSettings extends Service {
   }
 
   updateSettings() {
-    localStorage.setItem(
-      'userLandscapeSettings',
-      JSON.stringify(this.landscapeSettings)
-    );
     localStorage.setItem(
       'userApplicationSettings',
       JSON.stringify(this.applicationSettings)
@@ -142,31 +93,6 @@ export default class UserSettings extends Service {
     }
   }
 
-  updateLandscapeSetting(name: LandscapeSettingId, value?: unknown) {
-    const setting = this.landscapeSettings[name];
-
-    const newValue = value ?? defaultLanscapeSettings[name].value;
-
-    if (isRangeSetting(setting) && typeof newValue === 'number') {
-      this.validateRangeSetting(setting, newValue);
-      this.landscapeSettings = {
-        ...this.landscapeSettings,
-        [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
-      };
-      this.updateSettings();
-    } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
-      this.landscapeSettings = {
-        ...this.landscapeSettings,
-        [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
-      };
-      this.updateSettings();
-    } else if (isColorSetting(setting) && typeof newValue === 'string') {
-      /*       const regExHex = /^#(?:[0-9a-f]{3}){1,2}$/i; */
-      setting.value = newValue;
-      this.updateSettings();
-    }
-  }
-
   // eslint-disable-next-line class-methods-use-this
   private validateRangeSetting(rangeSetting: RangeSetting, value: number) {
     const { range } = rangeSetting;
@@ -179,45 +105,25 @@ export default class UserSettings extends Service {
 
   setColorScheme(scheme: ColorScheme) {
     let applicationColors = defaultApplicationColors;
-    let landscapeColors = defaultLandscapeColors;
 
     if (scheme === 'classic') {
       applicationColors = classicApplicationColors;
-      landscapeColors = classicLandscapeColors;
     } else if (scheme === 'dark') {
       applicationColors = darkApplicationColors;
-      landscapeColors = darkLandscapeColors;
-    } else if (scheme === 'impaired') {
-      applicationColors = visuallyImpairedApplicationColors;
-      landscapeColors = visuallyImpairedLandscapeColors;
+    } else if (scheme === 'blue') {
+      applicationColors = blueApplicationColors;
     }
 
-    let settingId: keyof LandscapeColorSettings;
+    let settingId: keyof ApplicationColorSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in landscapeColors) {
-      const setting = this.landscapeSettings[settingId];
-      setting.value = landscapeColors[settingId];
-    }
-
-    let settingId2: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId2 in applicationColors) {
-      const setting = this.applicationSettings[settingId2];
-      setting.value = applicationColors[settingId2];
+    for (settingId in applicationColors) {
+      const setting = this.applicationSettings[settingId];
+      setting.value = applicationColors[settingId];
     }
 
     this.notifyPropertyChange('applicationSettings');
-    this.notifyPropertyChange('landscapeSettings');
 
     this.updateSettings();
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private areValidLandscapeSettings(maybeSettings: unknown) {
-    return (
-      isObject(maybeSettings) &&
-      objectsHaveSameKeys(maybeSettings, defaultLanscapeSettings)
-    );
   }
 
   // eslint-disable-next-line class-methods-use-this

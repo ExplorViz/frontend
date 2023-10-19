@@ -8,12 +8,9 @@ import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
+import { EmptyObject } from '@glimmer/component/-private/component';
 
-interface XrCollaborationArgs {
-  removeComponent(componentPath: string): void;
-}
-
-export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
+export default class ArSettingsSelector extends Component {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -53,7 +50,7 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
     return users.concat(remoteUsers);
   }
 
-  constructor(owner: any, args: XrCollaborationArgs) {
+  constructor(owner: any, args: EmptyObject) {
     super(owner, args);
 
     this.loadRooms(false);
@@ -94,10 +91,5 @@ export default class ArSettingsSelector extends Component<XrCollaborationArgs> {
     } else {
       this.spectateUserService.deactivate();
     }
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('xr-collaboration');
   }
 }

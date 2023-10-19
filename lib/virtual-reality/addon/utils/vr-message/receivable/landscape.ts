@@ -1,3 +1,4 @@
+import { SerializedHighlightedComponent } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import { EntityType, isEntityType } from '../util/entity_type';
 import { isPosition, Position } from '../util/position';
 import { isQuaternion, Quaternion } from '../util/quaternion';
@@ -44,6 +45,8 @@ export type InitialLandscapeMessage = {
   openApps: App[];
   landscape: Landscape;
   detachedMenus: DetachedMenu[];
+  highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
+  //transparentExternCommunicationLinks: string[];
 };
 
 function isHighlightedComponent(comp: any): comp is HighlightedComponent {

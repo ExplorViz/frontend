@@ -13,6 +13,8 @@ export default class AdditionalTokenInfo extends Component<Args> {
   @service('auth')
   auth!: Auth;
 
+  focusedClicks = 0;
+
   @action
   // eslint-disable-next-line class-methods-use-this
   onTokenIdCopied() {
@@ -23,5 +25,21 @@ export default class AdditionalTokenInfo extends Component<Args> {
   // eslint-disable-next-line class-methods-use-this
   onTokenSecretCopied() {
     AlertifyHandler.showAlertifySuccess('Token secret copied to clipboard');
+  }
+
+  @action
+  hidePopover(event: Event) {
+    // Clicks enable us to differentiate between opened and closed popovers
+    if (this.focusedClicks % 2 === 1) {
+      event.target?.dispatchEvent(new Event('click'));
+    }
+    this.focusedClicks = 0;
+  }
+
+  @action
+  onClick(event: Event) {
+    this.focusedClicks += 1;
+    // Prevent click on table row which would trigger to open the visualization
+    event.stopPropagation();
   }
 }

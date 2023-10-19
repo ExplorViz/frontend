@@ -88,7 +88,7 @@ export default class VRController extends BaseMesh {
 
   controllerModel: VrControllerModel;
 
-  intersectedObject: THREE.Intersection | null = null;
+  intersectedObject: THREE.Intersection | undefined = undefined;
 
   raycaster: THREE.Raycaster;
 
@@ -390,7 +390,7 @@ export default class VRController extends BaseMesh {
     }
   }
 
-  private computeNearestIntersection(): THREE.Intersection | null {
+  private computeNearestIntersection(): THREE.Intersection | undefined {
     const { raySpace } = this;
     const tempMatrix = new THREE.Matrix4();
     tempMatrix.identity().extractRotation(raySpace.matrixWorld);
@@ -410,7 +410,7 @@ export default class VRController extends BaseMesh {
       }
     }
 
-    return null;
+    return undefined;
   }
 
   updateIntersectedObject() {
@@ -418,7 +418,7 @@ export default class VRController extends BaseMesh {
 
     // Find and store intersected object and scale ray accordingly.
     const nearestIntersection = this.computeNearestIntersection();
-    this.intersectedObject = nearestIntersection || null;
+    this.intersectedObject = nearestIntersection || undefined;
     this.ray.scale.z = nearestIntersection?.distance || DEFAULT_RAY_LENGTH;
 
     // Invoke event handler for hover effect.

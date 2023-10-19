@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import NameTagSprite from 'virtual-reality/utils/view-objects/vr/name-tag-sprite';
 import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';
-import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
 import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
 import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
 import {
@@ -23,11 +22,10 @@ type Camera = {
 
 type Controller = {
   assetUrl: string;
-  intersection: THREE.Vector3 | null;
+  intersection: THREE.Vector3 | undefined;
   model: THREE.Object3D;
   ray: RayMesh;
   pingMesh: PingMesh;
-  waypointIndicator: WaypointIndicator;
 };
 
 export default class RemoteUser extends THREE.Object3D {
@@ -117,9 +115,8 @@ export default class RemoteUser extends THREE.Object3D {
     this.removeController(controllerId);
 
     // Load controller model.
-    const model = await VrControllerModelFactory.INSTANCE.loadAssetScene(
-      assetUrl
-    );
+    const model =
+      await VrControllerModelFactory.INSTANCE.loadAssetScene(assetUrl);
     this.add(model);
 
     // Initialize ray.
@@ -131,22 +128,17 @@ export default class RemoteUser extends THREE.Object3D {
       animationMixer: this.animationMixer,
       color: this.color,
     });
-    const waypointIndicator = new WaypointIndicator({
-      target: pingMesh,
-      color: this.color,
-    });
+
     this.add(pingMesh);
-    this.localUser.defaultCamera.add(waypointIndicator);
 
     const controller = {
       assetUrl,
       position: new THREE.Vector3(),
       quaternion: new THREE.Quaternion(),
-      intersection: null,
+      intersection: undefined,
       model,
       ray,
       pingMesh,
-      waypointIndicator,
     };
     this.controllers[controllerId] = controller;
     this.add(controller.model);
@@ -159,7 +151,6 @@ export default class RemoteUser extends THREE.Object3D {
     if (!controller) return;
     this.remove(controller.model);
     this.remove(controller.pingMesh);
-    this.localUser.defaultCamera.remove(controller.waypointIndicator);
     this.controllers[controllerId] = null;
   }
 
@@ -190,6 +181,11 @@ export default class RemoteUser extends THREE.Object3D {
     } else {
       controller.pingMesh.stopPinging();
     }
+  }
+
+  getVisualizationMode(): string {
+    // TODO: refactoring! this method won't return the remote user's localUser instance! It is always our own
+    return this.localUser.visualizationMode;
   }
 
   /**
@@ -231,6 +227,7 @@ export default class RemoteUser extends THREE.Object3D {
       controller.model.quaternion.fromArray(quaternion);
       controller.intersection =
         intersection && new THREE.Vector3().fromArray(intersection);
+
       controller.pingMesh.updateIntersection(controller.intersection);
     }
   }

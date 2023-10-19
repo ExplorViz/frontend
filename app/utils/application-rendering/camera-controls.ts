@@ -1,28 +1,64 @@
 import gsap from 'gsap';
-import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import {
+  Box3,
+  Object3D,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Vector3,
+} from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
+import { setOwner } from '@ember/application';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { inject as service } from '@ember/service';
 
 export default class CameraControls {
-  private camera: PerspectiveCamera;
+  @service('user-settings')
+  userSettings!: UserSettings;
 
-  controls: MapControls;
+  private perspectiveCamera: PerspectiveCamera;
+  private orthographicCamera: OrthographicCamera | undefined;
 
+  perspectiveCameraControls: MapControls;
+  orthographicCameraControls: MapControls | undefined;
   enabled: boolean = true;
 
-  constructor(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
-    this.camera = camera;
+  constructor(
+    owner: any,
+    perspectiveCamera: PerspectiveCamera,
+    orthographicCamera: OrthographicCamera | undefined,
+    canvas: HTMLCanvasElement
+  ) {
+    setOwner(this, owner);
+    this.perspectiveCamera = perspectiveCamera;
+    this.orthographicCamera = orthographicCamera;
 
-    const controls = new MapControls(this.camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.3;
-    controls.minDistance = 0.1;
-    controls.maxDistance = 1000;
-    controls.maxPolarAngle = Math.PI / 2;
-    controls.mouseButtons.MIDDLE = undefined;
-    this.controls = controls;
+    this.perspectiveCameraControls = new MapControls(
+      this.perspectiveCamera,
+      canvas
+    );
+    this.perspectiveCameraControls.enableDamping = true;
+    this.perspectiveCameraControls.dampingFactor = 0.3;
+    this.perspectiveCameraControls.minDistance = 0.1;
+    this.perspectiveCameraControls.maxDistance = 1000;
+    this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
+    this.perspectiveCameraControls.mouseButtons.MIDDLE = undefined;
+
+    if (orthographicCamera) {
+      this.orthographicCameraControls = new MapControls(
+        this.orthographicCamera!,
+        canvas
+      );
+
+      this.orthographicCameraControls.enableDamping = true;
+      this.orthographicCameraControls.dampingFactor = 0.3;
+      this.orthographicCameraControls.minDistance = 0.1;
+      this.orthographicCameraControls.maxDistance = 1000;
+      this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
+      this.orthographicCameraControls.mouseButtons.MIDDLE = undefined;
+    }
   }
 
-  fitCameraToBox(
+  private fitCamerasToBox(
     duration: number = 0,
     box: Box3,
     keepCameraPerspective = true
@@ -33,16 +69,20 @@ export default class CameraControls {
     box.getCenter(center);
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
-    const fitHeightDistance =
-      maxSize / (2 * Math.atan((Math.PI * this.camera.fov) / 360));
-    const fitWidthDistance = fitHeightDistance / this.camera.aspect;
-    const distance =
+
+    // fit perspective camera
+
+    let fitHeightDistance =
+      maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
+    let fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
+
+    let distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
-    const origin = keepCameraPerspective
-      ? this.camera.position
+    let origin = keepCameraPerspective
+      ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
-    const direction = this.controls.target
+    let direction = center
       .clone()
       .sub(origin)
       .normalize()
@@ -51,16 +91,61 @@ export default class CameraControls {
     // camera.near = distance / 100;
     // camera.far = distance * 100;
 
-    const position = center.clone().sub(direction);
+    let position = center.clone().sub(direction);
     if (duration > 0) {
-      this.panCameraTo(position, center, duration);
+      this.panCameraTo(
+        position,
+        center,
+        duration,
+        this.perspectiveCamera,
+        this.perspectiveCameraControls
+      );
     } else {
-      this.camera.position.copy(position);
-      this.controls.target.copy(center);
+      this.perspectiveCamera.position.copy(position);
+      this.perspectiveCameraControls.target.copy(center);
+    }
+
+    // fit ortho camera
+
+    if (this.orthographicCamera && this.orthographicCameraControls) {
+      fitHeightDistance =
+        maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
+
+      fitWidthDistance =
+        fitHeightDistance / this.orthographicCamera.userData.aspect;
+
+      distance =
+        0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
+
+      origin = keepCameraPerspective
+        ? this.orthographicCamera.position
+        : new Vector3(1, 1, 1);
+      direction = center
+        .clone()
+        .sub(origin)
+        .normalize()
+        .multiplyScalar(distance);
+
+      // camera.near = distance / 100;
+      // camera.far = distance * 100;
+
+      position = center.clone().sub(direction);
+      if (duration > 0) {
+        this.panCameraTo(
+          position,
+          center,
+          duration,
+          this.orthographicCamera,
+          this.orthographicCameraControls
+        );
+      } else {
+        this.orthographicCamera.position.copy(position);
+        this.orthographicCameraControls.target.copy(center);
+      }
     }
   }
 
-  getBoxForSelection(...selection: Object3D[]) {
+  private getBoxForSelection(...selection: Object3D[]) {
     const box = new Box3();
     selection.forEach((object) => {
       box.expandByObject(object);
@@ -70,38 +155,51 @@ export default class CameraControls {
   }
 
   focusCameraOn(duration: number = 1, ...selection: Object3D[]) {
-    this.fitCameraToBox(duration, this.getBoxForSelection(...selection));
+    this.fitCamerasToBox(duration, this.getBoxForSelection(...selection));
   }
 
   resetCameraFocusOn(duration: number = 1, ...selection: Object3D[]) {
-    this.fitCameraToBox(duration, this.getBoxForSelection(...selection), false);
+    this.fitCamerasToBox(
+      duration,
+      this.getBoxForSelection(...selection),
+      false
+    );
   }
 
-  panCameraTo(position: Vector3, target: Vector3, duration: number) {
-    gsap.to(this.camera.position, {
+  private panCameraTo(
+    position: Vector3,
+    target: Vector3,
+    duration: number,
+    camera: PerspectiveCamera | OrthographicCamera,
+    cameraControls: MapControls
+  ) {
+    gsap.to(camera.position, {
       duration,
       x: position.x,
       y: position.y,
       z: position.z,
       onUpdate: () => {
-        this.camera.updateProjectionMatrix();
+        camera.updateProjectionMatrix();
       },
     });
 
-    gsap.to(this.controls.target, {
+    gsap.to(cameraControls.target, {
       duration,
       x: target.x,
       y: target.y,
       z: target.z,
       onUpdate: () => {
-        this.controls.update();
+        cameraControls.update();
       },
     });
   }
 
   tick() {
     if (this.enabled) {
-      this.controls.update();
+      this.perspectiveCameraControls.update();
+      if (this.orthographicCameraControls) {
+        this.orthographicCameraControls.update();
+      }
     }
   }
 }
