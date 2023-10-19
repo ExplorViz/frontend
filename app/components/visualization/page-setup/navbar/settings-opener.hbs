@@ -4,6 +4,10 @@
     title='Configure settings'
     {{on 'click' this.showSettings}}
   >
-    Settings
+    {{#if this.isOpen}}
+      <div class='active-opener'>Settings</div>
+    {{else}}
+      <div class='inactive-opener'>Settings</div>
+    {{/if}}
   </div>
 </li>

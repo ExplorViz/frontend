@@ -1,13 +1,19 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
 
 interface Args {
-  toggleSettingsSidebarComponent(componentPath: string): void;
+  toggleSettingsSidebarComponent(componentPath: string): boolean;
 }
 
 export default class VisualizationPageSetupNavbarRestructureOpener extends Component<Args> {
+  @tracked
+  isOpen = false;
+
   @action
   showRestructure() {
-    this.args.toggleSettingsSidebarComponent('restructure-landscape');
+    this.isOpen = this.args.toggleSettingsSidebarComponent(
+      'restructure-landscape'
+    );
   }
 }

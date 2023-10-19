@@ -1,13 +1,17 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
 
 interface Args {
-  toggleSettingsSidebarComponent(componentPath: string): void;
+  toggleSettingsSidebarComponent(componentPath: string): boolean;
 }
 
 export default class VisualizationPageSetupNavbarSettingsOpener extends Component<Args> {
+  @tracked
+  isOpen = false;
+
   @action
   showSettings() {
-    this.args.toggleSettingsSidebarComponent('settings');
+    this.isOpen = this.args.toggleSettingsSidebarComponent('settings');
   }
 }

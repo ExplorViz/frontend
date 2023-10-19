@@ -4,6 +4,10 @@
     title='Setup for vscode extension settings'
     {{on 'click' this.showVSCodeSettings}}
   >
-    Extension Settings
+    {{#if this.isOpen}}
+      <div class='active-opener'>Extension Settings</div>
+    {{else}}
+      <div class='inactive-opener'>Extension Settings</div>
+    {{/if}}
   </div>
 </li>

@@ -4,6 +4,10 @@
     title='Configure Settings for AR'
     {{on 'click' this.showSettings}}
   >
-    Settings
+    {{#if this.isOpen}}
+      <div class='active-opener'>Settings</div>
+    {{else}}
+      <div>Settings</div>
+    {{/if}}
   </div>
 </li>

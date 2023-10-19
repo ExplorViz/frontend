@@ -4,6 +4,10 @@
     title='Connect and Collaborate with other Users'
     {{on 'click' this.showXrCollaboration}}
   >
-    Collaboration
+    {{#if this.isOpen}}
+      <div class='active-opener'>Collaboration</div>
+    {{else}}
+      <div class='inactive-opener'>Collaboration</div>
+    {{/if}}
   </div>
 </li>

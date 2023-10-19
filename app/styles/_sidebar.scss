@@ -28,6 +28,14 @@
   justify-content: flex-end;
 }
 
+.active-opener{
+  font-weight: bold;
+}
+
+.inactive-opener{
+  font-weight: normal;
+}
+
 .sidebar-component-close {
   cursor: pointer;
   position: absolute;

@@ -4,6 +4,10 @@
     title='Configure settings'
     {{on 'click' this.showTool}}
   >
-    Application Search
+    {{#if this.isOpen}}
+      <div class='active-opener'>Application Search</div>
+    {{else}}
+      <div class='inactive-opener'>Application Search</div>
+    {{/if}}
   </div>
 </li>

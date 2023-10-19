@@ -4,6 +4,10 @@
     title='Restructure Landscape'
     {{on 'click' this.showRestructure}}
   >
-    Restructure
+    {{#if this.isOpen}}
+      <div class='active-opener'>Restructure</div>
+    {{else}}
+      <div class='inactive-opener'>Restructure</div>
+    {{/if}}
   </div>
 </li>
