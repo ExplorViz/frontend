@@ -1,0 +1,13 @@
+<li class='nav-item'>
+  <div
+    class='nav-link-with-cursor'
+    title='Show/Hide {{@componentTitle}}'
+    {{on 'click' this.toggleComponent}}
+  >
+    {{#if this.isOpen}}
+      <div class='active-opener'>{{@componentTitle}}</div>
+    {{else}}
+      <div class='inactive-opener'>{{@componentTitle}}</div>
+    {{/if}}
+  </div>
+</li>

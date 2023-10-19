@@ -1,18 +1,11 @@
 {{#if @popupData}}
   <div class='ar-popover'>
-    {{! landscape popups }}
-    {{#if (eq this.entityType 'node')}}
-      <Visualization::Rendering::Popups::LandscapePopups::NodePopup
-        @node={{@popupData.entity}}
-      />
-    {{/if}}
+    {{! application popups }}
     {{#if (eq this.entityType 'application')}}
-      <Visualization::Rendering::Popups::LandscapePopups::ApplicationPopup
+      <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
         @application={{@popupData.entity}}
       />
     {{/if}}
-
-    {{! application popups }}
     {{#if (eq this.entityType 'package')}}
       <Visualization::Rendering::Popups::ApplicationPopups::ComponentPopup
         @component={{@popupData.entity}}

@@ -8,12 +8,11 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import {
   ApplicationColorSettingId,
   ColorSetting,
-  LandscapeColorSettingId,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import Picker from 'vanilla-picker';
 
 interface Args {
-  id: ApplicationColorSettingId | LandscapeColorSettingId;
+  id: ApplicationColorSettingId;
   setting: ColorSetting;
   updateColors(): void;
 }

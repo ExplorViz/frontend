@@ -192,14 +192,11 @@
               <div class='card-body d-flex flex-column'>
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>
-                  <Visualization::PageSetup::Sidebar::XrCollaboration
-                    @removeComponent={{@removeComponent}}
-                  />
+                  <Visualization::PageSetup::Sidebar::XrCollaboration />
                 {{/if}}
                 {{#if (eq componentName 'ar-settings-selector')}}
                   <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::ArSettingsSelector
-                    @removeComponent={{@removeComponent}}
                     @updateView={{this.updateColors}}
                     @updateCameraResolution={{this.initArJs}}
                     @updateRendererResolution={{this.updateRendererResolution}}

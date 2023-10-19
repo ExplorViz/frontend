@@ -1,4 +1,5 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
+import Evented from '@ember/object/evented';
 import {
   Application,
   Class,
@@ -6,476 +7,973 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import {
-  ChangeLogAction,
-  ChangeLogEntry,
-  EntryType,
-} from 'explorviz-frontend/utils/change-log-entry';
+  RestructureAction,
+  EntityType,
+} from 'explorviz-frontend/utils/restructure-helper';
 import { getAncestorPackages } from 'explorviz-frontend/utils/package-helpers';
+import {
+  AppChangeLogEntry,
+  BaseChangeLogEntry,
+  ClassChangeLogEntry,
+  CommunicationChangeLogEntry,
+  PackageChangeLogEntry,
+  SubPackageChangeLogEntry,
+} from 'explorviz-frontend/utils/changelog-entry';
+import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import { tracked } from '@glimmer/tracking';
+import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
-export default class Changelog extends Service.extend({
+export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
 }) {
-  changeLogEntries: ChangeLogEntry[] = [];
+  @service('vr-message-sender')
+  private sender!: VrMessageSender;
 
-  createAppEntry(app: Application) {
-    const appEntry = new ChangeLogEntry(ChangeLogAction.Create, app);
-    this.changeLogEntries.push(appEntry);
+  @tracked
+  changeLogEntries: BaseChangeLogEntry[] = [];
+
+  // Necessary for the created Packages and Classes that are not in the baseChangeLogEntries!!
+  deletedChangeLogEntries: Map<string, BaseChangeLogEntry[]> = new Map();
+
+  get _changeLogEntries() {
+    return this.changeLogEntries;
   }
 
-  createPackageEntry(app: Application, pckg: Package) {
-    const pckgEntry = new ChangeLogEntry(ChangeLogAction.Create, app, pckg);
-    this.changeLogEntries.push(pckgEntry);
+  resetChangeLog() {
+    this.changeLogEntries = [];
+    this.deletedChangeLogEntries = new Map();
   }
 
-  createClassEntry(app: Application, parentPckg: Package, clazz: Class) {
-    const clazzEntry = new ChangeLogEntry(
-      ChangeLogAction.Create,
+  createAppEntry(app: Application, pckg: Package, clazz: Class) {
+    const appLogEntry = new AppChangeLogEntry(RestructureAction.Create, app);
+
+    this.changeLogEntries.pushObject(appLogEntry);
+    this.createPackageEntry(app, pckg, clazz, appLogEntry);
+
+    //this.trigger('showChangeLog');
+  }
+
+  createPackageEntry(
+    app: Application,
+    pckg: Package,
+    clazz: Class,
+    appEntry?: AppChangeLogEntry
+  ) {
+    if (pckg.parent) {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
+        RestructureAction.Create,
+        app,
+        pckg
+      );
+
+      this.changeLogEntries.pushObject(pckgLogEntry);
+      this.createClassEntry(app, clazz, pckgLogEntry);
+    } else {
+      const pckgLogEntry = new PackageChangeLogEntry(
+        RestructureAction.Create,
+        app,
+        pckg
+      );
+
+      if (appEntry) pckgLogEntry._createdWithApp = appEntry;
+
+      this.changeLogEntries.pushObject(pckgLogEntry);
+      this.createClassEntry(app, clazz, pckgLogEntry);
+    }
+    //this.trigger('showChangeLog');
+  }
+
+  createClassEntry(
+    app: Application,
+    clazz: Class,
+    pckgEntry?: PackageChangeLogEntry | SubPackageChangeLogEntry
+  ) {
+    const clazzLogEntry = new ClassChangeLogEntry(
+      RestructureAction.Create,
       app,
-      parentPckg,
       clazz
     );
-    this.changeLogEntries.push(clazzEntry);
+    if (pckgEntry) clazzLogEntry.createdWithPackage = pckgEntry;
+    this.changeLogEntries.pushObject(clazzLogEntry);
+    //this.trigger('showChangeLog');
   }
 
   renameAppEntry(app: Application, newName: string) {
-    const entry = this.findChangeLogEntry(app);
+    const foundEntry = this.findBaseChangeLogEntry(EntityType.App, app);
 
-    if (!entry || (entry && entry._entryType !== EntryType.App)) {
-      const appEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
-        app,
-        undefined,
-        undefined,
-        newName
-      );
-      this.changeLogEntries.push(appEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.App &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
-    ) {
-      entry.newName = newName;
+    if (!foundEntry) {
+      const appLogEntry = new AppChangeLogEntry(RestructureAction.Rename, app);
+      appLogEntry.newName = newName;
+      this.changeLogEntries.pushObject(appLogEntry);
+    } else {
+      if (foundEntry.app && foundEntry.action === RestructureAction.Create) {
+        foundEntry.app.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
+    //this.changeLogEntries = [...this.changeLogEntries];
+    //this.trigger('showChangeLog');
   }
 
   renamePackageEntry(app: Application, pckg: Package, newName: string) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Package,
+      pckg
+    ) as PackageChangeLogEntry;
 
-    if (!entry) {
-      const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+    if (!foundEntry) {
+      const pckgLogEntry = new PackageChangeLogEntry(
+        RestructureAction.Rename,
         app,
-        pckg,
-        undefined,
-        newName
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.Package &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
-    ) {
-      entry.newName = newName;
+      pckgLogEntry.newName = newName;
+      this.changeLogEntries.pushObject(pckgLogEntry);
+    } else {
+      if (
+        foundEntry.action === RestructureAction.Create ||
+        foundEntry.action === RestructureAction.CutInsert
+      ) {
+        foundEntry.pckg.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
+    //this.changeLogEntries = [...this.changeLogEntries];
+    //this.trigger('showChangeLog');
   }
 
   renameSubPackageEntry(app: Application, pckg: Package, newName: string) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.SubPackage,
+      pckg
+    ) as SubPackageChangeLogEntry;
 
-    if (!entry || (entry && entry.entryType === EntryType.Clazz)) {
-      const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+    if (!foundEntry) {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
+        RestructureAction.Rename,
         app,
-        pckg,
-        undefined,
-        newName
+        pckg
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.SubPackage &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
-    ) {
-      entry.newName = newName;
+      pckgLogEntry.newName = newName;
+      this.changeLogEntries.pushObject(pckgLogEntry);
+    } else {
+      if (
+        foundEntry.action === RestructureAction.Create ||
+        foundEntry.action === RestructureAction.CutInsert
+      ) {
+        foundEntry.pckg.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
+    //this.changeLogEntries = [...this.changeLogEntries];
+    //this.trigger('showChangeLog');
   }
 
   renameClassEntry(app: Application, clazz: Class, newName: string) {
-    const entry = this.findChangeLogEntry(clazz);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
 
-    if (!entry) {
-      const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Rename,
+    if (!foundEntry || foundEntry.action === RestructureAction.CutInsert) {
+      const clazzLogEntry = new ClassChangeLogEntry(
+        RestructureAction.Rename,
         app,
-        clazz.parent,
-        clazz,
-        newName
-      );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.Clazz &&
-      (entry.action === ChangeLogAction.Create ||
-        entry.action === ChangeLogAction.Rename)
-    ) {
-      entry.newName = newName;
-    }
-  }
-
-  deleteAppEntry(app: Application) {
-    const entry = this.findChangeLogEntry(app);
-
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
-      this.changeLogEntries.push(appEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.App &&
-      entry.action === ChangeLogAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app?.id !== app.id
-      );
-    } else if (
-      (entry && entry.action !== ChangeLogAction.Create) ||
-      (entry &&
-        entry._entryType !== EntryType.App &&
-        entry.action === ChangeLogAction.Create)
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.app?.id !== app.id
-      );
-      const originalName = entry._originalAppName;
-      const appEntry = new ChangeLogEntry(ChangeLogAction.Delete, app);
-      appEntry.updateOriginalAppName(originalName as string);
-      this.changeLogEntries.push(appEntry);
-    }
-  }
-
-  deletePackageEntry(app: Application, pckg: Package) {
-    const entry = this.findChangeLogEntry(pckg);
-    this.removeAffectedLogEntries(app, pckg);
-
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType !== EntryType.App &&
-      entry.action === ChangeLogAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    }
-  }
-
-  deleteSubPackageEntry(app: Application, pckg: Package) {
-    const entry = this.findChangeLogEntry(pckg);
-    this.removeAffectedLogEntries(app, pckg);
-
-    if (!entry || (entry && entry.action === ChangeLogAction.CutInsert)) {
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    } else if (
-      entry &&
-      entry._entryType === EntryType.SubPackage &&
-      entry.action === ChangeLogAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-    } else if (
-      entry &&
-      (entry._entryType === EntryType.SubPackage ||
-        entry._entryType === EntryType.Clazz) &&
-      entry.action !== ChangeLogAction.Create
-    ) {
-      this.changeLogEntries = this.changeLogEntries.filter(
-        (entry) => entry.pckg?.id !== pckg.id
-      );
-      const pckgEntry = new ChangeLogEntry(ChangeLogAction.Delete, app, pckg);
-      this.changeLogEntries.push(pckgEntry);
-    }
-  }
-
-  deleteClassEntry(app: Application, clazz: Class) {
-    const entry = this.findChangeLogEntry(clazz);
-    const commEntry = this.findChangeLogCommunicationEntry(clazz);
-
-    if (!entry) {
-      const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Delete,
-        app,
-        clazz.parent,
         clazz
       );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
-      this.changeLogEntries.removeObject(entry);
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
-      this.changeLogEntries.removeObject(entry);
-      const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.Delete,
-        app,
-        clazz.parent,
-        clazz
-      );
-      this.changeLogEntries.push(clazzEntry);
+      clazzLogEntry.newName = newName;
+      this.changeLogEntries.pushObject(clazzLogEntry);
+    } else {
+      if (foundEntry.action === RestructureAction.Create) {
+        foundEntry.clazz.name = newName;
+      } else {
+        foundEntry.newName = newName;
+      }
     }
-
-    if (commEntry) {
-      this.changeLogEntries.removeObject(commEntry);
-    }
+    //this.changeLogEntries = [...this.changeLogEntries];
+    //this.trigger('showChangeLog');
   }
 
-  cutAndInsertPackageEntry(
+  deleteAppEntry(app: Application, undoInsert: boolean = false) {
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.App,
+      app
+    ) as AppChangeLogEntry;
+    let originalAppName = '';
+
+    this.storeDeletedEntries(app.id);
+
+    this.changeLogEntries = this.changeLogEntries.filter((entry) => {
+      if (!(entry instanceof CommunicationChangeLogEntry)) {
+        if (entry.action === RestructureAction.CopyPaste) {
+          if (entry instanceof AppChangeLogEntry) {
+            return entry.app?.id !== app.id;
+          } else if (
+            entry instanceof PackageChangeLogEntry ||
+            entry instanceof SubPackageChangeLogEntry ||
+            entry instanceof ClassChangeLogEntry
+          ) {
+            // We only want to remove the copy&paste entry when we delete the destination of the copied and not the source!
+            return entry.destinationApp?.id !== app.id;
+          } else {
+            // should never happen, since there are no copy paste actions for comms
+            return;
+          }
+        } else {
+          return entry.app?.id !== app.id;
+        }
+      } else {
+        return (
+          entry.communication?.sourceApp?.id !== app.id &&
+          entry.communication?.targetApp?.id !== app.id
+        );
+      }
+    });
+    if (foundEntry) {
+      if (foundEntry.action === RestructureAction.Create) {
+        //this.trigger('showChangeLog');
+        return;
+      }
+      originalAppName = foundEntry.originalAppName as string;
+    }
+
+    if (undoInsert) {
+      return;
+    }
+
+    const appLogEntry = new AppChangeLogEntry(RestructureAction.Delete, app);
+    this.addToDeletedEntriesMap(app.id, appLogEntry);
+
+    if (originalAppName !== '') appLogEntry.originalAppName = originalAppName;
+    this.changeLogEntries.pushObject(appLogEntry);
+    //this.trigger('showChangeLog');
+  }
+
+  addToDeletedEntriesMap(key: string, entry: BaseChangeLogEntry) {
+    const deletedEntries = this.deletedChangeLogEntries.get(key);
+    deletedEntries?.pushObject(entry);
+  }
+
+  deletePackageEntry(
     app: Application,
     pckg: Package,
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
+    undoInsert: boolean = false
   ) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Package,
+      pckg
+    ) as PackageChangeLogEntry;
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
-        app,
-        pckg,
-        undefined,
-        undefined,
-        destination,
-        landscapeData
+    if (!undoInsert) this.storeDeletedEntries(pckg.id);
+
+    // We don't want to undo the undo, thats why we dont store the data then
+    this.removeLogEntriesUnderPackage(app, pckg);
+
+    let originalPckgName = '';
+
+    if (foundEntry) {
+      this.changeLogEntries = this.changeLogEntries.filter(
+        (entry: PackageChangeLogEntry) => entry.pckg?.id !== pckg.id
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
-      this.updateAffectedCreateLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
-      this.updateAffectedCutInsertLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
+      if (foundEntry.action === RestructureAction.Create) {
+        //this.trigger('showChangeLog');
+        return;
+      } else if (foundEntry.action === RestructureAction.Rename) {
+        originalPckgName = foundEntry.originalPckgName as string;
+      }
     }
+
+    if (undoInsert) {
+      return;
+    }
+
+    const pckgLogEntry = new PackageChangeLogEntry(
+      RestructureAction.Delete,
+      app,
+      pckg
+    );
+
+    this.addToDeletedEntriesMap(pckg.id, pckgLogEntry);
+
+    if (originalPckgName !== '') {
+      pckgLogEntry.originalPckgName = originalPckgName;
+    }
+
+    this.changeLogEntries.pushObject(pckgLogEntry);
+    //this.trigger('showChangeLog');
   }
 
-  cutAndInsertSubPackageEntry(
+  private storeDeletedEntries(key: string) {
+    if (!this.changeLogEntries.length) return;
+    const deletedEntries: BaseChangeLogEntry[] = [];
+    this.changeLogEntries.forEach((entry) => {
+      deletedEntries.pushObject(entry);
+    });
+    this.deletedChangeLogEntries.set(key, deletedEntries);
+  }
+
+  deleteSubPackageEntry(
     app: Application,
     pckg: Package,
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
+    undoInsert: boolean = false
   ) {
-    const entry = this.findChangeLogEntry(pckg);
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.SubPackage,
+      pckg
+    ) as SubPackageChangeLogEntry;
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      const pckgEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
-        app,
-        pckg,
-        undefined,
-        undefined,
-        destination,
-        landscapeData
+    // We don't want to undo the undo, thats why we dont store the data then
+    if (!undoInsert) this.storeDeletedEntries(pckg.id);
+
+    this.removeLogEntriesUnderPackage(app, pckg);
+
+    let originalPckgName = '';
+
+    if (foundEntry) {
+      this.changeLogEntries = this.changeLogEntries.filter(
+        (entry: SubPackageChangeLogEntry) => entry.pckg?.id !== pckg.id
       );
-      this.changeLogEntries.push(pckgEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
-      this.updateAffectedCreateLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
-      this.updateAffectedCutInsertLogEntries(
-        app,
-        pckg,
-        destination,
-        landscapeData
-      );
+      if (foundEntry.action === RestructureAction.Create) {
+        //this.trigger('showChangeLog');
+        return;
+      } else if (foundEntry.action === RestructureAction.Rename) {
+        originalPckgName = foundEntry.originalPckgName as string;
+      }
     }
+
+    if (undoInsert) {
+      return;
+    }
+
+    const pckgLogEntry = new SubPackageChangeLogEntry(
+      RestructureAction.Delete,
+      app,
+      pckg
+    );
+
+    this.addToDeletedEntriesMap(pckg.id, pckgLogEntry);
+    if (originalPckgName !== '') {
+      pckgLogEntry.originalPckgName = originalPckgName;
+    }
+    this.changeLogEntries.pushObject(pckgLogEntry);
+    //this.trigger('showChangeLog');
   }
 
-  cutAndInsertClassEntry(
+  deleteClassEntry(
     app: Application,
     clazz: Class,
+    undoInsert: boolean = false
+  ) {
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
+    const commEntry = this.findCommunicationLogEntry(clazz);
+
+    // We don't want to undo the undo, thats why we dont store the data then
+    if (!undoInsert) {
+      this.storeDeletedEntries(clazz.id);
+    }
+
+    // Remove Communication Log Entry
+    if (commEntry) this.changeLogEntries.removeObject(commEntry);
+
+    let originalClazzName = '';
+    if (foundEntry) {
+      this.changeLogEntries = this.changeLogEntries.filter(
+        (entry: ClassChangeLogEntry) => entry.clazz?.id !== clazz.id
+      );
+      if (foundEntry.action === RestructureAction.Create) {
+        //this.trigger('showChangeLog');
+        return;
+      } else if (foundEntry.action === RestructureAction.Rename) {
+        originalClazzName = foundEntry.originalClazzName as string;
+      }
+    }
+
+    if (undoInsert) {
+      return;
+    }
+
+    const clazzLogEntry = new ClassChangeLogEntry(
+      RestructureAction.Delete,
+      app,
+      clazz
+    );
+
+    this.addToDeletedEntriesMap(clazz.id, clazzLogEntry);
+    if (originalClazzName !== '') {
+      clazzLogEntry.originalClazzName = originalClazzName;
+    }
+    this.changeLogEntries.pushObject(clazzLogEntry);
+    //this.trigger('showChangeLog');
+  }
+
+  duplicateAppEntry(app: Application) {
+    const appLogEntry = new AppChangeLogEntry(RestructureAction.CopyPaste, app);
+    this.changeLogEntries.pushObject(appLogEntry);
+  }
+
+  copyPackageEntry(
+    app: Application,
+    pckg: Package,
     destination: Application | Package,
+    original: Package,
     landscapeData: StructureLandscapeData
   ) {
-    const entry = this.findChangeLogEntry(clazz);
+    const pckgLogEntry = new PackageChangeLogEntry(
+      RestructureAction.CopyPaste,
+      app,
+      pckg
+    );
+    pckgLogEntry.setDestination(destination, landscapeData);
+    pckgLogEntry.setOriginal(original);
+    this.changeLogEntries.pushObject(pckgLogEntry);
+  }
 
-    if (!entry || (entry && entry.action === ChangeLogAction.Rename)) {
-      const clazzEntry = new ChangeLogEntry(
-        ChangeLogAction.CutInsert,
+  copySubPackageEntry(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    original: Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const pckgLogEntry = new PackageChangeLogEntry(
+      RestructureAction.CopyPaste,
+      app,
+      pckg
+    );
+    pckgLogEntry.setDestination(destination, landscapeData);
+    pckgLogEntry.setOriginal(original);
+    this.changeLogEntries.pushObject(pckgLogEntry);
+  }
+
+  copyClassEntry(
+    app: Application,
+    clazz: Class,
+    destination: Package,
+    original: Class,
+    landscapeData: StructureLandscapeData
+  ) {
+    const clazzLogEntry = new ClassChangeLogEntry(
+      RestructureAction.CopyPaste,
+      app,
+      clazz
+    );
+    clazzLogEntry.setDestination(destination, landscapeData);
+    clazzLogEntry.setOriginal(original);
+    this.changeLogEntries.pushObject(clazzLogEntry);
+  }
+
+  movePackageEntry(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    original: Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const foundEntry =
+      this.findBaseChangeLogEntry(EntityType.Package, pckg) ||
+      this.findBaseChangeLogEntry(EntityType.SubPackage, pckg);
+    if (foundEntry) {
+      if (foundEntry.action == RestructureAction.Create) {
+        this.updateCreateLogEntries(app, pckg, destination, landscapeData);
+      } else {
+        this.updateCutInserLogEntries(app, pckg, destination, landscapeData);
+      }
+    } else {
+      const pckgLogEntry = new PackageChangeLogEntry(
+        RestructureAction.CutInsert,
         app,
-        clazz.parent,
-        clazz,
-        undefined,
-        destination,
-        landscapeData
+        pckg
       );
-      this.changeLogEntries.push(clazzEntry);
-    } else if (entry && entry.action === ChangeLogAction.Create) {
-      entry.updateCreateEntry(destination, landscapeData);
-    } else if (entry && entry.action !== ChangeLogAction.Create) {
-      entry.updateDestination(destination, landscapeData);
+      pckgLogEntry.setDestination(destination, landscapeData);
+      pckgLogEntry.setOriginal(original);
+      this.changeLogEntries.pushObject(pckgLogEntry);
+    }
+
+    //this.trigger('showChangeLog');
+  }
+
+  moveSubPackageEntry(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    original: Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    const foundEntry =
+      this.findBaseChangeLogEntry(EntityType.SubPackage, pckg) ||
+      this.findBaseChangeLogEntry(EntityType.Package, pckg);
+
+    if (foundEntry) {
+      if (foundEntry.action == RestructureAction.Create) {
+        this.updateCreateLogEntries(app, pckg, destination, landscapeData);
+      } else {
+        this.updateCutInserLogEntries(app, pckg, destination, landscapeData);
+      }
+    } else {
+      const pckgLogEntry = new SubPackageChangeLogEntry(
+        RestructureAction.CutInsert,
+        app,
+        pckg
+      );
+      pckgLogEntry.setDestination(destination, landscapeData);
+      pckgLogEntry.setOriginal(original);
+      this.changeLogEntries.pushObject(pckgLogEntry);
+    }
+    //this.trigger('showChangeLog');
+  }
+
+  moveClassEntry(
+    app: Application,
+    clazz: Class,
+    destination: Package,
+    origin: Class,
+    landscapeData: StructureLandscapeData
+  ) {
+    const foundEntry = this.findBaseChangeLogEntry(
+      EntityType.Clazz,
+      clazz
+    ) as ClassChangeLogEntry;
+
+    if (foundEntry) {
+      if (foundEntry.action === RestructureAction.Create) {
+        foundEntry.updateOriginApp(destination, landscapeData);
+      } else {
+        foundEntry.setDestination(destination, landscapeData);
+      }
+    } else {
+      const clazzLogEntry = new ClassChangeLogEntry(
+        RestructureAction.CutInsert,
+        app,
+        clazz
+      );
+      clazzLogEntry.setDestination(destination, landscapeData);
+      clazzLogEntry.setOriginal(origin);
+      this.changeLogEntries.pushObject(clazzLogEntry);
+    }
+    //this.trigger('showChangeLog');
+  }
+
+  communicationEntry(communication: DrawableClassCommunication) {
+    const commEntry = new CommunicationChangeLogEntry(
+      RestructureAction.Create,
+      communication
+    );
+    this.changeLogEntries.pushObject(commEntry);
+
+    //this.trigger('showChangeLog');
+  }
+
+  renameOperationEntry(
+    communication: DrawableClassCommunication,
+    newName: string
+  ) {
+    const foundEntry = this.findCommunicationLogEntry(communication.id, true);
+
+    if (
+      foundEntry &&
+      foundEntry instanceof CommunicationChangeLogEntry &&
+      foundEntry.communication
+    ) {
+      if (foundEntry.action === RestructureAction.Create) {
+        foundEntry.communication.operationName = newName;
+      } else if (foundEntry.action === RestructureAction.Rename) {
+        foundEntry.newName = newName;
+      }
+      //this.trigger('showChangeLog');
+      return;
+    }
+
+    const commEntry = new CommunicationChangeLogEntry(
+      RestructureAction.Rename,
+      communication
+    );
+    commEntry.newName = newName;
+
+    this.changeLogEntries.pushObject(commEntry);
+
+    this.changeLogEntries = [...this.changeLogEntries];
+    //this.trigger('showChangeLog');
+  }
+
+  deleteCommunicationEntry(communication: DrawableClassCommunication) {
+    const foundEntry = this.findCommunicationLogEntry(
+      communication.id,
+      true
+    ) as CommunicationChangeLogEntry;
+    this.storeDeletedEntries(communication.id);
+    let originalName = communication.operationName;
+    if (foundEntry) {
+      this.changeLogEntries.removeObject(foundEntry);
+      if (foundEntry.action === RestructureAction.Create) {
+        //this.trigger('showChangeLog');
+        return;
+      }
+      originalName = foundEntry.originalOperationName as string;
+    }
+
+    const commEntry = new CommunicationChangeLogEntry(
+      RestructureAction.Delete,
+      communication
+    );
+
+    commEntry.originalOperationName = originalName;
+
+    this.changeLogEntries.pushObject(commEntry);
+
+    //this.trigger('showChangeLog');
+  }
+
+  /**
+   * Retrieves the log text for all changelog entries.
+   * @returns string with all log texts with each seperated by a new line
+   */
+  getChangeLog() {
+    //let description = '';
+    const logTexts: string[] = [];
+    this.changeLogEntries.forEach((entry) => {
+      // description = description.concat(entry._logText, '\n');
+      logTexts.pushObject(entry._logText);
+    });
+
+    return logTexts;
+  }
+
+  /**
+   * Restores entries that were previously removed due to a delete operation.
+   * It fetches the last set of deleted entries and puts them into the main log.
+   */
+  restoreDeletedEntries(key: string, collabMode: boolean = false) {
+    if (!collabMode) {
+      this.sender.sendChangeLogRestoreEntriesMessage(key);
+    }
+    const deletedEntries = this.deletedChangeLogEntries.get(key);
+    if (!deletedEntries?.length) return;
+
+    const lastEntry = deletedEntries.popObject();
+
+    const index = this.changeLogEntries.findIndex(
+      (entry) => entry.id === lastEntry?.id
+    );
+
+    this.changeLogEntries.splice(0, index + 1, ...deletedEntries);
+    this.changeLogEntries = [...this.changeLogEntries];
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      const index = deletedList.findIndex((deleted) => {
+        return deleted.id === lastEntry.id;
+      });
+
+      if (index === -1) continue;
+
+      deletedList.splice(0, index + 1, ...deletedEntries);
+    }
+
+    this.deletedChangeLogEntries.delete(key);
+
+    //this.trigger('showChangeLog');
+  }
+
+  private findBaseChangeLogEntry(
+    entityType: EntityType,
+    entity: Application | Package | Class
+  ) {
+    switch (entityType) {
+      case EntityType.App: {
+        const appEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof AppChangeLogEntry
+        ) as AppChangeLogEntry[];
+        return appEntries.find((entry) => entry.app === entity);
+      }
+      case EntityType.Package: {
+        const pckgEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof PackageChangeLogEntry
+        ) as PackageChangeLogEntry[];
+        return pckgEntries.find((entry) => entry.pckg === entity);
+      }
+      case EntityType.SubPackage: {
+        const subpckgEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof SubPackageChangeLogEntry
+        ) as SubPackageChangeLogEntry[];
+        return subpckgEntries.find((entry) => entry.pckg === entity);
+      }
+      case EntityType.Clazz: {
+        const clazzEntries = this.changeLogEntries.filter(
+          (entry) => entry instanceof ClassChangeLogEntry
+        ) as ClassChangeLogEntry[];
+        return clazzEntries.find((entry) => entry.clazz === entity);
+      }
+      default:
+        return undefined;
     }
   }
 
-  communicationEntry(
-    sourceApp: Application,
-    sourceClazz: Class,
-    targetApp: Application,
-    targetClass: Class,
-    methodName: string,
-    landscapeData: StructureLandscapeData
-  ) {
-    const commEntry = new ChangeLogEntry(
-      ChangeLogAction.Communication,
-      sourceApp,
-      sourceClazz.parent,
-      sourceClazz,
-      undefined,
-      targetApp,
-      landscapeData,
-      targetClass,
-      methodName
-    );
-    this.changeLogEntries.push(commEntry);
-  }
-
-  getChangeLogs() {
-    let description = '';
-    this.changeLogEntries.forEach((entry) => {
-      description = description.concat(entry._description, '\n');
+  private findCommunicationLogEntry(
+    clazzOrId: Class | string,
+    searchById: boolean = false
+  ): BaseChangeLogEntry | undefined {
+    return this.changeLogEntries.find((entry) => {
+      if (entry instanceof CommunicationChangeLogEntry) {
+        if (searchById) {
+          return entry.communication?.id === clazzOrId;
+        } else {
+          return (
+            entry.communication?.sourceClass === clazzOrId ||
+            entry.communication?.targetClass === clazzOrId
+          );
+        }
+      }
+      return false;
     });
-
-    return description;
   }
 
-  private findChangeLogEntry(
-    app: Application | Package | Class
-  ): ChangeLogEntry | undefined {
-    return this.changeLogEntries.find(
-      (entry) => entry.app === app || entry.pckg === app || entry.clazz === app
-    );
+  isCreateBundle(
+    entry: BaseChangeLogEntry,
+    bundledEntries: BaseChangeLogEntry[]
+  ): BaseChangeLogEntry[] | undefined {
+    if (
+      entry instanceof AppChangeLogEntry ||
+      entry instanceof CommunicationChangeLogEntry
+    ) {
+      return undefined;
+    }
+
+    if (entry instanceof PackageChangeLogEntry) {
+      if (entry.createdWithApp) {
+        bundledEntries.push(entry, entry.createdWithApp);
+        return bundledEntries;
+      }
+      if (bundledEntries.length) {
+        bundledEntries.push(entry);
+        return bundledEntries;
+      }
+    }
+
+    if (entry instanceof SubPackageChangeLogEntry && bundledEntries.length) {
+      bundledEntries.push(entry);
+      return bundledEntries;
+    }
+
+    if (entry instanceof ClassChangeLogEntry && entry.createdWithPackage) {
+      bundledEntries.push(entry);
+      return this.isCreateBundle(entry.createdWithPackage, bundledEntries);
+    }
+
+    return undefined;
   }
 
-  private findChangeLogCommunicationEntry(
-    app: Application | Package | Class
-  ): ChangeLogEntry | undefined {
-    return this.changeLogEntries.find(
-      (entry) =>
-        entry.action === ChangeLogAction.Communication &&
-        (entry.app === app ||
-          entry.pckg === app ||
-          entry.clazz === app ||
-          entry.destinationApp === app ||
-          entry.destinationClass === app)
-    );
-  }
-
-  private removeAffectedLogEntries(app: Application, pckg: Package) {
-    const entriesToRemove: ChangeLogEntry[] = [];
+  /**
+   * Removes changelog entries for packages and classes located under a specified package within a given application.
+   * @param app The application containing the package of interest. Changelog entries within this application will be evaluated.
+   * @param pckg The package of interest. Changelog entries under this package will be removed.
+   */
+  private removeLogEntriesUnderPackage(app: Application, pckg: Package) {
+    const entriesToRemove: BaseChangeLogEntry[] = [];
 
     this.changeLogEntries.forEach((logEntry) => {
-      if (logEntry.app?.id === app.id && logEntry.pckg) {
-        const ancestorPackages = getAncestorPackages(logEntry.pckg);
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
-          entriesToRemove.push(logEntry);
+      // Check if some children have changelog entries and remove them
+      if (
+        (logEntry instanceof PackageChangeLogEntry ||
+          logEntry instanceof SubPackageChangeLogEntry ||
+          logEntry instanceof ClassChangeLogEntry) &&
+        logEntry.app?.id === app.id
+      ) {
+        const ancestorPackages = getAncestorPackages(logEntry.pckg as Package);
+        const affectedLogEntry =
+          ancestorPackages.some(
+            (ancestorPackages) => ancestorPackages.id === pckg.id
+          ) || logEntry.pckg?.id === pckg.id;
+        if (affectedLogEntry) {
+          entriesToRemove.pushObject(logEntry);
         }
       }
+
+      // Check if there are Communication Entries inside pckg, if there are then remove
+      if (logEntry instanceof CommunicationChangeLogEntry) {
+        if (
+          logEntry.communication?.targetApp ===
+          logEntry.communication?.sourceApp
+        ) {
+          if (logEntry.communication?.sourceApp?.id === app.id) {
+            this.removeInternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.sourceClass.parent,
+              logEntry.communication.targetClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          }
+        } else {
+          if (logEntry.communication?.targetApp?.id === app.id) {
+            this.removeExternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.targetClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          } else if (logEntry.communication?.sourceApp?.id === app.id) {
+            this.removeExternCommunicationsInsidePackage(
+              logEntry,
+              logEntry.communication.sourceClass.parent,
+              pckg,
+              entriesToRemove
+            );
+          }
+        }
+      }
+    });
+
+    if (entriesToRemove.length) {
+      this.changeLogEntries.removeObjects(entriesToRemove);
+    }
+  }
+
+  removeEntry(entry: BaseChangeLogEntry, collabMode: boolean = false) {
+    if (!collabMode) {
+      this.sender.sendChangeLogRemoveEntryMessage([entry.id]);
+    }
+
+    this.changeLogEntries.removeObject(entry);
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      deletedList.removeObject(entry);
+    }
+    //this.trigger('showChangeLog');
+  }
+
+  removeEntries(entries: BaseChangeLogEntry[], collabMode: boolean = false) {
+    if (!collabMode) {
+      const ids: string[] = [];
+      this.changeLogEntries.forEach((entry) => {
+        ids.pushObject(entry.id);
+      });
+      this.sender.sendChangeLogRemoveEntryMessage(ids);
+    }
+
+    this.changeLogEntries.removeObjects(entries);
+
+    for (const deletedList of this.deletedChangeLogEntries.values()) {
+      deletedList.removeObjects(entries);
+    }
+    //this.trigger('showChangeLog');
+  }
+
+  private removeExternCommunicationsInsidePackage(
+    logEntry: CommunicationChangeLogEntry,
+    commPckg: Package,
+    pckg: Package,
+    entriesToRemove: BaseChangeLogEntry[]
+  ) {
+    const ancestorPackages = getAncestorPackages(commPckg);
+    const affectedEntry =
+      commPckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+    if (affectedEntry) {
+      entriesToRemove.pushObject(logEntry);
+    }
+  }
+
+  private removeInternCommunicationsInsidePackage(
+    logEntry: CommunicationChangeLogEntry,
+    sourcePckg: Package,
+    targetPckg: Package,
+    pckg: Package,
+    entriesToRemove: BaseChangeLogEntry[]
+  ) {
+    let ancestorPackages = getAncestorPackages(sourcePckg);
+    let affectedEntry =
+      sourcePckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+
+    if (affectedEntry) {
+      entriesToRemove.pushObject(logEntry);
+      return;
+    }
+    ancestorPackages = getAncestorPackages(targetPckg);
+    affectedEntry =
+      targetPckg.id === pckg.id ||
+      ancestorPackages.some((ancestorPckg) => ancestorPckg.id === pckg.id);
+
+    if (affectedEntry) {
+      entriesToRemove.pushObject(logEntry);
+    }
+  }
+
+  private updateCreateLogEntries(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    this.changeLogEntries.forEach((entry) => {
+      if (entry.app?.id === app.id) {
+        if (
+          (entry instanceof PackageChangeLogEntry ||
+            entry instanceof SubPackageChangeLogEntry) &&
+          pckg.id === entry.pckg?.id
+        ) {
+          entry.updateOriginApp(destination, landscapeData);
+        } else if (entry instanceof ClassChangeLogEntry) {
+          const ancestorPackages = getAncestorPackages(entry.pckg as Package);
+          const affectedEntry =
+            entry.pckg?.id === pckg.id ||
+            ancestorPackages.some(
+              (ancestorPackage) => ancestorPackage.id === pckg.id
+            );
+          if (
+            affectedEntry &&
+            (entry instanceof PackageChangeLogEntry ||
+              entry instanceof SubPackageChangeLogEntry)
+          )
+            entry.updateOriginApp(destination, landscapeData);
+        }
+      }
+    });
+  }
+
+  private updateCutInserLogEntries(
+    app: Application,
+    pckg: Package,
+    destination: Application | Package,
+    landscapeData: StructureLandscapeData
+  ) {
+    this.changeLogEntries.forEach((entry) => {
       if (
-        logEntry.action === ChangeLogAction.Communication &&
-        logEntry.destinationApp === app
+        entry instanceof PackageChangeLogEntry &&
+        entry.destinationApp?.id === app.id
       ) {
-        const ancestorPackages = getAncestorPackages(
-          logEntry.destinationClass?.parent as Package
-        );
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
-          entriesToRemove.push(logEntry);
+        if (entry.pckg?.id === pckg.id) {
+          entry.setDestination(destination, landscapeData);
         }
       } else if (
-        logEntry.action === ChangeLogAction.Communication &&
-        logEntry.app === app
+        entry instanceof SubPackageChangeLogEntry &&
+        entry.destinationApp?.id === app.id
       ) {
-        const ancestorPackages = getAncestorPackages(
-          logEntry.clazz?.parent as Package
-        );
-        const affectedEntry = ancestorPackages.some(
-          (ancestorPckg) => ancestorPckg.id === pckg.id
-        );
-        if (affectedEntry) {
-          entriesToRemove.push(logEntry);
+        if (entry.pckg?.id === pckg.id) {
+          entry.setDestination(destination, landscapeData);
         }
-      }
-    });
-    if (this.changeLogEntries.length)
-      this.changeLogEntries.removeObjects(entriesToRemove);
-  }
-
-  private updateAffectedCreateLogEntries(
-    app: Application,
-    pckg: Package,
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
-    this.changeLogEntries.forEach((entry) => {
-      if (entry.app?.id === app.id && entry.pckg) {
-        if (pckg.id === entry.pckg.id) {
-          entry.updateCreateEntry(destination, landscapeData);
-        } else {
-          const ancestorPackages = getAncestorPackages(entry.pckg);
-          const affectedEntry = ancestorPackages.some(
-            (ancestorPckg) => ancestorPckg.id === pckg.id
+      } else if (
+        entry instanceof ClassChangeLogEntry &&
+        entry.destinationApp?.id === app.id
+      ) {
+        const ancestorPackages = getAncestorPackages(entry.pckg as Package);
+        const affectedEntry =
+          entry.pckg?.id === pckg.id ||
+          ancestorPackages.some(
+            (ancestorPackage) => ancestorPackage.id === pckg.id
           );
-          if (affectedEntry) {
-            entry.updateCreateEntry(destination, landscapeData);
-          }
-        }
-      }
-    });
-  }
 
-  private updateAffectedCutInsertLogEntries(
-    app: Application,
-    pckg: Package,
-    destination: Application | Package,
-    landscapeData: StructureLandscapeData
-  ) {
-    this.changeLogEntries.forEach((entry) => {
-      if (entry.destinationApp?.id === app.id && entry.pckg) {
-        if (pckg.id === entry.pckg.id) {
-          entry.updateDestination(destination, landscapeData);
-        } else {
-          const ancestorPackages = getAncestorPackages(entry.pckg);
-          const affectedEntry = ancestorPackages.some(
-            (ancestorPckg) => ancestorPckg.id === pckg.id
-          );
-          if (affectedEntry) {
-            entry.updateDestination(destination, landscapeData);
-          }
-        }
+        if (
+          affectedEntry &&
+          (entry instanceof PackageChangeLogEntry ||
+            entry instanceof SubPackageChangeLogEntry)
+        )
+          entry.setDestination(destination, landscapeData);
       }
     });
   }

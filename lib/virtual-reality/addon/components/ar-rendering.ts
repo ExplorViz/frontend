@@ -46,7 +46,6 @@ interface Args {
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
-  removeComponent(component: string): void;
   openSettingsSidebar(): void;
   closeDataSelection(): void;
   toggleVisualizationUpdating(): void;
@@ -218,6 +217,7 @@ export default class ArRendering extends Component<Args> {
     );
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,

@@ -159,19 +159,23 @@ export default class VisualizationController extends Controller {
   get isLandscapeExistentAndEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length === 0
+      this.landscapeData.structureLandscapeData?.nodes.length === 0
     );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData.nodes.length > 0
+      this.landscapeData.structureLandscapeData?.nodes.length > 0
     );
   }
 
   get showTimeline() {
     return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+  }
+
+  get showXRButton() {
+    return this.userSettings.applicationSettings.showXRButton.value;
   }
 
   @action
@@ -195,9 +199,24 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+  }
+
+  @action
   updateTimestampList() {
+    if (!this.landscapeTokenService.token) {
+      this.debug('No token available to update timestamp list');
+      return;
+    }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token!.value;
+    const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
   }
@@ -319,24 +338,25 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  toggleToolsSidebarComponent(component: string) {
+  toggleToolsSidebarComponent(component: string): boolean {
     if (this.componentsToolsSidebar.includes(component)) {
       this.removeToolsSidebarComponent(component);
     } else {
       this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
     }
+    return this.componentsToolsSidebar.includes(component);
   }
 
   @action
-  toggleSettingsSidebarComponent(component: string) {
+  toggleSettingsSidebarComponent(component: string): boolean {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
       this.components = [component, ...this.components];
     }
+    return this.components.includes(component);
   }
 
-  @action
   removeComponent(path: string) {
     if (this.components.length === 0) {
       return;
@@ -449,8 +469,10 @@ export default class VisualizationController extends Controller {
 
   willDestroy() {
     this.collaborationSession.disconnect();
+    this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
-    this.applicationRepo.clear();
+    this.applicationRepo.cleanup();
+    this.applicationRenderer.cleanup();
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(

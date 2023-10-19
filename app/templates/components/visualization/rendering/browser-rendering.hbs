@@ -21,7 +21,7 @@
       {{#unless @showSettingsSidebar}}
         <div class='sidebar-open-button foreground mt-6'>
           <BsButton
-            id='settingsOpener'
+            id='undoAction'
             @onClick={{@openSettingsSidebar}}
             @type='secondary'
             @outline={{true}}
@@ -43,6 +43,7 @@
         {{interaction-modifier
           raycastObjects=this.raycastObjects
           camera=this.localUser.camera
+          orthographicCamera=this.ortographicCamera
           singleClick=this.handleSingleClick
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
@@ -153,7 +154,6 @@
                     <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                       @highlightTrace={{this.highlightTrace}}
                       @moveCameraTo={{this.moveCameraTo}}
-                      @removeComponent={{@removeComponent}}
                       @removeHighlighting={{this.removeHighlighting}}
                       @dynamicData={{@landscapeData.dynamicLandscapeData}}
                       @structureData={{@landscapeData.structureLandscapeData}}
@@ -166,18 +166,14 @@
                 {{#if (eq componentName 'settings')}}
                   <h5 class='text-center'>Settings</h5>
                   <Visualization::PageSetup::Sidebar::Settings
-                    @isLandscapeView={{false}}
                     @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
                     @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                     @updateColors={{this.updateColors}}
-                    @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
                 {{#if (eq componentName 'xr-collaboration')}}
                   <h5 class='text-center'>Collaboration</h5>
-                  <Visualization::PageSetup::Sidebar::XrCollaboration
-                    @removeComponent={{@removeComponent}}
-                  />
+                  <Visualization::PageSetup::Sidebar::XrCollaboration />
                 {{/if}}
                 {{#if (eq componentName 'restructure-landscape')}}
                   <h5 class='text-center'>Restructure</h5>
@@ -187,12 +183,12 @@
                     @visualizationPaused={{@visualizationPaused}}
                     @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
                     @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
+                    @removeTimestampListener={{@removeTimestampListener}}
                   />
                 {{/if}}
                 {{#if (eq componentName 'xr-vscode-extension-settings')}}
                   <h5 class='text-center'>VSCode Extension Settings</h5>
                   <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings
-                    @removeComponent={{@removeComponent}}
                   />
                 {{/if}}
               </div>
