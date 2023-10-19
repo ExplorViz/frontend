@@ -1,13 +1,5 @@
-<li class='nav-item'>
-  <div
-    class='nav-link-with-cursor'
-    title='Setup for vscode extension settings'
-    {{on 'click' this.showVSCodeSettings}}
-  >
-    {{#if this.isOpen}}
-      <div class='active-opener'>Extension Settings</div>
-    {{else}}
-      <div class='inactive-opener'>Extension Settings</div>
-    {{/if}}
-  </div>
-</li>
+<Visualization::PageSetup::Navbar::ComponentOpener
+  @componentTitle='Extension Settings'
+  @componentId='xr-vscode-extension-settings'
+  @toggleComponent={{@toggleSettingsSidebarComponent}}
+/>

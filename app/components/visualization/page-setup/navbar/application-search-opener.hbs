@@ -1,13 +1,5 @@
-<li class='nav-item'>
-  <div
-    class='nav-link-with-cursor'
-    title='Configure settings'
-    {{on 'click' this.showTool}}
-  >
-    {{#if this.isOpen}}
-      <div class='active-opener'>Application Search</div>
-    {{else}}
-      <div class='inactive-opener'>Application Search</div>
-    {{/if}}
-  </div>
-</li>
+<Visualization::PageSetup::Navbar::ComponentOpener
+  @componentTitle='Application Search'
+  @componentId='application-search'
+  @toggleComponent={{@toggleToolsSidebarComponent}}
+/>
