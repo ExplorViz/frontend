@@ -153,11 +153,11 @@ export default class ApplicationRenderer extends Service.extend({
     return null;
   }
 
-  getAggregatedClassCommunications(applicationObjetc3D: ApplicationObject3D) {
+  getClassCommunications(applicationObjetc3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(
       applicationObjetc3D.getModelId()
     );
-    return applicationData?.aggregatedClassCommunications || [];
+    return applicationData?.classCommunications || [];
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
@@ -550,7 +550,7 @@ export default class ApplicationRenderer extends Service.extend({
       // room.openApps.forEach((app) => {
       //   const appObj = this.getApplicationById(app.id);
       //   if (appObj) {
-      //     appObj.aggregatedClassCommSet.clear();
+      //     appObj.classCommunicationSet.clear();
       //   }
       // });
 

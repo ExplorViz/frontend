@@ -179,17 +179,13 @@ export default class IdeCrossCommunication {
         application.getModelId()
       );
 
-      const aggregatedClassCommunications =
-        applicationData?.aggregatedClassCommunications;
+      const classCommunications = applicationData?.classCommunications;
 
-      // console.log(aggregatedClassCommunications)
+      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
-      if (
-        aggregatedClassCommunications &&
-        aggregatedClassCommunications.length != 0
-      ) {
-        aggregatedClassCommunications.forEach((element) => {
+      if (classCommunications && classCommunications.length != 0) {
+        classCommunications.forEach((element) => {
           const meshIDs = element.id.split('_');
           const tempCL: CommunicationLink = {
             meshID: element.id,

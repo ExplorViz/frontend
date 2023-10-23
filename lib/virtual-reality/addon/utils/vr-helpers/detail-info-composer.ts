@@ -20,7 +20,7 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from '../vr-message/util/entity_type';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export type DetailedInfo = {
   title: string;
@@ -287,7 +287,7 @@ export function getCommunicationSourceClass(
 ) {
   // TODO: Take component communication into account
   const communicationData = communicationMesh.dataModel;
-  if (communicationData.communication instanceof AggregatedClassCommunication) {
+  if (communicationData.communication instanceof ClassCommunication) {
     return communicationData.communication.sourceClass.name;
   } else {
     return 'Composed Communication';
@@ -298,7 +298,7 @@ export function getCommunicationTargetClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communicationData = communicationMesh.dataModel;
-  if (communicationData.communication instanceof AggregatedClassCommunication) {
+  if (communicationData.communication instanceof ClassCommunication) {
     return communicationData.communication.targetClass.name;
   } else {
     return 'Composed Communication';
@@ -323,7 +323,7 @@ export function getCommunicationSourceClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communicationData = communicationMesh.dataModel;
-  if (communicationData.communication instanceof AggregatedClassCommunication) {
+  if (communicationData.communication instanceof ClassCommunication) {
     return communicationData.communication.sourceClass.id;
   } else {
     return 'Composed Communication';
@@ -334,7 +334,7 @@ export function getCommunicationTargetClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communicationData = communicationMesh.dataModel;
-  if (communicationData.communication instanceof AggregatedClassCommunication) {
+  if (communicationData.communication instanceof ClassCommunication) {
     return communicationData.communication.targetClass.id;
   } else {
     return 'Composed Communication';

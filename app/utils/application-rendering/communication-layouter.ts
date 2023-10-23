@@ -8,11 +8,11 @@ import {
   Class,
   Package,
 } from '../landscape-schemes/structure-data';
-import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
 
 export function calculateLineThickness(
-  communication: AggregatedClassCommunication | ComponentCommunication
+  communication: ClassCommunication | ComponentCommunication
 ) {
   // Constant factors for rendering communication lines
   const LINE_THICKNESS_FACTOR = 0.5;
@@ -39,8 +39,7 @@ export function clamp(value: number, min: number, max: number) {
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D
 ) {
-  const { application, aggregatedClassCommunications } =
-    applicationObject3D.data;
+  const { application, classCommunications } = applicationObject3D.data;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
@@ -69,8 +68,8 @@ export default function applyCommunicationLayout(
     return findFirstOpenOrLastClosedAncestorComponent(parentComponent);
   }
 
-  function getParentComponentOfAggregatedCommunication(
-    communication: AggregatedClassCommunication
+  function getParentComponentOfClassCommunication(
+    communication: ClassCommunication
   ) {
     // Contains all parent components of source clazz incl. foundation in hierarchical order
     const sourceClassComponents: Package[] = [];
@@ -112,18 +111,17 @@ export default function applyCommunicationLayout(
   }
 
   /**
-   * Calculates start and end positions for all aggregated communications
+   * Calculates start and end positions for all class communications
    */
   function layoutEdges() {
-    if (aggregatedClassCommunications.length === 0) {
+    if (classCommunications.length === 0) {
       return;
     }
-    for (let i = 0; i < aggregatedClassCommunications.length; i++) {
-      const classCommunication: AggregatedClassCommunication =
-        aggregatedClassCommunications[i];
+    for (let i = 0; i < classCommunications.length; i++) {
+      const classCommunication: ClassCommunication = classCommunications[i];
 
       const parentComponent =
-        getParentComponentOfAggregatedCommunication(classCommunication);
+        getParentComponentOfClassCommunication(classCommunication);
 
       let parentMesh;
 
@@ -210,7 +208,7 @@ export default function applyCommunicationLayout(
   }
 
   function layoutInAndOutCommunication(
-    commu: AggregatedClassCommunication,
+    commu: ClassCommunication,
     internalClazz: Class,
     centerCommuIcon: THREE.Vector3
   ) {
@@ -244,7 +242,7 @@ export default function applyCommunicationLayout(
   }
 
   function layoutAggregatedCommunication(
-    commu: AggregatedClassCommunication,
+    commu: ClassCommunication,
     app: Application
   ) {
     const externalPortsExtension = new THREE.Vector3(3.0, 3.5, 3.0);
@@ -273,7 +271,7 @@ export default function applyCommunicationLayout(
 
   layoutEdges();
 
-  aggregatedClassCommunications.forEach((clazzcommunication) => {
+  classCommunications.forEach((clazzcommunication) => {
     if (layoutMap.has(clazzcommunication.id)) {
       layoutAggregatedCommunication(clazzcommunication, application);
     }

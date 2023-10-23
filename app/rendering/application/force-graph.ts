@@ -7,7 +7,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
@@ -31,7 +31,7 @@ export interface GraphLink {
   source: GraphNode;
   target: GraphNode;
   value: number;
-  communicationData: AggregatedClassCommunication;
+  communicationData: ClassCommunication;
   __curve: any;
   __lineObj: ClazzCommunicationMesh;
 }

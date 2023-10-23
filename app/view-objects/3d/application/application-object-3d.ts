@@ -12,7 +12,7 @@ import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -50,7 +50,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   @tracked
   highlightedEntity: Set<string> | Trace | null = null; // Multiple entities may be highlighted at once
 
-  aggregatedClassCommSet: Set<AggregatedClassCommunication> = new Set();
+  classCommunicationSet: Set<ClassCommunication> = new Set();
 
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();

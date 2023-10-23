@@ -13,7 +13,7 @@ import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -59,15 +59,14 @@ export default class LinkRenderer extends Service.extend({}) {
       return true;
     }
 
-    const aggregatedClassCommunication: AggregatedClassCommunication =
-      link.communicationData;
+    const classCommunication: ClassCommunication = link.communicationData;
 
     // source
     const sourceApp = link.source.__threeObj;
     const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
-      aggregatedClassCommunication.sourceClass
+      classCommunication.sourceClass
     );
     const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
     const start = sourceMesh.getWorldPosition(new Vector3());
@@ -77,19 +76,17 @@ export default class LinkRenderer extends Service.extend({}) {
     const targetApp = link.target.__threeObj;
     const targetClass = findFirstOpen(
       targetApp,
-      aggregatedClassCommunication.targetClass
+      classCommunication.targetClass
     );
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
     const end = targetMesh.getWorldPosition(new Vector3());
     forceGraph.worldToLocal(end);
 
     // add arrow
-    const commLayout = new CommunicationLayout(aggregatedClassCommunication);
+    const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
-    commLayout.lineThickness = calculateLineThickness(
-      aggregatedClassCommunication
-    );
+    commLayout.lineThickness = calculateLineThickness(classCommunication);
     line.layout = commLayout;
     line.geometry.dispose();
 
@@ -107,19 +104,19 @@ export default class LinkRenderer extends Service.extend({}) {
 
   @action
   createMeshFromLink(link: GraphLink) {
-    const aggregatedClassComm = link.communicationData;
+    const classCommunication = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
-    const { id } = aggregatedClassComm;
+    const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.data.application,
-      aggregatedClassComm,
+      classCommunication,
       id
     );
     const { communicationColor, highlightedEntityColor } =
       this.configuration.applicationColors;
 
-    const existingMesh = this.linkIdToMesh.get(aggregatedClassComm.id);
+    const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
       existingMesh.dataModel = clazzCommuMeshData;
       return existingMesh;

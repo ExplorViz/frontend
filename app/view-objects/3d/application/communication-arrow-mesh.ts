@@ -1,12 +1,12 @@
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
-  dataModel: AggregatedClassCommunication | ComponentCommunication;
+  dataModel: ClassCommunication | ComponentCommunication;
 
   constructor(
-    dataModel: AggregatedClassCommunication | ComponentCommunication,
+    dataModel: ClassCommunication | ComponentCommunication,
     dir: THREE.Vector3,
     origin: THREE.Vector3,
     length: number,

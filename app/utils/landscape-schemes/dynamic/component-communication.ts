@@ -1,11 +1,11 @@
 import { getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
 import { Application, Class, Package, isClass } from '../structure-data';
-import AggregatedClassCommunication from './aggregated-class-communication';
+import ClassCommunication from './class-communication';
 import MethodCall from './method-call';
 
 export default class ComponentCommunication {
   id: string = '';
-  classCommunications: AggregatedClassCommunication[] = [];
+  classCommunications: ClassCommunication[] = [];
   methodCalls: MethodCall[] = [];
   isRecursive = false;
   isBidirectional: boolean = false;
@@ -24,7 +24,7 @@ export default class ComponentCommunication {
     id: string,
     sourceEntity: Class | Package,
     targetEntity: Class | Package,
-    communication: AggregatedClassCommunication
+    communication: ClassCommunication
   ) {
     this.id = id;
     this.sourceApp = communication.sourceApp;
@@ -36,7 +36,7 @@ export default class ComponentCommunication {
   }
 
   addClassCommunication(
-    communication: AggregatedClassCommunication,
+    communication: ClassCommunication,
     isReversedDirection: boolean = false
   ) {
     this.classCommunications.push(communication);

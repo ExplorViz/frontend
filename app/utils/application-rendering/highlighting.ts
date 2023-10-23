@@ -24,7 +24,7 @@ import {
 } from '../landscape-schemes/dynamic/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 
 /**
  * Restores default color and transparency for all application meshes
@@ -174,15 +174,13 @@ export function highlightTrace(
   trace: Trace,
   traceStep: string,
   applicationObject3D: ApplicationObject3D,
-  communication: AggregatedClassCommunication[],
+  classCommunications: ClassCommunication[],
   landscapeStructureData: StructureLandscapeData,
   opacity: number
 ) {
   removeAllHighlightingFor(applicationObject3D);
 
   applicationObject3D.highlightedEntity = trace;
-
-  const aggregatedComms = communication;
 
   // All clazzes in application
   const allClassesAsArray = getAllClassesInApplication(
@@ -261,8 +259,8 @@ export function highlightTrace(
     }
   });
 
-  aggregatedComms.forEach((comm) => {
-    const { sourceClass, targetClass, id } = comm;
+  classCommunications.forEach((communication) => {
+    const { sourceClass, targetClass, id } = communication;
 
     const commMesh = applicationObject3D.getCommMeshByModelId(id);
 

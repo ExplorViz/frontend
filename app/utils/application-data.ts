@@ -5,7 +5,7 @@ import {
   ApplicationHeatmapData,
   Metric,
 } from 'heatmap/services/heatmap-configuration';
-import AggregatedClassCommunication from './landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 
 export default class ApplicationData {
   application: Application;
@@ -17,7 +17,7 @@ export default class ApplicationData {
   @tracked
   heatmapData: ApplicationHeatmapData;
 
-  aggregatedClassCommunications: AggregatedClassCommunication[] = [];
+  classCommunications: ClassCommunication[] = [];
 
   constructor(
     application: Application,

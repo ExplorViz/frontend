@@ -70,7 +70,7 @@ export default class HighlightingService extends Service.extend({
     // Remove highlighting from applications
     applications.forEach((applicationObject3D) => {
       Highlighting.removeAllHighlightingFor(applicationObject3D);
-      applicationObject3D.aggregatedClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
+      applicationObject3D.classCommunicationSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
     });
 
     // Remove highlighting from communication between applications
@@ -165,17 +165,15 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     structureData: StructureLandscapeData
   ) {
-    const aggregatedClassCommunications =
-      this.applicationRenderer.getAggregatedClassCommunications(
-        applicationObject3D
-      );
+    const classCommunications =
+      this.applicationRenderer.getClassCommunications(applicationObject3D);
 
     this.applicationRenderer.openAllComponents(applicationObject3D);
     Highlighting.highlightTrace(
       trace,
       traceStep,
       applicationObject3D,
-      aggregatedClassCommunications,
+      classCommunications,
       structureData,
       this.opacity
     );

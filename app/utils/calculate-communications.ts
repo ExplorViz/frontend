@@ -1,13 +1,13 @@
 import { getAllClassesInApplication } from './application-helpers';
-import AggregatedClassCommunication from './landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 import { Application } from './landscape-schemes/structure-data';
 
 export default function calculateCommunications(
   application: Application,
-  aggregatedClassCommunications: AggregatedClassCommunication[]
+  classCommunications: ClassCommunication[]
 ) {
   const allClasses = new Set(getAllClassesInApplication(application));
-  const communicationInApplication = aggregatedClassCommunications.filter(
+  const communicationInApplication = classCommunications.filter(
     (comm) =>
       allClasses.has(comm.sourceClass) && allClasses.has(comm.targetClass)
   );

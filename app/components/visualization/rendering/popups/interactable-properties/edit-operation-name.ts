@@ -4,10 +4,10 @@ import { action } from '@ember/object';
 import { next } from '@ember/runloop';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { tracked } from '@glimmer/tracking';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 interface Args {
-  communication: AggregatedClassCommunication;
+  communication: ClassCommunication;
 }
 
 export default class EditOperationName extends Component<Args> {

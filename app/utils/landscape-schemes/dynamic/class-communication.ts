@@ -1,7 +1,7 @@
 import { Application, Class } from '../structure-data';
 import MethodCall from './method-call';
 
-export default class AggregatedClassCommunication {
+export default class ClassCommunication {
   id: string = '';
   methodCalls: MethodCall[] = [];
   isRecursive: boolean = false;

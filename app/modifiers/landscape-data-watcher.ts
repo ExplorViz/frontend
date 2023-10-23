@@ -12,7 +12,7 @@ import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import computeAggregatedClassCommunication, {
+import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
@@ -23,7 +23,7 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -95,14 +95,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-    let aggregatedClassCommunications = computeAggregatedClassCommunication(
+    let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
     );
 
     if (this.landscapeRestructure.restructureMode) {
-      aggregatedClassCommunications = computeRestructuredClassCommunication(
-        aggregatedClassCommunications,
+      classCommunications = computeRestructuredClassCommunication(
+        classCommunications,
         this.landscapeRestructure.createdClassCommunication,
         this.landscapeRestructure.copiedClassCommunications,
         this.landscapeRestructure.updatedClassCommunications,
@@ -110,8 +110,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
     }
 
-    this.landscapeRestructure.allClassCommunications =
-      aggregatedClassCommunications;
+    this.landscapeRestructure.allClassCommunications = classCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -126,7 +125,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const application = node.applications[j];
         const applicationData = await this.updateApplicationData.perform(
           application,
-          aggregatedClassCommunications
+          classCommunications
         );
 
         // create or update applicationObject3D
@@ -176,7 +175,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
 
-    const interAppCommunications = aggregatedClassCommunications.filter(
+    const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
     const communicationLinks = interAppCommunications.map((communication) => ({
@@ -237,7 +236,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   updateApplicationData = task(
     async (
       application: Application,
-      aggregatedClassCommunication: AggregatedClassCommunication[]
+      classCommunication: ClassCommunication[]
     ) => {
       const workerPayload = {
         structure: application,
@@ -273,13 +272,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           results[2]
         );
       }
-      applicationData.aggregatedClassCommunications =
-        aggregatedClassCommunication.filter((communication) => {
+      applicationData.classCommunications = classCommunication.filter(
+        (communication) => {
           return (
             communication.sourceApp.id === application.id &&
             communication.targetApp.id === application.id
           );
-        });
+        }
+      );
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);
       return applicationData;

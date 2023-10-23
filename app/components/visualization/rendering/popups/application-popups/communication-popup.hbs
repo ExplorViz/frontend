@@ -30,7 +30,7 @@
       {{/if}}
       {{#each
         @communication.communication.methodCalls
-        as |aggregatedClassCommu index|
+        as |classCommunication index|
       }}
         {{! Relationship }}
         <tr>
@@ -45,15 +45,15 @@
                 'click'
                 (fn
                   this.highlightEntity
-                  aggregatedClassCommu.sourceClass
-                  aggregatedClassCommu.sourceApp.id
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
                 )
               }}
             >
-              {{aggregatedClassCommu.sourceClass.name}}
+              {{classCommunication.sourceClass.name}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
-                {{aggregatedClassCommu.sourceApp.name}}
+                {{classCommunication.sourceApp.name}}
               </BsTooltip>
             </button>
             <button
@@ -63,14 +63,14 @@
                 'click'
                 (fn
                   this.highlightEntity
-                  aggregatedClassCommu.sourceClass
-                  aggregatedClassCommu.sourceApp.id
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
                 )
               }}
             >
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
-                {{aggregatedClassCommu.sourceApp.name}}
+                {{classCommunication.sourceApp.name}}
               </BsTooltip>
             </button>
             {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
@@ -81,15 +81,15 @@
                 'click'
                 (fn
                   this.highlightEntity
-                  aggregatedClassCommu.targetClass
-                  aggregatedClassCommu.targetApp.id
+                  classCommunication.targetClass
+                  classCommunication.targetApp.id
                 )
               }}
             >
-              {{aggregatedClassCommu.targetClass.name}}
+              {{classCommunication.targetClass.name}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
-                {{aggregatedClassCommu.targetApp.name}}
+                {{classCommunication.targetApp.name}}
               </BsTooltip>
             </button>
           </td>
@@ -97,7 +97,7 @@
         {{! Name }}
         <tr>
           <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
-            @communication={{aggregatedClassCommu}}
+            @communication={{classCommunication}}
           />
         </tr>
         {{! Requests }}
@@ -107,12 +107,12 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{aggregatedClassCommu.totalRequests}}
+            {{classCommunication.totalRequests}}
             (
             {{round
               (mult
                 (div
-                  aggregatedClassCommu.totalRequests
+                  classCommunication.totalRequests
                   this.calculateAggregatedRequestCount
                 )
                 100
@@ -122,10 +122,10 @@
         </tr>
         {{#if this.landscapeRestructure.restructureMode}}
           <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
-            @aggregatedClassComm={{aggregatedClassCommu}}
+            @classCommunication={{classCommunication}}
           />
         {{/if}}
-        {{#if (lt index (sub @communication.aggregatedClassCommus.length 1))}}
+        {{#if (lt index (sub @communication.classCommunications.length 1))}}
           <hr />
         {{/if}}
       {{/each}}

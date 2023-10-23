@@ -50,7 +50,7 @@ export default class CommunicationRendering {
     return baseCurveHeight * this.appSettings.curvyCommHeight.value;
   }
 
-  // Add arrow indicators for aggregated class communication
+  // Add arrow indicators for class communication
   private addArrows(
     pipe: ClazzCommunicationMesh,
     curveHeight: number,
@@ -72,7 +72,7 @@ export default class CommunicationRendering {
     }
   }
 
-  // Update arrow indicators for aggregated class communication
+  // Update arrow indicators for class communication
   addBidirectionalArrow = (pipe: ClazzCommunicationMesh) => {
     pipe.addBidirectionalArrow();
   };
@@ -123,10 +123,10 @@ export default class CommunicationRendering {
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
-    // Render all aggregated communications
-    applicationObject3D.data.aggregatedClassCommunications.forEach(
-      (aggregatedClassComm) => {
-        const commLayout = commLayoutMap.get(aggregatedClassComm.id);
+    // Render all class communications
+    applicationObject3D.data.classCommunications.forEach(
+      (classCommunication) => {
+        const commLayout = commLayoutMap.get(classCommunication.id);
 
         // No layouting information available due to hidden communication
         if (!commLayout) {
@@ -143,19 +143,19 @@ export default class CommunicationRendering {
 
         const visibleSource = findFirstOpen(
           applicationObject3D,
-          aggregatedClassComm.sourceClass
+          classCommunication.sourceClass
         );
 
         const visibleTarget = findFirstOpen(
           applicationObject3D,
-          aggregatedClassComm.targetClass
+          classCommunication.targetClass
         );
 
         let clazzCommuMeshData!: ClazzCommuMeshDataModel;
 
         if (
-          visibleSource.id !== aggregatedClassComm.sourceClass.id ||
-          visibleTarget.id !== aggregatedClassComm.targetClass.id
+          visibleSource.id !== classCommunication.sourceClass.id ||
+          visibleTarget.id !== classCommunication.targetClass.id
         ) {
           const ids = [visibleSource.id, visibleTarget.id].sort();
           const componentCommunicationId = ids[0] + '_' + ids[1];
@@ -166,7 +166,7 @@ export default class CommunicationRendering {
             componentCommunication = componentCommunicationMap.get(
               componentCommunicationId
             )!;
-            componentCommunication.addClassCommunication(aggregatedClassComm);
+            componentCommunication.addClassCommunication(classCommunication);
             const mesh = applicationObject3D.getCommMeshByModelId(
               componentCommunicationId
             )!;
@@ -183,7 +183,7 @@ export default class CommunicationRendering {
               componentCommunicationId,
               visibleSource,
               visibleTarget,
-              aggregatedClassComm
+              classCommunication
             );
             clazzCommuMeshData = new ClazzCommuMeshDataModel(
               application,
@@ -200,8 +200,8 @@ export default class CommunicationRendering {
         } else {
           clazzCommuMeshData = new ClazzCommuMeshDataModel(
             application,
-            aggregatedClassComm,
-            aggregatedClassComm.id
+            classCommunication,
+            classCommunication.id
           );
         }
 
@@ -222,7 +222,7 @@ export default class CommunicationRendering {
 
         this.addArrows(pipe, curveHeight, viewCenterPoint);
 
-        if (aggregatedClassComm.isBidirectional) {
+        if (classCommunication.isBidirectional) {
           this.addBidirectionalArrow(pipe);
         }
       }

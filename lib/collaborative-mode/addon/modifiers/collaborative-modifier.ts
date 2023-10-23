@@ -12,7 +12,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
-import AggregatedClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
@@ -535,7 +535,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       (comm) => comm.id === commId
     );
     this.landscapeRestructure.deleteCommunication(
-      comm as AggregatedClassCommunication,
+      comm as ClassCommunication,
       undo,
       true
     );
@@ -549,7 +549,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
 
     this.landscapeRestructure.renameOperation(
-      comm as AggregatedClassCommunication,
+      comm as ClassCommunication,
       newName,
       true,
       undo

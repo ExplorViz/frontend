@@ -12,7 +12,7 @@ import {
   getApplicationFromClass,
 } from '../landscape-structure-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
-import AggregatedClassCommunication from '../landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 
 function computeClassCommunicationRecursively(
   span: Span,
@@ -31,7 +31,7 @@ function computeClassCommunicationRecursively(
     return [];
   }
 
-  const classCommunications: ClassCommunication[] = [];
+  const classCommunications: SingleClassCommunication[] = [];
   childSpans.forEach((childSpan) => {
     const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
     if (classMatchingChildSpan !== undefined) {
@@ -62,7 +62,7 @@ function computeClassCommunicationRecursively(
   return classCommunications;
 }
 
-export default function computeAggregatedClassCommunication(
+export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicData: DynamicLandscapeData
 ) {
@@ -72,7 +72,7 @@ export default function computeAggregatedClassCommunication(
 
   const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
 
-  const totalClassCommunications: ClassCommunication[] = [];
+  const totalClassCommunications: SingleClassCommunication[] = [];
 
   landscapeDynamicData.forEach((trace) => {
     const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
@@ -136,10 +136,7 @@ export default function computeAggregatedClassCommunication(
     }
   );
 
-  const aggregatedClassCommunications = new Map<
-    string,
-    AggregatedClassCommunication
-  >();
+  const classCommunications = new Map<string, ClassCommunication>();
 
   methodCalls.forEach((methodCall) => {
     const classIds = [
@@ -147,13 +144,12 @@ export default function computeAggregatedClassCommunication(
       methodCall.targetClass.id,
     ].sort();
     const communicationId = classIds[0] + '_' + classIds[1];
-    const maybeClassCommunication =
-      aggregatedClassCommunications.get(communicationId);
+    const maybeClassCommunication = classCommunications.get(communicationId);
 
     if (maybeClassCommunication) {
       maybeClassCommunication.addMethodCalls(methodCall);
     } else {
-      const newCommunication = new AggregatedClassCommunication(
+      const newCommunication = new ClassCommunication(
         communicationId,
         methodCall.sourceApp,
         methodCall.sourceClass,
@@ -162,23 +158,23 @@ export default function computeAggregatedClassCommunication(
         methodCall.operationName
       );
       newCommunication.addMethodCalls(methodCall);
-      aggregatedClassCommunications.set(communicationId, newCommunication);
+      classCommunications.set(communicationId, newCommunication);
     }
   });
 
-  const computedCommunication = [...aggregatedClassCommunications.values()];
+  const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
 
   return computedCommunication;
 }
 
 function computeCommunicationMetrics(
-  aggregatedClassCommunications: AggregatedClassCommunication[]
+  classCommunications: ClassCommunication[]
 ) {
-  aggregatedClassCommunications.forEach((communication) => {
+  classCommunications.forEach((communication) => {
     const { totalRequests } = communication;
     const maxRequests = Math.max(
-      ...aggregatedClassCommunications.map((x) => x.totalRequests)
+      ...classCommunications.map((x) => x.totalRequests)
     );
     if (maxRequests > 0) {
       communication.metrics.normalizedRequestCount =
@@ -188,32 +184,29 @@ function computeCommunicationMetrics(
 }
 
 export function computeRestructuredClassCommunication(
-  aggregatedClassCommunications: AggregatedClassCommunication[],
-  classCommunication: AggregatedClassCommunication[],
-  copiedClassCommunications: Map<string, AggregatedClassCommunication[]>,
-  updatedClassCommunications: Map<string, AggregatedClassCommunication[]>,
-  deletedClassCommunication: Map<
-    string,
-    AggregatedClassCommunication[]
-  > = new Map()
+  classCommunications: ClassCommunication[],
+  classCommunication: ClassCommunication[],
+  copiedClassCommunications: Map<string, ClassCommunication[]>,
+  updatedClassCommunications: Map<string, ClassCommunication[]>,
+  deletedClassCommunication: Map<string, ClassCommunication[]> = new Map()
 ) {
   if (classCommunication.length) {
     classCommunication.forEach((comm) => {
-      aggregatedClassCommunications.push(comm);
+      classCommunications.push(comm);
     });
   }
 
   if (copiedClassCommunications.size) {
     copiedClassCommunications.forEach((value) => {
-      aggregatedClassCommunications.pushObjects(value);
+      classCommunications.pushObjects(value);
     });
   }
 
   if (deletedClassCommunication.size) {
-    const allDeletedComms: AggregatedClassCommunication[] = [];
+    const allDeletedComms: ClassCommunication[] = [];
     deletedClassCommunication.forEach((value) => {
       value.forEach((deletedComm) => {
-        const foundComm = aggregatedClassCommunications.filter(
+        const foundComm = classCommunications.filter(
           (comm) =>
             comm.id === deletedComm.id ||
             comm.operationName === deletedComm.operationName
@@ -222,31 +215,31 @@ export function computeRestructuredClassCommunication(
       });
     });
 
-    aggregatedClassCommunications.removeObjects(allDeletedComms);
+    classCommunications.removeObjects(allDeletedComms);
   }
 
   if (updatedClassCommunications.size) {
-    const allUpdatedComms: AggregatedClassCommunication[] = [];
+    const allUpdatedComms: ClassCommunication[] = [];
 
     updatedClassCommunications.forEach((value) => {
       allUpdatedComms.push(...value);
     });
 
-    aggregatedClassCommunications.pushObjects(allUpdatedComms);
-    const removeUnwantedComms = aggregatedClassCommunications.filter(
+    classCommunications.pushObjects(allUpdatedComms);
+    const removeUnwantedComms = classCommunications.filter(
       (comm) =>
         !comm.operationName.includes('removed') &&
         !comm.sourceClass.id.includes('removed') &&
         !comm.targetClass.id.includes('removed')
     );
-    aggregatedClassCommunications.clear();
-    aggregatedClassCommunications.pushObjects(removeUnwantedComms);
+    classCommunications.clear();
+    classCommunications.pushObjects(removeUnwantedComms);
   }
 
-  return aggregatedClassCommunications;
+  return classCommunications;
 }
 
-interface ClassCommunication {
+interface SingleClassCommunication {
   sourceClass: Class;
   targetClass: Class;
   operationName: string;

@@ -12,7 +12,7 @@ import {
 } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import { tracked } from '@glimmer/tracking';
-import AggregatedClassCommunication from './landscape-schemes/dynamic/aggregated-class-communication';
+import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 
 export abstract class BaseChangeLogEntry {
   id: string;
@@ -306,13 +306,10 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
-  communication: AggregatedClassCommunication;
+  communication: ClassCommunication;
   originalOperationName: string;
 
-  constructor(
-    action: RestructureAction,
-    communication: AggregatedClassCommunication
-  ) {
+  constructor(action: RestructureAction, communication: ClassCommunication) {
     const id = sha256(action + communication.id).toString();
     super(id, action, undefined);
     this.communication = communication;
