@@ -18,7 +18,6 @@ interface Args {
   updateHighlighting?(): void;
   updateColors?(): void;
   redrawCommunication?(): void;
-  removeComponent(componentPath: string): void;
 }
 
 export default class Settings extends Component<Args> {
@@ -33,8 +32,8 @@ export default class Settings extends Component<Args> {
 
   colorSchemes: { name: string; id: ColorScheme }[] = [
     { name: 'Default', id: 'default' },
-    { name: 'Vision Impairment', id: 'impaired' },
     { name: 'Classic (Initial)', id: 'classic' },
+    { name: 'Blue', id: 'blue' },
     { name: 'Dark', id: 'dark' },
   ];
 
@@ -159,10 +158,5 @@ export default class Settings extends Component<Args> {
     }
 
     this.args.updateColors?.();
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('settings');
   }
 }

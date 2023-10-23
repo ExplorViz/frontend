@@ -16,6 +16,10 @@ module.exports = (defaults) => {
       ],
     },
 
+    'ember-cli-babel': {
+      enableTypeScriptTransform: true,
+    },
+
     'ember-bootstrap': {
       bootstrapVersion: 4,
       importBootstrapCSS: false,

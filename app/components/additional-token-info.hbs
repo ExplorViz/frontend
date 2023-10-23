@@ -17,11 +17,7 @@
           <tr>
             <td>Owner</td>
             <td style='word-break: break-all'>
-              {{#if (eq @token.ownerId this.auth.user.sub)}}
-                You
-              {{else}}
-                {{@token.ownerId}}
-              {{/if}}
+              {{if (eq @token.ownerId this.auth.user.sub) 'You' @token.ownerId}}
             </td>
             <td></td>
           </tr>
