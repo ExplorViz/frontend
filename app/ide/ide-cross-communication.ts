@@ -458,19 +458,19 @@ function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
   } else if (mesh instanceof ComponentMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzMesh) {
-    console.error('ClazzMesh --- Mesh Type not Supported!');
+    // console.error('ClazzMesh --- Mesh Type not Supported!');
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzCommunicationMesh) {
-    console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    console.log(mesh.dataModel);
+    // console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
+    // console.log(mesh.dataModel);
     return mesh.dataModel.id;
     // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {
-    console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
+    // console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
     return 'Not implemented CommunicationArrowMesh';
   } else {
     //
-    console.error(typeof mesh, ' --- Mesh Type not Supported!');
+    // console.error(typeof mesh, ' --- Mesh Type not Supported!');
     return 'Not implemented';
   }
 }
