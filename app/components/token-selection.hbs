@@ -13,10 +13,7 @@
     }}
       <tr
         class='token-selection-row'
-        style={{if
-          (eq @currentToken.value token.value)
-          'background-color: #aecce1'
-        }}
+        style={{if (eq @currentToken.value token.value) this.selectionColor}}
         {{on 'click' (fn @selectToken token)}}
       >
         <th scope='row'>{{token.alias}}</th>

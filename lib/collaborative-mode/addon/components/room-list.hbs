@@ -18,11 +18,7 @@
           <th scope='row'>{{room.roomName}}</th>
           <th scope='row'>{{room.size}}</th>
           <th scope='row'>
-            {{#if room.alias}}
-              {{room.alias}}
-            {{else}}
-              {{room.landscapeToken}}
-            {{/if}}
+            {{if room.alias room.alias room.landscapeToken}}
           </th>
           <th scope='row' class='room-token'>
             {{room.landscapeToken}}
