@@ -183,51 +183,49 @@ function composeAggregatedClassCommunicationContent(
   }
 
   // add information for each unique method call
-  communicationData.communication.methodCalls.forEach(
-    (aggregatedMethodCall, index) => {
-      const commuHasExternalApp =
-        applicationId !== aggregatedMethodCall.sourceApp?.id ||
-        applicationId !== aggregatedMethodCall.targetApp?.id;
+  communicationData.communication.methodCalls.forEach((methodCall, index) => {
+    const commuHasExternalApp =
+      applicationId !== methodCall.sourceApp?.id ||
+      applicationId !== methodCall.targetApp?.id;
 
-      // Call hierarchy
-      // content.entries.push({
-      //   key: 'Src / Tgt Class:',
-      //   value: `${aggregatedMethodCall.sourceClass.name} -> ${
-      //     aggregatedMethodCall.targetClass.name
-      //    }`,
-      // });
+    // Call hierarchy
+    // content.entries.push({
+    //   key: 'Src / Tgt Class:',
+    //   value: `${methodCall.sourceClass.name} -> ${
+    //     methodCall.targetClass.name
+    //    }`,
+    // });
 
-      if (commuHasExternalApp) {
-        // App hierarchy
-        content.entries.push({
-          key: 'Src / Tgt App:',
-          value: `${aggregatedMethodCall.sourceApp?.name} -> ${aggregatedMethodCall.targetApp?.name}`,
-        });
-      }
-
-      // Name of called operation
+    if (commuHasExternalApp) {
+      // App hierarchy
       content.entries.push({
-        key: 'Called Op.:',
-        value: `${aggregatedMethodCall.operationName}`,
+        key: 'Src / Tgt App:',
+        value: `${methodCall.sourceApp?.name} -> ${methodCall.targetApp?.name}`,
       });
-
-      // Request count
-      content.entries.push({
-        key: 'Request count:',
-        value: `${aggregatedMethodCall.totalRequests} ( ${Math.round(
-          (aggregatedMethodCall.totalRequests / aggregatedReqCount) * 100
-        )}% )`,
-      });
-
-      // Spacer
-      if (index < communicationData.communication.methodCalls.length) {
-        content.entries.push({
-          key: '---',
-          value: '',
-        });
-      }
     }
-  );
+
+    // Name of called operation
+    content.entries.push({
+      key: 'Called Op.:',
+      value: `${methodCall.operationName}`,
+    });
+
+    // Request count
+    content.entries.push({
+      key: 'Request count:',
+      value: `${methodCall.totalRequests} ( ${Math.round(
+        (methodCall.totalRequests / aggregatedReqCount) * 100
+      )}% )`,
+    });
+
+    // Spacer
+    if (index < communicationData.communication.methodCalls.length) {
+      content.entries.push({
+        key: '---',
+        value: '',
+      });
+    }
+  });
 
   return content;
 }

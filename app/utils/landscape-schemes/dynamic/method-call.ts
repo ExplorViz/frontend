@@ -1,7 +1,7 @@
 import { Application, Class } from '../structure-data';
 // import { Span } from './dynamic-data';
 
-export default class AggregatedMethodCall {
+export default class MethodCall {
   id: string = '';
   // Spans might be added in the future, if needed
   //   spans: Span[] = [];

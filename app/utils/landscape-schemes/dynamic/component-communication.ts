@@ -1,12 +1,12 @@
 import { getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
 import { Application, Class, Package, isClass } from '../structure-data';
 import AggregatedClassCommunication from './aggregated-class-communication';
-import AggregatedMethodCall from './aggregated-method-call';
+import MethodCall from './method-call';
 
 export default class ComponentCommunication {
   id: string = '';
   classCommunications: AggregatedClassCommunication[] = [];
-  methodCalls: AggregatedMethodCall[] = [];
+  methodCalls: MethodCall[] = [];
   isRecursive = false;
   isBidirectional: boolean = false;
   totalRequests: number = 0;

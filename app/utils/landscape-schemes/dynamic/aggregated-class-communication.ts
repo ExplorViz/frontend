@@ -1,9 +1,9 @@
 import { Application, Class } from '../structure-data';
-import AggregatedMethodCall from './aggregated-method-call';
+import MethodCall from './method-call';
 
 export default class AggregatedClassCommunication {
   id: string = '';
-  methodCalls: AggregatedMethodCall[] = [];
+  methodCalls: MethodCall[] = [];
   isRecursive: boolean = false;
   isBidirectional: boolean = false;
   totalRequests: number = 0;
@@ -33,21 +33,18 @@ export default class AggregatedClassCommunication {
     this.operationName = operationName;
   }
 
-  addMethodCalls(aggregatedMethodCall: AggregatedMethodCall) {
-    this.methodCalls.push(aggregatedMethodCall);
-    this.totalRequests += aggregatedMethodCall.totalRequests;
+  addMethodCalls(methodCall: MethodCall) {
+    this.methodCalls.push(methodCall);
+    this.totalRequests += methodCall.totalRequests;
 
-    if (
-      aggregatedMethodCall.sourceClass.id ===
-      aggregatedMethodCall.targetClass.id
-    ) {
+    if (methodCall.sourceClass.id === methodCall.targetClass.id) {
       this.isRecursive = true;
       this.isBidirectional = true; // Implied by recursion
       return;
     }
 
     // Added communication in opposite direction?
-    if (aggregatedMethodCall.sourceClass.id !== this.sourceClass.id) {
+    if (methodCall.sourceClass.id !== this.sourceClass.id) {
       this.isBidirectional = true;
     }
   }

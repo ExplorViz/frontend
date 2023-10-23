@@ -2,7 +2,7 @@ import {
   DynamicLandscapeData,
   Span,
 } from '../landscape-schemes/dynamic/dynamic-data';
-import AggregatedMethodCall from '../landscape-schemes/dynamic/aggregated-method-call';
+import MethodCall from '../landscape-schemes/dynamic/method-call';
 import {
   Class,
   StructureLandscapeData,
@@ -89,7 +89,7 @@ export default function computeAggregatedClassCommunication(
     }
   });
 
-  const methodCalls = new Map<string, AggregatedMethodCall>();
+  const methodCalls = new Map<string, MethodCall>();
 
   totalClassCommunications.forEach(
     ({ sourceClass, targetClass, operationName }) => {
@@ -121,7 +121,7 @@ export default function computeAggregatedClassCommunication(
       if (!maybeMethodCall) {
         methodCalls.set(
           sourceTargetClassMethodId,
-          new AggregatedMethodCall(
+          new MethodCall(
             sourceTargetClassMethodId,
             sourceApp,
             sourceClass,
