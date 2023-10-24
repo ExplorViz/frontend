@@ -9,12 +9,23 @@
     draggable='false'
   />
   {{#unless this.isSingleLandscapeMode}}
-    {{#if this.tokenService.latestToken}}
+    {{#if this.tokenService.token}}
       <div class='navbar-token-link pointer-events-all d-none d-md-block'>
         <LinkTo @route='landscapes' class='d-flex-center'>
           {{svg-jar 'key-16' class='octicon'}}
-          <span>{{this.tokenService.latestToken.alias}}</span>
+          <span>{{this.tokenService.token.alias}}</span>
         </LinkTo>
+      </div>
+    {{else if this.tokenService.latestToken}}
+      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
+        <span
+          class='d-flex-center'
+          type='button'
+          {{on 'click' this.goToLandscapeSelection}}
+        >
+          {{svg-jar 'iterations-16' class='octicon'}}
+          {{this.tokenService.latestToken.alias}}
+        </span>
       </div>
     {{/if}}
   {{/unless}}
