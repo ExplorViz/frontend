@@ -16,6 +16,9 @@ const tokenToShow = ENV.mode.tokenToShow;
 export default class LandscapeTokenService extends Service {
   token: LandscapeToken | null = null;
 
+  // Used in landscape selection to go back to last selected token
+  latestToken: LandscapeToken | null = null;
+
   constructor() {
     super(...arguments);
 
@@ -55,6 +58,7 @@ export default class LandscapeTokenService extends Service {
 
   setToken(token: LandscapeToken) {
     localStorage.setItem('currentLandscapeToken', JSON.stringify(token));
+    this.set('latestToken', token);
     this.set('token', token);
   }
 

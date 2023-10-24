@@ -9,11 +9,11 @@
     draggable='false'
   />
   {{#unless this.isSingleLandscapeMode}}
-    {{#if this.tokenService.token}}
+    {{#if this.tokenService.latestToken}}
       <div class='navbar-token-link pointer-events-all d-none d-md-block'>
         <LinkTo @route='landscapes' class='d-flex-center'>
           {{svg-jar 'key-16' class='octicon'}}
-          <span>{{this.tokenService.token.alias}}</span>
+          <span>{{this.tokenService.latestToken.alias}}</span>
         </LinkTo>
       </div>
     {{/if}}
