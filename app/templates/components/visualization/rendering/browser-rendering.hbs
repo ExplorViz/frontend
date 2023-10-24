@@ -89,7 +89,7 @@
     </div>
   </div>
   {{#if @showToolsSidebar}}
-    <div class='position-absolute left col-4' id='toolselection'>
+    <div class='sidebar left' id='toolselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::ToolSelection
           @closeToolSelection={{@closeToolsSidebar}}
@@ -101,10 +101,10 @@
               />
             </ul>
           </div>
-          {{#each @componentsToolsSidebar as |componentName|}}
+          {{#each @componentsToolsSidebar as |componentId|}}
             <div class='card sidebar-card mt-3'>
               <div class='card-body d-flex flex-column'>
-                {{#if (eq componentName 'application-search')}}
+                {{#if (eq componentId 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
                   <Visualization::PageSetup::Sidebar::ApplicationSearch
                     @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
@@ -118,7 +118,7 @@
     </div>
   {{/if}}
   {{#if @showSettingsSidebar}}
-    <div class='position-absolute right col-4' id='dataselection'>
+    <div class='sidebar right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
@@ -131,9 +131,6 @@
                 @visualizationPaused={{@visualizationPaused}}
                 @dynamicData={{@landscapeData.dynamicLandscapeData}}
               /> --}}
-              <Visualization::PageSetup::Navbar::SettingsOpener
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-              />
               <Visualization::PageSetup::Navbar::XrCollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -143,56 +140,53 @@
               <Visualization::PageSetup::Navbar::RestructureOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::SettingsOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
             </ul>
           </div>
-          {{#each @components as |componentName|}}
-            <div class='card sidebar-card mt-3'>
-              <div class='card-body d-flex flex-column'>
-                {{#if (eq componentName 'trace-selection')}}
-                  <h5 class='text-center'>Trace Overview</h5>
-                  {{#if this.selectedApplicationObject3D}}
-                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                      @highlightTrace={{this.highlightTrace}}
-                      @moveCameraTo={{this.moveCameraTo}}
-                      @removeHighlighting={{this.removeHighlighting}}
-                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                      @structureData={{@landscapeData.structureLandscapeData}}
-                      @application={{this.selectedApplicationObject3D.dataModel}}
-                    />
-                  {{else}}
-                    Please select an application to use the trace overview.
-                  {{/if}}
-                {{/if}}
-                {{#if (eq componentName 'settings')}}
-                  <h5 class='text-center'>Settings</h5>
-                  <Visualization::PageSetup::Sidebar::Settings
-                    @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
-                    @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                    @updateColors={{this.updateColors}}
+          {{#each @components as |componentId|}}
+            <Visualization::PageSetup::Sidebar::SidebarComponent
+              @componentId={{componentId}}
+            >
+              {{#if (eq componentId 'Collaboration')}}
+                <Visualization::PageSetup::Sidebar::XrCollaboration />
+              {{/if}}
+              {{#if (eq componentId 'VSCode-Extension-Settings')}}
+                <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings />
+              {{/if}}
+              {{#if (eq componentId 'Restructure-Landscape')}}
+                <Visualization::PageSetup::Sidebar::Restructure
+                  @landscapeData={{@landscapeData}}
+                  @restructureLandscape={{@restructureLandscape}}
+                  @visualizationPaused={{@visualizationPaused}}
+                  @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
+                  @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
+                  @removeTimestampListener={{@removeTimestampListener}}
+                />
+              {{/if}}
+              {{#if (eq componentId 'trace-selection')}}
+                {{#if this.selectedApplicationObject3D}}
+                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                    @highlightTrace={{this.highlightTrace}}
+                    @moveCameraTo={{this.moveCameraTo}}
+                    @removeHighlighting={{this.removeHighlighting}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @structureData={{@landscapeData.structureLandscapeData}}
+                    @application={{this.selectedApplicationObject3D.dataModel}}
                   />
+                {{else}}
+                  Please select an application to use the trace overview.
                 {{/if}}
-                {{#if (eq componentName 'xr-collaboration')}}
-                  <h5 class='text-center'>Collaboration</h5>
-                  <Visualization::PageSetup::Sidebar::XrCollaboration />
-                {{/if}}
-                {{#if (eq componentName 'restructure-landscape')}}
-                  <h5 class='text-center'>Restructure</h5>
-                  <Visualization::PageSetup::Sidebar::Restructure
-                    @landscapeData={{@landscapeData}}
-                    @restructureLandscape={{@restructureLandscape}}
-                    @visualizationPaused={{@visualizationPaused}}
-                    @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
-                    @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
-                    @removeTimestampListener={{@removeTimestampListener}}
-                  />
-                {{/if}}
-                {{#if (eq componentName 'xr-vscode-extension-settings')}}
-                  <h5 class='text-center'>VSCode Extension Settings</h5>
-                  <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings
-                  />
-                {{/if}}
-              </div>
-            </div>
+              {{/if}}
+              {{#if (eq componentId 'Settings')}}
+                <Visualization::PageSetup::Sidebar::Settings
+                  @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
+                  @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
+                  @updateColors={{this.updateColors}}
+                />
+              {{/if}}
+            </Visualization::PageSetup::Sidebar::SidebarComponent>
           {{/each}}
         </Visualization::PageSetup::Sidebar::DataSelection>
       </div>
