@@ -24,10 +24,6 @@ export default class TokenSelection extends Component<Args> {
   @tracked
   sortOrder: 'asc' | 'desc' = 'asc';
 
-  get selectionColor() {
-    return htmlSafe('background-color: #aecce1');
-  }
-
   @action
   sortBy(property: keyof LandscapeToken) {
     if (property === this.sortProperty) {
