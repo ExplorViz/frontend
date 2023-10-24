@@ -314,6 +314,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
+
+      // Apply hover effect to communication arrows
+      this.children.forEach((childObject) => {
+        if (childObject instanceof CommunicationArrowMesh) {
+          childObject.applyHoverEffect(arg);
+        }
+      });
     } else if (this.isHovered === false) {
       super.applyHoverEffect();
     }
@@ -327,6 +334,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         this.geometry.dispose();
         this.render(this.applicationCenter, this.curveHeight);
       }
+
+      // Reset hover effect of communication arrows
+      this.children.forEach((childObject) => {
+        if (childObject instanceof CommunicationArrowMesh) {
+          childObject.resetHoverEffect(mode);
+        }
+      });
     }
   }
 }

@@ -1,9 +1,15 @@
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   dataModel: ClassCommunication | ComponentCommunication;
+
+  isHovered = false;
+
+  HOVER_Y_TRANSLATION = 2;
+  HOVER_SCALE_FACTOR = 2.5;
 
   constructor(
     dataModel: ClassCommunication | ComponentCommunication,
@@ -66,6 +72,27 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
       this.cone.material.opacity = opacity;
       this.cone.material.transparent = isTransparent;
       this.cone.material.needsUpdate = true;
+    }
+  }
+
+  applyHoverEffect(arg?: VisualizationMode | number): void {
+    // Apply hover effect in VR for increased readability
+    if (arg === 'vr' && this.isHovered === false) {
+      this.isHovered = true;
+      this.position.y += this.HOVER_Y_TRANSLATION;
+      this.scale.set(
+        this.HOVER_SCALE_FACTOR,
+        this.HOVER_SCALE_FACTOR,
+        this.HOVER_SCALE_FACTOR
+      );
+    }
+  }
+
+  resetHoverEffect(mode?: VisualizationMode): void {
+    if (this.isHovered && mode === 'vr') {
+      this.isHovered = false;
+      this.position.y -= this.HOVER_Y_TRANSLATION;
+      this.scale.set(1, 1, 1);
     }
   }
 
