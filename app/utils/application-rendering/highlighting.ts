@@ -2,7 +2,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import {
   Class,
   isApplication,
@@ -12,24 +11,27 @@ import {
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
 import {
-  DrawableClassCommunication,
-  isDrawableClassCommunication,
-} from './class-communication-computer';
-import {
   getAllClassesInApplication,
+  getAllClassIdsInApplication,
   getAllPackagesInApplication,
 } from '../application-helpers';
 import { getClassesInPackage } from '../package-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
-import { isTrace, Span, Trace } from '../landscape-schemes/dynamic-data';
+import {
+  isTrace,
+  Span,
+  Trace,
+} from '../landscape-schemes/dynamic/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+
 /**
  * Restores default color and transparency for all application meshes
  *
  * @param applicationObject3D Application mesh of which the highlighting should be removed
  */
-export function removeAllHighlighting(
+export function removeAllHighlightingFor(
   applicationObject3D: ApplicationObject3D
 ) {
   const meshes = applicationObject3D.getAllMeshes();
@@ -128,66 +130,16 @@ export function turnComponentAndAncestorsOpaque(
 }
 
 /**
- * (Un)Highlights a given extern (!) communication line
- *
- * @param drawableClassCommunication Communication which shall be (un)highlighted
- * @param sourceApplicationObject3D The application mesh which contains the source clazz of mesh
- *  @param targetApplicationObject3D The application mesh which contains the target clazz of mesh
- */
-
-export function highlightExternCommunicationLine(
-  drawableClassCommunication: DrawableClassCommunication,
-  sourceApplicationObject3D: ApplicationObject3D,
-  targetApplicationObject3D: ApplicationObject3D
-) {
-  let notFoundSource = true;
-  sourceApplicationObject3D.drawableClassCommSet.forEach(
-    (drawableClassComm) => {
-      if (drawableClassComm.id === drawableClassCommunication.id) {
-        notFoundSource = false;
-        sourceApplicationObject3D.drawableClassCommSet.delete(
-          drawableClassComm
-        );
-      }
-    }
-  );
-
-  if (notFoundSource) {
-    sourceApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
-    );
-  }
-
-  let notFoundTarget = true;
-  targetApplicationObject3D.drawableClassCommSet.forEach(
-    (drawableClassComm) => {
-      if (drawableClassComm.id === drawableClassCommunication.id) {
-        notFoundTarget = false;
-        targetApplicationObject3D.drawableClassCommSet.delete(
-          drawableClassComm
-        );
-      }
-    }
-  );
-
-  if (notFoundTarget) {
-    targetApplicationObject3D.drawableClassCommSet.add(
-      drawableClassCommunication
-    );
-  }
-}
-
-/**
  * (Un)Highlights a given mesh
  *
- * @param meshId Either component, clazz or clazz communication mesh id of the mesh which shall be (un)highlighted
+ * @param modelId Either component, class or class communication id of model which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
  */
 export function highlight(
-  meshId: string,
+  modelId: string,
   applicationObject3D: ApplicationObject3D
 ) {
-  const mesh = applicationObject3D.getMeshById(meshId) as
+  const mesh = applicationObject3D.getMeshById(modelId) as
     | ComponentMesh
     | ClazzMesh
     | ClazzCommunicationMesh
@@ -196,48 +148,19 @@ export function highlight(
     return;
   }
 
-  const datamodel =
-    mesh.dataModel instanceof ClazzCommuMeshDataModel
-      ? mesh.dataModel.drawableClassCommus.firstObject
-      : mesh.dataModel;
-
-  if (!datamodel) {
-    return;
-  }
-
-  //console.log("Status bevor Klick: TRANSPARENT:", mesh.material.transparent, " OPACITY:", mesh.material.opacity);
-  if (mesh.highlighted) {
+  if (
+    mesh.highlighted &&
+    applicationObject3D.highlightedEntity instanceof Set
+  ) {
+    applicationObject3D.highlightedEntity.delete(modelId);
     mesh.unhighlight();
-    if (
-      applicationObject3D.highlightedEntity &&
-      !isTrace(applicationObject3D.highlightedEntity)
-    ) {
-      applicationObject3D.highlightedEntity.delete(meshId);
-    }
   } else {
-    mesh.highlight();
-
-    if (
-      !applicationObject3D.highlightedEntity ||
-      isTrace(applicationObject3D.highlightedEntity)
-    ) {
+    if (!(applicationObject3D.highlightedEntity instanceof Set)) {
       applicationObject3D.highlightedEntity = new Set<string>();
     }
-    applicationObject3D.highlightedEntity.add(meshId);
+    mesh.highlight();
+    applicationObject3D.highlightedEntity.add(modelId);
   }
-}
-
-/**
- * Highlights the mesh which belongs to a given data model
- *
- * @param entity Component or clazz of which the corresponding mesh shall be highlighted
- * @param applicationObject3D Application mesh which contains the entity
- */
-export function highlightModel(
-  entity: Package | Class | DrawableClassCommunication,
-  applicationObject3D: ApplicationObject3D
-) {
-  highlight(entity.id, applicationObject3D);
 }
 
 /**
@@ -251,21 +174,19 @@ export function highlightTrace(
   trace: Trace,
   traceStep: string,
   applicationObject3D: ApplicationObject3D,
-  communication: DrawableClassCommunication[],
+  classCommunications: ClassCommunication[],
   landscapeStructureData: StructureLandscapeData,
   opacity: number
 ) {
-  removeAllHighlighting(applicationObject3D);
+  removeAllHighlightingFor(applicationObject3D);
 
   applicationObject3D.highlightedEntity = trace;
 
-  const drawableComms = communication;
-
   // All clazzes in application
-  const allClazzesAsArray = getAllClassesInApplication(
+  const allClassesAsArray = getAllClassesInApplication(
     applicationObject3D.data.application
   );
-  const allClazzes = new Set<Class>(allClazzesAsArray);
+  const allClazzes = new Set<Class>(allClassesAsArray);
 
   const involvedClazzes = new Set<Class>();
 
@@ -338,8 +259,8 @@ export function highlightTrace(
     }
   });
 
-  drawableComms.forEach((comm) => {
-    const { sourceClass, targetClass, id } = comm;
+  classCommunications.forEach((communication) => {
+    const { sourceClass, targetClass, id } = communication;
 
     const commMesh = applicationObject3D.getCommMeshByModelId(id);
 
@@ -377,7 +298,7 @@ export function highlightTrace(
     getClassAncestorPackages(clazz).forEach((pckg) => componentSet.add(pckg));
   });
 
-  // turn clazzes and packages transparent, which are not involved in the trace
+  // turn classes and packages transparent, which are not involved in the trace
   nonInvolvedClazzes.forEach((clazz) => {
     const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(
@@ -406,41 +327,40 @@ export function highlightTrace(
  * @param opacity Opacity for transparency
  */
 
-export function turnAllPackagesAndClassesTransparent(
+export function turnComponentsAndClassesTransparent(
   applicationObject3DList: ApplicationObject3D[],
   opacity: number
 ) {
-  let allClazzesArray: Class[] = [];
+  let allClassIds: string[] = [];
   applicationObject3DList.forEach((application) => {
-    const allClazzesAsArray = getAllClassesInApplication(
+    const classIdsInApplication = getAllClassIdsInApplication(
       application.data.application
     );
-    allClazzesAsArray.forEach((clazz) => {
+    classIdsInApplication.forEach((classId) => {
       // set everything transparent at the beginning
-      const clazzMesh = application.getMeshById(clazz.id);
+      const clazzMesh = application.getMeshById(classId);
       if (clazzMesh instanceof ClazzMesh) {
         clazzMesh.turnTransparent(opacity);
         turnComponentAndAncestorsTransparent(
-          clazz.parent,
+          clazzMesh.dataModel.parent,
           application,
           new Set(),
           opacity
         );
       }
     });
-    allClazzesArray = [...allClazzesArray, ...allClazzesAsArray];
+    allClassIds = [...allClassIds, ...classIdsInApplication];
   });
 
-  return allClazzesArray;
+  return allClassIds;
 }
 
-export function turnAllCommunicationLinksTransparentAndUnhighlighted(
-  allLinks: ClazzCommunicationMesh[],
+export function turnCommunicationTransparent(
+  communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  allLinks.forEach((link) => {
+  communicationMeshes.forEach((link) => {
     link.turnTransparent(opacity);
-    link.unhighlight();
   });
 }
 
@@ -451,156 +371,149 @@ export function turnAllCommunicationLinksTransparentAndUnhighlighted(
  */
 export function updateHighlighting(
   applicationObject3DList: ApplicationObject3D[],
-  communication: DrawableClassCommunication[],
-  allLinks: ClazzCommunicationMesh[],
+  communicationMeshes: ClazzCommunicationMesh[],
   opacity: number
 ) {
-  // Set everything transparent at the beginning ----------------------
-
-  const allClazzes = new Set(
-    turnAllPackagesAndClassesTransparent(applicationObject3DList, opacity)
+  // Set everything transparent at the beginning
+  const allClassIds = new Set(
+    turnComponentsAndClassesTransparent(applicationObject3DList, opacity)
   );
-  turnAllCommunicationLinksTransparentAndUnhighlighted(allLinks, opacity);
+  turnCommunicationTransparent(communicationMeshes, opacity);
 
-  // ------------------------------------------------------------------
+  // Get all class ids of all selected components, inluding highlighted classes
+  const allSelectedClassIds = getAllSelectedClassIds(applicationObject3DList);
 
-  // Now we proceed to compute all involved clazzes in highlighted components
+  // Add classes which are involved via communication with selected classes
+  let allInvolvedClassIds = getAllInvolvedClassIds(
+    communicationMeshes,
+    allSelectedClassIds
+  );
 
-  let allInvolvedClazzesFinal: Set<Class> = new Set();
+  // Before applying the highlighting, selected classes should also count as involved
+  allInvolvedClassIds = new Set([
+    ...allSelectedClassIds,
+    ...allInvolvedClassIds,
+  ]);
 
+  if (allInvolvedClassIds.size === 0) {
+    // Turn all classes opaque again if nothing is selected
+    turnClassesOpaque(allClassIds, applicationObject3DList);
+    turnCommunicationOpaque(allClassIds, communicationMeshes);
+  } else {
+    // Turn classes and communication opaque again with respect to selected and involved classes
+    turnClassesOpaque(allInvolvedClassIds, applicationObject3DList);
+    turnCommunicationOpaque(allSelectedClassIds, communicationMeshes);
+  }
+}
+
+function getAllSelectedClassIds(
+  applicationObject3DList: ApplicationObject3D[]
+) {
+  let allSelectedClassIds = new Set<string>();
   applicationObject3DList.forEach((application: ApplicationObject3D) => {
-    //console.log(application.data.application.name, ":::", application.highlightedEntity);
-
     const highlightedEntityIds = application.highlightedEntity;
-    if (highlightedEntityIds && !isTrace(highlightedEntityIds)) {
-      highlightedEntityIds.forEach((entityId: string) => {
-        const baseMesh = application.getMeshById(entityId);
-        if (baseMesh) {
-          // Get all clazzes in selected component
-          const containedClazzes = new Set<Class>();
-
-          const model = (
-            baseMesh as
-              | FoundationMesh
-              | ComponentMesh
-              | ClazzMesh
-              | ClazzCommunicationMesh
-          ).dataModel;
-          // Add all clazzes which are contained in a component
-          if (isPackage(model)) {
-            getClassesInPackage(model).forEach((clss) =>
-              containedClazzes.add(clss)
-            );
-            // Add clazz itself
-          } else if (isClass(model)) {
-            containedClazzes.add(model);
-            // Add source and target clazz of communication
-          } else if (
-            isDrawableClassCommunication(
-              (model as ClazzCommuMeshDataModel).drawableClassCommus
-                ?.firstObject
-            )
-          ) {
-            baseMesh.highlight();
-            baseMesh.turnOpaque();
-            const sourceClass = (model as ClazzCommuMeshDataModel)
-              .drawableClassCommus.firstObject?.sourceClass;
-            const targetClass = (model as ClazzCommuMeshDataModel)
-              .drawableClassCommus.firstObject?.targetClass;
-            if (sourceClass && targetClass) {
-              containedClazzes.add(sourceClass);
-              containedClazzes.add(targetClass);
-            }
-          } else if (isApplication(model)) {
-            getAllPackagesInApplication(model).forEach((pckg) => {
-              getClassesInPackage(pckg).forEach((clss) =>
-                containedClazzes.add(clss)
-              );
-            });
-          }
-
-          const containedClazzesArray = Array.from(containedClazzes);
-          const allInvolvedClazzes = new Set(containedClazzes);
-
-          if (!(baseMesh instanceof ClazzCommunicationMesh)) {
-            // For a highlighted intern communication all involved clazzes are already known
-            communication.forEach((comm) => {
-              const { sourceClass, targetClass, id } = comm;
-
-              // Add clazzes which communicate directly with highlighted entity
-              if (containedClazzesArray.findBy('id', sourceClass.id)) {
-                allInvolvedClazzes.add(targetClass);
-
-                for (const link of allLinks) {
-                  // TODO: helper function so we do not have to write this loop every time in the following
-                  if (link.getModelId() === id) {
-                    link.turnOpaque();
-                    break;
-                  }
-                }
-              } else if (containedClazzesArray.findBy('id', targetClass.id)) {
-                allInvolvedClazzes.add(sourceClass);
-                for (const link of allLinks) {
-                  // TODO: helper function so we do not have to write this loop every time in the following
-                  if (link.getModelId() === id) {
-                    link.turnOpaque();
-                    break;
-                  }
-                }
-              }
-            });
-          }
-
-          allInvolvedClazzes.forEach((clss) =>
-            allInvolvedClazzesFinal.add(clss)
-          );
-        }
-      });
+    if (!highlightedEntityIds || isTrace(highlightedEntityIds)) {
+      return;
     }
 
-    application.drawableClassCommSet.forEach((drawableClassComm) => {
-      allLinks.forEach((link) => {
-        //TODO: replace list with map so we don't have to iterate each time
-        if (link.getModelId() === drawableClassComm.id) {
-          link.turnOpaque();
-          link.highlight();
-          allInvolvedClazzesFinal.add(drawableClassComm.sourceClass);
-          allInvolvedClazzesFinal.add(drawableClassComm.targetClass);
-        }
-      });
+    highlightedEntityIds.forEach((entityId: string) => {
+      const baseMesh = application.getMeshById(entityId);
+      if (!baseMesh) {
+        return;
+      }
+      baseMesh.highlight();
+      const selectedClassIds = new Set<string>();
+
+      const model = (
+        baseMesh as
+          | FoundationMesh
+          | ComponentMesh
+          | ClazzMesh
+          | ClazzCommunicationMesh
+      ).dataModel;
+      // Add all clazzes which are contained in a component
+      if (isPackage(model)) {
+        getClassesInPackage(model).forEach((classInPackage) =>
+          selectedClassIds.add(classInPackage.id)
+        );
+        // Add class itself
+      } else if (isClass(model)) {
+        selectedClassIds.add(model.id);
+      } else if (isApplication(model)) {
+        getAllPackagesInApplication(model).forEach((pckg) => {
+          getClassesInPackage(pckg).forEach((classInPackage) =>
+            selectedClassIds.add(classInPackage.id)
+          );
+        });
+      }
+      allSelectedClassIds = new Set([
+        ...allSelectedClassIds,
+        ...selectedClassIds,
+      ]);
     });
   });
+  return allSelectedClassIds;
+}
 
-  if (allInvolvedClazzesFinal.size === 0) {
-    // set everything opaque
+function getAllInvolvedClassIds(
+  communicationMeshes: ClazzCommunicationMesh[],
+  allSelectedClassIds: Set<string>
+) {
+  const allInvolvedClassIds = new Set<string>();
+  communicationMeshes.forEach((comm) => {
+    const involvedClasses = comm.dataModel.communication.getClasses();
 
-    allLinks.forEach((link) => {
-      link.turnOpaque();
+    let hasSelectedClass = false;
+    involvedClasses.forEach((involvedClass) => {
+      if (allSelectedClassIds.has(involvedClass.id)) {
+        hasSelectedClass = true;
+      }
     });
-    allInvolvedClazzesFinal = allClazzes; // we pretend that all clazzes are "selected" so everything gets opaque again
-  }
 
-  const allInvolvedClazzesArray = Array.from(allInvolvedClazzesFinal);
+    // Add classes which communicate directly with selected entities
+    if (comm.highlighted || hasSelectedClass) {
+      involvedClasses.forEach((involvedClass) => {
+        allInvolvedClassIds.add(involvedClass.id);
+      });
+    }
+  });
+  return allInvolvedClassIds;
+}
 
-  //console.log("allInvolvedClazzesArray", allInvolvedClazzesArray);
-
-  // Turn involved clazzes opaque
-  allInvolvedClazzesArray.forEach((clazz) => {
+function turnClassesOpaque(
+  allInvolvedClassIds: Set<string>,
+  applicationObject3DList: ApplicationObject3D[]
+) {
+  allInvolvedClassIds.forEach((classId) => {
     for (const application of applicationObject3DList) {
-      const classMesh = application.getBoxMeshbyModelId(clazz.id);
+      const classMesh = application.getBoxMeshbyModelId(classId);
 
-      if (classMesh) {
+      if (classMesh instanceof ClazzMesh) {
         classMesh.turnOpaque();
-        turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
+        turnComponentAndAncestorsOpaque(
+          classMesh.dataModel.parent,
+          application,
+          new Set()
+        );
         break;
       }
+    }
+  });
+}
 
-      // the following code won't work for extern links
-      // if(applicationHasClass(application.data.application, clazz)){
-      //   application.getBoxMeshbyModelId(clazz.id)?.turnOpaque();
-      //   turnComponentAndAncestorsOpaque(clazz.parent, application, new Set());
-      //   break;
-      // }
+function turnCommunicationOpaque(
+  selectedClassIds: Set<string>,
+  communicationMeshes: ClazzCommunicationMesh[]
+) {
+  communicationMeshes.forEach((comm) => {
+    let hasSelectedClass = false;
+    comm.dataModel.communication.getClasses().forEach((communicationClass) => {
+      if (selectedClassIds.has(communicationClass.id)) {
+        hasSelectedClass = true;
+      }
+    });
+    if (hasSelectedClass || comm.highlighted) {
+      comm.turnOpaque();
     }
   });
 }
@@ -611,3 +524,26 @@ export function removeHighlighting(
 ) {
   if (mesh.highlighted) highlight(mesh.getModelId(), applicationObject3D);
 }
+
+export function isHighlightableMesh(
+  object: THREE.Object3D
+): object is HighlightableMesh {
+  return (
+    object instanceof ComponentMesh ||
+    object instanceof ClazzMesh ||
+    object instanceof ClazzCommunicationMesh ||
+    object instanceof FoundationMesh
+  );
+}
+
+export type HightlightComponentArgs = {
+  entityType: string;
+  entityId: string;
+  color?: THREE.Color;
+};
+
+export type HighlightableMesh =
+  | FoundationMesh
+  | ComponentMesh
+  | ClazzMesh
+  | ClazzCommunicationMesh;

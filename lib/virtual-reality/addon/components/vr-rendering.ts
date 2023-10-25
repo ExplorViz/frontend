@@ -214,7 +214,8 @@ export default class VrRendering extends Component<Args> {
 
     this.scene = vrScene();
     // this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
+    this.scene.background =
+      this.configuration.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -314,7 +315,12 @@ export default class VrRendering extends Component<Args> {
     this.renderer.xr.enabled = true;
     this.localUser.xr = this.renderer.xr;
 
-    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      undefined,
+      this.canvas
+    );
     this.updatables.push(this.cameraControls);
 
     this.initDone = true;
@@ -449,6 +455,7 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: KeyboardMesh,
       triggerDown: (event) => event.target.triggerDown(event.controller),
+      triggerUp: (event) => event.target.triggerUp(),
       hover: (event) => event.target.applyHover(event.controller),
       resetHover: (event) => event.target.resetHover(event.controller),
       //TODO: triggerPress which works only for backspace
@@ -700,6 +707,7 @@ export default class VrRendering extends Component<Args> {
     // Start main loop.
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,

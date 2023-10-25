@@ -7,7 +7,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
@@ -31,7 +31,7 @@ export interface GraphLink {
   source: GraphNode;
   target: GraphNode;
   value: number;
-  communicationData: DrawableClassCommunication;
+  communicationData: ClassCommunication;
   __curve: any;
   __lineObj: ClazzCommunicationMesh;
 }
@@ -67,16 +67,16 @@ export default class ForceGraph {
       .warmupTicks(100)
       .linkColor(
         () =>
-          `#${this.configuration.landscapeColors.communicationColor.getHexString()}`
+          `#${this.configuration.applicationColors.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>
           `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`
       )
       .linkOpacity(0.4)
-      .linkThreeObject(this.linkRenderer.createLink)
+      .linkThreeObject(this.linkRenderer.createMeshFromLink)
       .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
-      .linkVisibility(this.linkRenderer.linkVisible)
+      .linkVisibility(this.linkRenderer.isLinkVisible)
       .nodeAutoColorBy('node')
       .cooldownTicks(1)
       .d3Force(

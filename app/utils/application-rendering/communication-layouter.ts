@@ -1,110 +1,48 @@
 import * as THREE from 'three';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from '../../view-objects/3d/application/component-mesh';
 import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
 import CommunicationLayout from '../../view-objects/layout-models/communication-layout';
-import { DrawableClassCommunication } from './class-communication-computer';
 import {
   Application,
   Class,
   Package,
 } from '../landscape-schemes/structure-data';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
 
-let minRequests = 0;
-let maximumRequests = 0;
-
-export function calculatePipeSize(
-  drawableClassCommunications: DrawableClassCommunication[]
+export function calculateLineThickness(
+  communication: ClassCommunication | ComponentCommunication
 ) {
-  /**
-   * Retrieves all requests and pushes them to a list for further processing
-   */
-  function gatherRequestsIntoList() {
-    const requestsList: number[] = [];
-
-    // Generate a list with all requests
-    drawableClassCommunications.forEach((clazzCommunication) => {
-      requestsList.push(clazzCommunication.totalRequests);
-    });
-
-    return requestsList;
-  }
-
-  // Constant factors for rendering communication lines (pipes)
+  // Constant factors for rendering communication lines
   const LINE_THICKNESS_FACTOR = 0.5;
 
-  const requestsList = gatherRequestsIntoList();
+  // Normalized request count might be above 1 for component communication
+  const normalizedRequestCount = clamp(
+    communication.metrics.normalizedRequestCount,
+    0.5,
+    1.5
+  );
 
-  minRequests = Math.min(...requestsList);
-  maximumRequests = Math.max(...requestsList);
+  // Apply line thickness depending on request count
+  return normalizedRequestCount * LINE_THICKNESS_FACTOR;
+}
 
-  const pipeSizeMap = new Map<string, number>();
-  drawableClassCommunications.forEach((clazzCommunication) => {
-    // normalize request count to [0, 1] interval
-    let range = maximumRequests - minRequests;
-    let normalizedRequests = 1;
-    if (range !== 0) {
-      normalizedRequests =
-        (clazzCommunication.totalRequests - minRequests) / range;
-      // normalize request count to [0.2, 1] interval
-      range = 1 - 0.3;
-      normalizedRequests = normalizedRequests * range + 0.5;
-    }
-
-    // Apply line thickness depending on calculated request category
-    pipeSizeMap.set(
-      clazzCommunication.id,
-      normalizedRequests * LINE_THICKNESS_FACTOR
-    );
-  });
-  return pipeSizeMap;
+/**
+ * Limits a value to a given range
+ */
+export function clamp(value: number, min: number, max: number) {
+  return value > max ? max : value < min ? min : value;
 }
 
 // Communication Layouting //
 export default function applyCommunicationLayout(
-  applicationObject3D: ApplicationObject3D,
-  boxLayoutMap: Map<string, BoxLayout>,
-  drawableClassCommunications: DrawableClassCommunication[]
+  applicationObject3D: ApplicationObject3D
 ) {
-  const { application } = applicationObject3D.data;
+  const { application, classCommunications } = applicationObject3D.data;
+  const boxLayoutMap = applicationObject3D.boxLayoutMap;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
-  // HELPER FUNCTIONS
-
-  /**
-   * Calculates the size of the pipes regarding the number of requests
-   */
-  function calculatePipeSizeFromQuantiles() {
-    // Constant factors for rendering communication lines (pipes)
-    const LINE_THICKNESS_FACTOR = 0.5;
-
-    // const minRequests = Math.min(...requestsList);
-    // const maximumRequests = Math.max(...requestsList);
-
-    drawableClassCommunications.forEach((clazzCommunication) => {
-      const maybeCommunicationLayout = layoutMap.get(clazzCommunication.id);
-
-      if (maybeCommunicationLayout) {
-        // normalize request count to [0, 1] interval
-        let range = maximumRequests - minRequests;
-
-        let normalizedRequests = 1;
-        if (range !== 0) {
-          normalizedRequests =
-            (clazzCommunication.totalRequests - minRequests) / range;
-          // normalize request count to [0.2, 1] interval
-          range = 1 - 0.3;
-          normalizedRequests = normalizedRequests * range + 0.5;
-        }
-
-        // Apply line thickness depending on calculated request category
-        maybeCommunicationLayout.lineThickness =
-          normalizedRequests * LINE_THICKNESS_FACTOR;
-      }
-    });
-  } // END calculatePipeSizeFromQuantiles
-
   /**
    * Returns the first parent component which is open
    * or - if it does not exist - the deepest closed component
@@ -130,8 +68,8 @@ export default function applyCommunicationLayout(
     return findFirstOpenOrLastClosedAncestorComponent(parentComponent);
   }
 
-  function getParentComponentOfDrawableCommunication(
-    communication: DrawableClassCommunication
+  function getParentComponentOfClassCommunication(
+    communication: ClassCommunication
   ) {
     // Contains all parent components of source clazz incl. foundation in hierarchical order
     const sourceClassComponents: Package[] = [];
@@ -173,18 +111,17 @@ export default function applyCommunicationLayout(
   }
 
   /**
-   * Calculates start and end positions for all drawable communications
+   * Calculates start and end positions for all class communications
    */
   function layoutEdges() {
-    if (drawableClassCommunications.length === 0) {
+    if (classCommunications.length === 0) {
       return;
     }
-    for (let i = 0; i < drawableClassCommunications.length; i++) {
-      const classCommunication: DrawableClassCommunication =
-        drawableClassCommunications[i];
+    for (let i = 0; i < classCommunications.length; i++) {
+      const classCommunication: ClassCommunication = classCommunications[i];
 
       const parentComponent =
-        getParentComponentOfDrawableCommunication(classCommunication);
+        getParentComponentOfClassCommunication(classCommunication);
 
       let parentMesh;
 
@@ -264,13 +201,14 @@ export default function applyCommunicationLayout(
           commLayout.startY += 2.0;
           commLayout.endY += 2.0;
         }
+
+        commLayout.lineThickness = calculateLineThickness(classCommunication);
       }
     }
-    calculatePipeSizeFromQuantiles();
   }
 
   function layoutInAndOutCommunication(
-    commu: DrawableClassCommunication,
+    commu: ClassCommunication,
     internalClazz: Class,
     centerCommuIcon: THREE.Vector3
   ) {
@@ -303,8 +241,8 @@ export default function applyCommunicationLayout(
     }
   }
 
-  function layoutDrawableCommunication(
-    commu: DrawableClassCommunication,
+  function layoutAggregatedCommunication(
+    commu: ClassCommunication,
     app: Application
   ) {
     const externalPortsExtension = new THREE.Vector3(3.0, 3.5, 3.0);
@@ -333,9 +271,9 @@ export default function applyCommunicationLayout(
 
   layoutEdges();
 
-  drawableClassCommunications.forEach((clazzcommunication) => {
+  classCommunications.forEach((clazzcommunication) => {
     if (layoutMap.has(clazzcommunication.id)) {
-      layoutDrawableCommunication(clazzcommunication, application);
+      layoutAggregatedCommunication(clazzcommunication, application);
     }
   });
 

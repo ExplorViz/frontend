@@ -14,9 +14,9 @@ const objsToTest: any[] = [];
 const colors = {
   keyboardBack: 0x858585,
   panelBack: 0x262626,
-  button: 0x363636,
-  hovered: 0x1c1c1c,
-  selected: 0xffffff, //0x109c5d,
+  button: 0x555555,
+  hovered: 0x000000, //0x1c1c1c,
+  selected: 0x109c5d,
 };
 
 export default class KeyboardMesh
@@ -24,6 +24,7 @@ export default class KeyboardMesh
   implements IntersectableObject
 {
   userText: ThreeMeshUI.Text;
+  selectState: boolean = false;
 
   constructor({ userText, ...options }: KeyboardMeshArgs) {
     super(options);
@@ -132,8 +133,10 @@ export default class KeyboardMesh
     if (intersect && intersect.object.isUI) {
       if (intersect.object.currentState === 'hovered') {
         // Component.setState internally call component.set with the options you defined in component.setupState
-        if (intersect.object.states['selected'])
+        if (intersect.object.states['selected']) {
           intersect.object.setState('selected');
+          console.log('selected');
+        }
       }
     }
   }
@@ -144,8 +147,9 @@ export default class KeyboardMesh
 
     if (intersect && intersect.object.isUI) {
       // Component.setState internally call component.set with the options you defined in component.setupState
-      if (intersect.object.states['hovered'])
+      if (intersect.object.states['hovered'] && !this.selectState) {
         intersect.object.setState('hovered');
+      }
     }
 
     // Update non-targeted buttons state
@@ -199,7 +203,13 @@ export default class KeyboardMesh
     if (raycaster) this.hoverOrUnhoverButton(raycaster);
   }
 
+  triggerUp() {
+    this.selectState = false;
+    console.log('triggerUp');
+  }
+
   triggerDown(controller: VRController | null) {
+    this.selectState = true;
     const raycaster = controller?.raycaster;
     if (raycaster) this.pressButton(raycaster);
   }

@@ -17,6 +17,12 @@ export function getAllClassesInApplication(application: Application) {
     .flat();
 }
 
+export function getAllClassIdsInApplication(application: Application) {
+  return getAllClassesInApplication(application).map(
+    (containedClass) => containedClass.id
+  );
+}
+
 export function getAllMethodsInApplication(application: Application) {
   return getAllClassesInApplication(application)
     .map((clss) => clss.methods)

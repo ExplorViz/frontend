@@ -14,12 +14,12 @@ import {
 } from './landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
-import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
 } from './package-helpers';
+import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 
 export enum EntityType {
   App = 'APP',
@@ -29,10 +29,11 @@ export enum EntityType {
   Communication = 'COMMUNICATION',
 }
 
-export enum MeshAction {
+export enum RestructureAction {
   Create = 'CREATE',
   Rename = 'RENAME',
   Delete = 'DELETE',
+  CopyPaste = 'COPYPASTE',
   CutInsert = 'CUTINSERT',
   Communication = 'COMMUNICATION',
 }
@@ -94,6 +95,53 @@ export function addFoundationToLandscape(
   myApplication.parent = myNode;
 
   return myNode;
+}
+
+export function duplicateApplication(
+  landscapeData: StructureLandscapeData,
+  app: Application,
+  wrapper: {
+    idCounter: number;
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
+  }
+) {
+  const originalNode = app.parent;
+  const duplicatedNode: Node = {
+    id: originalNode.id,
+    ipAddress: originalNode.ipAddress,
+    hostName: originalNode.hostName,
+    applications: [],
+  };
+
+  const duplicatedApp: Application = {
+    id: app.id,
+    name: app.name,
+    language: app.language,
+    instanceId: app.instanceId,
+    parent: duplicatedNode,
+    packages: [],
+  };
+
+  duplicatedNode.applications.pushObject(duplicatedApp);
+
+  app.packages.forEach((pckg) => {
+    const duplicatedPackage = copyPackageContent(pckg);
+    duplicatedApp.packages.pushObject(duplicatedPackage);
+  });
+
+  // Copy the communications
+  if (wrapper.comms.length > 0) {
+    const classesInApp = getAllClassesInApplication(duplicatedApp);
+
+    copyCommunications(classesInApp, wrapper, duplicatedApp);
+  }
+
+  changeID({ entity: duplicatedApp }, 'duplicated|');
+
+  landscapeData.nodes.pushObject(duplicatedNode);
+
+  return duplicatedApp;
 }
 
 /**
@@ -280,95 +328,138 @@ export function canDeleteClass(clazzToRemove: Class) {
   return parentPackage.classes.length + parentPackage.subPackages.length > 1;
 }
 
+// TODO this and cutAndInsertPackage have almost identical code! Needs to be refactored!!!!
+export function pastePackage(
+  landscapeStructure: StructureLandscapeData,
+  copiedPackage: Package,
+  pasteToDestination: Application | Package,
+  wrapper: {
+    idCounter: number;
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
+  }
+) {
+  let destinationApplication: Application | undefined;
+
+  if (isPackage(pasteToDestination)) {
+    // Get the main application containing the destimination package
+    const firstPackage = getAncestorPackages(pasteToDestination);
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
+      );
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        pasteToDestination.id
+      );
+
+    // Insert the package to be moved under the destination package
+    insertPackageToPackage(pasteToDestination, copiedPackage);
+  } else {
+    // If the destination is an application, insert the package directly under it
+    insertPackageToApplication(pasteToDestination, copiedPackage);
+    destinationApplication = pasteToDestination;
+  }
+
+  // Copy the communications
+  if (wrapper.comms.length > 0) {
+    const classesInPackage = getClassesInPackage(copiedPackage);
+
+    copyCommunications(classesInPackage, wrapper, destinationApplication);
+  }
+}
+
+export function pasteClass(
+  landscapeStructure: StructureLandscapeData,
+  copiedClass: Class,
+  pasteToDestination: Package,
+  commsWrapper: {
+    idCounter: number;
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
+  }
+) {
+  // Verify if the destination is a package
+  if (isPackage(pasteToDestination)) {
+    let destinationApplication: Application | undefined;
+    const firstPackage = getAncestorPackages(pasteToDestination);
+
+    // Find the application of destination package
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
+      );
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        pasteToDestination.id
+      );
+
+    if (commsWrapper.comms.length) {
+      copyCommunications([copiedClass], commsWrapper, destinationApplication);
+    }
+
+    // Add the copied class to the destination package's classes
+    pasteToDestination.classes.push(copiedClass);
+    copiedClass.parent = pasteToDestination;
+  }
+}
+
 /**
  * Cuts a specified package from its current location in the landscape structure and inserts it into a given destination,
  * which can be another package or an application. The class communications are appropriately updated.
  * @param landscapeStructure The data structure representing the current state of the landscape.
  * @param clippedPackage The package that is intended to be moved.
- * @param clipToDestination The destination where the package should be inserted. This can be either an application or another package.
- * @param wrapper Contains data on drawable class communications and an optional mesh object that might need deletion
+ * @param destination The destination where the package should be inserted. This can be either an application or another package.
+ * @param wrapper Contains data on aggregated class communications and an optional mesh object that might need deletion
  *                after the package move operation.
  */
-export function cutAndInsertPackage(
+export function movePackage(
   landscapeStructure: StructureLandscapeData,
   clippedPackage: Package,
-  clipToDestination: Application | Package,
+  destination: Application | Package,
   wrapper: {
-    comms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms: DrawableClassCommunication[];
+    updatedComms: ClassCommunication[];
   }
 ) {
-  const parentPackage = wrapper.meshTodelete?.parent as Package;
+  let destinationApplication: Application | undefined;
 
-  // Determine if the package to be moved has a parent package. If it doesn't it means the package is directly under the application
-  if (parentPackage) {
-    let destinationApplication: Application | undefined;
-
-    if (isPackage(clipToDestination)) {
-      // Get the main application containing the destination package
-      const firstPackage = getAncestorPackages(clipToDestination);
-      if (firstPackage.length > 0)
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          firstPackage[firstPackage.length - 1].id
-        );
-      else
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          clipToDestination.id
-        );
-
-      // Insert the package to be moved under the destination package
-      insertClipToDestinationPackage(clipToDestination, clippedPackage);
-    } else {
-      // If the destination is an application, insert the package directly under it
-      inserClipToDestinationApp(clipToDestination, clippedPackage);
-      destinationApplication = clipToDestination;
-    }
-    // Update communications if the package contains classes involved in communications
-    if (wrapper.comms.length > 0) {
-      const classesInPackage = getClassesInPackage(clippedPackage);
-
-      updateAffectedCommunications(
-        classesInPackage,
-        wrapper,
-        destinationApplication
+  if (isPackage(destination)) {
+    // Get the main application containing the destimination package
+    const firstPackage = getAncestorPackages(destination);
+    if (firstPackage.length > 0)
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        firstPackage[firstPackage.length - 1].id
       );
-    }
+    else
+      destinationApplication = getApplicationFromPackage(
+        landscapeStructure,
+        destination.id
+      );
+
+    // Insert the package to be moved under the destination package
+    insertPackageToPackage(destination, clippedPackage);
   } else {
-    let destinationApplication: Application | undefined;
+    // If the destination is an application, insert the package directly under it
+    insertPackageToApplication(destination, clippedPackage);
+    destinationApplication = destination;
+  }
 
-    if (isPackage(clipToDestination)) {
-      // Get the main application containing the destination package
-      const firstPackage = getAncestorPackages(clipToDestination);
-      if (firstPackage.length > 0)
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          firstPackage[firstPackage.length - 1].id
-        );
-      else
-        destinationApplication = getApplicationFromPackage(
-          landscapeStructure,
-          clipToDestination.id
-        );
+  // Update communications if the package contains classes involved in communications
+  if (wrapper.comms.length > 0) {
+    const classesInPackage = getClassesInPackage(clippedPackage);
 
-      // Insert the package to be moved under the destination package
-      insertClipToDestinationPackage(clipToDestination, clippedPackage);
-    } else {
-      destinationApplication = clipToDestination;
-      inserClipToDestinationApp(clipToDestination, clippedPackage);
-    }
-
-    // Update communications if the package contains classes involved in communications
-    if (wrapper.comms.length > 0) {
-      const classesInPackage = getClassesInPackage(clippedPackage);
-      updateAffectedCommunications(
-        classesInPackage,
-        wrapper,
-        destinationApplication
-      );
-    }
+    updateAffectedCommunications(
+      classesInPackage,
+      wrapper,
+      destinationApplication
+    );
   }
 }
 
@@ -380,14 +471,14 @@ export function cutAndInsertPackage(
  * @param clipToDestination The destination package where the class will be moved to.
  * @param commsWrapper Contains an array of class communications.
  */
-export function cutAndInsertClass(
+export function moveClass(
   landscapeStructure: StructureLandscapeData,
   clippedClass: Class,
   clipToDestination: Package,
   commsWrapper: {
-    comms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
+    updatedComms?: ClassCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -426,6 +517,11 @@ export function changeID(
   id: string
 ) {
   if (isApplication(wrapper.entity)) {
+    const node = wrapper.entity.parent;
+    node.id = id + node.id;
+
+    wrapper.entity.id = id + wrapper.entity.id;
+
     const allPackages = getAllPackagesInApplication(wrapper.entity);
     const allClasses = getAllClassesInApplication(wrapper.entity);
 
@@ -517,11 +613,13 @@ function removePrependFromID(changedID: string, prepend: string) {
 function updateAffectedCommunications(
   classesInPackage: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    updatedComms?: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    updatedComms?: ClassCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
+  if (!destinationApplication) return;
+
   classesInPackage.forEach((clazz) =>
     commsWrapper.comms.forEach((comms) => {
       if (comms.sourceClass.id === clazz.id) {
@@ -537,27 +635,86 @@ function updateAffectedCommunications(
   );
 }
 
-function inserClipToDestinationApp(
-  clipToDestination: Application,
+function copyCommunications(
+  classesInPackage: Class[],
+  commsWrapper: {
+    idCounter: number;
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
+  },
+  destinationApplication: Application | undefined
+) {
+  const copiedCommsMap = new Map();
+  classesInPackage.forEach((clazz) =>
+    commsWrapper.comms.forEach((comms) => {
+      if (
+        comms.sourceClass.id === clazz.id ||
+        comms.targetClass.id === clazz.id
+      ) {
+        let copiedComms;
+        // If this communication has already been copied, retrieve the copy from the map, otherwise create a new copy and store it in the map
+        if (copiedCommsMap.has(comms.id)) {
+          copiedComms = copiedCommsMap.get(comms.id);
+        } else {
+          copiedComms = copyCommunication(comms, commsWrapper.idCounter);
+          copiedCommsMap.set(comms.id, copiedComms);
+        }
+
+        if (comms.sourceClass.id === clazz.id) {
+          copiedComms.sourceClass = clazz;
+          copiedComms.sourceApp = destinationApplication;
+        }
+        if (comms.targetClass.id === clazz.id) {
+          copiedComms.targetClass = clazz;
+          copiedComms.targetApp = destinationApplication;
+        }
+      }
+    })
+  );
+  commsWrapper.copiedComms = Array.from(copiedCommsMap.values());
+}
+
+function copyCommunication(commToCopy: ClassCommunication, idCounter: number) {
+  const comm: ClassCommunication = {
+    id: 'copied' + idCounter + '|' + commToCopy.id,
+    isRecursive: commToCopy.isRecursive,
+    isBidirectional: commToCopy.isBidirectional,
+    methodCalls: commToCopy.methodCalls,
+    totalRequests: commToCopy.totalRequests,
+    metrics: commToCopy.metrics,
+    sourceClass: commToCopy.sourceClass,
+    targetClass: commToCopy.targetClass,
+    operationName: 'copied' + idCounter + '|' + commToCopy.operationName,
+    sourceApp: commToCopy.sourceApp,
+    targetApp: commToCopy.targetApp,
+    addMethodCalls: () => {},
+    getClasses: () => [commToCopy.sourceClass, commToCopy.targetClass],
+  };
+
+  return comm;
+}
+
+function insertPackageToApplication(
+  destinationApp: Application,
   clippedPackage: Package
 ) {
-  clipToDestination.packages.push(clippedPackage);
+  destinationApp.packages.push(clippedPackage);
   delete clippedPackage.parent;
 }
 
-function insertClipToDestinationPackage(
-  clipToDestination: Package,
+function insertPackageToPackage(
+  destinationPckg: Package,
   clippedPackage: Package
 ) {
-  clipToDestination.subPackages.push(clippedPackage);
-  clippedPackage.parent = clipToDestination;
+  destinationPckg.subPackages.push(clippedPackage);
+  clippedPackage.parent = destinationPckg;
 }
 
 export function removeAffectedCommunications(
   classesInApplication: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    deletedComms?: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    deletedComms?: ClassCommunication[];
   }
 ) {
   classesInApplication.forEach((clazz) => {

@@ -12,11 +12,10 @@ import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import computeDrawableClassCommunication, {
-  DrawableClassCommunication,
+import computeClassCommunication, {
+  computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { calculatePipeSize } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import calculateCommunications from 'explorviz-frontend/utils/calculate-communications';
+import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
@@ -24,6 +23,7 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -95,17 +95,22 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-    const drawableClassCommunications = computeDrawableClassCommunication(
+    let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData,
-      this.landscapeRestructure.restructureMode,
-      this.landscapeRestructure.createdClassCommunication,
-      this.landscapeRestructure.updatedClassCommunications,
-      this.landscapeRestructure.completelyDeletedClassCommunications
+      this.dynamicLandscapeData
     );
 
-    this.landscapeRestructure.allClassCommunications =
-      drawableClassCommunications;
+    if (this.landscapeRestructure.restructureMode) {
+      classCommunications = computeRestructuredClassCommunication(
+        classCommunications,
+        this.landscapeRestructure.createdClassCommunication,
+        this.landscapeRestructure.copiedClassCommunications,
+        this.landscapeRestructure.updatedClassCommunications,
+        this.landscapeRestructure.completelyDeletedClassCommunications
+      );
+    }
+
+    this.landscapeRestructure.allClassCommunications = classCommunications;
 
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
@@ -120,7 +125,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const application = node.applications[j];
         const applicationData = await this.updateApplicationData.perform(
           application,
-          drawableClassCommunications
+          classCommunications
         );
 
         // create or update applicationObject3D
@@ -170,14 +175,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
 
-    const interAppCommunications = drawableClassCommunications.filter(
+    const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
-    const pipeSizeMap = calculatePipeSize(drawableClassCommunications);
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: pipeSizeMap.get(communication.id), // used for particles
+      value: calculateLineThickness(communication),
       communicationData: communication,
     }));
 
@@ -207,6 +211,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
       }
+      this.highlightingService.updateHighlighting();
     }
     this.graph.graphData(gData);
 
@@ -231,7 +236,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   updateApplicationData = task(
     async (
       application: Application,
-      drawableClassCommunications: DrawableClassCommunication[]
+      classCommunication: ClassCommunication[]
     ) => {
       const workerPayload = {
         structure: application,
@@ -267,9 +272,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           results[2]
         );
       }
-      applicationData.drawableClassCommunications = calculateCommunications(
-        applicationData.application,
-        drawableClassCommunications
+      applicationData.classCommunications = classCommunication.filter(
+        (communication) => {
+          return (
+            communication.sourceApp.id === application.id &&
+            communication.targetApp.id === application.id
+          );
+        }
       );
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);

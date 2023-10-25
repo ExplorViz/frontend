@@ -5,28 +5,20 @@ import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 //import ENV from 'explorviz-frontend/config/environment';
 import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
-
-interface XrVscodeExtensionSettingsArgs {
-  removeComponent(componentPath: string): void;
-}
+import { EmptyObject } from '@glimmer/component/-private/component';
 
 //const { vsCodeService } = ENV.backendAddresses;
 
-export default class ArSettingsSelector extends Component<XrVscodeExtensionSettingsArgs> {
+export default class ArSettingsSelector extends Component {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
   // @service('collaboration')
 
-  constructor(owner: any, args: XrVscodeExtensionSettingsArgs) {
+  constructor(owner: any, args: EmptyObject) {
     super(owner, args);
 
     //this.loadIDESettings();
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('xr-vscode-extension-settings');
   }
 
   @action

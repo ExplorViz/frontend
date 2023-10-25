@@ -47,7 +47,7 @@
           @sharePopup={{this.popupHandler.sharePopup}}
           @removePopup={{this.popupHandler.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
-          @highlightModel={{this.applicationRenderer.highlightModel}}
+          @highlightById={{this.applicationRenderer.highlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
       {{/each}}
@@ -172,7 +172,7 @@
     </div>
   </div>
   {{#if @showSettingsSidebar}}
-    <div class='position-absolute right col-8' id='dataselection'>
+    <div class='sidebar right col-8' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100'>
         <Visualization::PageSetup::Sidebar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
@@ -187,26 +187,21 @@
               />
             </ul>
           </div>
-          {{#each @components as |componentName|}}
-            <div class='card mt-3 foreground'>
-              <div class='card-body d-flex flex-column'>
-                {{#if (eq componentName 'xr-collaboration')}}
-                  <h5 class='text-center'>Collaboration</h5>
-                  <Visualization::PageSetup::Sidebar::XrCollaboration
-                    @removeComponent={{@removeComponent}}
-                  />
-                {{/if}}
-                {{#if (eq componentName 'ar-settings-selector')}}
-                  <h5 class='text-center'>Settings</h5>
-                  <Visualization::PageSetup::Sidebar::ArSettingsSelector
-                    @removeComponent={{@removeComponent}}
-                    @updateView={{this.updateColors}}
-                    @updateCameraResolution={{this.initArJs}}
-                    @updateRendererResolution={{this.updateRendererResolution}}
-                  />
-                {{/if}}
-              </div>
-            </div>
+          {{#each @components as |componentId|}}
+            <Visualization::PageSetup::Sidebar::SidebarComponent
+              @componentId={{componentId}}
+            >
+              {{#if (eq componentId 'Collaboration')}}
+                <Visualization::PageSetup::Sidebar::XrCollaboration />
+              {{/if}}
+              {{#if (eq componentId 'AR-Settings')}}
+                <Visualization::PageSetup::Sidebar::ArSettingsSelector
+                  @updateView={{this.updateColors}}
+                  @updateCameraResolution={{this.initArJs}}
+                  @updateRendererResolution={{this.updateRendererResolution}}
+                />
+              {{/if}}
+            </Visualization::PageSetup::Sidebar::SidebarComponent>
           {{/each}}
         </Visualization::PageSetup::Sidebar::DataSelection>
       </div>

@@ -1,9 +1,5 @@
-<li class='nav-item'>
-  <div
-    class='nav-link-with-cursor'
-    title='Connect and Collaborate with other Users'
-    {{on 'click' this.showXrCollaboration}}
-  >
-    Collaboration
-  </div>
-</li>
+<Visualization::PageSetup::Navbar::ComponentOpener
+  @componentTitle='Collaboration'
+  @componentId='Collaboration'
+  @toggleComponent={{@toggleSettingsSidebarComponent}}
+/>

@@ -5,11 +5,31 @@
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
-{{add-listener this.landscapeRestructure 'restructureLandscapeData' this.restructureLandscapeData}}
-{{add-listener this.landscapeRestructure 'openSettingsSidebar' this.openSettingsSidebar}}
-{{add-listener this.landscapeRestructure 'restructureComponent' this.toggleSettingsSidebarComponent}}
-{{add-listener this.landscapeRestructure 'resetPolling' this.resetLandscapeListenerPolling}}
-{{add-listener this.landscapeRestructure 'toggelVisualization' this.toggleVisualizationUpdating}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureLandscapeData'
+  this.restructureLandscapeData
+}}
+{{add-listener
+  this.landscapeRestructure
+  'openSettingsSidebar'
+  this.openSettingsSidebar
+}}
+{{add-listener
+  this.landscapeRestructure
+  'restructureComponent'
+  this.toggleSettingsSidebarComponent
+}}
+{{add-listener
+  this.landscapeRestructure
+  'resetPolling'
+  this.resetLandscapeListenerPolling
+}}
+{{add-listener
+  this.landscapeRestructure
+  'toggelVisualization'
+  this.toggleVisualizationUpdating
+}}
 
 {{did-insert this.setupListeners}}
 <div id='vizspace' {{sync-state}}>
@@ -23,7 +43,6 @@
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
       @components={{this.components}}
-      @removeComponent={{this.removeComponent}}
       @openSettingsSidebar={{this.openSettingsSidebar}}
       @closeDataSelection={{this.closeDataSelection}}
       @showSettingsSidebar={{this.showSettingsSidebar}}
@@ -36,7 +55,6 @@
         @landscapeData={{this.landscapeData}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @components={{this.components}}
-        @removeComponent={{this.removeComponent}}
         @openSettingsSidebar={{this.openSettingsSidebar}}
         @closeDataSelection={{this.closeDataSelection}}
         @showSettingsSidebar={{this.showSettingsSidebar}}
@@ -75,7 +93,6 @@
             @landscapeData={{this.landscapeData}}
             @selectedTimestampRecords={{this.selectedTimestampRecords}}
             @components={{this.components}}
-            @removeComponent={{this.removeComponent}}
             @openDataSelection={{this.openDataSelection}}
             @closeDataSelection={{this.closeDataSelection}}
             @showDataSelection={{this.showDataSelection}}
@@ -90,7 +107,6 @@
             @landscapeData={{this.landscapeData}}
             @components={{this.components}}
             @componentsToolsSidebar={{this.componentsToolsSidebar}}
-            @removeComponent={{this.removeComponent}}
             @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
             @closeDataSelection={{this.closeDataSelection}}
             @closeToolsSidebar={{this.closeToolsSidebar}}

@@ -4,7 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Application,

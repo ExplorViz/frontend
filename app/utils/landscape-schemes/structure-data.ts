@@ -155,37 +155,3 @@ export function preProcessAndEnhanceStructureLandscape(
 
   return enhancedlandscapeStructure;
 }
-
-interface RawMethod {
-  name: string;
-  hashCode: string;
-}
-
-interface RawClass {
-  name: string;
-  methods: RawMethod[];
-}
-
-interface RawPackage {
-  name: string;
-  subPackages: RawPackage[];
-  classes: RawClass[];
-}
-
-interface RawApplication {
-  name: string;
-  language: string;
-  instanceId: string;
-  packages: RawPackage[];
-}
-
-interface RawNode {
-  ipAddress: string;
-  hostName: string;
-  applications: RawApplication[];
-}
-
-export interface RawStructureLandscapeData {
-  landscapeToken: string;
-  nodes: RawNode[];
-}
