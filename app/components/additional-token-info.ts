@@ -29,11 +29,26 @@ export default class AdditionalTokenInfo extends Component<Args> {
 
   @action
   hidePopover(event: Event) {
+    if (this.isMouseOnPopover()) {
+      return;
+    }
+
     // Clicks enable us to differentiate between opened and closed popovers
     if (this.focusedClicks % 2 === 1) {
       event.target?.dispatchEvent(new Event('click'));
     }
     this.focusedClicks = 0;
+  }
+
+  isMouseOnPopover() {
+    const hoveredElements = document.querySelectorAll(':hover');
+
+    for (const element of hoveredElements) {
+      if (element.matches('.popover')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @action
