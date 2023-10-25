@@ -20,6 +20,7 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from '../vr-message/util/entity_type';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export type DetailedInfo = {
   title: string;
@@ -150,24 +151,20 @@ function composeClazzContent(
   return content;
 }
 
-function composeDrawableClazzCommunicationContent(
+function composeAggregatedClassCommunicationContent(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  const applicationId = communication.application.id;
+  const communicationData = communicationMesh.dataModel;
+  const applicationId = communicationData.application.id;
 
   const title = 'Communication Information';
 
   const content: DetailedInfo = { title, entries: [] };
 
   // # of aggregated requests
-  let aggregatedReqCount = 0;
+  const aggregatedReqCount = communicationData.communication.totalRequests;
 
-  communication.drawableClassCommus.forEach((drawableClassComm) => {
-    aggregatedReqCount += drawableClassComm.totalRequests;
-  });
-
-  if (communication.drawableClassCommus.length > 1) {
+  if (communicationData.communication.methodCalls.length > 1) {
     content.entries.push({
       key: 'Aggregated request count:',
       value: `${aggregatedReqCount} ( 100% )`,
@@ -176,7 +173,7 @@ function composeDrawableClazzCommunicationContent(
     // # of unique method calls
     content.entries.push({
       key: 'Number of unique methods:',
-      value: `${communication.drawableClassCommus.length}`,
+      value: `${communicationData.communication.methodCalls.length}`,
     });
 
     content.entries.push({
@@ -186,16 +183,16 @@ function composeDrawableClazzCommunicationContent(
   }
 
   // add information for each unique method call
-  communication.drawableClassCommus.forEach((drawableCommu, index) => {
+  communicationData.communication.methodCalls.forEach((methodCall, index) => {
     const commuHasExternalApp =
-      applicationId !== drawableCommu.sourceApp?.id ||
-      applicationId !== drawableCommu.targetApp?.id;
+      applicationId !== methodCall.sourceApp?.id ||
+      applicationId !== methodCall.targetApp?.id;
 
     // Call hierarchy
     // content.entries.push({
     //   key: 'Src / Tgt Class:',
-    //   value: `${drawableCommu.sourceClass.name} -> ${
-    //     drawableCommu.targetClass.name
+    //   value: `${methodCall.sourceClass.name} -> ${
+    //     methodCall.targetClass.name
     //    }`,
     // });
 
@@ -203,26 +200,26 @@ function composeDrawableClazzCommunicationContent(
       // App hierarchy
       content.entries.push({
         key: 'Src / Tgt App:',
-        value: `${drawableCommu.sourceApp?.name} -> ${drawableCommu.targetApp?.name}`,
+        value: `${methodCall.sourceApp?.name} -> ${methodCall.targetApp?.name}`,
       });
     }
 
     // Name of called operation
     content.entries.push({
       key: 'Called Op.:',
-      value: `${drawableCommu.operationName}`,
+      value: `${methodCall.operationName}`,
     });
 
     // Request count
     content.entries.push({
       key: 'Request count:',
-      value: `${drawableCommu.totalRequests} ( ${Math.round(
-        (drawableCommu.totalRequests / aggregatedReqCount) * 100
+      value: `${methodCall.totalRequests} ( ${Math.round(
+        (methodCall.totalRequests / aggregatedReqCount) * 100
       )}% )`,
     });
 
     // Spacer
-    if (index < communication.drawableClassCommus.length) {
+    if (index < communicationData.communication.methodCalls.length) {
       content.entries.push({
         key: '---',
         value: '',
@@ -247,7 +244,7 @@ export default function composeContent(
   } else if (object instanceof ClazzMesh) {
     content = composeClazzContent(object, applicationRepo);
   } else if (object instanceof ClazzCommunicationMesh) {
-    content = composeDrawableClazzCommunicationContent(object);
+    content = composeAggregatedClassCommunicationContent(object);
   } else if (object instanceof FoundationMesh) {
     content = composeFoundationContent(object);
   }
@@ -288,41 +285,58 @@ export function getTypeOfEntity(entity: EntityMesh): EntityType {
 export function getCommunicationSourceClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceClass?.name;
+  // TODO: Take component communication into account
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof ClassCommunication) {
+    return communicationData.communication.sourceClass.name;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationTargetClass(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetClass?.name;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof ClassCommunication) {
+    return communicationData.communication.targetClass.name;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationSourceAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceApp?.id;
+  const communicationData = communicationMesh.dataModel;
+  return communicationData.communication.sourceApp.id;
 }
 
 export function getCommunicationTargetAppId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetApp?.id;
+  const communicationData = communicationMesh.dataModel;
+  return communicationData.communication.targetApp.id;
 }
 
 export function getCommunicationSourceClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].sourceClass?.id;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof ClassCommunication) {
+    return communicationData.communication.sourceClass.id;
+  } else {
+    return 'Composed Communication';
+  }
 }
 
 export function getCommunicationTargetClassId(
   communicationMesh: ClazzCommunicationMesh
 ) {
-  const communication = communicationMesh.dataModel;
-  return communication.drawableClassCommus[0].targetClass?.id;
+  const communicationData = communicationMesh.dataModel;
+  if (communicationData.communication instanceof ClassCommunication) {
+    return communicationData.communication.targetClass.id;
+  } else {
+    return 'Composed Communication';
+  }
 }

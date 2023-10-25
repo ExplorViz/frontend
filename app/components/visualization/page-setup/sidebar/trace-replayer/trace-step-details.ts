@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 type TimeUnit = 'ns' | 'ms' | 's';
 

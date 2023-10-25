@@ -1,4 +1,4 @@
-import isObject from '../object-helpers';
+import isObject from '../../object-helpers';
 
 export interface Trace {
   landscapeToken: string;

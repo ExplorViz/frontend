@@ -35,7 +35,6 @@ import {
   isPackage,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
@@ -75,6 +74,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import LandscapeListener from './landscape-listener';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -87,15 +87,11 @@ type MeshModelTextureMapping = {
 
 type CommModelColorMapping = {
   action: RestructureAction;
-  comm: DrawableClassCommunication;
+  comm: ClassCommunication;
   color: THREE.Color;
 };
 
-type diverseDataModel =
-  | Application
-  | Package
-  | Class
-  | DrawableClassCommunication;
+type diverseDataModel = Application | Package | Class | ClassCommunication;
 
 export default class LandscapeRestructure extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -161,42 +157,38 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
    * Storing all communications created by user
    */
   @tracked
-  createdClassCommunication: DrawableClassCommunication[] = [];
+  createdClassCommunication: ClassCommunication[] = [];
 
   /**
    * Storing all communications in the landscape
    */
   @tracked
-  allClassCommunications: DrawableClassCommunication[] = [];
+  allClassCommunications: ClassCommunication[] = [];
 
   /**
    * Storing all copied communications
    */
   @tracked
-  copiedClassCommunications: Map<string, DrawableClassCommunication[]> =
-    new Map();
+  copiedClassCommunications: Map<string, ClassCommunication[]> = new Map();
 
   /**
    * Storing all communications that have been updated
    */
   @tracked
-  updatedClassCommunications: Map<string, DrawableClassCommunication[]> =
-    new Map();
+  updatedClassCommunications: Map<string, ClassCommunication[]> = new Map();
 
   /**
    * Storing all communications that will be completely deleted from the visual
    */
   @tracked
-  completelyDeletedClassCommunications: Map<
-    string,
-    DrawableClassCommunication[]
-  > = new Map();
+  completelyDeletedClassCommunications: Map<string, ClassCommunication[]> =
+    new Map();
 
   /**
    * Storing all communication that will be deleted and shown visually
    */
   @tracked
-  deletedClassCommunications: DrawableClassCommunication[] = [];
+  deletedClassCommunications: ClassCommunication[] = [];
 
   @tracked
   sourceClass: Class | null = null;
@@ -296,20 +288,26 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       addMethodToClass(this.targetClass, methodName);
 
-      // Create Communication between 2 Classes
-      const classCommunication: DrawableClassCommunication = {
+      // Create model of communication between two classes
+      const classCommunication: ClassCommunication = {
         id:
           this.sourceClass.name +
           ' => ' +
           this.targetClass.name +
           '|' +
           methodName,
+        methodCalls: [],
+        isRecursive: this.sourceClass.id === this.targetClass.id,
+        isBidirectional: false,
         totalRequests: 1,
+        metrics: { normalizedRequestCount: 1 },
         sourceClass: this.sourceClass,
         targetClass: this.targetClass,
         operationName: methodName,
-        sourceApp: sourceApp,
-        targetApp: targetApp,
+        sourceApp: sourceApp!,
+        targetApp: targetApp!,
+        addMethodCalls: () => {},
+        getClasses: () => [this.sourceClass!, this.targetClass!],
       };
 
       // Create the Changelog Entry
@@ -333,7 +331,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @action
   deleteCommunication(
-    comm: DrawableClassCommunication,
+    comm: ClassCommunication,
     undo: boolean = false,
     collabMode: boolean = false
   ) {
@@ -698,7 +696,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   }
 
   renameOperation(
-    communication: DrawableClassCommunication,
+    communication: ClassCommunication,
     newName: string,
     collabMode: boolean = false,
     undo: boolean = false
@@ -807,7 +805,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       this.updatedClassCommunications.delete(keyToRemove);
 
-      const app = this.getApp(pckg);
+      const app = this.getApp(pckg)!;
       if (this.createdClassCommunication.length) {
         this.createdClassCommunication.forEach((comm) => {
           if (!comm.sourceApp) {
@@ -1960,7 +1958,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
       const app = this.getApp(this.clippedMesh as Package) as Application;
 
-      const copiedClassCommunications: DrawableClassCommunication[] = [];
+      const copiedClassCommunications: ClassCommunication[] = [];
 
       const wrapper = {
         idCounter: this.newMeshCounter,
@@ -2044,7 +2042,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       }
       const app = this.getApp(this.clippedMesh as Class) as Application;
 
-      const copiedClassCommunications: DrawableClassCommunication[] = [];
+      const copiedClassCommunications: ClassCommunication[] = [];
 
       const wrapper = {
         idCounter: this.newMeshCounter,
@@ -2112,7 +2110,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
       const app = this.getApp(this.clippedMesh as Package | Class);
 
-      const updatedClassCommunications: DrawableClassCommunication[] = [];
+      const updatedClassCommunications: ClassCommunication[] = [];
 
       // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
       const wrapper = {
@@ -2273,10 +2271,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.deletePackage(pckg as Package, false, true);
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication } = entry;
-        this.deleteCommunication(
-          communication as DrawableClassCommunication,
-          true
-        );
+        this.deleteCommunication(communication as ClassCommunication, true);
       }
     }
 
@@ -2317,7 +2312,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication, originalOperationName } = entry;
         this.renameOperation(
-          communication as DrawableClassCommunication,
+          communication as ClassCommunication,
           originalOperationName as string,
           false,
           true
@@ -2345,10 +2340,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       } else if (entry instanceof CommunicationChangeLogEntry) {
         const { communication } = entry;
         this.changeLog.restoreDeletedEntries(communication.id as string);
-        this.deleteCommunication(
-          communication as DrawableClassCommunication,
-          true
-        );
+        this.deleteCommunication(communication as ClassCommunication, true);
       }
 
       this.changeLog.removeEntry(entry);

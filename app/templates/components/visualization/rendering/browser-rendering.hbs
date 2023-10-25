@@ -81,7 +81,7 @@
           @removePopup={{this.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
           @showApplication={{this.showApplication}}
-          @highlightModel={{this.applicationRenderer.highlightModel}}
+          @highlightById={{this.highlightingService.highlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
       {{/each}}
@@ -181,7 +181,7 @@
               {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Settings
-                  @updateHighlighting={{this.highlightingService.updateHighlightingForAllApplications}}
+                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
                   @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
                   @updateColors={{this.updateColors}}
                 />

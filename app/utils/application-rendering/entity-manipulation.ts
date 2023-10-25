@@ -7,7 +7,7 @@ import {
   DynamicLandscapeData,
   isSpan,
   Span,
-} from '../landscape-schemes/dynamic-data';
+} from '../landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';

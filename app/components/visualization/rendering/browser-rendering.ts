@@ -24,7 +24,7 @@ import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/ent
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -44,7 +44,7 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import PopupData from './popups/popup-data';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 
@@ -412,18 +412,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     if (isEntityMesh(mesh)) {
       if (mesh.parent instanceof ApplicationObject3D) {
-        this.applicationRenderer.highlight(
-          mesh,
-          mesh.parent,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
         // extern communication link
-        this.applicationRenderer.highlightExternLink(
-          mesh,
-          true,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlightExternLink(mesh, true);
       }
     }
   }
@@ -477,7 +469,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       ) {
         const applicationObject3D = mesh.parent;
         if (applicationObject3D instanceof ApplicationObject3D)
-          removeAllHighlighting(applicationObject3D);
+          removeAllHighlightingFor(applicationObject3D);
       }
     }
 

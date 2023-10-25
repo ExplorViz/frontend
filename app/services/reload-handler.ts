@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 
 import debugLogger from 'ember-debug-logger';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,

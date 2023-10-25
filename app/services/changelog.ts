@@ -19,9 +19,9 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { tracked } from '@glimmer/tracking';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
@@ -559,7 +559,7 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  communicationEntry(communication: DrawableClassCommunication) {
+  communicationEntry(communication: ClassCommunication) {
     const commEntry = new CommunicationChangeLogEntry(
       RestructureAction.Create,
       communication
@@ -569,10 +569,7 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  renameOperationEntry(
-    communication: DrawableClassCommunication,
-    newName: string
-  ) {
+  renameOperationEntry(communication: ClassCommunication, newName: string) {
     const foundEntry = this.findCommunicationLogEntry(communication.id, true);
 
     if (
@@ -601,7 +598,7 @@ export default class Changelog extends Service.extend(Evented, {
     //this.trigger('showChangeLog');
   }
 
-  deleteCommunicationEntry(communication: DrawableClassCommunication) {
+  deleteCommunicationEntry(communication: ClassCommunication) {
     const foundEntry = this.findCommunicationLogEntry(
       communication.id,
       true
