@@ -48,6 +48,7 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
+import EvolutionListener from 'explorviz-frontend/services/evolution-listener';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -69,6 +70,8 @@ export const earthTexture = new THREE.TextureLoader().load(
  */
 export default class VisualizationController extends Controller {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
+
+  @service('evolution-listener') evolutionListener!: EvolutionListener;
 
   @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
@@ -453,6 +456,7 @@ export default class VisualizationController extends Controller {
     this.visualizationPaused = false;
     this.closeDataSelection();
     this.landscapeListener.initLandscapePolling();
+    //this.evolutionListener.initEvolutionPolling();
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
