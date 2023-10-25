@@ -202,7 +202,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.addArrow(end, start, arrowWidth, yOffset, color);
     } else {
       // save arrow for potential upcoming use
-      this.potentialBidirectionalArrow = this.getArrow(
+      this.potentialBidirectionalArrow = this.createArrowMesh(
         end,
         start,
         arrowWidth,
@@ -267,7 +267,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  private getArrow(
+  private createArrowMesh(
     start: THREE.Vector3,
     end: THREE.Vector3,
     width: number,
@@ -315,11 +315,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
 
-      // Apply hover effect to communication arrows
-      this.children.forEach((childObject) => {
-        if (childObject instanceof CommunicationArrowMesh) {
-          childObject.applyHoverEffect(arg);
-        }
+      this.getArrowMeshes().forEach((arrowMesh) => {
+        arrowMesh.applyHoverEffect(arg);
       });
     } else if (this.isHovered === false) {
       super.applyHoverEffect();
@@ -335,12 +332,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         this.render(this.applicationCenter, this.curveHeight);
       }
 
-      // Reset hover effect of communication arrows
-      this.children.forEach((childObject) => {
-        if (childObject instanceof CommunicationArrowMesh) {
-          childObject.resetHoverEffect(mode);
-        }
+      this.getArrowMeshes().forEach((arrowMesh) => {
+        arrowMesh.resetHoverEffect(mode);
       });
     }
+  }
+
+  getArrowMeshes() {
+    const arrowMeshes: CommunicationArrowMesh[] = [];
+    this.children.forEach((childObject) => {
+      if (childObject instanceof CommunicationArrowMesh) {
+        arrowMeshes.push(childObject);
+      }
+    });
+    return arrowMeshes;
   }
 }
