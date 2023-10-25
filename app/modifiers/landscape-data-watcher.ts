@@ -194,13 +194,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     if (serializedRoom) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-
-      if (this.localUser.visualizationMode === 'vr') {
-        this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
-      } else if (this.localUser.visualizationMode === 'browser') {
-        //restore(serializedRoom.detachedMenus); // browser popups not restorable?
-      }
-
+      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
       this.roomSerializer.serializedRoom = undefined;
     } else {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
