@@ -388,7 +388,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   async toggleRestructureModeLocally() {
     this.restructureMode = !this.restructureMode;
     this.trigger('openSettingsSidebar');
-    this.trigger('restructureComponent', 'restructure-landscape');
+    this.trigger('restructureComponent', 'Restructure-Landscape');
     await new Promise((f) => setTimeout(f, 500));
     this.trigger('restructureMode');
   }

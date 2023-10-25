@@ -631,7 +631,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // is not called before other e.g. vr-rendering is inserted:
     // https://github.com/emberjs/ember.js/issues/18873
-    // this.applicationRenderer.cleanUpApplications();
+    this.applicationRenderer.cleanup();
+    this.applicationRepo.cleanup();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
 
