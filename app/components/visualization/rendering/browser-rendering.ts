@@ -499,6 +499,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = null;
     }
     this.popupHandler.hover(intersection?.object);
+
+    this.highlightingService.updateHighlightingOnHover(
+      isEntityMesh(intersection?.object) && intersection.object.highlighted
+    );
   }
 
   @action

@@ -81,9 +81,18 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isColorSetting: true,
   },
   // Highlighting Settings
-  keepHighlightingOnOpenOrClose: {
+  applyHighlightingOnHover: {
     value: true,
     orderNumber: 1,
+    group: 'Highlighting',
+    displayName: 'Only Apply Highlighting Effect On Hover',
+    description:
+      'Toggle to switch between permanent transparency effect and effect on hover',
+    isFlagSetting: true,
+  },
+  keepHighlightingOnOpenOrClose: {
+    value: true,
+    orderNumber: 2,
     group: 'Highlighting',
     displayName: 'Keep Highlighting On Open Or Close',
     description:
@@ -96,7 +105,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       min: 0.1,
       max: 1.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
     description:
@@ -105,7 +114,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   enableMultipleHighlighting: {
     value: true,
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',
     description:
