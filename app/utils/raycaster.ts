@@ -1,3 +1,4 @@
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import * as THREE from 'three';
@@ -9,6 +10,7 @@ export function defaultRaycastFilter(
   return !(
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
+    intersection.object.parent instanceof CommunicationArrowMesh ||
     isChildOfText(intersection)
   );
 }

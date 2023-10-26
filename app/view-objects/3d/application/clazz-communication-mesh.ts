@@ -64,16 +64,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       }
     });
   }
-
-  unhighlight(): void {
-    super.unhighlight();
-    // this.children.forEach((childObject) => {
-    //   if (childObject instanceof CommunicationArrowMesh) {
-    //     childObject.turnOpaque();
-    //   }
-    // });
-  }
-
   /**
    * Renders the communication mesh as straight cylinder geometry.
    *
@@ -138,7 +128,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     desiredSegments = 20
   ) {
     // Handle recursive communication
-    if (this.isRecursiveCommunication()) {
+    if (this.dataModel.communication.isRecursive) {
       this.renderRecursiveCommunication(applicationCenter);
       return;
     }
@@ -200,7 +190,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const start = new THREE.Vector3();
     const end = new THREE.Vector3();
 
-    if (!this.isRecursiveCommunication()) {
+    if (!this.dataModel.communication.isRecursive) {
       start.subVectors(startPoint, applicationCenter);
       end.subVectors(endPoint, applicationCenter);
     }
@@ -208,11 +198,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.addArrow(start, end, arrowWidth, yOffset, color);
 
     // Add 2nd arrow to visualize bidirectional communication
-    if (this.dataModel.bidirectional) {
+    if (this.dataModel.communication.isBidirectional) {
       this.addArrow(end, start, arrowWidth, yOffset, color);
     } else {
       // save arrow for potential upcoming use
-      this.potentialBidirectionalArrow = this.getArrow(
+      this.potentialBidirectionalArrow = this.createArrowMesh(
         end,
         start,
         arrowWidth,
@@ -223,7 +213,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   addBidirectionalArrow() {
-    if (this.dataModel.bidirectional && this.potentialBidirectionalArrow) {
+    if (
+      this.dataModel.communication.isBidirectional &&
+      this.potentialBidirectionalArrow
+    ) {
       this.add(this.potentialBidirectionalArrow);
     }
   }
@@ -260,9 +253,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.drawableClassCommus.firstObject) {
+    if (this.dataModel.communication) {
       const arrow = new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
+        this.dataModel.communication,
         dir,
         origin,
         length,
@@ -274,7 +267,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  private getArrow(
+  private createArrowMesh(
     start: THREE.Vector3,
     end: THREE.Vector3,
     width: number,
@@ -297,9 +290,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const headLength = Math.min(2 * headWidth, 0.3 * len);
     const length = headLength + 0.00001; // body of arrow not visible
 
-    if (this.dataModel.drawableClassCommus.firstObject) {
+    if (this.dataModel.communication) {
       return new CommunicationArrowMesh(
-        this.dataModel.drawableClassCommus.firstObject,
+        this.dataModel.communication,
         dir,
         origin,
         length,
@@ -315,18 +308,16 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return true;
   }
 
-  isRecursiveCommunication() {
-    return (
-      this.layout.model.sourceClass.id === this.layout.model.targetClass.id
-    );
-  }
-
   applyHoverEffect(arg?: VisualizationMode | number): void {
     if (arg === 'vr' && this.isHovered === false) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
       super.applyHoverEffect();
+
+      this.getArrowMeshes().forEach((arrowMesh) => {
+        arrowMesh.applyHoverEffect(arg);
+      });
     } else if (this.isHovered === false) {
       super.applyHoverEffect();
     }
@@ -340,6 +331,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         this.geometry.dispose();
         this.render(this.applicationCenter, this.curveHeight);
       }
+
+      this.getArrowMeshes().forEach((arrowMesh) => {
+        arrowMesh.resetHoverEffect(mode);
+      });
     }
+  }
+
+  getArrowMeshes() {
+    const arrowMeshes: CommunicationArrowMesh[] = [];
+    this.children.forEach((childObject) => {
+      if (childObject instanceof CommunicationArrowMesh) {
+        arrowMeshes.push(childObject);
+      }
+    });
+    return arrowMeshes;
   }
 }

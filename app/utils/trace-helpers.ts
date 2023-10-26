@@ -1,4 +1,4 @@
-import { Span, Trace } from './landscape-schemes/dynamic-data';
+import { Span, Trace } from './landscape-schemes/dynamic/dynamic-data';
 
 /**
  * Returns the span's total duration in nanoseconds

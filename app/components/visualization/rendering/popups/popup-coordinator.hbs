@@ -75,11 +75,11 @@
       @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
-  {{#if (eq this.entityType 'drawableClassCommunication')}}
+  {{#if (eq this.entityType 'classCommunication')}}
     <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
       @communication={{@popupData.entity}}
       @showApplication={{@showApplication}}
-      @highlightModel={{@highlightModel}}
+      @highlightById={{@highlightById}}
       @openParents={{@openParents}}
     />
   {{/if}}

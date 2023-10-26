@@ -22,7 +22,12 @@ export default class Navbar extends Component {
 
   @action
   goToLandscapeSelection() {
-    this.router.transitionTo('landscapes');
+    if (this.router.currentRouteName === 'landscapes') {
+      this.tokenService.setToken(this.tokenService.latestToken!);
+      this.router.transitionTo('visualization');
+    } else {
+      this.router.transitionTo('landscapes');
+    }
   }
 
   get isSingleLandscapeMode() {

@@ -10,9 +10,9 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
@@ -362,7 +362,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onHighlightingUpdate({
     userId,
-    originalMessage: { appId, entityId, multiSelected },
+    originalMessage: { appId, entityId /*, multiSelected */ },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
@@ -382,7 +382,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       mesh,
       application,
       user.color,
-      multiSelected,
       false // whenever we receive messages we don't want to resend them
     );
   }
@@ -536,7 +535,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       (comm) => comm.id === commId
     );
     this.landscapeRestructure.deleteCommunication(
-      comm as DrawableClassCommunication,
+      comm as ClassCommunication,
       undo,
       true
     );
@@ -550,7 +549,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
 
     this.landscapeRestructure.renameOperation(
-      comm as DrawableClassCommunication,
+      comm as ClassCommunication,
       newName,
       true,
       undo

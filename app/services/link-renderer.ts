@@ -2,7 +2,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
@@ -13,6 +12,8 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -53,19 +54,19 @@ export default class LinkRenderer extends Service.extend({}) {
     _coords: any,
     link: GraphLink
   ) {
-    line.visible = this.linkVisible(link);
+    line.visible = this.isLinkVisible(link);
     if (!link.communicationData) {
       return true;
     }
-    const drawableClassCommunication: DrawableClassCommunication =
-      link.communicationData;
+
+    const classCommunication: ClassCommunication = link.communicationData;
 
     // source
     const sourceApp = link.source.__threeObj;
     const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
-      drawableClassCommunication.sourceClass
+      classCommunication.sourceClass
     );
     const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
     const start = sourceMesh.getWorldPosition(new Vector3());
@@ -75,17 +76,17 @@ export default class LinkRenderer extends Service.extend({}) {
     const targetApp = link.target.__threeObj;
     const targetClass = findFirstOpen(
       targetApp,
-      drawableClassCommunication.targetClass
+      classCommunication.targetClass
     );
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
     const end = targetMesh.getWorldPosition(new Vector3());
     forceGraph.worldToLocal(end);
 
     // add arrow
-    const commLayout = new CommunicationLayout(drawableClassCommunication);
+    const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
-    commLayout.lineThickness = link.value;
+    commLayout.lineThickness = calculateLineThickness(classCommunication);
     line.layout = commLayout;
     line.geometry.dispose();
 
@@ -102,28 +103,27 @@ export default class LinkRenderer extends Service.extend({}) {
   }
 
   @action
-  createLink(link: GraphLink) {
-    const drawableClazzComm = link.communicationData;
+  createMeshFromLink(link: GraphLink) {
+    const classCommunication = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
-    const { id } = drawableClazzComm;
+    const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.data.application,
-      [drawableClazzComm],
-      false,
+      classCommunication,
       id
     );
     const { communicationColor, highlightedEntityColor } =
       this.configuration.applicationColors;
 
-    const existingMesh = this.linkIdToMesh.get(drawableClazzComm.id);
+    const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
       existingMesh.dataModel = clazzCommuMeshData;
       return existingMesh;
     }
     const newMesh = new ClazzCommunicationMesh(
       // Note: Parameter layout is not used here
-      new CommunicationLayout(clazzCommuMeshData.drawableClassCommus[0]),
+      new CommunicationLayout(clazzCommuMeshData.communication),
       clazzCommuMeshData,
       communicationColor,
       highlightedEntityColor
@@ -133,13 +133,16 @@ export default class LinkRenderer extends Service.extend({}) {
     return newMesh;
   }
 
+  getLinks() {
+    return Array.from(this.linkIdToMesh.values());
+  }
+
   getLinkById(linkId: string) {
     return this.linkIdToMesh.get(linkId);
   }
 
   @action
-  linkVisible(link: GraphLink) {
-    // return false;
+  isLinkVisible(link: GraphLink) {
     if (!link.communicationData) {
       return false;
     }

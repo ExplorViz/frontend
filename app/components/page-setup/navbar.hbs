@@ -16,6 +16,17 @@
           <span>{{this.tokenService.token.alias}}</span>
         </LinkTo>
       </div>
+    {{else if this.tokenService.latestToken}}
+      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
+        <span
+          class='d-flex-center'
+          type='button'
+          {{on 'click' this.goToLandscapeSelection}}
+        >
+          {{svg-jar 'iterations-16' class='octicon'}}
+          {{this.tokenService.latestToken.alias}}
+        </span>
+      </div>
     {{/if}}
   {{/unless}}
   <div id='navbar-user-options' class='btn-group pointer-events-all'>

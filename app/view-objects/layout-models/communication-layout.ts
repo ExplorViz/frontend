@@ -1,8 +1,9 @@
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 
 export default class CommunicationLayout {
-  model: DrawableClassCommunication;
+  model: ClassCommunication | ComponentCommunication;
 
   startX: number = -5;
 
@@ -20,7 +21,7 @@ export default class CommunicationLayout {
 
   pointsFor3D: THREE.Vector3[] = [];
 
-  constructor(model: DrawableClassCommunication) {
+  constructor(model: ClassCommunication | ComponentCommunication) {
     this.model = model;
   }
 
