@@ -96,10 +96,24 @@
         </tr>
         {{! Name }}
         <tr>
+
+          {{!--
           <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
             @communication={{classCommunication}}
           />
+           --}}
+
+          <td class='text-nowrap align-top'>{{svg-jar
+              'comment-16'
+              class='octicon align-middle mr-1'
+            }}</td>
+          <td class='text-right text-break pl-1'>
+            {{classCommunication.callerMethodName}}
+            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+            {{classCommunication.operationName}}
+          </td>
         </tr>
+
         {{! Requests }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
