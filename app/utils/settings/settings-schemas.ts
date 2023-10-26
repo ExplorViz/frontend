@@ -124,6 +124,7 @@ export interface RangeSetting extends Setting<number> {
   range: {
     min: number;
     max: number;
+    step: number;
   };
   readonly isRangeSetting: true;
 }

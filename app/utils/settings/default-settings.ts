@@ -93,8 +93,9 @@ export const defaultApplicationSettings: ApplicationSettings = {
   transparencyIntensity: {
     value: 0.1,
     range: {
-      min: 0.1,
+      min: 0.05,
       max: 1.0,
+      step: 0.05,
     },
     orderNumber: 2,
     group: 'Highlighting',
@@ -125,8 +126,9 @@ export const defaultApplicationSettings: ApplicationSettings = {
   commArrowSize: {
     value: 1.0,
     range: {
-      min: 0.0,
+      min: 0.5,
       max: 5.0,
+      step: 0.5,
     },
     orderNumber: 1,
     group: 'Communication',
@@ -139,7 +141,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 0.0,
     range: {
       min: 0.0,
-      max: 1.5,
+      max: 2.0,
+      step: 0.1,
     },
     orderNumber: 2,
     group: 'Communication',
