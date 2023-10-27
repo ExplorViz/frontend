@@ -18,6 +18,7 @@ interface Args {
   updateHighlighting?(): void;
   updateColors?(): void;
   redrawCommunication?(): void;
+  resetSettings?(): void;
 }
 
 export default class Settings extends Component<Args> {
@@ -158,5 +159,12 @@ export default class Settings extends Component<Args> {
     }
 
     this.args.updateColors?.();
+  }
+
+  @action
+  resetSettings() {
+    if (this.args.resetSettings) {
+      this.args.resetSettings();
+    }
   }
 }

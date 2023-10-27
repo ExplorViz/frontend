@@ -1,4 +1,5 @@
 import Service from '@ember/service';
+import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import isObject, {
   objectsHaveSameKeys,
@@ -54,6 +55,7 @@ export default class UserSettings extends Service {
     }
   }
 
+  @action
   applyDefaultApplicationSettings() {
     this.set(
       'applicationSettings',
