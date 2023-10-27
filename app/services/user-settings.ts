@@ -48,7 +48,7 @@ export default class UserSettings extends Service {
     this.updateColors();
   }
 
-  private restoreApplicationSettings() {
+  restoreApplicationSettings() {
     const userApplicationSettingsJSON = localStorage.getItem(
       'userApplicationSettings'
     );
@@ -61,10 +61,13 @@ export default class UserSettings extends Service {
 
     if (this.areValidApplicationSettings(parsedApplicationSettings)) {
       this.set('applicationSettings', parsedApplicationSettings);
+      this.updateColors();
     } else {
       localStorage.removeItem('userApplicationSettings');
       throw new Error('Application settings are invalid');
     }
+
+    this.updateColors();
   }
 
   @action
@@ -73,6 +76,8 @@ export default class UserSettings extends Service {
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
+    this.updateColors();
+
     if (saveSettings) {
       this.saveSettings();
     }
