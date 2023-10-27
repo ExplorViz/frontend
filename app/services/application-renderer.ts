@@ -239,7 +239,7 @@ export default class ApplicationRenderer extends Service.extend({
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.configuration.applicationColors
+          this.userSettings.applicationColors
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
@@ -254,7 +254,7 @@ export default class ApplicationRenderer extends Service.extend({
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font,
-          this.configuration.applicationColors
+          this.userSettings.applicationColors
         );
       }
 
@@ -335,7 +335,7 @@ export default class ApplicationRenderer extends Service.extend({
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
-      this.configuration.applicationColors
+      this.userSettings.applicationColors
     );
     // Update links
     this.updateLinks?.();

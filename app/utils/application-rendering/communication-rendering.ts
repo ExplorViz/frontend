@@ -60,7 +60,7 @@ export default class CommunicationRendering {
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.configuration.applicationColors.communicationArrowColor.getHex();
+      this.userSettings.applicationColors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(
@@ -119,7 +119,7 @@ export default class CommunicationRendering {
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =
-      this.configuration.applicationColors;
+      this.userSettings.applicationColors;
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 

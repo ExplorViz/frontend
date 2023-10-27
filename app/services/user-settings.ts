@@ -13,6 +13,7 @@ import {
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
+  ApplicationColorSettingId,
   ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
@@ -21,10 +22,20 @@ import {
   isRangeSetting,
   RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
+import * as THREE from 'three';
 
 export default class UserSettings extends Service {
   @tracked
   applicationSettings!: ApplicationSettings;
+
+  /**
+   * Colors for application visualization
+   *
+   * @property applicationColors
+   * @type ApplicationColors
+   */
+  @tracked
+  applicationColors!: ApplicationColors;
 
   constructor() {
     super(...arguments);
@@ -34,6 +45,7 @@ export default class UserSettings extends Service {
     } catch (e) {
       this.applyDefaultApplicationSettings();
     }
+    this.updateColors();
   }
 
   private restoreApplicationSettings() {
@@ -56,18 +68,14 @@ export default class UserSettings extends Service {
   }
 
   @action
-  applyDefaultApplicationSettings() {
+  applyDefaultApplicationSettings(saveSettings = true) {
     this.set(
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
-  }
-
-  updateSettings() {
-    localStorage.setItem(
-      'userApplicationSettings',
-      JSON.stringify(this.applicationSettings)
-    );
+    if (saveSettings) {
+      this.saveSettings();
+    }
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
@@ -81,28 +89,22 @@ export default class UserSettings extends Service {
         ...this.applicationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
-      this.updateSettings();
     } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
       this.applicationSettings = {
         ...this.applicationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
-      this.updateSettings();
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
-      /*       const regExHex = /^#(?:[0-9a-f]{3}){1,2}$/i; */
       setting.value = newValue;
-      this.updateSettings();
     }
+    this.saveSettings();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private validateRangeSetting(rangeSetting: RangeSetting, value: number) {
-    const { range } = rangeSetting;
-    if (Number.isNaN(value)) {
-      throw new Error('Value is not a number');
-    } else if (value < range.min || value > range.max) {
-      throw new Error(`Value must be between ${range.min} and ${range.max}`);
-    }
+  saveSettings() {
+    localStorage.setItem(
+      'userApplicationSettings',
+      JSON.stringify(this.applicationSettings)
+    );
   }
 
   setColorScheme(scheme: ColorScheme) {
@@ -125,10 +127,45 @@ export default class UserSettings extends Service {
 
     this.notifyPropertyChange('applicationSettings');
 
-    this.updateSettings();
+    this.saveSettings();
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  updateColors() {
+    const { applicationSettings } = this;
+
+    this.applicationColors = {
+      foundationColor: new THREE.Color(
+        applicationSettings.foundationColor.value
+      ),
+      componentOddColor: new THREE.Color(
+        applicationSettings.componentOddColor.value
+      ),
+      componentEvenColor: new THREE.Color(
+        applicationSettings.componentEvenColor.value
+      ),
+      clazzColor: new THREE.Color(applicationSettings.clazzColor.value),
+      highlightedEntityColor: new THREE.Color(
+        applicationSettings.highlightedEntityColor.value
+      ),
+      componentTextColor: new THREE.Color(
+        applicationSettings.componentTextColor.value
+      ),
+      clazzTextColor: new THREE.Color(applicationSettings.clazzTextColor.value),
+      foundationTextColor: new THREE.Color(
+        applicationSettings.foundationTextColor.value
+      ),
+      communicationColor: new THREE.Color(
+        applicationSettings.communicationColor.value
+      ),
+      communicationArrowColor: new THREE.Color(
+        applicationSettings.communicationArrowColor.value
+      ),
+      backgroundColor: new THREE.Color(
+        applicationSettings.backgroundColor.value
+      ),
+    };
+  }
+
   private areValidApplicationSettings(maybeSettings: unknown) {
     return (
       isObject(maybeSettings) &&
@@ -136,8 +173,17 @@ export default class UserSettings extends Service {
     );
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  private validateRangeSetting(rangeSetting: RangeSetting, value: number) {
+    const { range } = rangeSetting;
+    if (Number.isNaN(value)) {
+      throw new Error('Value is not a number');
+    } else if (value < range.min || value > range.max) {
+      throw new Error(`Value must be between ${range.min} and ${range.max}`);
+    }
+  }
 }
+
+export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

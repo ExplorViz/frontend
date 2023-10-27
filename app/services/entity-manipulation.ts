@@ -1,15 +1,15 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import Configuration from 'explorviz-frontend/services/configuration';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
+import UserSettings from './user-settings';
 
 export default class EntityManipulation extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('configuration')
-  private configuration!: Configuration;
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @action
   updateColors(scene: THREE.Scene) {
@@ -19,7 +19,7 @@ export default class EntityManipulation extends Service.extend({
         // Special case because communication arrow is no base mesh
       } else if (object3D instanceof CommunicationArrowMesh) {
         object3D.updateColor(
-          this.configuration.applicationColors.communicationArrowColor
+          this.userSettings.applicationColors.communicationArrowColor
         );
       }
     });

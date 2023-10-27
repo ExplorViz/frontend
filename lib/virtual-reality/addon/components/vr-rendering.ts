@@ -12,7 +12,6 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, {
   MessageArgs,
@@ -115,10 +114,6 @@ const MOUSE_ROTATION_SPEED = Math.PI;
 
 export default class VrRendering extends Component<Args> {
   // #region SERVICES
-
-  @service('configuration')
-  private configuration!: Configuration;
-
   @service('toast-message')
   private toastMessage!: ToastMessage;
 
@@ -214,8 +209,7 @@ export default class VrRendering extends Component<Args> {
 
     this.scene = vrScene();
     // this.scene = defaultScene();
-    this.scene.background =
-      this.configuration.applicationColors.backgroundColor;
+    this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -240,7 +234,7 @@ export default class VrRendering extends Component<Args> {
 
     this.scene.add(this.detachedMenuGroups.container);
 
-    this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
       true;
   }
 
@@ -1248,7 +1242,7 @@ export default class VrRendering extends Component<Args> {
     x.fromArray(position);
     x.y += 15;
     this.graph.localToWorld(x);
-    this.detachedMenuRenderer.restoreMenu({
+    this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,
       userId,

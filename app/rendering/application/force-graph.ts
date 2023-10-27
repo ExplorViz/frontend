@@ -4,9 +4,9 @@ import { inject as service } from '@ember/service';
 import * as d3 from 'd3-force-3d';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -49,8 +49,8 @@ export default class ForceGraph {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('configuration')
-  configuration!: Configuration;
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
@@ -67,11 +67,11 @@ export default class ForceGraph {
       .warmupTicks(100)
       .linkColor(
         () =>
-          `#${this.configuration.applicationColors.communicationColor.getHexString()}`
+          `#${this.userSettings.applicationColors.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>
-          `#${this.configuration.applicationColors.communicationArrowColor.getHexString()}`
+          `#${this.userSettings.applicationColors.communicationArrowColor.getHexString()}`
       )
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createMeshFromLink)

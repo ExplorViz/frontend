@@ -114,7 +114,7 @@ export default class LinkRenderer extends Service.extend({}) {
       id
     );
     const { communicationColor, highlightedEntityColor } =
-      this.configuration.applicationColors;
+      this.userSettings.applicationColors;
 
     const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
@@ -172,7 +172,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.configuration.applicationColors.communicationArrowColor.getHex();
+      this.userSettings.applicationColors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(

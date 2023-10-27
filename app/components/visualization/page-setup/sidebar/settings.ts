@@ -148,12 +148,12 @@ export default class Settings extends Component<Args> {
   }
 
   applyColorsFromUserSettings() {
-    const { applicationColors } = this.configuration;
+    const { applicationColors } = this.userSettings;
 
     let settingId: keyof ApplicationColorSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in applicationColors) {
-      this.configuration.applicationColors[settingId].set(
+      this.userSettings.applicationColors[settingId].set(
         this.userSettings.applicationSettings[settingId].value
       );
     }
@@ -165,6 +165,7 @@ export default class Settings extends Component<Args> {
   resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings();
+      this.applyColorsFromUserSettings();
     }
   }
 }
