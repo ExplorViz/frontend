@@ -61,7 +61,6 @@ export default class UserSettings extends Service {
 
     if (this.areValidApplicationSettings(parsedApplicationSettings)) {
       this.set('applicationSettings', parsedApplicationSettings);
-      this.updateColors();
     } else {
       localStorage.removeItem('userApplicationSettings');
       throw new Error('Application settings are invalid');
