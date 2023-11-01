@@ -96,6 +96,13 @@ export default class HighlightingService extends Service.extend({
         }
       }
     }
+
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      if (externLink.highlighted) {
+        externLink.highlightingColor = this.highlightingColor;
+        externLink.highlight();
+      }
+    });
   }
 
   @action
