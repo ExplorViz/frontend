@@ -256,6 +256,8 @@ export default class CollaborationSession extends Service.extend({
   }
 
   onSelfDisconnected(event?: any) {
+    this.disconnect();
+
     if (this.isConnecting) {
       this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
@@ -273,10 +275,7 @@ export default class CollaborationSession extends Service.extend({
 
     this.landscapeListener.initLandscapePolling();
 
-    // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
-    this.highlightingService.updateHighlighting();
-
-    this.disconnect();
+    this.highlightingService.resetColorsOfHighlightedEntities();
   }
 
   get isOnline() {
