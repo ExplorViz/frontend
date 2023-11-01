@@ -231,7 +231,6 @@ export default class CollaborationSession extends Service.extend({
     for (const highlightedEntityComponent of highlightedComponents) {
       const { highlightedApp, highlightedEntity } = highlightedEntityComponent;
       //console.log('appID:', appId, ' , entityID: ', entityId);
-      console.log(highlightedEntityComponent);
       if (highlightedApp !== '') {
         const application =
           this.applicationRenderer.getApplicationById(highlightedApp);
@@ -248,7 +247,7 @@ export default class CollaborationSession extends Service.extend({
         }
       } else {
         //extern Link
-        const link = this.linkRenderer.getLinkById(entityId);
+        const link = this.linkRenderer.getLinkById(highlightedEntity);
         if (link) {
           this.applicationRenderer.highlightExternLink(link, false);
         }
