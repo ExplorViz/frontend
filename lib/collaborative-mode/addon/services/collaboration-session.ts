@@ -229,12 +229,14 @@ export default class CollaborationSession extends Service.extend({
 
     // walk trough all highlighted entities and unhighlight them
     for (const highlightedEntityComponent of highlightedComponents) {
-      const { appId, entityId } = highlightedEntityComponent;
+      const { highlightedApp, highlightedEntity } = highlightedEntityComponent;
       //console.log('appID:', appId, ' , entityID: ', entityId);
-      if (appId !== '') {
-        const application = this.applicationRenderer.getApplicationById(appId);
+      console.log(highlightedEntityComponent);
+      if (highlightedApp !== '') {
+        const application =
+          this.applicationRenderer.getApplicationById(highlightedApp);
         if (application) {
-          const mesh = application.getMeshById(entityId);
+          const mesh = application.getMeshById(highlightedEntity);
           if (isEntityMesh(mesh)) {
             this.applicationRenderer.highlight(
               mesh,

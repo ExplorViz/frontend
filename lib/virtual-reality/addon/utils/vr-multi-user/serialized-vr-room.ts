@@ -15,9 +15,9 @@ export type SerializedDetachedMenu = {
 
 export type SerializedHighlightedComponent = {
   userId: string;
-  appId: string;
+  highlightedApp: string;
   entityType: string;
-  entityId: string;
+  highlightedEntity: string;
   isHighlighted: boolean;
   color: number[];
 };
