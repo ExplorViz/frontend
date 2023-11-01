@@ -1,8 +1,7 @@
 import type { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
-import computeDrawableClassCommunication, {
-  DrawableClassCommunication,
-} from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import computeClassCommunication from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import type { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   type StructureLandscapeData,
@@ -68,7 +67,7 @@ export default class LandscapeDataContext {
     this.lastDynamicDataRaw = dynamicData.raw;
 
     if (this.lastStructureData && update.dynamic) {
-      update.drawableClassCommunications = computeDrawableClassCommunication(
+      update.drawableClassCommunications = computeClassCommunication(
         this.lastStructureData,
         update.dynamic
       );
@@ -140,7 +139,7 @@ export type DataUpdate = {
   structure?: StructureLandscapeData;
   dynamic?: DynamicLandscapeData;
   timestamp?: Timestamp;
-  drawableClassCommunications?: DrawableClassCommunication[];
+  drawableClassCommunications?: ClassCommunication[];
 };
 
 export type BackendInfo = {
