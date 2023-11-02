@@ -130,6 +130,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         const pn = data.points[0].pointNumber;
 
+        console.log("pn:" + JSON.stringify(pn));
+        console.log(JSON.stringify(data.points[0].fullData.x)); // x-values 
+        console.log(JSON.stringify(data.points[0].fullData.marker.color)); // list of x-values points colors
+        console.log(JSON.stringify(data.points[0].fullData.marker.size));
+
         const numberOfPoints = data.points[0].fullData.x.length;
 
         let colors = data.points[0].fullData.marker.color;

@@ -1,0 +1,18 @@
+{{#if (and @evolutionData @selectedApplication)}}
+  <div
+    class='plotlyDiv'
+    {{on 'mouseenter' this.handleMouseEnter}}
+    {{on 'mouseleave' this.handleMouseLeave}}
+    {{did-update this.didRender @evolutionData @selectedApplication}}
+    {{did-insert this.didRender}}
+  >
+  </div>
+{{else}}
+  <div class='timeline-no-timestamps-outer'>
+    <div class='timeline-no-timestamps-inner'>
+      No application selected!
+    </div>
+  </div>
+  <div class='plotlyDiv timeline-blur-effect' {{did-insert this.didRender}}>
+  </div>
+{{/if}}

@@ -3,6 +3,7 @@
   'newLandscapeData'
   this.receiveNewLandscapeData
 }}
+{{add-listener this.evolutionListener 'newEvolutionData' this.receiveNewEvolutionData }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
 {{add-listener
@@ -194,11 +195,32 @@
       id='timeline'
       class='timeline {{unless this.isTimelineActive "timelinehide"}}'
     >
+      <button {{on 'click' this.showRequestsTimeline}} >Requests</button>
+      <button {{on 'click' this.showCommitsTimeline}} >Evolution</button>
+
+      {{#if this.isRequestsTimeline}}
       <Visualization::PageSetup::Timeline::PlotlyTimeline
         @timestamps={{this.timelineTimestamps}}
         @clicked={{this.timelineClicked}}
         @setChildReference={{this.getTimelineReference}}
       />
+      {{/if}}
+
+      {{#if this.isCommitsTimeline}}
+      <Visualization::PageSetup::ApplicationButton::ApplicationSelection
+          @evolutionData={{this.evolutionLandscapeData}} 
+          @clicked={{this.applicationButtonClicked}}
+        />
+      <Visualization::PageSetup::Commitline::PlotlyCommitline
+        @evolutionData={{this.evolutionLandscapeData}}
+        @selectedApplication={{this.currentSelectedApplication}}
+        @selectedCommits={{this.currentSelectedCommits}}
+        @clicked={{this.commitlineClicked}}
+        @setChildReference={{this.getCommitlineReference}}
+      />
+      {{/if}}
+
+
     </div>
   </div>
 {{/if}}

@@ -50,10 +50,17 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import EvolutionListener from 'explorviz-frontend/services/evolution-listener';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
+import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
+}
+
+export interface SelectedCommit {
+  commitId: string;
+  branchName: string;
 }
 
 export const earthTexture = new THREE.TextureLoader().load(
@@ -116,6 +123,8 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
+  plotlyCommitlineRef!: PlotlyCommitline;
+
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -138,10 +147,20 @@ export default class VisualizationController extends Controller {
   landscapeData: LandscapeData | null = null;
 
   @tracked
+  evolutionLandscapeData: EvolutionLandscapeData | null = null;
+
+  @tracked
+  currentSelectedCommits: Map<string,Map<string,SelectedCommit[]>> = new Map(); // outer key is application id, inner key is branch name
+
+  @tracked
+  currentSelectedApplication: string | null = null;
+
+  @tracked
   visualizationPaused = false;
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
+
 
   @tracked
   vrSupported: boolean = false;
@@ -156,6 +175,12 @@ export default class VisualizationController extends Controller {
 
   @tracked
   flag: boolean = false; // default value
+
+  @tracked
+  isRequestsTimeline: boolean = true; // default value
+  
+  @tracked
+  isCommitsTimeline: boolean = false; // default value
 
   debug = debugLogger();
 
@@ -237,6 +262,13 @@ export default class VisualizationController extends Controller {
           this.timelineTimestamps.lastObject?.timestamp;
       }
     }
+  }
+
+  @action
+  receiveNewEvolutionData(evolutionData: EvolutionLandscapeData){
+    console.log("YEAA EVOLUTION");
+    this.evolutionLandscapeData = evolutionData;
+    console.log(JSON.stringify(evolutionData));
   }
 
   @action
@@ -400,6 +432,26 @@ export default class VisualizationController extends Controller {
     );
   }
 
+  @action
+  async applicationButtonClicked(application: string) {
+    if(this.currentSelectedApplication !== application){ // don't trigger reload
+      this.currentSelectedApplication = application;
+    }
+  }
+
+  @action
+  async commitlineClicked(currentSelectedApplication: string, commits: Map<string,SelectedCommit[]>) {
+    if (commits.size > 0) {
+      this.pauseVisualizationUpdating();
+      this.currentSelectedCommits.set(currentSelectedApplication, commits);
+    }else {
+      this.currentSelectedCommits.delete(currentSelectedApplication);
+      if(this.currentSelectedCommits.size === 0){
+        this.resumeVisualizationUpdating();
+      }
+    }
+  }
+
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
     try {
       const [structureData, dynamicData] =
@@ -421,6 +473,12 @@ export default class VisualizationController extends Controller {
   getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
     // called from within the plotly timeline component
     set(this, 'plotlyTimelineRef', plotlyTimelineRef);
+  }
+
+  @action
+  getCommitlineReference(plotlyCommitlineRef: PlotlyCommitline) {
+    // called from within the plotly timeline component
+    set(this, 'plotlyCommitlineRef', plotlyCommitlineRef);
   }
 
   @action
@@ -461,7 +519,7 @@ export default class VisualizationController extends Controller {
     this.visualizationPaused = false;
     this.closeDataSelection();
     this.landscapeListener.initLandscapePolling();
-    //this.evolutionListener.initEvolutionPolling();
+    this.evolutionListener.initEvolutionPolling();
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -568,6 +626,22 @@ export default class VisualizationController extends Controller {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
   }
+
+  @action
+  showRequestsTimeline(){
+    console.log("Requests Timeline");
+    this.isCommitsTimeline = false;
+    this.isRequestsTimeline = true;
+  }
+
+  @action
+  showCommitsTimeline(){
+    console.log("Commits Timeline");
+    this.isRequestsTimeline = false;
+    this.isCommitsTimeline = true;
+  }
+
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
