@@ -52,6 +52,7 @@ import EvolutionListener from 'explorviz-frontend/services/evolution-listener';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
+import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -121,6 +122,9 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('repos/configuration-repository')
+  configurationRepo!: ConfigurationRepository;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   plotlyCommitlineRef!: PlotlyCommitline;
@@ -150,7 +154,7 @@ export default class VisualizationController extends Controller {
   evolutionLandscapeData: EvolutionLandscapeData | null = null;
 
   @tracked
-  currentSelectedCommits: Map<string,Map<string,SelectedCommit[]>> = new Map(); // outer key is application id, inner key is branch name
+  currentSelectedCommits: Map<string,SelectedCommit[]> = new Map();
 
   @tracked
   currentSelectedApplication: string | null = null;
@@ -160,6 +164,15 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
+
+  @tracked
+  showConfigurationOverview: boolean = false;
+
+  @tracked
+  commitlineConfiguration: ConfigurationItem[] = [];
+
+  @tracked
+  commitlineMetrics: String[] = [];
 
 
   @tracked
@@ -174,13 +187,13 @@ export default class VisualizationController extends Controller {
   });
 
   @tracked
-  flag: boolean = false; // default value
+  flag: boolean = false;
 
   @tracked
-  isRequestsTimeline: boolean = true; // default value
+  isRequestsTimeline: boolean = true;
   
   @tracked
-  isCommitsTimeline: boolean = false; // default value
+  isCommitsTimeline: boolean = false;
 
   debug = debugLogger();
 
@@ -247,6 +260,19 @@ export default class VisualizationController extends Controller {
     const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
+  }
+
+  @action
+  updateConfigurationsAndMetrics() {
+    const currentToken = this.landscapeTokenService.token!.value;
+    this.commitlineConfiguration = this.configurationRepo.getConfiguration(currentToken);
+    this.commitlineMetrics = this.configurationRepo.getSoftwaremetrics(currentToken)
+  }
+
+  @action updatePlotForMetrics(){
+    if(this.plotlyCommitlineRef){
+      this.plotlyCommitlineRef.updatePlotlineForMetric();
+    }
   }
 
   @action
@@ -325,6 +351,12 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+  }
+
+
+  @action
+  toggleCommitlineConfigurationOverview() {
+    this.showConfigurationOverview = !this.showConfigurationOverview;
   }
 
   @action

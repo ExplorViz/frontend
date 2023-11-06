@@ -1,0 +1,126 @@
+<BsModalSimple
+  @open={{this.showConfiguration}}
+  @onHidden={{this.toggleConfigOverview}}
+  @title="Configuration Overview"
+  @size="lg"
+  {{did-insert this.didRender}}
+>
+  <table
+    id="timeline-configuration-table"
+    class="table table-striped"
+  >
+    <thead>
+      <tr>
+        <th scope="col"><label for="configuration-checkbox">Show</label></th>
+        <th scope="col"><label for="configuration-alias">Alias</label></th>
+        <th scope="col"><label for="configuration-key">Key</label></th>
+        <th scope="col"><label for="configuration-color">Color</label></th>
+        <th scope="col"><label for="configuration-others"/></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each
+        @configurations as |configuration|
+      }}
+        <tr>
+          <th scope="row">
+            <input
+              type="checkbox"
+              id="configuration-checkbox"
+              checked={{mut configuration.status}}
+              {{on "click" (fn this.toggleConfigStatus configuration.id)}}
+            >
+          </th>
+          <th scope="row">
+            <input
+              type="text"
+              id="configuration-alias"
+              value={{configuration.name}}
+              {{on "change" (fn this.changeConfigName configuration value=@target)}}
+            >
+          </th>
+          <th scope="row">
+            <select
+              id="configuration-key"
+              {{on "change" (fn this.changeConfigKey configuration value=@target)}}
+            >
+              {{#each
+                  @softwaremetrics as |metric|
+              }}
+                {{#if (eq metric (mut configuration.key))}}
+                  <option value={{metric}} selected="selected">{{metric}}</option>
+                {{else}}
+                  <option value={{metric}}>{{metric}}</option>
+                {{/if}}
+              {{/each}}
+            </select>
+          </th>
+          <th scope="row">
+            <input
+              type="color"
+              id="configuration-color"
+              value={{mut configuration.color}}
+              {{ on "change" (fn this.changeConfigColor configuration value=@target)}}
+            >
+          </th>
+          <th scope="row">
+            <button
+              class="button-svg-with-hover"
+              id="configuration-others"
+              type="button"
+              {{on "click" (fn this.deleteConfig configuration.id)}}
+            >
+              {{svg-jar "trash-16" class="octicon align-middle"}}
+              <BsTooltip @placement="bottom" @triggerEvents="hover">
+                Deletes configuration permanently
+              </BsTooltip>
+            </button>
+          </th>
+        </tr>
+      {{/each}}
+      <tr>
+        <th scope="row">
+          <button
+            form="config-add"
+            class="button-svg-with-hover"
+            type="submit"
+          >
+            {{svg-jar "plus-16" class="octicon align-middle"}}
+            <BsTooltip @placement="bottom" @triggerEvents="hover">
+              Adds configuration if the given parameters are valid
+            </BsTooltip>
+          </button>
+        </th>
+        <th scope="row">
+          <input
+            form="config-add"
+            id="config-add-name"
+            maxlength="100"
+            type="text"
+            placeholder="Display Name"
+          >
+        </th>
+        <th scope="row">
+          <select id="config-add-key" form="config-add">
+            <option selected disabled>Metric Key</option>
+            {{#each
+                @softwaremetrics as |metric|
+            }}
+              <option value={{metric}}>{{metric}}</option>
+            {{/each}}
+          </select>
+        </th>
+        <th scope="row">
+          <input
+              form="config-add"
+              id="config-add-color"
+              type="color"
+              value="#1f77b4"
+          >
+        </th>
+        <th scope="row"></th>
+      </tr>
+    </tbody>
+  </table>
+  <form id="config-add" {{on "submit" this.addConfig preventDefault="true"}}></form>
+</BsModalSimple>

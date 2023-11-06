@@ -2,8 +2,13 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { Branch, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
+import { inject as service } from '@ember/service';
+import ENV from 'explorviz-frontend/config/environment';
+import Auth from 'explorviz-frontend/services/auth';
+import ConfigurationRepository from 'explorviz-frontend/services/repos/configuration-repository';
 
 interface IMarkerStates {
   [commitId: string]: {
@@ -13,18 +18,72 @@ interface IMarkerStates {
   };
 }
 
+type FileMetric = {
+  fileName: string;
+  loc: number;
+  cyclomaticComplexity: number | undefined;
+  numberOfMethods: number | undefined;
+}
+type CommitData = {
+  commitID: string;
+  parentCommitID: string;
+  branchName: string;
+  modified: string[] | undefined;
+  deleted: string[] | undefined;
+  added: string[] | undefined;
+  fileMetric: FileMetric[];
+}
+
+function isCommitData(commitData: any): commitData is CommitData {
+  return (
+    commitData !== null &&
+    typeof commitData === 'object' &&
+    typeof commitData.commitID === 'string' &&
+    typeof commitData.parentCommitID === 'string' &&
+    typeof commitData.branchName === 'string' &&
+    (typeof commitData.modified === 'undefined' || typeof commitData.modified.every((x: any) => typeof x === 'string')) &&
+    (typeof commitData.deleted === 'undefined' || typeof commitData.deleted.every((x: any) => typeof x === 'string')) &&
+    (typeof commitData.added === 'undefined' || typeof commitData.added.every((x: any) => typeof x === 'string')) &&
+    commitData.fileMetric.every(isFileMetricType)
+  );
+}
+
+function isFileMetricType(fileMetric: any): fileMetric is FileMetric {
+  return (
+    fileMetric !== null &&
+    typeof fileMetric === 'object' &&
+    typeof fileMetric.fileName === 'string' &&
+    typeof fileMetric.loc === 'number' &&
+    (typeof fileMetric.cyclomaticComplexity === 'number' ||
+    typeof fileMetric.cyclomaticComplexity === 'undefined') &&
+    (typeof fileMetric.numberOfMethods === 'number' ||
+    typeof fileMetric.numberOfMethods === 'undefined')
+  );
+}
+
 interface IArgs {
   evolutionData?: EvolutionLandscapeData;
   selectedApplication?: string;
-  selectedCommits?: Map<string,Map<string,SelectedCommit[]>>; // outer key is application id, inner key is branch name
+  //selectedCommits?: Map<string,Map<string,SelectedCommit[]>>; // outer key is application id, inner key is branch name
+  selectedCommits?: Map<string, SelectedCommit[]>;
   highlightedMarkerColor?: string;
   setChildReference?(timeline: PlotlyCommitline): void;
   clicked?(selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>): void;
+  toggleConfigurationOverview(): void;
 }
 
+const { landscapeService} = ENV.backendAddresses;
 export default class PlotlyCommitline extends Component<IArgs> {
 
     private MAX_SELECTION = 2;
+
+  @service('landscape-token')
+  tokenService!: LandscapeTokenService;
+
+  @service('auth') auth!: Auth;
+
+  @service('repos/configuration-repository')
+  configRepo!: ConfigurationRepository;
 
     // BEGIN template-argument getters 
  
@@ -62,6 +121,8 @@ export default class PlotlyCommitline extends Component<IArgs> {
   commitSizes: Map<string, number> = new Map();
   branchNameToLineColor: Map<string, string> = new Map();
   usedColors: Set<number[]> = new Set();
+
+  commitIdToCommitData: Map<string, CommitData> = new Map();
   
 
   maxCommits = 0;
@@ -100,10 +161,11 @@ export default class PlotlyCommitline extends Component<IArgs> {
         this.computeSizes(evolutionData, application);
         this.createPlotlyCommitlineChart(evolutionData, application, selectedCommits);
         this.setupPlotlyListener(evolutionData, application,selectedCommits);
+        // TODO: select latest commit on main branch
     }
   }
 
-  setupPlotlyListener(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,Map<string,SelectedCommit[]>>) {
+  setupPlotlyListener(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
     const plotlyDiv = this.commitlineDiv;
 
@@ -114,6 +176,11 @@ export default class PlotlyCommitline extends Component<IArgs> {
       plotlyDiv.on('plotly_click', (data: any) => {
         // https://plot.ly/javascript/reference/#scatter-marker
 
+        if(data.points[0].data.mode === "markers"){ // no functionality for metric circles
+          return;
+        }
+
+
         const pn = data.points[0].pointNumber;
         const numberOfPoints = data.points[0].fullData.x.length;
 
@@ -122,10 +189,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
         const branchName = data.points[0].data.name;
 
-        const applicationSelectedCommits = selectedCommits.get(selectedApplication)!;
-
-
-        // add selected commit
+        // add selected commit ------------------------------------------------------
 
         let commitId = "";
         for (const application of evolutionData.applications) {
@@ -145,10 +209,12 @@ export default class PlotlyCommitline extends Component<IArgs> {
             branchName: branchName
           };
 
-          let selectedCommitList  = applicationSelectedCommits?.get(branchName);
+          let selectedCommitList  = selectedCommits.get(selectedApplication)!;
           const { highlightedMarkerColor } = self;
 
-          if(selectedCommitList){
+          if(selectedCommitList.length > 0){
+
+            // is already selected?
             let isSelected = false;
             for( const selCom of selectedCommitList ) {
                 if (selCom.commitId  === selectedCommit.commitId){
@@ -156,65 +222,13 @@ export default class PlotlyCommitline extends Component<IArgs> {
                     break;
                 }
             }
-
-            console.log("isSelected:",isSelected);
-
     
-            if(!isSelected){ // select
-                console.log("select");
-                selectedCommitList.push(selectedCommit);
-                applicationSelectedCommits.set(branchName, selectedCommitList);
-                colors[pn] = highlightedMarkerColor;
-            }else { // unselect 
-                selectedCommitList = selectedCommitList.filter((commit => { return commit.commitId !== selectedCommit.commitId}));
-                colors[pn] = data.points[0].fullData.line.color;
-
-                if(selectedCommitList.length > 0)
-                    applicationSelectedCommits.set(branchName, selectedCommitList);
-                else
-                    applicationSelectedCommits.delete(branchName);
-            }
-          }else {
-            console.log("select first in branch");
-            colors[pn] = highlightedMarkerColor;
-            applicationSelectedCommits.set(branchName, [selectedCommit]);
-          }
-
-          //     // reset old selection, since maximum selection value is achieved
-    //     // and user clicked on a new point
-
-    
-        let numberOfSelections = 0;
-        for (const application of evolutionData.applications) {
-            if(application.name === selectedApplication ) {
-                for(const branch of application.branches) {
-                    const branchSelectedCommits = applicationSelectedCommits?.get(branch.name);
-                    if(branchSelectedCommits){
-                    numberOfSelections += branchSelectedCommits.length;
-                    }
-                }
-                break;
-            }
-        }
-
-         if (numberOfSelections > this.MAX_SELECTION) {
-
-            for (const application of evolutionData.applications) {
-                if(application.name === selectedApplication ) {
-                    for(const branch of application.branches) {
-                        const branchSelectedCommits = applicationSelectedCommits?.get(branch.name);
-                        if(branchSelectedCommits){
-                            applicationSelectedCommits.delete(branch.name);
-                        }
-                    }
-                    break;
-                }
-            }
-            // unselect all
-            console.log("unselect ALL");
-            for (const application of evolutionData.applications) {
-                if(application.name === selectedApplication ) {
-                    let j = 0;
+            if(!isSelected){ // second or third commit got selected 
+              if(selectedCommitList.length >= this.MAX_SELECTION){
+                //TODO unselect all
+                selectedCommits.set(selectedApplication, []);
+                for (const application of evolutionData.applications) {
+                  if(application.name === selectedApplication ) {
                     for(const branch of application.branches) {
                         const curveNumber = this.branchToY.get(branch.name);
                         colors = Array(branch.commits.length).fill(this.branchNameToLineColor.get(branch.name));
@@ -223,17 +237,42 @@ export default class PlotlyCommitline extends Component<IArgs> {
                         Plotly.restyle(plotlyDiv, update, curveNumber);
                     }
                     break;
+                  }
                 }
+                // TODO: load latest landscape structure of main branch (write function for that)
+              }else {
+                // select commit
+                selectedCommitList.push(selectedCommit);
+                selectedCommits.set(selectedApplication, selectedCommitList);
+                colors[pn] = highlightedMarkerColor;
+                const update = { marker: { color: colors, size: sizes } };
+                const tn = data.points[0].curveNumber;
+                Plotly.restyle(plotlyDiv, update, [tn]);
+              }
+            }else { 
+              // unselect 
+              selectedCommitList = selectedCommitList.filter((commit => { return commit.commitId !== selectedCommit.commitId}));
+              colors[pn] = data.points[0].fullData.line.color;
+              selectedCommits.set(selectedApplication, selectedCommitList);
+              const update = { marker: { color: colors, size: sizes } };
+              const tn = data.points[0].curveNumber;
+              Plotly.restyle(plotlyDiv, update, [tn]);
+
+              // TODO: if no selected commit remains, load latest landscape structure of main branch (write function for that)
+              // TODO: if one selected commit remains, load its landscape structure
             }
-                       
-            
-         } else {
+          }else { 
+            // first commit got selected
+            colors[pn] = highlightedMarkerColor;
+            selectedCommits.set(selectedApplication, [selectedCommit]);
             const update = { marker: { color: colors, size: sizes } };
             const tn = data.points[0].curveNumber;
             Plotly.restyle(plotlyDiv, update, [tn]);
-         }
 
+            // TODO: load landscape structure of commit
+          }
 
+          // end of add selected commit ---------------------------------------------
 
     //     // Check if component should pass the selected timestamps
     //     // to its parent
@@ -287,15 +326,69 @@ export default class PlotlyCommitline extends Component<IArgs> {
     
   }
 
-  createPlotlyCommitlineChart(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,Map<string,SelectedCommit[]>>) {
+  @action
+  toggleConfigOverview() {
+    this.args.toggleConfigurationOverview();
+  }
+
+  async requestData(evolutionData: EvolutionLandscapeData, selectedApplication: string) {
+    const commitIdToCommitData = new Map();
+    for (const application of evolutionData.applications) {
+      if(application.name === selectedApplication ) {
+        for(const branch of application.branches) {
+          for(const commitId of branch.commits){
+            const commitData =  await this.requestCommitData(commitId);
+
+            if(isCommitData(commitData)){
+              commitIdToCommitData.set(commitData.commitID, commitData);
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    return commitIdToCommitData;
+  }
+
+  requestCommitData(commitId: string) {
+    return new Promise<CommitData>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${landscapeService}/v2/landscapes/${this.tokenService.token.value}/commit-report/${commitId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+        }
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const commitData =
+              (await response.json()) as CommitData;
+            resolve(commitData);
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+
+
+  createPlotlyCommitlineChart(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
     if(evolutionData.applications.find(application => application.name === selectedApplication)) { 
 
 
         if(!selectedCommits.get(selectedApplication)){
-            selectedCommits.set(selectedApplication, new Map());
+            selectedCommits.set(selectedApplication, []);
         }
 
-        // TODO: used old colors after switching back from timeline or other applications commitline
+        // TODO: used old branch colors after switching back from timeline or other applications commitline
 
         // create branches
         let plotlyBranches: any[] = [];
@@ -317,8 +410,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                     const colors = Array.from(Array(numOfCommits)).map(() => color);
                     const sizes = Array.from(Array(numOfCommits)).map(() => 10);
 
-                    console.log("SIZES:",sizes);
-                    const plotlyBranch = this.getPlotlyDataObject(commits,colors,sizes,branchCounter, branch.name);
+                    const plotlyBranch = this.getPlotlyDataObject(commits,colors,sizes,branchCounter, branch.name, evolutionData, selectedApplication);
                     plotlyBranches.push(plotlyBranch);
                     this.branchToY.set(branch.name, branchCounter);
                     this.branchToColor.set(branch.name, color);
@@ -328,6 +420,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 break;
             }
         }
+
 
         // add branch to branch connections
 
@@ -341,7 +434,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                     const fromBranchY = this.branchToY.get(branch.branchPoint.name);
                     const fromBranchX = branchX - 1;
 
-                    if (fromBranchY !== undefined){ // fromBranchY can be 0 so we explicitly ask for undefined
+                    if (fromBranchY !== undefined && branchY){ // fromBranchY can be 0 so we explicitly ask for undefined
             
                         const color = this.branchToColor.get(branch.name)!;
                         plotlyBranches.push({
@@ -358,13 +451,13 @@ export default class PlotlyCommitline extends Component<IArgs> {
             }
         }
 
-         //TODO: restore selected commits
+         //TODO: recoloring selected commits, e.g. when switching back from another application or the timeline
 
-        const layout = PlotlyCommitline.getPlotlyLayoutObject(0,50);
+        const layout = PlotlyCommitline.getPlotlyLayoutObject(0,15);
         this.branchToY.forEach((val, key) => {
             layout.annotations.push({
                 xref: 'paper',
-                x: 0.05,
+                x: 0,
                 y: val,
                 xanchor: 'right',
                 yanchor: 'middle',
@@ -385,8 +478,6 @@ export default class PlotlyCommitline extends Component<IArgs> {
             PlotlyCommitline.getPlotlyOptionsObject()
           );
 
-        this.calculateSelectedCommits(evolutionData, selectedApplication, "main", selectedCommits);
-
     }else {
         // TODO: error text no commits
         console.log("No commits available yet");
@@ -394,6 +485,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
   }
 
   calculateOffset(selectedApplication: string, branch: Branch) {
+  // TODO: commit can have more than one predecessor (merging). So we need to calculate and add the maximum of both recursive calls to our counter
 
     const evolutionData = this.evolutionData!; // evolutionData not undefined, otherwise calculateOffset wouldn't be called
     let counter = 0;
@@ -425,10 +517,10 @@ export default class PlotlyCommitline extends Component<IArgs> {
     return counter;
   }
 
-  calculateSelectedCommits(evolutionData: EvolutionLandscapeData, selectedApplication: string, involvedBranch: string, selectedCommits: Map<string,Map<string,SelectedCommit[]>>) {
+  //calculateSelectedCommits(evolutionData: EvolutionLandscapeData, selectedApplication: string, involvedBranch: string, selectedCommits: Map<string,Map<string,SelectedCommit[]>>) {
 
-    const chainsWithInvolvedBranch = this.getListOfFullBranchPaths(evolutionData, selectedApplication, involvedBranch);
-    console.log(chainsWithInvolvedBranch);
+    //const chainsWithInvolvedBranch = this.getListOfFullBranchPaths(evolutionData, selectedApplication, involvedBranch);
+    //console.log(chainsWithInvolvedBranch);
  
 
     // let counter = 0;
@@ -472,108 +564,108 @@ export default class PlotlyCommitline extends Component<IArgs> {
     //     }
     // }
     // return counter;
-  }
+  //}
 
   // TODO: needed?
   // returns the list of branch paths that contain involvedBranch. A branch path starts with the origin branch and ends with a branch with no branch points (except the one it originates from) 
-  getListOfFullBranchPaths(evolutionData: EvolutionLandscapeData, selectedApplication: string, involvedBranch: string){
-    const setOfBranches = new Set<string>();
-    setOfBranches.add("NONE");
-    let listOfChains = [];
-    for (const application of evolutionData.applications) {
-        if(application.name === selectedApplication){
-            //const numberOfBranches = application.branches.length;
-            let involvedBranchFound = false;
-            let done = false;
+  // getListOfFullBranchPaths(evolutionData: EvolutionLandscapeData, selectedApplication: string, involvedBranch: string){
+  //   const setOfBranches = new Set<string>();
+  //   setOfBranches.add("NONE");
+  //   let listOfChains = [];
+  //   for (const application of evolutionData.applications) {
+  //       if(application.name === selectedApplication){
+  //           //const numberOfBranches = application.branches.length;
+  //           let involvedBranchFound = false;
+  //           let done = false;
 
-            let addToSet: string[] = []; // used for DFS
-            let currentChain : string[] = [];
-            let ignorableBranches : string[] = [];
-            let noNewCandidate = false;
-            let involvedBranchFoundFirstTime = true;
-            while(/*setOfBranches.size - 1 !== numberOfBranches*/ !done){
-                let counter = 0;
+  //           let addToSet: string[] = []; // used for DFS
+  //           let currentChain : string[] = [];
+  //           let ignorableBranches : string[] = [];
+  //           let noNewCandidate = false;
+  //           let involvedBranchFoundFirstTime = true;
+  //           while(/*setOfBranches.size - 1 !== numberOfBranches*/ !done){
+  //               let counter = 0;
 
-                for (const branch of application.branches) { // candidate branches for DFS
-                    if(setOfBranches.has(branch.branchPoint.name) && !setOfBranches.has(branch.name) && !addToSet.includes(branch.name) && !ignorableBranches.includes(branch.name) ){
+  //               for (const branch of application.branches) { // candidate branches for DFS
+  //                   if(setOfBranches.has(branch.branchPoint.name) && !setOfBranches.has(branch.name) && !addToSet.includes(branch.name) && !ignorableBranches.includes(branch.name) ){
                         
-                        // found a new candidate 
+  //                       // found a new candidate 
 
-                        counter++;
-                        if(branch.name === involvedBranch){
-                            involvedBranchFound = true; 
-                        }else {
-                            addToSet = [branch.name, ...addToSet];
-                        }
-                    }
-                }
+  //                       counter++;
+  //                       if(branch.name === involvedBranch){
+  //                           involvedBranchFound = true; 
+  //                       }else {
+  //                           addToSet = [branch.name, ...addToSet];
+  //                       }
+  //                   }
+  //               }
 
-                if(counter > 0){ // we are not done with DFS for the current chain
-                    if(involvedBranchFound && involvedBranchFoundFirstTime){
-                        involvedBranchFoundFirstTime = false;
-                        ignorableBranches = addToSet.slice(0); // copy. Note that especially all "sibling" branches are ignored
-                        addToSet = [involvedBranch];
-                    }
+  //               if(counter > 0){ // we are not done with DFS for the current chain
+  //                   if(involvedBranchFound && involvedBranchFoundFirstTime){
+  //                       involvedBranchFoundFirstTime = false;
+  //                       ignorableBranches = addToSet.slice(0); // copy. Note that especially all "sibling" branches are ignored
+  //                       addToSet = [involvedBranch];
+  //                   }
 
-                    const nextBranch = addToSet[0]; // next branch for DFS
-                    addToSet = addToSet.slice(1); 
-                    currentChain.push(nextBranch);
-                    setOfBranches.add(nextBranch);
-                }else { // no new candidate found. Our current chain has reached its end
+  //                   const nextBranch = addToSet[0]; // next branch for DFS
+  //                   addToSet = addToSet.slice(1); 
+  //                   currentChain.push(nextBranch);
+  //                   setOfBranches.add(nextBranch);
+  //               }else { // no new candidate found. Our current chain has reached its end
 
-                    if(!noNewCandidate){
-                        noNewCandidate = true;
-                    }
-                    else {
-                        done = true;
-                        break;
-                    }
+  //                   if(!noNewCandidate){
+  //                       noNewCandidate = true;
+  //                   }
+  //                   else {
+  //                       done = true;
+  //                       break;
+  //                   }
 
-                    if(involvedBranchFound){
-                        listOfChains.push(currentChain);
-                    }
+  //                   if(involvedBranchFound){
+  //                       listOfChains.push(currentChain);
+  //                   }
 
-                    if(addToSet.length > 0){ 
-                        noNewCandidate = false; // prevent done=true when we reach a chains end 
+  //                   if(addToSet.length > 0){ 
+  //                       noNewCandidate = false; // prevent done=true when we reach a chains end 
 
-                        // backtracking
-                       let resetChainEnd = "";
+  //                       // backtracking
+  //                      let resetChainEnd = "";
 
-                       for (const app of evolutionData.applications) {
-                        if(app.name === selectedApplication){
-                            for (const b of app.branches){
-                                if(b.name === addToSet[0]){
-                                    resetChainEnd = b.branchPoint.name;
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
+  //                      for (const app of evolutionData.applications) {
+  //                       if(app.name === selectedApplication){
+  //                           for (const b of app.branches){
+  //                               if(b.name === addToSet[0]){
+  //                                   resetChainEnd = b.branchPoint.name;
+  //                                   break;
+  //                               }
+  //                           }
+  //                       }
+  //                       break;
+  //                   }
 
-                    const index = currentChain.findIndex(branchName => branchName === resetChainEnd);
-                    currentChain = currentChain.slice(0,index+1);
+  //                   const index = currentChain.findIndex(branchName => branchName === resetChainEnd);
+  //                   currentChain = currentChain.slice(0,index+1);
                     
-                    const nextBranch = addToSet[0];
-                    addToSet = addToSet.slice(1);
-                    currentChain.push(nextBranch);
-                    }
+  //                   const nextBranch = addToSet[0];
+  //                   addToSet = addToSet.slice(1);
+  //                   currentChain.push(nextBranch);
+  //                   }
                     
-                }
-            }
+  //               }
+  //           }
             
 
-            break;
-        }
-    }
-    return listOfChains;
-  }
+  //           break;
+  //       }
+  //   }
+  //   return listOfChains;
+  // }
 
   computeSizes(evolutionData: EvolutionLandscapeData, selectedApplication: string){
     for (const application of evolutionData.applications) {
         if(application.name === selectedApplication){
             for(const branch of application.branches){
-                // TODO: size anhängig von änderungen
+                // TODO: size abhängig von ausmaß der metrik
                 this.commitSizes.set(branch.name, 10);
             }
             break;
@@ -588,6 +680,8 @@ export default class PlotlyCommitline extends Component<IArgs> {
     sizes: number[],
     branch: number,
     branchName: string,
+    evolutionData: EvolutionLandscapeData,
+    selectedApplication: string,
   ) {
       this.branchNameToLineColor.set(branchName, colors[0]);
       return {
@@ -596,7 +690,11 @@ export default class PlotlyCommitline extends Component<IArgs> {
         line: { color: colors[0], width: 2},
         mode: 'lines+markers',
         type: 'scatter',
-        text: PlotlyCommitline.hoverText(),
+        hoverinfo: 'text',
+        hoverlabel: {
+          align: 'left',
+        },
+        text: PlotlyCommitline.hoverText(evolutionData, selectedApplication, branch),
         x: commits,
         y: Array.from(Array(commits.length)).map(() => branch)
       };
@@ -696,9 +794,26 @@ export default class PlotlyCommitline extends Component<IArgs> {
     };
   }
 
-  static hoverText() {
-    console.log("hover");
+  static hoverText(evolutionData: EvolutionLandscapeData, selectedApplication: string, branch: number) {
+    for (const application of evolutionData.applications) {
+      if(application.name === selectedApplication){
+          let branchCounter = 0;
+          for(const b of application.branches){
+            if(branch === branchCounter){
+              return b.commits.map(commit => "Commit ID: " + commit);
+              break;
+            }
+            branchCounter++;
+          }
+          break;
+        }
+    }  
+    return "no commit id found";
   }
+
+
+
+
 
 
     randomRGBA() {
@@ -726,5 +841,140 @@ export default class PlotlyCommitline extends Component<IArgs> {
         this.usedColors.add(rgb);
         return 'rgba(' + red + ',' + green + ',' + blue + ',' + '1)';
     }
+
+    async updatePlotlineForMetric(){
+      const activeIdList = this.configRepo.getActiveConfigurations(this.tokenService.token!.value);
+      const configItemList = this.configRepo.getConfiguration(this.tokenService.token!.value);
+      
+      if(!this.evolutionData){
+        return;
+      }
+
+      if(!this.selectedApplication){
+        return;
+      }
+
+      this.commitIdToCommitData = await this.requestData(this.evolutionData, this.selectedApplication); // TODO: only request data that was not requested before
+      const numOfCircles = activeIdList.length;
+      
+      let newData = [];
+      let nonMetricData = this.commitlineDiv.data.filter((data: any) => 
+        data.mode === "lines+markers" || data.mode === "lines"
+      ); // consider non-metric data
+
+      newData = [...nonMetricData];
+
+
+      for(let i = 0; i < numOfCircles; i++){ // for each metric we place a circle which size indicates its measurement
+        for (const configItem of configItemList){
+          if(activeIdList[i] === configItem.id){
+            const circle = this.plotMetric(configItem.color, configItem.key, configItem.id, i);
+            console.log("CIRCLE: ", circle);
+            newData.push(circle);
+          }
+        }
+      }
+
+      
+      Plotly.newPlot(
+        this.commitlineDiv,
+        newData,
+        this.commitlineDiv.layout,
+        PlotlyCommitline.getPlotlyOptionsObject()
+      );
+
+      this.setupPlotlyListener(this.evolutionData!, this.selectedApplication!, this.selectedCommits!);
+
+    }
+
+    plotMetric(color: string, metric: string, metricId: string, order: number){
+      if(metric === "number of changed files"){
+
+        let maxOfChangedFiles = 0;
+        const branchNameToNumOfChangedFilesList = new Map<string, number[]>();
+
+        for (const application of this.evolutionData!.applications) {
+          if(application.name === this.selectedApplication ) {
+              for(const branch of application.branches) {
+                let numOfChangedFilesList = [];
+                for(const commit of branch.commits){
+                  const commitData = this.commitIdToCommitData.get(commit);
+                  let changedFiles = 0;
+
+                  if(commitData?.deleted)
+                    changedFiles += commitData.deleted.length;
+
+                  if(commitData?.modified)
+                    changedFiles += commitData.modified.length;
+
+                  if(commitData?.added)
+                    changedFiles += commitData.added.length;
+
+                  numOfChangedFilesList.push(changedFiles);
+                  if(changedFiles > maxOfChangedFiles)
+                    maxOfChangedFiles = changedFiles;
+                }
+                branchNameToNumOfChangedFilesList.set(branch.name, numOfChangedFilesList);
+              }
+            break;
+          }
+        }
+
+        let oldData = this.commitlineDiv.data;
+        let xValues : number[] = [];
+        let yValues : number[] = [];
+        let sizes : number[][] = [];
+        let displayedInformation : number[] = [];
+
+        let counter = 0;
+        
+        for (const data of oldData) {
+
+          if(data.mode === "lines+markers"){
+            counter += data.x.length;
+
+
+            const information = branchNameToNumOfChangedFilesList.get(data.name);
+            if(information)
+            displayedInformation = [...displayedInformation, ...information];
+            //else
+              // throw error since every commit should have this information
+
+            let sizeList = branchNameToNumOfChangedFilesList.get(data.name)?.map(num => 5 + (num/maxOfChangedFiles) * 5);
+
+            if(sizeList)
+              sizes.push(sizeList);
+            //else
+              // throw error since every commit should have this metric
+
+            const newXCoordinates = data.x.map((xval: number) => (xval - 0.3) + (order%10)*0.1); 
+            const newYCoordinates = data.y.map((yval: number) => yval + 0.1 + (order%10)*0.1);
+
+            xValues = [...xValues, ...newXCoordinates];
+            yValues = [...yValues, ...newYCoordinates];
+          }              
+        }
+
+        const colors = Array(counter).fill(color);
+        const sizesFinal = sizes.flat();
+        const circle = {
+          marker: { color: colors, size: sizesFinal },
+          mode: 'markers',
+          type: 'scatter',
+          customData: [metricId],
+          name: "number of changed files",
+          text: displayedInformation.map((val: number) => `number of changed files: ${val}` ),
+          x: xValues,
+          y: yValues,
+        }
+        return circle;
+
+      }
+      
+      else {
+        return {};
+      }
+    }
+
 
 }

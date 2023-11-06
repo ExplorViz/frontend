@@ -5,6 +5,8 @@
 }}
 {{add-listener this.evolutionListener 'newEvolutionData' this.receiveNewEvolutionData }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
+{{add-listener this.configurationRepo 'updated' this.updateConfigurationsAndMetrics}}
+{{add-listener this.configurationRepo 'updatePlot' this.updatePlotForMetrics}}
 
 {{add-listener
   this.landscapeRestructure
@@ -193,7 +195,7 @@
     {{/if}}
     <div
       id='timeline'
-      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+      class='timeline {{unless (not this.isCommitsTimeline) "commitline"}} {{unless this.isTimelineActive "timelinehide"}}'
     >
       <button {{on 'click' this.showRequestsTimeline}} >Requests</button>
       <button {{on 'click' this.showCommitsTimeline}} >Evolution</button>
@@ -217,6 +219,10 @@
         @selectedCommits={{this.currentSelectedCommits}}
         @clicked={{this.commitlineClicked}}
         @setChildReference={{this.getCommitlineReference}}
+        @toggleConfigurationOverview={{this.toggleCommitlineConfigurationOverview}}
+        @configurations={{this.commitlineConfiguration}}
+        @softwaremetrics={{this.commitlineMetrics}}
+        @showConfiguration={{this.showConfigurationOverview}}
       />
       {{/if}}
 
