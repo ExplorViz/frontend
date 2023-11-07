@@ -4,9 +4,8 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { ColorScheme } from 'explorviz-frontend/utils/settings/color-schemes';
+import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
-  ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
   SettingGroup,
@@ -31,7 +30,7 @@ export default class Settings extends Component<Args> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  colorSchemes: { name: string; id: ColorScheme }[] = [
+  colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
     { name: 'Classic (Initial)', id: 'classic' },
     { name: 'Blue', id: 'blue' },
@@ -142,22 +141,8 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  applyColorScheme(colorScheme: ColorScheme) {
+  applyColorScheme(colorScheme: ColorSchemeId) {
     this.userSettings.setColorScheme(colorScheme);
-    this.applyColorsFromUserSettings();
-  }
-
-  applyColorsFromUserSettings() {
-    const { applicationColors } = this.userSettings;
-
-    let settingId: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in applicationColors) {
-      this.userSettings.applicationColors[settingId].set(
-        this.userSettings.applicationSettings[settingId].value
-      );
-    }
-
     this.args.updateColors?.();
   }
 
@@ -165,7 +150,8 @@ export default class Settings extends Component<Args> {
   resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings();
-      this.applyColorsFromUserSettings();
+      this.userSettings.setColorScheme('default');
+      this.args.updateColors?.();
     }
   }
 }

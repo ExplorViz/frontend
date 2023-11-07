@@ -23,6 +23,7 @@ export default class EntityManipulation extends Service.extend({
         );
       }
     });
+    scene.background = this.userSettings.applicationColors.backgroundColor;
   }
 }
 

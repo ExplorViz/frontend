@@ -6,10 +6,11 @@ import isObject, {
 } from 'explorviz-frontend/utils/object-helpers';
 import {
   classicApplicationColors,
-  ColorScheme,
+  ColorSchemeId,
   darkApplicationColors,
   defaultApplicationColors,
   blueApplicationColors,
+  ColorScheme,
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
@@ -45,7 +46,7 @@ export default class UserSettings extends Service {
     } catch (e) {
       this.applyDefaultApplicationSettings();
     }
-    this.updateColors();
+    this.setColorsFromSettings();
   }
 
   restoreApplicationSettings() {
@@ -75,7 +76,7 @@ export default class UserSettings extends Service {
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
-    this.updateColors();
+    this.setColorsFromSettings();
 
     if (saveSettings) {
       this.saveSettings();
@@ -111,30 +112,55 @@ export default class UserSettings extends Service {
     );
   }
 
-  setColorScheme(scheme: ColorScheme) {
-    let applicationColors = defaultApplicationColors;
+  setColorScheme(schemeId: ColorSchemeId, saveSettings = true) {
+    let scheme = defaultApplicationColors;
 
-    if (scheme === 'classic') {
-      applicationColors = classicApplicationColors;
-    } else if (scheme === 'dark') {
-      applicationColors = darkApplicationColors;
-    } else if (scheme === 'blue') {
-      applicationColors = blueApplicationColors;
+    switch (schemeId) {
+      case 'classic':
+        scheme = classicApplicationColors;
+        break;
+      case 'blue':
+        scheme = blueApplicationColors;
+        break;
+      case 'dark':
+        scheme = darkApplicationColors;
+        break;
+      default:
+        break;
     }
 
     let settingId: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in applicationColors) {
-      const setting = this.applicationSettings[settingId];
-      setting.value = applicationColors[settingId];
+    for (settingId in this.applicationColors) {
+      this.applicationSettings[settingId].value = scheme[settingId];
     }
 
-    this.notifyPropertyChange('applicationSettings');
+    this.updateColors(scheme);
 
-    this.saveSettings();
+    if (saveSettings) {
+      this.saveSettings();
+    }
   }
 
-  updateColors() {
+  updateColors(updatedColors?: ColorScheme) {
+    if (this.applicationColors && updatedColors) {
+      let settingId: keyof ApplicationColorSettings;
+      for (settingId in this.applicationColors) {
+        this.applicationColors[settingId].set(updatedColors[settingId]);
+      }
+    }
+    if (this.applicationColors) {
+      let settingId: keyof ApplicationColorSettings;
+      for (settingId in this.applicationColors) {
+        this.applicationColors[settingId].set(
+          this.applicationSettings[settingId].value
+        );
+      }
+    } else {
+      this.setColorsFromSettings();
+    }
+  }
+
+  setColorsFromSettings() {
     const { applicationSettings } = this;
 
     this.applicationColors = {

@@ -1,4 +1,5 @@
-export type ColorScheme = 'default' | 'classic' | 'blue' | 'dark';
+export type ColorSchemeId = 'default' | 'classic' | 'blue' | 'dark';
+export type ColorScheme = typeof defaultApplicationColors;
 
 export const defaultApplicationColors = {
   foundationColor: '#d2d2d2', // grey
