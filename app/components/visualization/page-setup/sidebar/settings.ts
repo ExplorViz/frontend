@@ -150,7 +150,6 @@ export default class Settings extends Component<Args> {
   resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings();
-      this.userSettings.setColorScheme('default');
       this.args.updateColors?.();
     }
   }

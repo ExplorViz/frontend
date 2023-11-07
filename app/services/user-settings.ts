@@ -76,7 +76,7 @@ export default class UserSettings extends Service {
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
-    this.setColorsFromSettings();
+    this.updateColors();
 
     if (saveSettings) {
       this.saveSettings();
@@ -142,21 +142,20 @@ export default class UserSettings extends Service {
   }
 
   updateColors(updatedColors?: ColorScheme) {
-    if (this.applicationColors && updatedColors) {
-      let settingId: keyof ApplicationColorSettings;
-      for (settingId in this.applicationColors) {
-        this.applicationColors[settingId].set(updatedColors[settingId]);
-      }
+    if (!this.applicationColors) {
+      this.setColorsFromSettings();
+      return;
     }
-    if (this.applicationColors) {
-      let settingId: keyof ApplicationColorSettings;
-      for (settingId in this.applicationColors) {
+
+    let settingId: keyof ApplicationColorSettings;
+    for (settingId in this.applicationColors) {
+      if (updatedColors) {
+        this.applicationColors[settingId].set(updatedColors[settingId]);
+      } else {
         this.applicationColors[settingId].set(
           this.applicationSettings[settingId].value
         );
       }
-    } else {
-      this.setColorsFromSettings();
     }
   }
 
