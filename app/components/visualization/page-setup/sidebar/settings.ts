@@ -11,6 +11,8 @@ import {
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
   isLandscapeView: boolean;
@@ -21,6 +23,12 @@ interface Args {
 }
 
 export default class Settings extends Component<Args> {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -151,6 +159,8 @@ export default class Settings extends Component<Args> {
     if (this.args.resetSettings) {
       this.args.resetSettings();
       this.args.updateColors?.();
+      this.applicationRenderer.addCommunicationForAllApplications();
+      this.highlightingService.updateHighlighting();
     }
   }
 }

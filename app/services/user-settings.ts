@@ -24,18 +24,10 @@ import {
   RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
-import HighlightingService from './highlighting-service';
-import ApplicationRenderer from './application-renderer';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
 
 export default class UserSettings extends Service {
-  @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
-
-  @service('highlighting-service')
-  highlightingService!: HighlightingService;
-
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
@@ -90,8 +82,6 @@ export default class UserSettings extends Service {
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
 
-    this.applicationRenderer.addCommunicationForAllApplications();
-    this.highlightingService.updateHighlighting();
     this.updateColors();
 
     if (saveSettings) {
