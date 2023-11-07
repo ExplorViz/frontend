@@ -1,4 +1,4 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import isObject, {
@@ -24,8 +24,16 @@ import {
   RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
+import HighlightingService from './highlighting-service';
+import ApplicationRenderer from './application-renderer';
 
 export default class UserSettings extends Service {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   @tracked
   applicationSettings!: ApplicationSettings;
 
@@ -76,7 +84,10 @@ export default class UserSettings extends Service {
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
+
     this.updateColors();
+    this.highlightingService.updateHighlighting();
+    this.applicationRenderer.addCommunicationForAllApplications();
 
     if (saveSettings) {
       this.saveSettings();
