@@ -1,3 +1,4 @@
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 import * as THREE from 'three';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
 
@@ -33,6 +34,14 @@ export function skylight() {
   const skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
   skyLight.castShadow = false;
   return skyLight;
+}
+
+export function createScene(visualizationMode: VisualizationMode) {
+  if (visualizationMode === 'vr') {
+    return vrScene();
+  } else {
+    return defaultScene();
+  }
 }
 
 export function defaultScene() {

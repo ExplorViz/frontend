@@ -1,28 +1,17 @@
-import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaborative-mode/services/local-user';
-import { defaultScene, vrScene } from 'explorviz-frontend/utils/scene';
+import Service from '@ember/service';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { createScene } from 'explorviz-frontend/utils/scene';
 import * as THREE from 'three';
 
 export default class SceneRepository extends Service.extend() {
-  @service('local-user')
-  localUser!: LocalUser;
-
   scene: THREE.Scene | undefined;
 
-  getScene(createNew = false) {
-    if (!this.scene || createNew) {
-      this.scene = this.createScene();
+  getScene(mode: VisualizationMode = 'browser', replaceScene = false) {
+    if (!this.scene || replaceScene) {
+      this.scene = createScene(mode);
     }
 
     return this.scene;
-  }
-
-  private createScene() {
-    if (this.localUser.visualizationMode === 'vr') {
-      return vrScene();
-    } else {
-      return defaultScene();
-    }
   }
 }
 

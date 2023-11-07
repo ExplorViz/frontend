@@ -210,7 +210,7 @@ export default class VrRendering extends Component<Args> {
     this.toastMessage.success = (message) => this.showHint(message);
     this.toastMessage.error = (message) => this.showHint(message);
 
-    this.scene = this.sceneRepo.getScene(true);
+    this.scene = this.sceneRepo.getScene('vr', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(

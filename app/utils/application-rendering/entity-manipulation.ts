@@ -14,6 +14,9 @@ import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -378,4 +381,19 @@ export function moveCameraTo(
       cameraControls.focusCameraOn(0.6, clazzMesh);
     }
   }
+}
+
+export function updateColors(
+  scene: THREE.Scene,
+  applicationColors: ApplicationColors
+) {
+  scene.traverse((object3D) => {
+    if (object3D instanceof BaseMesh) {
+      object3D.updateColor();
+      // Special case because communication arrow is no base mesh
+    } else if (object3D instanceof CommunicationArrowMesh) {
+      object3D.updateColor(applicationColors.communicationArrowColor);
+    }
+  });
+  scene.background = applicationColors.backgroundColor;
 }

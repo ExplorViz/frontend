@@ -13,14 +13,16 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import {
+  moveCameraTo,
+  updateColors,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import {
   Span,
   Trace,
@@ -84,9 +86,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
-
-  @service('entity-manipulation')
-  private entityManipulation!: EntityManipulation;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -162,7 +161,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
     this.debug('Constructor called');
     // scene
-    this.scene = this.sceneRepo.getScene();
+    this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.applicationRenderer.getOpenApplications().clear();
@@ -591,7 +590,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    this.entityManipulation.updateColors();
+    updateColors(this.scene, this.userSettings.applicationColors);
   }
 
   /**

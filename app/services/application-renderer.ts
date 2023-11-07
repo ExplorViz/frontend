@@ -7,7 +7,6 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import {
   HightlightComponentArgs,
@@ -243,7 +242,7 @@ export default class ApplicationRenderer extends Service.extend({
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
-        restoreComponentState(
+        EntityManipulation.restoreComponentState(
           applicationObject3D,
           applicationState.openComponents,
           applicationState.transparentComponents,

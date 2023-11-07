@@ -26,17 +26,18 @@ import {
 import * as THREE from 'three';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
-import EntityManipulation from './entity-manipulation';
+import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import SceneRepository from './repos/scene-repository';
 
 export default class UserSettings extends Service {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('entity-manipulation')
-  private entityManipulation!: EntityManipulation;
-
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   @tracked
   applicationSettings!: ApplicationSettings;
@@ -173,7 +174,7 @@ export default class UserSettings extends Service {
       }
     }
 
-    this.entityManipulation.updateColors();
+    updateColors(this.sceneRepo.getScene(), this.applicationColors);
   }
 
   setColorsFromSettings() {
