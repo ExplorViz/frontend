@@ -26,10 +26,14 @@ import {
 import * as THREE from 'three';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
+import EntityManipulation from './entity-manipulation';
 
 export default class UserSettings extends Service {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
+
+  @service('entity-manipulation')
+  private entityManipulation!: EntityManipulation;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
@@ -85,9 +89,9 @@ export default class UserSettings extends Service {
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
 
-    this.updateColors();
-    this.highlightingService.updateHighlighting();
     this.applicationRenderer.addCommunicationForAllApplications();
+    this.highlightingService.updateHighlighting();
+    this.updateColors();
 
     if (saveSettings) {
       this.saveSettings();
@@ -168,6 +172,8 @@ export default class UserSettings extends Service {
         );
       }
     }
+
+    this.entityManipulation.updateColors();
   }
 
   setColorsFromSettings() {

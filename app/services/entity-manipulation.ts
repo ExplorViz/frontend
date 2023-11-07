@@ -2,8 +2,8 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import * as THREE from 'three';
 import UserSettings from './user-settings';
+import SceneRepository from './repos/scene-repository';
 
 export default class EntityManipulation extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -11,9 +11,12 @@ export default class EntityManipulation extends Service.extend({
   @service('user-settings')
   userSettings!: UserSettings;
 
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
   @action
-  updateColors(scene: THREE.Scene) {
-    scene.traverse((object3D) => {
+  updateColors() {
+    this.sceneRepo.getScene().traverse((object3D) => {
       if (object3D instanceof BaseMesh) {
         object3D.updateColor();
         // Special case because communication arrow is no base mesh
@@ -23,7 +26,8 @@ export default class EntityManipulation extends Service.extend({
         );
       }
     });
-    scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.sceneRepo.getScene().background =
+      this.userSettings.applicationColors.backgroundColor;
   }
 }
 

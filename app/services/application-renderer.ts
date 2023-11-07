@@ -546,14 +546,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     if (room.highlightedExternCommunicationLinks) {
-      // Can we delete this? I forgot why I wrote this...
-      // room.openApps.forEach((app) => {
-      //   const appObj = this.getApplicationById(app.id);
-      //   if (appObj) {
-      //     appObj.classCommunicationSet.clear();
-      //   }
-      // });
-
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {

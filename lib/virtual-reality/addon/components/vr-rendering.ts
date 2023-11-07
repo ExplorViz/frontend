@@ -17,7 +17,6 @@ import ToastMessage, {
   MessageArgs,
 } from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -98,6 +97,7 @@ import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 
 interface Args {
   debugMode: boolean;
@@ -156,6 +156,9 @@ export default class VrRendering extends Component<Args> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
   // #endregion SERVICES
 
   // #region CLASS FIELDS
@@ -207,8 +210,7 @@ export default class VrRendering extends Component<Args> {
     this.toastMessage.success = (message) => this.showHint(message);
     this.toastMessage.error = (message) => this.showHint(message);
 
-    this.scene = vrScene();
-    // this.scene = defaultScene();
+    this.scene = this.sceneRepo.getScene(true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
