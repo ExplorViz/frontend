@@ -9,8 +9,8 @@ import * as THREE from 'three';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
   owner: any;
-  source: string;
-  target: string;
+  sourceClass: string;
+  targetClass: string;
 
   sourceClassId: string;
   targetClassId: string;
@@ -21,8 +21,8 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
   text: ThreeMeshUI.Text;
   constructor(
     owner: any,
-    source: string,
-    target: string,
+    sourceClass: string,
+    targetClass: string,
     sourceClassId: string,
     targetClassId: string,
     sourceAppId: string | undefined,
@@ -35,15 +35,15 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     this.owner = owner;
     this.content = content;
     this.menuFactory = menuFactory;
-    this.source = source;
-    this.target = target;
+    this.sourceClass = sourceClass;
+    this.targetClass = targetClass;
     this.sourceClassId = sourceClassId;
     this.targetClassId = targetClassId;
     this.sourceAppId = sourceAppId;
     this.targetAppId = targetAppId;
 
     let boxhight;
-    if (this.source !== '') {
+    if (this.sourceClass !== '') {
       boxhight = 0.27;
     } else {
       boxhight = 0.45;
@@ -126,7 +126,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
 
     const sourceButton = new OpenEntityButton({
       owner: this.owner,
-      label: this.source,
+      label: this.sourceClass,
       classId: this.sourceClassId,
       applicationId: this.sourceAppId!,
 
@@ -146,7 +146,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
 
     const targetButton = new OpenEntityButton({
       owner: this.owner,
-      label: this.target,
+      label: this.targetClass,
       classId: this.targetClassId,
       applicationId: this.targetAppId!,
       ...{
@@ -179,8 +179,8 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       margin: 0.005,
     });
 
-    const sorceLable = new ThreeMeshUI.Text({ content: 'Source App: ' });
-    const targetLable = new ThreeMeshUI.Text({ content: 'Target App: ' });
+    const sorceLable = new ThreeMeshUI.Text({ content: 'Source Class: ' });
+    const targetLable = new ThreeMeshUI.Text({ content: 'Target Class: ' });
 
     sourceLableBox.add(sorceLable);
     targetLableBox.add(targetLable);
@@ -190,7 +190,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
 
     scrollButtonBox.add(scrollUpButton, scrollDownButton);
     this.add(scrollButtonBox);
-    if (this.target !== '' && this.source !== '') {
+    if (this.targetClass !== '' && this.sourceClass !== '') {
       this.add(sourceBox, targetBox);
     }
     textBlock.add(this.text);

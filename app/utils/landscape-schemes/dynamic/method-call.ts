@@ -11,6 +11,7 @@ export default class MethodCall {
   targetApp: Application;
   targetClass: Class;
   operationName: string;
+  callerMethodName: string;
 
   constructor(
     id: string,
@@ -18,7 +19,8 @@ export default class MethodCall {
     sourceClass: Class,
     targetApp: Application,
     targetClass: Class,
-    operationName: string
+    operationName: string,
+    callerMethodName: string
   ) {
     this.id = id;
     this.sourceApp = sourceApp;
@@ -26,6 +28,7 @@ export default class MethodCall {
     this.targetApp = targetApp;
     this.targetClass = targetClass;
     this.operationName = operationName;
+    this.callerMethodName = callerMethodName;
   }
 
   addSpan(/* span: Span */) {
