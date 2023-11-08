@@ -12,16 +12,16 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -72,14 +72,14 @@ export default class ArRendering extends Component<Args> {
   @service('ar-settings')
   private arSettings!: ArSettings;
 
+  @service('repos/scene-repository')
+  private sceneRepo!: SceneRepository;
+
   @service('vr-message-sender')
   private sender!: VrMessageSender;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('entity-manipulation')
-  private entityManipulation!: EntityManipulation;
 
   debug = debugLogger('ArRendering');
 
@@ -171,7 +171,7 @@ export default class ArRendering extends Component<Args> {
     super(owner, args);
     this.debug('Constructor called');
 
-    this.scene = defaultScene();
+    this.scene = this.sceneRepo.getScene('ar', true);
     this.scene.background = null;
 
     this.applicationRenderer.getOpenApplications().clear();
@@ -720,7 +720,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   updateColors() {
-    this.entityManipulation.updateColors(this.scene);
+    updateColors(this.scene, this.userSettings.applicationColors);
   }
 
   // #endregion UTILS

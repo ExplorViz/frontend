@@ -5,9 +5,9 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import { ApplicationColors } from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
+import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part

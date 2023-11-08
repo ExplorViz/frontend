@@ -183,7 +183,8 @@ export default class CollaborationSession extends Service.extend({
       color: new THREE.Color(...self.color),
     });
 
-    this.userSettings.applyDefaultApplicationSettings(); // in collab mode keepHighlightingOnOpenOrClose is always enabled (default setting!) and cannot be switched in collaboration!
+    // Ensure same settings for all users in collaboration session
+    this.userSettings.applyDefaultApplicationSettings(false);
   }
 
   onUserConnected({
@@ -276,6 +277,8 @@ export default class CollaborationSession extends Service.extend({
     this.removeAllRemoteUsers();
 
     this.landscapeListener.initLandscapePolling();
+
+    this.userSettings.restoreApplicationSettings();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();

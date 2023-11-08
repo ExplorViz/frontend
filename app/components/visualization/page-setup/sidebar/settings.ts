@@ -4,23 +4,31 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { ColorScheme } from 'explorviz-frontend/utils/settings/color-schemes';
+import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
-  ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
   isLandscapeView: boolean;
   updateHighlighting?(): void;
   updateColors?(): void;
   redrawCommunication?(): void;
+  resetSettings?(): void;
 }
 
 export default class Settings extends Component<Args> {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -30,7 +38,7 @@ export default class Settings extends Component<Args> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  colorSchemes: { name: string; id: ColorScheme }[] = [
+  colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
     { name: 'Classic (Initial)', id: 'classic' },
     { name: 'Blue', id: 'blue' },
@@ -141,22 +149,18 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  applyColorScheme(colorScheme: ColorScheme) {
+  applyColorScheme(colorScheme: ColorSchemeId) {
     this.userSettings.setColorScheme(colorScheme);
-    this.applyColorsFromUserSettings();
+    this.args.updateColors?.();
   }
 
-  applyColorsFromUserSettings() {
-    const { applicationColors } = this.configuration;
-
-    let settingId: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in applicationColors) {
-      this.configuration.applicationColors[settingId].set(
-        this.userSettings.applicationSettings[settingId].value
-      );
+  @action
+  resetSettings() {
+    if (this.args.resetSettings) {
+      this.args.resetSettings();
+      this.args.updateColors?.();
+      this.applicationRenderer.addCommunicationForAllApplications();
+      this.highlightingService.updateHighlighting();
     }
-
-    this.args.updateColors?.();
   }
 }

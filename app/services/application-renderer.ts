@@ -7,7 +7,6 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import {
   HightlightComponentArgs,
@@ -239,11 +238,11 @@ export default class ApplicationRenderer extends Service.extend({
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.configuration.applicationColors
+          this.userSettings.applicationColors
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
-        restoreComponentState(
+        EntityManipulation.restoreComponentState(
           applicationObject3D,
           applicationState.openComponents,
           applicationState.transparentComponents,
@@ -254,7 +253,7 @@ export default class ApplicationRenderer extends Service.extend({
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font,
-          this.configuration.applicationColors
+          this.userSettings.applicationColors
         );
       }
 
@@ -335,7 +334,7 @@ export default class ApplicationRenderer extends Service.extend({
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
-      this.configuration.applicationColors
+      this.userSettings.applicationColors
     );
     // Update links
     this.updateLinks?.();
@@ -546,14 +545,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     if (room.highlightedExternCommunicationLinks) {
-      // Can we delete this? I forgot why I wrote this...
-      // room.openApps.forEach((app) => {
-      //   const appObj = this.getApplicationById(app.id);
-      //   if (appObj) {
-      //     appObj.classCommunicationSet.clear();
-      //   }
-      // });
-
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {

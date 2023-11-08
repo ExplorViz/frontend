@@ -13,20 +13,21 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import {
+  moveCameraTo,
+  updateColors,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import {
   Span,
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
@@ -45,6 +46,7 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -85,9 +87,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
-  @service('entity-manipulation')
-  private entityManipulation!: EntityManipulation;
-
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
@@ -96,6 +95,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -159,9 +161,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
     this.debug('Constructor called');
     // scene
-    this.scene = defaultScene();
-    this.scene.background =
-      this.configuration.applicationColors.backgroundColor;
+    this.scene = this.sceneRepo.getScene('browser', true);
+    this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -589,7 +590,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    this.entityManipulation.updateColors(this.scene);
+    updateColors(this.scene, this.userSettings.applicationColors);
   }
 
   /**

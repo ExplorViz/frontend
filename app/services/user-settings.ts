@@ -1,17 +1,20 @@
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
+import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import isObject, {
   objectsHaveSameKeys,
 } from 'explorviz-frontend/utils/object-helpers';
 import {
   classicApplicationColors,
-  ColorScheme,
+  ColorSchemeId,
   darkApplicationColors,
   defaultApplicationColors,
   blueApplicationColors,
+  ColorScheme,
 } from 'explorviz-frontend/utils/settings/color-schemes';
 import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
+  ApplicationColorSettingId,
   ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
@@ -20,10 +23,25 @@ import {
   isRangeSetting,
   RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
+import * as THREE from 'three';
+import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import SceneRepository from './repos/scene-repository';
 
 export default class UserSettings extends Service {
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
   @tracked
   applicationSettings!: ApplicationSettings;
+
+  /**
+   * Colors for application visualization
+   *
+   * @property applicationColors
+   * @type ApplicationColors
+   */
+  @tracked
+  applicationColors!: ApplicationColors;
 
   constructor() {
     super(...arguments);
@@ -33,9 +51,10 @@ export default class UserSettings extends Service {
     } catch (e) {
       this.applyDefaultApplicationSettings();
     }
+    this.setColorsFromSettings();
   }
 
-  private restoreApplicationSettings() {
+  restoreApplicationSettings() {
     const userApplicationSettingsJSON = localStorage.getItem(
       'userApplicationSettings'
     );
@@ -52,20 +71,22 @@ export default class UserSettings extends Service {
       localStorage.removeItem('userApplicationSettings');
       throw new Error('Application settings are invalid');
     }
+
+    this.updateColors();
   }
 
-  applyDefaultApplicationSettings() {
+  @action
+  applyDefaultApplicationSettings(saveSettings = true) {
     this.set(
       'applicationSettings',
       JSON.parse(JSON.stringify(defaultApplicationSettings))
     );
-  }
 
-  updateSettings() {
-    localStorage.setItem(
-      'userApplicationSettings',
-      JSON.stringify(this.applicationSettings)
-    );
+    this.updateColors();
+
+    if (saveSettings) {
+      this.saveSettings();
+    }
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
@@ -79,21 +100,116 @@ export default class UserSettings extends Service {
         ...this.applicationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
-      this.updateSettings();
     } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
       this.applicationSettings = {
         ...this.applicationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
-      this.updateSettings();
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
-      /*       const regExHex = /^#(?:[0-9a-f]{3}){1,2}$/i; */
       setting.value = newValue;
-      this.updateSettings();
+    }
+    this.saveSettings();
+  }
+
+  saveSettings() {
+    localStorage.setItem(
+      'userApplicationSettings',
+      JSON.stringify(this.applicationSettings)
+    );
+  }
+
+  setColorScheme(schemeId: ColorSchemeId, saveSettings = true) {
+    let scheme = defaultApplicationColors;
+
+    switch (schemeId) {
+      case 'classic':
+        scheme = classicApplicationColors;
+        break;
+      case 'blue':
+        scheme = blueApplicationColors;
+        break;
+      case 'dark':
+        scheme = darkApplicationColors;
+        break;
+      default:
+        break;
+    }
+
+    let settingId: keyof ApplicationColorSettings;
+    for (settingId in this.applicationColors) {
+      this.applicationSettings[settingId].value = scheme[settingId];
+    }
+
+    this.updateColors(scheme);
+
+    if (saveSettings) {
+      this.saveSettings();
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  updateColors(updatedColors?: ColorScheme) {
+    if (!this.applicationColors) {
+      this.setColorsFromSettings();
+      return;
+    }
+
+    let settingId: keyof ApplicationColorSettings;
+    for (settingId in this.applicationColors) {
+      if (updatedColors) {
+        this.applicationColors[settingId].set(updatedColors[settingId]);
+      } else {
+        this.applicationColors[settingId].set(
+          this.applicationSettings[settingId].value
+        );
+      }
+    }
+
+    updateColors(this.sceneRepo.getScene(), this.applicationColors);
+  }
+
+  setColorsFromSettings() {
+    const { applicationSettings } = this;
+
+    this.applicationColors = {
+      foundationColor: new THREE.Color(
+        applicationSettings.foundationColor.value
+      ),
+      componentOddColor: new THREE.Color(
+        applicationSettings.componentOddColor.value
+      ),
+      componentEvenColor: new THREE.Color(
+        applicationSettings.componentEvenColor.value
+      ),
+      clazzColor: new THREE.Color(applicationSettings.clazzColor.value),
+      highlightedEntityColor: new THREE.Color(
+        applicationSettings.highlightedEntityColor.value
+      ),
+      componentTextColor: new THREE.Color(
+        applicationSettings.componentTextColor.value
+      ),
+      clazzTextColor: new THREE.Color(applicationSettings.clazzTextColor.value),
+      foundationTextColor: new THREE.Color(
+        applicationSettings.foundationTextColor.value
+      ),
+      communicationColor: new THREE.Color(
+        applicationSettings.communicationColor.value
+      ),
+      communicationArrowColor: new THREE.Color(
+        applicationSettings.communicationArrowColor.value
+      ),
+      backgroundColor: new THREE.Color(
+        applicationSettings.backgroundColor.value
+      ),
+    };
+  }
+
+  private areValidApplicationSettings(maybeSettings: unknown) {
+    return (
+      isObject(maybeSettings) &&
+      objectsHaveSameKeys(maybeSettings, defaultApplicationSettings)
+    );
+  }
+
   private validateRangeSetting(rangeSetting: RangeSetting, value: number) {
     const { range } = rangeSetting;
     if (Number.isNaN(value)) {
@@ -102,40 +218,9 @@ export default class UserSettings extends Service {
       throw new Error(`Value must be between ${range.min} and ${range.max}`);
     }
   }
-
-  setColorScheme(scheme: ColorScheme) {
-    let applicationColors = defaultApplicationColors;
-
-    if (scheme === 'classic') {
-      applicationColors = classicApplicationColors;
-    } else if (scheme === 'dark') {
-      applicationColors = darkApplicationColors;
-    } else if (scheme === 'blue') {
-      applicationColors = blueApplicationColors;
-    }
-
-    let settingId: keyof ApplicationColorSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in applicationColors) {
-      const setting = this.applicationSettings[settingId];
-      setting.value = applicationColors[settingId];
-    }
-
-    this.notifyPropertyChange('applicationSettings');
-
-    this.updateSettings();
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private areValidApplicationSettings(maybeSettings: unknown) {
-    return (
-      isObject(maybeSettings) &&
-      objectsHaveSameKeys(maybeSettings, defaultApplicationSettings)
-    );
-  }
-
-  // eslint-disable-next-line class-methods-use-this
 }
+
+export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
