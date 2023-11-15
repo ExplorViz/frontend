@@ -1,4 +1,5 @@
-import { Application, Class } from './landscape-schemes/structure-data';
+import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { Application, Class, StructureLandscapeData } from './landscape-schemes/structure-data';
 import {
   getSubPackagesOfPackage,
   packageContainsClass,
@@ -39,4 +40,8 @@ export function applicationHasClass(application: Application, clazz: Class) {
   return application.packages.any((component) =>
     packageContainsClass(component, clazz)
   );
+}
+
+export function getNodeFromApplication(structure: StructureLandscapeData, app: Application){
+  structure.nodes.find(node => node.applications.find(application => application.id === app.id) !== undefined);
 }

@@ -13,6 +13,9 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+import { Application, Package } from '../landscape-schemes/structure-data';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import { getAllClassesInApplication } from '../application-helpers';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -77,6 +80,101 @@ export default class CommunicationRendering {
     pipe.addBidirectionalArrow();
   };
 
+
+  // returns a map from class id to its superclass id
+  private applyInheritance(application: Application) {
+
+    const packages = application.packages;
+    let values : [string,string][] = [];
+    let values2: [string,string][] = [];
+    for(const pckg of packages){
+      const val = this.getMapEntries(pckg, "");
+      values = [...values, ...val.fqClassNameToClassId];
+      values2 = [...values2, ...val.classIdToSuperClassFqn];
+    }
+
+    const helperMap = new Map<string, string>(values); // maps full qualified class name to its id
+    const helperMap2 = new Map<string, string>(values2); // maps class id to its full qualified superclass name (even if more than one "superclass", e.g. multiple interfaces, exist), they are all provided in a csv-string
+    const classIdToSuperClassId = new Map();
+
+    helperMap2.forEach((val,key) => {
+
+      let superClassFqn = val;
+      if(val.includes("<")){
+        const valSplit = val.split("<"); // generic class
+        superClassFqn = valSplit[0];
+      }
+
+      const superClassId = helperMap.get(superClassFqn);
+
+      if(superClassId){
+        classIdToSuperClassId.set(key, superClassId);
+      }
+    });
+
+    return classIdToSuperClassId;
+
+  }
+
+  private getMapEntries(pckg: Package, fqn: string) : {fqClassNameToClassId: [string,string][]; classIdToSuperClassFqn: [string,string][]; }{
+    let newFqn;
+    if(fqn === ""){
+      newFqn = pckg.name;
+    }else {
+      newFqn = fqn + "." + pckg.name;
+    }
+  
+    let res: [string, string][] = [];
+    let res2: [string, string][] = [];
+    for(let clazz of pckg.classes){
+      res.push([newFqn + "." + clazz.name, clazz.id]);
+      if(clazz.superClass){
+        res2.push([clazz.id, clazz.superClass]);
+      }
+    }
+
+    let resres;
+    for(let subPackage of pckg.subPackages){
+      resres = this.getMapEntries(subPackage, newFqn);
+
+      res = [...res, ...resres.fqClassNameToClassId];
+      res2 = [...res2, ...resres.classIdToSuperClassFqn];
+    }
+    return {
+      fqClassNameToClassId: res, 
+      classIdToSuperClassFqn: res2
+    };
+
+  }
+
+  private extendClassCommunications(applicationObject3D: ApplicationObject3D, classIdToSuperClassId: Map<string,string>){
+    // TODO: extend application.data.classCommunications
+    
+    classIdToSuperClassId.forEach((val,key) => {
+
+      const classList = getAllClassesInApplication(applicationObject3D.data.application);
+
+      const sourceClass = classList.find(clazz => {return clazz.id === key; });
+      const targetClass = classList.find(clazz => {return clazz.id === val; });
+
+      if(sourceClass && targetClass){
+        const classCommunication = new ClassCommunication(
+          `inheritance_${key}_${val}`,
+          applicationObject3D.data.application,
+          sourceClass,
+          applicationObject3D.data.application,
+          targetClass,
+          `inheritance_${key}_${val}`
+        );
+
+        applicationObject3D.data.classCommunications.push(classCommunication);
+      }
+
+      
+    });
+
+  }
+
   /**
    * Computes communication and communication arrows and adds them to the
    * applicationObject3D
@@ -113,6 +211,11 @@ export default class CommunicationRendering {
 
     // Remove old communication
     applicationObject3D.removeAllCommunication();
+
+
+    // treat inheritance relationship like some sort of class communication
+   const classIdToSuperClassId = this.applyInheritance(application);
+   this.extendClassCommunications(applicationObject3D, classIdToSuperClassId);
 
     // Compute communication Layout
     const commLayoutMap = applyCommunicationLayout(applicationObject3D);

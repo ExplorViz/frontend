@@ -11,6 +11,7 @@ export interface Class {
   name: string;
   methods: Method[];
   parent: Package;
+  superClass?: string; // full qualified classname. TODO: refactor so it is from type Class
 }
 
 export interface Package {

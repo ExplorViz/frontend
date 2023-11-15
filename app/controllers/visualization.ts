@@ -50,7 +50,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import EvolutionListener from 'explorviz-frontend/services/evolution-listener';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import { EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
+import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 
@@ -131,6 +131,9 @@ export default class VisualizationController extends Controller {
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
+
+  //@tracked
+  //selectedCommitToTimestampRecordsMap: Map<string, Timestamp[]> = new Map(); // TODO: replace selectedTimestampRecords with this
 
   @tracked
   showSettingsSidebar = false;
@@ -292,9 +295,89 @@ export default class VisualizationController extends Controller {
 
   @action
   receiveNewEvolutionData(evolutionData: EvolutionLandscapeData){
-    console.log("YEAA EVOLUTION");
     this.evolutionLandscapeData = evolutionData;
-    console.log(JSON.stringify(evolutionData));
+    this.evolutionLandscapeData.applications.forEach(application => {
+      if(!this.currentSelectedCommits.get(application.name) || this.currentSelectedCommits.get(application.name)!.length === 0){ // if a new application arrives we preselect a commit for it and also for the existing ones that have no selected commits
+        const selectedCommit = this.getLatestCommitFromMainBranch(application);
+        if(selectedCommit){
+          this.currentSelectedCommits.set(application.name, [selectedCommit]);
+        }
+      }
+    });
+
+    //this.initiateNewTimeline();
+  }
+
+  /* The idea is to initiate a timeline for every combination of selected commits: Let's assume we have n applications and app1 has k1 commits selected, app2 has k2 commits selected,...,
+  appn has kn commits selected. Then we would need k1*k2*...*kn timelines
+  @action
+  initiateNewTimeline(){
+     let timelineKeys: string[][] = [];
+     //let index = 0;
+     this.evolutionLandscapeData!.applications.forEach(application => {
+       const selectedCommits = this.currentSelectedCommits.get(application.name);
+       if(selectedCommits){
+         let firstTime = true;
+         let currentLength = timelineKeys.length;
+         selectedCommits.forEach(selectedCommit => {
+           if(firstTime){
+             // append to the first currentLength Lists
+             if(currentLength === 0){
+               timelineKeys = [[selectedCommit.commitId]]
+             }else {
+               for(let i = 0; i < currentLength; i++){
+                 timelineKeys[i].push(selectedCommit.commitId);
+               }
+             }
+           }else{
+             let additionalKeys = [...timelineKeys];
+             // copy the first currentLength Lists and change the last element
+             for(let i = 0; i < currentLength; i++){ // note that currentLength cannot be 0 in this case
+               let n = additionalKeys[i].length;
+               additionalKeys[i][n-1] =  selectedCommit.commitId;
+             }
+             timelineKeys = [...timelineKeys, ...additionalKeys];
+           }
+ 
+           firstTime = false;
+         });
+ 
+         //index++;
+       }
+ 
+     });
+ 
+     timelineKeys.forEach(timelineKey => {
+       const key = timelineKey.sort().join(",");
+       console.log("key: ", key);
+ 
+       const timeline = this.selectedCommitToTimestampRecordsMap.get(key);
+       if(!timeline){
+        //TODO: initiate new timeline
+         this.selectedCommitToTimestampRecordsMap.set(key, []);
+       }
+     });
+ 
+     console.log("TIMELINE KEYS: ", timelineKeys);
+ 
+     console.log("CURRENT SELECTED COMMITS: ", this.currentSelectedCommits);
+  }
+  */
+
+  getLatestCommitFromMainBranch(evolutedApplication: EvolutedApplication) : SelectedCommit | undefined {
+    let selectedCommit = undefined;
+    for(const branch of evolutedApplication.branches){
+      if(branch.branchPoint.name === "NONE"){
+        const commitId = branch.commits.lastObject;
+        if(commitId){
+          selectedCommit = {
+            commitId: commitId,
+            branchName: branch.name
+          }
+        }
+      }
+    }
+    return selectedCommit;
   }
 
   @action
@@ -471,16 +554,18 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  // actually not needed since selectedCommits are tracked
   @action
-  async commitlineClicked(currentSelectedApplication: string, commits: Map<string,SelectedCommit[]>) {
-    if (commits.size > 0) {
+  async commitlineClicked(commits: Map<string,SelectedCommit[]>, structureData?: StructureLandscapeData ) {
+    this.currentSelectedCommits = commits;
+    if(structureData){
+      // 1 commit selected
       this.pauseVisualizationUpdating();
-      this.currentSelectedCommits.set(currentSelectedApplication, commits);
+      this.updateLandscape(structureData, []);
     }else {
-      this.currentSelectedCommits.delete(currentSelectedApplication);
-      if(this.currentSelectedCommits.size === 0){
-        this.resumeVisualizationUpdating();
-      }
+      // 2 commits selected
+      this.updateLandscape(this.landscapeData!.structureLandscapeData, []);
+      //this.notifyPropertyChange("landscapeData"); // triggers the visualization as updateLandscape does but in another way
     }
   }
 
@@ -500,6 +585,8 @@ export default class VisualizationController extends Controller {
       this.resumeVisualizationUpdating();
     }
   }
+
+
 
   @action
   getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
@@ -550,7 +637,7 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling();
+    this.landscapeListener.initLandscapePolling(); // TODO: let evolutionListener callback handle the initPolling call
     this.evolutionListener.initEvolutionPolling();
     this.updateTimestampList();
     this.initWebSocket();

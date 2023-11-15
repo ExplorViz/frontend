@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -17,17 +17,28 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Class, Package, StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import ENV from 'explorviz-frontend/config/environment';
+import Auth from 'explorviz-frontend/services/auth';
+import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
+import { getApplicationFromClass, getApplicationFromPackage, getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getNodeFromApplication } from 'explorviz-frontend/utils/application-helpers';
+import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
+
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
   readonly graph: ForceGraph3DInstance;
+  readonly selectedApplication: string | null;
+  readonly selectedCommits: Map<string,SelectedCommit[]>;
 }
 
 interface Args {
@@ -35,6 +46,7 @@ interface Args {
   named: NamedArgs;
 }
 
+const { landscapeService} = ENV.backendAddresses;
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   debug = debugLogger('ApplicationRendererModifier');
 
@@ -68,6 +80,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('landscape-token')
+  tokenService!: LandscapeTokenService;
+
+  @service('auth') auth!: Auth;
+
+  @service('repos/commit-comparison-repository')
+  commitComparisonRepo!: CommitComparisonRepository;
+
   @service
   private worker!: any;
 
@@ -75,26 +95,114 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private graph!: ForceGraph3DInstance;
 
+  private selectedApplication! : string | null;
+
+  private selectedCommits!: Map<string,SelectedCommit[]>;
+
   get structureLandscapeData() {
     return this.landscapeData.structureLandscapeData;
+  }
+
+  set structureLandscapeData(structureLandscapeData: StructureLandscapeData) {
+    this.landscapeData.structureLandscapeData = structureLandscapeData;
   }
 
   get dynamicLandscapeData() {
     return this.landscapeData.dynamicLandscapeData;
   }
 
+  
+
+
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph }: any
+    { landscapeData, graph, selectedApplication, selectedCommits }: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
+    this.selectedApplication = selectedApplication;
+    this.selectedCommits = selectedCommits;
     this.handleUpdatedLandscapeData.perform();
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
+
+    // adapt the landscape structure if we have a comparison so the missing structure data from the second commit is considered too
+    if(this.selectedApplication !== null && this.selectedCommits.get(this.selectedApplication)?.length === 2){
+      console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ZWEI COMMITS!!!");
+      const commits = this.selectedCommits.get(this.selectedApplication);
+
+      this.adaptStructure(commits!);
+      
+    }
+
+
+    // const testt = `{
+    //   "landscapeToken": "abc",
+    //   "nodes": [
+    //     {
+    //       "ipAddress": "172.28.0.16",
+    //       "hostName": "9641202b38a9",
+    //       "applications": [
+    //         {
+    //           "name": "petclinic-demo",
+    //           "language": "java",
+    //           "instanceId": "0",
+    //           "packages": [
+    //             {
+    //               "name": "org",
+    //               "subPackages": [
+    //                 {
+    //                   "name": "springframework",
+    //                   "subPackages": [
+    //                     {
+    //                       "name": "samples",
+    //                       "subPackages": [
+    //                         {
+    //                           "name": "petclinic",
+    //                           "subPackages": [
+    //                             {
+    //                               "name": "vet",
+    //                               "subPackages": [],
+    //                               "classes": [
+    //                                 {
+    //                                   "name": "Vet",
+    //                                   "methods": [
+    //                                   ]
+    //                                 }
+    //                               ]
+    //                             }
+    //                           ],
+    //                           "classes": []
+    //                         }
+    //                       ],
+    //                       "classes": []
+    //                     }
+    //                   ],
+    //                   "classes": []
+    //                 }
+    //               ],
+    //               "classes": []
+    //             }
+    //           ]
+    //         }
+    //       ]
+    //     }
+    //   ]
+    // }`;
+    
+
+    //const testtt = JSON.parse(testt);
+
+    //const testttt = preProcessAndEnhanceStructureLandscape(testtt as StructureLandscapeData);
+
+    //this.structureLandscapeData = testttt;
+   
+    console.log(this.structureLandscapeData);
+    this.structureLandscapeData = this.structureLandscapeData;
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -232,6 +340,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // apply new color for restructured communications in restructure mode
     this.landscapeRestructure.applyColorMappings();
   });
+  
 
   updateApplicationData = task(
     async (
@@ -256,20 +365,28 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         workerPayload
       );
 
+
+      /*const inheritance = this.worker.postMessage(
+        'inheritance-worker',
+        {structure: application}
+      );*/
+
       const results = (await all([
         cityLayout,
         heatmapMetrics,
         flatData,
+        //inheritance
       ])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0], results[2]);
+        applicationData.updateApplication(application, results[0], results[2]/*, results[3]*/);
       } else {
         applicationData = new ApplicationData(
           application,
           results[0],
-          results[2]
+          results[2]/*,
+          results[3]*/
         );
       }
       applicationData.classCommunications = classCommunication.filter(
@@ -285,4 +402,103 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return applicationData;
     }
   );
+
+  async adaptStructure(selectedCommits: SelectedCommit[]) {
+    // get structure landscape of second commit
+    const secondCommitId = selectedCommits[1].commitId;
+    const secondCommitStructureLandscape = await this.requestStructureData(secondCommitId);
+    const structure = preProcessAndEnhanceStructureLandscape(secondCommitStructureLandscape);
+
+    // now add the components that got added in the second commit but are missing in the first commit
+    const selectedCommitsList = [ selectedCommits[0].commitId,  selectedCommits[1].commitId];
+    selectedCommitsList.sort();
+    const id = selectedCommitsList.join("_");
+
+    const commitComparisonRepo = this.commitComparisonRepo;
+    const commitComparison = commitComparisonRepo.getById(id);
+
+    if(!commitComparison) return;
+
+    //const addedComponentIds  = commitComparison.added;
+
+    const addedComponentIds = ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab"]; // test purpose. OwnerResource class id, which is missing for the first commit from master branch
+
+    addedComponentIds.forEach(componentId => { // only classes or packages can be added in structure. Note that the id's we are iterating through are from "most comprehensive" components, meaning that all children components weren't there before in the first commit, but parent of a most comprehensive component was
+      const pckg = getPackageById(structure, componentId);
+      const clazz = getClassById(structure, componentId);
+
+      if(pckg){
+        const parentPackage = pckg.parent;
+        if(parentPackage){
+          // add to package
+          console.log("TRY TO ADD PACKAGE");
+          const packageId = parentPackage.id;
+          const firstCommitPackage = getPackageById(this.structureLandscapeData, packageId);
+
+          if(firstCommitPackage){
+            console.log("ADD ", pckg.name, " PACKAGE TO ", firstCommitPackage.name," PACKAGE");
+            if(firstCommitPackage.subPackages){
+              firstCommitPackage.subPackages.push(pckg);
+            }else {
+              firstCommitPackage.subPackages = [pckg];
+            }
+          }
+        }else {
+          // add to application
+          const secondCommitApp = getApplicationFromPackage(structure, pckg.id);
+          if(secondCommitApp){
+            const appId = secondCommitApp.id;
+            const firstCommitApp = getApplicationInLandscapeById(this.structureLandscapeData, appId);
+            
+            if(firstCommitApp){
+              console.log("ADD ", pckg.name, " PACKAGE TO ", firstCommitApp.name," APPLICATION");
+              if(firstCommitApp.packages){
+                firstCommitApp.packages.push(pckg);
+              }else {
+                firstCommitApp.packages = [pckg];
+              }
+            }
+          }
+        }
+      }else if(clazz){
+        const parentPackage = clazz.parent;
+        const packageId = parentPackage.id;
+
+        const firstCommitPackage = getPackageById(this.structureLandscapeData, packageId);
+        if(firstCommitPackage){
+          console.log("ADD ", clazz.name, " CLASS TO ", firstCommitPackage.name," PACKAGE");
+          firstCommitPackage.classes.push(clazz);
+          clazz.parent = firstCommitPackage;
+        }
+      }
+    });
+
+  }
+
+  requestStructureData(commitId: string){
+    return new Promise<StructureLandscapeData>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${landscapeService}/v2/landscapes/${this.tokenService.token.value}/commit-structure/${commitId}`, 
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+        }
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const commitStructureData =
+              (await response.json()) as StructureLandscapeData;
+            resolve(commitStructureData);
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    });
+  }
 }

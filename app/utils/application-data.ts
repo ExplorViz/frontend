@@ -14,6 +14,8 @@ export default class ApplicationData {
 
   flatData: Map<string, any>;
 
+  //inheritanceData: Map<string, string>;
+
   @tracked
   heatmapData: ApplicationHeatmapData;
 
@@ -22,11 +24,13 @@ export default class ApplicationData {
   constructor(
     application: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: Map<string, any>
+    flatData: Map<string, any>,
+    //inheritanceData: Map<string,string>
   ) {
     this.application = application;
     this.layoutData = layoutData;
     this.flatData = flatData;
+    //this.inheritanceData = inheritanceData;
     this.heatmapData = {
       metrics: [],
       latestClazzMetricScores: [],
@@ -39,10 +43,12 @@ export default class ApplicationData {
   updateApplication(
     newApplication: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: Map<string, any>
+    flatData: Map<string, any>,
+    //inheritanceData: Map<string,string>
   ) {
     this.application = newApplication;
     this.layoutData = layoutData;
     this.flatData = flatData;
+    //this.inheritanceData = inheritanceData;
   }
 }

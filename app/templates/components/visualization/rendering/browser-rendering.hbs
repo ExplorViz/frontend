@@ -53,7 +53,7 @@
           strgUp=this.handleStrgUp
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph selectedApplication=@selectedApplication selectedCommits=@selectedCommits}}
         {{collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera
