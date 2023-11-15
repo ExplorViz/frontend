@@ -43,6 +43,7 @@ export default class WorkerService extends Service {
         landscapeUrl: landscapeService,
         tracesUrl: traceService,
       },
+      maxTextureSize: this.getMaxTextureSize(),
     });
 
     return [worker, remote];
@@ -53,6 +54,15 @@ export default class WorkerService extends Service {
       this.worker.terminate();
     }
     super.willDestroy();
+  }
+
+  private getMaxTextureSize(): number {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    if (!gl) {
+      throw new Error('No GL context');
+    }
+    return gl.getParameter(gl.MAX_TEXTURE_SIZE);
   }
 }
 

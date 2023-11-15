@@ -29,6 +29,7 @@ import * as Comlink from 'comlink';
 export default class LandscapeDataContext {
   readonly token: string;
   private readonly backend: BackendInfo;
+  private readonly maxTextureSize: number;
   private intervalInMS: number;
 
   private latestProcessedStructureData: StructureLandscapeData;
@@ -37,7 +38,12 @@ export default class LandscapeDataContext {
   private lastStructureResponse: string | undefined;
   private lastDynamicResponse: string | undefined;
 
-  constructor(token: string, backend: BackendInfo, intervalInMS: number) {
+  constructor(
+    token: string,
+    backend: BackendInfo,
+    intervalInMS: number,
+    maxTextureSize: number
+  ) {
     this.token = token;
     this.backend = backend;
     this.intervalInMS = intervalInMS;
@@ -45,6 +51,7 @@ export default class LandscapeDataContext {
       landscapeToken: token,
       nodes: [],
     };
+    this.maxTextureSize = maxTextureSize;
   }
 
   async update(endTime: number, accessToken?: string): Promise<DataUpdate> {
@@ -98,7 +105,8 @@ export default class LandscapeDataContext {
       update.appData = computeApplicationData(
         this.latestProcessedStructureData,
         this.latestDynamicData,
-        update.drawableClassCommunications
+        update.drawableClassCommunications,
+        this.maxTextureSize
       );
     }
 
@@ -206,7 +214,8 @@ function computeTotalRequests(dynamicData: DynamicLandscapeData): number {
 function computeApplicationData(
   structure: StructureLandscapeData,
   dynamic: DynamicLandscapeData,
-  drawableClassCommunications: DrawableClassCommunication[]
+  drawableClassCommunications: DrawableClassCommunication[],
+  maxTextureSize: number
 ) {
   const data = new Map<Application['id'], WorkerApplicationData>();
   const applications = structure.nodes.map((node) => node.applications).flat();
@@ -223,7 +232,11 @@ function computeApplicationData(
       drawableClassCommunications
     );
     const counts = countClassesAndPackages(application);
-    const labels = generateApplicationLabels(application, layout);
+    const labels = generateApplicationLabels(
+      application,
+      layout,
+      maxTextureSize
+    );
 
     data.set(application.id, {
       layout,

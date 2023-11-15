@@ -36,20 +36,23 @@ export type LabelLayoutData = {
 
 export function generateApplicationLabels(
   application: Application,
-  componentLayout: CityLayout
+  componentLayout: CityLayout,
+  maxTextureSize: number
 ): ApplicationLabelData {
   return {
     components: generatePackageAndFoundationLabels(
       application,
-      componentLayout
+      componentLayout,
+      maxTextureSize
     ),
-    classes: generateClassLabels(application),
+    classes: generateClassLabels(application, maxTextureSize),
   };
 }
 
 function generatePackageAndFoundationLabels(
   application: Application,
-  componentLayout: CityLayout
+  componentLayout: CityLayout,
+  maxTextureSize: number
 ): ApplicationLabelData['components'] {
   const packages = getAllComponentsInApplication(
     application as unknown as ReducedApplication // TODO: fix type
@@ -64,8 +67,8 @@ function generatePackageAndFoundationLabels(
   const lineHeight = 64;
   const ratio = lineHeight / actualLabelHeight;
 
-  const width = 384;
-  const height = lineHeight * packages.length;
+  const width = Math.min(384, maxTextureSize);
+  const height = Math.min(lineHeight * packages.length, maxTextureSize); // TODO
 
   const ctx = initCanvas(width, height);
   ctx.textAlign = 'center';
@@ -118,15 +121,16 @@ function generatePackageAndFoundationLabels(
 }
 
 function generateClassLabels(
-  application: Application
+  application: Application,
+  maxTextureSize: number
 ): ApplicationLabelData['classes'] {
   const classes = getAllClassesInApplication(
     application as unknown as ReducedApplication
   );
 
-  const width = 128;
+  const width = Math.min(128, maxTextureSize);
   const lineHeight = 24;
-  const height = classes.length * lineHeight;
+  const height = Math.min(classes.length * lineHeight, maxTextureSize);
 
   const ctx = initCanvas(width, height);
   ctx.textAlign = 'left';

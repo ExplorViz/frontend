@@ -12,11 +12,13 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 let currentDataContext: LandscapeDataContext | undefined;
 let backendInfo: BackendInfo | undefined;
 let updateIntervalMS: number = 10 * 1000;
+let maxTextureSize: number = 1;
 
 const api = {
   init(options: InitOptions): void {
     updateIntervalMS = options.updateIntervalInMS;
     backendInfo = options.backend;
+    maxTextureSize = options.maxTextureSize;
   },
 
   getLandscapeDataUpdate(
@@ -36,7 +38,8 @@ const api = {
       currentDataContext = new LandscapeDataContext(
         landscapeToken,
         backendInfo!,
-        updateIntervalMS
+        updateIntervalMS,
+        maxTextureSize
       );
     }
 
@@ -73,4 +76,5 @@ export type LandscapeDataWorkerAPI = typeof api;
 type InitOptions = {
   updateIntervalInMS: number;
   backend: BackendInfo;
+  maxTextureSize: number;
 };
