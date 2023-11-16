@@ -314,7 +314,12 @@ export default class ApplicationContent {
   ): void {
     for (const clazz of component.classes) {
       const data = this.classDataById.get(clazz.id)!;
-      const layout = this.getLayout(clazz.id);
+      let layout: BoxLayout;
+      try {
+        layout =  this.getLayout(clazz.id); // TODO: fix (error when dbl clicking foundation)
+      } catch (e) {
+        continue;
+      }
       this.updateClassInstance(data.index, layout, visible);
     }
 
