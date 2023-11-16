@@ -5,8 +5,9 @@ import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-ren
 
 
 export interface CommitComparison {
-    firstCommit: SelectedCommit;
-    secondCommit: SelectedCommit;
+    firstCommitSelected: SelectedCommit;
+    secondCommitSelected: SelectedCommit;
+    orderedCommits: boolean;
     modified: string[]; // the component id's from the components of the first commit that got modified in the second commit
     added: string[]; // the component id's from the second commit components that are missing in the first commit
     missing: string[]; // the component id's from the first commit components that are missing in the second commit
@@ -22,18 +23,21 @@ export default class CommitComparisonRepository extends Service.extend({
     CommitComparison
   >();
 
-  @tracked
-  communications: ApplicationCommunication[] = [];
+  //@tracked
+  //communications: ApplicationCommunication[] = [];
 
   getById(id: string) {
     return this.commitComparisons.get(id);
   }
 
   add(commitComparison: CommitComparison) {
-    const idList = [commitComparison.firstCommit.commitId, commitComparison.secondCommit.commitId];
-    idList.sort();
-    const id = idList.join("_");
-    this.commitComparisons.set(id, commitComparison);
+    const idList = [commitComparison.firstCommitSelected.commitId, commitComparison.secondCommitSelected.commitId];
+    if(commitComparison.orderedCommits){ // for ordered commits (i.e. commits that are within a chain of branches) we should always compare by starting from the viewpoint of the older commit
+        this.commitComparisons.set(idList[0] + "_" + idList[1], commitComparison);
+        this.commitComparisons.set(idList[1] + "_" + idList[0], commitComparison);
+    }else {
+        this.commitComparisons.set(idList[0] + "_" + idList[1], commitComparison);
+    }
     //this.notifyPropertyChange('commitComparisons');
   }
 

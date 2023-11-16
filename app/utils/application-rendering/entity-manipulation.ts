@@ -14,6 +14,7 @@ import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 
 /**
  * Given a package or class, returns a list of all ancestor components.

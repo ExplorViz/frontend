@@ -115,6 +115,59 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
+  markAsAddedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsAdded(mesh);
+    }
+  }
+
+  @action
+  markAsDeletedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsDeleted(mesh);
+    }
+  }
+
+  @action
+  markAsModifiedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsModified(mesh);
+    }
+  }
+
+  @action
+  markAsMissingdById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsMissing(mesh);
+    }
+  }
+
+  @action
+  markAsAdded(mesh: EntityMesh){
+    mesh.changeTexture("../images/plus.png");
+  }
+
+  @action
+  markAsDeleted(mesh: EntityMesh){
+    mesh.changeTexture("../images/minus.png");
+  }
+
+  @action
+  markAsModified(mesh: EntityMesh){
+    mesh.changeTexture("../images/hashtag.png");
+  }
+
+  @action
+  markAsMissing(mesh: EntityMesh){
+    mesh.changeTexture("../images/x.png");
+  }
+
+
+  @action
   highlight(mesh: EntityMesh, sendMessage: boolean, remoteColor?: THREE.Color) {
     const color = remoteColor || this.highlightingColor;
     const { parent } = mesh;

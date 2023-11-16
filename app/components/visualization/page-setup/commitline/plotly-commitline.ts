@@ -12,6 +12,9 @@ import Auth from 'explorviz-frontend/services/auth';
 import ConfigurationRepository from 'explorviz-frontend/services/repos/configuration-repository';
 import { StructureLandscapeData, isLandscape, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import CommitComparisonRepository, { CommitComparison } from 'explorviz-frontend/services/repos/commit-comparison-repository';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getApplicationFromPackage, getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
 
 interface IMarkerStates {
   [commitId: string]: {
@@ -76,6 +79,111 @@ interface IArgs {
 }
 
 const { landscapeService} = ENV.backendAddresses;
+
+
+
+const mapForTestPurpose = new Map<string, CommitComparison>();
+
+// normally we would get the fqn as entries in each list, which we need to convert into the "most comprehensive" component id with its children all matching the category 
+const ids1 = ["ec50c28d6571fa5779b9117da8b9092443ef1297", "f09d67cc1c216b445d01f1893f37ff391bb3b4b7"]; // ordered commits (i.e. commits that are within one chain of branches)
+const commitComparison1 : CommitComparison = {
+  firstCommitSelected: {commitId: ids1[0], branchName: "master"},
+  secondCommitSelected: {commitId: ids1[1], branchName: "master"},
+  orderedCommits: true,
+  modified: [],
+  deleted: [],
+  missing: [],
+  added: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab"]
+};
+mapForTestPurpose.set("ec50c28d6571fa5779b9117da8b9092443ef1297_f09d67cc1c216b445d01f1893f37ff391bb3b4b7", commitComparison1);
+mapForTestPurpose.set("f09d67cc1c216b445d01f1893f37ff391bb3b4b7_ec50c28d6571fa5779b9117da8b9092443ef1297", commitComparison1);
+
+const ids2 = ["ec50c28d6571fa5779b9117da8b9092443ef1297", "923e2b7aa331b8194a6579da99fb6388f15d7f3e"]; // ordered commits (i.e. commits that are within one chain of branches)
+const commitComparison2 : CommitComparison = {
+  firstCommitSelected: {commitId: ids2[0], branchName: "master"},
+  secondCommitSelected: {commitId: ids2[1], branchName: "master"},
+  orderedCommits: true,
+  modified: [],
+  deleted: [],
+  missing: [],
+  added: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab", "f74f396d522d6e01e89dbce09c4809b5c63ac7ee4f16ae6da2f9fe74e82fc24a"]
+};
+mapForTestPurpose.set("ec50c28d6571fa5779b9117da8b9092443ef1297_923e2b7aa331b8194a6579da99fb6388f15d7f3e", commitComparison2);
+mapForTestPurpose.set("923e2b7aa331b8194a6579da99fb6388f15d7f3e_ec50c28d6571fa5779b9117da8b9092443ef1297", commitComparison2);
+
+const ids3 = ["f09d67cc1c216b445d01f1893f37ff391bb3b4b7", "923e2b7aa331b8194a6579da99fb6388f15d7f3e"]; // ordered commits (i.e. commits that are within one chain of branches)
+const commitComparison3 : CommitComparison = {
+  firstCommitSelected: {commitId: ids3[0], branchName: "master"},
+  secondCommitSelected: {commitId: ids3[1], branchName: "master"},
+  orderedCommits: true,
+  modified: [],
+  deleted: [],
+  missing: [],
+  added: ["f74f396d522d6e01e89dbce09c4809b5c63ac7ee4f16ae6da2f9fe74e82fc24a"]
+};
+mapForTestPurpose.set("f09d67cc1c216b445d01f1893f37ff391bb3b4b7_923e2b7aa331b8194a6579da99fb6388f15d7f3e", commitComparison3);
+mapForTestPurpose.set("923e2b7aa331b8194a6579da99fb6388f15d7f3e_f09d67cc1c216b445d01f1893f37ff391bb3b4b7", commitComparison3);
+
+const ids4 = ["ec50c28d6571fa5779b9117da8b9092443ef1297", "505f7po88jcf6doz09f1on47c160c6mh24jo5768"]; // ordered commits (i.e. commits that are within one chain of branches)
+const commitComparison4 : CommitComparison = {
+  firstCommitSelected: {commitId: ids4[0], branchName: "master"},
+  secondCommitSelected: {commitId: ids4[1], branchName: "master"},
+  orderedCommits: true,
+  modified: [],
+  deleted: ["49ca0bb9a53b518a0344e31ba385c95e9b2ef780f1fac45fa922ae41346d2ecb"],
+  missing: [],
+  added: []
+};
+mapForTestPurpose.set("ec50c28d6571fa5779b9117da8b9092443ef1297_505f7po88jcf6doz09f1on47c160c6mh24jo5768", commitComparison4);
+mapForTestPurpose.set("505f7po88jcf6doz09f1on47c160c6mh24jo5768_ec50c28d6571fa5779b9117da8b9092443ef1297", commitComparison4);
+
+
+
+
+
+"d9e2fab8a2374b0263e246d04d4fb0e37d5949a4afd6aa2fe7bac959e2fae7c2"
+
+                // mapForTestPurpose.set(id1, );
+
+                // const commitComparison : CommitComparison = {
+                //   firstCommit: selectedCommitList[0],
+                //   secondCommit: selectedCommitList[1],
+                //   //modified: ["9568a86818902296a61985e1ac1bc4be8b9ed88f46ce42e1f8712b37a3da680b"], // the components from the first commit that got modified in the second commit
+                //   //added: ["46ccd8261eac1ee5203c567bcd10509b82f994768b99f043bb88152f6f0d83d0"], // the components from the second commit that are missing in the first commit
+                //   //missing: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab", "f74f396d522d6e01e89dbce09c4809b5c63ac7ee4f16ae6da2f9fe74e82fc24a"], // the components from the first commit that are missing in the second commit
+                //   //deleted: ["49ca0bb9a53b518a0344e31ba385c95e9b2ef780f1fac45fa922ae41346d2ecb"], // the components from the first commit that got deleted in the second commit
+                //   added: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab", "f74f396d522d6e01e89dbce09c4809b5c63ac7ee4f16ae6da2f9fe74e82fc24a"],
+                //   modified: [],
+                //   deleted: [],
+                //   missing: []
+                // }
+
+                // this.commitComparisonRepo.add(commitComparison);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export default class PlotlyCommitline extends Component<IArgs> {
 
     private MAX_SELECTION = 2;
@@ -166,9 +274,10 @@ export default class PlotlyCommitline extends Component<IArgs> {
     this.usedColors.add([255,255,255]); // initialize with white so it won't be used as color for branches on a white background
     if(evolutionData && application && selectedCommits) {
       console.log("DID RENDER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      console.log("CURRENT SELECTED COMMITS: ", selectedCommits);
         this.computeSizes(evolutionData, application);
         this.createPlotlyCommitlineChart(evolutionData, application, selectedCommits);
-        this.setupPlotlyListener(evolutionData, application,selectedCommits);
+        this.setupPlotlyListener(evolutionData, application, selectedCommits);
         // TODO: select latest commit on main branch
     }
   }
@@ -254,41 +363,25 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 const tn = data.points[0].curveNumber;
                 Plotly.restyle(plotlyDiv, update, [tn]);
 
-
-
-                console.log("CURRENT COMMIT LIST ", selectedCommitList);
-
                 selectedCommitList.push(selectedCommit);
                 selectedCommits.set(selectedApplication, selectedCommitList);
 
-                // normally we would get the fqn as entries in each list, which we need to convert into the "most comprehensive" component id with its children all matching the category 
-
-                // for testing purpose compare first master commit and latest master commit  //latest master commit and latest featureX commit
-
-                const commitComparison : CommitComparison = {
-                  firstCommit: selectedCommitList[0],
-                  secondCommit: selectedCommitList[1],
-                  //modified: ["9568a86818902296a61985e1ac1bc4be8b9ed88f46ce42e1f8712b37a3da680b"], // the components from the first commit that got modified in the second commit
-                  //added: ["46ccd8261eac1ee5203c567bcd10509b82f994768b99f043bb88152f6f0d83d0"], // the components from the second commit that are missing in the first commit
-                  //missing: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab", "f74f396d522d6e01e89dbce09c4809b5c63ac7ee4f16ae6da2f9fe74e82fc24a"], // the components from the first commit that are missing in the second commit
-                  //deleted: ["49ca0bb9a53b518a0344e31ba385c95e9b2ef780f1fac45fa922ae41346d2ecb"], // the components from the first commit that got deleted in the second commit
-                  added: ["96e1c58c2ee0462ce0e37cc06001a55d8b6e73feb8157ae97ab88b23152b89ab"],
-                  modified: [],
-                  deleted: [],
-                  missing: []
-                }
-
-                this.commitComparisonRepo.add(commitComparison);
-
+                // TODO: implement real logic here
+                const id = selectedCommitList[0].commitId + "_" + selectedCommitList[1].commitId;
+                const commitComparison = mapForTestPurpose.get(id);
+                if(commitComparison)
+                  this.commitComparisonRepo.add(commitComparison);
 
                 
-                this.args.clicked?.(this.selectedCommits!);
+                // adapt the landscape structure if we have a comparison so the missing structure data from the second commit is considered too
+                const structure = await this.adaptStructure(selectedCommitList);
+                this.args.clicked?.(this.selectedCommits!, structure);
 
                 //this.compareBothSelectedCommits(evolutionData, selectedApplication, selectedCommitList[0].commitId, selectedCommitList[1].commitId);
 
               }
             }else { 
-              // unselect 
+              // unselect one of many commits
               selectedCommitList = selectedCommitList.filter((commit => { return commit.commitId !== selectedCommit.commitId}));
               colors[pn] = data.points[0].fullData.line.color;
               selectedCommits.set(selectedApplication, selectedCommitList);
@@ -296,12 +389,22 @@ export default class PlotlyCommitline extends Component<IArgs> {
               const tn = data.points[0].curveNumber;
               Plotly.restyle(plotlyDiv, update, [tn]);
 
+              if(selectedCommitList.length == 1){
+                // load structure
+                console.log("load structure");
+                let commitStructureData =  await this.requestStructureData(selectedCommitList[0].commitId);
+                commitStructureData = preProcessAndEnhanceStructureLandscape(commitStructureData);
+                this.args.clicked?.(this.selectedCommits!, commitStructureData);
+              }else {
+                // no structure
+                this.args.clicked?.(this.selectedCommits!);
+              }
+
               // TODO: if no selected commit remains, load latest landscape structure of main branch (write function for that)
               // TODO: if one selected commit remains, load its landscape structure
             }
           }else { 
             // first commit got selected
-            console.log("!!!!!!!!!FIRST COMMIT!!!");
             colors[pn] = highlightedMarkerColor;
             selectedCommits.set(selectedApplication, [selectedCommit]);
             const update = { marker: { color: colors, size: sizes } };
@@ -313,8 +416,6 @@ export default class PlotlyCommitline extends Component<IArgs> {
             commitStructureData = preProcessAndEnhanceStructureLandscape(commitStructureData);
             console.log(commitStructureData);
             this.args.clicked?.(this.selectedCommits!, commitStructureData);
-
-
           }
 
           // end of add selected commit ---------------------------------------------
@@ -454,10 +555,13 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
 
   createPlotlyCommitlineChart(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
-    if(evolutionData.applications.find(application => application.name === selectedApplication)) { 
+    let application = evolutionData.applications.find(application => application.name === selectedApplication);
+    if(application && application.branches.find(branch => branch.commits.length > 0)) { 
 
 
-        if(!selectedCommits.get(selectedApplication)){
+      // TODO: remove? Make visualization.ts initalize it when evolution data gets fetched 
+      // and initialize it with latest commit  from main branch
+        if(!selectedCommits.get(selectedApplication)){ 
             selectedCommits.set(selectedApplication, []);
         }
 
@@ -467,74 +571,58 @@ export default class PlotlyCommitline extends Component<IArgs> {
         let plotlyBranches: any[] = [];
         let branchCounter = 0;
 
-        for (const application of evolutionData.applications) {
-            if(application.name === selectedApplication ) {
-                for(const branch of application.branches) {
+        for(const branch of application.branches) {
 
-                    const numOfCommits = branch.commits.length;
-                    
+          const numOfCommits = branch.commits.length;
+          const offset = this.calculateOffset(selectedApplication, branch);
+          const commits = Array.from({length: numOfCommits}, (_, i) => i + offset);
 
-                    
-                    const offset = this.calculateOffset(selectedApplication, branch);
-                    const commits = Array.from({length: numOfCommits}, (_, i) => i + offset);
+          let color = this.randomRGBA();
 
-                    let color = this.randomRGBA();
+          const colors = Array.from(Array(numOfCommits)).map(() => color);
 
-                    const colors = Array.from(Array(numOfCommits)).map(() => color);
-
-                    // TODO: recoloring selected commits, e.g. when switching back from another application or the timeline
-                    const selectedCommits = this.selectedCommits?.get(selectedApplication)?.values();
-                    if(selectedCommits){
-                      for (const selectedCommit of selectedCommits){
-                        const index = branch.commits.findIndex(commitId => commitId === selectedCommit.commitId);
-                        if(index){
-                          colors[index] = this.highlightedMarkerColor;
-                        }
-                      }
-                    }
-
-
-                    const sizes = Array.from(Array(numOfCommits)).map(() => 10);
-
-                    const plotlyBranch = this.getPlotlyDataObject(commits,colors,sizes,branchCounter, branch.name, evolutionData, selectedApplication);
-                    plotlyBranches.push(plotlyBranch);
-                    this.branchToY.set(branch.name, branchCounter);
-                    this.branchToColor.set(branch.name, color);
-
-                    branchCounter++;
-                }
-                break;
+          // TODO: recoloring selected commits, e.g. when switching back from another application or the timeline
+          //const selectedCommits = this.selectedCommits?.get(selectedApplication)?.values();
+          const currentSelectedCommits = selectedCommits.get(selectedApplication);
+          if(currentSelectedCommits){
+            for (const selectedCommit of currentSelectedCommits){
+              const index = branch.commits.findIndex(commitId => commitId === selectedCommit.commitId);
+              if(index !== -1){
+                colors[index] = this.highlightedMarkerColor;
+              }
             }
+          }
+
+
+          const sizes = Array.from(Array(numOfCommits)).map(() => 10);
+          const plotlyBranch = this.getPlotlyDataObject(commits,colors,sizes,branchCounter, branch.name, evolutionData, selectedApplication, color);
+          plotlyBranches.push(plotlyBranch);
+          this.branchToY.set(branch.name, branchCounter);
+          this.branchToColor.set(branch.name, color);
+
+          branchCounter++;
         }
-
-
+             
         // add branch to branch connections
+        for(const branch of application.branches) {
+          const branchY = this.branchToY.get(branch.name);
+          const branchX = this.calculateOffset(selectedApplication, branch);
 
-        for (const application of evolutionData.applications) {
-            if(application.name === selectedApplication ) {
-                for(const branch of application.branches) {
+          const fromBranchY = this.branchToY.get(branch.branchPoint.name);
+          const fromBranchX = branchX - 1;
 
-                    const branchY = this.branchToY.get(branch.name);
-                    const branchX = this.calculateOffset(selectedApplication, branch);
-
-                    const fromBranchY = this.branchToY.get(branch.branchPoint.name);
-                    const fromBranchX = branchX - 1;
-
-                    if (fromBranchY !== undefined && branchY){ // fromBranchY can be 0 so we explicitly ask for undefined
+          if (fromBranchY !== undefined && branchY){ // fromBranchY can be 0 so we explicitly ask for undefined
             
-                        const color = this.branchToColor.get(branch.name)!;
-                        plotlyBranches.push({
-                            line: { color: color, width: 2},
-                            mode: 'lines',
-                            type: 'scatter',
-                            name: branch.name,
-                            x: [fromBranchX, branchX],
-                            y: [fromBranchY, branchY]
-                        });
-                    }
-                }
-                break;
-            }
+            const color = this.branchToColor.get(branch.name)!;
+            plotlyBranches.push({
+              line: { color: color, width: 2},
+              mode: 'lines',
+              type: 'scatter',
+              name: branch.name,
+              x: [fromBranchX, branchX],
+              y: [fromBranchY, branchY]
+            });
+          }
         }
 
         const layout = PlotlyCommitline.getPlotlyLayoutObject(0,15);
@@ -765,12 +853,16 @@ export default class PlotlyCommitline extends Component<IArgs> {
     branchName: string,
     evolutionData: EvolutionLandscapeData,
     selectedApplication: string,
+    lineColor: string,
   ) {
-      this.branchNameToLineColor.set(branchName, colors[0]);
+      
+
+
+      this.branchNameToLineColor.set(branchName, lineColor);
       return {
         name: branchName,
         marker: { color: colors, size: sizes },
-        line: { color: colors[0], width: 2},
+        line: { color: lineColor, width: 2},
         mode: 'lines+markers',
         type: 'scatter',
         hoverinfo: 'text',
@@ -952,7 +1044,6 @@ export default class PlotlyCommitline extends Component<IArgs> {
         for (const configItem of configItemList){
           if(activeIdList[i] === configItem.id){
             const circle = this.plotMetric(configItem.color, configItem.key, configItem.id, i);
-            console.log("CIRCLE: ", circle);
             newData.push(circle);
           }
         }
@@ -1061,8 +1152,8 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
 
     async compareBothSelectedCommits(evolutionData: EvolutionLandscapeData, selectedApplication: string, firstCommitId: string, secondCommitId: string){
-      //const firstCommitReport = await this.requestCommitData(firstCommitId);
-      //const secondCommitReport = await this.requestCommitData(secondCommitId);
+      const firstCommitReport = await this.requestCommitData(firstCommitId);
+      const secondCommitReport = await this.requestCommitData(secondCommitId);
 
       const branchPathForFirstCommit = this.getBranchNameListOfCommitId(evolutionData, selectedApplication, firstCommitId);
       const branchPathForSecondCommit = this.getBranchNameListOfCommitId(evolutionData, selectedApplication, secondCommitId);
@@ -1226,6 +1317,77 @@ export default class PlotlyCommitline extends Component<IArgs> {
     }
     return undefined;
   }
+
+  async adaptStructure(selectedCommits: SelectedCommit[]) {
+    const firstCommitId = selectedCommits[0].commitId;
+    const firstCommitStructureLandscape = await this.requestStructureData(firstCommitId);
+    const firstCommitStructure = preProcessAndEnhanceStructureLandscape(firstCommitStructureLandscape);
+
+    const secondCommitId = selectedCommits[1].commitId;
+    const secondCommitStructureLandscape = await this.requestStructureData(secondCommitId);
+    const secondCommitStructure = preProcessAndEnhanceStructureLandscape(secondCommitStructureLandscape);
+
+    // now add the components that got added in the second commit but are missing in the first commit
+    
+    const selectedCommitsList = [ selectedCommits[0].commitId,  selectedCommits[1].commitId];
+    //selectedCommitsList .sort(); // TODO: do this only when the two commits are ordered, thus we need to find out wether they are ordered before
+    const id = selectedCommitsList.join("_");
+
+    const commitComparisonRepo = this.commitComparisonRepo;
+    const commitComparison = commitComparisonRepo.getById(id);
+
+    if(!commitComparison) return;
+
+    const addedComponentIds  = commitComparison.added;
+
+    addedComponentIds.forEach(componentId => { // only classes or packages can be added in structure. Note that the id's we are iterating through are from "most comprehensive" components, meaning that all children components weren't there before in the first commit, but parent of a most comprehensive component was
+      const pckg = getPackageById(secondCommitStructure, componentId);
+      const clazz = getClassById(secondCommitStructure, componentId);
+
+      if(pckg){
+        const parentPackage = pckg.parent;
+        if(parentPackage){
+          // add to package
+          const packageId = parentPackage.id;
+          const firstCommitPackage = getPackageById(firstCommitStructure, packageId);
+
+          if(firstCommitPackage){
+            if(firstCommitPackage.subPackages){
+              firstCommitPackage.subPackages.push(pckg);
+            }else {
+              firstCommitPackage.subPackages = [pckg];
+            }
+          }
+        }else {
+          // add to application
+          const secondCommitApp = getApplicationFromPackage(secondCommitStructure, pckg.id);
+          if(secondCommitApp){
+            const appId = secondCommitApp.id;
+            const firstCommitApp = getApplicationInLandscapeById(firstCommitStructure, appId);
+            
+            if(firstCommitApp){
+              if(firstCommitApp.packages){
+                firstCommitApp.packages.push(pckg);
+              }else {
+                firstCommitApp.packages = [pckg];
+              }
+            }
+          }
+        }
+      }else if(clazz){
+        const parentPackage = clazz.parent;
+        const packageId = parentPackage.id;
+
+        const firstCommitPackage = getPackageById(firstCommitStructure, packageId);
+        if(firstCommitPackage){
+          firstCommitPackage.classes.push(clazz);
+          clazz.parent = firstCommitPackage;
+        }
+      }
+    });
+    return firstCommitStructure;
+  }
+
 
 
 }

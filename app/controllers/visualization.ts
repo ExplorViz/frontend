@@ -160,7 +160,7 @@ export default class VisualizationController extends Controller {
   currentSelectedCommits: Map<string,SelectedCommit[]> = new Map();
 
   @tracked
-  currentSelectedApplication: string | null = null;
+  currentSelectedApplication?: string = undefined;
 
   @tracked
   visualizationPaused = false;
@@ -556,17 +556,11 @@ export default class VisualizationController extends Controller {
 
   // actually not needed since selectedCommits are tracked
   @action
-  async commitlineClicked(commits: Map<string,SelectedCommit[]>, structureData?: StructureLandscapeData ) {
+  async commitlineClicked(commits: Map<string,SelectedCommit[]>, structureData: StructureLandscapeData ) {
     this.currentSelectedCommits = commits;
-    if(structureData){
-      // 1 commit selected
+
       this.pauseVisualizationUpdating();
       this.updateLandscape(structureData, []);
-    }else {
-      // 2 commits selected
-      this.updateLandscape(this.landscapeData!.structureLandscapeData, []);
-      //this.notifyPropertyChange("landscapeData"); // triggers the visualization as updateLandscape does but in another way
-    }
   }
 
   async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {

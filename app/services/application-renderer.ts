@@ -28,6 +28,7 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
+import { MeshLineMaterial } from 'meshline';
 import ArSettings from 'virtual-reality/services/ar-settings';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -46,6 +47,8 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import CommitComparisonRepository from './repos/commit-comparison-repository';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -90,6 +93,9 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('repos/commit-comparison-repository')
+  commitComparisonRepo!: CommitComparisonRepository;
 
   forceGraph!: ThreeForceGraph;
 
@@ -201,7 +207,9 @@ export default class ApplicationRenderer extends Service.extend({
   addApplicationTask = task(
     async (
       applicationData: ApplicationData,
-      addApplicationArgs: AddApplicationArgs = {}
+      addApplicationArgs: AddApplicationArgs = {},
+      selectedApplication?: string,
+      selectedCommits?: Map<string, SelectedCommit[]>
     ) => {
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
@@ -294,6 +302,16 @@ export default class ApplicationRenderer extends Service.extend({
       // ----------------------------------------
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
+
+      // commit comparison visualization
+      if(selectedApplication && applicationObject3D.data.application.name === selectedApplication && selectedCommits?.get(selectedApplication)?.length == 2){
+        this.visualizeCommitComparison(applicationObject3D, selectedCommits);
+      }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
+        // remove existing comparison visualizations
+        this.removeCommitComparisonVisualization(applicationObject3D);
+      }
+
+
 
       applicationObject3D.resetRotation();
 
@@ -568,6 +586,60 @@ export default class ApplicationRenderer extends Service.extend({
     }
     this.highlightingService.updateHighlighting();
   }
+
+  visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
+    console.log("VISUALIZATION!");
+
+    const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
+    const ids = [commits[0].commitId, commits[1].commitId];
+    const id = ids.join("_");
+
+    const commitComparison = this.commitComparisonRepo.getById(id);
+    if(!commitComparison) return;
+    
+    commitComparison.added.forEach(id => {
+      this.highlightingService.markAsAddedById(id);
+    });
+
+    commitComparison.deleted.forEach(id => {
+      this.highlightingService.markAsDeletedById(id);
+    });
+
+
+  }
+
+
+  removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
+    const removeCommitComparisonVisualizationFromClass = (clazz: Class) => {
+      const mesh = this.getBoxMeshByModelId(clazz.id);
+      if(mesh && 
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+        mesh.material instanceof THREE.MeshLambertMaterial ||
+        mesh.material instanceof MeshLineMaterial)
+        ){
+        mesh.material.map = null;
+      }
+    };
+    const removeCommitComparisonVisualizationFromPackage = (pckg: Package) => {
+      const mesh = this.getBoxMeshByModelId(pckg.id);
+      if(mesh && 
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+        mesh.material instanceof THREE.MeshLambertMaterial ||
+        mesh.material instanceof MeshLineMaterial)
+        ){
+        mesh.material.map = null;
+      }
+      pckg.classes.forEach(clazz => removeCommitComparisonVisualizationFromClass(clazz));
+      pckg.subPackages.forEach(subPckg => removeCommitComparisonVisualizationFromPackage(subPckg));
+    };
+
+
+    applicationObject3D.data.application.packages.forEach(pckg => {
+      removeCommitComparisonVisualizationFromPackage(pckg);
+    });
+  }
+
+
 
   cleanup() {
     this.openApplicationsMap.clear();
