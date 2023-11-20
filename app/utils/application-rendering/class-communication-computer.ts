@@ -22,24 +22,28 @@ function computeClassCommunicationRecursively(
 ) {
   const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
+  console.log('childSpans', childSpans);
+
   if (childSpans === undefined) {
     return [];
   }
 
-  const classMatchingSpan = hashCodeToClassMap.get(span.hashCode);
+  const classMatchingSpan = hashCodeToClassMap.get(span.methodHash);
 
   if (classMatchingSpan === undefined) {
     return [];
   }
 
+  console.log('bin hier man');
+
   let callerMethodName = 'UNKNOWN';
 
   if (potentialParentSpan) {
     const classMatchingParentSpan = hashCodeToClassMap.get(
-      potentialParentSpan.hashCode
+      potentialParentSpan.methodHash
     );
     classMatchingParentSpan?.methods.forEach((method) => {
-      if (method.hashCode === potentialParentSpan.hashCode) {
+      if (method.methodHash === potentialParentSpan.methodHash) {
         callerMethodName = method.name;
       }
     });
@@ -47,11 +51,11 @@ function computeClassCommunicationRecursively(
 
   const classCommunications: SingleClassCommunication[] = [];
   childSpans.forEach((childSpan) => {
-    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
+    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.methodHash);
     if (classMatchingChildSpan !== undefined) {
       // retrieve operationName
       const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
-        (method) => method.hashCode === childSpan.hashCode
+        (method) => method.methodHash === childSpan.methodHash
       );
 
       const methodName = methodMatchingSpanHash
@@ -105,6 +109,8 @@ export default function computeClassCommunication(
       );
     }
   });
+
+  console.log('total classcommu', totalClassCommunications);
 
   const methodCalls = new Map<string, MethodCall>();
 
@@ -182,6 +188,8 @@ export default function computeClassCommunication(
 
   const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
+
+  console.log('return computed', computedCommunication);
 
   return computedCommunication;
 }

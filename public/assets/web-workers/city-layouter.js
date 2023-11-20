@@ -164,7 +164,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
     traceArray.forEach((trace) => {
       trace.spanList.forEach((span) => {
-        hashCodes.push(span.hashCode);
+        hashCodes.push(span.methodHash);
       });
     });
     return hashCodes;
@@ -192,7 +192,7 @@ function applyBoxLayout(application, allLandscapeTraces) {
       }
 
       const methodMatchingSpanHash = classMatchingTraceHashCode.methods.find(
-        (method) => method.hashCode === methodHashCode
+        (method) => method.methodHash === methodHashCode
       );
 
       if (methodMatchingSpanHash === undefined) {

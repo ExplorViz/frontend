@@ -31,7 +31,7 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
 
     return this.args.dynamicData.filter((trace) =>
       trace.spanList.any(
-        (span) => hashCodeToClassMap.get(span.hashCode) !== undefined
+        (span) => hashCodeToClassMap.get(span.methodHash) !== undefined
       )
     );
   }

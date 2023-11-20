@@ -3,7 +3,7 @@ import isObject from '../object-helpers';
 
 export interface Method {
   name: string;
-  hashCode: string;
+  methodHash: string;
 }
 
 export interface Class {
