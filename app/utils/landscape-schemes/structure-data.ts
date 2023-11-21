@@ -63,7 +63,7 @@ export function isClass(x: any): x is Class {
 }
 
 export function isMethod(x: any): x is Method {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'hashCode');
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
 }
 
 export function preProcessAndEnhanceStructureLandscape(

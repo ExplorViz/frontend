@@ -123,8 +123,6 @@ export default class CommunicationRendering {
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
-    console.log(applicationObject3D.data.classCommunications.length);
-
     // Render all class communications
     applicationObject3D.data.classCommunications.forEach(
       (classCommunication) => {
@@ -208,8 +206,6 @@ export default class CommunicationRendering {
         }
 
         const oldColor = oldHighlightedColors.get(clazzCommuMeshData.id);
-
-        console.log(clazzCommuMeshData.communication);
 
         const pipe = new ClazzCommunicationMesh(
           commLayout,

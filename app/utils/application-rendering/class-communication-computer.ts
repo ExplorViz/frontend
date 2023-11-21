@@ -20,21 +20,29 @@ function computeClassCommunicationRecursively(
   spanIdToChildSpanMap: Map<string, Span[]>,
   hashCodeToClassMap: Map<string, Class>
 ) {
-  const childSpans = spanIdToChildSpanMap.get(span.spanId);
+  if (span === undefined) {
+    return [];
+  }
 
-  console.log('childSpans', childSpans);
+  if (span.methodHash === '3050636373845208239') {
+    console.log('hier 1');
+  }
+
+  const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
   if (childSpans === undefined) {
     return [];
   }
 
   const classMatchingSpan = hashCodeToClassMap.get(span.methodHash);
-
   if (classMatchingSpan === undefined) {
+    console.log('Class Matching Span');
     return [];
   }
 
-  console.log('bin hier man');
+  if (span.methodHash === '3050636373845208239') {
+    console.log('hier 2');
+  }
 
   let callerMethodName = 'UNKNOWN';
 
@@ -50,34 +58,54 @@ function computeClassCommunicationRecursively(
   }
 
   const classCommunications: SingleClassCommunication[] = [];
-  childSpans.forEach((childSpan) => {
-    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.methodHash);
-    if (classMatchingChildSpan !== undefined) {
-      // retrieve operationName
-      const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
-        (method) => method.methodHash === childSpan.methodHash
-      );
 
-      const methodName = methodMatchingSpanHash
-        ? methodMatchingSpanHash.name
-        : 'UNKNOWN';
+  if (childSpans.length === 0) {
+    const methodMatchingSpanHash = classMatchingSpan.methods.find(
+      (method) => method.methodHash === span.methodHash
+    );
 
-      classCommunications.push({
-        sourceClass: classMatchingSpan,
-        targetClass: classMatchingChildSpan,
-        operationName: methodName,
-        callerMethodName: callerMethodName,
-      });
-      classCommunications.push(
-        ...computeClassCommunicationRecursively(
-          childSpan,
-          span,
-          spanIdToChildSpanMap,
-          hashCodeToClassMap
-        )
+    const methodName = methodMatchingSpanHash
+      ? methodMatchingSpanHash.name
+      : 'UNKNOWN';
+
+    classCommunications.push({
+      sourceClass: classMatchingSpan,
+      targetClass: classMatchingSpan,
+      operationName: methodName,
+      callerMethodName: callerMethodName,
+    });
+  } else {
+    childSpans.forEach((childSpan) => {
+      const classMatchingChildSpan = hashCodeToClassMap.get(
+        childSpan.methodHash
       );
-    }
-  });
+      if (classMatchingChildSpan !== undefined) {
+        // retrieve operationName
+        const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
+          (method) => method.methodHash === childSpan.methodHash
+        );
+
+        const methodName = methodMatchingSpanHash
+          ? methodMatchingSpanHash.name
+          : 'UNKNOWN';
+
+        classCommunications.push({
+          sourceClass: classMatchingSpan,
+          targetClass: classMatchingChildSpan,
+          operationName: methodName,
+          callerMethodName: callerMethodName,
+        });
+        classCommunications.push(
+          ...computeClassCommunicationRecursively(
+            childSpan,
+            span,
+            spanIdToChildSpanMap,
+            hashCodeToClassMap
+          )
+        );
+      }
+    });
+  }
 
   return classCommunications;
 }
@@ -109,8 +137,6 @@ export default function computeClassCommunication(
       );
     }
   });
-
-  console.log('total classcommu', totalClassCommunications);
 
   const methodCalls = new Map<string, MethodCall>();
 
@@ -189,7 +215,11 @@ export default function computeClassCommunication(
   const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
 
-  console.log('return computed', computedCommunication);
+  for (const computedCommu of computedCommunication) {
+    //console.log(
+    // computedCommu.operationName + ' of ' + computedCommu.sourceClass.name
+    //);
+  }
 
   return computedCommunication;
 }

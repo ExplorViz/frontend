@@ -178,7 +178,6 @@ export default class LandscapeListener extends Service.extend(Evented) {
         .then(async (response: Response) => {
           if (response.ok) {
             const dynamicData = (await response.json()) as DynamicLandscapeData;
-            console.log(dynamicData);
             resolve(dynamicData);
           } else {
             reject();

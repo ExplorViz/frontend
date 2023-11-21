@@ -156,6 +156,9 @@ function calculateMetrics(application, allLandscapeTraces) {
     });
 
     function calculateRequestsRecursively(span, tree) {
+      if (span === undefined) {
+        return;
+      }
       const childSpans = tree.get(span.spanId);
       const parentClass = hashCodeToClassMap.get(span.methodHash);
 
