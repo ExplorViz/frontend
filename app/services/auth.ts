@@ -47,15 +47,15 @@ export default class Auth extends Service {
       },
     });
 
-    this.lock.on('authenticated', (authResult) => {
-      console.log('clientId', ENV.auth0.clientId);
-      console.log('domain', ENV.auth0.domain);
-      console.log('Auth0 Lock', this.lock);
-      console.log('authResult', authResult);
-      this.setUser(authResult.accessToken).then(() => {
-        this.set('accessToken', authResult.accessToken);
-        this.router.transitionTo(ENV.auth0.routeAfterLogin);
-      });
+    this.lock.on('authenticated', async (authResult) => {
+      // console.log('clientId', ENV.auth0.clientId);
+      // console.log('domain', ENV.auth0.domain);
+      // console.log('Auth0 Lock', this.lock);
+      // console.log('authResult', authResult);
+
+      await this.setUser(authResult.accessToken);
+      this.set('accessToken', authResult.accessToken);
+      this.router.transitionTo(ENV.auth0.routeAfterLogin);
     });
   }
 
