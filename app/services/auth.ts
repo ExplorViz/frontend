@@ -110,30 +110,24 @@ export default class Auth extends Service {
     // check to see if a user is authenticated, we'll get a token back
     return new Promise((resolve, reject) => {
       if (this.lock) {
-        if (this.user) {
-          resolve(this.user);
-        } else {
-          reject('No user');
-        }
-
-        // TODO: Fix silent authentication (on site reload)
-
-        // this.lock.checkSession({}, async (err, authResult) => {
-        //   console.log('error', err);
-        //   console.log('authResult', authResult);
-        //   console.log('Alex lock', this.lock);
-        //   if (err || authResult === undefined) {
-        //     reject(err);
-        //   } else {
-        //     try {
-        //       await this.setUser(authResult.accessToken);
-        //       this.set('accessToken', authResult.accessToken);
-        //       resolve(authResult);
-        //     } catch (e) {
-        //       reject(e);
-        //     }
-        //   }
-        // });
+        // Silent authentication can cause problems with Safari:
+        // https://auth0.com/docs/troubleshoot/authentication-issues/renew-tokens-when-using-safari
+        this.lock.checkSession({}, async (err, authResult) => {
+          // console.log('error', err);
+          // console.log('authResult', authResult);
+          // console.log('Alex lock', this.lock);
+          if (err || authResult === undefined) {
+            reject(err);
+          } else {
+            try {
+              await this.setUser(authResult.accessToken);
+              this.set('accessToken', authResult.accessToken);
+              resolve(authResult);
+            } catch (e) {
+              reject(e);
+            }
+          }
+        });
       } else {
         // no-auth
         this.set('user', ENV.auth0.profile);
