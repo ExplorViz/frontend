@@ -52,9 +52,9 @@ export default class Auth extends Service {
       console.log('domain', ENV.auth0.domain);
       console.log('Auth0 Lock', this.lock);
       console.log('authResult', authResult);
-      this.router.transitionTo(ENV.auth0.routeAfterLogin).then(async () => {
-        await this.setUser(authResult.accessToken);
+      this.setUser(authResult.accessToken).then(() => {
         this.set('accessToken', authResult.accessToken);
+        this.router.transitionTo(ENV.auth0.routeAfterLogin);
       });
     });
   }
@@ -110,22 +110,30 @@ export default class Auth extends Service {
     // check to see if a user is authenticated, we'll get a token back
     return new Promise((resolve, reject) => {
       if (this.lock) {
-        this.lock.checkSession({}, async (err, authResult) => {
-          console.log('error', err);
-          console.log('authResult', authResult);
-          console.log('Alex lock', this.lock);
-          if (err || authResult === undefined) {
-            reject(err);
-          } else {
-            try {
-              await this.setUser(authResult.accessToken);
-              this.set('accessToken', authResult.accessToken);
-              resolve(authResult);
-            } catch (e) {
-              reject(e);
-            }
-          }
-        });
+        if (this.user) {
+          resolve(this.user);
+        } else {
+          reject('No user');
+        }
+
+        // TODO: Fix silent authentication (on site reload)
+
+        // this.lock.checkSession({}, async (err, authResult) => {
+        //   console.log('error', err);
+        //   console.log('authResult', authResult);
+        //   console.log('Alex lock', this.lock);
+        //   if (err || authResult === undefined) {
+        //     reject(err);
+        //   } else {
+        //     try {
+        //       await this.setUser(authResult.accessToken);
+        //       this.set('accessToken', authResult.accessToken);
+        //       resolve(authResult);
+        //     } catch (e) {
+        //       reject(e);
+        //     }
+        //   }
+        // });
       } else {
         // no-auth
         this.set('user', ENV.auth0.profile);
