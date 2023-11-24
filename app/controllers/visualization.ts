@@ -243,6 +243,8 @@ export default class VisualizationController extends Controller {
   }
 
   updateLandscape(structureData: any, dynamicData: any) {
+    structureData;
+    dynamicData;
     // TODO tiwe: remove, used by refactoring code
     // this.landscapeData = {
     //   structureLandscapeData: structureData,
