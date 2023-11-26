@@ -20,6 +20,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -266,7 +267,8 @@ export default class IdeWebsocket {
     };
   }
 
-  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  //jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
     if (!socket || (socket && socket.disconnected)) {
       return;
     }
@@ -550,7 +552,8 @@ export function sendMonitoringData(monitoringData: MonitoringData[]) {
   // });
 }
 
-function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+//function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {

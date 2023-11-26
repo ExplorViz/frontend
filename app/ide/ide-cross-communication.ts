@@ -16,6 +16,7 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import IdeCrossCommunicationEvent from './ide-cross-communication-event';
+import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -209,7 +210,8 @@ export default class IdeCrossCommunication {
     };
   }
 
-  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  //jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
     const vizDataRaw: VizDataRaw = this.getVizData(
       foundationCommunicationLinksGlobal
     );
@@ -452,7 +454,8 @@ export function emitToBackend(apiCall: IDEApiCall) {
   window.parent.postMessage(apiCall, '*');
 }
 
-function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+//function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {
