@@ -11,7 +11,11 @@
   {{#unless this.isSingleLandscapeMode}}
     {{#if this.tokenService.token}}
       <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-        <LinkTo @route='landscapes' class='d-flex-center'>
+        <LinkTo
+          @route='landscapes'
+          @query={{hash landscapeToken=undefined}}
+          class='d-flex-center'
+        >
           {{svg-jar 'key-16' class='octicon'}}
           <span>{{this.tokenService.token.alias}}</span>
         </LinkTo>
