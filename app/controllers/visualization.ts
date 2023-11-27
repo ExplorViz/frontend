@@ -117,6 +117,11 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
+  queryParams = ['roomId'];
+
+  @tracked
+  roomId?: string;
+
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
 

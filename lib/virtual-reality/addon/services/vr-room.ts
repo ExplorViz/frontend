@@ -45,8 +45,8 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  async createRoom(): Promise<RoomCreatedResponse> {
-    const payload = this.buildInitialRoomPayload();
+  async createRoom(roomId = ''): Promise<RoomCreatedResponse> {
+    const payload = this.buildInitialRoomPayload(roomId);
 
     if (!payload?.landscape.landscapeToken) {
       throw new Error('invalid data');
@@ -66,7 +66,9 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  private buildInitialRoomPayload(): InitialRoomPayload | undefined {
+  private buildInitialRoomPayload(
+    roomId: string
+  ): InitialRoomPayload | undefined {
     // Serialize room and remove unsupported properties.
     const room = this.roomSerializer.serializeRoom();
 
@@ -75,6 +77,7 @@ export default class VrRoomService extends Service {
     }
 
     return {
+      roomId,
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),

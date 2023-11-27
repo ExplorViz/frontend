@@ -5,7 +5,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-interface AutoJoinArgs {
+interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
 }
@@ -17,7 +17,7 @@ const { userService } = ENV.backendAddresses;
  * Effectivly setting up SychronizationSession and providing access to
  * projector identification and specific collaboration session via query parameter.
  */
-export default class AutoSelectLandscape extends Component<AutoJoinArgs> {
+export default class AutoSelectLandscape extends Component<AutoSelectLandscapeArgs> {
   @service('router')
   private router!: any;
 
@@ -79,7 +79,7 @@ export default class AutoSelectLandscape extends Component<AutoJoinArgs> {
     }
   }
 
-  constructor(owner: unknown, args: AutoJoinArgs) {
+  constructor(owner: unknown, args: AutoSelectLandscapeArgs) {
     super(owner, args);
 
     // Authentication might take some time and is needed to request landscape token
