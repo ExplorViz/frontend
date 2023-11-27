@@ -4,7 +4,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
@@ -24,9 +23,6 @@ import LinkRenderer from './link-renderer';
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('configuration')
-  private configuration!: Configuration;
-
   @service('user-settings')
   private userSettings!: UserSettings;
 
@@ -55,7 +51,7 @@ export default class HighlightingService extends Service.extend({
     if (this.collaborationSession.isOnline) {
       return this.localUser.color;
     } else {
-      return this.configuration.applicationColors.highlightedEntityColor;
+      return this.userSettings.applicationColors.highlightedEntityColor;
     }
   }
 
@@ -154,7 +150,7 @@ export default class HighlightingService extends Service.extend({
     color?: THREE.Color
   ) {
     mesh.highlightingColor =
-      color || this.configuration.applicationColors.highlightedEntityColor;
+      color || this.userSettings.applicationColors.highlightedEntityColor;
     if (mesh.highlighted) {
       mesh.unhighlight();
       if (
@@ -174,8 +170,7 @@ export default class HighlightingService extends Service.extend({
         this.getEntityType(mesh),
         mesh.getModelId(),
         mesh.highlighted,
-        this.configuration.userSettings.applicationSettings
-          .enableMultipleHighlighting.value
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
     }
   }
@@ -220,8 +215,7 @@ export default class HighlightingService extends Service.extend({
           entityType,
           entityId,
           object.highlighted,
-          this.configuration.userSettings.applicationSettings
-            .enableMultipleHighlighting.value
+          this.userSettings.applicationSettings.enableMultipleHighlighting.value
         );
       }
     }
@@ -233,7 +227,7 @@ export default class HighlightingService extends Service.extend({
     color?: THREE.Color
   ) {
     application.setHighlightingColor(
-      color || this.configuration.applicationColors.highlightedEntityColor
+      color || this.userSettings.applicationColors.highlightedEntityColor
     );
 
     if (

@@ -161,6 +161,7 @@ export default class VrMessageSender extends Service {
   sendComponentUpdate(
     appId: string,
     componentId: string,
+
     isOpened: boolean,
     isFoundation: boolean,
     forward: boolean = true

@@ -204,10 +204,10 @@ function composeAggregatedClassCommunicationContent(
       });
     }
 
-    // Name of called operation
+    // Caller -> Callee method names
     content.entries.push({
-      key: 'Called Op.:',
-      value: `${methodCall.operationName}`,
+      key: 'Operations:',
+      value: `${methodCall.callerMethodName} -> ${methodCall.operationName}`,
     });
 
     // Request count

@@ -16,6 +16,7 @@ import ClassCommunication from '../landscape-schemes/dynamic/class-communication
 
 function computeClassCommunicationRecursively(
   span: Span,
+  potentialParentSpan: Span | undefined,
   spanIdToChildSpanMap: Map<string, Span[]>,
   hashCodeToClassMap: Map<string, Class>
 ) {
@@ -29,6 +30,19 @@ function computeClassCommunicationRecursively(
 
   if (classMatchingSpan === undefined) {
     return [];
+  }
+
+  let callerMethodName = 'UNKNOWN';
+
+  if (potentialParentSpan) {
+    const classMatchingParentSpan = hashCodeToClassMap.get(
+      potentialParentSpan.hashCode
+    );
+    classMatchingParentSpan?.methods.forEach((method) => {
+      if (method.hashCode === potentialParentSpan.hashCode) {
+        callerMethodName = method.name;
+      }
+    });
   }
 
   const classCommunications: SingleClassCommunication[] = [];
@@ -48,10 +62,12 @@ function computeClassCommunicationRecursively(
         sourceClass: classMatchingSpan,
         targetClass: classMatchingChildSpan,
         operationName: methodName,
+        callerMethodName: callerMethodName,
       });
       classCommunications.push(
         ...computeClassCommunicationRecursively(
           childSpan,
+          span,
           spanIdToChildSpanMap,
           hashCodeToClassMap
         )
@@ -82,6 +98,7 @@ export default function computeClassCommunication(
       totalClassCommunications.push(
         ...computeClassCommunicationRecursively(
           firstSpan,
+          undefined,
           traceSpanTree.tree,
           hashCodeToClassMap
         )
@@ -92,7 +109,7 @@ export default function computeClassCommunication(
   const methodCalls = new Map<string, MethodCall>();
 
   totalClassCommunications.forEach(
-    ({ sourceClass, targetClass, operationName }) => {
+    ({ sourceClass, targetClass, operationName, callerMethodName }) => {
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
       // get source app
@@ -127,7 +144,8 @@ export default function computeClassCommunication(
             sourceClass,
             targetApp,
             targetClass,
-            operationName
+            operationName,
+            callerMethodName
           ).addSpan()
         );
       } else {
@@ -243,4 +261,5 @@ interface SingleClassCommunication {
   sourceClass: Class;
   targetClass: Class;
   operationName: string;
+  callerMethodName: string;
 }

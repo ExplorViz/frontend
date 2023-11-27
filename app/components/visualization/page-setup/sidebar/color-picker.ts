@@ -1,10 +1,9 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
-import Configuration, {
+import UserSettings, {
   ApplicationColors,
-} from 'explorviz-frontend/services/configuration';
-import UserSettings from 'explorviz-frontend/services/user-settings';
+} from 'explorviz-frontend/services/user-settings';
 import {
   ApplicationColorSettingId,
   ColorSetting,
@@ -23,9 +22,6 @@ interface ColorPickerObjectApplication {
 }
 
 export default class ColorPicker extends Component<Args> {
-  @service('configuration')
-  configuration!: Configuration;
-
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -34,7 +30,7 @@ export default class ColorPicker extends Component<Args> {
     colorName: keyof ApplicationColors,
     element: HTMLElement
   ) {
-    const colorObject = this.configuration.applicationColors[colorName];
+    const colorObject = this.userSettings.applicationColors[colorName];
     this.setupColorpicker(element, {
       colorObject,
       colorName,
