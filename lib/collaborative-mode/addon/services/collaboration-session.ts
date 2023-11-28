@@ -294,17 +294,25 @@ export default class CollaborationSession extends Service.extend({
   }
 
   async hostRoom(roomId = '') {
-    if (!this.isConnecting) {
-      this.connectionStatus = 'connecting';
+    if (
+      !this.isConnecting &&
+      !this.isOnline &&
+      this.applicationRenderer.getOpenApplications().length > 0
+    ) {
+      // this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom(roomId);
         this.joinRoom(response.roomId, { checkConnectionStatus: false });
+        return true;
       } catch (e: any) {
-        this.connectionStatus = 'offline';
+        // this.connectionStatus = 'offline';
         AlertifyHandler.showAlertifyError(
           'Cannot reach Collaboration-Service.'
         );
+        return false;
       }
+    } else {
+      return false;
     }
   }
 

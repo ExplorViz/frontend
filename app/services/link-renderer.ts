@@ -58,7 +58,6 @@ export default class LinkRenderer extends Service.extend({}) {
     if (!link.communicationData) {
       return true;
     }
-
     const classCommunication: ClassCommunication = link.communicationData;
 
     // source
@@ -107,6 +106,11 @@ export default class LinkRenderer extends Service.extend({}) {
     const classCommunication = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
     const { id } = classCommunication;
+
+    if (!applicationObject3D.data) {
+      console.log('Link renderer has no application data yet');
+      return;
+    }
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
       applicationObject3D.data.application,
