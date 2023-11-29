@@ -27,8 +27,27 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   @service('auth')
   auth!: Auth;
 
+  autoSelectCallback = this.autoSelectLandscape.bind(this);
+
+  constructor(owner: unknown, args: AutoSelectLandscapeArgs) {
+    super(owner, args);
+
+    // Authentication might take some time and is needed to request landscape token
+    if (this.auth.user) {
+      this.autoSelectLandscape();
+    } else {
+      this.auth.on('user_authenticated', this.autoSelectCallback);
+    }
+  }
+
   // Create task to handle async calls on room handling
-  async setUpLandscapeSelection() {
+  async autoSelectLandscape() {
+    if (
+      !this.args.landscapeToken ||
+      this.tokenService.token?.value === this.args.landscapeToken
+    ) {
+      return;
+    }
     try {
       const tokens = await this.getLandscapeTokens();
       const selectedToken = tokens.find(
@@ -70,27 +89,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     return (await response.json()) as LandscapeToken[];
   }
 
-  checkForLandscape() {
-    if (
-      this.args.landscapeToken &&
-      this.tokenService.token?.value !== this.args.landscapeToken
-    ) {
-      this.setUpLandscapeSelection();
-    }
-  }
-
-  constructor(owner: unknown, args: AutoSelectLandscapeArgs) {
-    super(owner, args);
-
-    // Authentication might take some time and is needed to request landscape token
-    if (this.auth.user) {
-      this.checkForLandscape();
-    } else {
-      this.auth.on('user_authenticated', this.checkForLandscape.bind(this));
-    }
-  }
-
   willDestroy(): void {
-    this.auth.off('use_authenticated', this.checkForLandscape);
+    this.auth.off('user_authenticated', this.autoSelectCallback);
   }
 }
