@@ -36,7 +36,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     if (this.auth.user) {
       this.autoSelectLandscape();
     } else {
-      this.autoSelectCallback = this.autoSelectCallback.bind(this);
+      this.autoSelectCallback = this.autoSelectLandscape.bind(this);
       this.auth.on('user_authenticated', this.autoSelectCallback);
     }
   }

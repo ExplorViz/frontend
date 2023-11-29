@@ -31,10 +31,10 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
     } else if (!roomHosted && retries <= 0) {
       console.log('Failed to auto join room, no retries left');
     } else {
-      console.log('Failed to auto join room, retrying in 5 seconds again...');
+      console.log('Failed to auto join room, retrying in 3 seconds again...');
       setTimeout(() => {
         this.autoJoinLobby(retries - 1);
-      }, 5000);
+      }, 3000);
     }
   }
 }
