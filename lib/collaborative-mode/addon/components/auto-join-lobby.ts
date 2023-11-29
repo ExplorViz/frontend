@@ -18,7 +18,9 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
   constructor(owner: unknown, args: AutoJoinLobbyArgs) {
     super(owner, args);
 
-    this.autoJoinLobby();
+    if (this.args.roomId) {
+      this.autoJoinLobby();
+    }
   }
 
   async autoJoinLobby(retries = 3) {
