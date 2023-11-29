@@ -27,7 +27,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   @service('auth')
   auth!: Auth;
 
-  autoSelectCallback = this.autoSelectLandscape.bind(this);
+  autoSelectCallback: any;
 
   constructor(owner: unknown, args: AutoSelectLandscapeArgs) {
     super(owner, args);
@@ -36,6 +36,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     if (this.auth.user) {
       this.autoSelectLandscape();
     } else {
+      this.autoSelectCallback = this.autoSelectCallback.bind(this);
       this.auth.on('user_authenticated', this.autoSelectCallback);
     }
   }
@@ -90,6 +91,8 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   }
 
   willDestroy(): void {
-    this.auth.off('user_authenticated', this.autoSelectCallback);
+    if (this.autoSelectCallback) {
+      this.auth.off('user_authenticated', this.autoSelectCallback);
+    }
   }
 }
