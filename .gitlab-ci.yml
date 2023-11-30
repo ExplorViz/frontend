@@ -24,7 +24,7 @@ workflow:
 linting:
   stage: code-analysis
   before_script:
-    - npm ci --cache .npm --prefer-offline
+    - npm install --cache .npm --prefer-offline
   script:
     - node --version
     - npm --version
@@ -33,12 +33,10 @@ linting:
     expire_in: 1h
     paths:
       - node_modules
-      - dist
 
 test:
   stage: test
   script:
-    - npm install
     - ember test
 
 .build:
@@ -46,7 +44,6 @@ test:
   variables:
     VERSION_TAG: $CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   script:
-    - npm install
     - ember build --prod
   artifacts:
     expire_in: 1h
