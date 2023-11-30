@@ -33,7 +33,7 @@ import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr
 
 type ResponseHandler<T> = (msg: T) => void;
 
-const { collaborationService, collaborationSocketPath } = ENV.backendAddresses;
+const { collaborationService } = ENV.backendAddresses;
 
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
@@ -85,7 +85,7 @@ export default class WebSocketService extends Service.extend(Evented) {
   }
 
   private getSocketUrl() {
-    return collaborationService + collaborationSocketPath;
+    return collaborationService;
   }
 
   async initSocket(ticketId: string, mode: VisualizationMode) {

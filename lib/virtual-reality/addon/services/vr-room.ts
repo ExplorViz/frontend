@@ -19,7 +19,7 @@ import {
 import { JoinLobbyPayload } from '../utils/vr-payload/sendable/join-lobby';
 import VrRoomSerializer from './vr-room-serializer';
 
-const { collaborationService, collaborationSocketPath } = ENV.backendAddresses;
+const { collaborationService } = ENV.backendAddresses;
 
 export default class VrRoomService extends Service {
   @service('auth')
@@ -32,7 +32,7 @@ export default class VrRoomService extends Service {
   private roomSerializer!: VrRoomSerializer;
 
   async listRooms(): Promise<RoomListRecord[]> {
-    const url = `${collaborationService}${collaborationSocketPath}/rooms`;
+    const url = `${collaborationService}/rooms`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${this.auth.accessToken}`,
@@ -52,7 +52,7 @@ export default class VrRoomService extends Service {
       throw new Error('invalid data');
     }
 
-    const url = `${collaborationService}${collaborationSocketPath}/room`;
+    const url = `${collaborationService}/room`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -85,7 +85,7 @@ export default class VrRoomService extends Service {
   }
 
   async joinLobby(roomId: string): Promise<LobbyJoinedResponse> {
-    const url = `${collaborationService}${collaborationSocketPath}/room/${roomId}/lobby`;
+    const url = `${collaborationService}/room/${roomId}/lobby`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
