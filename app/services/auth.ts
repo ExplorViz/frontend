@@ -51,7 +51,6 @@ export default class Auth extends Service.extend(Evented) {
       await this.setUser(authResult.accessToken);
       this.set('accessToken', authResult.accessToken);
       this.router.transitionTo(ENV.auth0.routeAfterLogin);
-      this.trigger('user_authenticated', this.user);
     });
   }
 

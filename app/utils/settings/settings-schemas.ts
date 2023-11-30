@@ -22,6 +22,7 @@ export type ApplicationColorSettingId =
   | 'backgroundColor';
 
 export type ApplicationHighlightingSettingId =
+  | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
@@ -60,6 +61,7 @@ export type ApplicationColorSettings = Record<
 >;
 
 export type ApplicationHighlightingSettings = {
+  applyHighlightingOnHover: FlagSetting;
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
   enableMultipleHighlighting: FlagSetting;
