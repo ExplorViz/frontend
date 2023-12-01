@@ -1,24 +1,78 @@
-import Service, { inject as service } from '@ember/service';
+import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
 import { Nonce } from 'virtual-reality/utils/vr-message/util/nonce';
-import { RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response';
-import { FORWARDED_EVENT } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+import { io, Socket } from 'socket.io-client';
+import { INITIAL_LANDSCAPE_EVENT } from 'virtual-reality/utils/vr-message/receivable/landscape';
+import { SELF_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/self_connected';
+import { USER_CONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_connected';
+import { USER_DISCONNECTED_EVENT } from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
+import { APP_OPENED_EVENT } from 'virtual-reality/utils/vr-message/sendable/app_opened';
+import { COMPONENT_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/component_update';
+import { HEATMAP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/heatmap_update';
+import { HIGHLIGHTING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
+import { MOUSE_PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
+import { PING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/ping_update';
+import { SPECTATING_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/spectating_update';
+import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
+import { OBJECT_MOVED_EVENT } from 'virtual-reality/utils/vr-message/sendable/object_moved';
+import { APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/app_closed';
+import { DETACHED_MENU_CLOSED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+import { TIMESTAMP_UPDATE_EVENT } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import { USER_CONTROLLER_CONNECT_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_controller_connect';
+import { USER_CONTROLLER_DISCONNECT_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_controller_disconnect';
+import { USER_POSITIONS_EVENT } from 'virtual-reality/utils/vr-message/sendable/user_positions';
+import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
+import { OBJECT_CLOSED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+import { MENU_DETACHED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
+import { OBJECT_GRABBED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
+import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 
 type ResponseHandler<T> = (msg: T) => void;
 
-const { collaborationService, collaborationSocketPath } = ENV.backendAddresses;
+const { collaborationService } = ENV.backendAddresses;
 
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
-export default class WebSocketService extends Service.extend(Evented) {
-  @service()
-  private websockets!: any;
+const RECEIVABLE_EVENTS = [
+  INITIAL_LANDSCAPE_EVENT,
+  SELF_CONNECTED_EVENT,
+  USER_CONNECTED_EVENT,
+  USER_DISCONNECTED_EVENT,
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+  MENU_DETACHED_EVENT,
+  APP_OPENED_EVENT,
+  COMPONENT_UPDATE_EVENT,
+  HEATMAP_UPDATE_EVENT,
+  HIGHLIGHTING_UPDATE_EVENT,
+  MOUSE_PING_UPDATE_EVENT,
+  PING_UPDATE_EVENT,
+  TIMESTAMP_UPDATE_EVENT,
+  USER_CONTROLLER_CONNECT_EVENT,
+  USER_CONTROLLER_DISCONNECT_EVENT,
+  USER_POSITIONS_EVENT,
+  OBJECT_MOVED_EVENT,
+  APP_CLOSED_EVENT,
+  DETACHED_MENU_CLOSED_EVENT,
+  MENU_DETACHED_EVENT,
+  SPECTATING_UPDATE_EVENT,
+  ALL_HIGHLIGHTS_RESET_EVENT,
+  JOIN_VR_EVENT,
+];
 
+const RESPONSE_EVENTS = [
+  OBJECT_CLOSED_RESPONSE_EVENT,
+  MENU_DETACHED_RESPONSE_EVENT,
+  OBJECT_GRABBED_RESPONSE_EVENT,
+];
+
+export default class WebSocketService extends Service.extend(Evented) {
   private debug = debugLogger('WebSocketService');
 
-  private currentSocket: any = null; // WebSocket to send/receive messages to/from backend
+  private currentSocket: Socket | null = null; // WebSocket to send/receive messages to/from backend
 
   private currentSocketUrl: string | null = null;
 
@@ -30,24 +84,38 @@ export default class WebSocketService extends Service.extend(Evented) {
     return ++this.lastNonce;
   }
 
-  private getSocketUrl(ticketId: string) {
-    const collaborationServiceSocket = collaborationService.replace(
-      /^http(s?):\/\//i,
-      'ws$1://'
-    );
-    return collaborationServiceSocket + collaborationSocketPath + ticketId;
+  private getSocketUrl() {
+    return collaborationService;
   }
 
-  async initSocket(ticketId: string) {
-    this.currentSocketUrl = this.getSocketUrl(ticketId);
-    this.currentSocket = this.websockets.socketFor(this.currentSocketUrl);
-    this.currentSocket.on('message', this.messageHandler, this);
-    this.currentSocket.on('close', this.closeHandler, this);
+  async initSocket(ticketId: string, mode: VisualizationMode) {
+    this.currentSocketUrl = this.getSocketUrl();
+    this.currentSocket = io(this.currentSocketUrl, {
+      transports: ['websocket'],
+      query: {
+        ticketId: ticketId,
+        userName: 'JOHNNY',
+        mode: mode,
+      },
+    });
+    this.currentSocket.on('disconnect', this.closeHandler.bind(this));
+
+    RECEIVABLE_EVENTS.forEach((event) => {
+      this.currentSocket?.on(event, (message) => {
+        this.trigger(event, message);
+      });
+    });
+
+    RESPONSE_EVENTS.forEach((event) => {
+      this.currentSocket?.on(event, (message) => {
+        const handler = this.responseHandlers.get(message.nonce);
+        if (handler) handler(message.response);
+      });
+    });
   }
 
   closeSocket() {
-    if (this.currentSocketUrl)
-      this.websockets.closeSocketFor(this.currentSocketUrl);
+    if (this.isWebSocketOpen()) this.currentSocket?.disconnect();
   }
 
   private closeHandler(event: any) {
@@ -62,23 +130,9 @@ export default class WebSocketService extends Service.extend(Evented) {
     this.trigger(SELF_DISCONNECTED_EVENT, event);
 
     // Remove internal event listeners.
-    this.currentSocket.off('message', this.messageHandler);
-    this.currentSocket.off('close', this.closeHandler);
+    this.currentSocket?.disconnect();
     this.currentSocket = null;
     this.currentSocketUrl = null;
-  }
-
-  private messageHandler(event: any) {
-    const message = JSON.parse(event.data);
-    this.debug(`Got a message${message.event}`);
-    if (message.event === FORWARDED_EVENT) {
-      this.trigger(message.originalMessage.event, message);
-    } else if (message.event === RESPONSE_EVENT) {
-      const handler = this.responseHandlers.get(message.nonce);
-      if (handler) handler(message.response);
-    } else {
-      this.trigger(message.event, message);
-    }
   }
 
   /**
@@ -89,8 +143,8 @@ export default class WebSocketService extends Service.extend(Evented) {
    *
    * @param msg The message to send.
    */
-  send<T>(msg: T) {
-    if (this.isWebSocketOpen()) this.currentSocket.send(JSON.stringify(msg));
+  send<T>(event: string, msg: T) {
+    if (this.isWebSocketOpen()) this.currentSocket?.emit(event, msg);
   }
 
   // removeCircularReferences() {
@@ -107,12 +161,12 @@ export default class WebSocketService extends Service.extend(Evented) {
   // }
 
   isWebSocketOpen(): boolean {
-    return this.currentSocket && this.currentSocket.readyState() === 1;
+    return this.currentSocket != null && this.currentSocket.connected;
   }
 
   reset() {
+    this.currentSocket?.disconnect();
     this.currentSocket = null;
-    this.currentSocketUrl = null;
   }
 
   /**
@@ -131,7 +185,7 @@ export default class WebSocketService extends Service.extend(Evented) {
    * @param onOffline The callback to invoke instead of listening for responses when the client is
    * not connected.
    */
-  awaitResponse<T>({
+  private awaitResponse<T>({
     nonce,
     responseType: isValidResponse,
     onResponse,
@@ -171,6 +225,7 @@ export default class WebSocketService extends Service.extend(Evented) {
    * This is usually used, when the backend is required to synchronize some actions.
    * */
   sendRespondableMessage<T, R>(
+    event: string,
     message: T,
     {
       responseType,
@@ -184,7 +239,7 @@ export default class WebSocketService extends Service.extend(Evented) {
   ): Promise<boolean> {
     const nonce = this.nextNonce();
     // send message
-    this.send<T>({
+    this.send<T>(event, {
       ...message,
       nonce,
     });

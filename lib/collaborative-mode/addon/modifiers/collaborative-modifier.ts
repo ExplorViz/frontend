@@ -347,7 +347,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       } else {
         this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
       }
-    } else if (componentMesh instanceof ComponentMesh) {
+    } else if (
+      componentMesh instanceof ComponentMesh &&
+      componentMesh.opened !== isOpened
+    ) {
       this.applicationRenderer.toggleComponentLocally(
         componentMesh,
         applicationObject3D

@@ -32,6 +32,9 @@
 }}
 
 {{did-insert this.setupListeners}}
+
+<AutoJoinLobby @roomId={{this.roomId}} />
+
 <div id='vizspace' {{sync-state}}>
   {{#if this.showAR}}
     <ArRendering

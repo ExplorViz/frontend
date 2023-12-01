@@ -39,6 +39,10 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
   SerializedApp,
@@ -112,6 +116,11 @@ export default class VisualizationController extends Controller {
   linkRenderer!: LinkRenderer;
 
   plotlyTimelineRef!: PlotlyTimeline;
+
+  queryParams = ['roomId'];
+
+  @tracked
+  roomId?: string;
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
@@ -290,6 +299,10 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
   }
 
   @action

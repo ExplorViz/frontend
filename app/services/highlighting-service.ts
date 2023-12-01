@@ -85,6 +85,28 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
+  resetColorsOfHighlightedEntities() {
+    const { applications } = this.getParams();
+
+    for (const applicationObject3D of applications) {
+      const allMeshes = applicationObject3D.getAllMeshes();
+
+      for (const baseMesh of allMeshes) {
+        if (baseMesh.highlighted) {
+          baseMesh.highlightingColor = this.highlightingColor;
+          baseMesh.highlight();
+        }
+      }
+    }
+
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      if (externLink.highlighted) {
+        externLink.highlightingColor = this.highlightingColor;
+        externLink.highlight();
+      }
+    });
+  }
+
   @action
   updateHighlighting() {
     if (this.applyHighlightingOnHover && !this.hoveredOnHighlightedMesh) {

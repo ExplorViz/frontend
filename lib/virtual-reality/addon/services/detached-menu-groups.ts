@@ -5,8 +5,14 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
-import { DetachedMenuClosedMessage } from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
-import { MenuDetachedMessage } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
+import {
+  DETACHED_MENU_CLOSED_EVENT,
+  DetachedMenuClosedMessage,
+} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+import {
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
 import CloseIcon from '../utils/view-objects/vr/close-icon';
 import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
@@ -91,6 +97,7 @@ export default class DetachedMenuGroupsService extends Service {
       MenuDetachedMessage,
       MenuDetachedResponse
     >(
+      MENU_DETACHED_EVENT,
       // Notify backend about detached menu.
       {
         event: 'menu_detached',
@@ -265,6 +272,7 @@ export default class DetachedMenuGroupsService extends Service {
       DetachedMenuClosedMessage,
       ObjectClosedResponse
     >(
+      DETACHED_MENU_CLOSED_EVENT,
       // Informs the backend that an detached menu was closed by this user.
       {
         event: 'detached_menu_closed',

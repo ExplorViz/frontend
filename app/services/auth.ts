@@ -3,14 +3,14 @@ import ENV from 'explorviz-frontend/config/environment';
 import { Auth0Error, Auth0UserProfile } from 'auth0-js';
 import Auth0Lock from 'auth0-lock';
 import debugLogger from 'ember-debug-logger';
+import Evented from '@ember/object/evented';
 
-export default class Auth extends Service {
+export default class Auth extends Service.extend(Evented) {
   private debug = debugLogger();
 
   @service('router')
   router!: any;
 
-  // is initialized in the init()
   private lock: Auth0LockStatic | null = null;
 
   user: Auth0UserProfile | undefined = undefined;
@@ -120,6 +120,7 @@ export default class Auth extends Service {
               await this.setUser(authResult.accessToken);
               this.set('accessToken', authResult.accessToken);
               resolve(authResult);
+              this.trigger('user_authenticated', this.user);
             } catch (e) {
               reject(e);
             }
