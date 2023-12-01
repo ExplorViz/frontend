@@ -169,7 +169,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       75,
       1.0,
       0.1,
-      100
+      500
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.localUser.defaultCamera);
@@ -311,7 +311,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       canvas: this.canvas,
       preserveDrawingBuffer: true,
     });
-    this.cssRendrerer = new CSS3DRenderer();
+    const container = document.querySelector('#rendering') as HTMLElement;
+    this.cssRendrerer = new CSS3DRenderer({});
+    container.appendChild(this.cssRendrerer.domElement);
+    this.cssRendrerer.domElement.style.position = 'absolute';
+    this.cssRendrerer.domElement.style.pointerEvents = 'none';
+    this.cssRendrerer.domElement.style.zIndex = '-1000';
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
