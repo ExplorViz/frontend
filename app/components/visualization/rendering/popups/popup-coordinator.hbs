@@ -57,12 +57,6 @@
     X
   </BsButton>
 
-  {{! landscape popups }}
-  {{#if (eq this.entityType 'node')}}
-    <Visualization::Rendering::Popups::LandscapePopups::NodePopup
-      @node={{@popupData.entity}}
-    />
-  {{/if}}
   {{#if (eq this.entityType 'application')}}
     <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
       @application={{@popupData.entity}}
@@ -81,11 +75,11 @@
       @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
-  {{#if (eq this.entityType 'drawableClassCommunication')}}
+  {{#if (eq this.entityType 'classCommunication')}}
     <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
       @communication={{@popupData.entity}}
       @showApplication={{@showApplication}}
-      @highlightModel={{@highlightModel}}
+      @highlightById={{@highlightById}}
       @openParents={{@openParents}}
     />
   {{/if}}

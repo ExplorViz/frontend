@@ -3,7 +3,7 @@ import {
   getAllClassesInApplication,
   getAllMethodHashCodesInApplication,
 } from './application-helpers';
-import { Trace } from './landscape-schemes/dynamic-data';
+import { Trace } from './landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
   Class,

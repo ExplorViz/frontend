@@ -26,33 +26,29 @@ export default class SidebarResizer extends Component<SidebarArgs> {
 
     // Init sidebar width
     const sidebarWidthInPercent = Number(
-      localStorage.getItem('sidebarWithInPercent')
+      localStorage.getItem(this.args.sidebarName + 'WithInPercent')
     );
+
     if (typeof sidebarWidthInPercent == 'number') {
       this.setSidebarWidth(sidebarWidthInPercent);
     }
   }
 
   setSidebarWidth(widthInPercent: number) {
-    const sidebar = document.getElementById('dataselection');
+    const sidebar = document.getElementById(this.args.sidebarName);
 
     if (sidebar && widthInPercent > 20) {
       sidebar.style.maxWidth = `${widthInPercent}%`;
-      localStorage.setItem('sidebarWithInPercent', widthInPercent.toString());
+      localStorage.setItem(
+        this.args.sidebarName + 'WithInPercent',
+        widthInPercent.toString()
+      );
     }
   }
 
   dragElement(resizeButton: HTMLElement) {
-    const sidebarName = this.args.sidebarName;
+    const setSidebarWidth = this.setSidebarWidth.bind(this);
     const expandToRight = this.args.expandToRight;
-
-    function setSidebarWidth(widthInPercent: number) {
-      const sidebar = document.getElementById(sidebarName);
-
-      if (sidebar && widthInPercent > 20) {
-        sidebar.style.maxWidth = `${widthInPercent}%`;
-      }
-    }
 
     function handleDragInput(targetX: number) {
       let widthInPercent: number;

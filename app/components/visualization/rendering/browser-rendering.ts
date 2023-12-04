@@ -13,20 +13,21 @@ import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
-import EntityManipulation from 'explorviz-frontend/services/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { moveCameraTo } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import {
+  moveCameraTo,
+  updateColors,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { defaultScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
@@ -42,12 +43,11 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
-import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
-import PopupData from './popups/popup-data';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -88,9 +88,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
-  @service('entity-manipulation')
-  private entityManipulation!: EntityManipulation;
-
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
@@ -99,6 +96,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -126,6 +126,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   hoveredObject: EntityMesh | null = null;
 
   controls!: MapControls;
+
+  ortographicCamera!: THREE.OrthographicCamera;
+  private frustumSize = 5;
 
   cameraControls!: CameraControls;
 
@@ -161,18 +164,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
     this.debug('Constructor called');
     // scene
-    this.scene = defaultScene();
-    this.scene.background = this.configuration.landscapeColors.backgroundColor;
-
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
-      1.0,
-      0.1,
-      500
-    );
-    this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
+    this.scene = this.sceneRepo.getScene('browser', true);
+    this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -286,12 +279,23 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const width = outerDiv.clientWidth;
     const height = outerDiv.clientHeight;
 
-    // Update renderer and camera according to canvas size
+    const newAspectRatio = width / height;
+
+    // Update renderer and cameras according to canvas size
     this.renderer.setSize(width, height);
     this.cssRendrerer.setSize(width, height);
 
-    this.camera.aspect = width / height;
+    this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
+
+    this.ortographicCamera.left = (this.frustumSize * newAspectRatio) / -2;
+    this.ortographicCamera.right = (this.frustumSize * newAspectRatio) / 2;
+    this.ortographicCamera.top = this.frustumSize / 2;
+    this.ortographicCamera.bottom = -this.frustumSize / 2;
+
+    this.ortographicCamera.userData.aspect = newAspectRatio;
+
+    this.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -325,8 +329,42 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.cssRendrerer.setSize(width, height);
     this.debug('Renderer set up');
 
+    const aspectRatio = width / height;
+
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      75,
+      aspectRatio,
+      0.1,
+      1000
+    );
+    this.camera.position.set(5, 5, 5);
+    this.scene.add(this.localUser.defaultCamera);
+
+    this.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * this.frustumSize,
+      aspectRatio * this.frustumSize,
+      this.frustumSize,
+      -this.frustumSize,
+      0.1,
+      100
+    );
+
+    this.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.ortographicCamera.lookAt(this.scene.position);
     // controls
-    this.cameraControls = new CameraControls(this.camera, this.canvas);
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      this.ortographicCamera,
+      this.canvas
+    );
 
     this.spectateUserService.cameraControls = this.cameraControls;
     this.graph.onFinishUpdate(() => {
@@ -346,6 +384,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
+      orthographicCamera: this.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       cssRenderer: this.cssRendrerer,
@@ -385,18 +424,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     if (isEntityMesh(mesh)) {
       if (mesh.parent instanceof ApplicationObject3D) {
-        this.applicationRenderer.highlight(
-          mesh,
-          mesh.parent,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
         // extern communication link
-        this.applicationRenderer.highlightExternLink(
-          mesh,
-          true,
-          this.localUser.color
-        );
+        this.applicationRenderer.highlightExternLink(mesh, true);
       }
     }
   }
@@ -450,7 +481,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       ) {
         const applicationObject3D = mesh.parent;
         if (applicationObject3D instanceof ApplicationObject3D)
-          removeAllHighlighting(applicationObject3D);
+          removeAllHighlightingFor(applicationObject3D);
       }
     }
 
@@ -480,6 +511,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = null;
     }
     this.popupHandler.hover(intersection?.object);
+
+    this.highlightingService.updateHighlightingOnHover(
+      isEntityMesh(intersection?.object) && intersection.object.highlighted
+    );
   }
 
   @action
@@ -570,33 +605,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  restore(detachedMenu: SerializedDetachedMenu) {
-    const mesh = this.applicationRenderer.getMeshById(detachedMenu.entityId);
-    const applicationId = this.applicationRenderer.getApplicationIdByMeshId(
-      detachedMenu.entityId
-    );
-    if (mesh && applicationId && detachedMenu.userId) {
-      const popupDataInstance: PopupData = new PopupData({
-        mouseX: 5,
-        mouseY: 5,
-        mesh: mesh as EntityMesh,
-        entity: (mesh as EntityMesh).dataModel,
-        applicationId: applicationId,
-        wasMoved: false,
-        sharedBy: detachedMenu.userId,
-        isPinned: true,
-        menuId: detachedMenu.objectId,
-        hovered: false,
-      });
-
-      const popupData: PopupData[] = [popupDataInstance];
-      this.popupHandler.popupData = popupData;
-    }
-  }
-
   @action
   updateColors() {
-    this.entityManipulation.updateColors(this.scene);
+    updateColors(this.scene, this.userSettings.applicationColors);
   }
 
   /**
@@ -612,7 +623,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // is not called before other e.g. vr-rendering is inserted:
     // https://github.com/emberjs/ember.js/issues/18873
-    // this.applicationRenderer.cleanUpApplications();
+    this.applicationRenderer.cleanup();
+    this.applicationRepo.cleanup();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
 

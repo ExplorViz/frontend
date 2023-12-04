@@ -1,8 +1,4 @@
 {{! template-lint-disable simple-unless }}
-<div class='sidebar-component-close' {{on 'click' this.close}}>
-  {{svg-jar 'x-16' class='octicon'}}
-</div>
-
 {{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
     <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>
@@ -35,7 +31,6 @@
               @id={{settingId}}
               @setting={{setting}}
               @updateColors={{@updateColors}}
-              @isLandscapeView={{@isLandscapeView}}
             />
           {{/if}}
         {{/let}}
@@ -43,3 +38,6 @@
     </div>
   {{/unless}}
 {{/each-in}}
+<BsButton class='reset-all-button' {{on 'click' this.resetSettings}}>
+  Reset All to Default
+</BsButton>

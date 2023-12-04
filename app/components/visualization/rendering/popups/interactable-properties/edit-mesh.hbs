@@ -44,18 +44,31 @@
     <BsButton @type='dark' {{on 'click' this.cutMesh}}>
       {{svg-jar 'copy-16' class='octicon align-right'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
-        Cut
+        Copy
       </BsTooltip>
     </BsButton>
     {{#if this.isInsertable}}
-      <BsButton @type='light' {{on 'click' this.insertMesh}}>
+      <BsButton @type='light' {{on 'click' this.pasteMesh}}>
         {{svg-jar 'duplicate-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
-          Insert
+          Paste
         </BsTooltip>
       </BsButton>
+      <BsButton @type='warning' {{on 'click' this.insertMesh}}>
+        {{svg-jar 'diff-renamed-16' class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Move
+        </BsTooltip>
+      </BsButton>
+
     {{/if}}
   {{else if this.isEntityApplication}}
+    <BsButton @type='info' {{on 'click' this.duplicateApp}}>
+      {{svg-jar 'stack-16' class='octicon align-right'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Duplicate
+      </BsTooltip>
+    </BsButton>
     <BsButton
       style={{html-safe
         (concat
@@ -80,10 +93,16 @@
       </BsTooltip>
     </BsButton>
     {{#if this.isInsertable}}
-      <BsButton @type='light' {{on 'click' this.insertMesh}}>
+      <BsButton @type='light' {{on 'click' this.pasteMesh}}>
         {{svg-jar 'duplicate-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
-          Insert
+          Paste
+        </BsTooltip>
+      </BsButton>
+      <BsButton @type='warning' {{on 'click' this.insertMesh}}>
+        {{svg-jar 'diff-renamed-16' class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Move
         </BsTooltip>
       </BsButton>
     {{/if}}
@@ -97,7 +116,7 @@
     <BsButton @type='dark' {{on 'click' this.cutMesh}}>
       {{svg-jar 'copy-16' class='octicon align-right'}}
       <BsTooltip @placement='top' @triggerEvents='hover'>
-        Cut
+        Copy
       </BsTooltip>
     </BsButton>
     <BsButton @type='secondary' {{on 'click' this.setCommunicationSource}}>

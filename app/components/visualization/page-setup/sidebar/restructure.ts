@@ -7,7 +7,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 
@@ -21,7 +21,6 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   toggleVisualizationUpdating: () => void;
   resetLandscapeListenerPolling: () => void;
   removeTimestampListener: () => void;
-  removeComponent(componentPath: string): void;
 }
 
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
@@ -181,11 +180,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  close() {
-    this.args.removeComponent('restructure-landscape');
-  }
-
-  @action
   toggleRestructureMode() {
     this.restructureMode = this.landscapeRestructure.restructureMode;
     if (this.restructureMode) {
@@ -203,6 +197,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       if (this.args.visualizationPaused) {
         this.args.toggleVisualizationUpdating();
       }
+      this.landscapeRestructure.resetLandscapeRestructure();
       AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
     }
   }
@@ -271,7 +266,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   createCommunication() {
-    this.landscapeRestructure.createCommunication(this.methodName);
+    this.landscapeRestructure.addCommunication(this.methodName);
   }
 
   @action

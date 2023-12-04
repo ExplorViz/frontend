@@ -1,9 +1,11 @@
-image: explorviz/build-images:frontend
-
-cache:
-  paths:
-    - node_modules/
-    - .npm/
+default:
+  tags:
+    - exec-docker
+  image: explorviz/build-images:frontend
+  cache: # Cache modules in between jobs
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - .npm/
 
 stages:
   - code-analysis
@@ -21,34 +23,32 @@ workflow:
 
 linting:
   stage: code-analysis
-  tags:
-    - exec-docker
   before_script:
-    - npm install
+    - npm install --cache .npm --prefer-offline
   script:
     - node --version
     - npm --version
     - npm run lint
+  artifacts:
+    expire_in: 1h
+    paths:
+      - node_modules
 
 test:
   stage: test
-  tags:
-    - exec-docker
   script:
-    - npm install
     - ember test
 
 .build:
   stage: build
   variables:
     VERSION_TAG: $CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  tags:
-    - exec-docker
   script:
-    - npm install
     - ember build --prod
   artifacts:
+    expire_in: 1h
     paths:
+      - node_modules
       - dist
 
 build-prod:
@@ -69,8 +69,6 @@ build-prod-noauth:
 
 .deploy-to-dockerhub:
   stage: deploy:images
-  tags:
-    - exec-docker
   variables:
     DOCKERHUB_TAG: 'latest'
   image:
@@ -82,48 +80,55 @@ build-prod-noauth:
     - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG
 
 deploy-dockerhub-master:
-  dependencies:
-    - build-prod
   extends:
     - .deploy-to-dockerhub
+  dependencies:
+    - build-prod
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "master"'
 
 deploy-dockerhub-dev:
-  dependencies:
-    - build-prod
   extends:
     - .deploy-to-dockerhub
+  dependencies:
+    - build-prod
+  variables:
+    DOCKERHUB_TAG: 'dev'
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
-      variables:
-        DOCKERHUB_TAG: 'dev'
-  after_script:
-    - echo "DOCKERHUB_TAG=dev" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
 
 deploy-dockerhub-dev-noauth:
+  extends:
+    - .deploy-to-dockerhub
   dependencies:
     - build-prod-noauth
-  stage: deploy:images
-  tags:
-    - exec-docker
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: ['']
+  variables:
+    DOCKERHUB_TAG: 'dev-noauth'
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${DOCKERHUB_USER}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGA/$DOCKERHUB_IMAGE_NAME:dev-noauth
+
+deploy-dockerhub-mr-to-dev:
+  extends:
+    - .deploy-to-dockerhub
+  dependencies:
+    - build-prod
+  variables:
+    DOCKERHUB_TAG: $CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+
+deploy-dockerhub-mr-to-dev-noauth:
+  extends:
+    - .deploy-to-dockerhub
+  dependencies:
+    - build-prod-noauth
+  variables:
+    DOCKERHUB_TAG: $CI_COMMIT_SHORT_SHA-noauth
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
 
 retag-dockerhub-image:
   stage: deploy:retagging
-  tags:
-    - exec-docker
   rules:
     - if: '$CI_PIPELINE_SOURCE != "schedule" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master") && $CI_PIPELINE_SOURCE == "push"'
   image:
@@ -135,8 +140,6 @@ retag-dockerhub-image:
 
 retag-dockerhub-image-noauth:
   stage: deploy:retagging
-  tags:
-    - exec-docker
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE != "schedule"'
   image:

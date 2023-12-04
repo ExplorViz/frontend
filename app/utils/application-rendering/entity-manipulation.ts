@@ -7,12 +7,16 @@ import {
   DynamicLandscapeData,
   isSpan,
   Span,
-} from '../landscape-schemes/dynamic-data';
+} from '../landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import gsap from 'gsap';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -59,12 +63,15 @@ export function openComponentMesh(
     return;
   }
 
-  mesh.height = 1.5;
+  gsap.to(mesh, {
+    duration: 0.25,
+    height: 1.5,
+  });
 
-  // Reset y coordinate
-  mesh.position.y -= mesh.layout.height / 2;
-  // Set y coordinate according to open component height
-  mesh.position.y += 1.5 / 2;
+  gsap.to(mesh.position, {
+    duration: 0.25,
+    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+  });
 
   mesh.opened = true;
   mesh.visible = true;
@@ -104,12 +111,15 @@ export function closeComponentMesh(
     return;
   }
 
-  mesh.height = mesh.layout.height;
+  gsap.to(mesh, {
+    duration: 0.5,
+    height: mesh.layout.height,
+  });
 
-  // Reset y coordinate
-  mesh.position.y -= 1.5 / 2;
-  // Set y coordinate according to closed component height
-  mesh.position.y += mesh.layout.height / 2;
+  gsap.to(mesh.position, {
+    duration: 0.5,
+    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+  });
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
@@ -259,13 +269,15 @@ export function restoreComponentState(
   transparentComponentIds?.forEach((componentId) => {
     const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
 
-    // Without this, a new created class will be transparent
-    const isNotNewClass =
-      componentMesh instanceof ClazzMesh &&
-      !componentMesh.dataModel.id.includes('new');
-
-    if (componentMesh && isNotNewClass) {
-      componentMesh.turnTransparent(opacity);
+    if (componentMesh) {
+      if (
+        componentMesh instanceof ClazzMesh &&
+        componentMesh.dataModel.id.includes('new')
+      ) {
+        // Without this, a new created class will be transparent
+      } else {
+        componentMesh.turnTransparent(opacity);
+      }
     }
   });
 }
@@ -369,4 +381,19 @@ export function moveCameraTo(
       cameraControls.focusCameraOn(0.6, clazzMesh);
     }
   }
+}
+
+export function updateColors(
+  scene: THREE.Scene,
+  applicationColors: ApplicationColors
+) {
+  scene.traverse((object3D) => {
+    if (object3D instanceof BaseMesh) {
+      object3D.updateColor();
+      // Special case because communication arrow is no base mesh
+    } else if (object3D instanceof CommunicationArrowMesh) {
+      object3D.updateColor(applicationColors.communicationArrowColor);
+    }
+  });
+  scene.background = applicationColors.backgroundColor;
 }

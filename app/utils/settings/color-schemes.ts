@@ -1,4 +1,5 @@
-export type ColorScheme = 'default' | 'classic' | 'dark' | 'impaired';
+export type ColorSchemeId = 'default' | 'classic' | 'blue' | 'dark';
+export type ColorScheme = typeof defaultApplicationColors;
 
 export const defaultApplicationColors = {
   foundationColor: '#d2d2d2', // grey
@@ -11,15 +12,6 @@ export const defaultApplicationColors = {
   foundationTextColor: '#000000', // black
   communicationColor: '#d6d48b', // dark grey
   communicationArrowColor: '#000000', // black
-  backgroundColor: '#ffffff', // white
-};
-
-export const defaultLandscapeColors = {
-  nodeColor: '#6bc484', // washed-out green
-  applicationColor: '#0096be', // sky blue
-  communicationColor: '#d6d48b', // washed-out yellow
-  nodeTextColor: '#ffffff', // white
-  applicationTextColor: '#ffffff', // white
   backgroundColor: '#ffffff', // white
 };
 
@@ -37,35 +29,17 @@ export const classicApplicationColors = {
   backgroundColor: '#ffffff', // white
 };
 
-export const classicLandscapeColors = {
-  nodeColor: '#00bb41', // green
-  applicationColor: '#3e14a0', // purple-blue
-  communicationColor: '#f49100', // orange
-  nodeTextColor: '#ffffff', // white
-  applicationTextColor: '#ffffff', // white
-  backgroundColor: '#ffffff', // white
-};
-
-export const visuallyImpairedApplicationColors = {
+export const blueApplicationColors = {
   foundationColor: '#c7c7c7', // light grey
   componentOddColor: '#015a6e', // deep teal
   componentEvenColor: '#0096be', // light blue
-  clazzColor: '#f7f7f7', // white
+  clazzColor: '#f300cb', // magenta
   highlightedEntityColor: '#ff0000', // red
   componentTextColor: '#ffffff', // white
   clazzTextColor: '#ffffff', // white
   foundationTextColor: '#000000', // black
   communicationColor: '#f49100', // orange
   communicationArrowColor: '#000000', // black
-  backgroundColor: '#ffffff', // white
-};
-
-export const visuallyImpairedLandscapeColors = {
-  nodeColor: '#0096be', // sky blue
-  applicationColor: '#5f5f5f', // grey
-  communicationColor: '#f49100', // orange
-  nodeTextColor: '#ffffff', // white
-  applicationTextColor: '#ffffff', // white
   backgroundColor: '#ffffff', // white
 };
 
@@ -80,14 +54,5 @@ export const darkApplicationColors = {
   foundationTextColor: '#000000', // black
   communicationColor: '#e3e3e3', // light grey
   communicationArrowColor: '#000000', // black
-  backgroundColor: '#acacac', // stone grey
-};
-
-export const darkLandscapeColors = {
-  nodeColor: '#2f3d3b', // light black
-  applicationColor: '#5B7B88', // blue-grey
-  communicationColor: '#e3e3e3', // light grey
-  nodeTextColor: '#ffffff', // white
-  applicationTextColor: '#ffffff', // white
   backgroundColor: '#acacac', // stone grey
 };

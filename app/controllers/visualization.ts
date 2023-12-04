@@ -20,7 +20,7 @@ import TimestampRepository, {
 } from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -39,6 +39,10 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
   SerializedApp,
@@ -48,6 +52,7 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -101,6 +106,9 @@ export default class VisualizationController extends Controller {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -108,6 +116,11 @@ export default class VisualizationController extends Controller {
   linkRenderer!: LinkRenderer;
 
   plotlyTimelineRef!: PlotlyTimeline;
+
+  queryParams = ['roomId'];
+
+  @tracked
+  roomId?: string;
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
@@ -286,6 +299,10 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
   }
 
   @action
@@ -330,24 +347,25 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  toggleToolsSidebarComponent(component: string) {
+  toggleToolsSidebarComponent(component: string): boolean {
     if (this.componentsToolsSidebar.includes(component)) {
       this.removeToolsSidebarComponent(component);
     } else {
       this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
     }
+    return this.componentsToolsSidebar.includes(component);
   }
 
   @action
-  toggleSettingsSidebarComponent(component: string) {
+  toggleSettingsSidebarComponent(component: string): boolean {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
       this.components = [component, ...this.components];
     }
+    return this.components.includes(component);
   }
 
-  @action
   removeComponent(path: string) {
     if (this.components.length === 0) {
       return;
@@ -460,8 +478,10 @@ export default class VisualizationController extends Controller {
 
   willDestroy() {
     this.collaborationSession.disconnect();
+    this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
-    this.applicationRepo.clear();
+    this.applicationRepo.cleanup();
+    this.applicationRenderer.cleanup();
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -506,6 +526,7 @@ export default class VisualizationController extends Controller {
     }
     // now we can be sure our linkRenderer has all extern links
 
+    // Serialized room is used in landscape-data-watcher
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
@@ -514,11 +535,7 @@ export default class VisualizationController extends Controller {
         highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
 
-    // this.applicationRenderer.restoreFromSerialization(
-    //   this.roomSerializer.serializedRoom
-    // );
-
-    this.applicationRenderer.highlightingService.updateHighlighting();
+    this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();

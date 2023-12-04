@@ -1,8 +1,5 @@
-import {
-  defaultApplicationColors,
-  defaultLandscapeColors,
-} from './color-schemes';
-import { ApplicationSettings, LandscapeSettings } from './settings-schemas';
+import { defaultApplicationColors } from './color-schemes';
+import { ApplicationSettings } from './settings-schemas';
 
 export const defaultApplicationSettings: ApplicationSettings = {
   // Color Settings
@@ -84,9 +81,18 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isColorSetting: true,
   },
   // Highlighting Settings
-  keepHighlightingOnOpenOrClose: {
+  applyHighlightingOnHover: {
     value: true,
     orderNumber: 1,
+    group: 'Highlighting',
+    displayName: 'Only Apply Highlighting Effect On Hover',
+    description:
+      'Toggle to switch between permanent transparency effect and effect on hover',
+    isFlagSetting: true,
+  },
+  keepHighlightingOnOpenOrClose: {
+    value: true,
+    orderNumber: 2,
     group: 'Highlighting',
     displayName: 'Keep Highlighting On Open Or Close',
     description:
@@ -96,10 +102,11 @@ export const defaultApplicationSettings: ApplicationSettings = {
   transparencyIntensity: {
     value: 0.1,
     range: {
-      min: 0.1,
+      min: 0.05,
       max: 1.0,
+      step: 0.05,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
     description:
@@ -107,8 +114,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   enableMultipleHighlighting: {
-    value: false,
-    orderNumber: 3,
+    value: true,
+    orderNumber: 4,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',
     description:
@@ -128,8 +135,9 @@ export const defaultApplicationSettings: ApplicationSettings = {
   commArrowSize: {
     value: 1.0,
     range: {
-      min: 0.0,
+      min: 0.5,
       max: 5.0,
+      step: 0.5,
     },
     orderNumber: 1,
     group: 'Communication',
@@ -142,7 +150,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 0.0,
     range: {
       min: 0.0,
-      max: 1.5,
+      max: 2.0,
+      step: 0.1,
     },
     orderNumber: 2,
     group: 'Communication',
@@ -159,6 +168,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Enable Custom Popup Positioning',
     description:
       'If enabled, popups can be dragged to a prefered, fixed position',
+    isFlagSetting: true,
+  },
+  // Camera Settings
+  useOrthographicCamera: {
+    value: false,
+    orderNumber: 1,
+    group: 'Camera',
+    displayName: 'Use orthographic camera instead of perspective',
+    description: 'Switch between orthographic and perspective camera',
     isFlagSetting: true,
   },
   // XR Settings
@@ -201,69 +219,6 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Debugging',
     displayName: 'Show VR in browser',
     description: 'Shows the VR room in the browser after joining',
-    isFlagSetting: true,
-  },
-};
-
-export const defaultLanscapeSettings: LandscapeSettings = {
-  // Color Settings
-  nodeColor: {
-    value: defaultLandscapeColors.nodeColor,
-    orderNumber: 1,
-    group: 'Colors',
-    displayName: 'Node',
-    isColorSetting: true,
-  },
-  applicationColor: {
-    value: defaultLandscapeColors.applicationColor,
-    orderNumber: 2,
-    group: 'Colors',
-    displayName: 'Application',
-    isColorSetting: true,
-  },
-  communicationColor: {
-    value: defaultLandscapeColors.communicationColor,
-    orderNumber: 3,
-    group: 'Colors',
-    displayName: 'Communication',
-    isColorSetting: true,
-  },
-  nodeTextColor: {
-    value: defaultLandscapeColors.nodeTextColor,
-    orderNumber: 4,
-    group: 'Colors',
-    displayName: 'Node Label',
-    isColorSetting: true,
-  },
-  applicationTextColor: {
-    value: defaultLandscapeColors.applicationTextColor,
-    orderNumber: 5,
-    group: 'Colors',
-    displayName: 'Application Label',
-    isColorSetting: true,
-  },
-  backgroundColor: {
-    value: defaultLandscapeColors.backgroundColor,
-    orderNumber: 6,
-    group: 'Colors',
-    displayName: 'Background',
-    isColorSetting: true,
-  },
-  // Hover Effect Settings
-  enableHoverEffects: {
-    value: true,
-    orderNumber: 1,
-    group: 'Hover Effects',
-    displayName: 'Enable Hover Effects',
-    description: 'Hover effect (flashing entities) for mouse cursor',
-    isFlagSetting: true,
-  },
-  showFpsCounter: {
-    value: false,
-    orderNumber: 1,
-    group: 'Debugging',
-    displayName: 'Show FPS Counter',
-    description: "'Frames Per Second' metrics in visualizations",
     isFlagSetting: true,
   },
 };

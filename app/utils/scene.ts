@@ -1,14 +1,19 @@
+import { VisualizationMode } from 'collaborative-mode/services/local-user';
 import * as THREE from 'three';
 import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
 
 const FLOOR_SIZE = 1000;
 
+const PI = Math.PI;
+
 export function light(): THREE.AmbientLight {
-  return new THREE.AmbientLight(new THREE.Color(0.65, 0.65, 0.65));
+  return new THREE.AmbientLight(
+    new THREE.Color(0.65 * PI, 0.65 * PI, 0.65 * PI)
+  );
 }
 
 export function directionalLight(): THREE.DirectionalLight {
-  const light = new THREE.DirectionalLight(0xffffff, 0.55);
+  const light = new THREE.DirectionalLight(0xffffff, 0.55 * PI);
   light.name = 'DirectionalLight';
   light.position.set(-5, 5, 5);
   light.castShadow = true;
@@ -29,6 +34,14 @@ export function skylight() {
   const skyLight = new THREE.SpotLight(0xffffff, 0.5, 1000, Math.PI, 0, 0);
   skyLight.castShadow = false;
   return skyLight;
+}
+
+export function createScene(visualizationMode: VisualizationMode) {
+  if (visualizationMode === 'vr') {
+    return vrScene();
+  } else {
+    return defaultScene();
+  }
 }
 
 export function defaultScene() {

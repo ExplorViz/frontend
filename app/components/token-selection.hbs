@@ -11,14 +11,7 @@
       (sort-by (concat this.sortProperty ':' this.sortOrder) 'value' @tokens)
       as |token|
     }}
-      <tr
-        class='token-selection-row'
-        style={{if
-          (eq @currentToken.value token.value)
-          'background-color: #aecce1'
-        }}
-        {{on 'click' (fn @selectToken token)}}
-      >
+      <tr class='token-selection-row' {{on 'click' (fn @selectToken token)}}>
         <th scope='row'>{{token.alias}}</th>
         <th scope='row'>{{timestamp-to-date token.created 'localString'}}</th>
         <th scope='row'>

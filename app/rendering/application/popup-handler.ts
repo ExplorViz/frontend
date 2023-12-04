@@ -9,6 +9,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
+import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import {
   getTypeOfEntity,
@@ -32,10 +33,14 @@ import {
   MenuDetachedMessage,
   MENU_DETACHED_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
+import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 
 export default class PopupHandler {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
+
+  @service('detached-menu-renderer')
+  detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
@@ -50,6 +55,7 @@ export default class PopupHandler {
     setOwner(this, owner);
     this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
     this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.detachedMenuRenderer.on('restore_popups', this, this.onRestoreMenus);
   }
 
   @action
@@ -75,6 +81,7 @@ export default class PopupHandler {
       MenuDetachedMessage,
       MenuDetachedResponse
     >(
+      MENU_DETACHED_EVENT,
       {
         event: 'menu_detached',
         detachId: entityId,
@@ -128,6 +135,7 @@ export default class PopupHandler {
         DetachedMenuClosedMessage,
         ObjectClosedResponse
       >(
+        DETACHED_MENU_CLOSED_EVENT,
         {
           event: 'detached_menu_closed',
           menuId: popup.menuId,
@@ -177,7 +185,7 @@ export default class PopupHandler {
     hovered,
   }: {
     mesh: THREE.Object3D;
-    position: Position2D;
+    position?: Position2D;
     pinned?: boolean;
     replace?: boolean;
     menuId?: string;
@@ -188,9 +196,19 @@ export default class PopupHandler {
       return;
     }
 
+    let popupPosition = position;
+
+    // Popups shared by other users have no position information
+    if (!popupPosition) {
+      popupPosition = {
+        x: 100,
+        y: 200 + this.popupData.length * 50,
+      };
+    }
+
     const newPopup = new PopupData({
-      mouseX: position.x,
-      mouseY: position.y,
+      mouseX: popupPosition.x,
+      mouseY: popupPosition.y,
       wasMoved: false,
       entity: mesh.dataModel,
       mesh,
@@ -235,14 +253,36 @@ export default class PopupHandler {
 
   onMenuDetached({ objectId, userId, detachId }: MenuDetachedForwardMessage) {
     const mesh = this.applicationRenderer.getMeshById(detachId);
-    if (mesh) {
-      this.addPopup({
-        mesh,
-        position: { x: 100, y: 200 },
-        pinned: true,
-        sharedBy: userId,
-        menuId: objectId,
-      });
+    if (!mesh) {
+      return;
+    }
+
+    this.addPopup({
+      mesh,
+      pinned: true,
+      sharedBy: userId,
+      menuId: objectId,
+    });
+  }
+
+  onRestoreMenus(detachedMenus: SerializedDetachedMenu[]) {
+    for (const detachedMenu of detachedMenus) {
+      const { userId, objectId, entityId } = detachedMenu;
+
+      if (!userId || !objectId) {
+        continue;
+      }
+
+      const mesh = this.applicationRenderer.getMeshById(entityId);
+
+      if (mesh) {
+        this.addPopup({
+          mesh,
+          pinned: true,
+          sharedBy: userId,
+          menuId: objectId,
+        });
+      }
     }
   }
 

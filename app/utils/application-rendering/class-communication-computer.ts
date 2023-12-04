@@ -1,6 +1,9 @@
-import { DynamicLandscapeData, Span } from '../landscape-schemes/dynamic-data';
 import {
-  Application,
+  DynamicLandscapeData,
+  Span,
+} from '../landscape-schemes/dynamic/dynamic-data';
+import MethodCall from '../landscape-schemes/dynamic/method-call';
+import {
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
@@ -8,11 +11,12 @@ import {
   getHashCodeToClassMap,
   getApplicationFromClass,
 } from '../landscape-structure-helpers';
-import isObject from '../object-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 
 function computeClassCommunicationRecursively(
   span: Span,
+  potentialParentSpan: Span | undefined,
   spanIdToChildSpanMap: Map<string, Span[]>,
   hashCodeToClassMap: Map<string, Class>
 ) {
@@ -28,7 +32,20 @@ function computeClassCommunicationRecursively(
     return [];
   }
 
-  const classCommunications: ClassCommunication[] = [];
+  let callerMethodName = 'UNKNOWN';
+
+  if (potentialParentSpan) {
+    const classMatchingParentSpan = hashCodeToClassMap.get(
+      potentialParentSpan.hashCode
+    );
+    classMatchingParentSpan?.methods.forEach((method) => {
+      if (method.hashCode === potentialParentSpan.hashCode) {
+        callerMethodName = method.name;
+      }
+    });
+  }
+
+  const classCommunications: SingleClassCommunication[] = [];
   childSpans.forEach((childSpan) => {
     const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
     if (classMatchingChildSpan !== undefined) {
@@ -45,10 +62,12 @@ function computeClassCommunicationRecursively(
         sourceClass: classMatchingSpan,
         targetClass: classMatchingChildSpan,
         operationName: methodName,
+        callerMethodName: callerMethodName,
       });
       classCommunications.push(
         ...computeClassCommunicationRecursively(
           childSpan,
+          span,
           spanIdToChildSpanMap,
           hashCodeToClassMap
         )
@@ -59,16 +78,9 @@ function computeClassCommunicationRecursively(
   return classCommunications;
 }
 
-export default function computeDrawableClassCommunication(
+export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData,
-  restructureMode: boolean,
-  classCommunication: DrawableClassCommunication[],
-  updatedClassCommunications: Map<string, DrawableClassCommunication[]>,
-  deletedClassCommunication: Map<
-    string,
-    DrawableClassCommunication[]
-  > = new Map()
+  landscapeDynamicData: DynamicLandscapeData
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
@@ -76,7 +88,7 @@ export default function computeDrawableClassCommunication(
 
   const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
 
-  const totalClassCommunications: ClassCommunication[] = [];
+  const totalClassCommunications: SingleClassCommunication[] = [];
 
   landscapeDynamicData.forEach((trace) => {
     const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
@@ -86,6 +98,7 @@ export default function computeDrawableClassCommunication(
       totalClassCommunications.push(
         ...computeClassCommunicationRecursively(
           firstSpan,
+          undefined,
           traceSpanTree.tree,
           hashCodeToClassMap
         )
@@ -93,13 +106,10 @@ export default function computeDrawableClassCommunication(
     }
   });
 
-  const aggregatedDrawableClassCommunications = new Map<
-    string,
-    DrawableClassCommunication
-  >();
+  const methodCalls = new Map<string, MethodCall>();
 
   totalClassCommunications.forEach(
-    ({ sourceClass, targetClass, operationName }) => {
+    ({ sourceClass, targetClass, operationName, callerMethodName }) => {
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
       // get source app
@@ -114,98 +124,142 @@ export default function computeDrawableClassCommunication(
         targetClass
       );
 
+      if (!sourceApp || !targetApp) {
+        console.error('Application for class communication not found!');
+        return;
+      }
+
       // Find all identical method calls based on their source
       // and target app / class
       // and aggregate identical method calls with exactly same source
       // and target app / class within a single representative
-      const drawableClassCommunication =
-        aggregatedDrawableClassCommunications.get(sourceTargetClassMethodId);
+      const maybeMethodCall = methodCalls.get(sourceTargetClassMethodId);
 
-      if (!drawableClassCommunication) {
-        aggregatedDrawableClassCommunications.set(sourceTargetClassMethodId, {
-          id: sourceTargetClassMethodId,
-          totalRequests: 1,
-          sourceClass,
-          targetClass,
-          operationName,
-          sourceApp,
-          targetApp,
-        });
+      if (!maybeMethodCall) {
+        methodCalls.set(
+          sourceTargetClassMethodId,
+          new MethodCall(
+            sourceTargetClassMethodId,
+            sourceApp,
+            sourceClass,
+            targetApp,
+            targetClass,
+            operationName,
+            callerMethodName
+          ).addSpan()
+        );
       } else {
-        drawableClassCommunication.totalRequests++;
+        maybeMethodCall.addSpan();
       }
     }
   );
 
-  const drawableClassCommunications = [
-    ...aggregatedDrawableClassCommunications.values(),
-  ];
+  const classCommunications = new Map<string, ClassCommunication>();
 
-  if (restructureMode) {
-    if (classCommunication.length) {
-      classCommunication.forEach((comm) => {
-        drawableClassCommunications.push(comm);
-      });
-    }
+  methodCalls.forEach((methodCall) => {
+    const classIds = [
+      methodCall.sourceClass.id,
+      methodCall.targetClass.id,
+    ].sort();
+    const communicationId = classIds[0] + '_' + classIds[1];
+    const maybeClassCommunication = classCommunications.get(communicationId);
 
-    if (deletedClassCommunication.size) {
-      const allDeletedComms: DrawableClassCommunication[] = [];
-      deletedClassCommunication.forEach((value) => {
-        value.forEach((deletedComm) => {
-          const foundComm = drawableClassCommunications.filter(
-            (comm) =>
-              comm.id === deletedComm.id ||
-              comm.operationName === deletedComm.operationName
-          );
-          if (foundComm.length) allDeletedComms.pushObjects(foundComm);
-        });
-      });
-
-      drawableClassCommunications.removeObjects(allDeletedComms);
-    }
-
-    if (updatedClassCommunications.size) {
-      const allUpdatedComms: DrawableClassCommunication[] = [];
-
-      updatedClassCommunications.forEach((value) => {
-        allUpdatedComms.push(...value);
-      });
-
-      drawableClassCommunications.pushObjects(allUpdatedComms);
-      const removeUnwantedComms = drawableClassCommunications.filter(
-        (comm) =>
-          !comm.operationName.includes('removed') &&
-          !comm.sourceClass.id.includes('removed') &&
-          !comm.targetClass.id.includes('removed')
+    if (maybeClassCommunication) {
+      maybeClassCommunication.addMethodCalls(methodCall);
+    } else {
+      const newCommunication = new ClassCommunication(
+        communicationId,
+        methodCall.sourceApp,
+        methodCall.sourceClass,
+        methodCall.targetApp,
+        methodCall.targetClass,
+        methodCall.operationName
       );
-      drawableClassCommunications.clear();
-      drawableClassCommunications.pushObjects(removeUnwantedComms);
+      newCommunication.addMethodCalls(methodCall);
+      classCommunications.set(communicationId, newCommunication);
     }
+  });
+
+  const computedCommunication = [...classCommunications.values()];
+  computeCommunicationMetrics(computedCommunication);
+
+  return computedCommunication;
+}
+
+function computeCommunicationMetrics(
+  classCommunications: ClassCommunication[]
+) {
+  classCommunications.forEach((communication) => {
+    const { totalRequests } = communication;
+    const maxRequests = Math.max(
+      ...classCommunications.map((x) => x.totalRequests)
+    );
+    if (maxRequests > 0) {
+      communication.metrics.normalizedRequestCount =
+        totalRequests / maxRequests;
+    }
+  });
+}
+
+export function computeRestructuredClassCommunication(
+  classCommunications: ClassCommunication[],
+  classCommunication: ClassCommunication[],
+  copiedClassCommunications: Map<string, ClassCommunication[]>,
+  updatedClassCommunications: Map<string, ClassCommunication[]>,
+  deletedClassCommunication: Map<string, ClassCommunication[]> = new Map()
+) {
+  if (classCommunication.length) {
+    classCommunication.forEach((comm) => {
+      classCommunications.push(comm);
+    });
   }
 
-  return drawableClassCommunications;
+  if (copiedClassCommunications.size) {
+    copiedClassCommunications.forEach((value) => {
+      classCommunications.pushObjects(value);
+    });
+  }
+
+  if (deletedClassCommunication.size) {
+    const allDeletedComms: ClassCommunication[] = [];
+    deletedClassCommunication.forEach((value) => {
+      value.forEach((deletedComm) => {
+        const foundComm = classCommunications.filter(
+          (comm) =>
+            comm.id === deletedComm.id ||
+            comm.operationName === deletedComm.operationName
+        );
+        if (foundComm.length) allDeletedComms.pushObjects(foundComm);
+      });
+    });
+
+    classCommunications.removeObjects(allDeletedComms);
+  }
+
+  if (updatedClassCommunications.size) {
+    const allUpdatedComms: ClassCommunication[] = [];
+
+    updatedClassCommunications.forEach((value) => {
+      allUpdatedComms.push(...value);
+    });
+
+    classCommunications.pushObjects(allUpdatedComms);
+    const removeUnwantedComms = classCommunications.filter(
+      (comm) =>
+        !comm.operationName.includes('removed') &&
+        !comm.sourceClass.id.includes('removed') &&
+        !comm.targetClass.id.includes('removed')
+    );
+    classCommunications.clear();
+    classCommunications.pushObjects(removeUnwantedComms);
+  }
+
+  return classCommunications;
 }
 
-export function isDrawableClassCommunication(
-  x: any
-): x is DrawableClassCommunication {
-  return (
-    isObject(x) && Object.prototype.hasOwnProperty.call(x, 'totalRequests')
-  );
-}
-
-interface ClassCommunication {
+interface SingleClassCommunication {
   sourceClass: Class;
   targetClass: Class;
   operationName: string;
-}
-
-export interface DrawableClassCommunication {
-  id: string;
-  totalRequests: number;
-  sourceClass: Class;
-  targetClass: Class;
-  operationName: string;
-  sourceApp: Application | undefined;
-  targetApp: Application | undefined;
+  callerMethodName: string;
 }

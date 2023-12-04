@@ -4,25 +4,9 @@ export type SettingGroup =
   | 'Hover Effects'
   | 'Communication'
   | 'Popup'
+  | 'Camera'
   | 'Extended Reality'
   | 'Debugging';
-
-export type LandscapeColorSettingId =
-  | 'nodeColor'
-  | 'applicationColor'
-  | 'communicationColor'
-  | 'nodeTextColor'
-  | 'applicationTextColor'
-  | 'backgroundColor';
-
-export type LandscapeHoveringSettingId = 'enableHoverEffects';
-
-export type LandscapeDebugSettingId = 'showFpsCounter';
-
-export type LandscapeSettingId =
-  | LandscapeColorSettingId
-  | LandscapeDebugSettingId
-  | LandscapeHoveringSettingId;
 
 export type ApplicationColorSettingId =
   | 'foundationColor'
@@ -38,6 +22,7 @@ export type ApplicationColorSettingId =
   | 'backgroundColor';
 
 export type ApplicationHighlightingSettingId =
+  | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
@@ -47,6 +32,8 @@ export type ApplicationHoveringSettingId = 'enableHoverEffects';
 export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
+
+export type ApplicationCameraSettingId = 'useOrthographicCamera';
 
 export type ApplicationXRSettingId = 'showXRButton';
 
@@ -64,23 +51,9 @@ export type ApplicationSettingId =
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
   | ApplicationDebugSettingId
+  | ApplicationCameraSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
-
-export type LandscapeColorSettings = Record<
-  LandscapeColorSettingId,
-  ColorSetting
->;
-
-export type LandscapeHoveringSettings = Record<
-  LandscapeHoveringSettingId,
-  FlagSetting
->;
-
-export type LandscapeDebugSettings = Record<
-  LandscapeDebugSettingId,
-  FlagSetting
->;
 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
@@ -88,6 +61,7 @@ export type ApplicationColorSettings = Record<
 >;
 
 export type ApplicationHighlightingSettings = {
+  applyHighlightingOnHover: FlagSetting;
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
   enableMultipleHighlighting: FlagSetting;
@@ -113,6 +87,11 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
+export type ApplicationCameraSettings = Record<
+  ApplicationCameraSettingId,
+  FlagSetting
+>;
+
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
@@ -120,12 +99,9 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
   ApplicationPopupSettings &
+  ApplicationCameraSettings &
   ApplicationXRSettings &
   ApplicationCommunicationSettings;
-
-export type LandscapeSettings = LandscapeColorSettings &
-  LandscapeHoveringSettings &
-  LandscapeDebugSettings;
 
 export interface Setting<T> {
   value: T;
@@ -150,6 +126,7 @@ export interface RangeSetting extends Setting<number> {
   range: {
     min: number;
     max: number;
+    step: number;
   };
   readonly isRangeSetting: true;
 }

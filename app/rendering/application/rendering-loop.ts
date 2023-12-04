@@ -15,6 +15,7 @@ const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
+  orthographicCamera: THREE.OrthographicCamera | undefined;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   cssRenderer: CSS3DRenderer;
@@ -36,6 +37,8 @@ export default class RenderingLoop {
 
   camera: THREE.Camera;
 
+  orthographicCamera: THREE.OrthographicCamera | undefined;
+
   scene: THREE.Scene;
 
   renderer: THREE.WebGLRenderer;
@@ -49,6 +52,7 @@ export default class RenderingLoop {
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
+    this.orthographicCamera = args.orthographicCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.cssRenderer = args.cssRenderer;
@@ -81,7 +85,15 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
-      this.renderer.render(this.scene, this.camera);
+      if (
+        this.orthographicCamera &&
+        this.userSettings.applicationSettings.useOrthographicCamera.value
+      ) {
+        this.renderer.render(this.scene, this.orthographicCamera);
+      } else {
+        this.renderer.render(this.scene, this.camera);
+      }
+
       this.cssRenderer.render(this.scene, this.camera);
 
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
@@ -105,6 +117,7 @@ export default class RenderingLoop {
 
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
+
     for (let i = 0; i < this.updatables.length; i++) {
       this.updatables[i].tick(delta, frame);
     }
@@ -145,82 +158,13 @@ export default class RenderingLoop {
   }
 
   init() {
-    const root = new THREE.Object3D();
-    root.position.y = 20;
-    root.rotation.y = Math.PI / 3;
-    this.scene.add(root);
-
-    const background = this.makeElementObject('div', 200, 200);
-    background.userData.css3dObject.element.textContent =
-      'I am a <div> element intersecting a WebGL sphere.\n\nThis text is editable!';
-    background.userData.css3dObject.element.setAttribute('contenteditable', '');
-    background.position.z = 20;
-    background.userData.css3dObject.element.style.opacity = '1';
-    background.userData.css3dObject.element.style.padding = '10px';
-    const color1 = '#7bb38d';
-    const color2 = '#71a381';
-    background.userData.css3dObject.element.style.background = `repeating-linear-gradient(
-        45deg,
-        ${color1},
-        ${color1} 10px,
-        ${color2} 10px,
-        ${color2} 20px
-    )`;
-    root.add(background);
-
-    const button = this.makeElementObject('button', 75, 20);
-    button.userData.css3dObject.element.style.border = '2px solid #fa5a85';
-    button.userData.css3dObject.element.textContent = 'Click me!';
-    button.userData.css3dObject.element.addEventListener('click', () =>
-      alert('You clicked a <button> element in the DOM!')
+    const iFrame = this.createIFrame(
+      'https://www.youtube.com/embed/SJOz3qjfQXU?rel=0',
+      480,
+      360,
+      0.1
     );
-    button.position.y = 10;
-    button.position.z = 10;
-    button.userData.css3dObject.element.style.background = '#e64e77';
-    background.add(button);
-
-    // make a geometry that we will clip with the DOM elememt.
-    ~(function makeGeometry() {
-      const material = new THREE.MeshPhongMaterial({
-        color: 0x991d65,
-        emissive: 0x000000,
-        specular: 0x111111,
-        side: THREE.DoubleSide,
-        flatShading: false,
-        shininess: 30,
-        vertexColors: true,
-      });
-
-      const geometry = new THREE.SphereGeometry(70, 32, 32);
-
-      const position = geometry.attributes.position;
-      const colors = [];
-
-      const color = new THREE.Color();
-      for (let i = 0, l = position.count; i < l; i++) {
-        color.setHSL(
-          Math.random() * 0.2 + 0.5,
-          0.75,
-          Math.random() * 0.15 + 0.85
-        );
-        colors.push(color.r, color.g, color.b);
-      }
-
-      geometry.setAttribute(
-        'color',
-        new THREE.Float32BufferAttribute(colors, 3)
-      );
-      // }}
-
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.z = 20;
-      sphere.position.y = -100;
-      sphere.castShadow = true;
-      sphere.receiveShadow = false;
-      root.add(sphere);
-    })();
-
-    // document.querySelector('#css')!.appendChild(this.cssRenderer.domElement);
+    this.scene.add(iFrame);
   }
 
   makeElementObject(type: any, width: number, height: number) {
@@ -229,11 +173,10 @@ export default class RenderingLoop {
     const element = document.createElement(type);
     element.style.width = width + 'px';
     element.style.height = height + 'px';
-    element.style.opacity = 0.999;
     element.style.boxSizing = 'border-box';
 
     const css3dObject = new CSS3DObject(element);
-    obj.userData.css3dObject = css3dObject;
+    // obj.userData.css3dObject = css3dObject;
     obj.add(css3dObject);
 
     // make an invisible plane for the DOM element to chop
@@ -246,6 +189,38 @@ export default class RenderingLoop {
     });
     const geometry = new THREE.BoxGeometry(width, height, 1);
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    obj.add(mesh);
+
+    return obj;
+  }
+
+  createIFrame(url: string, width: number, height: number, scale = 0.1) {
+    const obj = new THREE.Object3D();
+
+    const iframe = document.createElement('iframe');
+    iframe.style.width = width + 'px';
+    iframe.style.height = height + 'px';
+    iframe.style.border = '0px';
+    iframe.src = url;
+
+    const cssObj = new CSS3DObject(iframe);
+    cssObj.position.set(0, 0, 0);
+    cssObj.rotation.y = 0;
+    cssObj.scale.set(scale, scale, scale);
+    obj.add(cssObj);
+
+    const material = new THREE.MeshPhongMaterial({
+      opacity: 0.15,
+      color: new THREE.Color(0xf00),
+      blending: THREE.NoBlending,
+      side: THREE.DoubleSide,
+    });
+    const geometry = new THREE.BoxGeometry(width, height, 1);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.set(scale, scale, scale);
+
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     obj.add(mesh);

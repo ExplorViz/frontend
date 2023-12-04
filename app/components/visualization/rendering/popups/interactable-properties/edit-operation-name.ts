@@ -3,11 +3,11 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { next } from '@ember/runloop';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { tracked } from '@glimmer/tracking';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 interface Args {
-  communication: DrawableClassCommunication;
+  communication: ClassCommunication;
 }
 
 export default class EditOperationName extends Component<Args> {
@@ -47,7 +47,7 @@ export default class EditOperationName extends Component<Args> {
 
   save() {
     if (this.args.communication.operationName !== this.operationName) {
-      this.landscapeRestructure.updateOperationName(
+      this.landscapeRestructure.renameOperation(
         this.args.communication,
         this.operationName
       );

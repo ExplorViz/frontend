@@ -7,9 +7,11 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { restoreComponentState } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
-import { removeAllHighlighting } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import {
+  HightlightComponentArgs,
+  removeAllHighlightingFor,
+} from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
@@ -31,9 +33,6 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
 import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
-import HighlightingService, {
-  HightlightComponentArgs,
-} from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
@@ -45,6 +44,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import HighlightingService from './highlighting-service';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -152,11 +152,11 @@ export default class ApplicationRenderer extends Service.extend({
     return null;
   }
 
-  getDrawableClassCommunications(applicationObjetc3D: ApplicationObject3D) {
+  getClassCommunications(applicationObjetc3D: ApplicationObject3D) {
     const applicationData = this.applicationRepo.getById(
       applicationObjetc3D.getModelId()
     );
-    return applicationData?.drawableClassCommunications;
+    return applicationData?.classCommunications || [];
   }
 
   getGraphPosition(mesh: THREE.Object3D) {
@@ -212,7 +212,9 @@ export default class ApplicationRenderer extends Service.extend({
 
       let layoutChanged = true;
       if (applicationObject3D) {
-        layoutChanged = boxLayoutMap !== applicationObject3D.boxLayoutMap;
+        // Maps cannot be compared directly. Thus, we compare their size.
+        layoutChanged =
+          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
 
         applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
@@ -220,6 +222,7 @@ export default class ApplicationRenderer extends Service.extend({
           applicationData,
           boxLayoutMap
         );
+        this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
       const applicationState =
@@ -231,27 +234,28 @@ export default class ApplicationRenderer extends Service.extend({
 
       if (layoutChanged) {
         applicationObject3D.removeAllEntities();
+
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.configuration.applicationColors
+          this.userSettings.applicationColors
+        );
+
+        // Restore state of open packages and transparent components (packages and clazzes)
+        EntityManipulation.restoreComponentState(
+          applicationObject3D,
+          applicationState.openComponents,
+          applicationState.transparentComponents,
+          this.highlightingService.opacity
+        );
+
+        // Add labels to application
+        Labeler.addApplicationLabels(
+          applicationObject3D,
+          this.font,
+          this.userSettings.applicationColors
         );
       }
-
-      // Restore state of open packages and transparent components (packages and clazzes)
-      restoreComponentState(
-        applicationObject3D,
-        applicationState.openComponents,
-        applicationState.transparentComponents,
-        this.highlightingService.opacity
-      );
-
-      // Add labels to application
-      Labeler.addApplicationLabels(
-        applicationObject3D,
-        this.font,
-        this.configuration.applicationColors
-      );
 
       this.addCommunication(applicationObject3D);
 
@@ -278,9 +282,9 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.hightlightComponentLocallyByTypeAndId(
-            applicationObject3D!,
-            highlightedComponent
+          this.highlightingService.highlightById(
+            highlightedComponent.entityId,
+            highlightedComponent.color
           );
         }
       );
@@ -288,14 +292,10 @@ export default class ApplicationRenderer extends Service.extend({
         currentSetting;
       // ----------------------------------------
 
-      this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
-
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
       applicationObject3D.resetRotation();
 
-      // delete all extern comminication links so we can replace them with the current ones later on
-      //applicationObject3D.drawableClassCommSet.clear();
       return applicationObject3D;
     }
   );
@@ -304,18 +304,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObject3D.getModelId()
-    );
-    const drawableClassCommunications =
-      applicationData?.drawableClassCommunications;
-
-    if (drawableClassCommunications) {
-      this.appCommRendering.addCommunication(
-        applicationObject3D,
-        drawableClassCommunications
-      );
-    }
+    this.appCommRendering.addCommunication(applicationObject3D);
   }
 
   @action
@@ -345,7 +334,7 @@ export default class ApplicationRenderer extends Service.extend({
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
-      this.configuration.applicationColors
+      this.userSettings.applicationColors
     );
     // Update links
     this.updateLinks?.();
@@ -386,26 +375,10 @@ export default class ApplicationRenderer extends Service.extend({
     entity: any,
     applicationObject3D: ApplicationObject3D,
     color?: THREE.Color,
-    isMultiSelected = false,
     sendMessage = true
   ) {
     if (isEntityMesh(entity)) {
-      const oldValue =
-        this.configuration.userSettings.applicationSettings
-          .enableMultipleHighlighting.value; // TODO: Refactor all this including the call chain
-      if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-          isMultiSelected;
-      }
-
-      this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        oldValue || isMultiSelected;
       this.highlightingService.highlight(entity, sendMessage, color);
-
-      if (isMultiSelected) {
-        this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
-          oldValue;
-      }
 
       this.updateApplicationObject3DAfterUpdate(applicationObject3D);
     }
@@ -520,10 +493,8 @@ export default class ApplicationRenderer extends Service.extend({
 
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
-      const drawableComm = this.getDrawableClassCommunications(application)!;
-
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application, drawableComm);
+        this.appCommRendering.addCommunication(application);
       } else {
         application.removeAllCommunication();
       }
@@ -543,7 +514,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   removeCommunication(application: ApplicationObject3D) {
     if (application.highlightedEntity instanceof ClazzCommunicationMesh) {
-      removeAllHighlighting(application);
+      removeAllHighlightingFor(application);
     }
 
     application.removeAllCommunication();
@@ -574,14 +545,6 @@ export default class ApplicationRenderer extends Service.extend({
     });
 
     if (room.highlightedExternCommunicationLinks) {
-      // Can we delete this? I forgot why I wrote this...
-      // room.openApps.forEach((app) => {
-      //   const appObj = this.getApplicationById(app.id);
-      //   if (appObj) {
-      //     appObj.drawableClassCommSet.clear();
-      //   }
-      // });
-
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
@@ -595,6 +558,10 @@ export default class ApplicationRenderer extends Service.extend({
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  cleanup() {
+    this.openApplicationsMap.clear();
   }
 
   static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
