@@ -118,7 +118,7 @@ export function closeComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.5,
-    y: mesh.layout.positionY,
+    y: mesh.layout.positionY + 0.75,
   });
 
   mesh.opened = false;
