@@ -44,14 +44,14 @@ module.exports = (defaults) => {
     },
   });
 
-  app.import('node_modules/three/build/three.min.js', {
-    prepend: true,
-  });
+  //app.import('node_modules/three/build/three.min.js', {
+  //  prepend: true,
+  //});
 
   app.import('vendor/threex/threex.rendererstats.min.js');
 
-  app.import('node_modules/alertifyjs/build/css/alertify.min.css');
-  app.import('node_modules/alertifyjs/build/css/themes/default.min.css');
+  //app.import('node_modules/alertifyjs/build/css/alertify.min.css');
+  //app.import('node_modules/alertifyjs/build/css/themes/default.min.css');
 
   //app.import('node_modules/@popperjs/core/dist/umd/popper.min.js');
   //app.import('node_modules/bootstrap/dist/js/bootstrap.min.js');
