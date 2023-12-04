@@ -162,7 +162,7 @@ export default class RenderingLoop {
       'https://www.youtube.com/embed/SJOz3qjfQXU?rel=0',
       480,
       360,
-      0.1
+      0.005
     );
     this.scene.add(iFrame);
   }
@@ -198,6 +198,7 @@ export default class RenderingLoop {
 
   createIFrame(url: string, width: number, height: number, scale = 0.1) {
     const obj = new THREE.Object3D();
+    obj.position.set(0, 1, -1);
 
     const iframe = document.createElement('iframe');
     iframe.style.width = width + 'px';

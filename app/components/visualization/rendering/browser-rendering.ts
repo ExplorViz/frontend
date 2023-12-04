@@ -320,7 +320,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     container.appendChild(this.cssRendrerer.domElement);
     this.cssRendrerer.domElement.style.position = 'absolute';
     this.cssRendrerer.domElement.style.pointerEvents = 'none';
-    this.cssRendrerer.domElement.style.zIndex = '-1000';
+    this.cssRendrerer.domElement.style.zIndex = '500';
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
