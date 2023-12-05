@@ -17,7 +17,7 @@ export default class DisplayButton extends BaseMesh {
 
   css3dFrame: Css3dFrame | undefined;
 
-  constructor(url = 'https://www.youtube.com/embed/MYAkRMWLVD8?rel=0') {
+  constructor(url = 'https://explorviz.dev/') {
     super();
     this.url = url;
 
