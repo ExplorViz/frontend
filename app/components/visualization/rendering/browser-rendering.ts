@@ -48,6 +48,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -420,15 +421,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
       }
-    }
-
-    if (isEntityMesh(mesh)) {
+    } else if (isEntityMesh(mesh)) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
         // extern communication link
         this.applicationRenderer.highlightExternLink(mesh, true);
       }
+    } else if (mesh instanceof DisplayButton) {
+      mesh.toggleDisplay();
     }
   }
 

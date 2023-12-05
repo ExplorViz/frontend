@@ -6,10 +6,7 @@ import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
-import {
-  CSS3DRenderer,
-  CSS3DObject,
-} from 'three/examples/jsm/renderers/CSS3DRenderer';
+import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 
 const clock = new Clock();
 
@@ -61,7 +58,6 @@ export default class RenderingLoop {
   }
 
   start() {
-    this.init();
     this.renderer.setAnimationLoop((_timestamp, frame) => {
       const { value: showFpsCounter } =
         this.userSettings.applicationSettings.showFpsCounter;
@@ -155,77 +151,5 @@ export default class RenderingLoop {
       this.scene.remove(this.axesHelper);
       this.axesHelper = undefined;
     }
-  }
-
-  init() {
-    const iFrame = this.createIFrame(
-      'https://www.youtube.com/embed/SJOz3qjfQXU?rel=0',
-      480,
-      360,
-      0.005
-    );
-    this.scene.add(iFrame);
-  }
-
-  makeElementObject(type: any, width: number, height: number) {
-    const obj = new THREE.Object3D();
-
-    const element = document.createElement(type);
-    element.style.width = width + 'px';
-    element.style.height = height + 'px';
-    element.style.boxSizing = 'border-box';
-
-    const css3dObject = new CSS3DObject(element);
-    // obj.userData.css3dObject = css3dObject;
-    obj.add(css3dObject);
-
-    // make an invisible plane for the DOM element to chop
-    // clip a WebGL geometry with it.
-    const material = new THREE.MeshPhongMaterial({
-      opacity: 0.15,
-      color: new THREE.Color(0x111111),
-      blending: THREE.NoBlending,
-      // side	: THREE.DoubleSide,
-    });
-    const geometry = new THREE.BoxGeometry(width, height, 1);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    obj.add(mesh);
-
-    return obj;
-  }
-
-  createIFrame(url: string, width: number, height: number, scale = 0.1) {
-    const obj = new THREE.Object3D();
-    obj.position.set(0, 1, -1);
-
-    const iframe = document.createElement('iframe');
-    iframe.style.width = width + 'px';
-    iframe.style.height = height + 'px';
-    iframe.style.border = '0px';
-    iframe.src = url;
-
-    const cssObj = new CSS3DObject(iframe);
-    cssObj.position.set(0, 0, 0);
-    cssObj.rotation.y = 0;
-    cssObj.scale.set(scale, scale, scale);
-    obj.add(cssObj);
-
-    const material = new THREE.MeshPhongMaterial({
-      opacity: 0.15,
-      color: new THREE.Color(0xf00),
-      blending: THREE.NoBlending,
-      side: THREE.DoubleSide,
-    });
-    const geometry = new THREE.BoxGeometry(width, height, 1);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.scale.set(scale, scale, scale);
-
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    obj.add(mesh);
-
-    return obj;
   }
 }
