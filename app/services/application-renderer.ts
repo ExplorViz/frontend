@@ -45,6 +45,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
+import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -295,6 +296,10 @@ export default class ApplicationRenderer extends Service.extend({
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
       applicationObject3D.resetRotation();
+
+      const displayButton = new DisplayButton();
+      applicationObject3D.add(displayButton);
+      displayButton.positionRelativeToParent();
 
       return applicationObject3D;
     }
