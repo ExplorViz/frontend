@@ -49,6 +49,7 @@ import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
+import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -430,6 +431,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     } else if (mesh instanceof DisplayButton) {
       mesh.toggleDisplay();
+    } else if (mesh instanceof CloseIcon) {
+      mesh.close();
     }
   }
 

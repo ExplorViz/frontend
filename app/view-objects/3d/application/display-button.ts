@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 import BaseMesh from '../base-mesh';
 import Css3dFrame from './css-3d-frame';
+import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
+import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 
 export default class DisplayButton extends BaseMesh {
+  assetRepo: VrAssetRepository;
+
   geometry: THREE.BoxGeometry;
 
   material: THREE.MeshLambertMaterial;
@@ -17,8 +21,9 @@ export default class DisplayButton extends BaseMesh {
 
   css3dFrame: Css3dFrame | undefined;
 
-  constructor(url = 'https://explorviz.dev/') {
+  constructor(assetRepo: VrAssetRepository, url = 'https://explorviz.dev/') {
     super();
+    this.assetRepo = assetRepo;
     this.url = url;
 
     this.receiveShadow = true;
@@ -30,8 +35,6 @@ export default class DisplayButton extends BaseMesh {
     const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
     this.geometry = geometry;
     this.changeOpacity(0.5);
-
-    // this.showDisplay();
   }
 
   getUrl() {
@@ -69,6 +72,8 @@ export default class DisplayButton extends BaseMesh {
     this.css3dFrame.position.z -= 25;
 
     this.add(this.css3dFrame);
+
+    this.addCloseIcon();
   }
 
   removeDisplay() {
@@ -76,5 +81,22 @@ export default class DisplayButton extends BaseMesh {
     this.css3dFrame.destroy();
     this.remove(this.css3dFrame);
     this.css3dFrame = undefined;
+  }
+
+  addCloseIcon() {
+    const closeIcon = new CloseIcon({
+      textures: this.assetRepo.closeIconTextures,
+      onClose: () => {
+        this.removeDisplay();
+        return Promise.resolve(true);
+      },
+      radius: 4,
+    });
+    closeIcon.rotateX(Math.PI * 0.5);
+    // closeIcon.position.set(1000000, 50, 50000);
+    closeIcon.position.y = 45;
+    closeIcon.position.z = 500;
+
+    closeIcon.addToObject(this.css3dFrame!);
   }
 }

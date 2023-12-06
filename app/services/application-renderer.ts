@@ -46,6 +46,7 @@ import {
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
+import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -57,6 +58,9 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('local-user')
   localUser!: LocalUser;
+
+  @service('virtual-reality@vr-asset-repo')
+  private assetRepo!: VrAssetRepository;
 
   @service('configuration')
   configuration!: Configuration;
@@ -297,7 +301,7 @@ export default class ApplicationRenderer extends Service.extend({
 
       applicationObject3D.resetRotation();
 
-      const displayButton = new DisplayButton();
+      const displayButton = new DisplayButton(this.assetRepo);
       applicationObject3D.add(displayButton);
       displayButton.positionRelativeToParent();
 
