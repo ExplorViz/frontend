@@ -42,7 +42,8 @@ export type ApplicationDebugSettingId =
   | 'showAxesHelper'
   | 'showLightHelper'
   | 'showVrOnClick'
-  | 'fullscreen';
+  | 'fullscreen'
+  | 'resetToDefaults';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
@@ -84,6 +85,7 @@ export type ApplicationDebugSettings = {
   showLightHelper: FlagSetting;
   showVrOnClick: FlagSetting;
   fullscreen: ButtonSetting;
+  resetToDefaults: ButtonSetting;
 };
 
 export type ApplicationPopupSettings = Record<
@@ -114,6 +116,16 @@ export interface Setting<T> {
 }
 
 export interface ButtonSetting extends Setting<boolean> {
+  type:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'danger'
+    | 'warning'
+    | 'info'
+    | 'light'
+    | 'dark'
+    | 'link';
   displayName: string;
   description: string;
   buttonText: string;

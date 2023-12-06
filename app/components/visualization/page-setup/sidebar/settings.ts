@@ -133,6 +133,9 @@ export default class Settings extends Component<Args> {
           this.args.enterFullscreen();
         }
         break;
+      case 'resetToDefaults':
+        this.resetSettings();
+        break;
       default:
         break;
     }

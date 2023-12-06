@@ -224,10 +224,22 @@ export const defaultApplicationSettings: ApplicationSettings = {
   fullscreen: {
     value: false,
     orderNumber: 5,
+    type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
-    description: 'Toggle to enter canvas in fullscreen',
+    description:
+      'Enter canvas in fullscreen mode. Press escape key to leave fullscreen.',
     buttonText: 'Enter Fullscreen',
+    isButtonSetting: true,
+  },
+  resetToDefaults: {
+    value: false,
+    orderNumber: 6,
+    type: 'danger',
+    group: 'Debugging',
+    displayName: 'Reset Settings to Default',
+    description: 'Reset all settings to default values',
+    buttonText: 'Reset',
     isButtonSetting: true,
   },
 };

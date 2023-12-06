@@ -5,9 +5,10 @@
   </div>
   <div class='d-flex align-self-center'>
     <BsButton
+      class='my-1 btn-sm'
       title={{@setting.description}}
       @onClick={{@onClick}}
-      @type='info'
+      @type={{@setting.type}}
       @outline={{false}}
     >
       {{@setting.buttonText}}
