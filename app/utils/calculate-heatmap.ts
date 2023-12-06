@@ -22,9 +22,8 @@ export default function calculateHeatmap(
 
       const newWindowedMetricsMap = new Map<string, number>();
 
-      const oldScoresForMetricType = applicationHeatmap.metricsArray.slice(
-        -windowSize
-      );
+      const oldScoresForMetricType =
+        applicationHeatmap.metricsArray.slice(-windowSize);
       const oldScoresForMetricTypeFlattened = oldScoresForMetricType.flat();
 
       // console.log('all old Scores flattened', oldScoresForMetricTypeFlattened);

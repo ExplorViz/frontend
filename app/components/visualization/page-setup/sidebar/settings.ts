@@ -15,7 +15,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
-  isLandscapeView: boolean;
   updateHighlighting?(): void;
   updateColors?(): void;
   redrawCommunication?(): void;
@@ -135,6 +134,16 @@ export default class Settings extends Component<Args> {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
       AlertifyHandler.showAlertifyError(e.message);
+    }
+
+    switch (settingId) {
+      case 'applyHighlightingOnHover':
+        if (this.args.updateHighlighting) {
+          this.args.updateHighlighting();
+        }
+        break;
+      default:
+        break;
     }
   }
 

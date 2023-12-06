@@ -1,12 +1,17 @@
 version: '3.5'
 services:
-  collaboration-service:
-    container_name: collaboration-service
-    image: explorviz/collaboration-service-jvm:latest
+  collaboration-service-js:
+    image: explorviz/collaboration-service-js:latest
     ports:
       - ${COLLABORATION_PORT}:4444
     environment:
-      - EXPLORVIZ_LOG_LVL=DEBUG
+      - REDIS_HOST=redis-collab
+      - REDIS_PORT=6379
+
+  redis-collab:
+    image: redis:7.2.2
+    ports:
+      - '6379:6379'
 
   demo-supplier:
     container_name: explorviz-demo-supplier

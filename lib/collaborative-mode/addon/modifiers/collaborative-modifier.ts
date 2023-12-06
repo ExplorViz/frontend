@@ -347,7 +347,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       } else {
         this.applicationRenderer.closeAllComponentsLocally(applicationObject3D);
       }
-    } else if (componentMesh instanceof ComponentMesh) {
+    } else if (
+      componentMesh instanceof ComponentMesh &&
+      componentMesh.opened !== isOpened
+    ) {
       this.applicationRenderer.toggleComponentLocally(
         componentMesh,
         applicationObject3D
@@ -362,7 +365,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onHighlightingUpdate({
     userId,
-    originalMessage: { appId, entityId /*, multiSelected */ },
+    originalMessage: { appId, entityId, isHighlighted },
   }: ForwardedMessage<HighlightingUpdateMessage>): void {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     if (!user) return;
@@ -378,12 +381,14 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     }
 
     const mesh = application.getMeshById(entityId);
-    this.applicationRenderer.highlight(
-      mesh,
-      application,
-      user.color,
-      false // whenever we receive messages we don't want to resend them
-    );
+    if (mesh?.highlighted !== isHighlighted) {
+      this.applicationRenderer.highlight(
+        mesh,
+        application,
+        user.color,
+        false // whenever we receive messages we don't want to resend them
+      );
+    }
   }
 
   onRestructureModeUpdate(): void {

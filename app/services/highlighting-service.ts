@@ -43,6 +43,12 @@ export default class HighlightingService extends Service.extend({
 
   debug = debugLogger('HighlightingService');
 
+  hoveredOnHighlightedMesh = false;
+
+  get applyHighlightingOnHover() {
+    return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
+  }
+
   get opacity() {
     return this.userSettings.applicationSettings.transparencyIntensity.value;
   }
@@ -79,10 +85,67 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
+  resetColorsOfHighlightedEntities() {
+    const { applications } = this.getParams();
+
+    for (const applicationObject3D of applications) {
+      const allMeshes = applicationObject3D.getAllMeshes();
+
+      for (const baseMesh of allMeshes) {
+        if (baseMesh.highlighted) {
+          baseMesh.highlightingColor = this.highlightingColor;
+          baseMesh.highlight();
+        }
+      }
+    }
+
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      if (externLink.highlighted) {
+        externLink.highlightingColor = this.highlightingColor;
+        externLink.highlight();
+      }
+    });
+  }
+
   @action
-  updateHighlighting(value: number = this.opacity) {
+  updateHighlighting() {
+    if (this.applyHighlightingOnHover && !this.hoveredOnHighlightedMesh) {
+      this.turnLandscapeOpaque();
+    } else {
+      const { communicationMeshes, applications } = this.getParams();
+      Highlighting.updateHighlighting(
+        applications,
+        communicationMeshes,
+        this.opacity
+      );
+    }
+  }
+
+  @action
+  updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) {
+    const hasStateChanged =
+      this.hoveredOnHighlightedMesh !== hoveredOnHighlightedMesh;
+    if (!this.applyHighlightingOnHover || !hasStateChanged) {
+      return;
+    }
+
+    this.hoveredOnHighlightedMesh = hoveredOnHighlightedMesh;
+
+    if (hoveredOnHighlightedMesh) {
+      this.updateHighlighting();
+    } else {
+      this.turnLandscapeOpaque();
+    }
+  }
+
+  turnLandscapeOpaque() {
     const { communicationMeshes, applications } = this.getParams();
-    Highlighting.updateHighlighting(applications, communicationMeshes, value);
+    applications.forEach((applicationObject3D) => {
+      applicationObject3D.turnOpaque();
+    });
+    communicationMeshes.forEach((link) => {
+      link.turnOpaque();
+    });
   }
 
   getParams(): {
@@ -204,9 +267,8 @@ export default class HighlightingService extends Service.extend({
     mesh: FoundationMesh | ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
-    application.setHighlightingColor(
-      color || this.userSettings.applicationColors.highlightedEntityColor
-    );
+    mesh.highlightingColor =
+      color || this.userSettings.applicationColors.highlightedEntityColor;
 
     if (
       !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&

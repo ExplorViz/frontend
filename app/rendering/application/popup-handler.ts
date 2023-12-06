@@ -81,6 +81,7 @@ export default class PopupHandler {
       MenuDetachedMessage,
       MenuDetachedResponse
     >(
+      MENU_DETACHED_EVENT,
       {
         event: 'menu_detached',
         detachId: entityId,
@@ -134,6 +135,7 @@ export default class PopupHandler {
         DetachedMenuClosedMessage,
         ObjectClosedResponse
       >(
+        DETACHED_MENU_CLOSED_EVENT,
         {
           event: 'detached_menu_closed',
           menuId: popup.menuId,

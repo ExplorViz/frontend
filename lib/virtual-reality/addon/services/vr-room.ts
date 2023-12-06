@@ -32,7 +32,7 @@ export default class VrRoomService extends Service {
   private roomSerializer!: VrRoomSerializer;
 
   async listRooms(): Promise<RoomListRecord[]> {
-    const url = `${collaborationService}/v2/vr/rooms`;
+    const url = `${collaborationService}/rooms`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${this.auth.accessToken}`,
@@ -45,14 +45,14 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  async createRoom(): Promise<RoomCreatedResponse> {
-    const payload = this.buildInitialRoomPayload();
+  async createRoom(roomId = ''): Promise<RoomCreatedResponse> {
+    const payload = this.buildInitialRoomPayload(roomId);
 
     if (!payload?.landscape.landscapeToken) {
       throw new Error('invalid data');
     }
 
-    const url = `${collaborationService}/v2/vr/room`;
+    const url = `${collaborationService}/room`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -66,7 +66,9 @@ export default class VrRoomService extends Service {
     throw new Error('invalid data');
   }
 
-  private buildInitialRoomPayload(): InitialRoomPayload | undefined {
+  private buildInitialRoomPayload(
+    roomId: string
+  ): InitialRoomPayload | undefined {
     // Serialize room and remove unsupported properties.
     const room = this.roomSerializer.serializeRoom();
 
@@ -75,6 +77,7 @@ export default class VrRoomService extends Service {
     }
 
     return {
+      roomId,
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
@@ -82,7 +85,7 @@ export default class VrRoomService extends Service {
   }
 
   async joinLobby(roomId: string): Promise<LobbyJoinedResponse> {
-    const url = `${collaborationService}/v2/vr/room/${roomId}/lobby`;
+    const url = `${collaborationService}/room/${roomId}/lobby`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {

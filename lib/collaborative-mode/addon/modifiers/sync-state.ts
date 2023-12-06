@@ -81,7 +81,7 @@ export default class SyncStateModifier extends Modifier {
     // if (_.isEqual(object, other);)
     if (JSON.stringify(message) !== JSON.stringify(lastMessage)) {
       this.debug(`Sending${args.isActive}`);
-      this.webSocket.send(message);
+      this.webSocket.send(event, message);
       this.state.set(message.event, message);
     }
   }

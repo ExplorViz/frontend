@@ -7,7 +7,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser, {
   VisualizationMode,
 } from 'collaborative-mode/services/local-user';
-import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -39,6 +38,10 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
   SerializedApp,
@@ -113,6 +116,11 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
+  queryParams = ['roomId'];
+
+  @tracked
+  roomId?: string;
+
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -145,11 +153,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   buttonText: string = '';
-
-  @tracked
-  elk = new ElkConstructor({
-    workerUrl: './assets/web-workers/elk-worker.min.js',
-  });
 
   @tracked
   flag: boolean = false; // default value
@@ -290,6 +293,10 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
   }
 
   @action
