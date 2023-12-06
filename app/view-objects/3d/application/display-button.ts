@@ -21,7 +21,7 @@ export default class DisplayButton extends BaseMesh {
 
   css3dFrame: Css3dFrame | undefined;
 
-  constructor(assetRepo: VrAssetRepository, url = 'https://explorviz.dev/') {
+  constructor(assetRepo: VrAssetRepository, url = 'http://localhost:4200') {
     super();
     this.assetRepo = assetRepo;
     this.url = url;
@@ -73,7 +73,7 @@ export default class DisplayButton extends BaseMesh {
 
     this.add(this.css3dFrame);
 
-    this.addCloseIcon();
+    // this.addCloseIcon();
   }
 
   removeDisplay() {
@@ -93,9 +93,7 @@ export default class DisplayButton extends BaseMesh {
       radius: 4,
     });
     closeIcon.rotateX(Math.PI * 0.5);
-    // closeIcon.position.set(1000000, 50, 50000);
-    closeIcon.position.y = 45;
-    closeIcon.position.z = 500;
+    closeIcon.position.set(10, 10, 10);
 
     closeIcon.addToObject(this.css3dFrame!);
   }
