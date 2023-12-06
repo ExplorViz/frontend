@@ -215,11 +215,11 @@ export default function computeClassCommunication(
   const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
 
-  for (const computedCommu of computedCommunication) {
-    //console.log(
-    // computedCommu.operationName + ' of ' + computedCommu.sourceClass.name
-    //);
-  }
+  //for (const computedCommu of computedCommunication) {
+  //console.log(
+  // computedCommu.operationName + ' of ' + computedCommu.sourceClass.name
+  //);
+  //}
 
   return computedCommunication;
 }
