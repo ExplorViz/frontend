@@ -199,7 +199,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showAxesHelper: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 2,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
     description: 'Visualizes the three dimensional Cartesian coordinate system',
@@ -207,7 +207,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showLightHelper: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 3,
     group: 'Debugging',
     displayName: 'Show Light Helper',
     description: 'Visualizes the directional light',
@@ -215,10 +215,19 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showVrOnClick: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 4,
     group: 'Debugging',
     displayName: 'Show VR in browser',
     description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
+  },
+  fullscreen: {
+    value: false,
+    orderNumber: 5,
+    group: 'Debugging',
+    displayName: 'Fullscreen',
+    description: 'Toggle to enter canvas in fullscreen',
+    buttonText: 'Enter Fullscreen',
+    isButtonSetting: true,
   },
 };

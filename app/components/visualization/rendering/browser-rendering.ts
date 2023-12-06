@@ -597,6 +597,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     updateColors(this.scene, this.userSettings.applicationColors);
   }
 
+  @action
+  enterFullscreen() {
+    this.canvas.requestFullscreen();
+  }
+
   /**
    * This overridden Ember Component lifecycle hook enables calling
    * ExplorViz's custom cleanup code.

@@ -41,7 +41,8 @@ export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick';
+  | 'showVrOnClick'
+  | 'fullscreen';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
@@ -77,10 +78,13 @@ export type ApplicationCommunicationSettings = Record<
   RangeSetting
 >;
 
-export type ApplicationDebugSettings = Record<
-  ApplicationDebugSettingId,
-  FlagSetting
->;
+export type ApplicationDebugSettings = {
+  showFpsCounter: FlagSetting;
+  showAxesHelper: FlagSetting;
+  showLightHelper: FlagSetting;
+  showVrOnClick: FlagSetting;
+  fullscreen: ButtonSetting;
+};
 
 export type ApplicationPopupSettings = Record<
   ApplicationPopupSettingId,
@@ -107,6 +111,13 @@ export interface Setting<T> {
   value: T;
   orderNumber: number;
   group: SettingGroup;
+}
+
+export interface ButtonSetting extends Setting<boolean> {
+  displayName: string;
+  description: string;
+  buttonText: string;
+  readonly isButtonSetting: true;
 }
 
 export interface FlagSetting extends Setting<boolean> {

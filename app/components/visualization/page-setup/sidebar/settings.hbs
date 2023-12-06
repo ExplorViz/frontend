@@ -32,6 +32,11 @@
               @setting={{setting}}
               @updateColors={{@updateColors}}
             />
+          {{else if setting.isButtonSetting}}
+            <Visualization::PageSetup::Sidebar::Settings::ButtonSetting
+              @setting={{setting}}
+              @onClick={{fn this.updateButtonSetting settingId}}
+            />
           {{/if}}
         {{/let}}
       {{/each}}

@@ -19,6 +19,7 @@ interface Args {
   updateColors?(): void;
   redrawCommunication?(): void;
   resetSettings?(): void;
+  enterFullscreen?(): void;
 }
 
 export default class Settings extends Component<Args> {
@@ -111,6 +112,25 @@ export default class Settings extends Component<Args> {
         if (this.args.redrawCommunication && this.args.updateHighlighting) {
           this.args.redrawCommunication();
           this.args.updateHighlighting();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  @action
+  updateButtonSetting(settingId: ApplicationSettingId) {
+    console.log('Update');
+    console.log('Args:', this.args);
+
+    switch (settingId) {
+      case 'fullscreen':
+        console.log('Fullscreen');
+        if (this.args.enterFullscreen) {
+          console.log('Trigger fullscreen');
+
+          this.args.enterFullscreen();
         }
         break;
       default:
