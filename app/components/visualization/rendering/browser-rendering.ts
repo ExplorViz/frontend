@@ -442,6 +442,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       false;
   }
 
+  @action
+  handleShiftDown() {
+    this.highlightingService.updateHighlightingOnHover(true);
+  }
+
+  @action
+  handleShiftUp() {
+    this.highlightingService.updateHighlightingOnHover(false);
+  }
+
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
@@ -488,7 +498,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMove(intersection: THREE.Intersection) {
+  handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
@@ -499,9 +509,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
     this.popupHandler.hover(intersection?.object);
 
-    this.highlightingService.updateHighlightingOnHover(
-      isEntityMesh(intersection?.object) && intersection.object.highlighted
-    );
+    if (!event.shiftKey)
+      this.highlightingService.updateHighlightingOnHover(
+        isEntityMesh(intersection?.object) && intersection.object.highlighted
+      );
   }
 
   @action
