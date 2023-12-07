@@ -1,0 +1,17 @@
+<div class='d-flex justify-content-between'>
+  <div>
+    <HelpTooltip @title={{@setting.description}} />
+    {{@setting.displayName}}
+  </div>
+  <div class='d-flex align-self-center'>
+    <BsButton
+      class='my-1 btn-sm'
+      title={{@setting.description}}
+      @onClick={{@onClick}}
+      @type={{@setting.type}}
+      @outline={{false}}
+    >
+      {{@setting.buttonText}}
+    </BsButton>
+  </div>
+</div>
