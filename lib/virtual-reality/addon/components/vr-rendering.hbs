@@ -6,7 +6,7 @@
   >
 
     <canvas
-      class='main-content-majority {{if @debugMode "" "hidden"}}'
+      class='webgl {{if @debugMode "" "hidden"}}'
       {{did-insert this.canvasInserted}}
       {{interaction-modifier
         raycastObjects=this.scene

@@ -37,8 +37,7 @@
       {{/if}}
 
       <canvas
-        class='main-content-majority
-          {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
+        class='webgl {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{sync-state}}
         {{interaction-modifier
           raycastObjects=this.raycastObjects
