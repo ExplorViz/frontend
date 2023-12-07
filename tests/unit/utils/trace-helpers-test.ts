@@ -111,7 +111,7 @@ function getTestTraces(): Trace[] {
           traceId: 'trace2',
           startTime: 26850000000,
           endTime: 26890000000,
-          hashCode: 'trace2_hashCode',
+          methodHash: 'trace2_hashCode',
         },
       ],
     },
@@ -131,7 +131,7 @@ function getTestTraces(): Trace[] {
           traceId: 'trace3',
           startTime: 15500000000,
           endTime: 15570000000,
-          hashCode: 'trace3_hashCode',
+          methodHash: 'trace3_hashCode',
         },
       ],
     },
@@ -151,7 +151,7 @@ function getTestTraces(): Trace[] {
           traceId: 'trace1',
           startTime: 10100000000,
           endTime: 11110000000,
-          hashCode: 'trace1_hashCode',
+          methodHash: 'trace1_hashCode',
         },
       ],
     },
@@ -167,7 +167,7 @@ function getTestSpanList() {
       traceId: 'trace1',
       startTime: 10100000000,
       endTime: 11110000000,
-      hashCode: 'method1HashCode',
+      methodHash: 'method1HashCode',
     },
     {
       landscapeToken: '',
@@ -176,7 +176,7 @@ function getTestSpanList() {
       traceId: 'trace1',
       startTime: 10130000000,
       endTime: 11110000000,
-      hashCode: 'method3HashCode',
+      methodHash: 'method3HashCode',
     },
     {
       landscapeToken: '',
@@ -185,7 +185,7 @@ function getTestSpanList() {
       traceId: 'trace1',
       startTime: 10110000000,
       endTime: 10120000000,
-      hashCode: 'method2HashCode',
+      methodHash: 'method2HashCode',
     },
     {
       landscapeToken: '',
@@ -194,7 +194,7 @@ function getTestSpanList() {
       traceId: 'trace1',
       startTime: 10120000000,
       endTime: 11110000000,
-      hashCode: 'method2HashCode',
+      methodHash: 'method2HashCode',
     },
   ];
 }

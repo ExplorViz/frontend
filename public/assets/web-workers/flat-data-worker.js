@@ -59,7 +59,7 @@ function calculateFlatData(application, allLandscapeTraces) {
             applicationName: `${application.name}`,
             applicationModelId: `${application.id}`,
             methodName: method.name,
-            hashCode: method.methodHash,
+            methodHash: method.methodHash,
             modelId: clazz.id,
           });
         });
