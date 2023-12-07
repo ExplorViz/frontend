@@ -65,8 +65,8 @@ function cleanup(instance: InteractionModifierModifier) {
   canvas.removeEventListener('pointercancel', instance.onPointerCancel);
   canvas.removeEventListener('pointermove', instance.onPointerMove);
   canvas.removeEventListener('pointerstop', instance.onPointerStop);
-  document.removeEventListener('keydown', instance.onStrgDown);
-  document.removeEventListener('keyup', instance.onStrgUp);
+  document.removeEventListener('keydown', instance.keyDown);
+  document.removeEventListener('keyup', instance.keyUp);
 }
 
 export default class InteractionModifierModifier extends Modifier<InteractionModifierArgs> {
@@ -135,8 +135,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.addEventListener('pointercancel', this.onPointerCancel);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
 
-      document.addEventListener('keydown', this.onStrgDown);
-      document.addEventListener('keyup', this.onStrgUp);
+      document.addEventListener('keydown', this.keyDown);
+      document.addEventListener('keyup', this.keyUp);
       this.createPointerStopEvent();
       this.canvas.addEventListener('pointerstop', this.onPointerStop);
 
@@ -178,13 +178,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs.mouseOut?.();
   }
 
-  @action onStrgDown(event: KeyboardEvent) {
+  @action keyDown(event: KeyboardEvent) {
     const key = event.key;
     if (key === 'Control') {
       this.namedArgs.strgDown?.();
     }
   }
-  @action onStrgUp(event: KeyboardEvent) {
+  @action keyUp(event: KeyboardEvent) {
     const key = event.key;
     if (key === 'Control') {
       this.namedArgs.strgUp?.();
