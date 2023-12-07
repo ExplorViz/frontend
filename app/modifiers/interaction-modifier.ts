@@ -38,7 +38,7 @@ interface NamedArgs {
   mouseEnter?(): void;
   mouseLeave?(): void;
   mouseOut?(): void;
-  mouseMove?(intersection: THREE.Intersection | null): void;
+  mouseMove?(intersection: THREE.Intersection | null, event: MouseEvent): void;
   mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void;
   singleClick?(intersection: THREE.Intersection | null): void;
   doubleClick?(intersection: THREE.Intersection): void;
@@ -48,6 +48,8 @@ interface NamedArgs {
   pan?(intersection: THREE.Intersection | null, x: number, y: number): void;
   strgDown?(): void;
   strgUp?(): void;
+  shiftDown?(): void;
+  shiftUp?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -180,14 +182,24 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action keyDown(event: KeyboardEvent) {
     const key = event.key;
-    if (key === 'Control') {
-      this.namedArgs.strgDown?.();
+    switch (key) {
+      case 'Control':
+        this.namedArgs.strgDown?.();
+        break;
+      case 'Shift':
+        this.namedArgs.shiftDown?.();
+        break;
     }
   }
   @action keyUp(event: KeyboardEvent) {
     const key = event.key;
-    if (key === 'Control') {
-      this.namedArgs.strgUp?.();
+    switch (key) {
+      case 'Control':
+        this.namedArgs.strgUp?.();
+        break;
+      case 'Shift':
+        this.namedArgs.shiftUp?.();
+        break;
     }
   }
 
@@ -209,7 +221,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     } else {
       const intersectedViewObj = this.raycast(event);
 
-      this.namedArgs.mouseMove?.(intersectedViewObj);
+      this.namedArgs.mouseMove?.(intersectedViewObj, event);
     }
   }
 
