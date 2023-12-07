@@ -190,6 +190,7 @@ export default class IdeWebsocket {
       AlertifyHandler.showAlertifySuccess(
         'An IDE has successfully connected to this room.'
       );
+      this.ideWebsocketFacade.numConnectedIDEs++;
 
       switch (data.action) {
         case 'singleClickOnMesh':
