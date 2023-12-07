@@ -179,12 +179,17 @@ export default class IdeWebsocket {
       console.log(`reconnect failed`);
     });
 
+    // Handling the event an IDE successfully connects.
     socket!.on('vizDo', (data: IDEApiCall) => {
       const vizDataRaw = this.getVizData(foundationCommunicationLinksGlobal);
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
+
+      AlertifyHandler.showAlertifySuccess(
+        'An IDE has successfully connected to this room.'
+      );
 
       switch (data.action) {
         case 'singleClickOnMesh':
