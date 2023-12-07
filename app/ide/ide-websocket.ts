@@ -35,6 +35,8 @@ export enum IDEApiActions {
   GetVizData = 'getVizData',
   JumpToLocation = 'jumpToLocation',
   JumpToMonitoringClass = 'jumpToMonitoringClass',
+  ConnectIDE = 'connectIDE',
+  DisconnectIDE = 'disconnectIDE',
 }
 
 export type MonitoringData = {
@@ -133,6 +135,7 @@ export default class IdeWebsocket {
       return;
     }
 
+    // Disconnect-Event from a Frontend-Client.
     socket!.on('disconnect', (err) => {
       if (err === 'transport close') {
         this.ideWebsocketFacade.isConnected = false;
@@ -187,11 +190,6 @@ export default class IdeWebsocket {
       vizDataOrderTupleGlobal = vizDataOrderTuple;
       // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
-      AlertifyHandler.showAlertifySuccess(
-        'An IDE has successfully connected to this room.'
-      );
-      this.ideWebsocketFacade.numConnectedIDEs++;
-
       switch (data.action) {
         case 'singleClickOnMesh':
           break;
@@ -222,6 +220,20 @@ export default class IdeWebsocket {
             occurrenceID: -1,
             foundationCommunicationLinks: data.foundationCommunicationLinks,
           });
+          break;
+
+        case 'connectIDE':
+          AlertifyHandler.showAlertifySuccess(
+            'An IDE has successfully connected to this room.'
+          );
+          console.log('An IDE has successfully connected.');
+          this.ideWebsocketFacade.numConnectedIDEs++;
+          break;
+
+        case 'disconnectIDE':
+          console.log('An IDE has disconnected.');
+          AlertifyHandler.showAlertifySuccess('An IDE has disconnected.');
+          this.ideWebsocketFacade.numConnectedIDEs--;
           break;
 
         default:
