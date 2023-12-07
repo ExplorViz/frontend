@@ -380,7 +380,7 @@ function calculateMetrics(application, allLandscapeTraces) {
     // Put spans into map for more efficient lookup when sorting
     const spanIdToSpanMap = new Map();
     trace.spanList.forEach((span) => {
-      if (span.parentSpanId === '') {
+      if (!span.parentSpanId) {
         firstSpan = span;
       } else {
         spanIdToSpanMap.set(span.spanId, span);
