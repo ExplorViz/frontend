@@ -53,13 +53,13 @@ function calculateFlatData(application, allLandscapeTraces) {
 
       node.classes.forEach((clazz) => {
         clazz.methods.forEach((method) => {
-          flatDataMap.set(method.hashCode, {
+          flatDataMap.set(method.methodHash, {
             fqn: `${currentName}.${clazz.name}`,
             className: `${clazz.name}`,
             applicationName: `${application.name}`,
             applicationModelId: `${application.id}`,
             methodName: method.name,
-            hashCode: method.hashCode,
+            methodHash: method.methodHash,
             modelId: clazz.id,
           });
         });

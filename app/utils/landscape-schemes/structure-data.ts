@@ -3,7 +3,7 @@ import isObject from '../object-helpers';
 
 export interface Method {
   name: string;
-  hashCode: string;
+  methodHash: string;
 }
 
 export interface Class {
@@ -63,7 +63,7 @@ export function isClass(x: any): x is Class {
 }
 
 export function isMethod(x: any): x is Method {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'hashCode');
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
 }
 
 export function preProcessAndEnhanceStructureLandscape(

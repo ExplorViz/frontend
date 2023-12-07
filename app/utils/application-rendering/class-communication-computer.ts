@@ -16,48 +16,49 @@ import ClassCommunication from '../landscape-schemes/dynamic/class-communication
 
 function computeClassCommunicationRecursively(
   span: Span,
-  potentialParentSpan: Span | undefined,
   spanIdToChildSpanMap: Map<string, Span[]>,
   hashCodeToClassMap: Map<string, Class>
 ) {
-  const childSpans = spanIdToChildSpanMap.get(span.spanId);
-
-  if (childSpans === undefined) {
+  if (span === undefined) {
     return [];
   }
 
-  const classMatchingSpan = hashCodeToClassMap.get(span.hashCode);
+  const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
+  if (childSpans === undefined || childSpans.length === 0) {
+    // no childspan, therefore no one to call => no communication line
+    return [];
+  }
+
+  const classMatchingSpan = hashCodeToClassMap.get(span.methodHash);
   if (classMatchingSpan === undefined) {
     return [];
   }
 
   let callerMethodName = 'UNKNOWN';
 
-  if (potentialParentSpan) {
-    const classMatchingParentSpan = hashCodeToClassMap.get(
-      potentialParentSpan.hashCode
-    );
-    classMatchingParentSpan?.methods.forEach((method) => {
-      if (method.hashCode === potentialParentSpan.hashCode) {
-        callerMethodName = method.name;
-      }
-    });
-  }
+  classMatchingSpan.methods.forEach((method) => {
+    if (method.methodHash === span.methodHash) {
+      callerMethodName = method.name;
+    }
+  });
 
   const classCommunications: SingleClassCommunication[] = [];
+
   childSpans.forEach((childSpan) => {
-    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
+    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.methodHash);
     if (classMatchingChildSpan !== undefined) {
       // retrieve operationName
       const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
-        (method) => method.hashCode === childSpan.hashCode
+        (method) => method.methodHash === childSpan.methodHash
       );
 
       const methodName = methodMatchingSpanHash
         ? methodMatchingSpanHash.name
         : 'UNKNOWN';
 
+      // create classCommunication (eventually results in a single
+      // communication line) and proceed with remaining method calls
       classCommunications.push({
         sourceClass: classMatchingSpan,
         targetClass: classMatchingChildSpan,
@@ -67,7 +68,6 @@ function computeClassCommunicationRecursively(
       classCommunications.push(
         ...computeClassCommunicationRecursively(
           childSpan,
-          span,
           spanIdToChildSpanMap,
           hashCodeToClassMap
         )
@@ -98,7 +98,6 @@ export default function computeClassCommunication(
       totalClassCommunications.push(
         ...computeClassCommunicationRecursively(
           firstSpan,
-          undefined,
           traceSpanTree.tree,
           hashCodeToClassMap
         )
@@ -182,6 +181,12 @@ export default function computeClassCommunication(
 
   const computedCommunication = [...classCommunications.values()];
   computeCommunicationMetrics(computedCommunication);
+
+  //for (const computedCommu of computedCommunication) {
+  //console.log(
+  // computedCommu.operationName + ' of ' + computedCommu.sourceClass.name
+  //);
+  //}
 
   return computedCommunication;
 }

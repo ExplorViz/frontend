@@ -207,19 +207,21 @@ export function highlightTrace(
 
   // get both classes involved in the procedure call of the highlighted span
   let highlightedSpanParentClass: Class | undefined;
-  const highlightedSpanClass = hashCodeToClassMap.get(highlightedSpan.hashCode);
+  const highlightedSpanClass = hashCodeToClassMap.get(
+    highlightedSpan.methodHash
+  );
   trace.spanList.forEach((span) => {
     if (highlightedSpan === undefined) {
       return;
     }
     if (span.spanId === highlightedSpan.parentSpanId) {
-      highlightedSpanParentClass = hashCodeToClassMap.get(span.hashCode);
+      highlightedSpanParentClass = hashCodeToClassMap.get(span.methodHash);
     }
   });
 
   // mark all classes in span as involved in the trace
   trace.spanList.forEach((span) => {
-    const spanClass = hashCodeToClassMap.get(span.hashCode);
+    const spanClass = hashCodeToClassMap.get(span.methodHash);
 
     if (spanClass) {
       involvedClazzes.add(spanClass);
@@ -230,9 +232,9 @@ export function highlightTrace(
 
   // map all spans to their respective clazz
   trace.spanList.forEach((span) => {
-    const { hashCode, spanId } = span;
+    const { methodHash, spanId } = span;
 
-    const clazz = hashCodeToClassMap.get(hashCode);
+    const clazz = hashCodeToClassMap.get(methodHash);
 
     if (clazz !== undefined) {
       spanIdToClass.set(spanId, clazz);

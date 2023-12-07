@@ -143,6 +143,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
           },
         }
       )
@@ -170,6 +171,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
           },
         }
       )
