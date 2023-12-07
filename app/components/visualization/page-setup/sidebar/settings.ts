@@ -121,15 +121,9 @@ export default class Settings extends Component<Args> {
 
   @action
   updateButtonSetting(settingId: ApplicationSettingId) {
-    console.log('Update');
-    console.log('Args:', this.args);
-
     switch (settingId) {
       case 'fullscreen':
-        console.log('Fullscreen');
         if (this.args.enterFullscreen) {
-          console.log('Trigger fullscreen');
-
           this.args.enterFullscreen();
         }
         break;
