@@ -226,12 +226,12 @@ export default class IdeWebsocket {
           AlertifyHandler.showAlertifySuccess(
             'An IDE has successfully connected to this room.'
           );
-          console.log('An IDE has successfully connected.');
+          log('An IDE has successfully connected.');
           this.ideWebsocketFacade.numConnectedIDEs++;
           break;
 
         case 'disconnectIDE':
-          console.log('An IDE has disconnected.');
+          log('An IDE has disconnected.');
           AlertifyHandler.showAlertifySuccess('An IDE has disconnected.');
           this.ideWebsocketFacade.numConnectedIDEs--;
           break;
