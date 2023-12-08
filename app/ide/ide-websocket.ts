@@ -67,8 +67,8 @@ export type VizDataRaw = {
 
 type ParentOrder = {
   fqn: string;
-  meshid: string;
-  childs: ParentOrder[];
+  meshId: string;
+  children: ParentOrder[];
   methods: ParentOrder[];
 };
 
@@ -352,8 +352,8 @@ export default class IdeWebsocket {
 function getOrderedParents(dataModel: Application): ParentOrder {
   const result: ParentOrder = {
     fqn: dataModel.name,
-    childs: [],
-    meshid: dataModel.id,
+    children: [],
+    meshId: dataModel.id,
     methods: [],
   };
   const temp: ParentOrder[] = [];
@@ -361,33 +361,33 @@ function getOrderedParents(dataModel: Application): ParentOrder {
     const fqn = dataModel.name + '.' + element.name;
     temp.push({
       fqn: fqn,
-      childs: parentPackage(fqn, element.subPackages, element.classes),
-      meshid: element.id,
+      children: parentPackage(fqn, element.subPackages, element.classes),
+      meshId: element.id,
       methods: [],
     });
   });
 
-  result.childs = temp;
+  result.children = temp;
 
   return result;
 }
 
 function parentPackage(
   fqn: string,
-  subpackages: Package[],
+  subPackages: Package[],
   classes: Class[]
 ): ParentOrder[] {
   const temp: ParentOrder[] = [];
 
-  if (subpackages.length === 0) {
+  if (subPackages.length === 0) {
     return parentClass(fqn, classes);
   }
-  subpackages.forEach((element) => {
+  subPackages.forEach((element) => {
     const newFqn = fqn + '.' + element.name;
     temp.push({
       fqn: newFqn,
-      childs: parentPackage(newFqn, element.subPackages, element.classes),
-      meshid: element.id,
+      children: parentPackage(newFqn, element.subPackages, element.classes),
+      meshId: element.id,
       methods: [],
     });
   });
@@ -405,8 +405,8 @@ function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
     const newFqn = fqn + '.' + element.name;
     temp.push({
       fqn: newFqn,
-      childs: [],
-      meshid: element.id,
+      children: [],
+      meshId: element.id,
       methods: [],
     });
   });
@@ -419,7 +419,7 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
   meshIds: string[];
 } {
   const meshName: string = orderedParents.fqn;
-  const meshId: string = orderedParents.meshid;
+  const meshId: string = orderedParents.meshId;
 
   const meshTemp = { meshNames: [meshName], meshIds: [meshId] };
 
@@ -433,7 +433,7 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
       );
     });
   } else {
-    orderedParents.childs.forEach((element) => {
+    orderedParents.children.forEach((element) => {
       meshTemp.meshNames = meshTemp.meshNames.concat(
         getFqnForMeshes(element).meshNames
       );
@@ -494,19 +494,19 @@ function recursivelyOpenObjects(
     return;
   }
 
-  orderTuple.hierarchyModel.childs.forEach((element) => {
+  orderTuple.hierarchyModel.children.forEach((element) => {
     const tempOrder: ParentOrder = {
       fqn: element.fqn,
-      childs: element.childs,
-      meshid: element.meshid,
+      children: element.children,
+      meshId: element.meshId,
       methods: [],
     };
     if (element.methods.length != 0) {
-      console.log('Methods elem: ', element);
+      console.log('Methods element: ', element);
     } else if (isInParentOrder(element, toOpen)) {
-      doSomethingOnMesh(element.meshid);
+      doSomethingOnMesh(element.meshId);
       if (toOpen == element.fqn) {
-        lookAtMesh(element.meshid);
+        lookAtMesh(element.meshId);
       }
       recursivelyOpenObjects(doSomethingOnMesh, lookAtMesh, toOpen, {
         hierarchyModel: tempOrder,
@@ -519,18 +519,18 @@ function recursivelyOpenObjects(
 function isInParentOrder(po: ParentOrder, name: string): boolean {
   if (po.fqn === name) {
     return true;
-  } else if (po.childs.length === 0) {
+  } else if (po.children.length === 0) {
     return false;
   }
   let tempBool = false;
-  po.childs.forEach((element) => {
+  po.children.forEach((element) => {
     tempBool =
       tempBool ||
       isInParentOrder(
         {
           fqn: element.fqn,
-          childs: element.childs,
-          meshid: element.meshid,
+          children: element.children,
+          meshId: element.meshId,
           methods: [],
         },
         name
@@ -545,7 +545,7 @@ function resetFoundation(
   orderTuple: OrderTuple[]
 ) {
   orderTuple.forEach((ot) => {
-    doSomethingOnMesh(ot.hierarchyModel.meshid);
+    doSomethingOnMesh(ot.hierarchyModel.meshId);
   });
 }
 
@@ -555,7 +555,7 @@ export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
 
 export function sendMonitoringData(monitoringData: MonitoringData[]) {
   // emitToBackend(IDEApiDest.VizDo, { action: IDEApiActions.DoubleClickOnMesh, fqn: "org.springframework.samples.petclinic.model.Person", data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", occurrenceID: 0 })
-  console.log('monitroingData: ', monitoringData);
+  console.log('monitoringData: ', monitoringData);
   socket!.emit(IDEApiDest.IDEDo, {
     action: IDEApiActions.JumpToMonitoringClass,
     monitoringData: monitoringData,
@@ -625,28 +625,28 @@ function insertCommunicationInParentOrder(
   communicationLinkFQN: string,
   po: ParentOrder
 ): ParentOrder {
-  if (cl.targetMeshID == po.meshid) {
+  if (cl.targetMeshID == po.meshId) {
     const newPO: ParentOrder = {
-      childs: [],
+      children: [],
       fqn: communicationLinkFQN,
-      meshid: cl.meshID,
+      meshId: cl.meshID,
       methods: [],
     };
     const tempPO = po;
-    tempPO.childs.push(newPO);
+    tempPO.children.push(newPO);
     return tempPO;
   } else {
     const temp: ParentOrder[] = [];
-    po.childs.forEach((element) => {
+    po.children.forEach((element) => {
       temp.push(
         insertCommunicationInParentOrder(cl, communicationLinkFQN, element)
       );
     });
     return {
       fqn: po.fqn,
-      meshid: po.meshid,
+      meshId: po.meshId,
       methods: po.methods,
-      childs: temp,
+      children: temp,
     };
   }
 }
