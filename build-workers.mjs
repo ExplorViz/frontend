@@ -21,3 +21,7 @@ if (args.has('build')) {
 }
 
 await ctx.dispose();
+
+if (args.has('build')) {
+    console.log('Done.');
+}
