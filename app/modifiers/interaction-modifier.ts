@@ -50,6 +50,7 @@ interface NamedArgs {
   strgUp?(): void;
   shiftDown?(): void;
   shiftUp?(): void;
+  spaceDown?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -188,6 +189,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         break;
       case 'Shift':
         this.namedArgs.shiftDown?.();
+        break;
+      case ' ':
+        this.namedArgs.spaceDown?.();
         break;
     }
   }

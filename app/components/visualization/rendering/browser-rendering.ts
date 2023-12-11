@@ -452,6 +452,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.highlightingService.updateHighlightingOnHover(false);
   }
 
+  @action
+  handleSpaceBar() {
+    this.args.toggleVisualizationUpdating();
+  }
+
   selectActiveApplication(applicationObject3D: ApplicationObject3D) {
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
