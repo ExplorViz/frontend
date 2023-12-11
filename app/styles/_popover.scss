@@ -45,6 +45,10 @@
   pointer-events: none;
 }
 
+.no-user-select {
+  user-select: none;
+}
+
 #popup-close-button {
   margin-left: 0.5rem;
 }

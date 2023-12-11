@@ -37,7 +37,7 @@ interface NamedArgs {
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
-  mouseOut?(): void;
+  mouseOut?(event: PointerEvent): void;
   mouseMove?(intersection: THREE.Intersection | null, event: MouseEvent): void;
   mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void;
   singleClick?(intersection: THREE.Intersection | null): void;
@@ -174,10 +174,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs.mouseEnter?.();
   }
 
-  @action onPointerOut() {
+  @action onPointerOut(event: PointerEvent) {
     this.isMouseOnCanvas = false;
 
-    this.namedArgs.mouseOut?.();
+    this.namedArgs.mouseOut?.(event);
   }
 
   @action keyDown(event: KeyboardEvent) {
