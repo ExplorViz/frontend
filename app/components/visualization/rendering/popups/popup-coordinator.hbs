@@ -1,6 +1,6 @@
 {{! template-lint-disable no-pointer-down-event-binding }}
 <div
-  class='popover'
+  class='popover {{unless @popupData.wasMoved "no-user-select"}}'
   {{on 'pointerdown' this.dragMouseDown}}
   {{on 'pointerover' this.onPointerOver}}
   {{on 'pointerout' this.onPointerOut}}
