@@ -50,6 +50,8 @@ interface NamedArgs {
   strgUp?(): void;
   shiftDown?(): void;
   shiftUp?(): void;
+  altUp?(): void;
+  altDown?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -189,6 +191,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       case 'Shift':
         this.namedArgs.shiftDown?.();
         break;
+      case 'Alt':
+        this.namedArgs.altDown?.();
+        break;
     }
   }
   @action keyUp(event: KeyboardEvent) {
@@ -197,8 +202,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       case 'Control':
         this.namedArgs.strgUp?.();
         break;
-      case 'Shift':
-        this.namedArgs.shiftUp?.();
+      case 'Alt':
+        this.namedArgs.altUp?.();
         break;
     }
   }
@@ -243,7 +248,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onClickEventsingleClickUp(event: PointerEvent) {
     const intersectedViewObj = this.raycast(event);
 
-    if ((event.altKey && event.button === 0) || event.button === 1) {
+    if (event.button === 1) {
       this.ping(intersectedViewObj);
     } else if (
       event.button === 0 &&
