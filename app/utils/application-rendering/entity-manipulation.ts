@@ -70,7 +70,7 @@ export function openComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.25,
-    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+    y: mesh.layout.positionY,
   });
 
   mesh.opened = true;
@@ -118,7 +118,7 @@ export function closeComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.5,
-    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+    y: mesh.layout.positionY + 0.75,
   });
 
   mesh.opened = false;
