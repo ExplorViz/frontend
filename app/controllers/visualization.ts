@@ -52,6 +52,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -445,16 +446,16 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
+      animatePlayPauseButton(false);
       set(this, 'selectedTimestampRecords', []);
       this.plotlyTimelineRef.resetHighlighting();
-      AlertifyHandler.showAlertifyMessage('Visualization resumed!');
     }
   }
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      AlertifyHandler.showAlertifyMessage('Visualization paused!');
+      animatePlayPauseButton(true);
     }
   }
 
