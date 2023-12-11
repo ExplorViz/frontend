@@ -443,12 +443,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleShiftDown() {
+  handleAltDown() {
     this.highlightingService.updateHighlightingOnHover(true);
   }
 
   @action
-  handleShiftUp() {
+  handleAltUp() {
     this.highlightingService.updateHighlightingOnHover(false);
   }
 
@@ -509,7 +509,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
     this.popupHandler.hover(intersection?.object);
 
-    if (!event.shiftKey)
+    if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
         isEntityMesh(intersection?.object) && intersection.object.highlighted
       );
