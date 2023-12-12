@@ -16,7 +16,6 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import {
@@ -52,7 +51,6 @@ interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData;
   readonly visualizationPaused: boolean;
-  readonly selectedTimestampRecords: Timestamp[];
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;

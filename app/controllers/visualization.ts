@@ -119,11 +119,10 @@ export default class VisualizationController extends Controller {
 
   queryParams = ['roomId'];
 
-  @tracked
-  roomId?: string;
+  selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  selectedTimestampRecords: Timestamp[] = [];
+  roomId?: string;
 
   @tracked
   showSettingsSidebar = false;
@@ -148,6 +147,9 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
+
+  @tracked
+  highlightedMarkerColor = 'green';
 
   @tracked
   vrSupported: boolean = false;
@@ -233,9 +235,14 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
+
       if (this.timelineTimestamps.lastObject) {
         this.timestampService.timestamp =
           this.timelineTimestamps.lastObject?.timestamp;
+        this.selectedTimestampRecords = [
+          this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
+        ];
+        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       }
     }
   }
@@ -412,7 +419,7 @@ export default class VisualizationController extends Controller {
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
-        set(this, 'selectedTimestampRecords', timestampRecordArray);
+        this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.timestamp = timestamp;
     } catch (e) {
@@ -446,15 +453,17 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
+      this.highlightedMarkerColor = 'green ';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       animatePlayPauseButton(false);
-      set(this, 'selectedTimestampRecords', []);
-      this.plotlyTimelineRef.resetHighlighting();
     }
   }
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
+      this.highlightedMarkerColor = 'red';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       animatePlayPauseButton(true);
     }
   }

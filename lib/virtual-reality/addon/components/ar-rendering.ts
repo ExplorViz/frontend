@@ -14,7 +14,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
@@ -42,7 +41,6 @@ interface Args {
   readonly landscapeData: LandscapeData;
   readonly components: string[];
   readonly showSettingsSidebar: boolean;
-  readonly selectedTimestampRecords: Timestamp[];
   readonly visualizationPaused: boolean;
   openLandscapeView(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar

@@ -1,5 +1,5 @@
 .center {
-    position: fixed;
+    position: absolute;
     width: var(--button-container-size);
     height: var(--button-container-size);
     top: calc(50% - var(--button-container-size) * 0.5);

@@ -41,7 +41,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   get highlightedMarkerSize() {
-    const fallbackValue = 12;
+    const fallbackValue = 15;
     return this.args.highlightedMarkerSize || fallbackValue;
   }
 
