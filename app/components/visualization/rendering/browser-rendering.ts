@@ -309,6 +309,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       antialias: true,
       canvas: this.canvas,
       preserveDrawingBuffer: true,
+      powerPreference: 'high-performance',
     });
 
     this.renderer.shadowMap.enabled = true;
