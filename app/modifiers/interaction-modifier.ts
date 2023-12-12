@@ -37,7 +37,7 @@ interface NamedArgs {
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
-  mouseOut?(): void;
+  mouseOut?(event: PointerEvent): void;
   mouseMove?(intersection: THREE.Intersection | null, event: MouseEvent): void;
   mouseStop?(intersection: THREE.Intersection, mousePosition?: Vector2): void;
   singleClick?(intersection: THREE.Intersection | null): void;
@@ -50,6 +50,8 @@ interface NamedArgs {
   strgUp?(): void;
   shiftDown?(): void;
   shiftUp?(): void;
+  altUp?(): void;
+  altDown?(): void;
   spaceDown?(): void;
 }
 
@@ -175,10 +177,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     this.namedArgs.mouseEnter?.();
   }
 
-  @action onPointerOut() {
+  @action onPointerOut(event: PointerEvent) {
     this.isMouseOnCanvas = false;
 
-    this.namedArgs.mouseOut?.();
+    this.namedArgs.mouseOut?.(event);
   }
 
   @action keyDown(event: KeyboardEvent) {
@@ -189,6 +191,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         break;
       case 'Shift':
         this.namedArgs.shiftDown?.();
+        break;
+      case 'Alt':
+        this.namedArgs.altDown?.();
         break;
       case ' ':
         this.namedArgs.spaceDown?.();
@@ -203,6 +208,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         break;
       case 'Shift':
         this.namedArgs.shiftUp?.();
+        break;
+      case 'Alt':
+        this.namedArgs.altUp?.();
         break;
     }
   }
@@ -247,7 +255,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onClickEventsingleClickUp(event: PointerEvent) {
     const intersectedViewObj = this.raycast(event);
 
-    if ((event.altKey && event.button === 0) || event.button === 1) {
+    if (event.button === 1) {
       this.ping(intersectedViewObj);
     } else if (
       event.button === 0 &&

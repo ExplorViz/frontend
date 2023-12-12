@@ -69,6 +69,11 @@ export default class PopupHandler {
   }
 
   @action
+  removeUnmovedPopups() {
+    this.popupData = this.popupData.filterBy('wasMoved', true);
+  }
+
+  @action
   sharePopup(popup: PopupData) {
     this.updateMeshReference(popup);
 

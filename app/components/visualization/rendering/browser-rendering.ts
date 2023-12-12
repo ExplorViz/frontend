@@ -441,12 +441,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleShiftDown() {
+  handleAltDown() {
     this.highlightingService.updateHighlightingOnHover(true);
   }
 
   @action
-  handleShiftUp() {
+  handleAltUp() {
     this.highlightingService.updateHighlightingOnHover(false);
   }
 
@@ -505,14 +505,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object);
+      this.handleMouseMoveOnMesh(intersection.object, event);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
     }
     this.popupHandler.hover(intersection?.object);
 
-    if (!event.shiftKey)
+    if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
         isEntityMesh(intersection?.object) && intersection.object.highlighted
       );
@@ -529,7 +529,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
+  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined, event: MouseEvent) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
@@ -548,8 +548,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     // Hide popups when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
+    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
+      this.popupHandler.removeUnmovedPopups();
     }
   }
 
@@ -569,10 +569,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseOut() {
+  handleMouseOut(event: PointerEvent) {
     this.popupHandler.hover();
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
+    if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
+      this.popupHandler.removeUnmovedPopups();
     }
   }
 
