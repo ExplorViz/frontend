@@ -405,6 +405,7 @@ export default class VisualizationController extends Controller {
     ) {
       return;
     }
+    this.selectedTimestampRecords = timestampRecordArray;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(
       timestampRecordArray[0].timestamp,
