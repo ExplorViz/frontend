@@ -149,7 +149,7 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
-  highlightedMarkerColor = 'green';
+  highlightedMarkerColor = 'blue';
 
   @tracked
   vrSupported: boolean = false;
@@ -453,7 +453,7 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      this.highlightedMarkerColor = 'green ';
+      this.highlightedMarkerColor = 'blue ';
       this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       animatePlayPauseButton(false);
     }
