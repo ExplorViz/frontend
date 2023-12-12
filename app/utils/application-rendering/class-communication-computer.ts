@@ -4,15 +4,13 @@ import {
 } from '../landscape-schemes/dynamic/dynamic-data';
 import MethodCall from '../landscape-schemes/dynamic/method-call';
 import {
+  Application,
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import {
-  getHashCodeToClassMap,
-  getApplicationFromClass,
-} from '../landscape-structure-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import { getAllClassesInApplication } from '../application-helpers';
 
 function computeClassCommunicationRecursively(
   span: Span,
@@ -84,7 +82,9 @@ export default function computeClassCommunication(
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
-  const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
+  const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
+    landscapeStructureData
+  );
 
   const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
 
@@ -112,16 +112,10 @@ export default function computeClassCommunication(
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
       // get source app
-      const sourceApp = getApplicationFromClass(
-        landscapeStructureData,
-        sourceClass
-      );
+      const sourceApp = classToApplicationMap.get(sourceClass);
 
       // get target app
-      const targetApp = getApplicationFromClass(
-        landscapeStructureData,
-        targetClass
-      );
+      const targetApp = classToApplicationMap.get(targetClass);
 
       if (!sourceApp || !targetApp) {
         console.error('Application for class communication not found!');
@@ -204,6 +198,31 @@ function computeCommunicationMetrics(
         totalRequests / maxRequests;
     }
   });
+}
+
+function createLookupMaps(
+  structureData: StructureLandscapeData
+): [Map<string, Class>, Map<Class, Application>] {
+  const hashCodeToClassMap = new Map<string, Class>();
+  const classToApplicationMap = new Map<Class, Application>();
+
+  const allApplications = structureData.nodes
+    .map((node) => node.applications)
+    .flat();
+
+  for (const application of allApplications) {
+    const classes = getAllClassesInApplication(application);
+
+    for (const clazz of classes) {
+      clazz.methods.forEach(({ methodHash }) =>
+        hashCodeToClassMap.set(methodHash, clazz)
+      );
+
+      classToApplicationMap.set(clazz, application);
+    }
+  }
+
+  return [hashCodeToClassMap, classToApplicationMap];
 }
 
 export function computeRestructuredClassCommunication(
