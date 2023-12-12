@@ -302,6 +302,7 @@ export default class VrRendering extends Component<Args> {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
+      powerPreference: 'high-performance',
     });
     this.menuFactory.renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);

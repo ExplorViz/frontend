@@ -334,6 +334,7 @@ export default class ArRendering extends Component<Args> {
       antialias: true,
       alpha: true,
       canvas: this.canvas,
+      powerPreference: 'high-performance',
     });
     this.renderer.xr.enabled = true;
 
