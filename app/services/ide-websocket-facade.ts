@@ -8,6 +8,8 @@ export default class IdeWebsocketFacade extends Service.extend(Evented) {
 
   @tracked isConnected: boolean = false;
 
+  @tracked numConnectedIDEs: number = 0;
+
   refreshVizData(cl: CommunicationLink[]) {
     this.trigger('ide-refresh-data', cl);
   }
