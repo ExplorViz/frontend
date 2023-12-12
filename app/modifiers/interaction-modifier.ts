@@ -52,6 +52,7 @@ interface NamedArgs {
   shiftUp?(): void;
   altUp?(): void;
   altDown?(): void;
+  spaceDown?(): void;
 }
 
 interface InteractionModifierArgs {
@@ -194,6 +195,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       case 'Alt':
         this.namedArgs.altDown?.();
         break;
+      case ' ':
+        this.namedArgs.spaceDown?.();
+        break;
     }
   }
   @action keyUp(event: KeyboardEvent) {
@@ -201,6 +205,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     switch (key) {
       case 'Control':
         this.namedArgs.strgUp?.();
+        break;
+      case 'Shift':
+        this.namedArgs.shiftUp?.();
         break;
       case 'Alt':
         this.namedArgs.altUp?.();

@@ -52,6 +52,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -118,11 +119,10 @@ export default class VisualizationController extends Controller {
 
   queryParams = ['roomId'];
 
-  @tracked
-  roomId?: string;
+  selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  selectedTimestampRecords: Timestamp[] = [];
+  roomId?: string;
 
   @tracked
   showSettingsSidebar = false;
@@ -147,6 +147,9 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineTimestamps: Timestamp[] = [];
+
+  @tracked
+  highlightedMarkerColor = 'blue';
 
   @tracked
   vrSupported: boolean = false;
@@ -232,9 +235,14 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
+
       if (this.timelineTimestamps.lastObject) {
         this.timestampService.timestamp =
           this.timelineTimestamps.lastObject?.timestamp;
+        this.selectedTimestampRecords = [
+          this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
+        ];
+        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       }
     }
   }
@@ -397,6 +405,7 @@ export default class VisualizationController extends Controller {
     ) {
       return;
     }
+    this.selectedTimestampRecords = timestampRecordArray;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(
       timestampRecordArray[0].timestamp,
@@ -411,7 +420,7 @@ export default class VisualizationController extends Controller {
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
-        set(this, 'selectedTimestampRecords', timestampRecordArray);
+        this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.timestamp = timestamp;
     } catch (e) {
@@ -445,16 +454,18 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      set(this, 'selectedTimestampRecords', []);
-      this.plotlyTimelineRef.resetHighlighting();
-      AlertifyHandler.showAlertifyMessage('Visualization resumed!');
+      this.highlightedMarkerColor = 'blue ';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(false);
     }
   }
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      AlertifyHandler.showAlertifyMessage('Visualization paused!');
+      this.highlightedMarkerColor = 'red';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(true);
     }
   }
 

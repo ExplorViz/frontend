@@ -40,7 +40,6 @@
     <ArRendering
       @id='landscape1'
       @landscapeData={{this.landscapeData}}
-      @selectedTimestampRecords={{this.selectedTimestampRecords}}
       @openLandscapeView={{this.openLandscapeView}}
       @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
@@ -56,7 +55,6 @@
       <VrRendering
         @id='landscape1'
         @landscapeData={{this.landscapeData}}
-        @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @components={{this.components}}
         @openSettingsSidebar={{this.openSettingsSidebar}}
         @closeDataSelection={{this.closeDataSelection}}
@@ -94,7 +92,6 @@
           <VrRendering
             @id='landscape1'
             @landscapeData={{this.landscapeData}}
-            @selectedTimestampRecords={{this.selectedTimestampRecords}}
             @components={{this.components}}
             @openDataSelection={{this.openDataSelection}}
             @closeDataSelection={{this.closeDataSelection}}
@@ -127,7 +124,6 @@
             @restructureLandscape={{this.restructureLandscape}}
             @switchToAR={{this.switchToAR}}
             @switchToVR={{this.switchToVR}}
-            @selectedTimestampRecords={{this.selectedTimestampRecords}}
             @applicationArgs={{this.applicationArgs}}
           />
 
@@ -200,8 +196,11 @@
       <Visualization::PageSetup::Timeline::PlotlyTimeline
         @timestamps={{this.timelineTimestamps}}
         @clicked={{this.timelineClicked}}
+        @highlightedMarkerColor={{this.highlightedMarkerColor}}
         @setChildReference={{this.getTimelineReference}}
       />
     </div>
   </div>
 {{/if}}
+
+<Visualization::Rendering::PlayPauseButton />

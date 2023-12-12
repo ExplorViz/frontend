@@ -12,7 +12,6 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
-import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, {
   MessageArgs,
 } from 'explorviz-frontend/services/toast-message';
@@ -103,7 +102,6 @@ interface Args {
   debugMode: boolean;
   readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly selectedTimestampRecords: Timestamp[];
   readonly font: Font;
   applicationArgs: Map<string, AddApplicationArgs>;
 }
