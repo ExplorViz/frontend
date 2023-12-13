@@ -142,7 +142,6 @@ export default abstract class BaseMesh<
   }
 
   changeOpacity(opacity: number) {
-    this.visible = opacity > 0;
     const isTransparent = opacity < 1;
     if (this.material instanceof THREE.Material) {
       this.material.opacity = opacity;
