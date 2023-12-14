@@ -16,6 +16,7 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import IdeCrossCommunicationEvent from './ide-cross-communication-event';
+import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -179,17 +180,13 @@ export default class IdeCrossCommunication {
         application.getModelId()
       );
 
-      const drawableClassCommunications =
-        applicationData?.drawableClassCommunications;
+      const classCommunications = applicationData?.classCommunications;
 
-      // console.log(drawableClassCommunications)
+      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
-      if (
-        drawableClassCommunications &&
-        drawableClassCommunications.length != 0
-      ) {
-        drawableClassCommunications.forEach((element) => {
+      if (classCommunications && classCommunications.length != 0) {
+        classCommunications.forEach((element) => {
           const meshIDs = element.id.split('_');
           const tempCL: CommunicationLink = {
             meshID: element.id,
@@ -213,7 +210,8 @@ export default class IdeCrossCommunication {
     };
   }
 
-  jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  //jumpToLocation(object: THREE.Object3D<THREE.Event>) {
+  jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
     const vizDataRaw: VizDataRaw = this.getVizData(
       foundationCommunicationLinksGlobal
     );
@@ -456,25 +454,26 @@ export function emitToBackend(apiCall: IDEApiCall) {
   window.parent.postMessage(apiCall, '*');
 }
 
-function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+//function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
+function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzMesh) {
-    console.error('ClazzMesh --- Mesh Type not Supported!');
+    // console.error('ClazzMesh --- Mesh Type not Supported!');
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzCommunicationMesh) {
-    console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    console.log(mesh.dataModel);
+    // console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
+    // console.log(mesh.dataModel);
     return mesh.dataModel.id;
     // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {
-    console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
+    // console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
     return 'Not implemented CommunicationArrowMesh';
   } else {
     //
-    console.error(typeof mesh, ' --- Mesh Type not Supported!');
+    // console.error(typeof mesh, ' --- Mesh Type not Supported!');
     return 'Not implemented';
   }
 }

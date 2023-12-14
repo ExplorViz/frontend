@@ -81,9 +81,18 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isColorSetting: true,
   },
   // Highlighting Settings
-  keepHighlightingOnOpenOrClose: {
+  applyHighlightingOnHover: {
     value: true,
     orderNumber: 1,
+    group: 'Highlighting',
+    displayName: 'Only Apply Highlighting Effect On Hover',
+    description:
+      'Toggle to switch between permanent transparency effect and effect on hover',
+    isFlagSetting: true,
+  },
+  keepHighlightingOnOpenOrClose: {
+    value: true,
+    orderNumber: 2,
     group: 'Highlighting',
     displayName: 'Keep Highlighting On Open Or Close',
     description:
@@ -93,10 +102,11 @@ export const defaultApplicationSettings: ApplicationSettings = {
   transparencyIntensity: {
     value: 0.1,
     range: {
-      min: 0.1,
+      min: 0.0,
       max: 1.0,
+      step: 0.05,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
     description:
@@ -104,8 +114,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   enableMultipleHighlighting: {
-    value: false,
-    orderNumber: 3,
+    value: true,
+    orderNumber: 4,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',
     description:
@@ -126,7 +136,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 1.0,
     range: {
       min: 0.0,
-      max: 5.0,
+      max: 2.0,
+      step: 0.25,
     },
     orderNumber: 1,
     group: 'Communication',
@@ -139,7 +150,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 0.0,
     range: {
       min: 0.0,
-      max: 1.5,
+      max: 5.0,
+      step: 0.1,
     },
     orderNumber: 2,
     group: 'Communication',
@@ -187,7 +199,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showAxesHelper: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 2,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
     description: 'Visualizes the three dimensional Cartesian coordinate system',
@@ -195,7 +207,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showLightHelper: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 3,
     group: 'Debugging',
     displayName: 'Show Light Helper',
     description: 'Visualizes the directional light',
@@ -203,10 +215,31 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   showVrOnClick: {
     value: false,
-    orderNumber: 1,
+    orderNumber: 4,
     group: 'Debugging',
     displayName: 'Show VR in browser',
     description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
+  },
+  fullscreen: {
+    value: false,
+    orderNumber: 5,
+    type: 'primary',
+    group: 'Debugging',
+    displayName: 'Fullscreen',
+    description:
+      'Enter canvas in fullscreen mode. Press escape key to leave fullscreen.',
+    buttonText: 'Enter Fullscreen',
+    isButtonSetting: true,
+  },
+  resetToDefaults: {
+    value: false,
+    orderNumber: 6,
+    type: 'danger',
+    group: 'Debugging',
+    displayName: 'Reset Settings to Default',
+    description: 'Reset all settings to default values',
+    buttonText: 'Reset',
+    isButtonSetting: true,
   },
 };

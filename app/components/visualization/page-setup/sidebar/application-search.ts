@@ -24,7 +24,6 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     super(owner, args);
 
     this.searchLogic = new ApplicationSearchLogic(getOwner(this));
-    console.log(this.searchLogic);
   }
 
   @action

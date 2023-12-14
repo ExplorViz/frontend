@@ -22,6 +22,7 @@ export type ApplicationColorSettingId =
   | 'backgroundColor';
 
 export type ApplicationHighlightingSettingId =
+  | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
@@ -40,7 +41,9 @@ export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick';
+  | 'showVrOnClick'
+  | 'fullscreen'
+  | 'resetToDefaults';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
@@ -60,6 +63,7 @@ export type ApplicationColorSettings = Record<
 >;
 
 export type ApplicationHighlightingSettings = {
+  applyHighlightingOnHover: FlagSetting;
   keepHighlightingOnOpenOrClose: FlagSetting;
   transparencyIntensity: RangeSetting;
   enableMultipleHighlighting: FlagSetting;
@@ -75,10 +79,14 @@ export type ApplicationCommunicationSettings = Record<
   RangeSetting
 >;
 
-export type ApplicationDebugSettings = Record<
-  ApplicationDebugSettingId,
-  FlagSetting
->;
+export type ApplicationDebugSettings = {
+  showFpsCounter: FlagSetting;
+  showAxesHelper: FlagSetting;
+  showLightHelper: FlagSetting;
+  showVrOnClick: FlagSetting;
+  fullscreen: ButtonSetting;
+  resetToDefaults: ButtonSetting;
+};
 
 export type ApplicationPopupSettings = Record<
   ApplicationPopupSettingId,
@@ -107,6 +115,23 @@ export interface Setting<T> {
   group: SettingGroup;
 }
 
+export interface ButtonSetting extends Setting<boolean> {
+  type:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'danger'
+    | 'warning'
+    | 'info'
+    | 'light'
+    | 'dark'
+    | 'link';
+  displayName: string;
+  description: string;
+  buttonText: string;
+  readonly isButtonSetting: true;
+}
+
 export interface FlagSetting extends Setting<boolean> {
   displayName: string;
   description: string;
@@ -124,6 +149,7 @@ export interface RangeSetting extends Setting<number> {
   range: {
     min: number;
     max: number;
+    step: number;
   };
   readonly isRangeSetting: true;
 }

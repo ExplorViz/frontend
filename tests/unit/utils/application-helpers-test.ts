@@ -118,7 +118,7 @@ function getTestPackage1() {
     methods: [
       {
         name: 'method11',
-        hashCode: 'method11Hash',
+        methodHash: 'method11Hash',
       },
     ],
     parent: testPackage11,
@@ -130,7 +130,7 @@ function getTestPackage1() {
     methods: [
       {
         name: 'method12',
-        hashCode: 'method12Hash',
+        methodHash: 'method12Hash',
       },
     ],
     parent: testPackage11,
@@ -144,7 +144,7 @@ function getTestPackage1() {
     methods: [
       {
         name: 'method13',
-        hashCode: 'method13Hash',
+        methodHash: 'method13Hash',
       },
     ],
     parent: subPackage11,
@@ -179,7 +179,7 @@ function getTestPackage2() {
     methods: [
       {
         name: 'method21',
-        hashCode: 'method21Hash',
+        methodHash: 'method21Hash',
       },
     ],
     parent: subPackage21,

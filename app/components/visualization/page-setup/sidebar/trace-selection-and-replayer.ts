@@ -4,7 +4,7 @@ import {
   DynamicLandscapeData,
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import {
   Application,
@@ -17,7 +17,6 @@ interface Args {
   moveCameraTo(emberModel: Class | Span): void;
   highlightTrace(trace: Trace, traceStep: string): void;
   removeHighlighting(): void;
-  removeComponent(componentPath: string): void;
   readonly application: Application;
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
@@ -32,7 +31,7 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
 
     return this.args.dynamicData.filter((trace) =>
       trace.spanList.any(
-        (span) => hashCodeToClassMap.get(span.hashCode) !== undefined
+        (span) => hashCodeToClassMap.get(span.methodHash) !== undefined
       )
     );
   }
@@ -47,11 +46,6 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
     }
 
     this.selectedTrace = trace;
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('trace-selection');
   }
 
   willDestroy() {

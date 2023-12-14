@@ -4,7 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   StructureLandscapeData,
@@ -100,10 +100,10 @@ export default class TraceReplayerMain extends Component<Args> {
     const hashCodeToClassMap = getHashCodeToClassMap(this.args.structureData);
 
     if (this.currentTraceStep) {
-      const clazz = hashCodeToClassMap.get(this.currentTraceStep.hashCode);
+      const clazz = hashCodeToClassMap.get(this.currentTraceStep.methodHash);
 
       return clazz?.methods.find(
-        (method) => method.hashCode === this.currentTraceStep?.hashCode
+        (method) => method.methodHash === this.currentTraceStep?.methodHash
       )?.name;
     }
     return undefined;

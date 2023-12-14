@@ -134,11 +134,10 @@ export default abstract class BaseMesh<
     ) {
       if (this.highlighted) {
         this.material.color = this.highlightingColor;
-        this.material.needsUpdate = true;
       } else {
         this.material.color = this.defaultColor;
-        this.material.needsUpdate = true;
       }
+      this.material.needsUpdate = true;
     }
   }
 
@@ -149,6 +148,12 @@ export default abstract class BaseMesh<
       this.material.transparent = isTransparent;
       this.material.needsUpdate = true;
     }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.changeOpacity(opacity);
+      }
+    });
   }
 
   turnOpaque() {

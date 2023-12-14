@@ -1,4 +1,4 @@
-import isObject from '../object-helpers';
+import isObject from '../../object-helpers';
 
 export interface Trace {
   landscapeToken: string;
@@ -18,7 +18,7 @@ export interface Span {
   traceId: string;
   startTime: number;
   endTime: number;
-  hashCode: string;
+  methodHash: string;
 }
 
 export function isTrace(x: any): x is Trace {

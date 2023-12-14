@@ -5,7 +5,7 @@ import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import ENV from 'explorviz-frontend/config/environment';
 import TimestampRepository from './repos/timestamp-repository';
 import Auth from './auth';
@@ -143,6 +143,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
           },
         }
       )
@@ -170,6 +171,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
           },
         }
       )

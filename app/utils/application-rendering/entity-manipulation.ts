@@ -7,13 +7,16 @@ import {
   DynamicLandscapeData,
   isSpan,
   Span,
-} from '../landscape-schemes/dynamic-data';
+} from '../landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -67,7 +70,7 @@ export function openComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.25,
-    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+    y: mesh.layout.positionY,
   });
 
   mesh.opened = true;
@@ -115,7 +118,7 @@ export function closeComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.5,
-    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+    y: mesh.layout.positionY + 0.75,
   });
 
   mesh.opened = false;
@@ -378,4 +381,19 @@ export function moveCameraTo(
       cameraControls.focusCameraOn(0.6, clazzMesh);
     }
   }
+}
+
+export function updateColors(
+  scene: THREE.Scene,
+  applicationColors: ApplicationColors
+) {
+  scene.traverse((object3D) => {
+    if (object3D instanceof BaseMesh) {
+      object3D.updateColor();
+      // Special case because communication arrow is no base mesh
+    } else if (object3D instanceof CommunicationArrowMesh) {
+      object3D.updateColor(applicationColors.communicationArrowColor);
+    }
+  });
+  scene.background = applicationColors.backgroundColor;
 }

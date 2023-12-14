@@ -5,46 +5,24 @@
     {{did-resize this.resize debounce=100}}
   >
 
-    {{#if @debugMode}}
-      <canvas
-        class='main-content-majority'
-        {{did-insert this.canvasInserted}}
-        {{interaction-modifier
-          raycastObjects=this.scene
-          camera=this.localUser.defaultCamera
-          singleClick=this.handleSingleClick
-          doubleClick=this.handleDoubleClick
-          mouseMove=this.handleMouseMove
-        }}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
-        {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{collaborative-modifier
-          raycastObject3D=this.scene
-          camera=this.localUser.defaultCamera
-        }}
-      >
-      </canvas>
-    {{else}}
-      <canvas
-        hidden
-        class='main-content-majority'
-        {{did-insert this.canvasInserted}}
-        {{interaction-modifier
-          raycastObjects=this.scene
-          camera=this.localUser.defaultCamera
-          singleClick=this.handleSingleClick
-          doubleClick=this.handleDoubleClick
-          mouseMove=this.handleMouseMove
-        }}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
-        {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{collaborative-modifier
-          raycastObject3D=this.scene
-          camera=this.localUser.defaultCamera
-        }}
-      >
-      </canvas>
-    {{/if}}
+    <canvas
+      class='webgl {{if @debugMode "" "hidden"}}'
+      {{did-insert this.canvasInserted}}
+      {{interaction-modifier
+        raycastObjects=this.scene
+        camera=this.localUser.defaultCamera
+        singleClick=this.handleSingleClick
+        doubleClick=this.handleDoubleClick
+        mouseMove=this.handleMouseMove
+      }}
+      {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+      {{heatmap-renderer camera=this.camera scene=this.scene}}
+      {{collaborative-modifier
+        raycastObject3D=this.scene
+        camera=this.localUser.defaultCamera
+      }}
+    >
+    </canvas>
 
     {{#if this.loadNewLandscape.isRunning}}
       <Visualization::Rendering::LoadingIndicator

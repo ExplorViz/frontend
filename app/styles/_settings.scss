@@ -1,0 +1,15 @@
+.range-slider--container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.range-slider--values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.reset-all-button {
+  margin-top: 1rem;
+}

@@ -14,12 +14,12 @@ import {
 } from './landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
-import { DrawableClassCommunication } from './application-rendering/class-communication-computer';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
 } from './package-helpers';
+import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 
 export enum EntityType {
   App = 'APP',
@@ -102,8 +102,8 @@ export function duplicateApplication(
   app: Application,
   wrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
   }
 ) {
   const originalNode = app.parent;
@@ -194,11 +194,11 @@ export function addMethodToClass(
   const newMethod: Method = !isCopy
     ? {
         name: methodName,
-        hashCode: sha256(methodName).toString(),
+        methodHash: sha256(methodName).toString(),
       }
     : {
         name: methodName,
-        hashCode: methodName,
+        methodHash: methodName,
       };
 
   clazz.methods.push(newMethod);
@@ -335,8 +335,8 @@ export function pastePackage(
   pasteToDestination: Application | Package,
   wrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -377,8 +377,8 @@ export function pasteClass(
   pasteToDestination: Package,
   commsWrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -414,7 +414,7 @@ export function pasteClass(
  * @param landscapeStructure The data structure representing the current state of the landscape.
  * @param clippedPackage The package that is intended to be moved.
  * @param destination The destination where the package should be inserted. This can be either an application or another package.
- * @param wrapper Contains data on drawable class communications and an optional mesh object that might need deletion
+ * @param wrapper Contains data on aggregated class communications and an optional mesh object that might need deletion
  *                after the package move operation.
  */
 export function movePackage(
@@ -422,9 +422,9 @@ export function movePackage(
   clippedPackage: Package,
   destination: Application | Package,
   wrapper: {
-    comms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms: DrawableClassCommunication[];
+    updatedComms: ClassCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -476,9 +476,9 @@ export function moveClass(
   clippedClass: Class,
   clipToDestination: Package,
   commsWrapper: {
-    comms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms?: DrawableClassCommunication[];
+    updatedComms?: ClassCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -546,7 +546,7 @@ export function changeID(
       clazz.id = id + clazz.id;
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
-          method.hashCode = id + method.hashCode;
+          method.methodHash = id + method.methodHash;
         });
       }
     });
@@ -554,7 +554,7 @@ export function changeID(
     wrapper.entity.id = id + wrapper.entity.id;
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
-        method.hashCode = id + method.hashCode;
+        method.methodHash = id + method.methodHash;
       });
     }
   }
@@ -589,7 +589,7 @@ export function restoreID(
       clazz.id = removePrependFromID(clazz.id, prependID);
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
-          method.hashCode = removePrependFromID(method.hashCode, prependID);
+          method.methodHash = removePrependFromID(method.methodHash, prependID);
         });
       }
     });
@@ -597,7 +597,7 @@ export function restoreID(
     wrapper.entity.id = removePrependFromID(wrapper.entity.id, prependID);
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
-        method.hashCode = removePrependFromID(method.hashCode, prependID);
+        method.methodHash = removePrependFromID(method.methodHash, prependID);
       });
     }
   }
@@ -613,11 +613,13 @@ function removePrependFromID(changedID: string, prepend: string) {
 function updateAffectedCommunications(
   classesInPackage: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    updatedComms?: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    updatedComms?: ClassCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
+  if (!destinationApplication) return;
+
   classesInPackage.forEach((clazz) =>
     commsWrapper.comms.forEach((comms) => {
       if (comms.sourceClass.id === clazz.id) {
@@ -637,8 +639,8 @@ function copyCommunications(
   classesInPackage: Class[],
   commsWrapper: {
     idCounter: number;
-    comms: DrawableClassCommunication[];
-    copiedComms: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    copiedComms: ClassCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
@@ -672,18 +674,21 @@ function copyCommunications(
   commsWrapper.copiedComms = Array.from(copiedCommsMap.values());
 }
 
-function copyCommunication(
-  commToCopy: DrawableClassCommunication,
-  idCounter: number
-) {
-  const comm: DrawableClassCommunication = {
+function copyCommunication(commToCopy: ClassCommunication, idCounter: number) {
+  const comm: ClassCommunication = {
     id: 'copied' + idCounter + '|' + commToCopy.id,
+    isRecursive: commToCopy.isRecursive,
+    isBidirectional: commToCopy.isBidirectional,
+    methodCalls: commToCopy.methodCalls,
     totalRequests: commToCopy.totalRequests,
+    metrics: commToCopy.metrics,
     sourceClass: commToCopy.sourceClass,
     targetClass: commToCopy.targetClass,
     operationName: 'copied' + idCounter + '|' + commToCopy.operationName,
     sourceApp: commToCopy.sourceApp,
     targetApp: commToCopy.targetApp,
+    addMethodCalls: () => {},
+    getClasses: () => [commToCopy.sourceClass, commToCopy.targetClass],
   };
 
   return comm;
@@ -708,8 +713,8 @@ function insertPackageToPackage(
 export function removeAffectedCommunications(
   classesInApplication: Class[],
   commsWrapper: {
-    comms: DrawableClassCommunication[];
-    deletedComms?: DrawableClassCommunication[];
+    comms: ClassCommunication[];
+    deletedComms?: ClassCommunication[];
   }
 ) {
   classesInApplication.forEach((clazz) => {

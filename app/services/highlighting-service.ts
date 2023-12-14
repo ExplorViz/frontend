@@ -4,15 +4,10 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
-import {
-  Class,
-  Package,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -24,47 +19,10 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import { DrawableClassCommunication } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-
-export type HightlightComponentArgs = {
-  entityType: string;
-  entityId: string;
-  color?: THREE.Color;
-};
-
-type HighlightableMesh = ComponentMesh | ClazzMesh | ClazzCommunicationMesh;
-
-export function isHighlightableMesh(
-  object: THREE.Object3D
-): object is HighlightableMesh {
-  return (
-    object instanceof ComponentMesh ||
-    object instanceof ClazzMesh ||
-    object instanceof ClazzCommunicationMesh ||
-    object instanceof FoundationMesh
-  );
-}
-
-export function serializeHighlightedComponent(
-  applicationObject3D: ApplicationObject3D,
-  object: any
-) {
-  if (isHighlightableMesh(object)) {
-    return {
-      appId: applicationObject3D.getModelId(),
-      entityType: object.constructor.name,
-      entityId: object.getModelId(),
-    };
-  }
-  return null;
-}
 
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('configuration')
-  private configuration!: Configuration;
-
   @service('user-settings')
   private userSettings!: UserSettings;
 
@@ -85,164 +43,176 @@ export default class HighlightingService extends Service.extend({
 
   debug = debugLogger('HighlightingService');
 
+  hoveredOnHighlightedMesh = false;
+
+  get applyHighlightingOnHover() {
+    return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
+  }
+
   get opacity() {
     return this.userSettings.applicationSettings.transparencyIntensity.value;
   }
 
-  get highlightingColorStyle() {
-    let hexColor = '';
-    if (this.collaborationSession.isOnline && this.localUser.color) {
-      hexColor = this.localUser.color.getHexString();
+  get highlightingColor() {
+    if (this.collaborationSession.isOnline) {
+      return this.localUser.color;
     } else {
-      hexColor =
-        this.configuration.applicationColors.highlightedEntityColor.getHexString();
+      return this.userSettings.applicationColors.highlightedEntityColor;
     }
-
-    return `color:#${hexColor}`;
   }
 
-  @action
-  updateHighlightingForAllApplications() {
-    this.updateHighlighting(this.opacity); // one call is all we need (see implementation)
+  get highlightingColorStyle() {
+    return `color:#${this.highlightingColor.getHexString()}`;
   }
 
   @action
   removeHighlightingForAllApplications(sendMessage: boolean) {
-    this.applicationRenderer
-      .getOpenApplications()
-      .forEach((applicationObject3D) => {
-        this.removeHighlightingLocally(applicationObject3D);
-        applicationObject3D.drawableClassCommSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
-      });
+    const { communicationMeshes, applications } = this.getParams();
+
+    // Remove highlighting from applications
+    applications.forEach((applicationObject3D) => {
+      Highlighting.removeAllHighlightingFor(applicationObject3D);
+      applicationObject3D.classCommunicationSet.clear(); // very important to put it here and not in removeHighlightingLocally (otherwise asymmetric remove possible since removeeHighlightingLocally can get called in another way)
+    });
+
+    // Remove highlighting from communication between applications
+    communicationMeshes.forEach((link) => {
+      link.unhighlight();
+    });
 
     if (sendMessage) {
       this.sender.sendAllHighlightsReset();
     }
   }
 
-  // removeHighlightingsOfUser(userId : string){
+  resetColorsOfHighlightedEntities() {
+    const { applications } = this.getParams();
 
-  //   const apps = this.applicationRenderer.getOpenApplications();
-  //   apps.forEach(app => {
-  //     const meshes = app.getAllMeshes();
-  //     Array.from(meshes).forEach(mesh => {
-  //       mesh
-  //     });
-  //   });
-  // }
+    for (const applicationObject3D of applications) {
+      const allMeshes = applicationObject3D.getAllMeshes();
 
-  updateHighlighting(value: number = this.opacity) {
-    const { allLinks, drawableComm, applications } = this.getParams();
-    Highlighting.updateHighlighting(
-      applications,
-      drawableComm,
-      allLinks,
-      value
-    );
+      for (const baseMesh of allMeshes) {
+        if (baseMesh.highlighted) {
+          baseMesh.highlightingColor = this.highlightingColor;
+          baseMesh.highlight();
+        }
+      }
+    }
+
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      if (externLink.highlighted) {
+        externLink.highlightingColor = this.highlightingColor;
+        externLink.highlight();
+      }
+    });
+  }
+
+  @action
+  updateHighlighting() {
+    if (this.applyHighlightingOnHover && !this.hoveredOnHighlightedMesh) {
+      this.turnLandscapeOpaque();
+    } else {
+      const { communicationMeshes, applications } = this.getParams();
+      Highlighting.updateHighlighting(
+        applications,
+        communicationMeshes,
+        this.opacity
+      );
+    }
+  }
+
+  @action
+  updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) {
+    const hasStateChanged =
+      this.hoveredOnHighlightedMesh !== hoveredOnHighlightedMesh;
+    if (!this.applyHighlightingOnHover || !hasStateChanged) {
+      return;
+    }
+
+    this.hoveredOnHighlightedMesh = hoveredOnHighlightedMesh;
+
+    if (hoveredOnHighlightedMesh) {
+      this.updateHighlighting();
+    } else {
+      this.turnLandscapeOpaque();
+    }
+  }
+
+  turnLandscapeOpaque() {
+    const { communicationMeshes, applications } = this.getParams();
+    applications.forEach((applicationObject3D) => {
+      applicationObject3D.turnOpaque();
+    });
+    communicationMeshes.forEach((link) => {
+      link.turnOpaque();
+    });
   }
 
   getParams(): {
-    allLinks: ClazzCommunicationMesh[];
-    drawableComm: DrawableClassCommunication[];
+    communicationMeshes: ClazzCommunicationMesh[];
     applications: ApplicationObject3D[];
   } {
-    const allLinks = this.linkRenderer.getAllLinks();
+    const communicationMeshes = this.linkRenderer.getLinks();
+
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D: ApplicationObject3D) => {
-      const drawableComm2 =
-        this.applicationRenderer.getDrawableClassCommunications(
-          applicationObject3D
-        );
-      if (drawableComm2) {
-        drawableComm2.forEach(
-          (drawableClassCommunication: DrawableClassCommunication) => {
-            const link = this.applicationRenderer.getMeshById(
-              drawableClassCommunication.id
-            );
-            if (link) {
-              // communication link between to clazzes from the same application. The link only exist if the clazzes are "opened"/visible at call time
-              allLinks.push(link as ClazzCommunicationMesh);
-            }
-          }
-        );
-      }
-    });
-
-    let drawableComm: DrawableClassCommunication[] = [];
-    allLinks.forEach((link) => {
-      const linkCommunications = link.dataModel.drawableClassCommus;
-      drawableComm = [...drawableComm, ...linkCommunications];
+      communicationMeshes.push(...applicationObject3D.getCommMeshes());
     });
 
     return {
-      allLinks: allLinks,
-      drawableComm: drawableComm,
+      communicationMeshes: communicationMeshes,
       applications: applications,
     };
   }
 
   @action
-  highlightModel(
-    entity: Package | Class | DrawableClassCommunication,
-    applicationObject3D: ApplicationObject3D
-  ) {
-    Highlighting.highlightModel(entity, applicationObject3D);
-  }
-
-  @action
-  highlightById(meshId: string, color?: THREE.Color) {
-    const mesh = this.applicationRenderer.getMeshById(meshId);
+  highlightById(modelId: string, color?: THREE.Color, sendMessage = false) {
+    const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
-      this.highlight(mesh, true, color);
+      this.highlight(mesh, sendMessage, color);
     }
   }
 
   @action
-  highlight(mesh: EntityMesh, sendMessage: boolean, color?: THREE.Color) {
+  highlight(mesh: EntityMesh, sendMessage: boolean, remoteColor?: THREE.Color) {
+    const color = remoteColor || this.highlightingColor;
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh, sendMessage, color); // notice that intern communication lines get highlighted here
+      this.highlightComponent(parent, mesh, sendMessage, color); // Includes app-internal communication
     } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, color); // extern communication lines get highlighted here
-      this.updateHighlighting();
-
-      if (sendMessage) {
-        this.sender.sendHighlightingUpdate(
-          '',
-          this.getEntityType(mesh),
-          mesh.getModelId(),
-          mesh.highlighted,
-          this.configuration.userSettings.applicationSettings
-            .enableMultipleHighlighting.value
-        );
-      }
+      this.highlightLink(mesh, sendMessage, color); // Communication between applications
     }
   }
 
   @action
-  highlightLink(mesh: ClazzCommunicationMesh, color?: THREE.Color) {
+  highlightLink(
+    mesh: ClazzCommunicationMesh,
+    sendMessage: boolean,
+    color?: THREE.Color
+  ) {
     mesh.highlightingColor =
-      color || this.configuration.applicationColors.highlightedEntityColor;
-
-    const drawableClassComm = mesh.dataModel.drawableClassCommus.firstObject;
-    if (drawableClassComm) {
-      const sourceApp = drawableClassComm.sourceApp;
-      const targetApp = drawableClassComm.targetApp;
-
-      if (sourceApp && targetApp) {
-        const sourceApplicationObject =
-          this.applicationRenderer.getApplicationById(sourceApp.id);
-        const targetApplicationObject =
-          this.applicationRenderer.getApplicationById(targetApp.id);
-
-        if (sourceApplicationObject && targetApplicationObject) {
-          Highlighting.highlightExternCommunicationLine(
-            drawableClassComm,
-            sourceApplicationObject,
-            targetApplicationObject
-          );
-        }
+      color || this.userSettings.applicationColors.highlightedEntityColor;
+    if (mesh.highlighted) {
+      mesh.unhighlight();
+      if (
+        !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      ) {
+        this.removeHighlightingForAllApplications(false);
       }
+    } else {
+      mesh.highlight();
+    }
+
+    this.updateHighlighting();
+
+    if (sendMessage) {
+      this.sender.sendHighlightingUpdate(
+        '',
+        this.getEntityType(mesh),
+        mesh.getModelId(),
+        mesh.highlighted,
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      );
     }
   }
 
@@ -253,22 +223,18 @@ export default class HighlightingService extends Service.extend({
     applicationObject3D: ApplicationObject3D,
     structureData: StructureLandscapeData
   ) {
-    const drawableClassCommunications =
-      this.applicationRenderer.getDrawableClassCommunications(
-        applicationObject3D
-      );
+    const classCommunications =
+      this.applicationRenderer.getClassCommunications(applicationObject3D);
 
     this.applicationRenderer.openAllComponents(applicationObject3D);
-    if (drawableClassCommunications) {
-      Highlighting.highlightTrace(
-        trace,
-        traceStep,
-        applicationObject3D,
-        drawableClassCommunications!,
-        structureData,
-        this.opacity
-      );
-    }
+    Highlighting.highlightTrace(
+      trace,
+      traceStep,
+      applicationObject3D,
+      classCommunications,
+      structureData,
+      this.opacity
+    );
   }
 
   highlightComponent(
@@ -277,7 +243,7 @@ export default class HighlightingService extends Service.extend({
     sendMessage: boolean,
     color?: THREE.Color
   ) {
-    if (isHighlightableMesh(object)) {
+    if (Highlighting.isHighlightableMesh(object)) {
       this.hightlightMesh(application, object, color);
 
       const appId = application.getModelId();
@@ -290,57 +256,31 @@ export default class HighlightingService extends Service.extend({
           entityType,
           entityId,
           object.highlighted,
-          this.configuration.userSettings.applicationSettings
-            .enableMultipleHighlighting.value
+          this.userSettings.applicationSettings.enableMultipleHighlighting.value
         );
       }
     }
   }
 
-  removeHighlightingLocally(application: ApplicationObject3D) {
-    Highlighting.removeAllHighlighting(application);
-  }
-
-  hightlightComponentLocallyByTypeAndId(
-    application: ApplicationObject3D,
-    { entityId, color }: HightlightComponentArgs
-  ) {
-    const mesh = application.getMeshById(entityId);
-    if (mesh && isHighlightableMesh(mesh)) {
-      this.hightlightMesh(application, mesh, color);
-    }
-  }
-
   private hightlightMesh(
     application: ApplicationObject3D,
-    mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
+    mesh: FoundationMesh | ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
     color?: THREE.Color
   ) {
-    application.setHighlightingColor(
-      color || this.configuration.applicationColors.highlightedEntityColor
-    );
-
-    if (
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      mesh.highlighted
-    ) {
-      this.removeHighlightingLocally(application);
-      return;
-    }
+    mesh.highlightingColor =
+      color || this.userSettings.applicationColors.highlightedEntityColor;
 
     if (
       !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
       !mesh.highlighted
     ) {
-      this.removeHighlightingLocally(application);
-      Highlighting.highlight(mesh.getModelId(), application);
-      return;
+      this.removeHighlightingForAllApplications(false);
     }
 
     Highlighting.highlight(mesh.getModelId(), application);
   }
 
-  private getEntityType(mesh: HighlightableMesh): string {
+  private getEntityType(mesh: Highlighting.HighlightableMesh): string {
     return mesh.constructor.name;
   }
 }

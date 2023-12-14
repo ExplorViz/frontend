@@ -41,7 +41,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   get highlightedMarkerSize() {
-    const fallbackValue = 12;
+    const fallbackValue = 15;
     return this.args.highlightedMarkerSize || fallbackValue;
   }
 
@@ -462,7 +462,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         mode: 'lines+markers',
         text: PlotlyTimeline.hoverText(dates, requests),
         timestampId: timestampIds,
-        type: 'scattergl',
+        type: 'scatter',
         x: dates,
         y: requests,
       },

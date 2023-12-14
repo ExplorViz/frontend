@@ -3,14 +3,14 @@ import ENV from 'explorviz-frontend/config/environment';
 import { Auth0Error, Auth0UserProfile } from 'auth0-js';
 import Auth0Lock from 'auth0-lock';
 import debugLogger from 'ember-debug-logger';
+import Evented from '@ember/object/evented';
 
-export default class Auth extends Service {
+export default class Auth extends Service.extend(Evented) {
   private debug = debugLogger();
 
   @service('router')
   router!: any;
 
-  // is initialized in the init()
   private lock: Auth0LockStatic | null = null;
 
   user: Auth0UserProfile | undefined = undefined;
@@ -47,15 +47,10 @@ export default class Auth extends Service {
       },
     });
 
-    this.lock.on('authenticated', (authResult) => {
-      console.log('clientId', ENV.auth0.clientId);
-      console.log('domain', ENV.auth0.domain);
-      console.log('Auth0 Lock', this.lock);
-      console.log('authResult', authResult);
-      this.router.transitionTo(ENV.auth0.routeAfterLogin).then(async () => {
-        await this.setUser(authResult.accessToken);
-        this.set('accessToken', authResult.accessToken);
-      });
+    this.lock.on('authenticated', async (authResult) => {
+      await this.setUser(authResult.accessToken);
+      this.set('accessToken', authResult.accessToken);
+      this.router.transitionTo(ENV.auth0.routeAfterLogin);
     });
   }
 
@@ -110,17 +105,22 @@ export default class Auth extends Service {
     // check to see if a user is authenticated, we'll get a token back
     return new Promise((resolve, reject) => {
       if (this.lock) {
+        // Silent authentication can cause problems with Safari:
+        // https://auth0.com/docs/troubleshoot/authentication-issues/renew-tokens-when-using-safari
         this.lock.checkSession({}, async (err, authResult) => {
-          console.log('error', err);
-          console.log('authResult', authResult);
-          console.log('Alex lock', this.lock);
           if (err || authResult === undefined) {
-            reject(err);
+            // Try to use existing user data when silent (re-)authentication failed
+            if (this.user) {
+              resolve(this.user);
+            } else {
+              reject(err);
+            }
           } else {
             try {
               await this.setUser(authResult.accessToken);
               this.set('accessToken', authResult.accessToken);
               resolve(authResult);
+              this.trigger('user_authenticated', this.user);
             } catch (e) {
               reject(e);
             }

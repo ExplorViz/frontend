@@ -67,27 +67,10 @@ export default class PopupCoordinator extends Component<IArgs> {
   }
 
   @action
-  closeIfNotPinned() {
-    if (!this.args.popupData.isPinned) {
-      this.args.removePopup(this.args.popupData.entity.id);
-    }
-  }
-
-  @action
   highlight() {
     this.args.updateMeshReference(this.args.popupData);
     this.highlightingService.highlight(this.args.popupData.mesh, true);
     this.highlightingService.updateHighlighting();
-  }
-
-  // Not used at the moment since mesh reference is not kept updated for collab
-  get highlightingColorStyle() {
-    if (this.args.popupData.mesh.highlighted) {
-      const hexColor =
-        this.args.popupData.mesh.highlightingColor.getHexString();
-      return `#${hexColor}`;
-    }
-    return '';
   }
 
   @action
@@ -238,7 +221,7 @@ export default class PopupCoordinator extends Component<IArgs> {
       return 'package';
     }
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
-      return 'drawableClassCommunication';
+      return 'classCommunication';
     }
     return '';
   }

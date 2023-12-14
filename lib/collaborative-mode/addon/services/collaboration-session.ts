@@ -34,8 +34,8 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
-import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
-import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
+// import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
+// import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -181,10 +181,11 @@ export default class CollaborationSession extends Service.extend({
     this.localUser.connected({
       id: self.id,
       name: self.name,
-      color: new THREE.Color(...self.color),
+      color: new THREE.Color(self.color.red, self.color.green, self.color.blue),
     });
 
-    this.userSettings.applyDefaultApplicationSettings(); // in collab mode keepHighlightingOnOpenOrClose is always enabled (default setting!) and cannot be switched in collaboration!
+    // Ensure same settings for all users in collaboration session
+    this.userSettings.applyDefaultApplicationSettings(false);
   }
 
   // Display to other users when another user joins the room
@@ -232,25 +233,25 @@ export default class CollaborationSession extends Service.extend({
 
     // walk trough all highlighted entities and unhighlight them
     for (const highlightedEntityComponent of highlightedComponents) {
-      const { appId, entityId } = highlightedEntityComponent;
+      const { highlightedApp, highlightedEntity } = highlightedEntityComponent;
       //console.log('appID:', appId, ' , entityID: ', entityId);
-      if (appId !== '') {
-        const application = this.applicationRenderer.getApplicationById(appId);
+      if (highlightedApp !== '') {
+        const application =
+          this.applicationRenderer.getApplicationById(highlightedApp);
         if (application) {
-          const mesh = application.getMeshById(entityId);
+          const mesh = application.getMeshById(highlightedEntity);
           if (isEntityMesh(mesh)) {
             this.applicationRenderer.highlight(
               mesh,
               application,
               undefined,
-              false,
               false
             );
           }
         }
       } else {
         //extern Link
-        const link = this.linkRenderer.getLinkById(entityId);
+        const link = this.linkRenderer.getLinkById(highlightedEntity);
         if (link) {
           this.applicationRenderer.highlightExternLink(link, false);
         }
@@ -259,17 +260,14 @@ export default class CollaborationSession extends Service.extend({
   }
 
   onSelfDisconnected(event?: any) {
+    this.disconnect();
+
     if (this.isConnecting) {
       this.toastMessage.info('Collaboration backend service not responding');
     } else if (event) {
-      switch (event.code) {
-        case 1000: // Normal Closure
+      switch (event) {
+        case 'io client disconnect':
           this.toastMessage.info('Successfully disconnected');
-          break;
-        case 1006: // Abnormal closure
-          this.toastMessage.error(
-            'Collaboration backend service closed abnormally'
-          );
           break;
         default:
           this.toastMessage.error('Unexpected disconnect');
@@ -281,8 +279,11 @@ export default class CollaborationSession extends Service.extend({
 
     this.landscapeListener.initLandscapePolling();
 
+    this.highlightingService.resetColorsOfHighlightedEntities();
+    this.userSettings.restoreApplicationSettings();
+
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
-    this.highlightingService.updateHighlightingForAllApplications();
+    this.highlightingService.updateHighlighting();
 
     this.disconnect();
   }
@@ -295,30 +296,44 @@ export default class CollaborationSession extends Service.extend({
     return this.connectionStatus === 'connecting';
   }
 
-  async hostRoom(synchronization?: boolean) {
-    if (!this.isConnecting) {
-      this.connectionStatus = 'connecting';
+  // async hostRoom(synchronization?: boolean) {
+  //   if (!this.isConnecting) {
+  //     this.connectionStatus = 'connecting';
+  //     try {
+  //       let response: RoomCreatedResponse | SynchronizationStartedResponse;
+
+  //       if (synchronization === undefined) {
+  //         response = await this.roomService.createRoom();
+  //         if (response !== null)
+  //           this.joinRoom(response.roomId, { checkConnectionStatus: false });
+  //       } else {
+  //         response = await this.roomService.startSynchronization();
+  //         const roomResponse = response.roomResponse;
+  //         const joinResponse = response.joinResponse;
+
+  //         this.currentRoomId = roomResponse.roomId;
+  //         await this.webSocket.initSocket(joinResponse.ticketId);
+  //       }
+  async hostRoom(roomId = '') {
+    if (
+      !this.isConnecting &&
+      !this.isOnline &&
+      this.applicationRenderer.getOpenApplications().length > 0
+    ) {
+      // this.connectionStatus = 'connecting';
       try {
-        let response: RoomCreatedResponse | SynchronizationStartedResponse;
-
-        if (synchronization === undefined) {
-          response = await this.roomService.createRoom();
-          if (response !== null)
-            this.joinRoom(response.roomId, { checkConnectionStatus: false });
-        } else {
-          response = await this.roomService.startSynchronization();
-          const roomResponse = response.roomResponse;
-          const joinResponse = response.joinResponse;
-
-          this.currentRoomId = roomResponse.roomId;
-          await this.webSocket.initSocket(joinResponse.ticketId);
-        }
+        const response = await this.roomService.createRoom(roomId);
+        this.joinRoom(response.roomId, { checkConnectionStatus: false });
+        return true;
       } catch (e: any) {
-        this.connectionStatus = 'offline';
+        // this.connectionStatus = 'offline';
         AlertifyHandler.showAlertifyError(
           'Cannot reach Collaboration-Service.'
         );
+        return false;
       }
+    } else {
+      return false;
     }
   }
 
@@ -329,15 +344,41 @@ export default class CollaborationSession extends Service.extend({
     if (!checkConnectionStatus || !this.isConnecting) {
       this.connectionStatus = 'connecting';
       this.currentRoomId = roomId;
-      try {
-        const response = await this.roomService.joinLobby(this.currentRoomId);
-        await this.webSocket.initSocket(response.ticketId);
-      } catch (e: any) {
-        this.connectionStatus = 'offline';
-        this.currentRoomId = null;
-        AlertifyHandler.showAlertifyError(
-          'Cannot reach Collaboration-Service.'
-        );
+      // try {
+      //   const response = await this.roomService.joinLobby(this.currentRoomId);
+      //   await this.webSocket.initSocket(response.ticketId);
+      // } catch (e: any) {
+      //   this.connectionStatus = 'offline';
+      //   this.currentRoomId = null;
+      //   AlertifyHandler.showAlertifyError(
+      //     'Cannot reach Collaboration-Service.'
+      //   );
+
+      const delay = 100;
+      const maxRetries = 5; // Maximum number of retry attempts
+      let retries = 0;
+      while (retries < maxRetries) {
+        try {
+          const response = await this.roomService.joinLobby(this.currentRoomId);
+          this.webSocket.initSocket(
+            response.ticketId,
+            this.localUser.visualizationMode
+          );
+          break; // Break out of the loop if successful
+        } catch (e) {
+          if (retries === maxRetries - 1) {
+            // If this is the last retry attempt, handle the error and break out of the loop
+            this.connectionStatus = 'offline';
+            this.currentRoomId = null;
+            AlertifyHandler.showAlertifyError(
+              'Cannot reach Collaboration-Service after multiple retries.'
+            );
+            break;
+          }
+          retries++;
+          console.error('Error: Unable to join lobby. Retrying...', e);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
       }
     }
   }

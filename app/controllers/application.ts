@@ -1,10 +1,9 @@
 import Controller from '@ember/controller';
 import { inject as service } from '@ember/service';
-import Auth from 'explorviz-frontend/services/auth';
 import { tracked } from '@glimmer/tracking';
+import Auth from 'explorviz-frontend/services/auth';
 
 /**
- * TODO
  *
  * @class Application-Controller
  * @extends Ember.Controller
@@ -16,13 +15,11 @@ export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
 
   @tracked
-  queryParams = ['deviceId', 'roomId', 'tokenId'];
-  @tracked
-  deviceId = -99;
-  @tracked
-  roomId = '';
-  @tracked
   tokenId = '';
+  queryParams = ['landscapeToken'];
+
+  @tracked
+  landscapeToken?: string;
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

@@ -25,7 +25,7 @@ export default class LocalUser extends Service.extend({
   userName?: string;
 
   @tracked
-  color: THREE.Color | undefined;
+  color: THREE.Color = new THREE.Color('red');
 
   @tracked
   defaultCamera!: THREE.PerspectiveCamera;

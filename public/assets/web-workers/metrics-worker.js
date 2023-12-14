@@ -46,7 +46,7 @@ function calculateMetrics(application, allLandscapeTraces) {
       }
 
       const methodMatchingSpanHash = classMatchingTraceHashCode.methods.find(
-        (method) => method.hashCode === methodHashCode
+        (method) => method.methodHash === methodHashCode
       );
 
       if (methodMatchingSpanHash === undefined) {
@@ -107,7 +107,7 @@ function calculateMetrics(application, allLandscapeTraces) {
       }
 
       const methodMatchingSpanHash = classMatchingTraceHashCode.methods.find(
-        (method) => method.hashCode === methodHashCode
+        (method) => method.methodHash === methodHashCode
       );
 
       if (methodMatchingSpanHash === undefined) {
@@ -156,8 +156,11 @@ function calculateMetrics(application, allLandscapeTraces) {
     });
 
     function calculateRequestsRecursively(span, tree) {
+      if (span === undefined) {
+        return;
+      }
       const childSpans = tree.get(span.spanId);
-      const parentClass = hashCodeToClassMap.get(span.hashCode);
+      const parentClass = hashCodeToClassMap.get(span.methodHash);
 
       if (parentClass) {
         const newRequestCount = values.get(parentClass.id) + childSpans.length;
@@ -339,7 +342,7 @@ function calculateMetrics(application, allLandscapeTraces) {
     traceArray.forEach((trace) => {
       trace.spanList.forEach((span) => {
         if (span.parentSpanId) {
-          hashCodes.push(span.hashCode);
+          hashCodes.push(span.methodHash);
         }
       });
     });
@@ -351,7 +354,7 @@ function calculateMetrics(application, allLandscapeTraces) {
 
     traceArray.forEach((trace) => {
       trace.spanList.forEach((span) => {
-        hashCodes.push(span.hashCode);
+        hashCodes.push(span.methodHash);
       });
     });
     return hashCodes;
@@ -377,7 +380,7 @@ function calculateMetrics(application, allLandscapeTraces) {
     // Put spans into map for more efficient lookup when sorting
     const spanIdToSpanMap = new Map();
     trace.spanList.forEach((span) => {
-      if (span.parentSpanId === '') {
+      if (!span.parentSpanId) {
         firstSpan = span;
       } else {
         spanIdToSpanMap.set(span.spanId, span);

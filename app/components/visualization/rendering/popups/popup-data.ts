@@ -28,6 +28,7 @@ export default class PopupData {
   @tracked
   mouseY: number;
 
+  @tracked
   wasMoved: boolean;
 
   entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;

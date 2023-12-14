@@ -7,7 +7,6 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser, {
   VisualizationMode,
 } from 'collaborative-mode/services/local-user';
-import ElkConstructor from 'elkjs/lib/elk-api';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -20,7 +19,7 @@ import TimestampRepository, {
 } from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -40,6 +39,10 @@ import {
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
 import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
   SerializedApp,
@@ -49,6 +52,8 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -105,6 +110,9 @@ export default class VisualizationController extends Controller {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -113,8 +121,12 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
-  @tracked
+  queryParams = ['roomId'];
+
   selectedTimestampRecords: Timestamp[] = [];
+
+  @tracked
+  roomId?: string;
 
   @tracked
   showSettingsSidebar = false;
@@ -141,15 +153,13 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
+  highlightedMarkerColor = 'blue';
+
+  @tracked
   vrSupported: boolean = false;
 
   @tracked
   buttonText: string = '';
-
-  @tracked
-  elk = new ElkConstructor({
-    workerUrl: './assets/web-workers/elk-worker.min.js',
-  });
 
   @tracked
   flag: boolean = false; // default value
@@ -234,9 +244,14 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
+
       if (this.timelineTimestamps.lastObject) {
         this.timestampService.timestamp =
           this.timelineTimestamps.lastObject?.timestamp;
+        this.selectedTimestampRecords = [
+          this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
+        ];
+        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       }
     }
   }
@@ -295,6 +310,10 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.closeDataSelection();
     this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
   }
 
   @action
@@ -339,24 +358,25 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  toggleToolsSidebarComponent(component: string) {
+  toggleToolsSidebarComponent(component: string): boolean {
     if (this.componentsToolsSidebar.includes(component)) {
       this.removeToolsSidebarComponent(component);
     } else {
       this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
     }
+    return this.componentsToolsSidebar.includes(component);
   }
 
   @action
-  toggleSettingsSidebarComponent(component: string) {
+  toggleSettingsSidebarComponent(component: string): boolean {
     if (this.components.includes(component)) {
       this.removeComponent(component);
     } else {
       this.components = [component, ...this.components];
     }
+    return this.components.includes(component);
   }
 
-  @action
   removeComponent(path: string) {
     if (this.components.length === 0) {
       return;
@@ -394,6 +414,7 @@ export default class VisualizationController extends Controller {
     ) {
       return;
     }
+    this.selectedTimestampRecords = timestampRecordArray;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(
       timestampRecordArray[0].timestamp,
@@ -408,7 +429,7 @@ export default class VisualizationController extends Controller {
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
-        set(this, 'selectedTimestampRecords', timestampRecordArray);
+        this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.timestamp = timestamp;
     } catch (e) {
@@ -442,16 +463,18 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      set(this, 'selectedTimestampRecords', []);
-      this.plotlyTimelineRef.resetHighlighting();
-      AlertifyHandler.showAlertifyMessage('Visualization resumed!');
+      this.highlightedMarkerColor = 'blue ';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(false);
     }
   }
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      AlertifyHandler.showAlertifyMessage('Visualization paused!');
+      this.highlightedMarkerColor = 'red';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(true);
     }
   }
 
@@ -517,6 +540,7 @@ export default class VisualizationController extends Controller {
     }
     // now we can be sure our linkRenderer has all extern links
 
+    // Serialized room is used in landscape-data-watcher
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
@@ -525,11 +549,7 @@ export default class VisualizationController extends Controller {
         highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
     };
 
-    // this.applicationRenderer.restoreFromSerialization(
-    //   this.roomSerializer.serializedRoom
-    // );
-
-    this.applicationRenderer.highlightingService.updateHighlighting();
+    this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();

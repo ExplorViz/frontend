@@ -12,13 +12,10 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
-import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
 import ToastMessage, {
   MessageArgs,
 } from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { vrScene } from 'explorviz-frontend/utils/scene';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -99,12 +96,12 @@ import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 
 interface Args {
   debugMode: boolean;
   readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly selectedTimestampRecords: Timestamp[];
   readonly font: Font;
   applicationArgs: Map<string, AddApplicationArgs>;
 }
@@ -115,10 +112,6 @@ const MOUSE_ROTATION_SPEED = Math.PI;
 
 export default class VrRendering extends Component<Args> {
   // #region SERVICES
-
-  @service('configuration')
-  private configuration!: Configuration;
-
   @service('toast-message')
   private toastMessage!: ToastMessage;
 
@@ -160,6 +153,9 @@ export default class VrRendering extends Component<Args> {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   // #endregion SERVICES
 
@@ -213,10 +209,8 @@ export default class VrRendering extends Component<Args> {
     this.toastMessage.success = (message) => this.showHint(message);
     this.toastMessage.error = (message) => this.showHint(message);
 
-    this.scene = vrScene();
-    // this.scene = defaultScene();
-    this.scene.background =
-      this.configuration.applicationColors.backgroundColor;
+    this.scene = this.sceneRepo.getScene('vr', true);
+    this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -241,7 +235,7 @@ export default class VrRendering extends Component<Args> {
 
     this.scene.add(this.detachedMenuGroups.container);
 
-    this.configuration.userSettings.applicationSettings.enableMultipleHighlighting.value =
+    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
       true;
   }
 
@@ -309,6 +303,7 @@ export default class VrRendering extends Component<Args> {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
+      powerPreference: 'high-performance',
     });
     this.menuFactory.renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -1249,7 +1244,7 @@ export default class VrRendering extends Component<Args> {
     x.fromArray(position);
     x.y += 15;
     this.graph.localToWorld(x);
-    this.detachedMenuRenderer.restoreMenu({
+    this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,
       userId,

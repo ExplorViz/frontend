@@ -7,7 +7,7 @@
   <table class='w-100'>
     <tbody>
       {{! Aggregated Information }}
-      {{#if (gt @communication.drawableClassCommus.length 1)}}
+      {{#if (gt @communication.communication.methodCalls.length 1)}}
         {{! Aggregated request count }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
@@ -15,7 +15,7 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{this.calculateAggregatedRequestCount}}
+            {{@communication.communication.totalRequests}}
             ( 100% )
           </td>
         </tr>
@@ -23,105 +23,97 @@
         <tr>
           <td class='text-nowrap align-top'>#</td>
           <td class='text-right text-break pl-1'>
-            {{@communication.drawableClassCommus.length}}
+            {{@communication.communication.methodCalls.length}}
           </td>
         </tr>
         <hr />
       {{/if}}
-      {{#each @communication.drawableClassCommus as |drawableClassCommu index|}}
+      {{#each
+        @communication.communication.methodCalls
+        as |classCommunication index|
+      }}
         {{! Relationship }}
         <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'arrow-switch-16'
-              class='octicon align-middle mr-1'
-            }}</td>
+          <td class='text-nowrap align-top'>
+            {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+          </td>
           <td class='text-right text-break pl-1'>
-            {{#if (eq drawableClassCommu.sourceApp.id this.application.id)}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    drawableClassCommu.sourceClass
-                    drawableClassCommu.sourceApp.id
-                  )
-                }}
-              >
-                {{drawableClassCommu.sourceClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{drawableClassCommu.sourceApp.name}}
-                </BsTooltip>
-              </button>
-            {{else}}
-              {{drawableClassCommu.sourceClass.name}}
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
+                )
+              }}
+            >
+              {{classCommunication.sourceClass.name}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
                 Application:
-                {{drawableClassCommu.sourceApp.name}}
+                {{classCommunication.sourceApp.name}}
               </BsTooltip>
-            {{/if}}
-            {{#unless (eq drawableClassCommu.sourceApp.id this.application.id)}}
-              (<button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn @showApplication drawableClassCommu.sourceApp.id)
-                }}
-              >
-                {{drawableClassCommu.sourceApp.name}}
-              </button>)
-            {{/unless}}
+            </button>
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
+                )
+              }}
+            >
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{classCommunication.sourceApp.name}}
+              </BsTooltip>
+            </button>
             {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            {{#if (eq drawableClassCommu.targetApp.id this.application.id)}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    drawableClassCommu.targetClass
-                    drawableClassCommu.targetApp.id
-                  )
-                }}
-              >
-                {{drawableClassCommu.targetClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{drawableClassCommu.targetApp.name}}
-                </BsTooltip>
-              </button>
-            {{else}}
-              <button
-                type='button'
-                class='buttonToLink'
-                {{on
-                  'click'
-                  (fn
-                    this.highlightEntity
-                    drawableClassCommu.targetClass
-                    drawableClassCommu.targetApp.id
-                  )
-                }}
-              >
-                {{drawableClassCommu.targetClass.name}}
-                <BsTooltip @placement='top' @triggerEvents='hover'>
-                  Application:
-                  {{drawableClassCommu.targetApp.name}}
-                </BsTooltip>
-              </button>
-            {{/if}}
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.targetClass
+                  classCommunication.targetApp.id
+                )
+              }}
+            >
+              {{classCommunication.targetClass.name}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{classCommunication.targetApp.name}}
+              </BsTooltip>
+            </button>
           </td>
         </tr>
         {{! Name }}
         <tr>
+
+          {{!--
           <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
-            @communication={{drawableClassCommu}}
+            @communication={{classCommunication}}
           />
+           --}}
+
+          <td class='text-nowrap align-top'>{{svg-jar
+              'comment-16'
+              class='octicon align-middle mr-1'
+            }}</td>
+          <td class='text-right text-break pl-1'>
+            {{classCommunication.callerMethodName}}
+            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+            {{classCommunication.operationName}}
+          </td>
         </tr>
+
         {{! Requests }}
         <tr>
           <td class='text-nowrap align-top'>{{svg-jar
@@ -129,12 +121,12 @@
               class='octicon align-middle mr-1'
             }}</td>
           <td class='text-right text-break pl-1'>
-            {{drawableClassCommu.totalRequests}}
+            {{classCommunication.totalRequests}}
             (
             {{round
               (mult
                 (div
-                  drawableClassCommu.totalRequests
+                  classCommunication.totalRequests
                   this.calculateAggregatedRequestCount
                 )
                 100
@@ -144,10 +136,10 @@
         </tr>
         {{#if this.landscapeRestructure.restructureMode}}
           <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
-            @drawableClassComm={{drawableClassCommu}}
+            @classCommunication={{classCommunication}}
           />
         {{/if}}
-        {{#if (lt index (sub @communication.drawableClassCommus.length 1))}}
+        {{#if (lt index (sub @communication.classCommunications.length 1))}}
           <hr />
         {{/if}}
       {{/each}}

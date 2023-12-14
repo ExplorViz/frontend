@@ -55,7 +55,7 @@ You will need the following things properly installed on your computer.
 ### Running / Development
 
 - Copy configuration file: `cp .env .env-custom`
-- In `.env-custom`: change value of `AUTH0_ENABLED` to *false*
+- In `.env-custom`: change value of `AUTH0_ENABLED` to _false_
 - Start application: `npm run dev`
 - Start mocked backend: `cd .dev && docker compose up -d`
 - Open frontend at [http://localhost:4200](http://localhost:4200)

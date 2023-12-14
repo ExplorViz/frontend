@@ -25,6 +25,10 @@ body {
   position: relative;
 }
 
+.webgl {
+  user-select: none;
+}
+
 .canvasViz {
   height: 100%;
   width: 100%;

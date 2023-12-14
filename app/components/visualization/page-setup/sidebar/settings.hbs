@@ -1,8 +1,4 @@
 {{! template-lint-disable simple-unless }}
-<div class='sidebar-component-close' {{on 'click' this.close}}>
-  {{svg-jar 'x-16' class='octicon'}}
-</div>
-
 {{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
     <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>
@@ -35,6 +31,11 @@
               @id={{settingId}}
               @setting={{setting}}
               @updateColors={{@updateColors}}
+            />
+          {{else if setting.isButtonSetting}}
+            <Visualization::PageSetup::Sidebar::Settings::ButtonSetting
+              @setting={{setting}}
+              @onClick={{fn this.updateButtonSetting settingId}}
             />
           {{/if}}
         {{/let}}
