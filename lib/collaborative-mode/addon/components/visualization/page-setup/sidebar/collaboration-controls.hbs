@@ -11,6 +11,11 @@
     </div>
   {{/if}}
 
+  <div>
+    <label class='bold'>Room: </label>
+    <label>{{this.collaborationSession.currentRoomId}}</label>
+  </div>
+
   {{#if (this.synchronizationSession.isSynchronizationSession)}}
     <label class='bold'>Connected Devices</label>
   {{else}}

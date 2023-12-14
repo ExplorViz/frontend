@@ -40,7 +40,7 @@ export default class SynchronizationSession extends Service {
 
   isSynchronizationSession: boolean = false;
   // The id of the connected device
-  deviceId!: number;
+  deviceId!: string;
   // synchronisation-room-id
   roomId!: string;
 
@@ -62,16 +62,17 @@ export default class SynchronizationSession extends Service {
   3) isSynchronizationSession: General identifier for synchronization process.
   4) userId & userName: Sets user identification to choose the correct instance which gets synchronized or will be synchronized to the main.
   */
-  setUpIds(dId: number, rId: string) {
-    this.deviceId = dId;
-    this.roomId = rId;
+  setUpIds(deviceId: string, roomId: string) {
+    this.deviceId = deviceId;
+    this.roomId = roomId;
     this.isSynchronizationSession = true;
-    this.localUser.userId = dId === 0 ? 'Main' : 'Projector ' + dId;
-    this.localUser.userName = dId === 0 ? 'Main' : 'Projector ' + dId;
+    this.localUser.userId = deviceId === '' ? 'Main' : 'Projector ' + deviceId;
+    this.localUser.userName =
+      deviceId === '' ? 'Main' : 'Projector ' + deviceId;
   }
 
   destroyIds() {
-    this.deviceId = -99;
+    this.deviceId = '';
     this.roomId = '';
     this.isSynchronizationSession = false;
     this.localUser.userId = 'unknown';

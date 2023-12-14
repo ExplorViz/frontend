@@ -8,7 +8,7 @@ import SynchronizationSession from 'collaborative-mode/services/synchronization-
 import { task, timeout } from 'ember-concurrency';
 import ProjectorSynchronization from 'collaborative-mode/services/projector-synchronization';
 interface SynchronizationStartArgs {
-  deviceId: number;
+  deviceId: string;
   roomId: string;
   tokenId: string;
 }
@@ -45,7 +45,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   // Check for updates on query params
   checkQueryParams() {
     return (
-      this.args.deviceId > -99 &&
+      this.args.deviceId !== '' &&
       this.args.roomId !== '' &&
       this.args.tokenId !== ''
     );
@@ -54,14 +54,6 @@ export default class SynchronizationStart extends Component<SynchronizationStart
   async routeToVisualization(token: LandscapeToken) {
     this.tokenService.setToken(token);
     this.router.transitionTo('visualization');
-  }
-
-  async roomTask() {
-    await timeout(3000);
-    // Trigger synchronization when query param are saved in synchronization service
-    await this.collaborationSession.hostRoom(
-      this.args.deviceId == this.synchronizationSession.deviceId
-    );
   }
 
   async synchronizeTask() {
@@ -83,7 +75,7 @@ export default class SynchronizationStart extends Component<SynchronizationStart
     // set token and redirect to visualization space
     await this.routeToVisualization(this.token);
     // handle room situation
-    await this.roomTask();
+    // await this.roomTask();
     // handle which instance is getting synchronized to which
     await this.synchronizeTask();
   });

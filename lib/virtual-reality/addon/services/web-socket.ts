@@ -95,6 +95,7 @@ export default class WebSocketService extends Service.extend(Evented) {
       query: {
         ticketId: ticketId,
         userName: 'JOHNNY',
+        deviceId: 'main',
         mode: mode,
       },
     });

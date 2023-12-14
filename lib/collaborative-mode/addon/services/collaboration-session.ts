@@ -344,15 +344,6 @@ export default class CollaborationSession extends Service.extend({
     if (!checkConnectionStatus || !this.isConnecting) {
       this.connectionStatus = 'connecting';
       this.currentRoomId = roomId;
-      // try {
-      //   const response = await this.roomService.joinLobby(this.currentRoomId);
-      //   await this.webSocket.initSocket(response.ticketId);
-      // } catch (e: any) {
-      //   this.connectionStatus = 'offline';
-      //   this.currentRoomId = null;
-      //   AlertifyHandler.showAlertifyError(
-      //     'Cannot reach Collaboration-Service.'
-      //   );
 
       const delay = 100;
       const maxRetries = 5; // Maximum number of retry attempts
