@@ -53,6 +53,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -78,6 +79,9 @@ export default class VisualizationController extends Controller {
   @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
+
+  @service('timestamp-polling')
+  timestampPollingService!: TimestampPollingService;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
@@ -313,6 +317,11 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  resetTimestampPolling() {
+    this.timestampPollingService.resetPolling();
+  }
+
+  @action
   resetLandscapeListenerPolling() {
     if (this.landscapeListener.timer !== null) {
       this.debug('Stopping timer');
@@ -398,31 +407,31 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(timestampRecordArray: Timestamp[]) {
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
     if (
       this.selectedTimestampRecords.length > 0 &&
-      timestampRecordArray[0] === this.selectedTimestampRecords[0]
+      selectedTimestamps[0] === this.selectedTimestampRecords[0]
     ) {
       return;
     }
-    this.selectedTimestampRecords = timestampRecordArray;
+    this.selectedTimestampRecords = selectedTimestamps;
     this.pauseVisualizationUpdating();
-    this.updateTimestamp(
-      timestampRecordArray[0].timestamp,
-      timestampRecordArray
-    );
+    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
 
-  async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
+  async updateTimestamp(
+    epochMilli: number,
+    timestampRecordArray?: Timestamp[]
+  ) {
     try {
       const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
-      this.timestampService.timestamp = timestamp;
+      this.timestampService.timestamp = epochMilli;
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
@@ -475,7 +484,8 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling();
+    //this.landscapeListener.initLandscapePolling();
+    this.timestampPollingService.initTimestampPolling();
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -485,6 +495,7 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
+    this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
 

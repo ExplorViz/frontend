@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
-import { Timestamp } from 'explorviz-frontend/services/repos/timestamp-repository';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 
 interface IMarkerStates {
@@ -218,7 +218,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
 
     const latestTimestamp = timestamps[timestamps.length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.timestamp);
+    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
 
     const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
       latestTimestampValue,
@@ -254,7 +254,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     );
 
     const latestTimestamp: Timestamp = timestamps[timestamps.length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.timestamp);
+    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
 
     const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
       latestTimestampValue,
@@ -288,7 +288,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
     oldSelectedTimestampRecords.forEach((timestamp) => {
-      const timestampId = timestamp.id;
+      const timestampId = timestamp.epochMilli;
 
       this.markerState[timestampId].color = highlightedMarkerColor;
       this.markerState[timestampId].size = highlightedMarkerSize;
@@ -401,13 +401,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const x: Date[] = [];
     const y: number[] = [];
 
-    const timestampIds: string[] = [];
+    const timestampIds: number[] = [];
 
     timestamps.forEach((timestamp) => {
-      const timestampId = timestamp.id;
+      const timestampId = timestamp.epochMilli;
 
-      x.push(new Date(timestamp.timestamp));
-      y.push(timestamp.totalRequests);
+      x.push(new Date(timestamp.epochMilli));
+      y.push(timestamp.spanCount);
 
       const markerState = markerStates[timestampId];
 
@@ -449,7 +449,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     requests: number[],
     colors: string[],
     sizes: number[],
-    timestampIds: string[]
+    timestampIds: number[]
   ) {
     return [
       {
@@ -480,8 +480,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const { defaultMarkerColor, defaultMarkerSize } = this;
 
     selTimestamps.forEach((t) => {
-      this.markerState[t.id].color = defaultMarkerColor;
-      this.markerState[t.id].size = defaultMarkerSize;
+      this.markerState[t.epochMilli].color = defaultMarkerColor;
+      this.markerState[t.epochMilli].size = defaultMarkerSize;
     });
 
     this.selectedTimestamps = [];

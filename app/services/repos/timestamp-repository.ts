@@ -2,12 +2,7 @@ import Service from '@ember/service';
 
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
-
-export interface Timestamp {
-  id: string;
-  timestamp: number;
-  totalRequests: number;
-}
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines
@@ -18,16 +13,23 @@ export interface Timestamp {
 export default class TimestampRepository extends Service.extend(Evented) {
   debug = debugLogger();
 
-  private timelineTimestamps: Map<string, Timestamp[]> = new Map();
+  private timelineTimestamps: Map<string, Map<number, Timestamp>> = new Map();
 
-  getTimestamps(landscapeToken: string) {
-    return this.timelineTimestamps.get(landscapeToken);
+  getTimestamps(landscapeToken: string): Timestamp[] {
+    const timestampsForLandscapetoken =
+      this.timelineTimestamps.get(landscapeToken);
+    if (timestampsForLandscapetoken) {
+      return [...timestampsForLandscapetoken.values()];
+    } else {
+      return [];
+    }
   }
 
   getLatestTimestamp(landscapeToken: string) {
     const timestamps = this.getTimestamps(landscapeToken);
     if (timestamps) {
-      return timestamps[timestamps.length - 1];
+      const timestampSetAsArray = [...timestamps];
+      return timestampSetAsArray[timestampSetAsArray.length - 1];
     }
 
     return undefined;
@@ -35,11 +37,18 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   addTimestamp(landscapeToken: string, timestamp: Timestamp) {
     const timestamps = this.timelineTimestamps.get(landscapeToken);
+
     if (timestamps) {
-      this.timelineTimestamps.set(landscapeToken, [...timestamps, timestamp]);
+      timestamps.set(timestamp.epochMilli, timestamp);
     } else {
-      this.timelineTimestamps.set(landscapeToken, [timestamp]);
+      const newTimestampMap = new Map<number, Timestamp>();
+      newTimestampMap.set(timestamp.epochMilli, timestamp);
+      this.timelineTimestamps.set(landscapeToken, newTimestampMap);
     }
+    console.log(
+      this.timelineTimestamps.get(landscapeToken)?.size,
+      this.timelineTimestamps.get(landscapeToken)
+    );
   }
 
   /**
