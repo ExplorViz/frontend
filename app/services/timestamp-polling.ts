@@ -64,6 +64,7 @@ export default class TimestampPollingService extends Service {
   }
 
   private httpFetchTimestamps(newestLocalTimestamp?: Timestamp | undefined) {
+    this.debug('Polling timestamps');
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {
         reject(new Error('No landscape token selected'));

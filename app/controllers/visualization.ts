@@ -238,10 +238,11 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
-
+      console.log('1', this.timestampService.timestamp);
       if (this.timelineTimestamps.lastObject) {
+        console.log('2', this.timestampService.timestamp);
         this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.timestamp;
+          this.timelineTimestamps.lastObject?.epochMilli;
         this.selectedTimestampRecords = [
           this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
         ];
@@ -530,11 +531,24 @@ export default class VisualizationController extends Controller {
 
     if (timestamps.length > 0) {
       this.timestampRepo.triggerTimelineUpdate();
-      const latestTimestamp = this.timestampRepo.getLatestTimestamp(
-        this.landscapeTokenService.token!.value
+    }
+
+    const lastSelectTimestamp = this.timestampService.timestamp;
+
+    if (!this.visualizationPaused) {
+      const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
+        this.landscapeTokenService.token!.value,
+        lastSelectTimestamp
       );
-      if (latestTimestamp && !this.visualizationPaused) {
-        this.updateTimestamp(latestTimestamp.epochMilli);
+
+      if (
+        timestampToRender &&
+        JSON.stringify(this.selectedTimestampRecords) !==
+          JSON.stringify([timestampToRender])
+      ) {
+        this.updateTimestamp(timestampToRender.epochMilli);
+        this.selectedTimestampRecords = [timestampToRender];
+        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
       }
     }
   }

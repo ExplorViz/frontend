@@ -15,6 +15,27 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   private timelineTimestamps: Map<string, Map<number, Timestamp>> = new Map();
 
+  getNextTimestampOrLatest(
+    landscapeToken: string,
+    epochMilli: number
+  ): Timestamp | undefined {
+    const timestampsForLandscapetoken =
+      this.timelineTimestamps.get(landscapeToken);
+    if (timestampsForLandscapetoken) {
+      let isNextTimestamp: boolean = false;
+      for (const [, value] of timestampsForLandscapetoken.entries()) {
+        if (isNextTimestamp) {
+          return value;
+        } else if (epochMilli === value.epochMilli) {
+          isNextTimestamp = true;
+        }
+      }
+      const values = [...timestampsForLandscapetoken.values()];
+      return values[values.length - 1];
+    }
+    return undefined;
+  }
+
   getTimestamps(landscapeToken: string): Timestamp[] {
     const timestampsForLandscapetoken =
       this.timelineTimestamps.get(landscapeToken);
@@ -39,9 +60,14 @@ export default class TimestampRepository extends Service.extend(Evented) {
     for (const timestamp of timestamps) {
       this.addTimestamp(landscapeToken, timestamp);
     }
+    if (timestamps) {
+      this.timelineTimestamps = new Map(
+        [...this.timelineTimestamps.entries()].sort()
+      );
+    }
   }
 
-  addTimestamp(landscapeToken: string, timestamp: Timestamp) {
+  private addTimestamp(landscapeToken: string, timestamp: Timestamp) {
     const timestamps = this.timelineTimestamps.get(landscapeToken);
 
     if (timestamps) {
