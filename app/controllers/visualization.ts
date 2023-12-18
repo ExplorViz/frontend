@@ -14,9 +14,7 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import TimestampRepository, {
-  Timestamp,
-} from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
@@ -54,6 +52,7 @@ import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -484,8 +483,9 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    //this.landscapeListener.initLandscapePolling();
-    this.timestampPollingService.initTimestampPolling();
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -519,6 +519,23 @@ export default class VisualizationController extends Controller {
         this,
         this.onTimestampUpdate
       );
+    }
+  }
+
+  timestampPollingCallback(timestamps: Timestamp[]) {
+    this.timestampRepo.addTimestamps(
+      this.landscapeTokenService.token!.value,
+      timestamps
+    );
+
+    if (timestamps.length > 0) {
+      this.timestampRepo.triggerTimelineUpdate();
+      const latestTimestamp = this.timestampRepo.getLatestTimestamp(
+        this.landscapeTokenService.token!.value
+      );
+      if (latestTimestamp && !this.visualizationPaused) {
+        this.updateTimestamp(latestTimestamp.epochMilli);
+      }
     }
   }
 

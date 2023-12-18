@@ -16,8 +16,10 @@ export default class TimestampPollingService extends Service {
   private timer: NodeJS.Timeout | null = null;
   private debug = debugLogger();
 
-  async initTimestampPolling(intervalInSeconds: number = 10) {
-    this.startTimestampPolling(intervalInSeconds);
+  async initTimestampPollingWithCallback(
+    callback: (timestamps: Timestamp[]) => void
+  ) {
+    this.startTimestampPolling(callback);
   }
 
   resetPolling() {
@@ -27,20 +29,20 @@ export default class TimestampPollingService extends Service {
     }
   }
 
-  private startTimestampPolling(intervalInSeconds: number) {
+  private startTimestampPolling(callback: (timestamps: Timestamp[]) => void) {
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
     }
 
     this.timer = setIntervalImmediately(async () => {
-      this.pollTimestamps();
-    }, intervalInSeconds * 1000);
+      this.pollTimestamps(callback);
+    }, 10 * 1000);
 
     this.debug('Timestamp timer started');
   }
 
-  private pollTimestamps() {
+  private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
     // check if we already have a timestamp that acts as base point
     const landscapeToken = this.tokenService.token?.value;
 
@@ -55,16 +57,7 @@ export default class TimestampPollingService extends Service {
     const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
 
     timestampPromise
-      .then((timestamps: Timestamp[]) => {
-        this.timestampRepo.addTimestamps(
-          this.tokenService.token!.value,
-          timestamps
-        );
-
-        if (timestamps.length > 0) {
-          this.timestampRepo.triggerTimelineUpdate();
-        }
-      })
+      .then((timestamps: Timestamp[]) => callback(timestamps))
       .catch((error: Error) => {
         console.log(error);
       });
