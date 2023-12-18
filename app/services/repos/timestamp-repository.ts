@@ -35,6 +35,12 @@ export default class TimestampRepository extends Service.extend(Evented) {
     return undefined;
   }
 
+  addTimestamps(landscapeToken: string, timestamps: Timestamp[]) {
+    for (const timestamp of timestamps) {
+      this.addTimestamp(landscapeToken, timestamp);
+    }
+  }
+
   addTimestamp(landscapeToken: string, timestamp: Timestamp) {
     const timestamps = this.timelineTimestamps.get(landscapeToken);
 
@@ -45,10 +51,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
       newTimestampMap.set(timestamp.epochMilli, timestamp);
       this.timelineTimestamps.set(landscapeToken, newTimestampMap);
     }
-    console.log(
-      this.timelineTimestamps.get(landscapeToken)?.size,
-      this.timelineTimestamps.get(landscapeToken)
-    );
   }
 
   /**

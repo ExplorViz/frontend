@@ -56,16 +56,14 @@ export default class TimestampPollingService extends Service {
 
     timestampPromise
       .then((timestamps: Timestamp[]) => {
-        console.log('timestamps', timestamps);
+        this.timestampRepo.addTimestamps(
+          this.tokenService.token!.value,
+          timestamps
+        );
 
-        for (const timestamp of timestamps) {
-          this.timestampRepo.addTimestamp(
-            this.tokenService.token!.value,
-            timestamp
-          );
+        if (timestamps.length > 0) {
+          this.timestampRepo.triggerTimelineUpdate();
         }
-
-        this.timestampRepo.triggerTimelineUpdate();
       })
       .catch((error: Error) => {
         console.log(error);
