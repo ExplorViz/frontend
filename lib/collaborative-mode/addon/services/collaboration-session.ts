@@ -136,8 +136,12 @@ export default class CollaborationSession extends Service.extend({
     this.notifyPropertyChange('idToRemoteUser');
   }
 
-  getRemoteUserById(id: string) {
-    return this.idToRemoteUser.get(id);
+  getUserById(id: string) {
+    if (this.localUser.userId === id) {
+      return this.localUser;
+    } else {
+      return this.idToRemoteUser.get(id);
+    }
   }
 
   getAllRemoteUserIds() {

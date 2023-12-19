@@ -3,8 +3,8 @@ export const SPECTATING_UPDATE_EVENT = 'spectating_update';
 export type SpectatingUpdateMessage = {
   event: typeof SPECTATING_UPDATE_EVENT;
   isSpectating: boolean;
-  spectatedUser: string | null;
-  spectatingUsers: string[];
+  spectatedUserId: string;
+  spectatingUserIds: string[];
   configurationId: string;
   configuration: { deviceId: string; projectionMatrix: number[] }[] | null;
 };

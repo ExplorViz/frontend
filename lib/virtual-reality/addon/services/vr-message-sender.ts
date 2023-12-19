@@ -376,15 +376,15 @@ export default class VrMessageSender extends Service {
    */
   sendSpectatingUpdate(
     isSpectating: boolean,
-    spectatedUser: string | null,
-    spectatingUsers: string[],
+    spectatedUserId: string,
+    spectatingUserIds: string[],
     configurationId = 'default'
   ) {
     this.webSocket.send<SpectatingUpdateMessage>(SPECTATING_UPDATE_EVENT, {
       event: 'spectating_update',
       isSpectating,
-      spectatedUser: spectatedUser,
-      spectatingUsers,
+      spectatedUserId,
+      spectatingUserIds,
       configurationId,
       configuration: null,
     });

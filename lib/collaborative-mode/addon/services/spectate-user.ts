@@ -183,7 +183,11 @@ export default class SpectateUser extends Service {
     this.spectatedUser = null;
 
     if (sendUpdate) {
-      this.sender.sendSpectatingUpdate(this.isActive, null, []);
+      this.sender.sendSpectatingUpdate(
+        this.isActive,
+        this.localUser.userId,
+        []
+      );
     }
   }
 
@@ -206,19 +210,35 @@ export default class SpectateUser extends Service {
     userId,
     originalMessage: {
       isSpectating,
-      spectatedUser,
-      spectatingUsers,
+      spectatedUserId,
+      spectatingUserIds,
       configuration,
     },
   }: ForwardedMessage<SpectatingUpdateMessage>): void {
+    const spectatedUser =
+      this.collaborationSession.getUserById(spectatedUserId);
+    const spectatingUsers = spectatingUserIds
+      .map(
+        (spectatingUserId) =>
+          this.collaborationSession.getUserById(spectatingUserId)!
+      )
+      .filter((user) => user !== undefined);
+
+    if (!spectatedUser) {
+      this.deactivate(false);
+      return;
+    }
+
+    this.displaySpectateMessage(spectatedUser, spectatingUsers, isSpectating);
+
     // Deactivate spectating?
-    if (!isSpectating || !spectatedUser) {
+    if (!isSpectating || !spectatedUserId) {
       this.deactivate(false);
     }
 
-    if (spectatedUser === this.localUser.userId) {
-      spectatingUsers.forEach((spectatingUser) => {
-        this.spectatingUsers.add(spectatingUser);
+    if (spectatedUserId === this.localUser.userId) {
+      spectatingUserIds.forEach((spectatingUserId) => {
+        this.addSpectatingUser(spectatingUserId);
       });
       return;
     }
@@ -238,40 +258,40 @@ export default class SpectateUser extends Service {
       }
     }
 
-    // Check if we should spectate a user
-    let spectatedRemoteUser: RemoteUser | undefined;
-    spectatingUsers.forEach((id) => {
-      if (id === this.localUser.userId) {
-        spectatedRemoteUser = this.collaborationSession.getRemoteUserById(
-          spectatedUser!
-        );
-        if (spectatedRemoteUser) {
-          this.activate(spectatedRemoteUser, false);
-          return;
-        }
-      }
-    });
+    if (
+      spectatingUsers.find((u) => u.userId === this.localUser.userId) &&
+      spectatedUser instanceof RemoteUser
+    ) {
+      this.activate(spectatedUser, false);
+      return;
+    }
 
-    if (!spectatedRemoteUser) return;
-    spectatedRemoteUser.state = isSpectating ? 'spectating' : 'online';
-    spectatedRemoteUser.setVisible(!isSpectating);
+    spectatedUser.state = isSpectating ? 'spectating' : 'online';
+    spectatedUser.setVisible(!isSpectating);
+  }
 
-    const remoteUserHexColor = `#${spectatedRemoteUser.color.getHexString()}`;
+  displaySpectateMessage(
+    spectatedUser: RemoteUser | LocalUser,
+    spectatingUsers: (RemoteUser | LocalUser)[],
+    isSpectating: boolean
+  ) {
+    const spectatedHexColor = `#${spectatedUser.color.getHexString()}`;
     let text = '';
+    const spectatingUserNames = spectatingUsers
+      .map((user) => user.userName)
+      .reduce((usernames, username) => usernames + ', ' + username);
 
-    if (isSpectating && spectatedUser === this.localUser.userId) {
-      this.addSpectatingUser(userId);
+    if (isSpectating && spectatedUser.userId === this.localUser.userId) {
       text = 'is now spectating you';
     } else if (isSpectating) {
       text = 'is now spectating';
     } else {
       text = 'stopped spectating';
-      this.removeSpectatingUser(userId);
     }
     this.toastMessage.message({
-      title: spectatedRemoteUser.userName,
+      title: spectatingUserNames || 'Nobody',
       text,
-      color: remoteUserHexColor,
+      color: spectatedHexColor,
       time: 3.0,
     });
   }
