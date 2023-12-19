@@ -12,11 +12,6 @@ interface AutoSelectLandscapeArgs {
 
 const { userService } = ENV.backendAddresses;
 
-/**
- * Heart of the automatic initiation of the synchronization feature.
- * Effectivly setting up SychronizationSession and providing access to
- * projector identification and specific collaboration session via query parameter.
- */
 export default class AutoSelectLandscape extends Component<AutoSelectLandscapeArgs> {
   @service('router')
   private router!: any;

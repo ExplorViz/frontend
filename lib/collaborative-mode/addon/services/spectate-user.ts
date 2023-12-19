@@ -123,8 +123,7 @@ export default class SpectateUser extends Service {
    * Switches our user into spectator mode
    * @param {number} userId The id of the user to be spectated
    */
-  activate(remoteUser: RemoteUser) {
-    // this.startPosition.copy(this.localUser.getCameraWorldPosition());
+  activate(remoteUser: RemoteUser, sendUpdate = true) {
     this.startQuaternion.copy(this.localUser.camera.quaternion);
     this.spectatedUser = remoteUser;
 
@@ -139,13 +138,35 @@ export default class SpectateUser extends Service {
     }
 
     // remoteUser.setHmdVisible(false);
-    this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId);
+    if (sendUpdate) {
+      this.sender.sendSpectatingUpdate(this.isActive, remoteUser.userId, [
+        this.localUser.userId,
+      ]);
+    }
+  }
+
+  activateConfig(configId: string, remoteUsersIds: string[]) {
+    if (configId === 'arena-2') {
+      this.sender.sendSpectatingUpdate(
+        true,
+        this.localUser.userId,
+        remoteUsersIds,
+        configId
+      );
+    } else {
+      this.sender.sendSpectatingUpdate(
+        false,
+        this.localUser.userId,
+        remoteUsersIds,
+        configId
+      );
+    }
   }
 
   /**
    * Deactives spectator mode for our user
    */
-  deactivate() {
+  deactivate(sendUpdate = true) {
     if (this.cameraControls) {
       this.cameraControls.enabled = true;
     }
@@ -158,15 +179,12 @@ export default class SpectateUser extends Service {
       this.localUser.controller2.setToDefaultAppearance();
     }
 
-    // this.localUser.teleportToPosition(this.startPosition, {
-    // });
-
-    // this.localUser.camera.position.copy(this.startPosition);
     this.localUser.camera.quaternion.copy(this.startQuaternion);
-    // this.spectatedUser.setHmdVisible(true);
     this.spectatedUser = null;
 
-    this.sender.sendSpectatingUpdate(this.isActive, null);
+    if (sendUpdate) {
+      this.sender.sendSpectatingUpdate(this.isActive, null, []);
+    }
   }
 
   private onUserDisconnect({ id }: UserDisconnectedMessage) {
@@ -186,13 +204,61 @@ export default class SpectateUser extends Service {
    */
   private onSpectatingUpdate({
     userId,
-    originalMessage: { isSpectating, spectatedUser },
+    originalMessage: {
+      isSpectating,
+      spectatedUser,
+      spectatingUsers,
+      configuration,
+    },
   }: ForwardedMessage<SpectatingUpdateMessage>): void {
-    const remoteUser = this.setRemoteUserSpectatingById(userId, isSpectating);
-    if (!remoteUser) return;
+    // Deactivate spectating?
+    if (!isSpectating || !spectatedUser) {
+      this.deactivate(false);
+    }
 
-    const remoteUserHexColor = `#${remoteUser.color.getHexString()}`;
+    if (spectatedUser === this.localUser.userId) {
+      spectatingUsers.forEach((spectatingUser) => {
+        this.spectatingUsers.add(spectatingUser);
+      });
+      return;
+    }
+
+    // Adapt projection matrix according to spectate update
+    const deviceId = new URLSearchParams(window.location.search).get(
+      'deviceId'
+    );
+    if (configuration && deviceId) {
+      const deviceConfig = configuration.find(
+        (config) => config.deviceId === deviceId
+      );
+      if (deviceConfig) {
+        this.localUser.camera.projectionMatrix.fromArray(
+          deviceConfig.projectionMatrix
+        );
+      }
+    }
+
+    // Check if we should spectate a user
+    let spectatedRemoteUser: RemoteUser | undefined;
+    spectatingUsers.forEach((id) => {
+      if (id === this.localUser.userId) {
+        spectatedRemoteUser = this.collaborationSession.getRemoteUserById(
+          spectatedUser!
+        );
+        if (spectatedRemoteUser) {
+          this.activate(spectatedRemoteUser, false);
+          return;
+        }
+      }
+    });
+
+    if (!spectatedRemoteUser) return;
+    spectatedRemoteUser.state = isSpectating ? 'spectating' : 'online';
+    spectatedRemoteUser.setVisible(!isSpectating);
+
+    const remoteUserHexColor = `#${spectatedRemoteUser.color.getHexString()}`;
     let text = '';
+
     if (isSpectating && spectatedUser === this.localUser.userId) {
       this.addSpectatingUser(userId);
       text = 'is now spectating you';
@@ -203,28 +269,11 @@ export default class SpectateUser extends Service {
       this.removeSpectatingUser(userId);
     }
     this.toastMessage.message({
-      title: remoteUser.userName,
+      title: spectatedRemoteUser.userName,
       text,
       color: remoteUserHexColor,
       time: 3.0,
     });
-  }
-
-  private setRemoteUserSpectatingById(
-    userId: string,
-    isSpectating: boolean
-  ): RemoteUser | undefined {
-    const remoteUser = this.collaborationSession.idToRemoteUser.get(userId);
-    if (remoteUser) {
-      remoteUser.state = isSpectating ? 'spectating' : 'online';
-      remoteUser.setVisible(!isSpectating);
-
-      // If we spectated the remote user before, stop spectating.
-      if (isSpectating && this.spectatedUser?.userId === remoteUser.userId) {
-        this.deactivate();
-      }
-    }
-    return remoteUser;
   }
 }
 

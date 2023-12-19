@@ -12,7 +12,6 @@ import {
   RoomListRecord,
 } from '../utils/vr-payload/receivable/room-list';
 import VrRoomSerializer from './vr-room-serializer';
-import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 const { collaborationService } = ENV.backendAddresses;
 
 export default class VrRoomService extends Service {
@@ -21,9 +20,6 @@ export default class VrRoomService extends Service {
 
   @service('virtual-reality@vr-room-serializer')
   private roomSerializer!: VrRoomSerializer;
-
-  @service('synchronization-session')
-  synchronizationSession!: SynchronizationSession;
 
   async listRooms(): Promise<RoomListRecord[]> {
     const url = `${collaborationService}/rooms`;

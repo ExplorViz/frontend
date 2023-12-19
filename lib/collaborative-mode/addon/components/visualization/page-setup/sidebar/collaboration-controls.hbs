@@ -4,23 +4,30 @@
 </div>
 
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
-  {{#if (this.synchronizationSession.isSynchronizationSession)}}
-    <div>
-      <label class='bold'>Current Configuration Environment: </label>
-      <label>ARENA2</label>
-    </div>
-  {{/if}}
-
   <div>
     <label class='bold'>Room: </label>
     <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
-  {{#if (this.synchronizationSession.isSynchronizationSession)}}
+  {{#if (eq this.deviceId 'main')}}
+    <div>
+      <label class='bold'>Spectate Configuration: </label>
+      <select
+        class='form-select'
+        aria-label='Default select example'
+        {{on 'change' this.configurationSelected}}
+      >
+        <option value='default'>Default</option>
+        <option value='arena-2'>ARENA2</option>
+      </select>
+    </div>
+  {{/if}}
+
+  {{!-- {{#if (this.synchronizationSession.isMultiSpectateSession)}}
     <label class='bold'>Connected Devices</label>
   {{else}}
     <label class='bold'>Users</label>
-  {{/if}}
+  {{/if}} --}}
 
   <ul>
     {{#each this.users as |user|}}

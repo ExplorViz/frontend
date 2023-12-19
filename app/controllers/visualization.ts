@@ -38,7 +38,6 @@ import {
   TimestampUpdateMessage,
   TIMESTAMP_UPDATE_EVENT,
 } from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
@@ -91,9 +90,6 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
-
-  @service('synchronization-session')
-  synchronizationSession!: SynchronizationSession;
 
   @service('virtual-reality@vr-room-serializer')
   roomSerializer!: VrRoomSerializer;
@@ -182,10 +178,8 @@ export default class VisualizationController extends Controller {
 
   get showTimeline() {
     return (
-      !this.showAR &&
-      !this.showVR &&
-      !this.isSingleLandscapeMode &&
-      !this.synchronizationSession.isSynchronizationSession
+      !this.showAR && !this.showVR && !this.isSingleLandscapeMode
+      // !this.synchronizationSession.isMultiSpectateSession
     );
   }
 

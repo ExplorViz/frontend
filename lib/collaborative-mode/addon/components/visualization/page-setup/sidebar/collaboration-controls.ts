@@ -7,7 +7,6 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import SynchronizationSession from 'collaborative-mode/services/synchronization-session';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
 
 interface CollaborationArgs {
@@ -30,11 +29,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('synchronization-session')
-  private synchronizationSession!: SynchronizationSession;
-
   @tracked
   rooms: RoomListRecord[] = [];
+
+  @tracked
+  deviceId = new URLSearchParams(window.location.search).get('deviceId');
 
   @computed('collaborationSession.idToRemoteUser')
   get users() {
@@ -73,7 +72,6 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @action
   leaveSession() {
     AlertifyHandler.showAlertifyWarning('Disconnected from Room');
-    this.synchronizationSession.destroyIds();
     this.collaborationSession.disconnect();
   }
 
@@ -94,18 +92,22 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   spectate(id: string) {
-    if (this.synchronizationSession.isSynchronizationSession) {
-      AlertifyHandler.showAlertifyError(
-        'Cannot manually spectate in multi-projector mode'
-      );
-      return;
-    }
     const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
     if (remoteUser) {
       this.spectateUserService.activate(remoteUser);
     } else {
       this.spectateUserService.deactivate();
     }
+  }
+
+  @action
+  configurationSelected(event: any) {
+    if (!event.target.value) return;
+
+    const remoteUserIds = Array.from(
+      this.collaborationSession.getAllRemoteUsers()
+    ).map((user) => user.userId);
+    this.spectateUserService.activateConfig(event?.target.value, remoteUserIds);
   }
 
   @action

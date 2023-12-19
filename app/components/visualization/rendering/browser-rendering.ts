@@ -42,7 +42,6 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
-import ProjectorSynchronization from 'collaborative-mode/services/projector-synchronization';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -82,9 +81,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
-
-  @service('projector-synchronization')
-  private projectorSynchronization!: ProjectorSynchronization;
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
@@ -185,8 +181,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // spectate
     this.updatables.push(this.spectateUserService);
-    // synchronize
-    this.updatables.push(this.projectorSynchronization);
 
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
@@ -369,7 +363,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
-    this.projectorSynchronization.cameraControls = this.cameraControls;
 
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {

@@ -6,11 +6,6 @@ interface AutoJoinLobbyArgs {
   roomId: string;
 }
 
-/**
- * Heart of the automatic initiation of the synchronization feature.
- * Effectivly setting up SychronizationSession and providing access to
- * projector identification and specific collaboration session via query parameter.
- */
 export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
   @service('collaboration-session')
   collaboration!: CollaborationSession;
@@ -23,7 +18,7 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
     }
   }
 
-  async autoJoinLobby(retries = 3) {
+  async autoJoinLobby(retries = 5) {
     const roomHosted = await this.collaboration.hostRoom(this.args.roomId);
 
     if (roomHosted) {
@@ -31,10 +26,10 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
     } else if (!roomHosted && retries <= 0) {
       console.log('Failed to auto join room, no retries left');
     } else {
-      console.log('Failed to auto join room, retrying in 3 seconds again...');
+      console.log('Failed to auto join room, retrying in 5 seconds again...');
       setTimeout(() => {
         this.autoJoinLobby(retries - 1);
-      }, 3000);
+      }, 5000);
     }
   }
 }

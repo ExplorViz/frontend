@@ -34,8 +34,6 @@ import {
 } from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
-// import { RoomCreatedResponse } from 'virtual-reality/utils/vr-payload/receivable/room-created';
-// import { SynchronizationStartedResponse } from 'virtual-reality/utils/vr-payload/receivable/synchronization-started';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -136,6 +134,10 @@ export default class CollaborationSession extends Service.extend({
     });
     this.idToRemoteUser.clear();
     this.notifyPropertyChange('idToRemoteUser');
+  }
+
+  getRemoteUserById(id: string) {
+    return this.idToRemoteUser.get(id);
   }
 
   getAllRemoteUserIds() {
@@ -296,24 +298,6 @@ export default class CollaborationSession extends Service.extend({
     return this.connectionStatus === 'connecting';
   }
 
-  // async hostRoom(synchronization?: boolean) {
-  //   if (!this.isConnecting) {
-  //     this.connectionStatus = 'connecting';
-  //     try {
-  //       let response: RoomCreatedResponse | SynchronizationStartedResponse;
-
-  //       if (synchronization === undefined) {
-  //         response = await this.roomService.createRoom();
-  //         if (response !== null)
-  //           this.joinRoom(response.roomId, { checkConnectionStatus: false });
-  //       } else {
-  //         response = await this.roomService.startSynchronization();
-  //         const roomResponse = response.roomResponse;
-  //         const joinResponse = response.joinResponse;
-
-  //         this.currentRoomId = roomResponse.roomId;
-  //         await this.webSocket.initSocket(joinResponse.ticketId);
-  //       }
   async hostRoom(roomId = '') {
     if (
       !this.isConnecting &&

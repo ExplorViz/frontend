@@ -4,6 +4,9 @@ export type SpectatingUpdateMessage = {
   event: typeof SPECTATING_UPDATE_EVENT;
   isSpectating: boolean;
   spectatedUser: string | null;
+  spectatingUsers: string[];
+  configurationId: string;
+  configuration: { deviceId: string; projectionMatrix: number[] }[] | null;
 };
 
 export function isSpectatingUpdateMessage(
@@ -14,6 +17,11 @@ export function isSpectatingUpdateMessage(
     typeof msg === 'object' &&
     msg.event === SPECTATING_UPDATE_EVENT &&
     typeof msg.isSpectating === 'boolean' &&
-    (typeof msg.spectatedUser === 'string' || msg.spectatedUser === null)
+    (typeof msg.spectatedUser === 'string' || msg.spectatedUser === null) &&
+    Array.isArray(msg.spectatingUsers) &&
+    typeof msg.configurationId === 'string' &&
+    (Array.isArray(msg.configuration) ||
+      msg.configuration === null ||
+      typeof msg.configuration === 'undefined')
   );
 }

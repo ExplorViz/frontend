@@ -193,7 +193,7 @@ export default class VrMessageSender extends Service {
     isMultiSelected: boolean
   ) {
     this.webSocket.send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
-      event: 'highlighting_update',
+      event: HIGHLIGHTING_UPDATE_EVENT,
       appId,
       entityType,
       entityId,
@@ -374,11 +374,19 @@ export default class VrMessageSender extends Service {
    * Informs backend that this user entered or left spectating mode and
    * additionally adds who is spectating who.
    */
-  sendSpectatingUpdate(isSpectating: boolean, spectatedUser: string | null) {
+  sendSpectatingUpdate(
+    isSpectating: boolean,
+    spectatedUser: string | null,
+    spectatingUsers: string[],
+    configurationId = 'default'
+  ) {
     this.webSocket.send<SpectatingUpdateMessage>(SPECTATING_UPDATE_EVENT, {
       event: 'spectating_update',
       isSpectating,
-      spectatedUser,
+      spectatedUser: spectatedUser,
+      spectatingUsers,
+      configurationId,
+      configuration: null,
     });
   }
 
