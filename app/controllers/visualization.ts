@@ -14,9 +14,7 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import TimestampRepository, {
-  Timestamp,
-} from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
@@ -53,6 +51,8 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -78,6 +78,9 @@ export default class VisualizationController extends Controller {
   @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
 
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
+
+  @service('timestamp-polling')
+  timestampPollingService!: TimestampPollingService;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
@@ -235,10 +238,11 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
-
+      console.log('1', this.timestampService.timestamp);
       if (this.timelineTimestamps.lastObject) {
+        console.log('2', this.timestampService.timestamp);
         this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.timestamp;
+          this.timelineTimestamps.lastObject?.epochMilli;
         this.selectedTimestampRecords = [
           this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
         ];
@@ -310,6 +314,11 @@ export default class VisualizationController extends Controller {
   @action
   resetView() {
     this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+  }
+
+  @action
+  resetTimestampPolling() {
+    this.timestampPollingService.resetPolling();
   }
 
   @action
@@ -398,31 +407,31 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(timestampRecordArray: Timestamp[]) {
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
     if (
       this.selectedTimestampRecords.length > 0 &&
-      timestampRecordArray[0] === this.selectedTimestampRecords[0]
+      selectedTimestamps[0] === this.selectedTimestampRecords[0]
     ) {
       return;
     }
-    this.selectedTimestampRecords = timestampRecordArray;
+    this.selectedTimestampRecords = selectedTimestamps;
     this.pauseVisualizationUpdating();
-    this.updateTimestamp(
-      timestampRecordArray[0].timestamp,
-      timestampRecordArray
-    );
+    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
 
-  async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
+  async updateTimestamp(
+    epochMilli: number,
+    timestampRecordArray?: Timestamp[]
+  ) {
     try {
       const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
-      this.timestampService.timestamp = timestamp;
+      this.timestampService.timestamp = epochMilli;
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
@@ -475,7 +484,9 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling();
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -485,6 +496,7 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
+    this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
 
@@ -508,6 +520,36 @@ export default class VisualizationController extends Controller {
         this,
         this.onTimestampUpdate
       );
+    }
+  }
+
+  timestampPollingCallback(timestamps: Timestamp[]) {
+    this.timestampRepo.addTimestamps(
+      this.landscapeTokenService.token!.value,
+      timestamps
+    );
+
+    if (timestamps.length > 0) {
+      this.timestampRepo.triggerTimelineUpdate();
+    }
+
+    const lastSelectTimestamp = this.timestampService.timestamp;
+
+    if (!this.visualizationPaused) {
+      const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
+        this.landscapeTokenService.token!.value,
+        lastSelectTimestamp
+      );
+
+      if (
+        timestampToRender &&
+        JSON.stringify(this.selectedTimestampRecords) !==
+          JSON.stringify([timestampToRender])
+      ) {
+        this.updateTimestamp(timestampToRender.epochMilli);
+        this.selectedTimestampRecords = [timestampToRender];
+        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      }
     }
   }
 
