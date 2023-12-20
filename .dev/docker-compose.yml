@@ -17,8 +17,7 @@ services:
     container_name: explorviz-demo-supplier
     image: explorviz/demo-supplier
     ports:
-      - ${LANDSCAPE_PORT}:8082
-      - ${TRACE_PORT}:8083
+      - ${SPAN_PORT}:8083
       - ${USER_PORT}:8084
 
 networks:
