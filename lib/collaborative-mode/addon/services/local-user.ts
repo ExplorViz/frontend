@@ -22,7 +22,7 @@ export default class LocalUser extends Service.extend({
   userId!: string;
 
   @tracked
-  userName?: string;
+  userName = 'You';
 
   @tracked
   color: THREE.Color = new THREE.Color('red');
