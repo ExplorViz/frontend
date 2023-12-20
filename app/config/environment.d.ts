@@ -25,8 +25,7 @@ declare const config: {
     profile: Auth0UserProfile;
   };
   backendAddresses: {
-    landscapeService: string;
-    traceService: string;
+    spanService: string;
     userService: string;
     vsCodeService: string;
     collaborationService: string;

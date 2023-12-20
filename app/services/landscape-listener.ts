@@ -12,7 +12,7 @@ import Auth from './auth';
 import LandscapeTokenService from './landscape-token';
 import HighlightingService from './highlighting-service';
 
-const { landscapeService, traceService } = ENV.backendAddresses;
+const { spanService } = ENV.backendAddresses;
 
 export default class LandscapeListener extends Service.extend(Evented) {
   @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
@@ -134,7 +134,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         return;
       }
       fetch(
-        `${landscapeService}/v2/landscapes/${this.tokenService.token.value}/structure`,
+        `${spanService}/v2/landscapes/${this.tokenService.token.value}/structure`,
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
@@ -162,7 +162,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         return;
       }
       fetch(
-        `${traceService}/v2/landscapes/${this.tokenService.token.value}/dynamic?from=${fromTimestamp}&to=${toTimestamp}`,
+        `${spanService}/v2/landscapes/${this.tokenService.token.value}/dynamic?from=${fromTimestamp}&to=${toTimestamp}`,
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
