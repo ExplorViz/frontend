@@ -20,7 +20,7 @@ Information can also be found here: https://developer.oculus.com/documentation/w
 6. In terminal: Restart adb in TCP mode via `adb tcpip 5555`
 7. In terminal: Connect to device `adb connect <DEVICEIP>:5555`
 8. Remove cable.
-9. In terminal: `adb reverse tcp:4200 tcp:4200 && adb reverse tcp:8082 tcp:8082 && adb reverse tcp:8083 tcp:8083 && adb reverse tcp:8084 tcp:8084` to port forward the ExplorViz frontend and demo-supplier or backend.
+9. In terminal: `adb reverse tcp:4200 tcp:4200 && adb reverse tcp:8083 tcp:8083 && adb reverse tcp:8084 tcp:8084` to port forward the ExplorViz frontend and demo-supplier or backend.
 10. In HMD: Browse to http://localhost:4200 in Meta Quest Browser.
 11. Computer: Launch Google Chrome and navigate to `chrome://inspect/#devices`
 12. Computer: Click inspect for `http://localhost:4200` under Quest 2.

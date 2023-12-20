@@ -10,4 +10,3 @@ module('Unit | Service | ide-websocket-facade', function(hooks) {
     assert.ok(service);
   });
 });
-

@@ -6,7 +6,7 @@ import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
 
-const { landscapeService } = ENV.backendAddresses;
+const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
   @service('landscape-token') tokenService!: LandscapeTokenService;
@@ -71,7 +71,7 @@ export default class TimestampPollingService extends Service {
         return;
       }
 
-      let url = `${landscapeService}/v2/landscapes/${this.tokenService.token.value}/timestamps`;
+      let url = `${spanService}/v2/landscapes/${this.tokenService.token.value}/timestamps`;
 
       if (newestLocalTimestamp) {
         url += `?newest=${newestLocalTimestamp.epochMilli}`;
