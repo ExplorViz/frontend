@@ -41,7 +41,11 @@
         data-toggle='dropdown'
         aria-expanded='false'
       >
-        {{svg-jar 'person-16' class='octicon'}}
+        {{#if this.auth.user.picture}}
+          <img src={{this.auth.user.picture}} width="16px" height="16px">
+        {{else}}
+          {{svg-jar 'person-16' class='octicon'}}
+        {{/if}}
       </button>
 
       <ul class='dropdown-menu dropdown-menu-right'>
@@ -58,16 +62,18 @@
               }}
               {{this.auth.user.sub}}</span>
           </div></li>
-        <li>
-          <button
-            class='dropdown-item'
-            type='button'
-            {{on 'click' this.goToLandscapeSelection}}
-          >
-            {{svg-jar 'key-16' class='octicon'}}
-            {{this.tokenService.token.alias}}
-          </button>
-        </li>
+        {{#if this.tokenService.token}}
+          <li>
+            <button
+              class='dropdown-item'
+              type='button'
+              {{on 'click' this.goToLandscapeSelection}}
+            >
+              {{svg-jar 'key-16' class='octicon'}}
+              {{this.tokenService.token.alias}}
+            </button>
+          </li>
+        {{/if}}
         <li>
           <button
             class='dropdown-item'
