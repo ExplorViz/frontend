@@ -42,7 +42,12 @@
         aria-expanded='false'
       >
         {{#if this.auth.user.picture}}
-          <img src={{this.auth.user.picture}} width="16px" height="16px">
+          <img
+            src={{this.auth.user.picture}}
+            alt='User profile'
+            width='16px'
+            height='16px'
+          />
         {{else}}
           {{svg-jar 'person-16' class='octicon'}}
         {{/if}}
