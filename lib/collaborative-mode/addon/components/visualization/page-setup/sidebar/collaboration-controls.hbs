@@ -4,6 +4,7 @@
     <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
+  {{! Indicator that device should be in control of spectating configurations }}
   {{#if (eq this.deviceId 'main')}}
     <div>
       <label class='bold'>Spectate Configuration: </label>
