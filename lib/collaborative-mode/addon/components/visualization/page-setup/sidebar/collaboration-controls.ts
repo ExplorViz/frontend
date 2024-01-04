@@ -26,6 +26,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
 
@@ -35,22 +36,31 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @tracked
   deviceId = new URLSearchParams(window.location.search).get('deviceId');
 
-  @computed('collaborationSession.idToRemoteUser')
+  @computed(
+    'collaborationSession.idToRemoteUser',
+    'spectateUserService.spectatedUser'
+  )
   get users() {
     const users = [];
     if (this.localUser.color) {
       users.push({
         name: `${this.localUser.userName} (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
+        isSpectatable: false,
+        isSpectatedByUs: false,
       });
     }
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => {
+      const isSpectatedByUs =
+        this.spectateUserService.spectatedUser?.userId === user.userId;
       return {
+        remoteUserId: user.userId,
         name: user.userName,
         style: `color:#${user.color.getHexString()}`,
-        id: user.userId,
+        isSpectatedByUs: isSpectatedByUs,
+        isSpectatable: true,
       };
     });
 
@@ -91,9 +101,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  spectate(id: string) {
-    const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
-    if (remoteUser) {
+  toggleSpectate(user: { remoteUserId: string; isSpectatedByUs: boolean }) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(
+      user.remoteUserId
+    );
+    if (remoteUser && !user.isSpectatedByUs) {
       this.spectateUserService.activate(remoteUser);
     } else {
       this.spectateUserService.deactivate();

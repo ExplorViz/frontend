@@ -20,6 +20,7 @@ import {
 import WebSocketService, {
   SELF_DISCONNECTED_EVENT,
 } from 'virtual-reality/services/web-socket';
+import { tracked } from '@glimmer/tracking';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -39,6 +40,7 @@ export default class SpectateUser extends Service {
   @service('toast-message')
   toastMessage!: ToastMessage;
 
+  @tracked
   spectatedUser: RemoteUser | null = null;
 
   cameraControls: CameraControls | null = null;
