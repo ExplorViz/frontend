@@ -220,7 +220,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const layout = PlotlyTimeline.getPlotlyLayoutObject(
       data.x[0],
       data.x[data.x.length - 1],
-      data.x.length - 30,
+      data.x.length - 5,
       data.x.length
     );
 
@@ -343,6 +343,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     minRange: number,
     maxRange: number
   ) {
+    console.log(minPanValue);
     // Regarding minRange and maxRange for category type
     // https://plotly.com/javascript/reference/layout/xaxis/#layout-xaxis-range
     return {
@@ -357,9 +358,14 @@ export default class PlotlyTimeline extends Component<IArgs> {
       },
       xaxis: {
         type: 'category',
-        minallowed: minPanValue,
-        maxallowed: maxPanValue,
-        range: [minRange, maxRange],
+        //minallowed: minPanValue,
+        //maxallowed: maxPanValue,
+        //range: [minRange, maxRange],
+
+        //tickmode: 'linear',
+        //tick0: minPanValue,
+        dtick: 5,
+
         title: {
           font: {
             color: '#7f7f7f',
@@ -393,20 +399,28 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const timestampIds: number[] = [];
 
-    timestamps.forEach((timestamp) => {
+    let nextExpectedTimestamp = 0;
+    let i = 0;
+
+    while (i < timestamps.length) {
+      const timestamp = timestamps[i];
       const timestampId = timestamp.epochMilli;
 
-      if (
-        timestamp.epochMilli === 1702891200000 // ||
-        //timestamp.epochMilli === 1702891210000 ||
-        //timestamp.epochMilli === 1702891220000
-      ) {
-        x.push(null);
-        y.push(null);
-      } else {
-        x.push(new Date(timestamp.epochMilli));
+      if (nextExpectedTimestamp === 0) {
+        x.push(timestamp.epochMilli);
         y.push(timestamp.spanCount);
+        nextExpectedTimestamp = timestamp.epochMilli;
+        i++;
+      } else if (nextExpectedTimestamp === timestamp.epochMilli) {
+        x.push(timestamp.epochMilli);
+        y.push(timestamp.spanCount);
+        i++;
+      } else {
+        x.push(null);
+        x.push(null);
       }
+
+      nextExpectedTimestamp += 10000;
 
       const markerState = markerStates[timestampId];
 
@@ -430,7 +444,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         };
       }
       timestampIds.push(timestampId);
-    });
+    }
 
     this.markerState = markerStates;
 
