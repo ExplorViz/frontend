@@ -45,6 +45,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -93,6 +94,9 @@ export default class ApplicationRenderer extends Service.extend({
   forceGraph!: ThreeForceGraph;
 
   private structureLandscapeData!: StructureLandscapeData;
+
+  private staticStructure?: StructureLandscapeData;
+  private dynamicStructure?: StructureLandscapeData;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -200,8 +204,16 @@ export default class ApplicationRenderer extends Service.extend({
   addApplicationTask = task(
     async (
       applicationData: ApplicationData,
-      addApplicationArgs: AddApplicationArgs = {}
+      addApplicationArgs: AddApplicationArgs = {},
+      selectedApplication?: string,
+      selectedCommits?: Map<string, SelectedCommit[]>,
+      staticStructure?: StructureLandscapeData,
+      dynamicStructure?: StructureLandscapeData
     ) => {
+
+      this.staticStructure = staticStructure;
+      this.dynamicStructure = dynamicStructure;
+
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -232,7 +244,7 @@ export default class ApplicationRenderer extends Service.extend({
             )
           : addApplicationArgs;
 
-      if (layoutChanged) {
+      if (layoutChanged) { 
         applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
@@ -294,11 +306,61 @@ export default class ApplicationRenderer extends Service.extend({
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
+      // commit comparison visualization
+      if(selectedApplication && applicationObject3D.data.application.name === selectedApplication && selectedCommits?.get(selectedApplication)?.length == 2){
+        this.visualizeCommitComparison(applicationObject3D, selectedCommits);
+      }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
+        // remove existing comparison visualizations
+        this.removeCommitComparisonVisualization(applicationObject3D);
+      }
+
       applicationObject3D.resetRotation();
 
       return applicationObject3D;
     }
   );
+
+
+  visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
+    //console.log("VISUALIZATION CommitComparison!");
+  }
+
+
+  removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
+    //console.log("VISUALIZATION CommitComparison REMOVE!");
+  }
+
+  hideDynamicVisualization() {
+    console.log("hide dynamic visualization ", this.dynamicStructure);
+    this.dynamicStructure?.nodes?.forEach(app => {
+      const appObj = this.getApplicationById(app.id);
+      appObj?.hideMeshes();
+    });
+  }
+
+  showDynamicVisualization() {
+    this.dynamicStructure?.nodes?.forEach(app => {
+      const appObj = this.getApplicationById(app.id);
+      appObj?.showMeshes();
+    });
+  }
+
+  hideStaticVisualization() {
+    console.log("hide static visualization ", this.staticStructure);
+    this.staticStructure?.nodes?.forEach(app => {
+      const appObj = this.getApplicationById(app.id);
+      appObj?.hideMeshes();
+    });
+  }
+
+  showStaticVisualization() {
+    this.staticStructure?.nodes?.forEach(app => {
+      const appObj = this.getApplicationById(app.id);
+      appObj?.showMeshes();
+    });
+  }
+
+
 
   // #region @actions
 

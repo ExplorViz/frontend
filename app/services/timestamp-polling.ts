@@ -5,6 +5,7 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 
 const { spanService } = ENV.backendAddresses;
 
@@ -17,9 +18,9 @@ export default class TimestampPollingService extends Service {
   private debug = debugLogger();
 
   async initTimestampPollingWithCallback(
-    callback: (timestamps: Timestamp[]) => void
+    commits: SelectedCommit[], callback: (timestamps: Timestamp[][]) => void
   ) {
-    this.startTimestampPolling(callback);
+    this.startTimestampPolling(commits, callback);
   }
 
   resetPolling() {
@@ -29,20 +30,20 @@ export default class TimestampPollingService extends Service {
     }
   }
 
-  private startTimestampPolling(callback: (timestamps: Timestamp[]) => void) {
+  private startTimestampPolling(commits : SelectedCommit[], callback: (timestamps: Timestamp[][]) => void) {
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
     }
 
     this.timer = setIntervalImmediately(async () => {
-      this.pollTimestamps(callback);
+      this.pollTimestamps(commits, callback);
     }, 10 * 1000);
 
     this.debug('Timestamp timer started');
   }
 
-  private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
+  private async pollTimestamps(commits : SelectedCommit[], callback: (timestamps: Timestamp[][]) => void) {
     // check if we already have a timestamp that acts as base point
     const landscapeToken = this.tokenService.token?.value;
 
@@ -51,19 +52,36 @@ export default class TimestampPollingService extends Service {
       return;
     }
 
-    const newestLocalTimestamp =
-      this.timestampRepo.getLatestTimestamp(landscapeToken);
+    const firstCommitNewestLocalTimestamp =
+      this.timestampRepo.getLatestTimestamp(landscapeToken, commits[0].commitId);
 
-    const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
+    const firstCommitTimestampPromise = this.httpFetchTimestamps(commits[0], firstCommitNewestLocalTimestamp);
+    let secondCommitTimestampPromise = undefined;
+    if(commits.length > 1) {
+      const secondCommitNewestLocalTimestamp = this.timestampRepo.getLatestTimestamp(landscapeToken, commits[1].commitId);
+      secondCommitTimestampPromise = this.httpFetchTimestamps(commits[1], secondCommitNewestLocalTimestamp);
+    }
 
-    timestampPromise
-      .then((timestamps: Timestamp[]) => callback(timestamps))
+    const timestampsArr : Timestamp[][] = [];
+
+    await firstCommitTimestampPromise
+      .then((timestamps: Timestamp[]) => timestampsArr.push(timestamps))
       .catch((error: Error) => {
         console.log(error);
       });
+
+    if(secondCommitTimestampPromise) {
+      await secondCommitTimestampPromise
+      .then((timestamps: Timestamp[]) => timestampsArr.push(timestamps))
+      .catch((error: Error) => {
+        console.log(error);
+      });
+    }
+
+    callback(timestampsArr);
   }
 
-  private httpFetchTimestamps(newestLocalTimestamp?: Timestamp | undefined) {
+  private httpFetchTimestamps(commit : SelectedCommit, newestLocalTimestamp?: Timestamp) { // TODO: commit wise timestamp data
     this.debug('Polling timestamps');
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {

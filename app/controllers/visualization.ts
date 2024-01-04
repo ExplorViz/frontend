@@ -18,7 +18,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -53,10 +53,21 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import CodeServiceFetchingService from 'explorviz-frontend/services/code-service-fetching';
+import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
+import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
+import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
+import { combineStructures } from 'explorviz-frontend/utils/landscape-structure-helpers';
+
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
+}
+
+export interface SelectedCommit {
+  commitId: string;
+  branchName: string;
 }
 
 export const earthTexture = new THREE.TextureLoader().load(
@@ -81,6 +92,9 @@ export default class VisualizationController extends Controller {
 
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
+
+  @service('code-service-fetching')
+  codeServiceFetchingService!: CodeServiceFetchingService;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
@@ -118,11 +132,19 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  plotlyTimelineRef!: PlotlyTimeline;
+  @service('repos/configuration-repository')
+  configurationRepo!: ConfigurationRepository;
+
+  plotlyTimelineRef: (PlotlyTimeline | undefined)[] = [undefined, undefined];
+
+  plotlyCommitlineRef!: PlotlyCommitline;
 
   queryParams = ['roomId'];
 
-  selectedTimestampRecords: Timestamp[] = [];
+  selectedTimestampRecords: Timestamp[][] = [];
+
+  staticStructureData? : StructureLandscapeData = undefined;
+  dynamicStructureData? : StructureLandscapeData = undefined;
 
   @tracked
   roomId?: string;
@@ -146,10 +168,28 @@ export default class VisualizationController extends Controller {
   landscapeData: LandscapeData | null = null;
 
   @tracked
+  evolutionLandscapeData: EvolutionLandscapeData | null = null;
+
+  @tracked
+  currentSelectedCommits: Map<string, SelectedCommit[]> = new Map();
+
+  @tracked
+  currentSelectedApplication?: string = undefined;
+
+  @tracked
+  showConfigurationOverview: boolean = false;
+
+  @tracked
+  commitlineConfiguration: ConfigurationItem[] = [];
+
+  @tracked
+  commitlineMetrics: String[] = [];
+
+  @tracked
   visualizationPaused = false;
 
   @tracked
-  timelineTimestamps: Timestamp[] = [];
+  timelineTimestamps: Timestamp[][] = []; // TODO: Timestamp[][]
 
   @tracked
   highlightedMarkerColor = 'blue';
@@ -161,7 +201,16 @@ export default class VisualizationController extends Controller {
   buttonText: string = '';
 
   @tracked
-  flag: boolean = false; // default value
+  flag: boolean = false;
+
+  @tracked
+  isRequestsTimeline: boolean = true;
+
+  @tracked
+  isCommitsTimeline: boolean = false;
+
+  
+  
 
   debug = debugLogger();
 
@@ -226,27 +275,42 @@ export default class VisualizationController extends Controller {
     }
     this.debug('updateTimestampList');
     const currentToken = this.landscapeTokenService.token.value;
-    this.timelineTimestamps =
-      this.timestampRepo.getTimestamps(currentToken) ?? [];
+    const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+    const timelineTimestamps : Timestamp[][] = [];
+    if (selectedCommits?.length) {
+      const firstCommitTimestamps = this.timestampRepo.getTimestamps(currentToken, selectedCommits[0].commitId);
+      timelineTimestamps.push(firstCommitTimestamps);
+
+      if (selectedCommits.length === 2) {
+        const secondCommitTimestamps = this.timestampRepo.getTimestamps(currentToken, selectedCommits[1].commitId);
+        timelineTimestamps.push(secondCommitTimestamps);
+      }
+    }
+    this.timelineTimestamps = timelineTimestamps;
   }
 
   @action
   receiveNewLandscapeData(
     structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
+    dynamicData: DynamicLandscapeData,
+    selectedTimeline?: number // TODO: non optional
   ) {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
-      this.updateLandscape(structureData, dynamicData);
+      this.updateLandscape(structureData, dynamicData); 
       console.log('1', this.timestampService.timestamp);
-      if (this.timelineTimestamps.lastObject) {
+      if (this.timelineTimestamps[0]?.lastObject) {
         console.log('2', this.timestampService.timestamp);
         this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.epochMilli;
-        this.selectedTimestampRecords = [
-          this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
-        ];
-        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+          this.timelineTimestamps[0].lastObject?.epochMilli;
+
+        const selectedCommits : SelectedCommit[] | undefined = this.currentSelectedApplication && this.currentSelectedCommits.get(this.currentSelectedApplication);
+        if(selectedCommits && selectedCommits.length > 0) {
+          this.selectedTimestampRecords[0] = [
+            this.timestampRepo.getLatestTimestamp(structureData.landscapeToken, selectedCommits[0].commitId)!,
+          ];
+          //this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords, );
+        }
       }
     }
   }
@@ -313,7 +377,8 @@ export default class VisualizationController extends Controller {
 
   @action
   resetView() {
-    this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+    this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
+    this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
   }
 
   @action
@@ -407,29 +472,63 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
+  async timelineClicked(selectedTimeline: number, selectedTimestamps: Timestamp[]) { // TODO: timeline of which selected commit?
+    console.log("TIMELINE CLICKED ::::: ", selectedTimeline );
     if (
       this.selectedTimestampRecords.length > 0 &&
-      selectedTimestamps[0] === this.selectedTimestampRecords[0]
+      selectedTimestamps[0] === this.selectedTimestampRecords[selectedTimeline][0]
     ) {
       return;
     }
-    this.selectedTimestampRecords = selectedTimestamps;
+    this.selectedTimestampRecords[selectedTimeline] = selectedTimestamps;
     this.pauseVisualizationUpdating();
-    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
+    this.updateTimestamp(selectedTimeline, selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
 
   async updateTimestamp(
+    selectedTimeline: number,
     epochMilli: number,
     timestampRecordArray?: Timestamp[]
-  ) {
+  ) { 
     try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
+      const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+      let [structureData, dynamicData] =
+        await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits![selectedTimeline], epochMilli); // TODO: if two commits selected also load from the dynamics for the second commit and combine both. Delete selectedCommitline logic
 
-      this.updateLandscape(structureData, dynamicData);
+      this.dynamicStructureData = structureData;
+
+      // TODO: combine dynamic structure with static structure
+      const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
+      const renderDynamicStructure = this.userSettings.applicationSettings.dynamicStructure.value;
+
+      if(renderStaticStructure && renderDynamicStructure) {
+        const staticCopy = this.staticStructureData;
+        const dynamicCopy = this.dynamicStructureData;
+        structureData = combineStructures(staticCopy, dynamicCopy) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
+        console.log("STATIC AND DYNAMIC STRUCTURE DATA COMBINED ::::::::::::::::: ", structureData);
+      } else if (renderStaticStructure && !renderDynamicStructure) {
+        dynamicData = [];
+        if(this.staticStructureData)
+          structureData = this.staticStructureData;
+        else
+          structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
+
+        console.log("STATIC STRUCTURE DATA ::::::::::::::::: ", structureData);
+      } else if (!renderStaticStructure && renderDynamicStructure) {
+        if(this.dynamicStructureData)
+          structureData = this.dynamicStructureData;
+        else
+          structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
+      } else {
+        console.debug("Should never happen!");
+        structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
+        dynamicData = [];
+      }
+
+
+      this.updateLandscape(structureData, dynamicData); // TODO: if two commits selected we need to combine their data before we update the landscape
       if (timestampRecordArray) {
-        this.selectedTimestampRecords = timestampRecordArray;
+        this.selectedTimestampRecords[selectedTimeline] = timestampRecordArray;
       }
       this.timestampService.timestamp = epochMilli;
     } catch (e) {
@@ -440,14 +539,17 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
+  getTimelineReference(plotlyTimelineRef: PlotlyTimeline, selectedTimeline: number) {
     // called from within the plotly timeline component
-    set(this, 'plotlyTimelineRef', plotlyTimelineRef);
+    console.log("GET TIMELINE REFERENCE ", selectedTimeline);
+    this.plotlyTimelineRef[selectedTimeline] = plotlyTimelineRef;
+    set(this, 'plotlyTimelineRef', this.plotlyTimelineRef); // trigger change
   }
 
   @action
   toggleTimeline() {
     this.isTimelineActive = !this.isTimelineActive;
+    console.log("CURRENT SELECTED COMMITS XXXXXXX: ", this.currentSelectedCommits);
   }
 
   @action
@@ -461,10 +563,12 @@ export default class VisualizationController extends Controller {
   }
 
   resumeVisualizationUpdating() {
-    if (this.visualizationPaused) {
+    const selectedCommits = this.currentSelectedApplication && this.currentSelectedCommits.get(this.currentSelectedApplication);
+    if (this.visualizationPaused && selectedCommits?.length === 1) {
       this.visualizationPaused = false;
       this.highlightedMarkerColor = 'blue ';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
+      this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
       animatePlayPauseButton(false);
     }
   }
@@ -473,7 +577,8 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
+      this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
       animatePlayPauseButton(true);
     }
   }
@@ -484,8 +589,11 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
+    // this.timestampPollingService.initTimestampPollingWithCallback(
+    //   this.timestampPollingCallback.bind(this)
+    // );
+    this.codeServiceFetchingService.initApplicationFetchingWithCallback(
+      this.applicationFetchingCallback.bind(this)
     );
     this.updateTimestampList();
     this.initWebSocket();
@@ -523,21 +631,44 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  timestampPollingCallback(timestamps: Timestamp[]) {
-    this.timestampRepo.addTimestamps(
-      this.landscapeTokenService.token!.value,
-      timestamps
-    );
+  timestampPollingCallback(timestamps: Timestamp[][]) {
 
-    if (timestamps.length > 0) {
+    const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+
+    if(!selectedCommits) {
+      console.debug("Error during polling callback");
+      return;
+    }
+
+    if(selectedCommits.length === 0) {
+      console.debug("No commits selected during polling callback");
+      return;
+    }else {
+      this.timestampRepo.addTimestamps(
+        this.landscapeTokenService.token!.value,
+        selectedCommits[0].commitId,
+        timestamps[0]
+      );
+  
+      if(selectedCommits.length === 2) {
+        this.timestampRepo.addTimestamps(
+          this.landscapeTokenService.token!.value,
+          selectedCommits[1].commitId,
+          timestamps[1]
+        );
+      }
+    }
+
+
+    if (timestamps[0].length > 0 || (selectedCommits.length > 1 && timestamps[1].length > 0)) {
       this.timestampRepo.triggerTimelineUpdate();
     }
 
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    if (!this.visualizationPaused) {
+    if (!this.visualizationPaused) { 
+      const lastSelectTimestamp = this.timestampService.timestamp;
       const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
         this.landscapeTokenService.token!.value,
+        selectedCommits[0].commitId,
         lastSelectTimestamp
       );
 
@@ -546,11 +677,27 @@ export default class VisualizationController extends Controller {
         JSON.stringify(this.selectedTimestampRecords) !==
           JSON.stringify([timestampToRender])
       ) {
-        this.updateTimestamp(timestampToRender.epochMilli);
-        this.selectedTimestampRecords = [timestampToRender];
-        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+        this.updateTimestamp(0, timestampToRender.epochMilli);
+        this.selectedTimestampRecords[0] = [timestampToRender];
+        this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0); // TODO: specific timeline as in updateTimestamp?
+        
       }
     }
+  }
+
+  applicationFetchingCallback(applications: string[]) {
+    const evolutionLandscapeData : EvolutionLandscapeData = {
+      applications: [],
+    };
+    applications.forEach(appName => {
+      const evolutedApplication : EvolutedApplication = {
+        name: appName,
+        branches: [],
+      };
+      evolutionLandscapeData.applications = [...evolutionLandscapeData.applications, evolutedApplication];
+    });
+    this.evolutionLandscapeData = evolutionLandscapeData;
+    console.log("XXXX: " + applications);
   }
 
   private async initWebSocket() {
@@ -597,6 +744,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
+    console.log("onTimestampUpdateTimer");
     this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
@@ -624,6 +772,117 @@ export default class VisualizationController extends Controller {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
   }
+
+
+  @action
+  showRequestsTimeline(){
+    console.log("Requests Timeline");
+    this.isCommitsTimeline = false;
+    this.isRequestsTimeline = true;
+  }
+
+  @action
+  showCommitsTimeline(){
+    console.log("Commits Timeline");
+    this.isRequestsTimeline = false;
+    this.isCommitsTimeline = true;
+  }
+
+  @action
+  async applicationButtonClicked(application: string) {
+    if(this.currentSelectedApplication !== application){ // don't trigger reload
+      this.currentSelectedApplication = application;
+      this.codeServiceFetchingService.initCommitTreeFetchingWithCallback(
+        this.commitTreeFetchingCallback.bind(this), this.currentSelectedApplication);
+    }
+  }
+
+  commitTreeFetchingCallback(commitTree: EvolutedApplication) {
+    const oldCommitTree = this.evolutionLandscapeData?.applications.find(application => {
+      return application.name === this.currentSelectedApplication;
+    });
+    if(oldCommitTree) {
+      const index = this.evolutionLandscapeData!.applications.indexOf(oldCommitTree);
+      if(index !== -1){
+        this.evolutionLandscapeData!.applications[index] = commitTree;
+        set(this, 'evolutionLandscapeData', this.evolutionLandscapeData); // trigger reload
+      }
+    }
+
+  }
+
+  @action
+  getCommitlineReference(plotlyCommitlineRef: PlotlyCommitline) {
+    // called from within the plotly timeline component
+    set(this, 'plotlyCommitlineRef', plotlyCommitlineRef);
+  }
+
+  @action
+  toggleCommitlineConfigurationOverview() {
+    this.showConfigurationOverview = !this.showConfigurationOverview;
+  }
+
+  @action
+  updateConfigurationsAndMetrics() {
+    const currentToken = this.landscapeTokenService.token!.value;
+    this.commitlineConfiguration = this.configurationRepo.getConfiguration(currentToken);
+    this.commitlineMetrics = this.configurationRepo.getSoftwaremetrics(currentToken)
+  }
+
+  @action 
+  updatePlotForMetrics(){
+    if(this.plotlyCommitlineRef){
+      //this.plotlyCommitlineRef.updatePlotlineForMetric();
+    }
+  }
+
+  // TODO: DELETE
+  // @action
+  // async renderSettingChanged() {
+  //   this.timestampPollingService.resetPolling();
+  //   const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+  //   this.timestampPollingService.initTimestampPollingWithCallback(
+  //     selected!,
+  //     this.timestampPollingCallback.bind(this)
+  //   );
+
+  // }
+
+  @action
+  async commitlineClicked(commits: Map<string,SelectedCommit[]>, staticStructureData?: StructureLandscapeData ) {
+    // TODO: change timeline requests so that it only fetches dynamic data regarding the selected commit(s)
+    // (one timeline for each commit) but don't forget to also enhance it with the static landscape structure
+    // 
+    // TODO: build static landscape and show it (can be deactivated in the settings)
+
+    // enhance dynamic landscape structure with static landscape structure
+
+    if(staticStructureData)
+      this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData); // needed when fetching dynamic data so we can enhance it with the static data (if enabled)
+    
+    set(this, "currentSelectedCommits", commits);
+
+    const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+    const numOfSelectedCommits = selected?.length;
+    console.log(this.currentSelectedApplication + " has " + numOfSelectedCommits + " selected commits" );
+
+    this.timestampPollingService.resetPolling();
+    if(numOfSelectedCommits && numOfSelectedCommits > 0){
+      this.timestampPollingService.initTimestampPollingWithCallback(
+        selected,
+        this.timestampPollingCallback.bind(this)
+      );
+    } else {
+      this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
+    }
+    
+    // TODO: make visualization paused if for each of the two timelines a timepoint got selected
+
+    // TODO: call reload handler and stop it and remove it from init method so the same dynamic data is not loaded every 10s 
+    
+  }
+
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

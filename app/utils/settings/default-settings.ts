@@ -2,6 +2,26 @@ import { defaultApplicationColors } from './color-schemes';
 import { ApplicationSettings } from './settings-schemas';
 
 export const defaultApplicationSettings: ApplicationSettings = {
+  // Render settings
+  staticStructure: {
+    value: true,
+    orderNumber: 1,
+    group: 'Rendering',
+    displayName: 'Render Static Structure Data',
+    description:
+      'Toggle to turn rendering on/off',
+    isFlagSetting: true,
+  },
+
+  dynamicStructure: {
+    value: true,
+    orderNumber: 2,
+    group: 'Rendering',
+    displayName: 'Render Dynamic Structure Data',
+    description:
+      'Toggle to turn rendering on/off',
+    isFlagSetting: true,
+  },
   // Color Settings
   foundationColor: {
     value: defaultApplicationColors.foundationColor,

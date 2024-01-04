@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -17,7 +17,7 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import LocalUser from 'collaborative-mode/services/local-user';
@@ -75,6 +75,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private graph!: ForceGraph3DInstance;
 
+  private selectedApplication? : string;
+
+  private selectedCommits?: Map<string,SelectedCommit[]>;
+
+  private staticStructure?: StructureLandscapeData;
+
+  private dynamicStructure?: StructureLandscapeData;
+
   get structureLandscapeData() {
     return this.landscapeData.structureLandscapeData;
   }
@@ -86,10 +94,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph }: any
+    { landscapeData, graph, selectedApplication, selectedCommits, staticStructure, dynamicStructure }: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
+    this.selectedApplication = selectedApplication;
+    this.selectedCommits = selectedCommits;
+    this.staticStructure = staticStructure;
+    this.dynamicStructure = dynamicStructure;
     this.handleUpdatedLandscapeData.perform();
   }
 
@@ -118,6 +130,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
 
+    console.log("STRUCTURE LANDSCAPE DATA XXXXXXXXXXX: ", this.structureLandscapeData);
+
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
@@ -131,7 +145,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         // create or update applicationObject3D
         const app =
           await this.applicationRenderer.addApplicationTask.perform(
-            applicationData
+            applicationData,
+            {},
+            this.selectedApplication,
+            this.selectedCommits,
+            this.staticStructure,
+            this.dynamicStructure
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size

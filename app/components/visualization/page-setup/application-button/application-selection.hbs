@@ -1,0 +1,5 @@
+{{#if @evolutionData}}
+{{#each this.evolutionData.applications as |application|}}
+  <button {{on 'click' (fn this.onClick application.name)}}>{{application.name}}</button>
+{{/each}}
+{{/if}}

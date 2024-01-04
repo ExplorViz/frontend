@@ -1,0 +1,35 @@
+{{#if (and @evolutionData @selectedApplication)}}
+  <Visualization::PageSetup::Commitline::Configuration::ConfigurationOverview
+        @configurations={{@configurations}}
+        @softwaremetrics={{@softwaremetrics}}
+        @showConfiguration={{@showConfiguration}}
+        @toggleConfigurationOverview={{@toggleConfigurationOverview}}
+  />
+  <div
+    class='plotlyCommitDiv'
+    {{on 'mouseenter' this.handleMouseEnter}}
+    {{on 'mouseleave' this.handleMouseLeave}}
+    {{did-update this.didRender @evolutionData @selectedApplication}}
+    {{did-insert this.didRender}}
+  >
+  <button
+      class="btn-configuration"
+      type="button"
+      {{ on "click" this.toggleConfigOverview }}
+    >
+      {{svg-jar "gear-16" class="octicon align-middle"}}
+      <BsTooltip @placement="bottom" @triggerEvents="hover">
+        Open configuration overview
+      </BsTooltip>
+    </button>
+
+  </div>
+{{else}}
+  <div class='timeline-no-timestamps-outer'>
+    <div class='timeline-no-timestamps-inner'>
+      No application selected!
+    </div>
+  </div>
+  <div class='plotlyDiv timeline-blur-effect' {{did-insert this.didRender}}>
+  </div>
+{{/if}}

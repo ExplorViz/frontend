@@ -415,6 +415,20 @@ export default class ApplicationObject3D extends THREE.Object3D {
     });
   }
 
+  hideMeshes() {
+    this.getAllMeshes().forEach((mesh) => {
+      mesh.visible = false;
+      mesh.material.needsUpdate = true;
+    });
+  }
+
+  showMeshes() {
+    this.getAllMeshes().forEach((mesh) => {
+      mesh.visible = true;
+      mesh.material.needsUpdate = true;
+    });
+  }
+
   /**
    * Scales the application object such that its largest side matches the given value.
    *

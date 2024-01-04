@@ -9,6 +9,14 @@
   height: 150px;
 }
 
+.plotlyCommitDiv {
+  height: 300px;
+}
+
+.commitline {
+  height: 300px !important;
+}
+
 .timeline {
   background-color: white;
   border-top: darkgray 1px solid;
@@ -18,8 +26,12 @@
   margin-bottom: 10px;
 }
 
+.timelineextend {
+  height: 300px !important;
+}
+
 .timelinehide {
-  height: 0;
+  height: 0 !important;
   opacity: 0;
   margin-bottom: 0;
   overflow: hidden;
@@ -88,4 +100,20 @@
 
 .timeline-blur-effect {
   filter: blur(0.1rem) opacity(0.5);
+}
+
+.btn-configuration {
+  all: unset;
+  position: relative;
+  left: 13px;
+  top: 13px;
+  z-index: 489;
+}
+
+.btn-configuration:focus {
+  outline: none;
+}
+
+.btn-configuration:hover {
+  color: #6c757d!important;
 }

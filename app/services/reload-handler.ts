@@ -8,6 +8,7 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import LandscapeListener from './landscape-listener';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 
 export default class ReloadHandler extends Service.extend(Evented) {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
@@ -19,14 +20,14 @@ export default class ReloadHandler extends Service.extend(Evented) {
    * @method loadLandscapeById
    * @param {*} timestamp
    */
-  async loadLandscapeByTimestamp(timestamp: number, interval: number = 10) {
+  async loadLandscapeByTimestamp(selectedCommit: SelectedCommit, timestamp: number, interval: number = 10) {
     const self = this;
-
+    console.log("RELOAAAAD");
     self.debug('Start import landscape-request');
 
     try {
       const [structureDataPromise, dynamicDataPromise] =
-        await this.landscapeListener.requestData(timestamp, interval);
+        await this.landscapeListener.requestData(timestamp, interval); // TODO: also request by commit id
 
       if (
         structureDataPromise.status === 'fulfilled' &&

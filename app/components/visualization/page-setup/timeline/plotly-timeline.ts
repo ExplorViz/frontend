@@ -1,6 +1,7 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 
@@ -13,7 +14,7 @@ interface IMarkerStates {
 }
 
 interface IArgs {
-  timestamps?: Timestamp[];
+  timestamps?: Timestamp[][];
   defaultMarkerColor?: string;
   defaultMarkerSize?: number;
   highlightedMarkerColor?: string;
@@ -21,8 +22,8 @@ interface IArgs {
   selectionCount?: number;
   slidingWindowLowerBoundInMinutes?: number;
   slidingWindowUpperBoundInMinutes?: number;
-  setChildReference?(timeline: PlotlyTimeline): void;
-  clicked?(selectedTimestamps: Timestamp[]): void;
+  setChildReference?(timeline: PlotlyTimeline, selectedTimeline: number): void;
+  clicked?(selectedTimeline: number, selectedTimestamps: Timestamp[]): void;
 }
 
 export default class PlotlyTimeline extends Component<IArgs> {
@@ -62,22 +63,23 @@ export default class PlotlyTimeline extends Component<IArgs> {
   get timestamps() {
     return this.args.timestamps || [];
   }
+
   // END template-argument getters for default values
 
   readonly debug = debugLogger();
 
-  initDone = false;
+  initDone = [false, false];
 
-  oldPlotlySlidingWindow = { min: 0, max: 0 };
+  oldPlotlySlidingWindow = [{ min: 0, max: 0 }, { min: 0, max: 0 }];
 
   userSlidingWindow = null;
 
   // variable used for output when clicked
-  selectedTimestamps: Timestamp[] = [];
+  selectedTimestamps: Timestamp[][] = [[],[]];
 
-  markerState: IMarkerStates = {};
+  markerState: IMarkerStates[] = [{}, {}];
 
-  timelineDiv: any;
+  timelineDiv: any[] = [[],[]];
 
   // BEGIN Ember Div Events
   @action
@@ -97,29 +99,31 @@ export default class PlotlyTimeline extends Component<IArgs> {
   // END Ember Div Events
 
   @action
-  didRender(plotlyDiv: any) {
+  didRender(plotlyDiv: any, params: any[]) {
+    const selectedTimeline = params[0];
     // register this component at its parent if set via template
     const parentFunction = this.args.setChildReference;
     if (parentFunction) {
-      parentFunction(this);
+      parentFunction(this, selectedTimeline);
     }
 
-    this.timelineDiv = plotlyDiv;
+    this.timelineDiv[selectedTimeline] = plotlyDiv;
+    console.log("SELECTED TIMELINE DID RENDER ::::::", selectedTimeline);
 
-    if (this.initDone) {
-      this.extendPlotlyTimelineChart(this.timestamps);
+    if (this.initDone[selectedTimeline]) {
+      this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
     } else {
-      this.setupPlotlyTimelineChart(this.timestamps);
-      if (this.initDone) {
-        this.setupPlotlyListener();
+      this.setupPlotlyTimelineChart(this.timestamps, selectedTimeline);
+      if (this.initDone[selectedTimeline]) {
+        this.setupPlotlyListener(selectedTimeline);
       }
     }
   }
 
-  setupPlotlyListener() {
+  setupPlotlyListener(selectedTimeline: number) {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
 
-    const plotlyDiv = this.timelineDiv;
+    const plotlyDiv = this.timelineDiv[selectedTimeline];
 
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyTimeline = this;
@@ -138,7 +142,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
         if (self.selectedTimestamps.length === self.selectionCount) {
-          self.resetSelectionInStateObjects();
+          self.resetSelectionInStateObjects(selectedTimeline);
 
           colors = Array(numberOfPoints).fill(self.defaultMarkerColor);
           sizes = Array(numberOfPoints).fill(self.defaultMarkerSize);
@@ -151,8 +155,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         const timestampId = data.points[0].data.timestampId[pn];
 
-        self.markerState[timestampId].color = highlightedMarkerColor;
-        self.markerState[timestampId].size = highlightedMarkerSize;
+        self.markerState[selectedTimeline][timestampId].color = highlightedMarkerColor;
+        self.markerState[selectedTimeline][timestampId].size = highlightedMarkerSize;
 
         const update = { marker: { color: colors, size: sizes } };
 
@@ -160,24 +164,24 @@ export default class PlotlyTimeline extends Component<IArgs> {
         const tn = data.points[0].curveNumber;
         Plotly.restyle(plotlyDiv, update, [tn]);
 
-        self.selectedTimestamps.push(self.markerState[timestampId].emberModel);
+        self.selectedTimestamps[selectedTimeline].push(self.markerState[selectedTimeline][timestampId].emberModel);
 
         // Check if component should pass the selected timestamps
         // to its parent
         if (self.selectionCount > 1) {
           if (self.selectedTimestamps.length === self.selectionCount) {
             // closure action
-            if (self.args.clicked) self.args.clicked(self.selectedTimestamps);
+            if (self.args.clicked) self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline]);
           }
         } else if (self.args.clicked) {
           // closure action
-          self.args.clicked(self.selectedTimestamps);
+          self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline]);
         }
       });
 
       // double click
       plotlyDiv.on('plotly_doubleclick', () => {
-        const { min, max } = self.oldPlotlySlidingWindow;
+        const { min, max } = self.oldPlotlySlidingWindow[selectedTimeline];
         const update = PlotlyTimeline.getPlotlySlidingWindowUpdateObject(
           min,
           max
@@ -209,15 +213,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   // BEGIN Plot Logic
 
-  setupPlotlyTimelineChart(timestamps: Timestamp[]) {
-    if (timestamps.length === 0) {
-      this.createDummyTimeline();
+  setupPlotlyTimelineChart(timestamps: Timestamp[][], selectedTimeline: number) {
+
+    if (timestamps[selectedTimeline].length === 0) {
+      this.createDummyTimeline(selectedTimeline);
       return;
     }
 
-    const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
-
-    const latestTimestamp = timestamps[timestamps.length - 1];
+    
+    const data = this.getUpdatedPlotlyDataObject(timestamps[selectedTimeline], this.markerState[selectedTimeline], selectedTimeline);
+    const latestTimestamp = timestamps[selectedTimeline][timestamps[selectedTimeline].length - 1];
     const latestTimestampValue = new Date(latestTimestamp.epochMilli);
 
     const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
@@ -231,29 +236,29 @@ export default class PlotlyTimeline extends Component<IArgs> {
       windowInterval.max
     );
 
-    this.oldPlotlySlidingWindow = windowInterval;
-
+    this.oldPlotlySlidingWindow[selectedTimeline] = windowInterval;
     Plotly.newPlot(
-      this.timelineDiv,
+      this.timelineDiv[selectedTimeline],
       data,
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
     );
 
-    this.initDone = true;
+    this.initDone[selectedTimeline] = true;
   }
 
-  extendPlotlyTimelineChart(timestamps: Timestamp[]) {
-    if (timestamps.length === 0) {
+  extendPlotlyTimelineChart(timestamps: Timestamp[][], selectedTimeline: number) {
+    if (timestamps[selectedTimeline].length === 0) {
       return;
     }
 
     const data: any = this.getUpdatedPlotlyDataObject(
-      timestamps,
-      this.markerState
+      timestamps[selectedTimeline],
+      this.markerState[selectedTimeline],
+      selectedTimeline
     );
 
-    const latestTimestamp: Timestamp = timestamps[timestamps.length - 1];
+    const latestTimestamp: Timestamp = timestamps[selectedTimeline][timestamps[selectedTimeline].length - 1];
     const latestTimestampValue = new Date(latestTimestamp.epochMilli);
 
     const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
@@ -269,47 +274,47 @@ export default class PlotlyTimeline extends Component<IArgs> {
           windowInterval.max
         );
 
-    this.oldPlotlySlidingWindow = windowInterval;
+    this.oldPlotlySlidingWindow[selectedTimeline] = windowInterval;
 
     Plotly.react(
-      this.timelineDiv,
+      this.timelineDiv[selectedTimeline],
       data,
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
     );
   }
 
-  continueTimeline(oldSelectedTimestampRecords: Timestamp[]) {
-    this.resetHighlingInStateObjects();
+  continueTimeline(oldSelectedTimestampRecords: Timestamp[][], selectedTimeline: number) {
+    this.resetHighlingInStateObjects(selectedTimeline);
 
     // call this to initialize the internal marker state variable
-    this.getUpdatedPlotlyDataObject(this.timestamps, this.markerState);
+    this.getUpdatedPlotlyDataObject(this.timestamps[selectedTimeline], this.markerState[selectedTimeline], selectedTimeline);
 
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
-    oldSelectedTimestampRecords.forEach((timestamp) => {
+    oldSelectedTimestampRecords[selectedTimeline].forEach((timestamp) => {
       const timestampId = timestamp.epochMilli;
 
-      this.markerState[timestampId].color = highlightedMarkerColor;
-      this.markerState[timestampId].size = highlightedMarkerSize;
-      this.markerState[timestampId].emberModel = timestamp;
+      this.markerState[selectedTimeline][timestampId].color = highlightedMarkerColor;
+      this.markerState[selectedTimeline][timestampId].size = highlightedMarkerSize;
+      this.markerState[selectedTimeline][timestampId].emberModel = timestamp;
 
-      this.selectedTimestamps.push(this.markerState[timestampId].emberModel);
+      this.selectedTimestamps[selectedTimeline].push(this.markerState[selectedTimeline][timestampId].emberModel);
     });
 
-    this.extendPlotlyTimelineChart(this.timestamps);
+    this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
   }
 
-  resetHighlighting() {
-    this.resetHighlingInStateObjects();
-    this.extendPlotlyTimelineChart(this.timestamps);
+  resetHighlighting(selectedTimeline: number) {
+    this.resetHighlingInStateObjects(selectedTimeline);
+    this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
   }
 
-  createDummyTimeline() {
+  createDummyTimeline(selectedTimeline: number) {
     const minRange = 0;
     const maxRange = 90;
     Plotly.newPlot(
-      this.timelineDiv,
+      this.timelineDiv[selectedTimeline],
       null,
       PlotlyTimeline.getPlotlyLayoutObject(minRange, maxRange),
       PlotlyTimeline.getPlotlyOptionsObject()
@@ -393,7 +398,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   getUpdatedPlotlyDataObject(
     timestamps: Timestamp[],
-    markerStates: IMarkerStates
+    markerStates: IMarkerStates,
+    selectedTimeline: number
   ) {
     const colors: string[] = [];
     const sizes: number[] = [];
@@ -433,7 +439,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       timestampIds.push(timestampId);
     });
 
-    this.markerState = markerStates;
+    this.markerState[selectedTimeline] = markerStates;
 
     return PlotlyTimeline.getPlotlyDataObject(
       x,
@@ -469,22 +475,22 @@ export default class PlotlyTimeline extends Component<IArgs> {
     ];
   }
 
-  resetHighlingInStateObjects() {
-    this.selectedTimestamps = [];
-    this.markerState = {};
+  resetHighlingInStateObjects(selectedTimeline: number) {
+    this.selectedTimestamps[selectedTimeline] = [];
+    this.markerState[selectedTimeline] = {};
   }
 
-  resetSelectionInStateObjects() {
-    const selTimestamps: Timestamp[] = this.selectedTimestamps;
+  resetSelectionInStateObjects(selectedTimeline: number) {
+    const selTimestamps: Timestamp[] = this.selectedTimestamps[selectedTimeline];
 
     const { defaultMarkerColor, defaultMarkerSize } = this;
 
     selTimestamps.forEach((t) => {
-      this.markerState[t.epochMilli].color = defaultMarkerColor;
-      this.markerState[t.epochMilli].size = defaultMarkerSize;
+      this.markerState[selectedTimeline][t.epochMilli].color = defaultMarkerColor;
+      this.markerState[selectedTimeline][t.epochMilli].size = defaultMarkerSize;
     });
 
-    this.selectedTimestamps = [];
+    this.selectedTimestamps[selectedTimeline] = [];
   }
 
   static getPlotlyOptionsObject() {

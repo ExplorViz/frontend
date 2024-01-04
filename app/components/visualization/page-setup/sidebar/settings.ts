@@ -52,6 +52,7 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       ApplicationSettingId[]
     > = {
+      Rendering: [],
       'Hover Effects': [],
       Colors: [],
       Communication: [],
@@ -153,11 +154,38 @@ export default class Settings extends Component<Args> {
       AlertifyHandler.showAlertifyError(e.message);
     }
 
+    
+
+
     switch (settingId) {
       case 'applyHighlightingOnHover':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
         }
+        break;
+      case 'staticStructure':
+          if (
+            !this.userSettings.applicationSettings.dynamicStructure.value && !value
+          ) {
+            AlertifyHandler.showAlertifyWarning(
+              'One structure to render required!'
+            );
+            this.userSettings.updateApplicationSetting(settingId, !value);
+          }else {
+            this.applicationRenderer.hideStaticVisualization();
+          }
+        break;
+      case 'dynamicStructure':
+          if (
+            !this.userSettings.applicationSettings.staticStructure.value && !value
+          ) {
+            AlertifyHandler.showAlertifyWarning(
+              'One structure to render required!'
+            );
+            this.userSettings.updateApplicationSetting(settingId, !value);
+          } else {
+            this.applicationRenderer.hideDynamicVisualization();
+          }
         break;
       default:
         break;

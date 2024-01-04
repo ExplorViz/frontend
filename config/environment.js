@@ -53,6 +53,7 @@ module.exports = (environment) => {
       userService: P_ENV.USER_SERV_URL,
       vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
+      codeService: P_ENV.CODE_SERV_URL,
     },
     version: {
       versionTag: P_ENV.VERSION_TAG,

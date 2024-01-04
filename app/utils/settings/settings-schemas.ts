@@ -1,4 +1,5 @@
 export type SettingGroup =
+  | 'Rendering'
   | 'Colors'
   | 'Highlighting'
   | 'Hover Effects'
@@ -7,6 +8,10 @@ export type SettingGroup =
   | 'Camera'
   | 'Extended Reality'
   | 'Debugging';
+
+export type ApplicationRenderSettingId =
+  | 'staticStructure'
+  | 'dynamicStructure';
 
 export type ApplicationColorSettingId =
   | 'foundationColor'
@@ -48,6 +53,7 @@ export type ApplicationDebugSettingId =
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
 export type ApplicationSettingId =
+  | ApplicationRenderSettingId
   | ApplicationColorSettingId
   | ApplicationHighlightingSettingId
   | ApplicationHoveringSettingId
@@ -57,6 +63,8 @@ export type ApplicationSettingId =
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
 
+
+export type ApplicationRenderSettings = Record<ApplicationRenderSettingId, FlagSetting>; 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
   ColorSetting
@@ -88,6 +96,11 @@ export type ApplicationDebugSettings = {
   resetToDefaults: ButtonSetting;
 };
 
+// export type ApplicationRenderSettings = {
+//   showDynamicStructure: FlagSetting;
+//   showStaticStructure: FlagSetting;
+// };
+
 export type ApplicationPopupSettings = Record<
   ApplicationPopupSettingId,
   FlagSetting
@@ -100,7 +113,8 @@ export type ApplicationCameraSettings = Record<
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
-export type ApplicationSettings = ApplicationColorSettings &
+export type ApplicationSettings = ApplicationRenderSettings &
+ApplicationColorSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &

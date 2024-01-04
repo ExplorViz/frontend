@@ -105,6 +105,10 @@
         {{else}}
           <Visualization::Rendering::BrowserRendering
             @landscapeData={{this.landscapeData}}
+            @selectedCommits={{this.currentSelectedCommits}}
+            @selectedApplication={{this.currentSelectedApplication}}
+            @staticStructure={{this.staticStructureData}}
+            @dynamicStructure={{this.dynamicStructure}}
             @components={{this.components}}
             @componentsToolsSidebar={{this.componentsToolsSidebar}}
             @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
@@ -191,14 +195,48 @@
     {{/if}}
     <div
       id='timeline'
-      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+      class='timeline 
+      {{conditional (array-length (get-value-of-map this.currentSelectedCommits this.currentSelectedApplication)) 'timelineextend' }}
+      {{unless (not this.isCommitsTimeline) "commitline"}} 
+      {{unless this.isTimelineActive "timelinehide"}}'
     >
-      <Visualization::PageSetup::Timeline::PlotlyTimeline
-        @timestamps={{this.timelineTimestamps}}
-        @clicked={{this.timelineClicked}}
-        @highlightedMarkerColor={{this.highlightedMarkerColor}}
-        @setChildReference={{this.getTimelineReference}}
-      />
+
+      <button {{on 'click' this.showRequestsTimeline}}>Requests</button>
+      <button {{on 'click' this.showCommitsTimeline}}>Evolution</button>
+
+      {{#if this.isRequestsTimeline}}
+        {{#if this.currentSelectedApplication}}
+          {{#if (array-length (get-value-of-map this.currentSelectedCommits this.currentSelectedApplication)) }}
+            <Visualization::PageSetup::Timeline::PlotlyTimeline
+              @timestamps={{this.timelineTimestamps}}
+              @clicked={{this.timelineClicked}}
+              @highlightedMarkerColor={{this.highlightedMarkerColor}}
+              @setChildReference={{this.getTimelineReference}}
+            />
+          {{else}}
+          <p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>
+          {{/if}}
+        {{else}}
+        <p>No application selected</p>
+        {{/if}}
+      {{/if}}
+      {{#if this.isCommitsTimeline}}
+        <Visualization::PageSetup::ApplicationButton::ApplicationSelection
+            @evolutionData={{this.evolutionLandscapeData}} 
+            @clicked={{this.applicationButtonClicked}}
+          />
+        <Visualization::PageSetup::Commitline::PlotlyCommitline
+          @evolutionData={{this.evolutionLandscapeData}}
+          @selectedApplication={{this.currentSelectedApplication}}
+          @selectedCommits={{this.currentSelectedCommits}}
+          @setChildReference={{this.getCommitlineReference}}
+          @toggleConfigurationOverview={{this.toggleCommitlineConfigurationOverview}}
+          @clicked={{this.commitlineClicked}}
+          @configurations={{this.commitlineConfiguration}}
+          @softwaremetrics={{this.commitlineMetrics}}
+          @showConfiguration={{this.showConfigurationOverview}}
+        />
+      {{/if}}
     </div>
   </div>
 {{/if}}
