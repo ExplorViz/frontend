@@ -217,25 +217,21 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
 
-    const latestTimestamp = timestamps[timestamps.length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-      latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes,
-      this.slidingWindowUpperBoundInMinutes
-    );
-
     const layout = PlotlyTimeline.getPlotlyLayoutObject(
-      windowInterval.min,
-      windowInterval.max
+      data.x[0],
+      data.x[data.x.length - 1],
+      data.x.length - 30,
+      data.x.length
     );
 
-    this.oldPlotlySlidingWindow = windowInterval;
+    this.oldPlotlySlidingWindow = {
+      min: data.x.length - 30,
+      max: data.x.length,
+    };
 
     Plotly.newPlot(
       this.timelineDiv,
-      data,
+      [data],
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
     );
@@ -253,27 +249,23 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.markerState
     );
 
-    const latestTimestamp: Timestamp = timestamps[timestamps.length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-      latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes,
-      this.slidingWindowUpperBoundInMinutes
-    );
-
     const layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : PlotlyTimeline.getPlotlyLayoutObject(
-          windowInterval.min,
-          windowInterval.max
+          data.x[0],
+          data.x[data.x.length - 1],
+          data.x.length - 30,
+          data.x.length
         );
 
-    this.oldPlotlySlidingWindow = windowInterval;
+    this.oldPlotlySlidingWindow = {
+      min: data.x.length - 30,
+      max: data.x.length,
+    };
 
     Plotly.react(
       this.timelineDiv,
-      data,
+      [data],
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
     );
@@ -326,6 +318,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   ) {
     return {
       xaxis: {
+        type: 'category',
         range: [minTimestamp, maxTimestamp],
         title: {
           font: {
@@ -334,29 +327,24 @@ export default class PlotlyTimeline extends Component<IArgs> {
           },
           text: 'Time',
         },
-        type: 'date',
       },
     };
   }
 
-  static hoverText(x: Date[], y: number[]) {
+  static hoverText(x: number[], y: number[]) {
     return x.map(
-      (xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`
+      (xi, i) => `<b>Time</b>: ${new Date(xi)}<br><b>Requests</b>: ${y[i]}<br>`
     );
   }
 
-  static getSlidingWindowInterval(
-    t: Date,
-    lowerBound: number,
-    upperBound: number
-  ): { min: number; max: number } {
-    const minTimestamp = t.setMinutes(t.getMinutes() - lowerBound);
-    const maxTimestamp = t.setMinutes(t.getMinutes() + upperBound);
-
-    return { min: minTimestamp, max: maxTimestamp };
-  }
-
-  static getPlotlyLayoutObject(minRange: number, maxRange: number) {
+  static getPlotlyLayoutObject(
+    minPanValue: number,
+    maxPanValue: number,
+    minRange: number,
+    maxRange: number
+  ) {
+    // Regarding minRange and maxRange for category type
+    // https://plotly.com/javascript/reference/layout/xaxis/#layout-xaxis-range
     return {
       dragmode: 'pan',
       hoverdistance: 10,
@@ -368,6 +356,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
         r: 40,
       },
       xaxis: {
+        type: 'category',
+        minallowed: minPanValue,
+        maxallowed: maxPanValue,
         range: [minRange, maxRange],
         title: {
           font: {
@@ -376,7 +367,6 @@ export default class PlotlyTimeline extends Component<IArgs> {
           },
           text: 'Time',
         },
-        type: 'date',
       },
       yaxis: {
         fixedrange: true,
@@ -398,7 +388,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const colors: string[] = [];
     const sizes: number[] = [];
 
-    const x: Date[] = [];
+    const x: number[] = [];
     const y: number[] = [];
 
     const timestampIds: number[] = [];
@@ -406,8 +396,17 @@ export default class PlotlyTimeline extends Component<IArgs> {
     timestamps.forEach((timestamp) => {
       const timestampId = timestamp.epochMilli;
 
-      x.push(new Date(timestamp.epochMilli));
-      y.push(timestamp.spanCount);
+      if (
+        timestamp.epochMilli === 1702891200000 // ||
+        //timestamp.epochMilli === 1702891210000 ||
+        //timestamp.epochMilli === 1702891220000
+      ) {
+        x.push(null);
+        y.push(null);
+      } else {
+        x.push(new Date(timestamp.epochMilli));
+        y.push(timestamp.spanCount);
+      }
 
       const markerState = markerStates[timestampId];
 
@@ -445,28 +444,27 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   static getPlotlyDataObject(
-    dates: Date[],
+    dates: number[],
     requests: number[],
     colors: string[],
     sizes: number[],
     timestampIds: number[]
   ) {
-    return [
-      {
-        fill: 'tozeroy',
-        hoverinfo: 'text',
-        hoverlabel: {
-          align: 'left',
-        },
-        marker: { color: colors, size: sizes },
-        mode: 'lines+markers',
-        text: PlotlyTimeline.hoverText(dates, requests),
-        timestampId: timestampIds,
-        type: 'scatter',
-        x: dates,
-        y: requests,
+    return {
+      // IMPORTANT BUG WORKAROUND https://community.plotly.com/t/scatter-line-plot-fill-option-fills-gaps/21264
+      //fill: 'tozeroy',
+      hoverinfo: 'text',
+      hoverlabel: {
+        align: 'left',
       },
-    ];
+      marker: { color: colors, size: sizes },
+      mode: 'lines+markers',
+      connectgaps: false,
+      text: PlotlyTimeline.hoverText(dates, requests),
+      timestampId: timestampIds,
+      x: dates,
+      y: requests,
+    };
   }
 
   resetHighlingInStateObjects() {
