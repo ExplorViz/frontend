@@ -194,6 +194,7 @@ export function combineStructures(structureA?: StructureLandscapeData, structure
       };
       const applications : Application[] = combineApplications(nodeA.applications, nodeB.applications);
       node.applications = applications;
+      // TODO: node.applications.forEach(app => app.parent = node);
       structure.nodes.push(node);
     }else {
       // missing node

@@ -234,6 +234,5 @@ export default class Settings extends Component<Args> {
   @action
   didInsert(div: any, params: any[]) {
     console.log("DID INSERT ", params[0]);
-    
   }
 }

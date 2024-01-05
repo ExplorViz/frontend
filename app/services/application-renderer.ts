@@ -43,10 +43,13 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getClassesInPackage, getPackageById, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
+import { applicationHasClass } from 'explorviz-frontend/utils/application-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -213,8 +216,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       renderMode?: RenderMode 
     ) => {
 
-      console.log("previous: ", previousRenderMode);
-      console.log("now: ", renderMode);
 
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
@@ -223,7 +224,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
-      console.log("ApplicationModel Id: ", applicationModel.id);
+
 
       let layoutChanged = true;
       if (applicationObject3D) { 
@@ -326,9 +327,11 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
         switch(renderMode){
           case RenderMode.STATIC_ONLY:
             this.hideVisualization(applicationObject3D, dynamicStructure);
+            this.showVisualization(applicationObject3D, staticStructure);
             break;
           case RenderMode.DYNAMIC_ONLY:
             this.hideVisualization(applicationObject3D, staticStructure);
+            this.showVisualization(applicationObject3D, dynamicStructure);
         }
       }else {
         switch(previousRenderMode){
@@ -402,17 +405,75 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     structure?.nodes.forEach(node => {
       const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
       if(app) {
-        applicationObject3D.hideMeshes();
-        applicationObject3D.getCommMeshes().forEach((commMesh) => {
-          commMesh.hide();
-        });
-        this.linkRenderer.getAllLinks().forEach(externPipe => {
-          if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
-            || 
-            externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
-              externPipe.hide();
+        if(app.packages.length === applicationObject3D.data.application.packages.length) {
+          // hide everything (including foundation)
+
+          applicationObject3D.hideMeshes();
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            commMesh.hide();
+          });
+          this.linkRenderer.getAllLinks().forEach(externPipe => {
+            if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
+              || 
+              externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
+                externPipe.hide();
+              }
+          });
+        } else {
+          // hide partial 
+          app.packages.forEach(pckg => {
+            const packageMesh = applicationObject3D.getMeshById(pckg.id);
+            if(packageMesh) {
+              packageMesh.hide();
+              const subPackages = getSubPackagesOfPackage(pckg);
+              const clazzes = getClassesInPackage(pckg);
+              subPackages.forEach(subPckg => {
+                const subPackageMesh = applicationObject3D.getMeshById(subPckg.id);
+                if(subPackageMesh){
+                  subPackageMesh.hide();
+                }
+              });
+              clazzes.forEach(clss => {
+                const clazzMesh = applicationObject3D.getMeshById(clss.id);
+                if(clazzMesh){
+                  clazzMesh.hide();
+                }
+              });
             }
-        });
+          });
+
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            const sourceClass = (commMesh.dataModel.communication as ClassCommunication).sourceClass;
+            const targetClass = (commMesh.dataModel.communication as ClassCommunication).targetClass;
+            const sourceClassMesh = applicationObject3D.getMeshById(sourceClass.id);
+            const targetClassMesh = applicationObject3D.getMeshById(targetClass.id);
+            if(sourceClassMesh){
+              if(!sourceClassMesh.visible){
+                commMesh.hide();
+              }
+            }
+            if(targetClassMesh){
+              if(!targetClassMesh.visible){
+                commMesh.hide();
+              }
+            }
+          });
+
+          this.linkRenderer.getAllLinks().forEach(externPipe => {
+            const sourceClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[0];
+            const targetClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[1];
+            if(sourceClass){
+              if(applicationHasClass(app, sourceClass)){
+                externPipe.hide();
+              }
+            }
+            if(targetClass){
+              if(applicationHasClass(app, targetClass)){
+                externPipe.hide();
+              }
+            }
+          });
+        }
       }
     });
   }
@@ -421,17 +482,78 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     structure?.nodes.forEach(node => {
       const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
       if(app) {
-        applicationObject3D.showMeshes();
-        applicationObject3D.getCommMeshes().forEach((commMesh) => {
-          commMesh.show();
-        });
-        this.linkRenderer.getAllLinks().forEach(externPipe => {
-          if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
-            || 
-            externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
-              externPipe.show();
+        if(app.packages.length === applicationObject3D.data.application.packages.length) {
+          // show everything (including foundation)
+
+          applicationObject3D.showMeshes();
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            commMesh.show();
+          });
+          this.linkRenderer.getAllLinks().forEach(externPipe => {
+            if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
+              || 
+              externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
+                externPipe.show();
+              }
+          });
+        } else {
+          // show partial 
+          app.packages.forEach(pckg => {
+            const packageMesh = applicationObject3D.getMeshById(pckg.id);
+            if(packageMesh) {
+              packageMesh.show();
+              const subPackages = getSubPackagesOfPackage(pckg);
+              const clazzes = getClassesInPackage(pckg);
+              subPackages.forEach(subPckg => {
+                const subPackageMesh = applicationObject3D.getMeshById(subPckg.id);
+                if(subPackageMesh){
+                  subPackageMesh.show();
+                }
+              });
+              clazzes.forEach(clss => {
+                const clazzMesh = applicationObject3D.getMeshById(clss.id);
+                if(clazzMesh){
+                  clazzMesh.show();
+                }
+              });
             }
-        });
+          });
+
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            const sourceClass = (commMesh.dataModel.communication as ClassCommunication).sourceClass;
+            const targetClass = (commMesh.dataModel.communication as ClassCommunication).targetClass;
+            const sourceClassMesh = applicationObject3D.getMeshById(sourceClass.id);
+            const targetClassMesh = applicationObject3D.getMeshById(targetClass.id);
+            if(sourceClassMesh){
+              if(!sourceClassMesh.visible){
+                commMesh.show();
+              }
+            }
+            if(targetClassMesh){
+              if(!targetClassMesh.visible){
+                commMesh.show();
+              }
+            }
+          });
+
+          this.linkRenderer.getAllLinks().forEach(externPipe => {
+            const sourceClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[0];
+            const targetClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[1];
+            if(sourceClass){
+              if(applicationHasClass(app, sourceClass)){
+                externPipe.show();
+              }
+            }
+            if(targetClass){
+              if(applicationHasClass(app, targetClass)){
+                externPipe.show();
+              }
+            }
+          });
+
+
+
+        }
       }
     });
   }

@@ -18,7 +18,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application, Node, Package, StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -532,6 +532,44 @@ export default class VisualizationController extends Controller {
         await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits![selectedTimeline], epochMilli); // TODO: if two commits selected also load from the dynamics for the second commit and combine both. Delete selectedCommitline logic
 
       this.dynamicStructureData = structureData;
+
+      // Schnittmenge erzeugen und testen. TODO: Delete
+      const commonStructure : StructureLandscapeData = {
+        landscapeToken: this.dynamicStructureData.landscapeToken,
+        nodes: [],
+      };
+      const commonNode : Node = {
+        id: this.dynamicStructureData.nodes[0].id,
+        ipAddress: this.dynamicStructureData.nodes[0].ipAddress,
+        hostName: this.dynamicStructureData.nodes[0].hostName,
+        applications: []
+      };
+      const commonApplication : Application = {
+        id: this.dynamicStructureData.nodes[0].applications[0].id,
+        name: this.dynamicStructureData.nodes[0].applications[0].name,
+        language: this.dynamicStructureData.nodes[0].applications[0].language,
+        instanceId: this.dynamicStructureData.nodes[0].applications[0].instanceId,
+        parent: this.dynamicStructureData.nodes[0].applications[0].parent, // parent: commonNode
+        packages: [],
+      };
+
+      const commonPackage : Package = {
+        id: this.dynamicStructureData.nodes[0].applications[0].packages[2].id,
+        name: this.dynamicStructureData.nodes[0].applications[0].packages[2].name,
+        subPackages: this.dynamicStructureData.nodes[0].applications[0].packages[2].subPackages,
+        classes: this.dynamicStructureData.nodes[0].applications[0].packages[2].classes,
+        parent: this.dynamicStructureData.nodes[0].applications[0].packages[2].parent
+      };
+      
+      
+      commonApplication.packages.push(commonPackage);
+      commonNode.applications.push(commonApplication);
+      commonStructure.nodes.push(commonNode);
+
+      //console.log("DYNAMIC WHICH ALSO SHOULD BE STATIC: ", commonStructure);
+      //console.log("STATIC AND DYNAMIC COMBINED: ", combineStructures(this.staticStructureData, commonStructure));
+      this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
+      // ---
 
       const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       //let newStruct : StructureLandscapeData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};

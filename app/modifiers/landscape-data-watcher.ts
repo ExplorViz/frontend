@@ -109,7 +109,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.handleUpdatedLandscapeData.perform();
   }
 
-  handleUpdatedLandscapeData = task({ restartable: true }, async () => {
+  handleUpdatedLandscapeData = task({ restartable: true }, async () => { console.log("DYNAMIC STRUCTURE: ", this.dynamicStructure); console.log("STATIC STRUCTURE: ", this.staticStructure);
     await Promise.resolve();
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
@@ -133,43 +133,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     let { nodes: graphNodes, links } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
-
-    console.log("graph links ", links);
-    console.log("graph nodes: ", graphNodes);
-    console.log("nodes: ", nodes);
-
-    console.log("LANDSCAPE DATA WATCHER XXXXXXXXXXX: ", this.structureLandscapeData);
-
-    // if(nodes.length <  graphNodes.length){
-    //   graphNodes.forEach(gn => this.idToGraphNode.set(gn.id as string, gn))
-    //   links.forEach(l => this.idToGraphLink.set(`${(l.source as NodeObject).id}-${(l.target as NodeObject).id}`, l));
-    //   graphNodes = graphNodes.filter(n => (nodes.find(n2 => n2.applications.find(a => a.id === n.id))) !== undefined);
-    //   links = links.filter(l => (nodes.find(n => n.applications.find(a => a.id === (l.source as NodeObject).id))) && (nodes.find(n => n.applications.find(a => a.id === (l.target as NodeObject).id))));
-    //   //this.graph.graphData({nodes: graphNodes, links: links});
-
-    //   console.log("graph links after", links);
-    //   console.log("graph nodes: after", graphNodes);
-    // } 
-    
-    //else if(nodes.length >  graphNodes.length) {
-    //   // nodes.forEach(node => {
-    //   //   node.applications.forEach(application => {
-    //   //     if(!graphNodes.find(gn => gn.id === application.id)){
-    //   //       const missingGraphNode = this.idToGraphNode.get(application.id);
-    //   //       if(missingGraphNode) {
-    //   //         graphNodes.push(missingGraphNode);
-    //   //         console.log("ADDS MISSING GRAPH NODE: ", missingGraphNode);
-    //   //       }
-    //   //     }
-    //   //   });
-    //   // });
-    //   // console.log("graph nodes: after", graphNodes);
-    //   // console.log(this.idToGraphNode);
-    //   // console.log(this.idToGraphLink);
-    //   //this.graph.graphData({nodes: graphNodes, links: links});
-    // }
-
-
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
