@@ -4,7 +4,7 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
-
+{{add-listener this.applicationRenderer 'renderSettingChanged' this.onRenderSettingChange}}
 {{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
@@ -108,7 +108,8 @@
             @selectedCommits={{this.currentSelectedCommits}}
             @selectedApplication={{this.currentSelectedApplication}}
             @staticStructure={{this.staticStructureData}}
-            @dynamicStructure={{this.dynamicStructure}}
+            @dynamicStructure={{this.dynamicStructureData}}
+            @renderMode={{this.renderMode}}
             @components={{this.components}}
             @componentsToolsSidebar={{this.componentsToolsSidebar}}
             @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}

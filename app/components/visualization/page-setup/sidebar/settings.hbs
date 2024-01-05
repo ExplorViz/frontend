@@ -1,4 +1,5 @@
 {{! template-lint-disable simple-unless }}
+<div {{did-insert this.didInsert @dynamicStructure}}></div>
 {{#each-in this.applicationSettingsSortedByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
     <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>

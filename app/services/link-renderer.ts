@@ -190,8 +190,16 @@ export default class LinkRenderer extends Service.extend({}) {
     if (pipe.material.opacity !== 1) {
       // This fixes the problem that every arrow gets opaque (even for transparent pipes) after receiving onTimestampUpdate messages
       pipe.children.forEach((child) => {
-        if (child instanceof CommunicationArrowMesh)
+        if (child instanceof CommunicationArrowMesh){
           child.turnTransparent(pipe.material.opacity);
+        }
+      });
+    }
+    if (!pipe.material.visible) {
+      pipe.children.forEach((child) => {
+        if (child instanceof CommunicationArrowMesh){
+          child.hide();
+        }
       });
     }
   }

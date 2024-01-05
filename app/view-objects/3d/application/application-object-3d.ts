@@ -416,16 +416,18 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   hideMeshes() {
-    this.getAllMeshes().forEach((mesh) => {
-      mesh.visible = false;
-      mesh.material.needsUpdate = true;
+    this.getBoxMeshes().forEach((mesh) => {
+      if (mesh instanceof BoxMesh) {
+        mesh.hide();
+      }
     });
   }
 
   showMeshes() {
-    this.getAllMeshes().forEach((mesh) => {
-      mesh.visible = true;
-      mesh.material.needsUpdate = true;
+    this.getBoxMeshes().forEach((mesh) => {
+      if (mesh instanceof BoxMesh) {
+        mesh.show();
+      }
     });
   }
 

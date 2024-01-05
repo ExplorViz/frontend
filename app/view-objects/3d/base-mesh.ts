@@ -141,6 +141,32 @@ export default abstract class BaseMesh<
     }
   }
 
+  hide() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = false;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.hide();
+      }
+    });
+  }
+
+  show() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = true;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.show();
+      }
+    });
+  }
+
   changeOpacity(opacity: number) {
     const isTransparent = opacity < 1;
     if (this.material instanceof THREE.Material) {

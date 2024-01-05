@@ -75,6 +75,33 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
     }
   }
 
+  hide() {
+
+    if (this.line.material instanceof THREE.Material) {
+      this.line.material.visible = false;
+      this.line.material.needsUpdate = true;
+    }
+
+    if (this.cone.material instanceof THREE.Material) {
+      this.cone.material.visible = false;
+      this.cone.material.needsUpdate = true;
+    }
+  }
+
+  show() {
+
+    if (this.line.material instanceof THREE.Material) {
+      
+      this.line.material.visible = true;
+      this.line.material.needsUpdate = true;
+    }
+
+    if (this.cone.material instanceof THREE.Material) {
+      this.cone.material.visible = true;
+      this.cone.material.needsUpdate = true;
+    }
+  }
+
   applyHoverEffect(arg?: VisualizationMode | number): void {
     // Apply hover effect in VR for increased readability
     if (arg === 'vr' && this.isHovered === false) {
@@ -105,6 +132,7 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
     this.changeOpacity(opacity);
   }
 
+ 
   /**
    * Turns the arrow fully opaque again.
    */

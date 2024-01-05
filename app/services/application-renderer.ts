@@ -45,12 +45,11 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import Evented from '@ember/object/evented';
 // #endregion imports
 
-export default class ApplicationRenderer extends Service.extend({
-  // anything which *must* be merged to prototype here
-}) {
+export default class ApplicationRenderer extends Service.extend(Evented) {
   // #region fields
 
   debug = debugLogger('ApplicationRendering');
@@ -97,6 +96,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   private staticStructure?: StructureLandscapeData;
   private dynamicStructure?: StructureLandscapeData;
+  private renderMode?: RenderMode;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -208,11 +208,13 @@ export default class ApplicationRenderer extends Service.extend({
       selectedApplication?: string,
       selectedCommits?: Map<string, SelectedCommit[]>,
       staticStructure?: StructureLandscapeData,
-      dynamicStructure?: StructureLandscapeData
+      dynamicStructure?: StructureLandscapeData,
+      previousRenderMode?: RenderMode,
+      renderMode?: RenderMode 
     ) => {
 
-      this.staticStructure = staticStructure;
-      this.dynamicStructure = dynamicStructure;
+      console.log("previous: ", previousRenderMode);
+      console.log("now: ", renderMode);
 
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
@@ -221,9 +223,10 @@ export default class ApplicationRenderer extends Service.extend({
 
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
+      console.log("ApplicationModel Id: ", applicationModel.id);
 
       let layoutChanged = true;
-      if (applicationObject3D) {
+      if (applicationObject3D) { 
         // Maps cannot be compared directly. Thus, we compare their size.
         layoutChanged =
           boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
@@ -236,6 +239,7 @@ export default class ApplicationRenderer extends Service.extend({
         );
         this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
+
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
@@ -316,49 +320,130 @@ export default class ApplicationRenderer extends Service.extend({
 
       applicationObject3D.resetRotation();
 
+
+
+      if(previousRenderMode === undefined || previousRenderMode === RenderMode.STATIC_DYNAMIC){
+        switch(renderMode){
+          case RenderMode.STATIC_ONLY:
+            this.hideVisualization(applicationObject3D, dynamicStructure);
+            break;
+          case RenderMode.DYNAMIC_ONLY:
+            this.hideVisualization(applicationObject3D, staticStructure);
+        }
+      }else {
+        switch(previousRenderMode){
+          case RenderMode.DYNAMIC_ONLY:
+            this.showVisualization(applicationObject3D, staticStructure)
+            break;
+          case RenderMode.STATIC_ONLY:
+            this.showVisualization(applicationObject3D, dynamicStructure);
+            break;
+        }
+      }
+
+
       return applicationObject3D;
     }
   );
 
 
-  visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
+  private visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
     //console.log("VISUALIZATION CommitComparison!");
   }
 
 
-  removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
+  private removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
     //console.log("VISUALIZATION CommitComparison REMOVE!");
   }
 
-  hideDynamicVisualization() {
-    console.log("hide dynamic visualization ", this.dynamicStructure);
-    this.dynamicStructure?.nodes?.forEach(app => {
-      const appObj = this.getApplicationById(app.id);
-      appObj?.hideMeshes();
+  // hideDynamicVisualization(dynamicStructure?: StructureLandscapeData) {
+  //   console.log("hide dynamic visualization ", dynamicStructure);
+  //   dynamicStructure?.nodes?.forEach(node => {
+  //     node.applications.forEach(app => {
+  //       const appObj = this.getApplicationById(app.id);
+  //       appObj?.hideMeshes();
+  //     });
+  //   });
+  // }
+
+  // showDynamicVisualization(dynamicStructure?: StructureLandscapeData) {
+  //   console.log("show dynamic visualization ", dynamicStructure);
+  //   dynamicStructure?.nodes?.forEach(node => {
+  //     node.applications.forEach(app => {
+  //       const appObj = this.getApplicationById(app.id);
+  //       appObj?.showMeshes();
+  //     });
+  //   });
+  // }
+
+  // hideStaticVisualization(staticStructure?: StructureLandscapeData) {
+  //   console.log("hide static visualization ", staticStructure);
+  //   staticStructure?.nodes?.forEach(node => {
+  //     node.applications.forEach(app => {
+  //       const appObj = this.getApplicationById(app.id);
+  //       appObj?.hideMeshes();
+  //     });
+  //   });
+  // }
+
+  // showStaticVisualization(staticStructure?: StructureLandscapeData) {
+  //   console.log("show static visualization ", staticStructure);
+  //   staticStructure?.nodes?.forEach(node => {
+  //     node.applications.forEach(app => {
+  //       const appObj = this.getApplicationById(app.id);
+  //       appObj?.showMeshes();
+  //     });
+  //   });
+  // }
+
+
+
+  private hideVisualization(applicationObject3D: ApplicationObject3D, structure?: StructureLandscapeData) {
+    structure?.nodes.forEach(node => {
+      const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
+      if(app) {
+        applicationObject3D.hideMeshes();
+        applicationObject3D.getCommMeshes().forEach((commMesh) => {
+          commMesh.hide();
+        });
+        this.linkRenderer.getAllLinks().forEach(externPipe => {
+          if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
+            || 
+            externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
+              externPipe.hide();
+            }
+        });
+      }
     });
   }
 
-  showDynamicVisualization() {
-    this.dynamicStructure?.nodes?.forEach(app => {
-      const appObj = this.getApplicationById(app.id);
-      appObj?.showMeshes();
+  private showVisualization(applicationObject3D: ApplicationObject3D, structure?: StructureLandscapeData) {
+    structure?.nodes.forEach(node => {
+      const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
+      if(app) {
+        applicationObject3D.showMeshes();
+        applicationObject3D.getCommMeshes().forEach((commMesh) => {
+          commMesh.show();
+        });
+        this.linkRenderer.getAllLinks().forEach(externPipe => {
+          if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
+            || 
+            externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
+              externPipe.show();
+            }
+        });
+      }
     });
   }
 
-  hideStaticVisualization() {
-    console.log("hide static visualization ", this.staticStructure);
-    this.staticStructure?.nodes?.forEach(app => {
-      const appObj = this.getApplicationById(app.id);
-      appObj?.hideMeshes();
-    });
+  /**
+   * Triggers the 'renderSettingChanged' event for updating the landscape
+   * @method renderSettingChanged
+   */
+  renderSettingChanged(renderMode: RenderMode) {
+    this.trigger('renderSettingChanged', renderMode);
   }
 
-  showStaticVisualization() {
-    this.staticStructure?.nodes?.forEach(app => {
-      const appObj = this.getApplicationById(app.id);
-      appObj?.showMeshes();
-    });
-  }
 
 
 

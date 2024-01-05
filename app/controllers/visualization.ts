@@ -74,6 +74,12 @@ export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
 );
 
+export enum RenderMode {
+  STATIC_ONLY,
+  DYNAMIC_ONLY,
+  STATIC_DYNAMIC
+};
+
 /**
  * TODO
  *
@@ -145,6 +151,8 @@ export default class VisualizationController extends Controller {
 
   staticStructureData? : StructureLandscapeData = undefined;
   dynamicStructureData? : StructureLandscapeData = undefined;
+  @tracked
+  renderMode?: RenderMode = undefined;
 
   @tracked
   roomId?: string;
@@ -290,11 +298,37 @@ export default class VisualizationController extends Controller {
   }
 
   @action
+  onRenderSettingChange(renderMode: RenderMode) {
+    this.renderMode = renderMode;
+    console.log("onRenderSettingChange: ", renderMode);
+    this.landscapeData = this.landscapeData; // trigger update
+  //   console.log("updateLandscapeTriggered dynamic landscape data: ", this.landscapeData?.dynamicLandscapeData);
+  //  switch(renderMode){
+  //   case RenderMode.STATIC_ONLY:
+  //     console.log("STATIC ONLY");
+  //     this.applicationRenderer.hideDynamicVisualization(this.dynamicStructureData);
+  //     break;
+  //   case RenderMode.DYNAMIC_ONLY:
+  //     console.log("DYNAMIC ONLY");
+  //     this.applicationRenderer.hideStaticVisualization(this.staticStructureData);
+  //     break;
+  //   case RenderMode.STATIC_DYNAMIC:
+  //     console.log("STATIC AND DYNAMIC");
+  //   this.applicationRenderer.showDynamicVisualization(this.dynamicStructureData);
+  //   this.applicationRenderer.showStaticVisualization(this.staticStructureData);
+  //     break;
+  //   default:
+  //     this.debug("unknown render mode");
+  //  } 
+
+  }
+
+  @action
   receiveNewLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData,
     selectedTimeline?: number // TODO: non optional
-  ) {
+  ) {console.log('receiveNewLandscapeData');
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData); 
@@ -326,7 +360,7 @@ export default class VisualizationController extends Controller {
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
-  ) {
+  ) { console.log("updateLandscape called");
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
@@ -482,9 +516,11 @@ export default class VisualizationController extends Controller {
     }
     this.selectedTimestampRecords[selectedTimeline] = selectedTimestamps;
     this.pauseVisualizationUpdating();
+    console.log("timelineClicked");
     this.updateTimestamp(selectedTimeline, selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
 
+  
   async updateTimestamp(
     selectedTimeline: number,
     epochMilli: number,
@@ -497,36 +533,34 @@ export default class VisualizationController extends Controller {
 
       this.dynamicStructureData = structureData;
 
+      const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
+      //let newStruct : StructureLandscapeData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
+      //let newDynamic: DynamicLandscapeData = dynamicData;
+      const newDynamic = dynamicData;
+
       // TODO: combine dynamic structure with static structure
       const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
       const renderDynamicStructure = this.userSettings.applicationSettings.dynamicStructure.value;
 
       if(renderStaticStructure && renderDynamicStructure) {
-        const staticCopy = this.staticStructureData;
-        const dynamicCopy = this.dynamicStructureData;
-        structureData = combineStructures(staticCopy, dynamicCopy) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
-        console.log("STATIC AND DYNAMIC STRUCTURE DATA COMBINED ::::::::::::::::: ", structureData);
+        this.renderMode = RenderMode.STATIC_DYNAMIC;
+        //newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       } else if (renderStaticStructure && !renderDynamicStructure) {
-        dynamicData = [];
-        if(this.staticStructureData)
-          structureData = this.staticStructureData;
-        else
-          structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
-
-        console.log("STATIC STRUCTURE DATA ::::::::::::::::: ", structureData);
+        this.renderMode = RenderMode.STATIC_ONLY;
+        //newDynamic = [];
+        //if(this.staticStructureData)
+          //newStruct = this.staticStructureData;
       } else if (!renderStaticStructure && renderDynamicStructure) {
-        if(this.dynamicStructureData)
-          structureData = this.dynamicStructureData;
-        else
-          structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
+        this.renderMode = RenderMode.DYNAMIC_ONLY;
+        //if(this.dynamicStructureData)
+          //newStruct = this.dynamicStructureData;
       } else {
         console.debug("Should never happen!");
-        structureData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []}
-        dynamicData = [];
+        //newDynamic = [];
       }
 
 
-      this.updateLandscape(structureData, dynamicData); // TODO: if two commits selected we need to combine their data before we update the landscape
+      this.updateLandscape(newStruct, newDynamic); // TODO: if two commits selected we need to combine their data before we update the landscape
       if (timestampRecordArray) {
         this.selectedTimestampRecords[selectedTimeline] = timestampRecordArray;
       }
@@ -575,6 +609,7 @@ export default class VisualizationController extends Controller {
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
+      console.log("pauseVisualization");
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
       this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
@@ -674,9 +709,10 @@ export default class VisualizationController extends Controller {
 
       if (
         timestampToRender &&
-        JSON.stringify(this.selectedTimestampRecords) !==
+        JSON.stringify(this.selectedTimestampRecords[0]) !==
           JSON.stringify([timestampToRender])
       ) {
+        console.log("timestampPollingCallback");
         this.updateTimestamp(0, timestampToRender.epochMilli);
         this.selectedTimestampRecords[0] = [timestampToRender];
         this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0); // TODO: specific timeline as in updateTimestamp?
@@ -697,7 +733,6 @@ export default class VisualizationController extends Controller {
       evolutionLandscapeData.applications = [...evolutionLandscapeData.applications, evolutedApplication];
     });
     this.evolutionLandscapeData = evolutionLandscapeData;
-    console.log("XXXX: " + applications);
   }
 
   private async initWebSocket() {
@@ -730,6 +765,7 @@ export default class VisualizationController extends Controller {
     };
 
     this.highlightingService.updateHighlighting();
+    console.log("onInitialLandscape");
     await this.updateTimestamp(landscape.timestamp);
     // disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
@@ -738,6 +774,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
+    console.log("onTimestampUpdate");
     this.updateTimestamp(timestamp);
   }
 
@@ -860,7 +897,8 @@ export default class VisualizationController extends Controller {
     if(staticStructureData)
       this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData); // needed when fetching dynamic data so we can enhance it with the static data (if enabled)
     
-    set(this, "currentSelectedCommits", commits);
+    this.currentSelectedCommits = commits;
+    //set(this, "currentSelectedCommits", commits);
 
     const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
     const numOfSelectedCommits = selected?.length;

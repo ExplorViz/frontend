@@ -13,6 +13,7 @@ import {
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { RenderMode } from 'explorviz-frontend/controllers/visualization';
 
 interface Args {
   updateHighlighting?(): void;
@@ -172,7 +173,13 @@ export default class Settings extends Component<Args> {
             );
             this.userSettings.updateApplicationSetting(settingId, !value);
           }else {
-            this.applicationRenderer.hideStaticVisualization();
+            if(value) {
+              // turned on
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
+            } else {
+              // turned off
+              this.applicationRenderer.renderSettingChanged(RenderMode.DYNAMIC_ONLY);
+            }
           }
         break;
       case 'dynamicStructure':
@@ -184,7 +191,13 @@ export default class Settings extends Component<Args> {
             );
             this.userSettings.updateApplicationSetting(settingId, !value);
           } else {
-            this.applicationRenderer.hideDynamicVisualization();
+            if(value) {
+              // turned on
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
+            }else {
+              //turned off
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_ONLY);
+            }
           }
         break;
       default:
@@ -216,5 +229,11 @@ export default class Settings extends Component<Args> {
       this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
     }
+  }
+
+  @action
+  didInsert(div: any, params: any[]) {
+    console.log("DID INSERT ", params[0]);
+    
   }
 }

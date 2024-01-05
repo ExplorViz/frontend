@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData, RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -24,6 +24,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import { LinkObject, NodeObject } from 'three-forcegraph';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -79,9 +80,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private selectedCommits?: Map<string,SelectedCommit[]>;
 
-  private staticStructure?: StructureLandscapeData;
-
   private dynamicStructure?: StructureLandscapeData;
+  private staticStructure?: StructureLandscapeData;
+  private renderMode?: RenderMode;
+  private previousRenderMode?: RenderMode;
 
   get structureLandscapeData() {
     return this.landscapeData.structureLandscapeData;
@@ -94,14 +96,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph, selectedApplication, selectedCommits, staticStructure, dynamicStructure }: any
+    { landscapeData, graph, selectedApplication, selectedCommits, dynamicStructure, staticStructure, renderMode}: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
     this.selectedApplication = selectedApplication;
     this.selectedCommits = selectedCommits;
-    this.staticStructure = staticStructure;
     this.dynamicStructure = dynamicStructure;
+    this.staticStructure = staticStructure; 
+    this.previousRenderMode = this.renderMode && JSON.parse(JSON.stringify(this.renderMode)); // deep copy
+    this.renderMode = renderMode;
     this.handleUpdatedLandscapeData.perform();
   }
 
@@ -127,10 +131,45 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
-    const { nodes: graphNodes } = this.graph.graphData();
+    let { nodes: graphNodes, links } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
 
-    console.log("STRUCTURE LANDSCAPE DATA XXXXXXXXXXX: ", this.structureLandscapeData);
+    console.log("graph links ", links);
+    console.log("graph nodes: ", graphNodes);
+    console.log("nodes: ", nodes);
+
+    console.log("LANDSCAPE DATA WATCHER XXXXXXXXXXX: ", this.structureLandscapeData);
+
+    // if(nodes.length <  graphNodes.length){
+    //   graphNodes.forEach(gn => this.idToGraphNode.set(gn.id as string, gn))
+    //   links.forEach(l => this.idToGraphLink.set(`${(l.source as NodeObject).id}-${(l.target as NodeObject).id}`, l));
+    //   graphNodes = graphNodes.filter(n => (nodes.find(n2 => n2.applications.find(a => a.id === n.id))) !== undefined);
+    //   links = links.filter(l => (nodes.find(n => n.applications.find(a => a.id === (l.source as NodeObject).id))) && (nodes.find(n => n.applications.find(a => a.id === (l.target as NodeObject).id))));
+    //   //this.graph.graphData({nodes: graphNodes, links: links});
+
+    //   console.log("graph links after", links);
+    //   console.log("graph nodes: after", graphNodes);
+    // } 
+    
+    //else if(nodes.length >  graphNodes.length) {
+    //   // nodes.forEach(node => {
+    //   //   node.applications.forEach(application => {
+    //   //     if(!graphNodes.find(gn => gn.id === application.id)){
+    //   //       const missingGraphNode = this.idToGraphNode.get(application.id);
+    //   //       if(missingGraphNode) {
+    //   //         graphNodes.push(missingGraphNode);
+    //   //         console.log("ADDS MISSING GRAPH NODE: ", missingGraphNode);
+    //   //       }
+    //   //     }
+    //   //   });
+    //   // });
+    //   // console.log("graph nodes: after", graphNodes);
+    //   // console.log(this.idToGraphNode);
+    //   // console.log(this.idToGraphLink);
+    //   //this.graph.graphData({nodes: graphNodes, links: links});
+    // }
+
+
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
@@ -150,7 +189,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             this.selectedApplication,
             this.selectedCommits,
             this.staticStructure,
-            this.dynamicStructure
+            this.dynamicStructure,
+            this.previousRenderMode,
+            this.renderMode
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size

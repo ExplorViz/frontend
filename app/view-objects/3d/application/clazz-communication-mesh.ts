@@ -53,6 +53,24 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     });
   }
 
+  hide() {
+    super.hide();
+    this.children.forEach((childObject) => {
+      if (childObject instanceof CommunicationArrowMesh) {
+        childObject.hide();
+      }
+    });
+  }
+
+  show() {
+    super.show();
+    this.children.forEach((childObject) => {
+      if (childObject instanceof CommunicationArrowMesh) {
+        childObject.show();
+      }
+    });
+  }
+
   /**
    * Turns mesh and communication arrows back to fully opaque.
    */

@@ -177,20 +177,38 @@ export function combineStructures(structureA?: StructureLandscapeData, structure
   if(structureA.landscapeToken !== structureB.landscapeToken) {
     return undefined;
   }
-  const nodes = [];
+  
+  const structure: StructureLandscapeData = {
+    landscapeToken: structureA.landscapeToken,
+    nodes: []
+  };
+
   for(const nodeA of structureA.nodes) {
     const nodeB = findCommonNode(nodeA, structureB.nodes);
     if(nodeB){
+      const node : Node = {
+        id: nodeB.id,
+        ipAddress: nodeB.ipAddress,
+        hostName: nodeB.hostName,
+        applications: [],
+      };
       const applications : Application[] = combineApplications(nodeA.applications, nodeB.applications);
-      nodeB.applications = applications;
+      node.applications = applications;
+      structure.nodes.push(node);
     }else {
       // missing node
-      nodes.push(nodeA);
+      structure.nodes.push(nodeA);
+    }    
+  }
+
+  for(const nodeB of structureB.nodes) {
+    const nodeA = findCommonNode(nodeB, structureA.nodes);
+    if(!nodeA) {
+      structure.nodes.push(nodeB);
     }
   }
 
-  addNodes(structureB, nodes); // adds missing nodes
-  return structureB;
+  return structure;
 }
 
 function findCommonMethod(method: Method, methods: Method[]) : Method | undefined {
@@ -221,14 +239,15 @@ function findCommonPackage(pckg: Package, packages: Package[]) : Package | undef
 }
 
 function combineMethods(methodsA: Method[], methodsB: Method[]) : Method[] {
+  const methods : Method[] = [...methodsB];
   for(const methodA of methodsA){
     const methodB = findCommonMethod(methodA, methodsB);
     if(!methodB) {
-      methodsB.push(methodA);
+      methods.push(methodA);
     }
   }
 
-  return methodsB;
+  return methods;
 }
 
 function combineClasses(classesA: Class[], classesB: Class[]) : Class[] {
@@ -236,15 +255,29 @@ function combineClasses(classesA: Class[], classesB: Class[]) : Class[] {
   for(const classA of classesA){
     const classB = findCommonClass(classA, classesB);
     if(classB) {
+      const clazz : Class = {
+        id: classB.id,
+        name: classB.name,
+        methods: [],
+        parent: classB.parent
+      };
       const methods : Method[] = combineMethods(classA.methods, classB.methods);
-      classB.methods = methods;
+      clazz.methods = methods;
+      classes.push(clazz);
     }else {
       classes.push(classA);
     }
   }
 
-  addClasses(classesB, classes); // adds missing classes
-  return classesB;
+  
+  for(const classB of classesB) {
+    const classA = findCommonClass(classB, classesA);
+    if(!classA) {
+      classes.push(classB);
+    }
+  }
+
+  return classes;
 }
 
 function combinePackages(packagesA: Package[], packagesB: Package[]) : Package[] {
@@ -252,17 +285,33 @@ function combinePackages(packagesA: Package[], packagesB: Package[]) : Package[]
   for(const packageA of packagesA){
     const packageB = findCommonPackage(packageA, packagesB);
     if(packageB) {
+      const pckg : Package = {
+        id: packageB.id,
+        name: packageB.name,
+        subPackages: [],
+        classes: [],
+        parent: packageB.parent
+      };
+
       const subPackages = combinePackages(packageA.subPackages, packageB.subPackages);
       const classes = combineClasses(packageA.classes, packageB.classes);
-      packageB.subPackages = subPackages;
-      packageB.classes = classes;
+      pckg.subPackages = subPackages;
+      pckg.classes = classes;
+      packages.push(pckg);
     }else {
       packages.push(packageA);
     }
   }
 
-  addPackages(packagesB, packages); // adds missing packages 
-  return packagesB;
+  for(const packageB of packagesB) {
+    const packageA = findCommonPackage(packageB, packagesA);
+    if(!packageA) {
+      packages.push(packageB);
+    }
+  }
+
+
+  return packages;
 }
 
 function combineApplications(applicationsA: Application[], applicationsB: Application[]) : Application[] {
@@ -270,14 +319,30 @@ function combineApplications(applicationsA: Application[], applicationsB: Applic
   for(const applicationA of applicationsA) {
     const applicationB = findCommonApplication(applicationA, applicationsB);  
     if(applicationB) {
+      const application : Application = {
+        id: applicationB.id,
+        name: applicationB.name,
+        language: applicationB.language,
+        instanceId: applicationB.instanceId,
+        parent: applicationB.parent,
+        packages: []
+      };
       const packages : Package[] = combinePackages(applicationA.packages, applicationB.packages);
-      applicationB.packages = packages;
+      application.packages = packages;
+      applications.push(application);
     }else {
       applications.push(applicationA);
     }
   }
-  addApplications(applicationsB, applications); // adds missing applications and replaces existing ones 
-  return applicationsB;
+
+  for(const applicationB of applicationsB) {
+    const applicationA = findCommonApplication(applicationB, applicationsA);
+    if(!applicationA) {
+      applications.push(applicationB);
+    }
+  }
+
+  return applications;
 }
 
 function findCommonApplication(application: Application, applications: Application[]) {
@@ -300,33 +365,6 @@ function findCommonNode(node: Node, nodes: Node[]) {
   return undefined;
 }
 
-function addClasses(classesB: Class[], classes: Class[]) : Class[] {
-  for (const clss of classes) {
-    classesB.push(clss);
-  }
-  return classesB;
-}
-
-function addPackages(packagesB: Package[], packages: Package[]) : Package[] {
-  for (const pckg of packages) {
-      packagesB.push(pckg);
-  }
-  return packagesB;
-}
-
-function addApplications(applicationsB: Application[], applications: Application[]) : Application[] {
-  for (const app of applications) {
-    applicationsB.push(app);
-  }
-  return applicationsB;
-}
-
-function addNodes(structure: StructureLandscapeData, nodes: Node[]) : StructureLandscapeData {
-  for (const node of nodes) {
-    structure.nodes.push(node);
-  }
-  return structure;
-}
 
 
 export function spanIdToClass(

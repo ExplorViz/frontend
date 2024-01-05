@@ -147,7 +147,7 @@ export default class CodeServiceFetchingService extends Service {
 
       let url : string | undefined = undefined;
       if(commits.length === 1) {
-        console.log("FETCH FOR ONE COMMIT");
+        //console.log("FETCH FOR ONE COMMIT");
         url = `${codeService}/structure//${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}`; 
       } else if(commits.length === 2) {
         console.log("FETCH FOR TWO COMMITS");

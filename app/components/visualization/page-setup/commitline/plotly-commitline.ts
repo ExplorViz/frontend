@@ -131,7 +131,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
     const selectedCommits = this.selectedCommits;
     this.usedColors.add([255,255,255]); // initialize with white so it won't be used as color for branches on a white background
     if(evolutionData && application && selectedCommits) {
-      console.log("DID RENDER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
+      //console.log("DID RENDER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
       //console.log("CURRENT SELECTED COMMITS: ", selectedCommits);
       this.computeSizes(evolutionData, application);
       this.createPlotlyCommitlineChart(evolutionData, application, selectedCommits);
