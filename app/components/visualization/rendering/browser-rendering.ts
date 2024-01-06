@@ -402,6 +402,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
+
+    if((isEntityMesh(mesh) || mesh instanceof FoundationMesh) && !mesh.material.visible){
+      console.log("Clicked on invisible");
+      return;
+    }
+
     if (mesh instanceof FoundationMesh) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.selectActiveApplication(mesh.parent);
@@ -475,6 +481,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
+
+    if((mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) && !mesh.material.visible){
+      console.log("double clicked on invisible");
+      return;
+    }
+
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
       if (
         !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
@@ -539,7 +551,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       isEntityMesh(mesh) &&
       enableAppHoverEffects &&
       !this.heatmapConf.heatmapActive
-    ) {
+    ) 
+    {
       if (this.hoveredObject) {
         this.hoveredObject.resetHoverEffect();
       }
@@ -579,6 +592,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
+
+    if(isEntityMesh(intersection.object) && !intersection.object.material.visible){
+      return;
+    }
+
     if (intersection) {
       this.popupHandler.addPopup({
         mesh: intersection.object,

@@ -97,10 +97,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   private structureLandscapeData!: StructureLandscapeData;
 
-  private staticStructure?: StructureLandscapeData;
-  private dynamicStructure?: StructureLandscapeData;
-  private renderMode?: RenderMode;
-
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
   readonly appCommRendering: CommunicationRendering;
@@ -212,7 +208,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       selectedCommits?: Map<string, SelectedCommit[]>,
       staticStructure?: StructureLandscapeData,
       dynamicStructure?: StructureLandscapeData,
-      previousRenderMode?: RenderMode,
       renderMode?: RenderMode 
     ) => {
 
@@ -321,29 +316,20 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       applicationObject3D.resetRotation();
 
-
-
-      if(previousRenderMode === undefined || previousRenderMode === RenderMode.STATIC_DYNAMIC){
-        switch(renderMode){
-          case RenderMode.STATIC_ONLY:
-            this.hideVisualization(applicationObject3D, dynamicStructure);
-            this.showVisualization(applicationObject3D, staticStructure);
-            break;
-          case RenderMode.DYNAMIC_ONLY:
-            this.hideVisualization(applicationObject3D, staticStructure);
-            this.showVisualization(applicationObject3D, dynamicStructure);
-        }
-      }else {
-        switch(previousRenderMode){
-          case RenderMode.DYNAMIC_ONLY:
-            this.showVisualization(applicationObject3D, staticStructure)
-            break;
-          case RenderMode.STATIC_ONLY:
-            this.showVisualization(applicationObject3D, dynamicStructure);
-            break;
-        }
+      switch(renderMode){
+        case RenderMode.DYNAMIC_ONLY:
+          this.hideVisualization(applicationObject3D, staticStructure);
+          this.showVisualization(applicationObject3D, dynamicStructure);
+          break;
+        case RenderMode.STATIC_ONLY:
+          this.hideVisualization(applicationObject3D, dynamicStructure);
+          this.showVisualization(applicationObject3D, staticStructure);
+          break;
+        case RenderMode.STATIC_DYNAMIC:
+          this.showVisualization(applicationObject3D, dynamicStructure);
+          this.showVisualization(applicationObject3D, staticStructure);
+          break;
       }
-
 
       return applicationObject3D;
     }
@@ -352,53 +338,27 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   private visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
     //console.log("VISUALIZATION CommitComparison!");
+    const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
+    const ids = [commits[0].commitId, commits[1].commitId];
+    const id = ids.join("_");
+
+    // const commitComparison = this.commitComparisonRepo.getById(id);
+    // if(!commitComparison) return;
+
+    // commitComparison.added.forEach(id => {
+    //   console.log(id);
+    // });
+
+    // commitComparison.deleted.forEach(id => {
+    //   console.log(id);
+    // });
+
   }
 
 
   private removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
     //console.log("VISUALIZATION CommitComparison REMOVE!");
   }
-
-  // hideDynamicVisualization(dynamicStructure?: StructureLandscapeData) {
-  //   console.log("hide dynamic visualization ", dynamicStructure);
-  //   dynamicStructure?.nodes?.forEach(node => {
-  //     node.applications.forEach(app => {
-  //       const appObj = this.getApplicationById(app.id);
-  //       appObj?.hideMeshes();
-  //     });
-  //   });
-  // }
-
-  // showDynamicVisualization(dynamicStructure?: StructureLandscapeData) {
-  //   console.log("show dynamic visualization ", dynamicStructure);
-  //   dynamicStructure?.nodes?.forEach(node => {
-  //     node.applications.forEach(app => {
-  //       const appObj = this.getApplicationById(app.id);
-  //       appObj?.showMeshes();
-  //     });
-  //   });
-  // }
-
-  // hideStaticVisualization(staticStructure?: StructureLandscapeData) {
-  //   console.log("hide static visualization ", staticStructure);
-  //   staticStructure?.nodes?.forEach(node => {
-  //     node.applications.forEach(app => {
-  //       const appObj = this.getApplicationById(app.id);
-  //       appObj?.hideMeshes();
-  //     });
-  //   });
-  // }
-
-  // showStaticVisualization(staticStructure?: StructureLandscapeData) {
-  //   console.log("show static visualization ", staticStructure);
-  //   staticStructure?.nodes?.forEach(node => {
-  //     node.applications.forEach(app => {
-  //       const appObj = this.getApplicationById(app.id);
-  //       appObj?.showMeshes();
-  //     });
-  //   });
-  // }
-
 
 
   private hideVisualization(applicationObject3D: ApplicationObject3D, structure?: StructureLandscapeData) {
@@ -490,14 +450,16 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
             commMesh.show();
           });
           this.linkRenderer.getAllLinks().forEach(externPipe => {
-            if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
+            if((externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id)
               || 
-              externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
-                externPipe.show();
+              (externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id)) {
+                externPipe.show(); // Note that if the source is visible so must be the target and vice versa (according to the inherent logic of the dynamic structure)
               }
           });
         } else {
           // show partial 
+          const foundationMesh = applicationObject3D.foundationMesh;
+          foundationMesh?.show();
           app.packages.forEach(pckg => {
             const packageMesh = applicationObject3D.getMeshById(pckg.id);
             if(packageMesh) {

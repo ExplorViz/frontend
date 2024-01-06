@@ -14,6 +14,7 @@ import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -150,7 +151,9 @@ export default class LinkRenderer extends Service.extend({}) {
     if (!link.communicationData) {
       return false;
     }
-    return this.configuration.isCommRendered;
+    const sourceClassMesh = this.applicationRenderer.getMeshById(link.communicationData.sourceClass.id);
+    const targetClassMesh = this.applicationRenderer.getMeshById(link.communicationData.targetClass.id);
+    return this.configuration.isCommRendered && sourceClassMesh && targetClassMesh && sourceClassMesh.material.visible && targetClassMesh.material.visible;
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
@@ -195,7 +198,8 @@ export default class LinkRenderer extends Service.extend({}) {
         }
       });
     }
-    if (!pipe.material.visible) {
+    //const [sourceClass, _] = pipe.dataModel.communication.getClasses();
+    if (!pipe.material.visible /*|| !this.applicationRenderer.getMeshById(sourceClass.id)?.material.visible*/) {
       pipe.children.forEach((child) => {
         if (child instanceof CommunicationArrowMesh){
           child.hide();

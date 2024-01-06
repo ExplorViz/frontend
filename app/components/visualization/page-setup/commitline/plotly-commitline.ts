@@ -527,9 +527,11 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 }
             }
     
-            if(!isSelected){ // second or third commit got selected 
+            if(!isSelected){
+
+
               if(selectedCommitList.length >= this.MAX_SELECTION){
-                //TODO unselect all and remove applications visualization from landscape
+                // unselect all 
                 selectedCommits.set(selectedApplication, []);
                 for (const application of evolutionData.applications) {
                   if(application.name === selectedApplication ) {
@@ -552,6 +554,12 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
                 selectedCommitList.push(selectedCommit);
                 selectedCommits.set(selectedApplication, selectedCommitList);
+
+                const callbackCommitComparison = (commitComparison : CommitComparison) => {
+                  console.log("Commit Comparison ", commitComparison);
+                  // TODO: commitComparison repo persistence
+                }
+                this.codeServiceFetchingService.initCommitComparisonFetchingWithCallback(callbackCommitComparison, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]);
 
                 const callback = (landscapeStructure: StructureLandscapeData) => {
                   this.args.clicked?.(this.selectedCommits!, landscapeStructure);

@@ -83,7 +83,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   private dynamicStructure?: StructureLandscapeData;
   private staticStructure?: StructureLandscapeData;
   private renderMode?: RenderMode;
-  private previousRenderMode?: RenderMode;
 
   get structureLandscapeData() {
     return this.landscapeData.structureLandscapeData;
@@ -104,7 +103,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.selectedCommits = selectedCommits;
     this.dynamicStructure = dynamicStructure;
     this.staticStructure = staticStructure; 
-    this.previousRenderMode = this.renderMode && JSON.parse(JSON.stringify(this.renderMode)); // deep copy
     this.renderMode = renderMode;
     this.handleUpdatedLandscapeData.perform();
   }
@@ -133,7 +131,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     let { nodes: graphNodes, links } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
-
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
@@ -153,8 +150,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             this.selectedCommits,
             this.staticStructure,
             this.dynamicStructure,
-            this.previousRenderMode,
-            this.renderMode
+            this.renderMode,
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size
