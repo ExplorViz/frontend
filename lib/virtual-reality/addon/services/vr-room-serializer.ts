@@ -62,7 +62,7 @@ export default class VrRoomSerializer extends Service {
   private serializeLandscape(): SerializedLandscape {
     return {
       landscapeToken: this.landscapeTokenService.token?.value,
-      timestamp: this.timestampService.timestamp,
+      timestamp: this.timestampService.timestamp[0], // TODO: make VR support two selected commits
     };
   }
 

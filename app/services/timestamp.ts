@@ -7,7 +7,7 @@ import HighlightingService from './highlighting-service';
 
 export default class TimestampService extends Service.extend(Evented) {
   @tracked
-  timestamp!: number; // TODO: number[] for first and second selected commits
+  timestamp: (number|undefined)[] = [undefined, undefined]; // TODO: number[] for first and second selected commits
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;

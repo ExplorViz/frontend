@@ -34,7 +34,7 @@ export default class TimeMenu extends UiMenu {
     super(args);
 
     this.timestampService = timestampService;
-    this.date = new Date(timestampService.timestamp);
+    this.date = new Date(timestampService.timestamp[0]); // TODO: make VR support two selected commits
 
     const title = new TitleItem({
       text: 'Time',

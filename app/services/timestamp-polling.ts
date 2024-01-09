@@ -89,6 +89,7 @@ export default class TimestampPollingService extends Service {
         return;
       }
 
+      // TODO commit id in url
       let url = `${spanService}/v2/landscapes/${this.tokenService.token.value}/timestamps`;
 
       if (newestLocalTimestamp) {

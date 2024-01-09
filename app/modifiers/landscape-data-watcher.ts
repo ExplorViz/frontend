@@ -107,7 +107,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.handleUpdatedLandscapeData.perform();
   }
 
-  handleUpdatedLandscapeData = task({ restartable: true }, async () => { console.log("DYNAMIC STRUCTURE: ", this.dynamicStructure); console.log("STATIC STRUCTURE: ", this.staticStructure);
+  handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
+    console.log("handleUpdatedLandscapeData");
     await Promise.resolve();
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,

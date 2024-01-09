@@ -43,13 +43,15 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { getClassesInPackage, getPackageById, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getAncestorPackages, getClassesInPackage, getPackageById, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
-import { applicationHasClass } from 'explorviz-frontend/utils/application-helpers';
+import { applicationHasClass, getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import CommitComparisonRepository from './repos/commit-comparison-repository';
+import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -92,6 +94,9 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('repos/commit-comparison-repository')
+  commitComparisonRepo!: CommitComparisonRepository;
 
   forceGraph!: ThreeForceGraph;
 
@@ -337,22 +342,73 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
 
   private visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
-    //console.log("VISUALIZATION CommitComparison!");
     const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
+    console.log("VISUALIZATION CommitComparison!", commits);
     const ids = [commits[0].commitId, commits[1].commitId];
     const id = ids.join("_");
 
-    // const commitComparison = this.commitComparisonRepo.getById(id);
-    // if(!commitComparison) return;
+    const commitComparison = this.commitComparisonRepo.getById(id);
+    if(!commitComparison) return;
 
-    // commitComparison.added.forEach(id => {
-    //   console.log(id);
+    //fqFileNameToMeshId(applicationObject3D, );
+
+    commitComparison.added.forEach(fqFileName => {
+      console.log("ADDED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
+    });
+
+    commitComparison.deleted.forEach(fqFileName => {
+      console.log("DELETED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
+    });
+
+  }
+
+  private fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
+    try {
+
+      // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
+      // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
+
+      const clazzes = getAllClassesInApplication(applicationObject3D.data.application);
+      const split1 = fqFileName.split("/");
+      const prefixAndPackageNames = split1.slice(0, split1.length-1);
+      const split2 = split1[split1.length - 1].split(".");
+      const className = split2[split2.length - 2];
+
+      const candidates = clazzes.filter(clazz => clazz.name === className);
+
+      for(const candidate of candidates) {
+        console.log("candidate: ", candidate.name);
+        const packages = getClassAncestorPackages(candidate);
+        let index = prefixAndPackageNames.length - 1;
+        for(const pckg of packages.slice().reverse()) {
+          if(index < 0) {
+            break;
+          }
+          if(pckg.name === prefixAndPackageNames[index]) {
+            index--;
+          }else {
+            break;
+          }
+        }
+        return candidate.id;
+      }
+      return undefined;
+    } catch (error) {
+      console.log(error);
+      return undefined;
+    }
+
+
+    // const candidates : number[] = []; // fqFileName contains some prefix that isn't important for now. TODO: improve code-agent such that this prefix 
+    // // is not sent to our code-service and therefore safe us some effort by using exact matching
+    // applicationObject3D.data.application.packages.forEach(pckg => {
+    //   console.log("check pckg: ", pckg.name);
+    //   if(fqFileName.indexOf(pckg.name) !== -1) {
+    //     candidates.push();
+    //   }
     // });
 
-    // commitComparison.deleted.forEach(id => {
-    //   console.log(id);
-    // });
-
+    // console.log("search in " + fqFileName + " for " + applicationObject3D.data.application.name + ": " +  candidates);
   }
 
 

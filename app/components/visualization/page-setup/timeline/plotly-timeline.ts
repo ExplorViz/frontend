@@ -5,7 +5,7 @@ import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 
-interface IMarkerStates {
+export interface IMarkerStates {
   [timestampId: string]: {
     color: string;
     size: number;
@@ -23,7 +23,9 @@ interface IArgs {
   slidingWindowLowerBoundInMinutes?: number;
   slidingWindowUpperBoundInMinutes?: number;
   setChildReference?(timeline: PlotlyTimeline, selectedTimeline: number): void;
-  clicked?(selectedTimeline: number, selectedTimestamps: Timestamp[]): void;
+  clicked?(selectedTimeline: number, selectedTimestamps: Timestamp[], markerState: IMarkerStates): void;
+  markerState?: IMarkerStates[];
+  selectedTimestamps?: [Timestamp[]?, Timestamp[]?];
 }
 
 export default class PlotlyTimeline extends Component<IArgs> {
@@ -64,6 +66,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
     return this.args.timestamps || [];
   }
 
+  get markerState() {
+    return this.args.markerState || [{}, {}];
+  }
+
+  // variable used for output when clicked
+selectedTimestamps: Timestamp[][] = [[],[]];
+
   // END template-argument getters for default values
 
   readonly debug = debugLogger();
@@ -74,10 +83,6 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   userSlidingWindow = null;
 
-  // variable used for output when clicked
-  selectedTimestamps: Timestamp[][] = [[],[]];
-
-  markerState: IMarkerStates[] = [{}, {}];
 
   timelineDiv: any[] = [[],[]];
 
@@ -110,14 +115,26 @@ export default class PlotlyTimeline extends Component<IArgs> {
     this.timelineDiv[selectedTimeline] = plotlyDiv;
     console.log("SELECTED TIMELINE DID RENDER ::::::", selectedTimeline);
 
+    if(this.args.selectedTimestamps) {
+      if(this.args.selectedTimestamps[0]) {
+        this.selectedTimestamps[0] = this.args.selectedTimestamps[0];
+      }
+      if(this.args.selectedTimestamps[1]) {
+        this.selectedTimestamps[1] = this.args.selectedTimestamps[1];
+      }
+    }
+
+
     if (this.initDone[selectedTimeline]) {
       this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
     } else {
-      this.setupPlotlyTimelineChart(this.timestamps, selectedTimeline);
-      if (this.initDone[selectedTimeline]) {
-        this.setupPlotlyListener(selectedTimeline);
-      }
+        this.setupPlotlyTimelineChart(this.timestamps, selectedTimeline);
+        if (this.initDone[selectedTimeline]) {
+          this.setupPlotlyListener(selectedTimeline);
+        }
     }
+
+    console.log("selectedTimeStamps PLOTLY --------------->", this.selectedTimestamps);
   }
 
   setupPlotlyListener(selectedTimeline: number) {
@@ -132,6 +149,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       plotlyDiv.on('plotly_click', (data: any) => {
         // https://plot.ly/javascript/reference/#scatter-marker
 
+
         const pn = data.points[0].pointNumber;
 
         const numberOfPoints = data.points[0].fullData.x.length;
@@ -141,9 +159,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
-        if (self.selectedTimestamps.length === self.selectionCount) {
+        if (self.selectedTimestamps[selectedTimeline].length === self.selectionCount) {
           self.resetSelectionInStateObjects(selectedTimeline);
-
           colors = Array(numberOfPoints).fill(self.defaultMarkerColor);
           sizes = Array(numberOfPoints).fill(self.defaultMarkerSize);
         }
@@ -155,6 +172,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         const timestampId = data.points[0].data.timestampId[pn];
 
+
+
         self.markerState[selectedTimeline][timestampId].color = highlightedMarkerColor;
         self.markerState[selectedTimeline][timestampId].size = highlightedMarkerSize;
 
@@ -164,18 +183,19 @@ export default class PlotlyTimeline extends Component<IArgs> {
         const tn = data.points[0].curveNumber;
         Plotly.restyle(plotlyDiv, update, [tn]);
 
+        //self.selectedTimestamps[selectedTimeline][0] = self.markerState[selectedTimeline][timestampId].emberModel;
         self.selectedTimestamps[selectedTimeline].push(self.markerState[selectedTimeline][timestampId].emberModel);
 
         // Check if component should pass the selected timestamps
         // to its parent
         if (self.selectionCount > 1) {
-          if (self.selectedTimestamps.length === self.selectionCount) {
+          if (self.selectedTimestamps[selectedTimeline].length === self.selectionCount) {
             // closure action
-            if (self.args.clicked) self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline]);
+            if (self.args.clicked) self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline], self.markerState[selectedTimeline]);
           }
         } else if (self.args.clicked) {
           // closure action
-          self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline]);
+          self.args.clicked(selectedTimeline, self.selectedTimestamps[selectedTimeline], self.markerState[selectedTimeline]);
         }
       });
 
@@ -284,7 +304,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     );
   }
 
-  continueTimeline(oldSelectedTimestampRecords: Timestamp[][], selectedTimeline: number) {
+  continueTimeline(oldSelectedTimestampRecords: [Timestamp[]?, Timestamp[]?], selectedTimeline: number) {
     this.resetHighlingInStateObjects(selectedTimeline);
 
     // call this to initialize the internal marker state variable
@@ -292,7 +312,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
-    oldSelectedTimestampRecords[selectedTimeline].forEach((timestamp) => {
+    oldSelectedTimestampRecords[selectedTimeline]?.forEach((timestamp) => {
       const timestampId = timestamp.epochMilli;
 
       this.markerState[selectedTimeline][timestampId].color = highlightedMarkerColor;
@@ -422,19 +442,32 @@ export default class PlotlyTimeline extends Component<IArgs> {
         colors.push(markerState.color);
         sizes.push(markerState.size);
       } else {
-        // new point
-        const defaultColor = this.defaultMarkerColor;
-        const defaultSize = this.defaultMarkerSize;
+        let ts = undefined;
+        if(this.selectedTimestamps && (ts = this.selectedTimestamps[selectedTimeline]!.find((ts : Timestamp) => ts.epochMilli === timestampId))) {
+          colors.push(this.highlightedMarkerColor);
+          sizes.push(this.highlightedMarkerSize);
 
-        colors.push(defaultColor);
-        sizes.push(defaultSize);
+          // eslint-disable-next-line
+          markerStates[timestampId] = {
+            color: this.highlightedMarkerColor,
+            emberModel: ts,
+            size: this.highlightedMarkerSize,
+          };
+        }else {
+          // new point
+          const defaultColor = this.defaultMarkerColor;
+          const defaultSize = this.defaultMarkerSize;
 
-        // eslint-disable-next-line
-        markerStates[timestampId] = {
-          color: defaultColor,
-          emberModel: timestamp,
-          size: defaultSize,
-        };
+          colors.push(defaultColor);
+          sizes.push(defaultSize);
+
+          // eslint-disable-next-line
+          markerStates[timestampId] = {
+            color: defaultColor,
+            emberModel: timestamp,
+            size: defaultSize,
+          };
+        }
       }
       timestampIds.push(timestampId);
     });
@@ -484,6 +517,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const selTimestamps: Timestamp[] = this.selectedTimestamps[selectedTimeline];
 
     const { defaultMarkerColor, defaultMarkerSize } = this;
+
 
     selTimestamps.forEach((t) => {
       this.markerState[selectedTimeline][t.epochMilli].color = defaultMarkerColor;

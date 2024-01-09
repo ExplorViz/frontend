@@ -32,7 +32,7 @@ interface IArgs {
   selectedCommits?: Map<string, SelectedCommit[]>;
   highlightedMarkerColor?: string;
   setChildReference?(timeline: PlotlyCommitline): void;
-  clicked?(selectedCommits: Map<string,SelectedCommit[]>, structureData?: StructureLandscapeData): void;
+  clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit: number, structureData?: StructureLandscapeData): void;
   toggleConfigurationOverview(): void;
 }
 
@@ -469,7 +469,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
 
 
-  setupPlotlyListener(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
+   setupPlotlyListener(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
     const plotlyDiv = this.commitlineDiv;
 
@@ -555,35 +555,36 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 selectedCommitList.push(selectedCommit);
                 selectedCommits.set(selectedApplication, selectedCommitList);
 
-                const callbackCommitComparison = (commitComparison : CommitComparison) => {
-                  console.log("Commit Comparison ", commitComparison);
-                  // TODO: commitComparison repo persistence
-                }
-                this.codeServiceFetchingService.initCommitComparisonFetchingWithCallback(callbackCommitComparison, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]);
+                // const callbackCommitComparison = (commitComparison : CommitComparison) => {
+                //   console.log("Commit Comparison ", commitComparison);
+                //   this.commitComparisonRepo.add(commitComparison);
+                // }
+                // await so we can be sure that the commit repo has persisted the data before we rerender the landscape
+                //await this.codeServiceFetchingService.initCommitComparisonFetchingWithCallback(callbackCommitComparison, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]);
 
                 const callback = (landscapeStructure: StructureLandscapeData) => {
-                  this.args.clicked?.(this.selectedCommits!, landscapeStructure);
+                  this.args.clicked?.(this.selectedCommits!,1, landscapeStructure);
                 };
                 this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]); 
 
               }
             }else { 
               // unselect one commit
+              const timelineOfSelectedCommit = selectedCommitList.findIndex(commit => commit.commitId === selectedCommit.commitId);
               selectedCommitList = selectedCommitList.filter((commit => { return commit.commitId !== selectedCommit.commitId}));
               colors[pn] = data.points[0].fullData.line.color;
               selectedCommits.set(selectedApplication, selectedCommitList);
               const update = { marker: { color: colors, size: sizes } };
               const tn = data.points[0].curveNumber;
               Plotly.restyle(plotlyDiv, update, [tn]);
-
               if(selectedCommitList.length == 1){
                 const callback = (landscapeStructure: StructureLandscapeData) => {
-                  this.args.clicked?.(this.selectedCommits!, landscapeStructure);
+                  this.args.clicked?.(this.selectedCommits!, timelineOfSelectedCommit, landscapeStructure);
                 };
-                this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, [selectedCommit]);
+                this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, selectedCommitList);
               }else {
-                // no structure
-                this.args.clicked?.(this.selectedCommits!);
+                // no structure since we unselected the only selected commit
+                this.args.clicked?.(this.selectedCommits!, 0);
               }
 
               // TODO: if no selected commit remains, load latest landscape structure of main branch (write function for that)
@@ -598,7 +599,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
             Plotly.restyle(plotlyDiv, update, [tn]);
 
             const callback = (landscapeStructure: StructureLandscapeData) => {
-                this.args.clicked?.(this.selectedCommits!, landscapeStructure);
+                this.args.clicked?.(this.selectedCommits!, 0, landscapeStructure);
             };
             this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, [selectedCommit]);
           }

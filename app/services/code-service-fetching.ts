@@ -71,50 +71,54 @@ export default class CodeServiceFetchingService extends Service {
     });
   }
 
-  async initCommitComparisonFetchingWithCallback(
-    callback: (commitComparison: CommitComparison) => void,
-    applicationName: string,
-    commits: SelectedCommit[]
-  ) {
-    const commitComparisonPromise = this.fetchCommitComparison(applicationName, commits);
-    commitComparisonPromise
-      .then((commitComparison: CommitComparison) => callback(commitComparison))
-      .catch((error: Error) => {
-        console.log(error);
-      });
-  }
+  // async initCommitComparisonFetchingWithCallback(
+  //   callback: (commitComparison: CommitComparison) => void,
+  //   applicationName: string,
+  //   commits: SelectedCommit[]
+  // ) {
+  //   const commitComparisonPromise = this.fetchCommitComparison(applicationName, commits);
+  //   commitComparisonPromise
+  //     .then((commitComparison: CommitComparison) => {
+  //       commitComparison.firstCommitSelected = commits[0];
+  //       commitComparison.secondCommitSelected = commits[1];
+  //       callback(commitComparison);
+  //     })
+  //     .catch((error: Error) => {
+  //       console.log(error);
+  //     });
+  // }
 
-  private fetchCommitComparison(applicationName: string, commits: SelectedCommit[]) {
-    this.debug('Fetching commit comparison');
-    return new Promise<CommitComparison>((resolve, reject) => {
-      if (this.tokenService.token === null) {
-        reject(new Error('No landscape token selected'));
-        return;
-      }
+  // private fetchCommitComparison(applicationName: string, commits: SelectedCommit[]) {
+  //   this.debug('Fetching commit comparison');
+  //   return new Promise<CommitComparison>((resolve, reject) => {
+  //     if (this.tokenService.token === null) {
+  //       reject(new Error('No landscape token selected'));
+  //       return;
+  //     }
 
-      const firstSelectedCommitId = commits[0].commitId;
-      const secondSelectedCommitId = commits[1].commitId;
+  //     const firstSelectedCommitId = commits[0].commitId;
+  //     const secondSelectedCommitId = commits[1].commitId;
 
-      let url = `${codeService}/commit-comparison/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`; 
+  //     let url = `${codeService}/commit-comparison/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`; 
 
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      })
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const commitComparison = (await response.json()) as CommitComparison;
-            resolve(commitComparison);
-          } else {
-            reject();
-          }
-        })
-        .catch((e) => reject(e));
-    });
+  //     fetch(url, {
+  //       headers: {
+  //         Authorization: `Bearer ${this.auth.accessToken}`,
+  //         'Access-Control-Allow-Origin': '*',
+  //       },
+  //     })
+  //       .then(async (response: Response) => {
+  //         if (response.ok) {
+  //           const commitComparison = (await response.json()) as CommitComparison;
+  //           resolve(commitComparison);
+  //         } else {
+  //           reject();
+  //         }
+  //       })
+  //       .catch((e) => reject(e));
+  //   });
 
-  }
+  // }
 
   async initCommitTreeFetchingWithCallback(
     callback: (applications: EvolutedApplication) => void,
@@ -223,6 +227,7 @@ export default class CodeServiceFetchingService extends Service {
   
           commitComparisonPromise.then(
             (commitComparison : CommitComparison) => {
+              console.log("COMMIT COMPARISON FETCHED AND PERSISTED IN COMMITCOMPARISON REPO");
               commitComparison.firstCommitSelected = commits[0];
               commitComparison.secondCommitSelected = commits[1];
               this.commitComparisonRepo.add(commitComparison);
@@ -232,7 +237,7 @@ export default class CodeServiceFetchingService extends Service {
           });
         }
 
-        url = `${codeService}/structure//${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
+        url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
       }
       
       if (!url) {

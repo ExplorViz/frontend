@@ -213,6 +213,8 @@
               @clicked={{this.timelineClicked}}
               @highlightedMarkerColor={{this.highlightedMarkerColor}}
               @setChildReference={{this.getTimelineReference}}
+              @markerState={{this.markerState}}
+              @selectedTimestamps={{this.selectedTimestampRecords}}
             />
           {{else}}
           <p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>

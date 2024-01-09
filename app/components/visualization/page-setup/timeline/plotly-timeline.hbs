@@ -3,7 +3,7 @@
     class='plotlyDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
     {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update this.didRender 0 @timestamps}}
+    {{did-update this.didRender 0 @timestamps @selectedTimestamps}}
     {{did-insert this.didRender 0}}
   >
   </div>
