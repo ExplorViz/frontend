@@ -1027,9 +1027,9 @@ export default class VisualizationController extends Controller {
         this.markerState = [this.markerState[1-timelineOfSelectedCommit], {}];
       }
 
-      if(!this.timelineTimestamps[0]) {
+      if(this.timelineTimestamps.length === 0) {
         // this section removes the "bug" where if we pause during one selected commit (by clicking space or a timepoint) and unselect this commit
-        // only to select a new first commit, no landscape gets loaded
+        // only to select this commit again, no landscape gets loaded
         if(this.visualizationPaused) {
           console.log("REEESUMMMMMMMMMMEEEEEEEEE ............................");
           this.resumeVisualizationUpdating();
