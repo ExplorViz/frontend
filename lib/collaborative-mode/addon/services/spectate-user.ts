@@ -45,6 +45,9 @@ export default class SpectateUser extends Service {
 
   cameraControls: CameraControls | null = null;
 
+  @tracked
+  spectateConfigurationId = 'default';
+
   private spectatingUsers: Set<string> = new Set<string>();
 
   init() {
@@ -172,6 +175,7 @@ export default class SpectateUser extends Service {
     }
     this.spectatedUser.setHmdVisible(true);
     this.spectatedUser = null;
+    this.spectateConfigurationId = 'default';
   }
 
   private onUserDisconnect({ id }: UserDisconnectedMessage) {
@@ -267,21 +271,18 @@ export default class SpectateUser extends Service {
     });
   }
 
-  applyCameraConfiguration(
-    configuration:
-      | {
-          deviceId: string;
-          projectionMatrix: number[];
-        }[]
-      | null
-  ) {
+  applyCameraConfiguration(configuration: {
+    id: string;
+    devices: { deviceId: string; projectionMatrix: number[] }[] | null;
+  }) {
     // Adapt projection matrix according to spectate update
     const deviceId = new URLSearchParams(window.location.search).get(
       'deviceId'
     );
-    if (configuration && deviceId) {
-      const deviceConfig = configuration.find(
-        (config) => config.deviceId === deviceId
+    if (configuration && configuration.devices) {
+      this.spectateConfigurationId = configuration.id;
+      const deviceConfig = configuration.devices.find(
+        (device) => device.deviceId === deviceId
       );
       if (deviceConfig) {
         this.localUser.camera.projectionMatrix.fromArray(

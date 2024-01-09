@@ -6,7 +6,10 @@ export type SpectatingUpdateMessage = {
   spectatedUserId: string;
   spectatingUserIds: string[];
   configurationId: string;
-  configuration: { deviceId: string; projectionMatrix: number[] }[] | null;
+  configuration: {
+    id: string;
+    devices: { deviceId: string; projectionMatrix: number[] }[] | null;
+  };
 };
 
 export function isSpectatingUpdateMessage(
