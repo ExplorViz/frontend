@@ -195,19 +195,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
           dragLayer.style.cursor = '';
         });
 
-        plotlyDiv.on('plotly_relayouting', (eventdata) => {
+        plotlyDiv.on('plotly_relayouting', () => {
           // if user drags the plot, save his
           // sliding window, so that updating the
           // plot won't modify his current viewport
           if (plotlyDiv && plotlyDiv.layout) {
             self.userSlidingWindow = plotlyDiv.layout;
           }
-
-          // TODO dynamically change ticks
-          //console.log(eventdata);
-          const xMin = eventdata['xaxis.range[0]'];
-          const xMax = eventdata['xaxis.range[1]'];
-          console.log(xMin, xMax);
         });
       }
     }
@@ -225,12 +219,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const lengthWithoutNullValues = data.x.filter((x) => !!x).length;
 
-    const tickvals = data.tickvals;
-    const ticktext = data.ticktext;
-
     const layout = PlotlyTimeline.getPlotlyLayoutObject(
-      tickvals,
-      ticktext,
       lengthWithoutNullValues - 30,
       lengthWithoutNullValues
     );
@@ -260,16 +249,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.markerState
     );
 
-    const lengthWithoutNullValues = data.x.filter((x) => !!x).length;
-
-    const tickvals = data.tickvals;
-    const ticktext = data.ticktext;
+    const lengthWithoutNullValues = data.x.filter((x: any) => !!x).length;
 
     const layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : PlotlyTimeline.getPlotlyLayoutObject(
-          tickvals,
-          ticktext,
           lengthWithoutNullValues - 30,
           lengthWithoutNullValues
         );
@@ -335,6 +319,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
     return {
       xaxis: {
         type: 'category',
+        tickmode: 'auto',
+        nticks: 5,
+        tickangle: 0,
         range: [minTimestamp, maxTimestamp],
         title: {
           font: {
@@ -347,18 +334,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
-  static hoverText(x: number[], y: number[]) {
+  static hoverText(x: (string | null)[], y: (number | null)[]) {
     return x.map(
-      (xi, i) => `<b>Time</b>: ${new Date(xi)}<br><b>Requests</b>: ${y[i]}<br>`
+      (xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`
     );
   }
 
-  static getPlotlyLayoutObject(
-    tickvals: number[],
-    ticktext: string[],
-    minRange: number,
-    maxRange: number
-  ) {
+  static getPlotlyLayoutObject(minRange: number, maxRange: number) {
     // Regarding minRange and maxRange for category type
     // https://plotly.com/javascript/reference/layout/xaxis/#layout-xaxis-range
     return {
@@ -373,9 +355,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
       },
       xaxis: {
         type: 'category',
+        tickmode: 'auto',
+        nticks: 5,
+        tickangle: 0,
         range: [minRange, maxRange],
-        tickvals: tickvals,
-        ticktext: ticktext,
         title: {
           font: {
             color: '#7f7f7f',
@@ -404,71 +387,42 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const colors: string[] = [];
     const sizes: number[] = [];
 
-    const x: number[] = [];
-    const y: number[] = [];
+    const x: (string | null)[] = [];
+    const y: (number | null)[] = [];
 
     const timestampIds: number[] = [];
 
     let nextExpectedTimestamp = 0;
     let i = 0;
 
-    const tickvals: number[] = [];
-    const ticktext: string[] = [];
-
-    let previousValueWasNull = false;
-
     while (i < timestamps.length) {
       const timestamp = timestamps[i];
       const timestampId = timestamp.epochMilli;
 
       if (nextExpectedTimestamp === 0) {
-        x.push(timestampId);
-        y.push(timestamp.spanCount);
-        nextExpectedTimestamp = timestampId;
-        tickvals.push(timestampId);
-
         const timestampDate = new Date(timestampId);
         const timestampTickLabel = timestampDate
           .toISOString()
           .replace('T', '<br>')
           .replace('.000Z', '');
 
-        ticktext.push(timestampTickLabel);
+        x.push(timestampTickLabel);
+        y.push(timestamp.spanCount);
+        nextExpectedTimestamp = timestampId;
         i++;
       } else if (nextExpectedTimestamp === timestampId) {
-        x.push(timestampId);
+        const timestampDate = new Date(timestampId);
+        const timestampTickLabel = timestampDate
+          .toISOString()
+          .replace('T', '<br>')
+          .replace('.000Z', '');
+
+        x.push(timestampTickLabel);
         y.push(timestamp.spanCount);
-
-        if (previousValueWasNull) {
-          tickvals.push(timestampId);
-          const timestampDate = new Date(timestampId);
-          const timestampTickLabel = timestampDate
-            .toISOString()
-            .replace('T', '<br>')
-            .replace('.000Z', '');
-
-          ticktext.push(timestampTickLabel);
-          previousValueWasNull = false;
-        } else if (
-          timestampId % 60000 === 0 &&
-          timestampId - tickvals[tickvals.length - 1] >= 60000
-        ) {
-          tickvals.push(timestampId);
-          const timestampDate = new Date(timestampId);
-          const timestampTickLabel = timestampDate
-            .toISOString()
-            .replace('T', '<br>')
-            .replace('.000Z', '');
-
-          ticktext.push(timestampTickLabel);
-          previousValueWasNull = false;
-        }
-
         i++;
       } else {
         x.push(null);
         y.push(null);
-        previousValueWasNull = true;
       }
 
       nextExpectedTimestamp += 10000;
@@ -499,19 +453,18 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     this.markerState = markerStates;
 
-    const tickvalsObject = { tickvals: tickvals };
-    const ticktextObject = { ticktext: ticktext };
-
-    return {
-      ...PlotlyTimeline.getPlotlyDataObject(x, y, colors, sizes, timestampIds),
-      ...tickvalsObject,
-      ...ticktextObject,
-    };
+    return PlotlyTimeline.getPlotlyDataObject(
+      x,
+      y,
+      colors,
+      sizes,
+      timestampIds
+    );
   }
 
   static getPlotlyDataObject(
-    dates: number[],
-    requests: number[],
+    dates: (string | null)[],
+    requests: (number | null)[],
     colors: string[],
     sizes: number[],
     timestampIds: number[]
