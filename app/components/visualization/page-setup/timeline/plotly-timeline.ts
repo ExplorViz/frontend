@@ -195,13 +195,19 @@ export default class PlotlyTimeline extends Component<IArgs> {
           dragLayer.style.cursor = '';
         });
 
-        plotlyDiv.on('plotly_relayouting', () => {
+        plotlyDiv.on('plotly_relayouting', (eventdata) => {
           // if user drags the plot, save his
           // sliding window, so that updating the
           // plot won't modify his current viewport
           if (plotlyDiv && plotlyDiv.layout) {
             self.userSlidingWindow = plotlyDiv.layout;
           }
+
+          // TODO dynamically change ticks
+          //console.log(eventdata);
+          const xMin = eventdata['xaxis.range[0]'];
+          const xMax = eventdata['xaxis.range[1]'];
+          console.log(xMin, xMax);
         });
       }
     }
@@ -217,16 +223,21 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
 
+    const lengthWithoutNullValues = data.x.filter((x) => !!x).length;
+
+    const tickvals = data.tickvals;
+    const ticktext = data.ticktext;
+
     const layout = PlotlyTimeline.getPlotlyLayoutObject(
-      data.x[0],
-      data.x[data.x.length - 1],
-      data.x.length - 5,
-      data.x.length
+      tickvals,
+      ticktext,
+      lengthWithoutNullValues - 30,
+      lengthWithoutNullValues
     );
 
     this.oldPlotlySlidingWindow = {
-      min: data.x.length - 30,
-      max: data.x.length,
+      min: lengthWithoutNullValues - 30,
+      max: lengthWithoutNullValues,
     };
 
     Plotly.newPlot(
@@ -249,18 +260,23 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.markerState
     );
 
+    const lengthWithoutNullValues = data.x.filter((x) => !!x).length;
+
+    const tickvals = data.tickvals;
+    const ticktext = data.ticktext;
+
     const layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : PlotlyTimeline.getPlotlyLayoutObject(
-          data.x[0],
-          data.x[data.x.length - 1],
-          data.x.length - 30,
-          data.x.length
+          tickvals,
+          ticktext,
+          lengthWithoutNullValues - 30,
+          lengthWithoutNullValues
         );
 
     this.oldPlotlySlidingWindow = {
-      min: data.x.length - 30,
-      max: data.x.length,
+      min: lengthWithoutNullValues - 30,
+      max: lengthWithoutNullValues,
     };
 
     Plotly.react(
@@ -338,12 +354,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   static getPlotlyLayoutObject(
-    minPanValue: number,
-    maxPanValue: number,
+    tickvals: number[],
+    ticktext: string[],
     minRange: number,
     maxRange: number
   ) {
-    console.log(minPanValue);
     // Regarding minRange and maxRange for category type
     // https://plotly.com/javascript/reference/layout/xaxis/#layout-xaxis-range
     return {
@@ -358,14 +373,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
       },
       xaxis: {
         type: 'category',
-        //minallowed: minPanValue,
-        //maxallowed: maxPanValue,
-        //range: [minRange, maxRange],
-
-        //tickmode: 'linear',
-        //tick0: minPanValue,
-        dtick: 5,
-
+        range: [minRange, maxRange],
+        tickvals: tickvals,
+        ticktext: ticktext,
         title: {
           font: {
             color: '#7f7f7f',
@@ -402,22 +412,63 @@ export default class PlotlyTimeline extends Component<IArgs> {
     let nextExpectedTimestamp = 0;
     let i = 0;
 
+    const tickvals: number[] = [];
+    const ticktext: string[] = [];
+
+    let previousValueWasNull = false;
+
     while (i < timestamps.length) {
       const timestamp = timestamps[i];
       const timestampId = timestamp.epochMilli;
 
       if (nextExpectedTimestamp === 0) {
-        x.push(timestamp.epochMilli);
+        x.push(timestampId);
         y.push(timestamp.spanCount);
-        nextExpectedTimestamp = timestamp.epochMilli;
+        nextExpectedTimestamp = timestampId;
+        tickvals.push(timestampId);
+
+        const timestampDate = new Date(timestampId);
+        const timestampTickLabel = timestampDate
+          .toISOString()
+          .replace('T', '<br>')
+          .replace('.000Z', '');
+
+        ticktext.push(timestampTickLabel);
         i++;
-      } else if (nextExpectedTimestamp === timestamp.epochMilli) {
-        x.push(timestamp.epochMilli);
+      } else if (nextExpectedTimestamp === timestampId) {
+        x.push(timestampId);
         y.push(timestamp.spanCount);
+
+        if (previousValueWasNull) {
+          tickvals.push(timestampId);
+          const timestampDate = new Date(timestampId);
+          const timestampTickLabel = timestampDate
+            .toISOString()
+            .replace('T', '<br>')
+            .replace('.000Z', '');
+
+          ticktext.push(timestampTickLabel);
+          previousValueWasNull = false;
+        } else if (
+          timestampId % 60000 === 0 &&
+          timestampId - tickvals[tickvals.length - 1] >= 60000
+        ) {
+          tickvals.push(timestampId);
+          const timestampDate = new Date(timestampId);
+          const timestampTickLabel = timestampDate
+            .toISOString()
+            .replace('T', '<br>')
+            .replace('.000Z', '');
+
+          ticktext.push(timestampTickLabel);
+          previousValueWasNull = false;
+        }
+
         i++;
       } else {
         x.push(null);
-        x.push(null);
+        y.push(null);
+        previousValueWasNull = true;
       }
 
       nextExpectedTimestamp += 10000;
@@ -448,13 +499,14 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     this.markerState = markerStates;
 
-    return PlotlyTimeline.getPlotlyDataObject(
-      x,
-      y,
-      colors,
-      sizes,
-      timestampIds
-    );
+    const tickvalsObject = { tickvals: tickvals };
+    const ticktextObject = { ticktext: ticktext };
+
+    return {
+      ...PlotlyTimeline.getPlotlyDataObject(x, y, colors, sizes, timestampIds),
+      ...tickvalsObject,
+      ...ticktextObject,
+    };
   }
 
   static getPlotlyDataObject(
