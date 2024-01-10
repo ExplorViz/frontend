@@ -802,6 +802,7 @@ export default class VisualizationController extends Controller {
         lastSelectTimestamp[1]!
       )];
 
+
       const epochMillis: [number?, number?] = [undefined, undefined];
       if (
         timestampToRender[0] &&
@@ -809,6 +810,7 @@ export default class VisualizationController extends Controller {
           JSON.stringify([timestampToRender[0]])
       ) {
         epochMillis[0] = timestampToRender[0].epochMilli;
+        epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0].epochMilli; 
         this.selectedTimestampRecords[0] = [timestampToRender[0]];
         this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
       }
@@ -819,6 +821,9 @@ export default class VisualizationController extends Controller {
           JSON.stringify([timestampToRender[1]])
       ) {
         epochMillis[1] = timestampToRender[1].epochMilli;
+        if(!epochMillis[0]){
+          epochMillis[0] = this.selectedTimestampRecords[0] && this.selectedTimestampRecords[0][0].epochMilli;
+        }
         this.selectedTimestampRecords[1] = [timestampToRender[1]];
         this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
       }
@@ -981,71 +986,49 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  // TODO: DELETE
-  // @action
-  // async renderSettingChanged() {
-  //   this.timestampPollingService.resetPolling();
-  //   const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
-  //   this.timestampPollingService.initTimestampPollingWithCallback(
-  //     selected!,
-  //     this.timestampPollingCallback.bind(this)
-  //   );
-
-  // }
-
   @action
-  async commitlineClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit: number, staticStructureData?: StructureLandscapeData ) {
-    // TODO: change timeline requests so that it only fetches dynamic data regarding the selected commit(s)
-    // (one timeline for each commit) but don't forget to also enhance it with the static landscape structure
-    // 
-    // TODO: build static landscape and show it (can be deactivated in the settings)
-
-    // enhance dynamic landscape structure with static landscape structure
+  async commitlineClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
 
     if(staticStructureData){
-      console.log("staticStructure commitlineClicked -----> ", staticStructureData);
-      this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData); // needed when fetching dynamic data so we can enhance it with the static data (if enabled)
+      this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData);
     }
-
-
     this.currentSelectedCommits = commits;
     //set(this, "currentSelectedCommits", commits);
 
-
     const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
     const numOfSelectedCommits = selected?.length;
-    console.log(this.currentSelectedApplication + " has " + numOfSelectedCommits + " selected commits" );
 
     this.timestampPollingService.resetPolling();
     if(numOfSelectedCommits && numOfSelectedCommits > 0){
       if(this.selectedTimestampRecords[1]) {
         // a commit (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) got unselected 
-        this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so it gets rerendered
-        this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit]];
-        this.timestampService.timestamp = [this.timestampService.timestamp[1-timelineOfSelectedCommit], undefined];
+        this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so the landscape gets updated within the timestampPollingCallback call-chain
+        this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit!]];
+        this.timestampService.timestamp = [this.timestampService.timestamp[1-timelineOfSelectedCommit!], undefined];
         this.plotlyTimelineRef[1] = undefined;
-        this.markerState = [this.markerState[1-timelineOfSelectedCommit], {}];
+        this.markerState = [this.markerState[1-timelineOfSelectedCommit!], {}];
       }
 
       if(this.timelineTimestamps.length === 0) {
         // this section removes the "bug" where if we pause during one selected commit (by clicking space or a timepoint) and unselect this commit
         // only to select this commit again, no landscape gets loaded
         if(this.visualizationPaused) {
-          console.log("REEESUMMMMMMMMMMEEEEEEEEE ............................");
           this.resumeVisualizationUpdating();
         }
+      } else if(this.timelineTimestamps.length === 1) {
+        // second commit got selected
+        if(this.visualizationPaused) {
+          this.resumeVisualizationUpdating(); // so the landscape gets updated
+        } 
       }
 
-      console.log("lets call timestampPollingService");
       this.timestampPollingService.initTimestampPollingWithCallback(
         selected,
         this.timestampPollingCallback.bind(this)
       );
-      
-      
-        console.log("marker state ---...---..---> ", this.markerState);
+    
     } else {
-      console.log("no commits selected anymore... ");
+      // no commits selected anymore
       this.selectedTimestampRecords = [undefined, undefined];
       this.timelineTimestamps = [];
       this.markerState = [{}, {}];
@@ -1055,7 +1038,6 @@ export default class VisualizationController extends Controller {
       this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
     }
     
-    // TODO: make visualization paused if for each of the two timelines a timepoint got selected
 
     // TODO: call reload handler and stop it and remove it from init method so the same dynamic data is not loaded every 10s 
     

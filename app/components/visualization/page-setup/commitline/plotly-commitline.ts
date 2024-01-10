@@ -32,7 +32,7 @@ interface IArgs {
   selectedCommits?: Map<string, SelectedCommit[]>;
   highlightedMarkerColor?: string;
   setChildReference?(timeline: PlotlyCommitline): void;
-  clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit: number, structureData?: StructureLandscapeData): void;
+  clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, structureData?: StructureLandscapeData): void;
   toggleConfigurationOverview(): void;
 }
 
@@ -545,6 +545,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                     break;
                   }
                 }
+                this.args.clicked?.(this.selectedCommits!);
               }else {
                 // select 2nd commit
                 colors[pn] = highlightedMarkerColor;
@@ -586,9 +587,6 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 // no structure since we unselected the only selected commit
                 this.args.clicked?.(this.selectedCommits!, 0);
               }
-
-              // TODO: if no selected commit remains, load latest landscape structure of main branch (write function for that)
-              // TODO: if one selected commit remains, load its landscape structure
             }
           }else { 
             // first commit has been selected

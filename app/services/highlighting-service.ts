@@ -20,6 +20,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 
+
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
@@ -283,7 +284,49 @@ export default class HighlightingService extends Service.extend({
   private getEntityType(mesh: Highlighting.HighlightableMesh): string {
     return mesh.constructor.name;
   }
+
+  @action
+  markAsAddedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsAdded(mesh);
+    }
+  }
+
+  @action
+  markAsDeletedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsDeleted(mesh);
+    }
+  }
+
+  @action
+  markAsModifiedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsModified(mesh);
+    }
+  }
+
+
+ private markAsAdded(mesh: EntityMesh){
+    mesh.changeTexture("../images/plus-128.png", 1);
+    console.log("MARK AS ADDED -------------------------");
+  }
+
+
+  private markAsDeleted(mesh: EntityMesh){
+    mesh.changeTexture("../images/minus.png");
+  }
+
+
+  private markAsModified(mesh: EntityMesh){
+    mesh.changeTexture("../images/hashtag.png");
+  }
 }
+
+
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

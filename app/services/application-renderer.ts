@@ -350,14 +350,27 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     const commitComparison = this.commitComparisonRepo.getById(id);
     if(!commitComparison) return;
 
+    console.log("COMMIT COMPARISON: ----------->", commitComparison);
+
     //fqFileNameToMeshId(applicationObject3D, );
 
     commitComparison.added.forEach(fqFileName => {
-      console.log("ADDED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      if(id)
+        this.highlightingService.markAsAddedById(id);
+      //console.log("ADDED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
     });
 
     commitComparison.deleted.forEach(fqFileName => {
-      console.log("DELETED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      //if(id)
+        //this.highlightingService.markAsDeletedById(id);
+    });
+
+    commitComparison.modified.forEach(fqFileName => {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      //if(id)
+        //this.highlightingService.markAsModifiedById(id);
     });
 
   }
@@ -377,7 +390,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       const candidates = clazzes.filter(clazz => clazz.name === className);
 
       for(const candidate of candidates) {
-        console.log("candidate: ", candidate.name);
+        //console.log("candidate: ", candidate.name);
         const packages = getClassAncestorPackages(candidate);
         let index = prefixAndPackageNames.length - 1;
         for(const pckg of packages.slice().reverse()) {
