@@ -377,6 +377,14 @@ export default class PlotlyTimeline extends Component<IArgs> {
     timestamps: Timestamp[],
     markerStates: IMarkerStates
   ) {
+    function getTimestampTickLabel(timestampEpoch: number) {
+      const timestampDate = new Date(timestampEpoch);
+      return timestampDate
+        .toISOString()
+        .replace('T', '<br>')
+        .replace('.000Z', '');
+    }
+
     const colors: string[] = [];
     const sizes: number[] = [];
 
@@ -393,27 +401,23 @@ export default class PlotlyTimeline extends Component<IArgs> {
       const timestampId = timestamp.epochMilli;
 
       if (nextExpectedTimestamp === 0) {
-        const timestampDate = new Date(timestampId);
-        const timestampTickLabel = timestampDate
-          .toISOString()
-          .replace('T', '<br>')
-          .replace('.000Z', '');
-
-        x.push(timestampTickLabel);
+        // first timestamp in series
+        x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         nextExpectedTimestamp = timestampId;
         i++;
       } else if (nextExpectedTimestamp === timestampId) {
-        const timestampDate = new Date(timestampId);
-        const timestampTickLabel = timestampDate
-          .toISOString()
-          .replace('T', '<br>')
-          .replace('.000Z', '');
-
-        x.push(timestampTickLabel);
+        // subsequent timestamps
+        x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
+      } else if (timestamp.epochMilli === null) {
+        // edge case if API will return null values in the future
+        x.push(null);
+        y.push(null);
+        i++;
       } else {
+        // gap fills for timestamps that did not occur
         x.push(null);
         y.push(null);
       }
