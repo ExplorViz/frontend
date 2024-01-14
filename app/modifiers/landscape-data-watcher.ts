@@ -25,10 +25,12 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { LinkObject, NodeObject } from 'three-forcegraph';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
   readonly graph: ForceGraph3DInstance;
+  readonly dynamics: [DynamicLandscapeData?, DynamicLandscapeData?];
 }
 
 interface Args {
@@ -83,6 +85,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   private dynamicStructure?: StructureLandscapeData;
   private staticStructure?: StructureLandscapeData;
   private renderMode?: RenderMode;
+  private dynamics!: [DynamicLandscapeData?, DynamicLandscapeData?];
 
   get structureLandscapeData() {
     return this.landscapeData.structureLandscapeData;
@@ -95,7 +98,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph, selectedApplication, selectedCommits, dynamicStructure, staticStructure, renderMode}: any
+    { landscapeData, graph, selectedApplication, selectedCommits, dynamicStructure, staticStructure, renderMode, dynamics}: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
@@ -103,17 +106,22 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.selectedCommits = selectedCommits;
     this.dynamicStructure = dynamicStructure;
     this.staticStructure = staticStructure; 
+    this.dynamics = dynamics;
     this.renderMode = renderMode;
     this.handleUpdatedLandscapeData.perform();
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
-    console.log("handleUpdatedLandscapeData");
+
+    console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
     await Promise.resolve();
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
-      this.dynamicLandscapeData
+      //this.dynamicLandscapeData,
+      [this.dynamics[0], this.dynamics[1]]
     );
+
+    console.log("classCommunications ------>", classCommunications);
 
     if (this.landscapeRestructure.restructureMode) {
       classCommunications = computeRestructuredClassCommunication(
@@ -130,7 +138,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
-    let { nodes: graphNodes, links } = this.graph.graphData();
+    let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {

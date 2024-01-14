@@ -17,12 +17,30 @@ export function calculateLineThickness(
   // Constant factors for rendering communication lines
   const LINE_THICKNESS_FACTOR = 0.5;
 
+  let normalizedRequestCount = 1;
   // Normalized request count might be above 1 for component communication
-  const normalizedRequestCount = clamp(
-    communication.metrics.normalizedRequestCount,
-    0.5,
-    1.5
-  );
+  if(communication instanceof ComponentCommunication) {
+    normalizedRequestCount = clamp(
+      communication.metrics.normalizedRequestCount,
+      0.5,
+      1.5
+    );
+  }else if(communication instanceof ClassCommunication) {
+    let meanNormalizedRequestCount = 0;
+    if(communication.methodCalls[0].length > 0){
+      meanNormalizedRequestCount += communication.metrics[0].normalizedRequestCount;
+    }
+
+    if(communication.methodCalls[1].length > 0){
+      meanNormalizedRequestCount += communication.metrics[1].normalizedRequestCount;
+    }
+
+    normalizedRequestCount = clamp(
+      meanNormalizedRequestCount/2,
+      0.5,
+      1.5
+    );
+  }
 
   // Apply line thickness depending on request count
   return normalizedRequestCount * LINE_THICKNESS_FACTOR;
@@ -38,7 +56,7 @@ export function clamp(value: number, min: number, max: number) {
 // Communication Layouting //
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D
-) {
+) { console.log("TRY TO AAPPLY COMMU LAYOUT");
   const { application, classCommunications } = applicationObject3D.data;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
 

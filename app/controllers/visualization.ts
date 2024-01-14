@@ -154,6 +154,9 @@ export default class VisualizationController extends Controller {
 
   staticStructureData? : StructureLandscapeData = undefined;
   dynamicStructureData? : StructureLandscapeData = undefined;
+  
+  @tracked
+  dynamics: [DynamicLandscapeData?, DynamicLandscapeData?] = [undefined, undefined];
   @tracked
   renderMode?: RenderMode = undefined;
 
@@ -564,6 +567,9 @@ export default class VisualizationController extends Controller {
         };
       }
 
+      this.dynamics= [dynamics[0]?.dynamicLandscapeData, dynamics[1]?.dynamicLandscapeData];
+      console.log("setting this.dynamics => ", this.dynamics);
+
       let newDynamic : DynamicLandscapeData;
       if (dynamics[0] && dynamics[1]) {
         //const combinedDynamics = combineStructures(dynamics[0].structureLandscapeData, dynamics[1].structureLandscapeData);
@@ -660,6 +666,10 @@ export default class VisualizationController extends Controller {
       this.resumeVisualizationUpdating();
     }
   }
+
+  // private combineDynamics(dynamicsA: DynamicLandscapeData, dynamicsB: DynamicLandscapeData) {
+
+  // }
 
   @action
   getTimelineReference(plotlyTimelineRef: PlotlyTimeline, selectedTimeline: number) {
@@ -982,7 +992,7 @@ export default class VisualizationController extends Controller {
   @action 
   updatePlotForMetrics(){
     if(this.plotlyCommitlineRef){
-      //this.plotlyCommitlineRef.updatePlotlineForMetric();
+      this.plotlyCommitlineRef.updatePlotlineForMetric();
     }
   }
 

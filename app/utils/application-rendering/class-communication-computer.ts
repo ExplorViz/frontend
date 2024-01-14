@@ -78,103 +78,109 @@ function computeClassCommunicationRecursively(
 
 export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicData: DynamicLandscapeData
+  landscapeDynamicDataArr: [DynamicLandscapeData?, DynamicLandscapeData?] // first element => first selected commit dynamics, second element => second selected commit dynamics
 ) {
-  if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
+  if ((!landscapeDynamicDataArr[0] && !landscapeDynamicDataArr[1]) || !(landscapeDynamicDataArr[0]?.length !== 0 || landscapeDynamicDataArr[1]?.length !== 0) ) return [];
 
   const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
     landscapeStructureData
   );
 
-  const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
-
-  const totalClassCommunications: SingleClassCommunication[] = [];
-
-  landscapeDynamicData.forEach((trace) => {
-    const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
-
-    if (traceSpanTree) {
-      const firstSpan = traceSpanTree.root;
-      totalClassCommunications.push(
-        ...computeClassCommunicationRecursively(
-          firstSpan,
-          traceSpanTree.tree,
-          hashCodeToClassMap
-        )
-      );
-    }
-  });
-
-  const methodCalls = new Map<string, MethodCall>();
-
-  totalClassCommunications.forEach(
-    ({ sourceClass, targetClass, operationName, callerMethodName }) => {
-      const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
-
-      // get source app
-      const sourceApp = classToApplicationMap.get(sourceClass);
-
-      // get target app
-      const targetApp = classToApplicationMap.get(targetClass);
-
-      if (!sourceApp || !targetApp) {
-        console.error('Application for class communication not found!');
-        return;
-      }
-
-      // Find all identical method calls based on their source
-      // and target app / class
-      // and aggregate identical method calls with exactly same source
-      // and target app / class within a single representative
-      const maybeMethodCall = methodCalls.get(sourceTargetClassMethodId);
-
-      if (!maybeMethodCall) {
-        methodCalls.set(
-          sourceTargetClassMethodId,
-          new MethodCall(
-            sourceTargetClassMethodId,
-            sourceApp,
-            sourceClass,
-            targetApp,
-            targetClass,
-            operationName,
-            callerMethodName
-          ).addSpan()
-        );
-      } else {
-        maybeMethodCall.addSpan();
-      }
-    }
-  );
-
   const classCommunications = new Map<string, ClassCommunication>();
-
-  methodCalls.forEach((methodCall) => {
-    const classIds = [
-      methodCall.sourceClass.id,
-      methodCall.targetClass.id,
-    ].sort();
-    const communicationId = classIds[0] + '_' + classIds[1];
-    const maybeClassCommunication = classCommunications.get(communicationId);
-
-    if (maybeClassCommunication) {
-      maybeClassCommunication.addMethodCalls(methodCall);
-    } else {
-      const newCommunication = new ClassCommunication(
-        communicationId,
-        methodCall.sourceApp,
-        methodCall.sourceClass,
-        methodCall.targetApp,
-        methodCall.targetClass,
-        methodCall.operationName
-      );
-      newCommunication.addMethodCalls(methodCall);
-      classCommunications.set(communicationId, newCommunication);
+  for (let i=0; i < 2; i++) {
+    if(!landscapeDynamicDataArr[i]) {
+      continue;
     }
-  });
 
+
+    const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicDataArr[i]!);
+
+    const totalClassCommunications: SingleClassCommunication[] = [];
+
+    landscapeDynamicDataArr[i]!.forEach((trace) => { 
+      const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
+
+      if (traceSpanTree) {
+        const firstSpan = traceSpanTree.root;
+        totalClassCommunications.push(
+          ...computeClassCommunicationRecursively(
+            firstSpan,
+            traceSpanTree.tree,
+            hashCodeToClassMap
+          )
+        );
+      }
+    });
+
+    const methodCalls = new Map<string, MethodCall>();
+
+    totalClassCommunications.forEach(
+      ({ sourceClass, targetClass, operationName, callerMethodName }) => {
+        const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
+
+        // get source app
+        const sourceApp = classToApplicationMap.get(sourceClass);
+
+        // get target app
+        const targetApp = classToApplicationMap.get(targetClass);
+
+        if (!sourceApp || !targetApp) {
+          console.error('Application for class communication not found!');
+          return;
+        }
+
+        // Find all identical method calls based on their source
+        // and target app / class
+        // and aggregate identical method calls with exactly same source
+        // and target app / class within a single representative
+        const maybeMethodCall = methodCalls.get(sourceTargetClassMethodId);
+
+        if (!maybeMethodCall) {
+          methodCalls.set(
+            sourceTargetClassMethodId,
+            new MethodCall(
+              sourceTargetClassMethodId,
+              sourceApp,
+              sourceClass,
+              targetApp,
+              targetClass,
+              operationName,
+              callerMethodName
+            ).addSpan()
+          );
+        } else {
+          maybeMethodCall.addSpan();
+        }
+      }
+    );
+
+    methodCalls.forEach((methodCall) => {
+      const classIds = [
+        methodCall.sourceClass.id,
+        methodCall.targetClass.id,
+      ].sort();
+      const communicationId = classIds[0] + '_' + classIds[1];
+      const maybeClassCommunication = classCommunications.get(communicationId);
+
+      if (maybeClassCommunication) {
+        maybeClassCommunication.addMethodCalls(methodCall, i);
+      } else {
+        const newCommunication = new ClassCommunication(
+          communicationId,
+          methodCall.sourceApp,
+          methodCall.sourceClass,
+          methodCall.targetApp,
+          methodCall.targetClass,
+          methodCall.operationName
+        );
+        newCommunication.addMethodCalls(methodCall, i);
+        classCommunications.set(communicationId, newCommunication);
+      }
+    });
+  }
   const computedCommunication = [...classCommunications.values()];
-  computeCommunicationMetrics(computedCommunication);
+  computeCommunicationMetrics(computedCommunication, 0);
+  computeCommunicationMetrics(computedCommunication, 1);
 
   //for (const computedCommu of computedCommunication) {
   //console.log(
@@ -186,16 +192,17 @@ export default function computeClassCommunication(
 }
 
 function computeCommunicationMetrics(
-  classCommunications: ClassCommunication[]
+  classCommunications: ClassCommunication[],
+  index: number
 ) {
   classCommunications.forEach((communication) => {
     const { totalRequests } = communication;
     const maxRequests = Math.max(
-      ...classCommunications.map((x) => x.totalRequests)
+      ...classCommunications.map((x) => x.totalRequests[index])
     );
     if (maxRequests > 0) {
-      communication.metrics.normalizedRequestCount =
-        totalRequests / maxRequests;
+      communication.metrics[index].normalizedRequestCount =
+        totalRequests[index] / maxRequests;
     }
   });
 }

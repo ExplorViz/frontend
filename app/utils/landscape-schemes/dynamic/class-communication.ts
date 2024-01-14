@@ -3,19 +3,24 @@ import MethodCall from './method-call';
 
 export default class ClassCommunication {
   id: string = '';
-  methodCalls: MethodCall[] = [];
+  methodCalls: [MethodCall[], MethodCall[]] = [[], []]; // method calls for first and second selected commit
+
   isRecursive: boolean = false;
   isBidirectional: boolean = false;
-  totalRequests: number = 0;
+  totalRequests: [number, number] = [0,0];
   sourceApp: Application;
   sourceClass: Class;
   targetApp: Application;
   targetClass: Class;
   operationName: string;
 
-  metrics = {
+  metrics = [{
     normalizedRequestCount: 1, // Normalized request count between 0 and 1
-  };
+  },
+  {
+    normalizedRequestCount: 1, // Normalized request count between 0 and 1
+  }
+];
 
   constructor(
     id: string,
@@ -33,9 +38,9 @@ export default class ClassCommunication {
     this.operationName = operationName;
   }
 
-  addMethodCalls(methodCall: MethodCall) {
-    this.methodCalls.push(methodCall);
-    this.totalRequests += methodCall.totalRequests;
+  addMethodCalls(methodCall: MethodCall, index: number) {
+    this.methodCalls[index].push(methodCall);
+    this.totalRequests[index] += methodCall.totalRequests;
 
     if (methodCall.sourceClass.id === methodCall.targetClass.id) {
       this.isRecursive = true;

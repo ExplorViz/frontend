@@ -40,10 +40,20 @@ export default class ComponentCommunication {
     isReversedDirection: boolean = false
   ) {
     this.classCommunications.push(communication);
-    this.totalRequests += communication.totalRequests;
-    this.metrics.normalizedRequestCount +=
-      communication.metrics.normalizedRequestCount;
-    this.methodCalls.push(...communication.methodCalls);
+    
+    if(communication.methodCalls[0].length > 0){
+      this.totalRequests += communication.totalRequests[0];
+      this.metrics.normalizedRequestCount +=
+      communication.metrics[0].normalizedRequestCount;
+      this.methodCalls.push(...communication.methodCalls[0]);
+    }
+
+    if(communication.methodCalls[1].length > 0){
+      this.totalRequests += communication.totalRequests[1];
+      this.metrics.normalizedRequestCount +=
+      communication.metrics[1].normalizedRequestCount;
+      this.methodCalls.push(...communication.methodCalls[1]);
+    }
 
     if (communication.isBidirectional || isReversedDirection) {
       this.isBidirectional = true;

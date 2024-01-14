@@ -4,6 +4,8 @@
   this.receiveNewLandscapeData
 }}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
+{{add-listener this.configurationRepo 'updated' this.updateConfigurationsAndMetrics}}
+{{add-listener this.configurationRepo 'updatePlot' this.updatePlotForMetrics}}
 {{add-listener this.applicationRenderer 'renderSettingChanged' this.onRenderSettingChange}}
 {{add-listener
   this.landscapeRestructure
@@ -110,6 +112,7 @@
             @staticStructure={{this.staticStructureData}}
             @dynamicStructure={{this.dynamicStructureData}}
             @renderMode={{this.renderMode}}
+            @dynamics={{this.dynamics}}
             @components={{this.components}}
             @componentsToolsSidebar={{this.componentsToolsSidebar}}
             @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}

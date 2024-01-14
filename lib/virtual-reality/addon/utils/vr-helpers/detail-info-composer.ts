@@ -21,6 +21,7 @@ import {
   EntityType,
 } from '../vr-message/util/entity_type';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 
 export type DetailedInfo = {
   title: string;
@@ -164,68 +165,110 @@ function composeAggregatedClassCommunicationContent(
   // # of aggregated requests
   const aggregatedReqCount = communicationData.communication.totalRequests;
 
-  if (communicationData.communication.methodCalls.length > 1) {
-    content.entries.push({
-      key: 'Aggregated request count:',
-      value: `${aggregatedReqCount} ( 100% )`,
-    });
+  if (communicationData.communication instanceof ComponentCommunication) {
 
-    // # of unique method calls
-    content.entries.push({
-      key: 'Number of unique methods:',
-      value: `${communicationData.communication.methodCalls.length}`,
-    });
-
-    content.entries.push({
-      key: '---',
-      value: '',
-    });
-  }
-
-  // add information for each unique method call
-  communicationData.communication.methodCalls.forEach((methodCall, index) => {
-    const commuHasExternalApp =
-      applicationId !== methodCall.sourceApp?.id ||
-      applicationId !== methodCall.targetApp?.id;
-
-    // Call hierarchy
-    // content.entries.push({
-    //   key: 'Src / Tgt Class:',
-    //   value: `${methodCall.sourceClass.name} -> ${
-    //     methodCall.targetClass.name
-    //    }`,
-    // });
-
-    if (commuHasExternalApp) {
-      // App hierarchy
+    if (communicationData.communication.methodCalls.length > 1) {
       content.entries.push({
-        key: 'Src / Tgt App:',
-        value: `${methodCall.sourceApp?.name} -> ${methodCall.targetApp?.name}`,
+        key: 'Aggregated request count:',
+        value: `${aggregatedReqCount} ( 100% )`,
       });
-    }
-
-    // Caller -> Callee method names
-    content.entries.push({
-      key: 'Operations:',
-      value: `${methodCall.callerMethodName} -> ${methodCall.operationName}`,
-    });
-
-    // Request count
-    content.entries.push({
-      key: 'Request count:',
-      value: `${methodCall.totalRequests} ( ${Math.round(
-        (methodCall.totalRequests / aggregatedReqCount) * 100
-      )}% )`,
-    });
-
-    // Spacer
-    if (index < communicationData.communication.methodCalls.length) {
+  
+      // # of unique method calls
+      content.entries.push({
+        key: 'Number of unique methods:',
+        value: `${communicationData.communication.methodCalls.length}`,
+      });
+  
       content.entries.push({
         key: '---',
         value: '',
       });
     }
-  });
+
+  }else if(communicationData.communication instanceof ClassCommunication) {
+    if (communicationData.communication.methodCalls[0].length > 1) {
+      content.entries.push({
+        key: '#1 selected commit aggregated request count:',
+        value: `${(aggregatedReqCount as [number, number])[0]} ( 100% )`,
+      });
+  
+      // # of unique method calls
+      content.entries.push({
+        key: 'Number of unique methods:',
+        value: `${communicationData.communication.methodCalls[0].length}`,
+      });
+  
+      content.entries.push({
+        key: '---',
+        value: '',
+      });
+    }
+
+    if (communicationData.communication.methodCalls[1].length > 1) {
+      content.entries.push({
+        key: '#2 selected commit aggregated request count:',
+        value: `${(aggregatedReqCount as [number, number])[1]} ( 100% )`,
+      });
+  
+      // # of unique method calls
+      content.entries.push({
+        key: 'Number of unique methods:',
+        value: `${communicationData.communication.methodCalls[1].length}`,
+      });
+  
+      content.entries.push({
+        key: '---',
+        value: '',
+      });
+    }
+
+
+  }
+
+  // add information for each unique method call
+  // communicationData.communication.methodCalls.forEach((methodCall, index) => {
+  //   const commuHasExternalApp =
+  //     applicationId !== methodCall.sourceApp?.id ||
+  //     applicationId !== methodCall.targetApp?.id;
+
+  //   // Call hierarchy
+  //   // content.entries.push({
+  //   //   key: 'Src / Tgt Class:',
+  //   //   value: `${methodCall.sourceClass.name} -> ${
+  //   //     methodCall.targetClass.name
+  //   //    }`,
+  //   // });
+
+  //   if (commuHasExternalApp) {
+  //     // App hierarchy
+  //     content.entries.push({
+  //       key: 'Src / Tgt App:',
+  //       value: `${methodCall.sourceApp?.name} -> ${methodCall.targetApp?.name}`,
+  //     });
+  //   }
+
+  //   // Caller -> Callee method names
+  //   content.entries.push({
+  //     key: 'Operations:',
+  //     value: `${methodCall.callerMethodName} -> ${methodCall.operationName}`,
+  //   });
+
+  //   // Request count
+  //   content.entries.push({
+  //     key: 'Request count:',
+  //     value: `${methodCall.totalRequests} ( ${Math.round(
+  //       (methodCall.totalRequests / aggregatedReqCount) * 100
+  //     )}% )`,
+  //   });
+
+  //   // Spacer
+  //   if (index < communicationData.communication.methodCalls.length) {
+  //     content.entries.push({
+  //       key: '---',
+  //       value: '',
+  //     });
+  //   }
+  // });
 
   return content;
 }
