@@ -147,7 +147,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   curvyCommHeight: {
-    value: 0.0,
+    value: 1.0,
     range: {
       min: 0.0,
       max: 5.0,
