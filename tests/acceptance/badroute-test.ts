@@ -9,8 +9,8 @@ module('Acceptance | badroute', (hooks) => {
     await visit('/badroute');
     assert.equal(
       currentURL(),
-      '/landscapes',
-      'Every non valid route is redirected to landscapes.'
+      '/login',
+      'Every non valid route is redirected to login page.'
     );
   });
 });

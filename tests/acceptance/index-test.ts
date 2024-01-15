@@ -9,8 +9,8 @@ module('Acceptance | index', (hooks) => {
     await visit('/index');
     assert.equal(
       currentURL(),
-      '/landscapes',
-      'Index route replaces current URL with landscapes route.'
+      '/login',
+      'Index route replaces current URL with login route.'
     );
   });
 });
