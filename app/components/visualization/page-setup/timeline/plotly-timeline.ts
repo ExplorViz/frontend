@@ -218,11 +218,13 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
 
+    const { shapes } = data;
+
     this.plotlyTimestampsWithoutNullValues = data.x.filter(
       (x: any) => !!x
     ).length;
 
-    const layout = this.userSlidingWindow
+    let layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : this.getPlotlyLayoutObject(
           this.plotlyTimestampsWithoutNullValues - 30,
@@ -233,6 +235,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
       min: this.plotlyTimestampsWithoutNullValues - 30,
       max: this.plotlyTimestampsWithoutNullValues,
     };
+
+    layout = { ...layout, ...{ shapes: shapes } };
 
     Plotly.newPlot(
       this.timelineDiv,
@@ -249,16 +253,15 @@ export default class PlotlyTimeline extends Component<IArgs> {
       return;
     }
 
-    const data: any = this.getUpdatedPlotlyDataObject(
-      timestamps,
-      this.markerState
-    );
+    const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
+
+    const { shapes } = data;
 
     this.plotlyTimestampsWithoutNullValues = data.x.filter(
       (x: any) => !!x
     ).length;
 
-    const layout = this.userSlidingWindow
+    let layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : this.getPlotlyLayoutObject(
           this.plotlyTimestampsWithoutNullValues - 30,
@@ -269,6 +272,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
       min: this.plotlyTimestampsWithoutNullValues - 30,
       max: this.plotlyTimestampsWithoutNullValues,
     };
+
+    layout = { ...layout, ...{ shapes: shapes } };
 
     Plotly.react(
       this.timelineDiv,
@@ -385,6 +390,25 @@ export default class PlotlyTimeline extends Component<IArgs> {
         .replace('.000Z', '');
     }
 
+    function getGapRectangleObj() {
+      return {
+        layer: 'below',
+        type: 'rect',
+        xref: 'x',
+        yref: 'paper',
+        x0: '0',
+        y0: 0.1,
+        x1: '0',
+        y1: 1,
+        fillcolor: '#d3d3d3',
+        opacity: 0.4,
+        line: {
+          width: 3,
+          dash: 'dot',
+        },
+      };
+    }
+
     const colors: string[] = [];
     const sizes: number[] = [];
 
@@ -392,6 +416,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const y: (number | null)[] = [];
 
     const timestampIds: number[] = [];
+
+    const shapes = [];
+
+    let tempGapRectObj = null;
 
     let nextExpectedTimestamp = 0;
     let i = 0;
@@ -411,6 +439,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
+        if (tempGapRectObj) {
+          tempGapRectObj.x1 = getTimestampTickLabel(timestampId);
+          shapes.push(tempGapRectObj);
+          tempGapRectObj = null;
+        }
       } else if (timestamp.epochMilli === null) {
         // edge case if API will return null values in the future
         x.push(null);
@@ -420,6 +453,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
         // gap fills for timestamps that did not occur
         x.push(null);
         y.push(null);
+        if (!tempGapRectObj) {
+          tempGapRectObj = getGapRectangleObj();
+          tempGapRectObj.x0 = getTimestampTickLabel(
+            nextExpectedTimestamp - 10000
+          );
+        }
       }
 
       nextExpectedTimestamp += 10000;
@@ -450,7 +489,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     this.markerState = markerStates;
 
-    return this.getPlotlyDataObject(x, y, colors, sizes, timestampIds);
+    return {
+      ...this.getPlotlyDataObject(x, y, colors, sizes, timestampIds),
+      ...{ shapes: shapes },
+    };
   }
 
   getPlotlyDataObject(
