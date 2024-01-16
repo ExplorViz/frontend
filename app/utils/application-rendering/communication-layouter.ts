@@ -56,7 +56,7 @@ export function clamp(value: number, min: number, max: number) {
 // Communication Layouting //
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D
-) { console.log("TRY TO AAPPLY COMMU LAYOUT");
+) {
   const { application, classCommunications } = applicationObject3D.data;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
 

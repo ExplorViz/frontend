@@ -52,6 +52,7 @@ interface IArgs {
   setChildReference?(timeline: PlotlyCommitline): void;
   clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, structureData?: StructureLandscapeData): void;
   toggleConfigurationOverview(): void;
+  applicationNameAndBranchNameToColorMap? : Map<string, string>;
 }
 
 function isCommitData(commitData: any): commitData is CommitData {
@@ -114,11 +115,9 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
   commitSizes: Map<string, number> = new Map();
   usedColors: Set<number[]> = new Set();
-  applicationNameAndBranchNameToColorMap : Map<string, string> = new Map();
   branchNameToLineColor: Map<string, string> = new Map();
   branchToY: Map<string,number> = new Map();
   branchToColor: Map<string,string> = new Map();
-
   commitIdToCommitData: Map<string, CommitData> = new Map();
 
 
@@ -145,6 +144,9 @@ export default class PlotlyCommitline extends Component<IArgs> {
     return this.args.selectedCommits;
   }
 
+  get applicationNameAndBranchNameToColorMap() {
+    return this.args.applicationNameAndBranchNameToColorMap || new Map();
+  }
 
   // END template-argument getters
 
@@ -228,7 +230,6 @@ export default class PlotlyCommitline extends Component<IArgs> {
         const colors = Array.from(Array(numOfCommits)).map(() => color);
 
 
-        // TODO: recoloring selected commits, e.g. when switching back from another application or the timeline
         //const selectedCommits = this.selectedCommits?.get(selectedApplication)?.values();
         const currentSelectedCommits = selectedCommits.get(selectedApplication);
         if(currentSelectedCommits){

@@ -3,20 +3,10 @@
     class='plotlyDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
     {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update this.didRender 0 @timestamps @selectedTimestamps}}
-    {{did-insert this.didRender 0}}
+    {{did-update this.didRender @timestamps @selectedTimestamps @highlightedMarkerColor}}
+    {{did-insert this.didRender @timestamps.length }}
   >
   </div>
-  {{#if (eq @timestamps.length 2)}}
-    <div
-      class='plotlyDiv'
-      {{on 'mouseenter' this.handleMouseEnter}}
-      {{on 'mouseleave' this.handleMouseLeave}}
-      {{did-update this.didRender 1 @timestamps}}
-      {{did-insert this.didRender 1}}
-    >
-    </div>
-  {{/if}}
 {{else}}
   <div class='timeline-no-timestamps-outer'>
     <div class='timeline-no-timestamps-inner'>

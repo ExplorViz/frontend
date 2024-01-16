@@ -141,7 +141,7 @@ export default class VisualizationController extends Controller {
   @service('repos/configuration-repository')
   configurationRepo!: ConfigurationRepository;
 
-  plotlyTimelineRef: (PlotlyTimeline | undefined)[] = [undefined, undefined];
+  plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
 
   plotlyCommitlineRef!: PlotlyCommitline;
 
@@ -222,6 +222,12 @@ export default class VisualizationController extends Controller {
 
   @tracked
   isCommitsTimeline: boolean = false;
+
+  @tracked
+  applicationNameAndBranchNameToColorMap : Map<string, string> = new Map();
+
+  @tracked
+  timelineColors : [string?, string?] = [undefined, undefined];
 
   
   
@@ -417,8 +423,8 @@ export default class VisualizationController extends Controller {
 
   @action
   resetView() {
-    this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
-    this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
+    this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
+    this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
   }
 
   @action
@@ -539,7 +545,7 @@ export default class VisualizationController extends Controller {
       this.updateTimestamp(epochMillis, [this.selectedTimestampRecords[0], selectedTimestamps]);
     }
 
-    console.log("epochMillis timelineClicked ------------> ", epochMillis);
+    console.log("----------- epochMillis timelineClicked ------------> ", epochMillis);
   }
 
   
@@ -572,10 +578,9 @@ export default class VisualizationController extends Controller {
 
       let newDynamic : DynamicLandscapeData;
       if (dynamics[0] && dynamics[1]) {
-        //const combinedDynamics = combineStructures(dynamics[0].structureLandscapeData, dynamics[1].structureLandscapeData);
-        const combinedDynamics = dynamics[0].structureLandscapeData;
-        this.dynamicStructureData = combinedDynamics;
-        newDynamic = dynamics[0].dynamicLandscapeData; // TODO combine dynamicLandscapeData
+        const combinedDynamicStructure = combineStructures(dynamics[0].structureLandscapeData, dynamics[1].structureLandscapeData);
+        this.dynamicStructureData = combinedDynamicStructure;
+        newDynamic = this.combineDynamics(dynamics[0].dynamicLandscapeData, dynamics[1].dynamicLandscapeData);
       } else if (dynamics[0]) {
         this.dynamicStructureData = dynamics[0].structureLandscapeData;
         newDynamic = dynamics[0].dynamicLandscapeData;
@@ -624,10 +629,13 @@ export default class VisualizationController extends Controller {
       this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
       // ---
 
+      console.log("VOOORHER XXXXXXXXXXX : ", this.dynamicStructureData);
       const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       //let newStruct : StructureLandscapeData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       //let newDynamic: DynamicLandscapeData = dynamicData;
       //const newDynamic = dynamicData;
+      console.log("NACHHHEEEEEEEER XXXXXXXXXXX: ", this.dynamicStructureData);
+      console.log("XXXXXXXXXXXXXXXXXXXXXXXXX: ", newStruct);
 
       // TODO: combine dynamic structure with static structure
       const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
@@ -667,15 +675,14 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  // private combineDynamics(dynamicsA: DynamicLandscapeData, dynamicsB: DynamicLandscapeData) {
-
-  // }
+  private combineDynamics(dynamicsA: DynamicLandscapeData, dynamicsB: DynamicLandscapeData) {
+    const dynamics = [...dynamicsA, ...dynamicsB];
+    return dynamics;
+  }
 
   @action
-  getTimelineReference(plotlyTimelineRef: PlotlyTimeline, selectedTimeline: number) {
-    // called from within the plotly timeline component
-    console.log("GET TIMELINE REFERENCE ", selectedTimeline);
-    this.plotlyTimelineRef[selectedTimeline] = plotlyTimelineRef;
+  getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
+    this.plotlyTimelineRef = plotlyTimelineRef;
     set(this, 'plotlyTimelineRef', this.plotlyTimelineRef); // trigger change
   }
 
@@ -698,9 +705,11 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      this.highlightedMarkerColor = 'blue ';
-      this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
-      this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
+      this.highlightedMarkerColor = 'blue';
+      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
+      if(this.selectedTimestampRecords[1]){
+        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
+      }
       animatePlayPauseButton(false);
     }
   }
@@ -709,8 +718,10 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
-      this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
+      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
+      if(this.selectedTimestampRecords[1]){
+        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
+      }
       animatePlayPauseButton(true);
     }
   }
@@ -822,7 +833,7 @@ export default class VisualizationController extends Controller {
         epochMillis[0] = timestampToRender[0].epochMilli;
         epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0].epochMilli; 
         this.selectedTimestampRecords[0] = [timestampToRender[0]];
-        this.plotlyTimelineRef[0]?.continueTimeline(this.selectedTimestampRecords, 0);
+        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
       }
 
       if (
@@ -835,7 +846,7 @@ export default class VisualizationController extends Controller {
           epochMillis[0] = this.selectedTimestampRecords[0] && this.selectedTimestampRecords[0][0].epochMilli;
         }
         this.selectedTimestampRecords[1] = [timestampToRender[1]];
-        this.plotlyTimelineRef[1]?.continueTimeline(this.selectedTimestampRecords, 1);
+        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
       }
 
       if(epochMillis[0] || epochMillis[1]){
@@ -999,6 +1010,8 @@ export default class VisualizationController extends Controller {
   @action
   async commitlineClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
 
+
+
     if(staticStructureData){
       this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData);
     }
@@ -1015,36 +1028,53 @@ export default class VisualizationController extends Controller {
         this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so the landscape gets updated within the timestampPollingCallback call-chain
         this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit!]];
         this.timestampService.timestamp = [this.timestampService.timestamp[1-timelineOfSelectedCommit!], undefined];
-        this.plotlyTimelineRef[1] = undefined;
         this.markerState = [this.markerState[1-timelineOfSelectedCommit!], {}];
-      }
+        this.timelineColors[timelineOfSelectedCommit!] = undefined;
+        
+        this.timestampPollingService.initTimestampPollingWithCallback(
+          selected,
+          this.timestampPollingCallback.bind(this)
+        );
 
-      if(this.timelineTimestamps.length === 0) {
-        // this section removes the "bug" where if we pause during one selected commit (by clicking space or a timepoint) and unselect this commit
-        // only to select this commit again, no landscape gets loaded
-        if(this.visualizationPaused) {
-          this.resumeVisualizationUpdating();
+      }else {
+
+        if(this.timelineTimestamps.length === 0) {
+          // first commit got selected
+          const keyForColor = this.currentSelectedApplication + selected[0].branchName;
+          this.timelineColors[0] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
+          
+          // this section also removes the "bug" where if we pause during one selected commit (by clicking space or a timepoint) and unselect this commit
+          // only to select this commit again, no landscape gets loaded
+          if(this.visualizationPaused) {
+            this.resumeVisualizationUpdating();
+          }
+        } else if(this.timelineTimestamps.length === 1) {console.log("XXXXXXXXXXXXXXXX::::XXXXXXXXXXXXXXX");
+          // second commit got selected
+          const keyForColor = this.currentSelectedApplication + selected[1].branchName;
+          this.timelineColors[1] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
+  
+  
+          if(this.visualizationPaused) {
+            this.resumeVisualizationUpdating(); // so the landscape gets updated
+          } 
         }
-      } else if(this.timelineTimestamps.length === 1) {
-        // second commit got selected
-        if(this.visualizationPaused) {
-          this.resumeVisualizationUpdating(); // so the landscape gets updated
-        } 
-      }
+  
+        this.timestampPollingService.initTimestampPollingWithCallback(
+          selected,
+          this.timestampPollingCallback.bind(this)
+        );
 
-      this.timestampPollingService.initTimestampPollingWithCallback(
-        selected,
-        this.timestampPollingCallback.bind(this)
-      );
+
+      }
     
     } else {
       // no commits selected anymore
       this.selectedTimestampRecords = [undefined, undefined];
       this.timelineTimestamps = [];
       this.markerState = [{}, {}];
-      this.plotlyTimelineRef[0] = undefined;
-      this.plotlyTimelineRef[1] = undefined;
       this.timestampService.timestamp = [undefined, undefined];
+      this.timelineColors = [undefined, undefined];
+      this.plotlyTimelineRef = undefined;
       this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
     }
     

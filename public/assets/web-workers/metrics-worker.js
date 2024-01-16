@@ -6,7 +6,6 @@ self.addEventListener(
     const dynamicData = e.data.dynamic;
 
     const metrics = calculateMetrics(structureData, dynamicData);
-
     postMessage(metrics);
   },
   false
@@ -328,8 +327,8 @@ function calculateMetrics(application, allLandscapeTraces) {
     const hashCodeToClassMap = new Map();
 
     clazzes.forEach((clazz) => {
-      clazz.methods.forEach(({ hashCode }) =>
-        hashCodeToClassMap.set(hashCode, clazz)
+      clazz.methods.forEach(({ methodHash }) => 
+        hashCodeToClassMap.set(methodHash, clazz)
       );
     });
 
@@ -357,6 +356,7 @@ function calculateMetrics(application, allLandscapeTraces) {
         hashCodes.push(span.methodHash);
       });
     });
+
     return hashCodes;
   }
 

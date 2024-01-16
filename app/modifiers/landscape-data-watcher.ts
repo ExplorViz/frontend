@@ -264,6 +264,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         structure: application,
         dynamic: this.dynamicLandscapeData,
       };
+      
       const cityLayout = this.worker.postMessage(
         'city-layouter',
         workerPayload

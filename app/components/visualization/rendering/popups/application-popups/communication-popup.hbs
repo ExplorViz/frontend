@@ -148,320 +148,304 @@
     
 
 
-
-
-
-
-
-
       {{#if (gt (array-length (access-array-element @communication.communication.methodCalls 0)) 0)}}
-        <h4 class='popover-header'>
-          <div class='text-center text-break font-weight-bold pl-1'>
-            First Selected Commit
-          </div>
-        </h4>
-
-
-
-      {{#if (gt (array-length (access-array-element @communication.communication.methodCalls 0)) 1)}}
-        {{! Aggregated request count }}
         <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'code-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{access-array-element @communication.communication.totalRequests 0}}
-            ( 100% )
-          </td>
+          <th colspan="2">  
+            <h4 class='popover-header'>
+              <div class='text-center text-break font-weight-bold pl-1'>
+                First Selected Commit
+              </div>
+            </h4>
+          </th>
         </tr>
-        {{! # of unique method calls }}
-        <tr>
-          <td class='text-nowrap align-top'>#</td>
-          <td class='text-right text-break pl-1'>
-            {{array-length (access-array-element @communication.communication.methodCalls 0)}}
-          </td>
-        </tr>
-        <hr />
-      {{/if}}
-      {{#each
-        (access-array-element @communication.communication.methodCalls 0)
-        as |classCommunication index|
-      }}
-        {{! Relationship }}
-        <tr>
-          <td class='text-nowrap align-top'>
-            {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
-          </td>
-          <td class='text-right text-break pl-1'>
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.sourceClass
-                  classCommunication.sourceApp.id
-                )
-              }}
-            >
-              {{classCommunication.sourceClass.name}}
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.sourceApp.name}}
-              </BsTooltip>
-            </button>
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.sourceClass
-                  classCommunication.sourceApp.id
-                )
-              }}
-            >
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.sourceApp.name}}
-              </BsTooltip>
-            </button>
-            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.targetClass
-                  classCommunication.targetApp.id
-                )
-              }}
-            >
-              {{classCommunication.targetClass.name}}
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.targetApp.name}}
-              </BsTooltip>
-            </button>
-          </td>
-        </tr>
-        {{! Name }}
-        <tr>
-
-          {{!--
-          <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
-            @communication={{classCommunication}}
-          />
-           --}}
-
-          <td class='text-nowrap align-top'>{{svg-jar
-              'comment-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{classCommunication.callerMethodName}}
-            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            {{classCommunication.operationName}}
-          </td>
-        </tr>
-
-        {{! Requests }}
-        <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'code-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{classCommunication.totalRequests}}
-            (
-            {{round
-              (mult
-                (div
-                  classCommunication.totalRequests
-                  (access-array-element this.calculateAggregatedRequestCount 0)
-                )
-                100
-              )
-            }}% )
-          </td>
-        </tr>
-        {{#if this.landscapeRestructure.restructureMode}}
-          <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
-            @classCommunication={{classCommunication}}
-          />
-        {{/if}}
-        {{#if (lt index (sub @communication.classCommunications.length 1))}}
+        {{#if (gt (array-length (access-array-element @communication.communication.methodCalls 0)) 1)}}
+          {{! Aggregated request count }}
+          <tr>
+            <td class='text-nowrap align-top'>{{svg-jar
+                'code-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{access-array-element @communication.communication.totalRequests 0}}
+              ( 100% )
+            </td>
+          </tr>
+          {{! # of unique method calls }}
+          <tr>
+            <td class='text-nowrap align-top'>#</td>
+            <td class='text-right text-break pl-1'>
+              {{array-length (access-array-element @communication.communication.methodCalls 0)}}
+            </td>
+          </tr>
           <hr />
         {{/if}}
-      {{/each}}
+        {{#each
+          (access-array-element @communication.communication.methodCalls 0)
+          as |classCommunication index|
+        }}
+          {{! Relationship }}
+          <tr>
+            <td class='text-nowrap align-top'>
+              {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+            </td>
+            <td class='text-right text-break pl-1'>
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.sourceClass
+                    classCommunication.sourceApp.id
+                  )
+                }}
+              >
+                {{classCommunication.sourceClass.name}}
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.sourceApp.name}}
+                </BsTooltip>
+              </button>
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.sourceClass
+                    classCommunication.sourceApp.id
+                  )
+                }}
+              >
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.sourceApp.name}}
+                </BsTooltip>
+              </button>
+              {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.targetClass
+                    classCommunication.targetApp.id
+                  )
+                }}
+              >
+                {{classCommunication.targetClass.name}}
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.targetApp.name}}
+                </BsTooltip>
+              </button>
+            </td>
+          </tr>
+          {{! Name }}
+          <tr>
 
+            {{!--
+            <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
+              @communication={{classCommunication}}
+            />
+            --}}
 
+            <td class='text-nowrap align-top'>{{svg-jar
+                'comment-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{classCommunication.callerMethodName}}
+              {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+              {{classCommunication.operationName}}
+            </td>
+          </tr>
+
+          {{! Requests }}
+          <tr>
+            <td class='text-nowrap align-top'>{{svg-jar
+                'code-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{classCommunication.totalRequests}}
+              (
+              {{round
+                (mult
+                  (div
+                    classCommunication.totalRequests
+                    (access-array-element this.calculateAggregatedRequestCount 0)
+                  )
+                  100
+                )
+              }}% )
+            </td>
+          </tr>
+          {{#if this.landscapeRestructure.restructureMode}}
+            <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
+              @classCommunication={{classCommunication}}
+            />
+          {{/if}}
+          {{#if (lt index (sub @communication.classCommunications.length 1))}}
+            <hr />
+          {{/if}}
+        {{/each}}
       {{/if}}
+
+
+
 
       {{#if (gt (array-length (access-array-element @communication.communication.methodCalls 1)) 0)}}
-        <h4 class='popover-header'>
-          <div class='text-center text-break font-weight-bold pl-1'>
-            Second Selected Commit
-          </div>
-        </h4>
-
-
-
+        <tr>
+          <th colspan="2">  
+            <h4 class='popover-header'>
+              <div class='text-center text-break font-weight-bold pl-1'>
+                Second Selected Commit
+              </div>
+            </h4>
+          </th>
+        </tr>
         {{#if (gt (array-length (access-array-element @communication.communication.methodCalls 1)) 1)}}
-        {{! Aggregated request count }}
-        <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'code-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{access-array-element @communication.communication.totalRequests 1}}
-            ( 100% )
-          </td>
-        </tr>
-        {{! # of unique method calls }}
-        <tr>
-          <td class='text-nowrap align-top'>#</td>
-          <td class='text-right text-break pl-1'>
-            {{array-length (access-array-element @communication.communication.methodCalls 1)}}
-          </td>
-        </tr>
-        <hr />
-      {{/if}}
-      {{#each
-        (access-array-element @communication.communication.methodCalls 1)
-        as |classCommunication index|
-      }}
-        {{! Relationship }}
-        <tr>
-          <td class='text-nowrap align-top'>
-            {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
-          </td>
-          <td class='text-right text-break pl-1'>
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.sourceClass
-                  classCommunication.sourceApp.id
-                )
-              }}
-            >
-              {{classCommunication.sourceClass.name}}
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.sourceApp.name}}
-              </BsTooltip>
-            </button>
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.sourceClass
-                  classCommunication.sourceApp.id
-                )
-              }}
-            >
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.sourceApp.name}}
-              </BsTooltip>
-            </button>
-            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            <button
-              type='button'
-              class='buttonToLink'
-              {{on
-                'click'
-                (fn
-                  this.highlightEntity
-                  classCommunication.targetClass
-                  classCommunication.targetApp.id
-                )
-              }}
-            >
-              {{classCommunication.targetClass.name}}
-              <BsTooltip @placement='top' @triggerEvents='hover'>
-                Application:
-                {{classCommunication.targetApp.name}}
-              </BsTooltip>
-            </button>
-          </td>
-        </tr>
-        {{! Name }}
-        <tr>
-
-          {{!--
-          <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
-            @communication={{classCommunication}}
-          />
-           --}}
-
-          <td class='text-nowrap align-top'>{{svg-jar
-              'comment-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{classCommunication.callerMethodName}}
-            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
-            {{classCommunication.operationName}}
-          </td>
-        </tr>
-
-        {{! Requests }}
-        <tr>
-          <td class='text-nowrap align-top'>{{svg-jar
-              'code-16'
-              class='octicon align-middle mr-1'
-            }}</td>
-          <td class='text-right text-break pl-1'>
-            {{classCommunication.totalRequests}}
-            (
-            {{round
-              (mult
-                (div
-                  classCommunication.totalRequests
-                  (access-array-element this.calculateAggregatedRequestCount 1)
-                )
-                100
-              )
-            }}% )
-          </td>
-        </tr>
-        {{#if this.landscapeRestructure.restructureMode}}
-          <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
-            @classCommunication={{classCommunication}}
-          />
-        {{/if}}
-        {{#if (lt index (sub @communication.classCommunications.length 1))}}
+          {{! Aggregated request count }}
+          <tr>
+            <td class='text-nowrap align-top'>{{svg-jar
+                'code-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{access-array-element @communication.communication.totalRequests 1}}
+              ( 100% )
+            </td>
+          </tr>
+          {{! # of unique method calls }}
+          <tr>
+            <td class='text-nowrap align-top'>#</td>
+            <td class='text-right text-break pl-1'>
+              {{array-length (access-array-element @communication.communication.methodCalls 1)}}
+            </td>
+          </tr>
           <hr />
         {{/if}}
-      {{/each}}
+        {{#each
+          (access-array-element @communication.communication.methodCalls 1)
+          as |classCommunication index|
+        }}
+          {{! Relationship }}
+          <tr>
+            <td class='text-nowrap align-top'>
+              {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+            </td>
+            <td class='text-right text-break pl-1'>
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.sourceClass
+                    classCommunication.sourceApp.id
+                  )
+                }}
+              >
+                {{classCommunication.sourceClass.name}}
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.sourceApp.name}}
+                </BsTooltip>
+              </button>
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.sourceClass
+                    classCommunication.sourceApp.id
+                  )
+                }}
+              >
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.sourceApp.name}}
+                </BsTooltip>
+              </button>
+              {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+              <button
+                type='button'
+                class='buttonToLink'
+                {{on
+                  'click'
+                  (fn
+                    this.highlightEntity
+                    classCommunication.targetClass
+                    classCommunication.targetApp.id
+                  )
+                }}
+              >
+                {{classCommunication.targetClass.name}}
+                <BsTooltip @placement='top' @triggerEvents='hover'>
+                  Application:
+                  {{classCommunication.targetApp.name}}
+                </BsTooltip>
+              </button>
+            </td>
+          </tr>
+          {{! Name }}
+          <tr>
 
+            {{!--
+            <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
+              @communication={{classCommunication}}
+            />
+            --}}
 
+            <td class='text-nowrap align-top'>{{svg-jar
+                'comment-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{classCommunication.callerMethodName}}
+              {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+              {{classCommunication.operationName}}
+            </td>
+          </tr>
 
-
-
+          {{! Requests }}
+          <tr>
+            <td class='text-nowrap align-top'>{{svg-jar
+                'code-16'
+                class='octicon align-middle mr-1'
+              }}</td>
+            <td class='text-right text-break pl-1'>
+              {{classCommunication.totalRequests}}
+              (
+              {{round
+                (mult
+                  (div
+                    classCommunication.totalRequests
+                    (access-array-element this.calculateAggregatedRequestCount 1)
+                  )
+                  100
+                )
+              }}% )
+            </td>
+          </tr>
+          {{#if this.landscapeRestructure.restructureMode}}
+            <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
+              @classCommunication={{classCommunication}}
+            />
+          {{/if}}
+          {{#if (lt index (sub @communication.classCommunications.length 1))}}
+            <hr />
+          {{/if}}
+        {{/each}}
       {{/if}}
-
-
-
-
-
-
-
-
     {{/if}}
     </tbody>
   </table>

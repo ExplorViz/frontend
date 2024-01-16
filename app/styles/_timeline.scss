@@ -17,17 +17,27 @@
   height: 300px !important;
 }
 
+#timeline-buttons {
+  width: max-content;
+  margin-left: 50%;
+  margin-top: 10px;
+}
+
 .timeline {
   background-color: white;
   border-top: darkgray 1px solid;
   transition: 0.7s ease-in-out;
   opacity: 1;
-  height: 150px;
+  height: 200px;
   margin-bottom: 10px;
 }
 
-.timelineextend {
-  height: 300px !important;
+.timeline-btns {
+  border-color: darkgray;
+}
+
+.highlight {
+  font-weight: bold !important;
 }
 
 .timelinehide {

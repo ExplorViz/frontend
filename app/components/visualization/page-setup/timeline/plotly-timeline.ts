@@ -22,10 +22,11 @@ interface IArgs {
   selectionCount?: number;
   slidingWindowLowerBoundInMinutes?: number;
   slidingWindowUpperBoundInMinutes?: number;
-  setChildReference?(timeline: PlotlyTimeline, selectedTimeline: number): void;
+  setChildReference?(timeline: PlotlyTimeline): void;
   clicked?(selectedTimeline: number, selectedTimestamps: Timestamp[], markerState: IMarkerStates): void;
   markerState?: IMarkerStates[];
   selectedTimestamps?: [Timestamp[]?, Timestamp[]?];
+  timelineColors?: [string?, string?];
 }
 
 export default class PlotlyTimeline extends Component<IArgs> {
@@ -70,6 +71,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
     return this.args.markerState || [{}, {}];
   }
 
+  get timelineColors() {
+    return this.args.timelineColors;
+  }
+
   // variable used for output when clicked
 selectedTimestamps: Timestamp[][] = [[],[]];
 
@@ -77,14 +82,14 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   readonly debug = debugLogger();
 
-  initDone = [false, false];
+  initDone = false;
 
   oldPlotlySlidingWindow = [{ min: 0, max: 0 }, { min: 0, max: 0 }];
 
   userSlidingWindow = null;
 
 
-  timelineDiv: any[] = [[],[]];
+  timelineDiv: any;
 
   // BEGIN Ember Div Events
   @action
@@ -105,15 +110,13 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   @action
   didRender(plotlyDiv: any, params: any[]) {
-    const selectedTimeline = params[0];
+    const numberOfTimelines = params[0];
     // register this component at its parent if set via template
     const parentFunction = this.args.setChildReference;
     if (parentFunction) {
-      parentFunction(this, selectedTimeline);
+      parentFunction(this);
     }
-
-    this.timelineDiv[selectedTimeline] = plotlyDiv;
-    console.log("SELECTED TIMELINE DID RENDER ::::::", selectedTimeline);
+    this.timelineDiv = plotlyDiv;
 
     if(this.args.selectedTimestamps) {
       if(this.args.selectedTimestamps[0]) {
@@ -125,22 +128,23 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     }
 
 
-    if (this.initDone[selectedTimeline]) {
-      this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
+    if (this.initDone) {
+      this.extendPlotlyTimelineChart(this.timestamps, numberOfTimelines.length);
     } else {
-        this.setupPlotlyTimelineChart(this.timestamps, selectedTimeline);
-        if (this.initDone[selectedTimeline]) {
-          this.setupPlotlyListener(selectedTimeline);
+        this.setupPlotlyTimelineChart(this.timestamps, numberOfTimelines);
+        if (this.initDone) {
+          this.setupPlotlyListener();
         }
     }
 
-    console.log("selectedTimeStamps PLOTLY --------------->", this.selectedTimestamps);
+
+
   }
 
-  setupPlotlyListener(selectedTimeline: number) {
+  setupPlotlyListener() {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
 
-    const plotlyDiv = this.timelineDiv[selectedTimeline];
+    const plotlyDiv = this.timelineDiv;
 
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyTimeline = this;
@@ -157,11 +161,24 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         let colors = data.points[0].fullData.marker.color;
         let sizes = data.points[0].fullData.marker.size;
 
+        const selectedTimeline = data.points[0].curveNumber;
+
+        //const name = data.points[0].data.name; console.log("CLICKED TIMELINE => ", name);
+        //let selectedTimeline: number | undefined = undefined;
+        // if(name === "0"){
+        //   selectedTimeline = 0;
+        // }else if(name === "1") {
+        //   selectedTimeline = 1;
+        // }
+        // if(selectedTimeline === undefined) {
+        //   return;
+        // }
+
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
         if (self.selectedTimestamps[selectedTimeline].length === self.selectionCount) {
           self.resetSelectionInStateObjects(selectedTimeline);
-          colors = Array(numberOfPoints).fill(self.defaultMarkerColor);
+          colors = Array(numberOfPoints).fill(self.timelineColors![selectedTimeline]);
           sizes = Array(numberOfPoints).fill(self.defaultMarkerSize);
         }
 
@@ -200,7 +217,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
       });
 
       // double click
-      plotlyDiv.on('plotly_doubleclick', () => {
+      plotlyDiv.on('plotly_doubleclick', (data: any) => {
+        const selectedTimeline = data.points[0].curveNumber;
         const { min, max } = self.oldPlotlySlidingWindow[selectedTimeline];
         const update = PlotlyTimeline.getPlotlySlidingWindowUpdateObject(
           min,
@@ -233,71 +251,98 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   // BEGIN Plot Logic
 
-  setupPlotlyTimelineChart(timestamps: Timestamp[][], selectedTimeline: number) {
+  setupPlotlyTimelineChart(timestamps: Timestamp[][], numberOfTimelines: number) {
 
-    if (timestamps[selectedTimeline].length === 0) {
-      this.createDummyTimeline(selectedTimeline);
+    if (numberOfTimelines === 1 && timestamps[0].length === 0) {
+      this.createDummyTimeline();
       return;
     }
 
-    
-    const data = this.getUpdatedPlotlyDataObject(timestamps[selectedTimeline], this.markerState[selectedTimeline], selectedTimeline);
-    const latestTimestamp = timestamps[selectedTimeline][timestamps[selectedTimeline].length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
+    const data: any[] = [];
+    let windowMax = undefined;
+    let windowMin = undefined;
+    for(let i = 0; i < numberOfTimelines; i++) {
+      data.push(...this.getUpdatedPlotlyDataObject(timestamps[i], this.markerState[i], i));
+      const latestTimestamp = timestamps[i][timestamps[i].length - 1];
+      const latestTimestampValue = new Date(latestTimestamp.epochMilli);
+      const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
+        latestTimestampValue,
+        this.slidingWindowLowerBoundInMinutes,
+        this.slidingWindowUpperBoundInMinutes
+      );
 
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-      latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes,
-      this.slidingWindowUpperBoundInMinutes
-    );
+      if(!windowMax || windowMax <  windowInterval.max){
+        windowMax =  windowInterval.max;
+      }
+
+      if(!windowMin || windowInterval.min <  windowMin){
+        windowMin =  windowInterval.min;
+      }
+
+      this.oldPlotlySlidingWindow[i] = windowInterval;
+    }
 
     const layout = PlotlyTimeline.getPlotlyLayoutObject(
-      windowInterval.min,
-      windowInterval.max
+      windowMin!,
+      windowMax!
     );
-
-    this.oldPlotlySlidingWindow[selectedTimeline] = windowInterval;
+    
     Plotly.newPlot(
-      this.timelineDiv[selectedTimeline],
+      this.timelineDiv,
       data,
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
     );
 
-    this.initDone[selectedTimeline] = true;
+    this.initDone = true;
   }
 
-  extendPlotlyTimelineChart(timestamps: Timestamp[][], selectedTimeline: number) {
-    if (timestamps[selectedTimeline].length === 0) {
+  extendPlotlyTimelineChart(timestamps: Timestamp[][], numberOfTimelines: number) {
+
+
+    const data: any[] = [];
+    let winMax = undefined;
+    let winMin = undefined;
+    for(let i = 0; i < numberOfTimelines; i++) {
+      if (timestamps[i].length === 0) {
+        continue;
+      }
+      data.push(...this.getUpdatedPlotlyDataObject(
+        timestamps[i],
+        this.markerState[i],
+        i
+      ));
+      const latestTimestamp: Timestamp = timestamps[i][timestamps[i].length - 1];
+      const latestTimestampValue = new Date(latestTimestamp.epochMilli);
+      const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
+        latestTimestampValue,
+        this.slidingWindowLowerBoundInMinutes,
+        this.slidingWindowUpperBoundInMinutes
+      );
+      this.oldPlotlySlidingWindow[i] = windowInterval;
+      if(!winMax || winMax < windowInterval.max) {
+        winMax = windowInterval.max;
+      }
+      if(!winMin || windowInterval.min < winMin) {
+        winMin = windowInterval.min;
+      }
+    }
+
+    if (data.length === 0) {
       return;
     }
 
-    const data: any = this.getUpdatedPlotlyDataObject(
-      timestamps[selectedTimeline],
-      this.markerState[selectedTimeline],
-      selectedTimeline
-    );
-
-    const latestTimestamp: Timestamp = timestamps[selectedTimeline][timestamps[selectedTimeline].length - 1];
-    const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-
-    const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-      latestTimestampValue,
-      this.slidingWindowLowerBoundInMinutes,
-      this.slidingWindowUpperBoundInMinutes
-    );
+    
 
     const layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : PlotlyTimeline.getPlotlyLayoutObject(
-          windowInterval.min,
-          windowInterval.max
+          winMin!,
+          winMax!
         );
 
-    this.oldPlotlySlidingWindow[selectedTimeline] = windowInterval;
-
     Plotly.react(
-      this.timelineDiv[selectedTimeline],
+      this.timelineDiv,
       data,
       layout,
       PlotlyTimeline.getPlotlyOptionsObject()
@@ -330,11 +375,11 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     this.extendPlotlyTimelineChart(this.timestamps, selectedTimeline);
   }
 
-  createDummyTimeline(selectedTimeline: number) {
+  createDummyTimeline() {
     const minRange = 0;
     const maxRange = 90;
     Plotly.newPlot(
-      this.timelineDiv[selectedTimeline],
+      this.timelineDiv,
       null,
       PlotlyTimeline.getPlotlyLayoutObject(minRange, maxRange),
       PlotlyTimeline.getPlotlyOptionsObject()
@@ -455,7 +500,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
           };
         }else {
           // new point
-          const defaultColor = this.defaultMarkerColor;
+          const defaultColor = this.timelineColors![selectedTimeline]!;
           const defaultSize = this.defaultMarkerSize;
 
           colors.push(defaultColor);
@@ -478,8 +523,10 @@ selectedTimestamps: Timestamp[][] = [[],[]];
       x,
       y,
       colors,
+      this.timelineColors![selectedTimeline]!,
       sizes,
-      timestampIds
+      timestampIds,
+      //selectedTimeline! + ""
     );
   }
 
@@ -487,17 +534,21 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     dates: Date[],
     requests: number[],
     colors: string[],
+    timelineColor: string,
     sizes: number[],
-    timestampIds: number[]
+    timestampIds: number[],
+    //name: string,
   ) {
     return [
       {
+        //name: name,
         fill: 'tozeroy',
         hoverinfo: 'text',
         hoverlabel: {
           align: 'left',
         },
         marker: { color: colors, size: sizes },
+        line: {color:timelineColor},
         mode: 'lines+markers',
         text: PlotlyTimeline.hoverText(dates, requests),
         timestampId: timestampIds,
@@ -515,8 +566,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   resetSelectionInStateObjects(selectedTimeline: number) {
     const selTimestamps: Timestamp[] = this.selectedTimestamps[selectedTimeline];
-
-    const { defaultMarkerColor, defaultMarkerSize } = this;
+    const defaultMarkerColor = this.timelineColors![selectedTimeline]!;
+    const { defaultMarkerSize } = this;
 
 
     selTimestamps.forEach((t) => {

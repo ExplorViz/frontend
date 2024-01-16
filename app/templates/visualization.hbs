@@ -200,14 +200,16 @@
     <div
       id='timeline'
       class='timeline 
-      {{conditional (array-length (get-value-of-map this.currentSelectedCommits this.currentSelectedApplication)) 'timelineextend' }}
+      <!--{{conditional (array-length (get-value-of-map this.currentSelectedCommits this.currentSelectedApplication)) 'timelineextend' }}-->
       {{unless (not this.isCommitsTimeline) "commitline"}} 
       {{unless this.isTimelineActive "timelinehide"}}'
     >
 
-      <button {{on 'click' this.showRequestsTimeline}}>Requests</button>
-      <button {{on 'click' this.showCommitsTimeline}}>Evolution</button>
-
+      <div id="timeline-buttons">
+        <BsButton @onClick={{this.showRequestsTimeline}}
+            @outline={{true}} class='timeline-btns {{conditional this.isRequestsTimeline "highlight"}}'>Requests</BsButton>
+        <BsButton @onClick={{this.showCommitsTimeline}}  @outline={{true}} class='timeline-btns {{conditional this.isCommitsTimeline "highlight"}}'>Evolution</BsButton>
+      </div>
       {{#if this.isRequestsTimeline}}
         {{#if this.currentSelectedApplication}}
           {{#if (array-length (get-value-of-map this.currentSelectedCommits this.currentSelectedApplication)) }}
@@ -218,6 +220,7 @@
               @setChildReference={{this.getTimelineReference}}
               @markerState={{this.markerState}}
               @selectedTimestamps={{this.selectedTimestampRecords}}
+              @timelineColors={{this.timelineColors}}
             />
           {{else}}
           <p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>
@@ -241,6 +244,7 @@
           @configurations={{this.commitlineConfiguration}}
           @softwaremetrics={{this.commitlineMetrics}}
           @showConfiguration={{this.showConfigurationOverview}}
+          @applicationNameAndBranchNameToColorMap={{this.applicationNameAndBranchNameToColorMap}}
         />
       {{/if}}
     </div>

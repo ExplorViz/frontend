@@ -194,6 +194,7 @@ export function combineStructures(structureA?: StructureLandscapeData, structure
       };
       const applications : Application[] = combineApplications(nodeA.applications, nodeB.applications);
       node.applications = applications;
+      applications.forEach(app => app.parent = node);
       // TODO: node.applications.forEach(app => app.parent = node);
       structure.nodes.push(node);
     }else {
@@ -296,7 +297,9 @@ function combinePackages(packagesA: Package[], packagesB: Package[]) : Package[]
 
       const subPackages = combinePackages(packageA.subPackages, packageB.subPackages);
       const classes = combineClasses(packageA.classes, packageB.classes);
+      classes.forEach(clazz => clazz.parent = pckg );
       pckg.subPackages = subPackages;
+      subPackages.forEach(subPckg => subPckg.parent = pckg);
       pckg.classes = classes;
       packages.push(pckg);
     }else {
@@ -330,6 +333,7 @@ function combineApplications(applicationsA: Application[], applicationsB: Applic
       };
       const packages : Package[] = combinePackages(applicationA.packages, applicationB.packages);
       application.packages = packages;
+      packages.forEach(pckg => pckg.parent = undefined);
       applications.push(application);
     }else {
       applications.push(applicationA);
