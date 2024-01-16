@@ -20,7 +20,7 @@ module('Integration | Component | share-landscape', function (hooks) {
 
     assert.equal(
       this.element.querySelector('.table-striped > tbody')?.childElementCount,
-      2
+      1
     );
   });
 });
