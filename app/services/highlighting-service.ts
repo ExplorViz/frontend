@@ -20,6 +20,8 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import THREE from 'three';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 
 export default class HighlightingService extends Service.extend({
@@ -312,13 +314,16 @@ export default class HighlightingService extends Service.extend({
 
 
  private markAsAdded(mesh: EntityMesh){
-    mesh.changeTexture("../images/plus-128.png", 1);
-    console.log("MARK AS ADDED -------------------------");
+    const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+    const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+    mesh.changeTexture("../images/plus.png", repeatX, repeatY);
   }
 
 
   private markAsDeleted(mesh: EntityMesh){
-    mesh.changeTexture("../images/minus.png");
+    const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+    const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+    mesh.changeTexture("../images/minus.png", repeatX, repeatY);
   }
 
 

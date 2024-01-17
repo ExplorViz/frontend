@@ -29,7 +29,7 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
-  changeTexture(texturePath: string, repeat: number = 5) {
+  changeTexture(texturePath: string, repeatX: number = 5, repeatY: number = repeatX) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial ||
@@ -42,7 +42,7 @@ export default abstract class BaseMesh<
         function textureSettings(texture) {
           texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           texture.offset.set(0, 0);
-          texture.repeat.set(repeat, repeat);
+          texture.repeat.set(repeatX, repeatY);
         }
       );
 

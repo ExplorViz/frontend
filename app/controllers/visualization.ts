@@ -1087,19 +1087,6 @@ export default class VisualizationController extends Controller {
     
   }
 
-  private visualizeAddedComponents() {
-    // TODO: alternatively wait until commit comparison got received and delete this callback stuff 
-    console.log("CALLBACK TO VISUALIZE MARKED COMPONENTS RDY");
-    const openApps = this.applicationRenderer.getOpenApplications();
-    for(const openApp of openApps) {
-      console.log(openApp.name, ":::", this.currentSelectedApplication);
-      if(openApp.name === this.currentSelectedApplication) {
-
-        this.applicationRenderer.visualizeCommitComparison(openApp, this.currentSelectedCommits);
-      }
-    }
-  }
-
 
 }
 

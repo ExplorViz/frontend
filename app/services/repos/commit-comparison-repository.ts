@@ -58,10 +58,6 @@ export default class CommitComparisonRepository extends Service.extend(Evented) 
     //this.notifyPropertyChange('commitComparisons');
   }
 
-  notify() {
-    this.trigger('comparisonReady');
-  }
-
   cleanup() {
     this.commitComparisons.clear();
     //this.notifyPropertyChange('commitComparisons');

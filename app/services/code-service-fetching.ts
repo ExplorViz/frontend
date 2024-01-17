@@ -196,10 +196,23 @@ export default class CodeServiceFetchingService extends Service {
 
       let url : string | undefined = undefined;
       if(commits.length === 1) {
-        //console.log("FETCH FOR ONE COMMIT");
         url = `${codeService}/structure//${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}`; 
+        fetch(url, {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        })
+          .then(async (response: Response) => {
+            if (response.ok) {
+              const landscapeStructure = (await response.json()) as StructureLandscapeData;
+              resolve(landscapeStructure);
+            } else {
+              reject();
+            }
+          })
+          .catch((e) => reject(e));
       } else if(commits.length === 2) {
-        console.log("FETCH FOR TWO COMMITS");
 
 
         const firstSelectedCommitId = commits[0].commitId;
@@ -230,36 +243,69 @@ export default class CodeServiceFetchingService extends Service {
               commitComparison.firstCommitSelected = commits[0];
               commitComparison.secondCommitSelected = commits[1];
               this.commitComparisonRepo.add(commitComparison);
-              this.commitComparisonRepo.notify();
+
+              url = `${codeService}/structure/${this.tokenService.token!.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
+              fetch(url, {
+                headers: {
+                  Authorization: `Bearer ${this.auth.accessToken}`,
+                  'Access-Control-Allow-Origin': '*',
+                },
+              })
+                .then(async (response: Response) => {
+                  if (response.ok) {
+                    const landscapeStructure = (await response.json()) as StructureLandscapeData;
+                    resolve(landscapeStructure);
+                  } else {
+                    reject();
+                  }
+                })
+                .catch((e) => reject(e));
+
             }
           ).catch((error: Error) => {
             console.log(error);
           });
+        }else {
+          url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`;
+          fetch(url, {
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`,
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
+            .then(async (response: Response) => {
+              if (response.ok) {
+                const landscapeStructure = (await response.json()) as StructureLandscapeData;
+                resolve(landscapeStructure);
+              } else {
+                reject();
+              }
+            })
+            .catch((e) => reject(e));
         }
 
-        url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
+        //url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
       }
       
-      if (!url) {
-        console.debug("No url to fetch data from");
-        return;
-      }
-
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
-      })
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const landscapeStructure = (await response.json()) as StructureLandscapeData;
-            resolve(landscapeStructure);
-          } else {
-            reject();
-          }
-        })
-        .catch((e) => reject(e));
+      // if (!url) {
+      //   console.debug("No url to fetch data from");
+      //   return;
+      // }
+      // fetch(url, {
+      //   headers: {
+      //     Authorization: `Bearer ${this.auth.accessToken}`,
+      //     'Access-Control-Allow-Origin': '*',
+      //   },
+      // })
+      //   .then(async (response: Response) => {
+      //     if (response.ok) {
+      //       const landscapeStructure = (await response.json()) as StructureLandscapeData;
+      //       resolve(landscapeStructure);
+      //     } else {
+      //       reject();
+      //     }
+      //   })
+      //   .catch((e) => reject(e));
     });
   }
 

@@ -353,8 +353,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
     if(!commitComparison) return;
 
-    console.log("COMMIT COMPARISON: ----------->", commitComparison);
-
     let indexAdded = 0;
     for(const fqFileName of commitComparison.added) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
@@ -380,11 +378,30 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       indexAdded++;
     }
 
-    commitComparison.deleted.forEach(fqFileName => {
+    let indexDeleted = 0;
+    for(const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
-      //if(id)
-        //this.highlightingService.markAsDeletedById(id);
-    });
+      const deletedPackages = commitComparison.deletedPackages[indexAdded];
+
+
+      if(id){
+        this.highlightingService.markAsDeletedById(id);
+        if(deletedPackages !== "") {
+          const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
+          let pckg : Package | undefined = clazz?.parent;
+          const deletedPackagesSplit = deletedPackages.split(".");
+          const firstDeletedPackageName = deletedPackagesSplit[0];
+          while(pckg && pckg.name !== firstDeletedPackageName) {
+            this.highlightingService.markAsDeletedById(pckg.id);
+            pckg = pckg.parent;
+          }
+          if(pckg) {
+            this.highlightingService.markAsDeletedById(pckg.id);
+          }
+        }
+      }
+      indexDeleted++;
+    }
 
     commitComparison.modified.forEach(fqFileName => {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
