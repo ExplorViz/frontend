@@ -24,6 +24,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -67,6 +68,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service
   private worker!: any;
@@ -181,7 +185,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: calculateLineThickness(communication),
+      value: calculateLineThickness(
+        communication,
+        this.userSettings.applicationSettings
+      ),
       communicationData: communication,
     }));
 
