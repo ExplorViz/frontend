@@ -6,7 +6,6 @@ import ENV from 'explorviz-frontend/config/environment';
 import { action } from '@ember/object';
 import BaseRoute from './base-route';
 
-const { userService } = ENV.backendAddresses;
 const { tokenToShow } = ENV.mode;
 
 export default class Landscapes extends BaseRoute {
@@ -26,35 +25,7 @@ export default class Landscapes extends BaseRoute {
       this.router.transitionTo('visualization');
     }
 
-    let uId = this.auth.user?.sub;
-
-    if (!uId) {
-      return Promise.reject(new Error('User profile not set'));
-    }
-
-    uId = encodeURI(uId);
-
-    return new Promise<any>((resolve, reject) => {
-      fetch(`${userService}/user/${uId}/token`, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-        },
-      })
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const tokens = (await response.json()) as LandscapeToken[];
-            resolve(tokens);
-          } else {
-            reject();
-          }
-        })
-        .catch(async (e) => {
-          // Wait 2 seconds since promise rejection re-triggers model() hook
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-
-          reject(e);
-        });
-    });
+    return this.tokenService.retrieveTokens();
   }
 
   afterModel(landscapeTokens: LandscapeToken[]) {

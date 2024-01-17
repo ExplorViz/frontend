@@ -119,8 +119,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
-    const { nodes: graphNodes } = this.graph.graphData();
+    let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
+
+    // Filter out any nodes that are no longer present in the new landscape data
+    graphNodes = graphNodes.filter((node: GraphNode) => {
+      return nodes.some((n) => n.applications[0].id === node.id);
+    });
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
