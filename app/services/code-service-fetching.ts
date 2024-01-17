@@ -227,10 +227,10 @@ export default class CodeServiceFetchingService extends Service {
   
           commitComparisonPromise.then(
             (commitComparison : CommitComparison) => {
-              console.log("COMMIT COMPARISON FETCHED AND PERSISTED IN COMMITCOMPARISON REPO");
               commitComparison.firstCommitSelected = commits[0];
               commitComparison.secondCommitSelected = commits[1];
               this.commitComparisonRepo.add(commitComparison);
+              this.commitComparisonRepo.notify();
             }
           ).catch((error: Error) => {
             console.log(error);

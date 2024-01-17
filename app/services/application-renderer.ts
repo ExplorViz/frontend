@@ -51,7 +51,8 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import { applicationHasClass, getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import CommitComparisonRepository from './repos/commit-comparison-repository';
-import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
+import { getClassAncestorPackages, getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -341,25 +342,43 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   );
 
 
-  private visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
+  visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
     const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
-    console.log("VISUALIZATION CommitComparison!", commits);
     const ids = [commits[0].commitId, commits[1].commitId];
     const id = ids.join("_");
 
     const commitComparison = this.commitComparisonRepo.getById(id);
+
+    console.log(commitComparison);
+
     if(!commitComparison) return;
 
     console.log("COMMIT COMPARISON: ----------->", commitComparison);
 
-    //fqFileNameToMeshId(applicationObject3D, );
-
-    commitComparison.added.forEach(fqFileName => {
+    let indexAdded = 0;
+    for(const fqFileName of commitComparison.added) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
-      if(id)
+      const addedPackages = commitComparison.addedPackages[indexAdded];
+
+
+      if(id){
         this.highlightingService.markAsAddedById(id);
-      //console.log("ADDED fqFileNameToMeshId: ", this.fqFileNameToMeshId(applicationObject3D, fqFileName));
-    });
+        if(addedPackages !== "") {
+          const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
+          let pckg : Package | undefined = clazz?.parent;
+          const addedPackagesSplit = addedPackages.split(".");
+          const firstAddedPackageName = addedPackagesSplit[0];
+          while(pckg && pckg.name !== firstAddedPackageName) {
+            this.highlightingService.markAsAddedById(pckg.id);
+            pckg = pckg.parent;
+          }
+          if(pckg) {
+            this.highlightingService.markAsAddedById(pckg.id);
+          }
+        }
+      }
+      indexAdded++;
+    }
 
     commitComparison.deleted.forEach(fqFileName => {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);

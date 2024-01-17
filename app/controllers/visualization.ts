@@ -58,6 +58,7 @@ import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/
 import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 import { combineStructures } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
 
 
 export interface LandscapeData {
@@ -140,6 +141,9 @@ export default class VisualizationController extends Controller {
 
   @service('repos/configuration-repository')
   configurationRepo!: ConfigurationRepository;
+
+  @service('repos/commit-comparison-repository')
+  commitComparisonRepo!: CommitComparisonRepository;
 
   plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
 
@@ -1077,10 +1081,23 @@ export default class VisualizationController extends Controller {
       this.plotlyTimelineRef = undefined;
       this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
     }
-    
 
+  
     // TODO: call reload handler and stop it and remove it from init method so the same dynamic data is not loaded every 10s 
     
+  }
+
+  private visualizeAddedComponents() {
+    // TODO: alternatively wait until commit comparison got received and delete this callback stuff 
+    console.log("CALLBACK TO VISUALIZE MARKED COMPONENTS RDY");
+    const openApps = this.applicationRenderer.getOpenApplications();
+    for(const openApp of openApps) {
+      console.log(openApp.name, ":::", this.currentSelectedApplication);
+      if(openApp.name === this.currentSelectedApplication) {
+
+        this.applicationRenderer.visualizeCommitComparison(openApp, this.currentSelectedCommits);
+      }
+    }
   }
 
 

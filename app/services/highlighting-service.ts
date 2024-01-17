@@ -19,6 +19,7 @@ import {
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 
 
 export default class HighlightingService extends Service.extend({

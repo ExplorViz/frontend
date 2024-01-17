@@ -1,8 +1,10 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import { inject as service } from '@ember/service';
 import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
-
+import ApplicationRenderer from '../application-renderer';
+import Evented from '@ember/object/evented';
 
 export interface CommitComparison {
     firstCommitSelected: SelectedCommit;
@@ -10,6 +12,8 @@ export interface CommitComparison {
     modified: string[]; // the component id's from the components of the first commit that got modified in the second commit
     added: string[]; // the component id's from the second commit components that are missing in the first commit
     deleted: string[]; // the component id's from the first commit components that got deleted in the second commit
+    addedPackages: string[];
+    deletedPackages: string[];
     metrics: {
       entityName: string;
       metricMap: {
@@ -33,9 +37,8 @@ export interface CommitComparison {
     }[];
 }
 
-export default class CommitComparisonRepository extends Service.extend({
-  // anything which *must* be merged to prototype here
-}) {
+export default class CommitComparisonRepository extends Service.extend(Evented) {
+
   //@tracked
   commitComparisons: Map<string, CommitComparison> = new Map<
     string,
@@ -55,11 +58,13 @@ export default class CommitComparisonRepository extends Service.extend({
     //this.notifyPropertyChange('commitComparisons');
   }
 
-
+  notify() {
+    this.trigger('comparisonReady');
+  }
 
   cleanup() {
     this.commitComparisons.clear();
-    //this.notifyPropertyChange('applications');
+    //this.notifyPropertyChange('commitComparisons');
   }
 }
 

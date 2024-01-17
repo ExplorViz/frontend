@@ -32,6 +32,11 @@
   'toggelVisualization'
   this.toggleVisualizationUpdating
 }}
+{{add-listener
+  this.commitComparisonRepo
+  'comparisonReady'
+  this.visualizeAddedComponents
+}}
 
 {{did-insert this.setupListeners}}
 
@@ -232,6 +237,7 @@
       {{#if this.isCommitsTimeline}}
         <Visualization::PageSetup::ApplicationButton::ApplicationSelection
             @evolutionData={{this.evolutionLandscapeData}} 
+            @selectedApplication={{this.currentSelectedApplication}}
             @clicked={{this.applicationButtonClicked}}
           />
         <Visualization::PageSetup::Commitline::PlotlyCommitline
