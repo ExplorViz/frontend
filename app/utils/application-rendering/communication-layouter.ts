@@ -10,13 +10,12 @@ import {
 } from '../landscape-schemes/structure-data';
 import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+import { ApplicationSettings } from '../settings/settings-schemas';
 
 export function calculateLineThickness(
-  communication: ClassCommunication | ComponentCommunication
+  communication: ClassCommunication | ComponentCommunication,
+  settings: ApplicationSettings
 ) {
-  // Constant factors for rendering communication lines
-  const LINE_THICKNESS_FACTOR = 0.5;
-
   // Normalized request count might be above 1 for component communication
   const normalizedRequestCount = clamp(
     communication.metrics.normalizedRequestCount,
@@ -25,7 +24,7 @@ export function calculateLineThickness(
   );
 
   // Apply line thickness depending on request count
-  return normalizedRequestCount * LINE_THICKNESS_FACTOR;
+  return normalizedRequestCount * settings.commThickness.value;
 }
 
 /**
@@ -37,7 +36,8 @@ export function clamp(value: number, min: number, max: number) {
 
 // Communication Layouting //
 export default function applyCommunicationLayout(
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  settings: ApplicationSettings
 ) {
   const { application, classCommunications } = applicationObject3D.data;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
@@ -113,7 +113,7 @@ export default function applyCommunicationLayout(
   /**
    * Calculates start and end positions for all class communications
    */
-  function layoutEdges() {
+  function layoutEdges(settings: ApplicationSettings) {
     if (classCommunications.length === 0) {
       return;
     }
@@ -202,7 +202,10 @@ export default function applyCommunicationLayout(
           commLayout.endY += 2.0;
         }
 
-        commLayout.lineThickness = calculateLineThickness(classCommunication);
+        commLayout.lineThickness = calculateLineThickness(
+          classCommunication,
+          settings
+        );
       }
     }
   }
@@ -269,7 +272,7 @@ export default function applyCommunicationLayout(
     layoutInAndOutCommunication(commu, commu.sourceClass, centerCommuIcon);
   }
 
-  layoutEdges();
+  layoutEdges(settings);
 
   classCommunications.forEach((clazzcommunication) => {
     if (layoutMap.has(clazzcommunication.id)) {

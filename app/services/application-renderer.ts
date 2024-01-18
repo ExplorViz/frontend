@@ -304,7 +304,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.appCommRendering.addCommunication(applicationObject3D);
+    this.appCommRendering.addCommunication(
+      applicationObject3D,
+      this.userSettings.applicationSettings
+    );
   }
 
   @action

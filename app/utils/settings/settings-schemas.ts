@@ -30,6 +30,7 @@ export type ApplicationHighlightingSettingId =
 export type ApplicationHoveringSettingId = 'enableHoverEffects';
 
 export type ApplicationCommunicationSettingId =
+  | 'commThickness'
   | 'commArrowSize'
   | 'curvyCommHeight';
 

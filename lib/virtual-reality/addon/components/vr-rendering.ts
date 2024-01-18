@@ -97,6 +97,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import gsap from 'gsap';
 
 interface Args {
   debugMode: boolean;
@@ -848,6 +849,9 @@ export default class VrRendering extends Component<Args> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
+
+    // Update animations
+    gsap.ticker.tick();
 
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;

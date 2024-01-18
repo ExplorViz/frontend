@@ -8,6 +8,7 @@ import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -29,6 +30,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
+
+  @service('landscape-token')
+  private tokenService!: LandscapeTokenService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -95,9 +99,21 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  joinRoom(room: RoomListRecord) {
-    AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
-    this.collaborationSession.joinRoom(room.roomId);
+  async joinRoom(room: RoomListRecord) {
+    if (this.tokenService.token?.value === room.landscapeToken) {
+      this.collaborationSession.joinRoom(room.roomId);
+      AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+    } else {
+      const tokens = await this.tokenService.retrieveTokens();
+      const token = tokens.findBy('value', room.landscapeToken);
+      if (token) {
+        this.tokenService.setToken(token);
+        this.collaborationSession.joinRoom(room.roomId);
+        AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+      } else {
+        AlertifyHandler.showAlertifyError(`Landscape token for room not found`);
+      }
+    }
   }
 
   @action
