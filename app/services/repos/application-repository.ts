@@ -1,7 +1,6 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
 
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -11,9 +10,6 @@ export default class ApplicationRepository extends Service.extend({
     string,
     ApplicationData
   >();
-
-  @tracked
-  communications: ApplicationCommunication[] = [];
 
   getById(applicationId: string) {
     return this.applications.get(applicationId);
@@ -34,9 +30,7 @@ export default class ApplicationRepository extends Service.extend({
   }
 
   cleanup() {
-    this.communications = [];
     this.applications.clear();
-    this.notifyPropertyChange('communications');
     this.notifyPropertyChange('applications');
   }
 }
