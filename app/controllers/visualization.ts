@@ -247,9 +247,7 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
-      console.log('1', this.timestampService.timestamp);
       if (this.timelineTimestamps.lastObject) {
-        console.log('2', this.timestampService.timestamp);
         this.timestampService.timestamp =
           this.timelineTimestamps.lastObject?.epochMilli;
         this.selectedTimestampRecords = [
