@@ -1,8 +1,9 @@
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
+  parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 2019,
+    requireConfigFile: false,
     sourceType: 'module',
     project: './tsconfig.json',
   },
