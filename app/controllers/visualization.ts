@@ -44,7 +44,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import {
   SerializedApp,
   SerializedDetachedMenu,
-  SerializedHighlightedComponent,
 } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
@@ -571,9 +570,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-  }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+  }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
       await timeout(50);
@@ -585,8 +582,7 @@ export default class VisualizationController extends Controller {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks:
-        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+      highlightedExternCommunicationLinks,
     };
 
     this.highlightingService.updateHighlighting();
