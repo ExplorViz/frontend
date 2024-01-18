@@ -26,6 +26,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { LinkObject, NodeObject } from 'three-forcegraph';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -70,6 +71,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service
   private worker!: any;
@@ -140,6 +144,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
+
+    // Filter out any nodes that are no longer present in the new landscape data
+    graphNodes = graphNodes.filter((node: GraphNode) => {
+      return nodes.some((n) => n.applications[0].id === node.id);
+    });
+
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
@@ -209,7 +219,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const communicationLinks = interAppCommunications.map((communication) => ({
       source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
       target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: calculateLineThickness(communication),
+      value: calculateLineThickness(
+        communication,
+        this.userSettings.applicationSettings
+      ),
       communicationData: communication,
     }));
 

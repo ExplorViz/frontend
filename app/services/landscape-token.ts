@@ -1,6 +1,9 @@
 /* eslint-disable class-methods-use-this */
 import ENV from 'explorviz-frontend/config/environment';
 import Service from '@ember/service';
+import { inject as service } from '@ember/service';
+import Auth from 'explorviz-frontend/services/auth';
+const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
   alias: string;
@@ -14,6 +17,9 @@ export type LandscapeToken = {
 const tokenToShow = ENV.mode.tokenToShow;
 
 export default class LandscapeTokenService extends Service {
+  @service('auth')
+  private auth!: Auth;
+
   token: LandscapeToken | null = null;
 
   // Used in landscape selection to go back to last selected token
@@ -54,6 +60,32 @@ export default class LandscapeTokenService extends Service {
     } else {
       this.removeToken();
     }
+  }
+
+  retrieveTokens() {
+    return new Promise<LandscapeToken[]>((resolve, reject) => {
+      const userId = encodeURI(this.auth.user?.sub || '');
+      if (!userId) {
+        resolve([]);
+      }
+
+      fetch(`${userService}/user/${userId}/token`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+        },
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as LandscapeToken[];
+            resolve(tokens);
+          } else {
+            reject();
+          }
+        })
+        .catch(async (e) => {
+          reject(e);
+        });
+    });
   }
 
   setToken(token: LandscapeToken) {

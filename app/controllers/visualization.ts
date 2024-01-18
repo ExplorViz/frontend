@@ -1014,6 +1014,10 @@ export default class VisualizationController extends Controller {
   @action
   async commitlineClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
 
+    // always resume when commit got clicked so the landscape updates
+    if(this.visualizationPaused) {
+      this.resumeVisualizationUpdating();
+    } 
 
 
     if(staticStructureData){
@@ -1046,28 +1050,16 @@ export default class VisualizationController extends Controller {
           // first commit got selected
           const keyForColor = this.currentSelectedApplication + selected[0].branchName;
           this.timelineColors[0] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
-          
-          // this section also removes the "bug" where if we pause during one selected commit (by clicking space or a timepoint) and unselect this commit
-          // only to select this commit again, no landscape gets loaded
-          if(this.visualizationPaused) {
-            this.resumeVisualizationUpdating();
-          }
         } else if(this.timelineTimestamps.length === 1) {console.log("XXXXXXXXXXXXXXXX::::XXXXXXXXXXXXXXX");
           // second commit got selected
           const keyForColor = this.currentSelectedApplication + selected[1].branchName;
           this.timelineColors[1] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
-  
-  
-          if(this.visualizationPaused) {
-            this.resumeVisualizationUpdating(); // so the landscape gets updated
-          } 
         }
   
         this.timestampPollingService.initTimestampPollingWithCallback(
           selected,
           this.timestampPollingCallback.bind(this)
         );
-
 
       }
     

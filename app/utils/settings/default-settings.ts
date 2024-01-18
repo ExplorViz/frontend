@@ -152,6 +152,19 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   // Communication Settings
+  commThickness: {
+    value: 0.5,
+    range: {
+      min: 0.05,
+      max: 1.5,
+      step: 0.05,
+    },
+    orderNumber: 1,
+    group: 'Communication',
+    displayName: 'Communication line thickness',
+    description: 'Factor that scales thickness of communication lines',
+    isRangeSetting: true,
+  },
   commArrowSize: {
     value: 1.0,
     range: {
@@ -159,7 +172,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 2.0,
       step: 0.25,
     },
-    orderNumber: 1,
+    orderNumber: 2,
     group: 'Communication',
     displayName: 'Arrow Size in Application Visualization',
     description:
@@ -167,13 +180,13 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   curvyCommHeight: {
-    value: 0.0,
+    value: 1.0,
     range: {
       min: 0.0,
       max: 5.0,
       step: 0.1,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Communication',
     displayName: 'Curviness factor of the Communication Lines',
     description:

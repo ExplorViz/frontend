@@ -84,12 +84,14 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   initDone = false;
 
-  oldPlotlySlidingWindow = [{ min: 0, max: 0 }, { min: 0, max: 0 }];
+  oldPlotlySlidingWindow = { min: 0, max: 0 };
 
   userSlidingWindow = null;
 
 
   timelineDiv: any;
+
+  plotlyTimestampsWithoutNullValues: any;
 
   // BEGIN Ember Div Events
   @action
@@ -104,7 +106,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   @action
   handleMouseLeave() {
-    this.userSlidingWindow = null;
+    //this.userSlidingWindow = null;
   }
   // END Ember Div Events
 
@@ -217,13 +219,11 @@ selectedTimestamps: Timestamp[][] = [[],[]];
       });
 
       // double click
-      plotlyDiv.on('plotly_doubleclick', (data: any) => {
-        const selectedTimeline = data.points[0].curveNumber;
-        const { min, max } = self.oldPlotlySlidingWindow[selectedTimeline];
-        const update = PlotlyTimeline.getPlotlySlidingWindowUpdateObject(
-          min,
-          max
-        );
+      plotlyDiv.on('plotly_doubleclick', () => {
+        self.userSlidingWindow = null;
+        const min = this.plotlyTimestampsWithoutNullValues - 30;
+        const max = this.plotlyTimestampsWithoutNullValues;
+        const update = this.getPlotlyAxisXObject(min, max);
         Plotly.relayout(plotlyDiv, update);
       });
 
@@ -259,39 +259,68 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     }
 
     const data: any[] = [];
-    let windowMax = undefined;
-    let windowMin = undefined;
+    const shapez: any[] = [];
+    let plotlyTimestampsWithoutNullValuesTemp: number = 0;
+    // let windowMax = undefined;
+    // let windowMin = undefined;
     for(let i = 0; i < numberOfTimelines; i++) {
-      data.push(...this.getUpdatedPlotlyDataObject(timestamps[i], this.markerState[i], i));
-      const latestTimestamp = timestamps[i][timestamps[i].length - 1];
-      const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-      const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-        latestTimestampValue,
-        this.slidingWindowLowerBoundInMinutes,
-        this.slidingWindowUpperBoundInMinutes
-      );
+      data.push(this.getUpdatedPlotlyDataObject(timestamps[i], this.markerState[i], i));
+      // const latestTimestamp = timestamps[i][timestamps[i].length - 1];
+      // const latestTimestampValue = new Date(latestTimestamp.epochMilli);
+      // const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
+      //   latestTimestampValue,
+      //   this.slidingWindowLowerBoundInMinutes,
+      //   this.slidingWindowUpperBoundInMinutes
+      // );
 
-      if(!windowMax || windowMax <  windowInterval.max){
-        windowMax =  windowInterval.max;
-      }
+      // if(!windowMax || windowMax <  windowInterval.max){
+      //   windowMax =  windowInterval.max;
+      // }
 
-      if(!windowMin || windowInterval.min <  windowMin){
-        windowMin =  windowInterval.min;
-      }
+      // if(!windowMin || windowInterval.min <  windowMin){
+      //   windowMin =  windowInterval.min;
+      // }
 
-      this.oldPlotlySlidingWindow[i] = windowInterval;
+      // this.oldPlotlySlidingWindow[i] = windowInterval;
+      plotlyTimestampsWithoutNullValuesTemp += data.lastObject.x.filter(
+        (x: any) => !!x
+      ).length;
+      const { shapes } = data.lastObject;
+      shapez.push(...shapes);
     }
 
-    const layout = PlotlyTimeline.getPlotlyLayoutObject(
-      windowMin!,
-      windowMax!
-    );
+    // const layout = PlotlyTimeline.getPlotlyLayoutObject(
+    //   windowMin!,
+    //   windowMax!
+    // );
     
+    //const { shapes } = data;
+
+    // this.plotlyTimestampsWithoutNullValues = data.x.filter(
+    //   (x: any) => !!x
+    // ).length;
+
+    this.plotlyTimestampsWithoutNullValues = plotlyTimestampsWithoutNullValuesTemp;
+
+    let layout = this.userSlidingWindow
+      ? this.userSlidingWindow
+      : this.getPlotlyLayoutObject(
+          this.plotlyTimestampsWithoutNullValues - 30,
+          this.plotlyTimestampsWithoutNullValues
+        );
+
+    this.oldPlotlySlidingWindow = {
+      min: this.plotlyTimestampsWithoutNullValues - 30,
+      max: this.plotlyTimestampsWithoutNullValues,
+    };
+
+    layout = { ...layout, ...{ shapes: shapez } };
+
     Plotly.newPlot(
       this.timelineDiv,
       data,
       layout,
-      PlotlyTimeline.getPlotlyOptionsObject()
+      this.getPlotlyOptionsObject()
     );
 
     this.initDone = true;
@@ -301,51 +330,50 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
 
     const data: any[] = [];
-    let winMax = undefined;
-    let winMin = undefined;
+    const shapez: any[] = [];
+    let plotlyTimestampsWithoutNullValuesTemp: number = 0;
     for(let i = 0; i < numberOfTimelines; i++) {
       if (timestamps[i].length === 0) {
         continue;
       }
-      data.push(...this.getUpdatedPlotlyDataObject(
+      data.push(this.getUpdatedPlotlyDataObject(
         timestamps[i],
         this.markerState[i],
         i
       ));
-      const latestTimestamp: Timestamp = timestamps[i][timestamps[i].length - 1];
-      const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-      const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-        latestTimestampValue,
-        this.slidingWindowLowerBoundInMinutes,
-        this.slidingWindowUpperBoundInMinutes
-      );
-      this.oldPlotlySlidingWindow[i] = windowInterval;
-      if(!winMax || winMax < windowInterval.max) {
-        winMax = windowInterval.max;
-      }
-      if(!winMin || windowInterval.min < winMin) {
-        winMin = windowInterval.min;
-      }
+
+      const { shapes } = data.lastObject;
+      shapez.push(...shapes);
+      plotlyTimestampsWithoutNullValuesTemp += data.lastObject.x.filter(
+        (x: any) => !!x
+      ).length;
     }
 
     if (data.length === 0) {
       return;
     }
 
-    
+    this.plotlyTimestampsWithoutNullValues = plotlyTimestampsWithoutNullValuesTemp;
 
-    const layout = this.userSlidingWindow
+    let layout = this.userSlidingWindow
       ? this.userSlidingWindow
-      : PlotlyTimeline.getPlotlyLayoutObject(
-          winMin!,
-          winMax!
+      : this.getPlotlyLayoutObject(
+          this.plotlyTimestampsWithoutNullValues - 30,
+          this.plotlyTimestampsWithoutNullValues
         );
+
+    this.oldPlotlySlidingWindow = {
+      min: this.plotlyTimestampsWithoutNullValues - 30,
+      max: this.plotlyTimestampsWithoutNullValues,
+    };
+
+    layout = { ...layout, ...{ shapes: shapez } };
 
     Plotly.react(
       this.timelineDiv,
       data,
       layout,
-      PlotlyTimeline.getPlotlyOptionsObject()
+      this.getPlotlyOptionsObject()
     );
   }
 
@@ -381,8 +409,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     Plotly.newPlot(
       this.timelineDiv,
       null,
-      PlotlyTimeline.getPlotlyLayoutObject(minRange, maxRange),
-      PlotlyTimeline.getPlotlyOptionsObject()
+      this.getPlotlyLayoutObject(minRange, maxRange),
+      this.getPlotlyOptionsObject()
     );
   }
 
@@ -390,54 +418,13 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   // BEGIN Helper functions
 
-  static getPlotlySlidingWindowUpdateObject(
-    minTimestamp: number,
-    maxTimestamp: number
-  ) {
+  getPlotlyAxisXObject(minRange: number, maxRange: number) {
     return {
       xaxis: {
-        range: [minTimestamp, maxTimestamp],
-        title: {
-          font: {
-            color: '#7f7f7f',
-            size: 16,
-          },
-          text: 'Time',
-        },
-        type: 'date',
-      },
-    };
-  }
-
-  static hoverText(x: Date[], y: number[]) {
-    return x.map(
-      (xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`
-    );
-  }
-
-  static getSlidingWindowInterval(
-    t: Date,
-    lowerBound: number,
-    upperBound: number
-  ): { min: number; max: number } {
-    const minTimestamp = t.setMinutes(t.getMinutes() - lowerBound);
-    const maxTimestamp = t.setMinutes(t.getMinutes() + upperBound);
-
-    return { min: minTimestamp, max: maxTimestamp };
-  }
-
-  static getPlotlyLayoutObject(minRange: number, maxRange: number) {
-    return {
-      dragmode: 'pan',
-      hoverdistance: 10,
-      hovermode: 'closest',
-      margin: {
-        b: 40,
-        pad: 5,
-        t: 20,
-        r: 40,
-      },
-      xaxis: {
+        type: 'category',
+        tickmode: 'auto',
+        nticks: 5,
+        tickangle: 0,
         range: [minRange, maxRange],
         title: {
           font: {
@@ -446,18 +433,42 @@ selectedTimestamps: Timestamp[][] = [[],[]];
           },
           text: 'Time',
         },
-        type: 'date',
       },
-      yaxis: {
-        fixedrange: true,
-        title: {
-          font: {
-            color: '#7f7f7f',
-            size: 16,
+    };
+  }
+
+  hoverText(x: (string | null)[], y: (number | null)[]) {
+    return x.map(
+      (xi, i) => `<b>Time</b>: ${xi}<br><b>Requests</b>: ${y[i]}<br>`
+    );
+  }
+
+  getPlotlyLayoutObject(minRange: number, maxRange: number) {
+    // Regarding minRange and maxRange for category type
+    // https://plotly.com/javascript/reference/layout/xaxis/#layout-xaxis-range
+    return {
+      ...{
+        dragmode: 'pan',
+        hoverdistance: 10,
+        hovermode: 'closest',
+        margin: {
+          b: 40,
+          pad: 5,
+          t: 20,
+          r: 40,
+        },
+        yaxis: {
+          fixedrange: true,
+          title: {
+            font: {
+              color: '#7f7f7f',
+              size: 16,
+            },
+            text: 'Requests',
           },
-          text: 'Requests',
         },
       },
+      ...this.getPlotlyAxisXObject(minRange, maxRange),
     };
   }
 
@@ -466,19 +477,86 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     markerStates: IMarkerStates,
     selectedTimeline: number
   ) {
+    function getTimestampTickLabel(timestampEpoch: number) {
+      const timestampDate = new Date(timestampEpoch);
+      return timestampDate
+        .toISOString()
+        .replace('T', '<br>')
+        .replace('.000Z', '');
+    }
+
+    function getGapRectangleObj() {
+      return {
+        layer: 'below',
+        type: 'rect',
+        xref: 'x',
+        yref: 'paper',
+        x0: '0',
+        y0: 0.1,
+        x1: '0',
+        y1: 1,
+        fillcolor: '#d3d3d3',
+        opacity: 0.4,
+        line: {
+          width: 3,
+          dash: 'dot',
+        },
+      };
+    }
+
     const colors: string[] = [];
     const sizes: number[] = [];
 
-    const x: Date[] = [];
-    const y: number[] = [];
+    const x: (string | null)[] = [];
+    const y: (number | null)[] = [];
 
     const timestampIds: number[] = [];
 
-    timestamps.forEach((timestamp) => {
+    const shapes = [];
+
+    let tempGapRectObj = null;
+
+    let nextExpectedTimestamp = 0;
+    let i = 0;
+
+    while (i < timestamps.length) {
+      const timestamp = timestamps[i];
       const timestampId = timestamp.epochMilli;
 
-      x.push(new Date(timestamp.epochMilli));
-      y.push(timestamp.spanCount);
+      if (nextExpectedTimestamp === 0) {
+        // first timestamp in series
+        x.push(getTimestampTickLabel(timestampId));
+        y.push(timestamp.spanCount);
+        nextExpectedTimestamp = timestampId;
+        i++;
+      } else if (nextExpectedTimestamp === timestampId) {
+        // subsequent timestamps
+        x.push(getTimestampTickLabel(timestampId));
+        y.push(timestamp.spanCount);
+        i++;
+        if (tempGapRectObj) {
+          tempGapRectObj.x1 = getTimestampTickLabel(timestampId);
+          shapes.push(tempGapRectObj);
+          tempGapRectObj = null;
+        }
+      } else if (timestamp.epochMilli === null) {
+        // edge case if API will return null values in the future
+        x.push(null);
+        y.push(null);
+        i++;
+      } else {
+        // gap fills for timestamps that did not occur
+        x.push(null);
+        y.push(null);
+        if (!tempGapRectObj) {
+          tempGapRectObj = getGapRectangleObj();
+          tempGapRectObj.x0 = getTimestampTickLabel(
+            nextExpectedTimestamp - 10000
+          );
+        }
+      }
+
+      nextExpectedTimestamp += 10000;
 
       const markerState = markerStates[timestampId];
 
@@ -515,48 +593,41 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         }
       }
       timestampIds.push(timestampId);
-    });
+    }
 
     this.markerState[selectedTimeline] = markerStates;
 
-    return PlotlyTimeline.getPlotlyDataObject(
-      x,
-      y,
-      colors,
-      this.timelineColors![selectedTimeline]!,
-      sizes,
-      timestampIds,
-      //selectedTimeline! + ""
-    );
+    return {
+      ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds),
+      ...{ shapes: shapes },
+    };
   }
 
-  static getPlotlyDataObject(
-    dates: Date[],
-    requests: number[],
+  getPlotlyDataObject(
+    dates: (string | null)[],
+    requests: (number | null)[],
     colors: string[],
     timelineColor: string,
     sizes: number[],
     timestampIds: number[],
     //name: string,
   ) {
-    return [
-      {
-        //name: name,
-        fill: 'tozeroy',
-        hoverinfo: 'text',
-        hoverlabel: {
-          align: 'left',
-        },
-        marker: { color: colors, size: sizes },
-        line: {color:timelineColor},
-        mode: 'lines+markers',
-        text: PlotlyTimeline.hoverText(dates, requests),
-        timestampId: timestampIds,
-        type: 'scatter',
-        x: dates,
-        y: requests,
+    return {
+      // IMPORTANT BUG WORKAROUND https://community.plotly.com/t/scatter-line-plot-fill-option-fills-gaps/21264
+      //fill: 'tozeroy',
+      hoverinfo: 'text',
+      hoverlabel: {
+        align: 'left',
       },
-    ];
+      marker: { color: colors, size: sizes },
+      line: {color:timelineColor},
+      mode: 'lines+markers',
+      connectgaps: false,
+      text: this.hoverText(dates, requests),
+      timestampId: timestampIds,
+      x: dates,
+      y: requests,
+    };
   }
 
   resetHighlingInStateObjects(selectedTimeline: number) {
@@ -578,7 +649,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     this.selectedTimestamps[selectedTimeline] = [];
   }
 
-  static getPlotlyOptionsObject() {
+  getPlotlyOptionsObject() {
     return {
       displayModeBar: false,
       doubleClick: false,

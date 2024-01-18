@@ -86,7 +86,10 @@ export default class LinkRenderer extends Service.extend({}) {
     const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
-    commLayout.lineThickness = calculateLineThickness(classCommunication);
+    commLayout.lineThickness = calculateLineThickness(
+      classCommunication,
+      this.userSettings.applicationSettings
+    );
     line.layout = commLayout;
     line.geometry.dispose();
 

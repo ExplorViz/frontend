@@ -9,6 +9,7 @@ import CollaborationSession from 'collaborative-mode/services/collaboration-sess
 import LocalUser from 'collaborative-mode/services/local-user';
 import SpectateUserService from 'virtual-reality/services/spectate-user';
 import { EmptyObject } from '@glimmer/component/-private/component';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 
 export default class ArSettingsSelector extends Component {
   @service('local-user')
@@ -26,6 +27,9 @@ export default class ArSettingsSelector extends Component {
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
+
+  @service('landscape-token')
+  private tokenService!: LandscapeTokenService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -78,9 +82,21 @@ export default class ArSettingsSelector extends Component {
   }
 
   @action
-  joinRoom(room: RoomListRecord) {
-    AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
-    this.collaborationSession.joinRoom(room.roomId);
+  async joinRoom(room: RoomListRecord) {
+    if (this.tokenService.token?.value === room.landscapeToken) {
+      this.collaborationSession.joinRoom(room.roomId);
+      AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+    } else {
+      const tokens = await this.tokenService.retrieveTokens();
+      const token = tokens.findBy('value', room.landscapeToken);
+      if (token) {
+        this.tokenService.setToken(token);
+        this.collaborationSession.joinRoom(room.roomId);
+        AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+      } else {
+        AlertifyHandler.showAlertifyError(`Landscape token for room not found`);
+      }
+    }
   }
 
   @action

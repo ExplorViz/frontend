@@ -49,10 +49,11 @@ import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visua
 import Evented from '@ember/object/evented';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
-import { applicationHasClass, getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { applicationHasClass, getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import CommitComparisonRepository from './repos/commit-comparison-repository';
 import { getClassAncestorPackages, getClassById } from 'explorviz-frontend/utils/class-helpers';
 import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
+import { MeshLineMaterial } from 'meshline';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -462,7 +463,28 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
 
   private removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
-    //console.log("VISUALIZATION CommitComparison REMOVE!");
+    const packages = getAllPackagesInApplication(applicationObject3D.data.application);
+    const classes = getAllClassesInApplication(applicationObject3D.data.application);
+    packages.forEach(pckg => {
+      const mesh = this.getBoxMeshByModelId(pckg.id);
+      if(mesh && 
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+        mesh.material instanceof THREE.MeshLambertMaterial ||
+        mesh.material instanceof MeshLineMaterial)
+        ){
+        mesh.material.map = null;
+      }
+    });
+    classes.forEach(clazz => {
+      const mesh = this.getBoxMeshByModelId(clazz.id);
+      if(mesh && 
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+        mesh.material instanceof THREE.MeshLambertMaterial ||
+        mesh.material instanceof MeshLineMaterial)
+        ){
+        mesh.material.map = null;
+      }
+    });
   }
 
 
@@ -640,7 +662,10 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.appCommRendering.addCommunication(applicationObject3D);
+    this.appCommRendering.addCommunication(
+      applicationObject3D,
+      this.userSettings.applicationSettings
+    );
   }
 
   @action
