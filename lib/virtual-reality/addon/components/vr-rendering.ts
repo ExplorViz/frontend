@@ -88,7 +88,6 @@ import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
@@ -98,6 +97,7 @@ import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-b
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import gsap from 'gsap';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
   debugMode: boolean;
@@ -124,6 +124,9 @@ export default class VrRendering extends Component<Args> {
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('spectate-user')
   private spectateUserService!: SpectateUserService;
@@ -345,21 +348,13 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
       hover: (event) => {
-        if (
-          !(event.intersection.object instanceof ClazzMesh) &&
-          !(event.intersection.object instanceof ClazzCommunicationMesh)
-        ) {
-          // prevents BaseMesh and ClazzMesh/ClazzCommunicationMesh fighting over applying the hover-effect since ClazzMesh/ClazzCommunicationMesh is a subclass of BaseMesh
-          event.target.applyHoverEffect();
-        }
+        event.target.applyHoverEffect();
+        this.highlightingService.updateHighlightingOnHover(
+          event.target.highlighted
+        );
       },
       resetHover: (event) => {
-        if (
-          !(event.intersection.object instanceof ClazzMesh) &&
-          !(event.intersection.object instanceof ClazzCommunicationMesh)
-        ) {
-          event.target.resetHoverEffect();
-        }
+        event.target.resetHoverEffect();
       },
     });
 
@@ -511,41 +506,15 @@ export default class VrRendering extends Component<Args> {
     this.secondaryInputManager.addInputHandler({
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
-        if (
-          event.intersection.object instanceof ClazzCommunicationMesh &&
-          event.intersection.object.parent !== null
-        ) {
+        if (event.target.parent !== null) {
           // in VR parent is null if we handle intern communication links. But they are already handled elsewhere anyway
           this.applicationRenderer.highlightExternLink(
-            event.intersection.object,
+            event.target,
             true,
             this.localUser.color
           );
         }
       },
-      hover: (event) => {
-        if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          event.target.applyHoverEffect(this.localUser.visualizationMode);
-        }
-      },
-      resetHover: (event) => {
-        if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          event.target.resetHoverEffect(this.localUser.visualizationMode);
-        }
-      },
-    });
-
-    this.secondaryInputManager.addInputHandler({
-      targetType: ClazzMesh,
-      hover: (
-        event /*{
-      if (event.intersection.object instanceof ClazzMesh) {*/
-      ) =>
-        event.target.applyHoverEffect(this.localUser.visualizationMode) /*}}*/,
-      resetHover: (
-        event /*{ if (event.intersection.object instanceof ClazzMesh) {*/
-      ) =>
-        event.target.resetHoverEffect(this.localUser.visualizationMode) /*}}*/,
     });
   }
 
