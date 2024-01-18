@@ -4,6 +4,9 @@
 const { Webpack } = require('@embroider/webpack');
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
 const sass = require('sass');
+const BundleAnalyzerPlugin =
+  require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const path = require('path');
 
 const environment = EmberApp.env();
 const IS_PROD = environment === 'production';
@@ -65,5 +68,41 @@ module.exports = (defaults) => {
   //app.import('node_modules/crypto-js/crypto-js.js');
 
   //return app.toTree();
-  return require('@embroider/compat').compatBuild(app, Webpack);
+  return require('@embroider/compat').compatBuild(app, Webpack, {
+    staticAddonTestSupportTrees: true,
+    staticAddonTrees: true,
+    staticHelpers: true,
+    staticModifiers: true,
+    staticComponents: true,
+    packagerOptions: {
+      webpackConfig: {
+        module: {
+          rules: [
+            {
+              test: /\.tsx/,
+              use: {
+                loader: 'babel-loader',
+                options: {
+                  presets: [
+                    ['@babel/preset-react', { runtime: 'automatic' }],
+                    '@babel/preset-typescript',
+                  ],
+                },
+              },
+            },
+          ],
+        },
+        plugins: [
+          new BundleAnalyzerPlugin({
+            generateStatsFile: true,
+            openAnalyzer: false,
+            statsFilename: path.join(
+              process.cwd(),
+              'concat-stats-for',
+              'my-stats.json'
+            ),
+          }),
+        ],
+      },
+    },
 };
