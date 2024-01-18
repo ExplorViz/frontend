@@ -76,6 +76,7 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
       if (
         this.orthographicCamera &&
         this.userSettings.applicationSettings.useOrthographicCamera.value

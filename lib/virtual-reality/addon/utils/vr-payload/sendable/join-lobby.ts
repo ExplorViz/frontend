@@ -3,6 +3,7 @@ import { Quaternion } from '../../vr-message/util/quaternion';
 
 export type JoinLobbyPayload = {
   userName: string;
+  deviceId: string;
   position: Position;
   quaternion: Quaternion;
 };

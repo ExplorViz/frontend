@@ -22,7 +22,7 @@ export default class LocalUser extends Service.extend({
   userId!: string;
 
   @tracked
-  userName?: string;
+  userName = 'You';
 
   @tracked
   color: THREE.Color = new THREE.Color('red');
@@ -59,7 +59,7 @@ export default class LocalUser extends Service.extend({
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
-    this.defaultCamera.position.set(0, 1, 2);
+    // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
     } else {

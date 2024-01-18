@@ -90,11 +90,13 @@ export default class WebSocketService extends Service.extend(Evented) {
 
   async initSocket(ticketId: string, mode: VisualizationMode) {
     this.currentSocketUrl = this.getSocketUrl();
+    const urlParams = new URLSearchParams(window.location.search);
     this.currentSocket = io(this.currentSocketUrl, {
       transports: ['websocket'],
       query: {
         ticketId: ticketId,
         userName: 'JOHNNY',
+        deviceId: urlParams.get('deviceId'),
         mode: mode,
       },
     });

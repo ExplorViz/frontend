@@ -88,7 +88,6 @@ export default class CollaborationSession extends Service.extend({
 
   init() {
     super.init();
-
     this.debug('Initializing collaboration session');
     this.webSocket.on(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
     this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
@@ -135,6 +134,14 @@ export default class CollaborationSession extends Service.extend({
     });
     this.idToRemoteUser.clear();
     this.notifyPropertyChange('idToRemoteUser');
+  }
+
+  getUserById(id: string) {
+    if (this.localUser.userId === id) {
+      return this.localUser;
+    } else {
+      return this.idToRemoteUser.get(id);
+    }
   }
 
   getAllRemoteUserIds() {
@@ -187,6 +194,8 @@ export default class CollaborationSession extends Service.extend({
     this.userSettings.applyDefaultApplicationSettings(false);
   }
 
+  // Display to other users when another user joins the room
+  // Creates remoteUser for this joined user and puts it in the remoteUserGroup
   onUserConnected({
     id,
     name,

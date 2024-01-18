@@ -7,11 +7,14 @@ import { tracked } from '@glimmer/tracking';
 import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
-import { EmptyObject } from '@glimmer/component/-private/component';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 
-export default class ArSettingsSelector extends Component {
+interface CollaborationArgs {
+  removeComponent(componentPath: string): void;
+}
+
+export default class CollaborationControls extends Component<CollaborationArgs> {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -26,7 +29,7 @@ export default class ArSettingsSelector extends Component {
   private collaborationSession!: CollaborationSession;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
@@ -34,27 +37,41 @@ export default class ArSettingsSelector extends Component {
   @tracked
   rooms: RoomListRecord[] = [];
 
-  @computed('collaborationSession.idToRemoteUser')
+  @tracked
+  deviceId = new URLSearchParams(window.location.search).get('deviceId');
+
+  @computed(
+    'collaborationSession.idToRemoteUser',
+    'spectateUserService.spectatedUser'
+  )
   get users() {
     const users = [];
     if (this.localUser.color) {
       users.push({
         name: `${this.localUser.userName} (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
+        isSpectatable: false,
+        isSpectatedByUs: false,
       });
     }
     const remoteUsers = Array.from(
       this.collaborationSession.getAllRemoteUsers()
-    ).map((user) => ({
-      name: user.userName,
-      style: `color:#${user.color.getHexString()}`,
-      id: user.userId,
-    }));
+    ).map((user) => {
+      const isSpectatedByUs =
+        this.spectateUserService.spectatedUser?.userId === user.userId;
+      return {
+        remoteUserId: user.userId,
+        name: user.userName,
+        style: `color:#${user.color.getHexString()}`,
+        isSpectatedByUs: isSpectatedByUs,
+        isSpectatable: true,
+      };
+    });
 
     return users.concat(remoteUsers);
   }
 
-  constructor(owner: any, args: EmptyObject) {
+  constructor(owner: any, args: CollaborationArgs) {
     super(owner, args);
 
     this.loadRooms(false);
@@ -100,12 +117,29 @@ export default class ArSettingsSelector extends Component {
   }
 
   @action
-  spectate(id: string) {
-    const remoteUser = this.collaborationSession.lookupRemoteUserById(id);
-    if (remoteUser) {
+  toggleSpectate(user: { remoteUserId: string; isSpectatedByUs: boolean }) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(
+      user.remoteUserId
+    );
+    if (remoteUser && !user.isSpectatedByUs) {
       this.spectateUserService.activate(remoteUser);
     } else {
       this.spectateUserService.deactivate();
     }
+  }
+
+  @action
+  configurationSelected(event: any) {
+    if (!event.target.value) return;
+
+    const remoteUserIds = Array.from(
+      this.collaborationSession.getAllRemoteUsers()
+    ).map((user) => user.userId);
+    this.spectateUserService.activateConfig(event?.target.value, remoteUserIds);
+  }
+
+  @action
+  close() {
+    this.args.removeComponent('collaboration-controls');
   }
 }

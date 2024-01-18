@@ -53,6 +53,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -118,6 +119,9 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('spectate-user')
+  spectateUser!: SpectateUser;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   queryParams = ['roomId'];
@@ -180,7 +184,12 @@ export default class VisualizationController extends Controller {
   }
 
   get showTimeline() {
-    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+    return (
+      !this.showAR &&
+      !this.showVR &&
+      !this.isSingleLandscapeMode &&
+      this.spectateUser.spectateConfigurationId !== 'arena-2'
+    );
   }
 
   get showXRButton() {

@@ -118,6 +118,10 @@
   pointer-events: all;
 }
 
+.syncPadding {
+  padding-bottom: 15px;
+}
+
 .ar-button-svg {
   width: var(--ar-button-size);
   height: var(--ar-button-size);
@@ -158,7 +162,7 @@
   left: 0 !important;
 }
 
-.room-list-item {
+.collaboration-list-item {
   margin-top: 5px;
   margin-bottom: 5px;
 }

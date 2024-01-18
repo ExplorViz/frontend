@@ -1,30 +1,45 @@
-<div>
-  <label class='bold'>Status: </label>
-
-  <label>{{this.collaborationSession.connectionStatus}}</label>
-</div>
-
 {{#if (eq this.collaborationSession.connectionStatus 'online')}}
   <div>
-    <label class='bold'>Current Room: </label>
-
+    <label class='bold'>Room: </label>
     <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
-  <label class='bold'>Users</label>
+  {{! Indicator that device should be in control of spectating configurations }}
+  {{#if (eq this.deviceId 'main')}}
+    <div>
+      <label class='bold'>Spectate Configuration: </label>
+      <select
+        class='form-select'
+        aria-label='Default select example'
+        {{on 'change' this.configurationSelected}}
+      >
+        <option value='default'>Default</option>
+        <option value='arena-2'>ARENA2</option>
+      </select>
+    </div>
+  {{/if}}
+
+  <label class='bold'>Users:</label>
 
   <ul>
     {{#each this.users as |user|}}
-      <li style={{html-safe user.style}}>
-        <div
-          class='nav-link-with-cursor'
-          title='Spectate'
-          {{on 'click' (fn this.spectate user.id)}}
-        >
-          {{user.name}}
-          {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
-        </div>
-      </li>
+      <div class='flex-space-between collaboration-list-item'>
+        <li style={{html-safe user.style}}>
+          <div class='nav-link-with-cursor'>
+            {{user.name}}
+          </div>
+        </li>
+        {{#if user.isSpectatable}}
+          <BsButton
+            title={{if user.isSpectatedByUs 'End Spectating' 'Spectate'}}
+            {{on 'click' (fn this.toggleSpectate user)}}
+            @type={{if user.isSpectatedByUs 'danger' 'success'}}
+            @outline={{true}}
+          >
+            {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
+          </BsButton>
+        {{/if}}
+      </div>
     {{/each}}
   </ul>
 
@@ -32,7 +47,7 @@
 
 {{#if (eq this.collaborationSession.connectionStatus 'offline')}}
   <div class='flex-space-between'>
-    <label class='bold'>Rooms</label>
+    <label class='bold'>{{if this.rooms 'Rooms:' 'No rooms available'}}</label>
 
     <BsButton
       title='Reload Rooms'
@@ -46,7 +61,7 @@
 
   <ul>
     {{#each this.rooms as |room|}}
-      <div class='flex-space-between room-list-item'>
+      <div class='flex-space-between collaboration-list-item'>
         <li>
           {{room.roomName}}
         </li>

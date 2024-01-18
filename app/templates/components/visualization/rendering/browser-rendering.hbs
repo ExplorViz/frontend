@@ -133,10 +133,10 @@
                 @visualizationPaused={{@visualizationPaused}}
                 @dynamicData={{@landscapeData.dynamicLandscapeData}}
               /> --}}
-              <Visualization::PageSetup::Navbar::XrCollaborationOpener
+              <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
+              <Visualization::PageSetup::Navbar::VscodeExtensionSettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::RestructureOpener
@@ -152,10 +152,10 @@
               @componentId={{componentId}}
             >
               {{#if (eq componentId 'Collaboration')}}
-                <Visualization::PageSetup::Sidebar::XrCollaboration />
+                <Visualization::PageSetup::Sidebar::CollaborationControls />
               {{/if}}
               {{#if (eq componentId 'VSCode-Extension-Settings')}}
-                <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings />
+                <Visualization::PageSetup::Sidebar::VscodeExtensionSettings />
               {{/if}}
               {{#if (eq componentId 'Restructure-Landscape')}}
                 <Visualization::PageSetup::Sidebar::Restructure

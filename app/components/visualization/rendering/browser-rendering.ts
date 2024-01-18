@@ -35,7 +35,7 @@ import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaborative-mode/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
@@ -80,7 +80,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private highlightingService!: HighlightingService;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
@@ -161,6 +161,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
+
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      80,
+      1.0,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
 
     this.applicationRenderer.getOpenApplications().clear();
     // force graph
@@ -354,6 +363,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
+
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
@@ -461,7 +471,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
-    // applicationObject3D.position.y = 10;
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }
