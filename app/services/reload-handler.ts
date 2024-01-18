@@ -10,7 +10,8 @@ import {
 import LandscapeListener from './landscape-listener';
 
 export default class ReloadHandler extends Service.extend(Evented) {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
 
   debug = debugLogger();
 
