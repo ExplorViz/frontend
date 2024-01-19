@@ -14,12 +14,21 @@ export type SerializedDetachedMenu = {
 };
 
 export type SerializedHighlightedComponent = {
+  appId: string;
   userId: string;
-  highlightedApp: string;
   entityType: string;
-  highlightedEntity: string;
+  entityId: string;
   isHighlighted: boolean;
   color: number[];
+};
+
+export type SerializedHighlightedExternLink = {
+  appId: string;
+  color: number[];
+  entityId: string;
+  entityType: string;
+  isHighlighted: boolean;
+  userId: string;
 };
 
 export type SerializedApp = {
@@ -27,8 +36,8 @@ export type SerializedApp = {
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
-  transparentComponents: string[];
   openComponents: string[];
+  transparentComponents: string[];
   highlightedComponents: SerializedHighlightedComponent[];
 };
 
@@ -41,6 +50,5 @@ export type SerializedVrRoom = {
   landscape: SerializedLandscape;
   openApps: SerializedApp[];
   detachedMenus: SerializedDetachedMenu[];
-  highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
-  //transparentExternCommunicationLinks: string[];
+  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
 };

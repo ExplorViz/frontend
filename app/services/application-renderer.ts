@@ -497,7 +497,10 @@ export default class ApplicationRenderer extends Service.extend({
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application);
+        this.appCommRendering.addCommunication(
+          application,
+          this.userSettings.applicationSettings
+        );
       } else {
         application.removeAllCommunication();
       }
