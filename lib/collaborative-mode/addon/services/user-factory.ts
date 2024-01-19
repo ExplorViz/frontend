@@ -2,10 +2,10 @@ import Service, { inject as service } from '@ember/service';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import * as THREE from 'three';
 import HmdService from 'virtual-reality/services/hmd-service';
-import { Color } from 'virtual-reality/utils/vr-message/util/color';
-import { Position } from 'virtual-reality/utils/vr-message/util/position';
-import { Quaternion } from 'virtual-reality/utils/vr-message/util/quaternion';
 import LocalUser from './local-user';
+import { Color } from 'collaborative-mode/utils/web-socket-messages/types/color';
+import { Position } from 'collaborative-mode/utils/web-socket-messages/types/position';
+import { Quaternion } from 'collaborative-mode/utils/web-socket-messages/types/quaternion';
 
 export default class UserFactory extends Service.extend({}) {
   @service('hmd-service')

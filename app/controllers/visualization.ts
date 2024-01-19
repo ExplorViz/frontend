@@ -21,31 +21,6 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import WebSocketService from 'virtual-reality/services/web-socket';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  InitialLandscapeMessage,
-  INITIAL_LANDSCAPE_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/landscape';
-import {
-  TimestampUpdateTimerMessage,
-  TIMESTAMP_UPDATE_TIMER_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
-import {
-  TimestampUpdateMessage,
-  TIMESTAMP_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import {
-  VISUALIZATION_MODE_UPDATE_EVENT,
-  VisualizationModeUpdateMessage,
-} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import {
-  SerializedApp,
-  SerializedDetachedMenu,
-  SerializedHighlightedComponent,
-} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
@@ -54,6 +29,31 @@ import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
+import RoomSerializer from 'collaborative-mode/services/room-serializer';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {
+  INITIAL_LANDSCAPE_EVENT,
+  InitialLandscapeMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/landscape';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/timetsamp-update';
+import {
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+  TimestampUpdateTimerMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/timestamp-update-timer';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/visualization-mode-update';
+import {
+  SerializedApp,
+  SerializedDetachedMenu,
+  SerializedHighlightedComponent,
+} from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -95,8 +95,8 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('timestamp')
   timestampService!: TimestampService;

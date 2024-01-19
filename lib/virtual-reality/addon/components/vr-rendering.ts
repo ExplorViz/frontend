@@ -32,8 +32,6 @@ import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-rendere
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
 import VrMenuFactoryService from 'virtual-reality/services/vr-menu-factory';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import {
   findGrabbableObject,
   GrabbableObjectWrapper,
@@ -56,34 +54,6 @@ import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
 import MenuGroup from 'virtual-reality/utils/vr-menus/menu-group';
 import MenuQueue from 'virtual-reality/utils/vr-menus/menu-queue';
 import HintMenu from 'virtual-reality/utils/vr-menus/ui-menu/hud/hint-menu';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
-import {
-  ObjectMovedMessage,
-  OBJECT_MOVED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/object_moved';
-import {
-  PingUpdateMessage,
-  PING_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/ping_update';
-import {
-  DetachedMenuClosedMessage,
-  DETACHED_MENU_CLOSED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
-import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import {
-  UserControllerConnectMessage,
-  USER_CONTROLLER_CONNECT_EVENT,
-} from '../utils/vr-message/sendable/user_controller_connect';
-import {
-  UserControllerDisconnectMessage,
-  USER_CONTROLLER_DISCONNECT_EVENT,
-} from '../utils/vr-message/sendable/user_controller_disconnect';
-import {
-  ControllerId,
-  CONTROLLER_1_ID,
-  CONTROLLER_2_ID,
-} from '../utils/vr-message/util/controller_id';
 import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-button';
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
@@ -91,13 +61,43 @@ import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
-import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
 import OpenEntityButton from 'virtual-reality/utils/view-objects/vr/open-entity-button';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'virtual-reality/utils/view-objects/vr/disconnect-button';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import gsap from 'gsap';
+import MessageSender from 'collaborative-mode/services/message-sender';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import {
+  CONTROLLER_1_ID,
+  CONTROLLER_2_ID,
+  ControllerId,
+} from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
+import {
+  USER_CONTROLLER_CONNECT_EVENT,
+  UserControllerConnectMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+import {
+  DETACHED_MENU_CLOSED_EVENT,
+  DetachedMenuClosedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
+import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
+import {
+  OBJECT_MOVED_EVENT,
+  ObjectMovedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/object-moved';
+import {
+  USER_CONTROLLER_DISCONNECT_EVENT,
+  UserControllerDisconnectMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/ping-update';
+import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 
 interface Args {
   debugMode: boolean;
@@ -135,7 +135,7 @@ export default class VrRendering extends Component<Args> {
   private menuFactory!: VrMenuFactoryService;
 
   @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  private sender!: MessageSender;
 
   @service('web-socket')
   private webSocket!: WebSocketService;

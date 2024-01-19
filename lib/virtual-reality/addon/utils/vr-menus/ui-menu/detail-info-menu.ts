@@ -16,10 +16,6 @@ import composeContent, {
 import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from '../interactive-menu';
 import { DetachableMenu } from '../detachable-menu';
-import {
-  CLASS_COMMUNICATION_ENTITY_TYPE,
-  EntityType,
-} from 'virtual-reality/utils/vr-message/util/entity_type';
 import { BaseMenuArgs } from '../base-menu';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
@@ -29,6 +25,10 @@ import VRControllerThumbpadBinding, {
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
 import VRController from 'virtual-reality/utils/vr-controller';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import {
+  CLASS_COMMUNICATION_ENTITY_TYPE,
+  EntityType,
+} from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
 
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;

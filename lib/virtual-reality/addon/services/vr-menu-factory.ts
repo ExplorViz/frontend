@@ -7,7 +7,6 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import GrabbedObjectService from 'virtual-reality/services/grabbed-object';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import DisableInputMenu from 'virtual-reality/utils/vr-menus/ui-less-menu/disable-input-menu';
@@ -33,7 +32,6 @@ import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import SpectateUser from '../../../collaborative-mode/addon/services/spectate-user';
-import VrRoomService from './vr-room';
 import SearchMenu from 'virtual-reality/utils/vr-menus/search-menu';
 import { AuxiliaryScrollMenu } from 'virtual-reality/utils/vr-menus/ui-menu/auxiliary-scroll-menu';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
@@ -42,6 +40,8 @@ import VRController from 'virtual-reality/utils/vr-controller';
 import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 import OnlineMenu2 from 'virtual-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 import InteractiveMenu from 'virtual-reality/utils/vr-menus/interactive-menu';
+import MessageSender from 'collaborative-mode/services/message-sender';
+import RoomService from 'collaborative-mode/services/room-service';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -59,11 +59,11 @@ export default class VrMenuFactoryService extends Service {
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
-  @service('vr-room')
-  private roomService!: VrRoomService;
+  @service('room-service')
+  private roomService!: RoomService;
 
   @service('timestamp')
   private timestampService!: TimestampService;

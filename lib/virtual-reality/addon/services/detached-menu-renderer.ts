@@ -2,11 +2,11 @@ import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Evented from '@ember/object/evented';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'virtual-reality/utils/vr-message/util/entity_type';
 import LocalUser from 'collaborative-mode/services/local-user';
+import { SerializedDetachedMenu } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
 
 export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('vr-menu-factory')

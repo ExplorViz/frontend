@@ -5,14 +5,14 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import HeatmapConfiguration, {
   HeatmapMode,
 } from 'heatmap/services/heatmap-configuration';
-import WebSocketService from 'virtual-reality/services/web-socket';
+import debugLogger from 'ember-debug-logger';
 import {
+  HEATMAP_UPDATE_EVENT,
   HeatmapUpdateArgs,
   HeatmapUpdateMessage,
-  HEATMAP_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/heatmap_update';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import debugLogger from 'ember-debug-logger';
+} from 'collaborative-mode/utils/web-socket-messages/sendable/heatmap-update';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
 function cleanup(instance: SyncStateModifier) {
   instance.webSocket.off(

@@ -1,11 +1,11 @@
 import { action } from '@ember/object';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
-import { EntityType } from '../../vr-message/util/entity_type';
 import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';
 import TextItem from '../items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
+import { EntityType } from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
 
 export type HeatmapMenuArgs = UiMenuArgs & {
   heatmapConfiguration: HeatmapConfiguration;

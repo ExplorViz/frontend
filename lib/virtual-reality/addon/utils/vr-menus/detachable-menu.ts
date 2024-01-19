@@ -1,4 +1,4 @@
-import { EntityType } from '../vr-message/util/entity_type';
+import { EntityType } from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
 import BaseMenu from './base-menu';
 
 export interface DetachableMenu extends BaseMenu {

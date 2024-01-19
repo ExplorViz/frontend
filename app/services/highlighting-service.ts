@@ -13,12 +13,12 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
+import MessageSender from 'collaborative-mode/services/message-sender';
 
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -32,8 +32,8 @@ export default class HighlightingService extends Service.extend({
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;

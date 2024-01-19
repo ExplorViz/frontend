@@ -5,28 +5,28 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ActionIcon from 'virtual-reality/utils/view-objects/vr/action-icon';
 import HeatmapMenu from 'virtual-reality/utils/vr-menus/ui-menu/heatmap-menu';
-import {
-  DETACHED_MENU_CLOSED_EVENT,
-  DetachedMenuClosedMessage,
-} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
-import {
-  MENU_DETACHED_EVENT,
-  MenuDetachedMessage,
-} from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
 import CloseIcon from '../utils/view-objects/vr/close-icon';
 import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
-import {
-  isMenuDetachedResponse,
-  MenuDetachedResponse,
-} from '../utils/vr-message/receivable/response/menu-detached';
-import {
-  isObjectClosedResponse,
-  ObjectClosedResponse,
-} from '../utils/vr-message/receivable/response/object-closed';
 import VrAssetRepository from './vr-asset-repo';
-import WebSocketService from './web-socket';
 import SpectateViewMenu from 'virtual-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import {
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import {
+  MenuDetachedResponse,
+  isMenuDetachedResponse,
+} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+import {
+  DETACHED_MENU_CLOSED_EVENT,
+  DetachedMenuClosedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import {
+  ObjectClosedResponse,
+  isObjectClosedResponse,
+} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('virtual-reality@vr-asset-repo')

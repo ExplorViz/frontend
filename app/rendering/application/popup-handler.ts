@@ -3,6 +3,9 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaborative-mode/services/local-user';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
+import { SerializedDetachedMenu } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -10,30 +13,27 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import {
   getTypeOfEntity,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
+import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
-  isMenuDetachedResponse,
   MenuDetachedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
+  isMenuDetachedResponse,
+} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
-  isObjectClosedResponse,
   ObjectClosedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+  isObjectClosedResponse,
+} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 import {
-  DetachedMenuClosedMessage,
   DETACHED_MENU_CLOSED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+  DetachedMenuClosedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
-  MenuDetachedMessage,
   MENU_DETACHED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+  MenuDetachedMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 
 export default class PopupHandler {
   @service('application-renderer')

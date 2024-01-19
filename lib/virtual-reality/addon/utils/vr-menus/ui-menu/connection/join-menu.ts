@@ -1,9 +1,9 @@
-import VrRoomService from 'virtual-reality/services/vr-room';
-import { RoomListRecord } from '../../../vr-payload/receivable/room-list';
+import RoomService from 'collaborative-mode/services/room-service';
 import TextItem from '../../items/text-item';
 import TextbuttonItem from '../../items/textbutton-item';
 import TitleItem from '../../items/title-item';
 import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
+import { RoomListRecord } from 'collaborative-mode/utils/room-payload/receivable/room-list';
 
 /**
  * Time in seconds before the new room list should be fetched.
@@ -11,11 +11,11 @@ import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
 const REFRESH_TIMEOUT = 3.0;
 
 export type JoinMenuArgs = ConnectionBaseMenuArgs & {
-  roomService: VrRoomService;
+  roomService: RoomService;
 };
 
 export default class JoinMenu extends ConnectionBaseMenu {
-  private roomService: VrRoomService;
+  private roomService: RoomService;
 
   private refreshTimeout: number;
 

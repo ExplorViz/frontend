@@ -28,10 +28,7 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -45,6 +42,9 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
+import MessageSender from 'collaborative-mode/services/message-sender';
+import RoomSerializer from 'collaborative-mode/services/room-serializer';
+import { SerializedRoom } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -66,8 +66,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -78,8 +78,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -529,7 +529,7 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  restoreFromSerialization(room: SerializedVrRoom) {
+  restoreFromSerialization(room: SerializedRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {

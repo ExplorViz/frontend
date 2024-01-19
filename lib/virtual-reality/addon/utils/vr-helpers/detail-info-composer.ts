@@ -14,13 +14,13 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
-} from '../vr-message/util/entity_type';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+} from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
 
 export type DetailedInfo = {
   title: string;

@@ -23,7 +23,7 @@ import {
   SerializedHighlightedComponent,
   SerializedLandscape,
   SerializedVrRoom,
-} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+} from 'collaborative-mode/utils/vr-multi-user/serialized-vr-room';
 
 export default class VrRoomSerializer extends Service {
   @service('detached-menu-groups')

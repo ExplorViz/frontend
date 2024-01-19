@@ -25,32 +25,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
-import WebSocketService from 'virtual-reality/services/web-socket';
 import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'virtual-reality/utils/vr-message/sendable/all_highlights_reset';
-import {
-  AppOpenedMessage,
-  APP_OPENED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/app_opened';
-import {
-  CHANGELOG_REMOVE_ENTRY_EVENT,
-  CHANGELOG_RESTORE_ENTRIES_EVENT,
-  ChangeLogRemoveEntryMessage,
-  ChangeLogRestoreEntriesMessage,
-} from 'virtual-reality/utils/vr-message/sendable/changelog_update';
-import {
-  ComponentUpdateMessage,
-  COMPONENT_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/component_update';
-import {
-  HighlightingUpdateMessage,
-  HIGHLIGHTING_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/highlighting_update';
-import {
-  MousePingUpdateMessage,
-  MOUSE_PING_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -77,7 +52,32 @@ import {
   RestructureRestoreClassMessage,
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
-} from 'virtual-reality/utils/vr-message/sendable/restructure_update';
+} from 'collaborative-mode/utils/web-socket-messages/sendable/restructure-update';
+import {
+  HIGHLIGHTING_UPDATE_EVENT,
+  HighlightingUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/highlighting-update';
+import {
+  APP_OPENED_EVENT,
+  AppOpenedMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/app-opened';
+import {
+  MOUSE_PING_UPDATE_EVENT,
+  MousePingUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/mouse-ping-update';
+import {
+  COMPONENT_UPDATE_EVENT,
+  ComponentUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/component-update';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/all-highlights-reset';
+import {
+  CHANGELOG_REMOVE_ENTRY_EVENT,
+  CHANGELOG_RESTORE_ENTRIES_EVENT,
+  ChangeLogRemoveEntryMessage,
+  ChangeLogRestoreEntriesMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/changelog-update';
+import WebSocketService from 'collaborative-mode/services/web-socket';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
 interface IModifierArgs {
   positional: [];

@@ -5,16 +5,16 @@ import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
 import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';
 import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
 import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
+import MousePing from './mouse-ping-helper';
 import {
   ControllerPose,
   Pose,
-} from 'virtual-reality/utils/vr-message/sendable/user_positions';
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 import {
-  ControllerId,
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
-} from 'virtual-reality/utils/vr-message/util/controller_id';
-import MousePing from './mouse-ping-helper';
+  ControllerId,
+} from './web-socket-messages/types/controller-id';
 
 type Camera = {
   model: THREE.Object3D;

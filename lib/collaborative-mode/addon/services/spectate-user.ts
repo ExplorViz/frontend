@@ -5,22 +5,20 @@ import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'virtual-reality/utils/vr-helpers/vr-poses';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  UserDisconnectedMessage,
-  USER_DISCONNECTED_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import {
-  SpectatingUpdateMessage,
-  SPECTATING_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/spectating_update';
-import WebSocketService, {
-  SELF_DISCONNECTED_EVENT,
-} from 'virtual-reality/services/web-socket';
 import { tracked } from '@glimmer/tracking';
+import MessageSender from './message-sender';
+import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import {
+  USER_DISCONNECTED_EVENT,
+  UserDisconnectedMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/user-disconnect';
+import {
+  SPECTATING_UPDATE_EVENT,
+  SpectatingUpdateMessage,
+} from 'collaborative-mode/utils/web-socket-messages/sendable/spectating-update';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -28,8 +26,8 @@ export default class SpectateUser extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;

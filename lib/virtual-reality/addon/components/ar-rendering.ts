@@ -5,6 +5,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
+import MessageSender from 'collaborative-mode/services/message-sender';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -30,7 +31,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'virtual-reality/services/ar-settings';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
 import {
   EntityMesh,
@@ -73,8 +73,8 @@ export default class ArRendering extends Component<Args> {
   @service('repos/scene-repository')
   private sceneRepo!: SceneRepository;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;

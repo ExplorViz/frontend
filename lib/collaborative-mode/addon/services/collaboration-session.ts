@@ -7,37 +7,35 @@ import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import * as THREE from 'three';
-import VrRoomService from 'virtual-reality/services/vr-room';
-import WebSocketService, {
-  SELF_DISCONNECTED_EVENT,
-} from 'virtual-reality/services/web-socket';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  SelfConnectedMessage,
-  SELF_CONNECTED_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/self_connected';
-import {
-  UserConnectedMessage,
-  USER_CONNECTED_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/user_connected';
-import {
-  UserDisconnectedMessage,
-  USER_DISCONNECTED_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/user_disconnect';
-import {
-  UserPositionsMessage,
-  USER_POSITIONS_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/user_positions';
-import {
-  CONTROLLER_1_ID,
-  CONTROLLER_2_ID,
-} from 'virtual-reality/utils/vr-message/util/controller_id';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import RoomService from './room-service';
+import {
+  SELF_CONNECTED_EVENT,
+  SelfConnectedMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/self-connected';
+import {
+  USER_CONNECTED_EVENT,
+  UserConnectedMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/user-connected';
+import {
+  USER_DISCONNECTED_EVENT,
+  UserDisconnectedMessage,
+} from 'collaborative-mode/utils/web-socket-messages/receivable/user-disconnect';
+import {
+  USER_POSITIONS_EVENT,
+  UserPositionsMessage,
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+import {
+  CONTROLLER_1_ID,
+  CONTROLLER_2_ID,
+} from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
+import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -52,8 +50,8 @@ export default class CollaborationSession extends Service.extend({
   @service('web-socket')
   private webSocket!: WebSocketService;
 
-  @service('vr-room')
-  private roomService!: VrRoomService;
+  @service('room-service')
+  private roomService!: RoomService;
 
   @service('landscape-listener')
   private landscapeListener!: LandscapeListener;

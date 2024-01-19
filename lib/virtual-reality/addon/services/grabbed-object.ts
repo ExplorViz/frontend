@@ -1,20 +1,19 @@
 import Service, { inject as service } from '@ember/service';
+import MessageSender from 'collaborative-mode/services/message-sender';
+import WebSocketService from 'collaborative-mode/services/web-socket';
 import * as THREE from 'three';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import { GrabbableObject } from 'virtual-reality/utils/view-objects/interfaces/grabbable-object';
 import {
-  isObjectGrabbedResponse,
   ObjectGrabbedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/object-grabbed';
+  isObjectGrabbedResponse,
+} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-grabbed';
 import {
   OBJECT_GRABBED_EVENT,
   ObjectGrabbedMessage,
-} from 'virtual-reality/utils/vr-message/sendable/request/object_grabbed';
-import WebSocketService from './web-socket';
-
+} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/object-grabbed';
 export default class GrabbedObjectService extends Service {
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('web-socket')
   private webSocket!: WebSocketService;

@@ -1,14 +1,14 @@
 import Component from '@glimmer/component';
 import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import VrRoomService from 'virtual-reality/services/vr-room';
 import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { tracked } from '@glimmer/tracking';
-import { RoomListRecord } from 'virtual-reality/utils/vr-payload/receivable/room-list';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import SpectateUser from 'collaborative-mode/services/spectate-user';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import RoomService from 'collaborative-mode/services/room-service';
+import { RoomListRecord } from 'collaborative-mode/utils/room-payload/receivable/room-list';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -18,8 +18,8 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('local-user')
   localUser!: LocalUser;
 
-  @service('vr-room')
-  roomService!: VrRoomService;
+  @service('room-service')
+  roomService!: RoomService;
 
   @service('timestamp')
   // @ts-ignore since it is used in template

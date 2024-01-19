@@ -4,9 +4,9 @@ import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import VRController from 'virtual-reality/utils/vr-controller';
 import { getPoses } from 'virtual-reality/utils/vr-helpers/vr-poses';
+import MessageSender from './message-sender';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -16,8 +16,8 @@ export default class LocalUser extends Service.extend({
   @service('configuration')
   configuration!: Configuration;
 
-  @service('vr-message-sender')
-  sender!: VrMessageSender;
+  @service('message-sender')
+  sender!: MessageSender;
 
   userId!: string;
 
