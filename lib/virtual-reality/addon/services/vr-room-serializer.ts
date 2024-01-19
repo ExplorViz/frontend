@@ -21,6 +21,7 @@ import {
   SerializedApp,
   SerializedDetachedMenu,
   SerializedHighlightedComponent,
+  SerializedHighlightedExternLink,
   SerializedLandscape,
   SerializedVrRoom,
 } from 'collaborative-mode/utils/vr-multi-user/serialized-vr-room';
@@ -73,7 +74,7 @@ export default class VrRoomSerializer extends Service {
       .map((application) => this.serializeApplication(application));
   }
 
-  serializeApplication(application: ApplicationObject3D) {
+  serializeApplication(application: ApplicationObject3D): SerializedApp {
     // collect transparent extern links
     const transparentExternLinks: Set<string> = new Set();
     this.linkRenderer.getAllLinks().forEach((link) => {
@@ -126,7 +127,9 @@ export default class VrRoomSerializer extends Service {
     };
   }
 
-  private serializeHighlightedComponent(application: ApplicationObject3D) {
+  private serializeHighlightedComponent(
+    application: ApplicationObject3D
+  ): SerializedHighlightedComponent[] {
     const { highlightedEntity } = application;
     if (highlightedEntity && !isTrace(highlightedEntity)) {
       const list: {
@@ -163,16 +166,6 @@ export default class VrRoomSerializer extends Service {
       });
 
       return list;
-      // return [
-      //   {
-      //     appId: application.getModelId(),
-      //     userId: '1',
-      //     entityType: highlightedEntity.constructor.name,
-      //     entityId: highlightedEntity.getModelId(),
-      //     isHighlighted: true,
-      //     color: highlightedEntity.highlightingColor.toArray(),
-      //   },
-      // ];
     }
     return [];
   }
@@ -201,7 +194,7 @@ export default class VrRoomSerializer extends Service {
       });
   }
 
-  private serializehighlightedExternCommunicationLinks(): SerializedHighlightedComponent[] {
+  private serializehighlightedExternCommunicationLinks(): SerializedHighlightedExternLink[] {
     return this.linkRenderer
       .getAllLinks()
       .filter((externLinkMesh) => externLinkMesh.highlighted)

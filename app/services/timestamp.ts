@@ -1,16 +1,11 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
-import HighlightingService from './highlighting-service';
 import { TIMESTAMP_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/timetsamp-update';
 
 export default class TimestampService extends Service.extend(Evented) {
   @tracked
   timestamp!: number;
-
-  @service('highlighting-service')
-  highlightingService!: HighlightingService;
 
   // TODO not the best solution, should be handled differently
   updateTimestamp(timestamp: number) {

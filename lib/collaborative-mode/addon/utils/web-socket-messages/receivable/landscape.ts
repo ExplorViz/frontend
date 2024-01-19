@@ -2,7 +2,7 @@ import { Scale, isScale } from '../types/Scale';
 import { EntityType, isEntityType } from '../types/entity-type';
 import { Position, isPosition } from '../types/position';
 import { Quaternion, isQuaternion } from '../types/quaternion';
-import { SerializedHighlightedComponent } from '../types/serialized-room';
+import { SerializedHighlightedExternLink } from '../types/serialized-room';
 
 export const INITIAL_LANDSCAPE_EVENT = 'landscape';
 
@@ -45,8 +45,7 @@ export type InitialLandscapeMessage = {
   openApps: App[];
   landscape: Landscape;
   detachedMenus: DetachedMenu[];
-  highlightedExternCommunicationLinks: SerializedHighlightedComponent[];
-  //transparentExternCommunicationLinks: string[];
+  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
 };
 
 function isHighlightedComponent(comp: any): comp is HighlightedComponent {

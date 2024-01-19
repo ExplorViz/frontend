@@ -11,6 +11,7 @@ export interface MessageArgs {
 export default class ToastMessage extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
+  // These functions can be overriden by vr-rendering to enable WebGL-based messages
   info!: (message: string) => void;
 
   message!: (message: MessageArgs) => void;

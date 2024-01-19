@@ -51,7 +51,6 @@ import {
 import {
   SerializedApp,
   SerializedDetachedMenu,
-  SerializedHighlightedComponent,
 } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
 import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
 
@@ -247,9 +246,7 @@ export default class VisualizationController extends Controller {
     this.debug('receiveNewLandscapeData');
     if (!this.visualizationPaused) {
       this.updateLandscape(structureData, dynamicData);
-      console.log('1', this.timestampService.timestamp);
       if (this.timelineTimestamps.lastObject) {
-        console.log('2', this.timestampService.timestamp);
         this.timestampService.timestamp =
           this.timelineTimestamps.lastObject?.epochMilli;
         this.selectedTimestampRecords = [
@@ -573,9 +570,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-  }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+  }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
       await timeout(50);
@@ -587,8 +582,7 @@ export default class VisualizationController extends Controller {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks:
-        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+      highlightedExternCommunicationLinks,
     };
 
     this.highlightingService.updateHighlighting();

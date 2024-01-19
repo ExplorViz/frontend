@@ -9,9 +9,14 @@ import TimestampRepository from './repos/timestamp-repository';
 const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
-  @service('landscape-token') tokenService!: LandscapeTokenService;
-  @service('auth') auth!: Auth;
-  @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
+  @service('landscape-token')
+  tokenService!: LandscapeTokenService;
+
+  @service('auth')
+  auth!: Auth;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
 
   private timer: NodeJS.Timeout | null = null;
   private debug = debugLogger();
