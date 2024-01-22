@@ -3,10 +3,10 @@ import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
-} from 'collaborative-mode/services/local-user';
+} from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -28,31 +28,31 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import SpectateUser from 'collaborative-mode/services/spectate-user';
-import RoomSerializer from 'collaborative-mode/services/room-serializer';
-import WebSocketService from 'collaborative-mode/services/web-socket';
+import SpectateUser from 'collaboration/services/spectate-user';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import WebSocketService from 'collaboration/services/web-socket';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from 'collaborative-mode/utils/web-socket-messages/receivable/landscape';
+} from 'collaboration/utils/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'collaborative-mode/utils/web-socket-messages/sendable/timetsamp-update';
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from 'collaborative-mode/utils/web-socket-messages/receivable/timestamp-update-timer';
+} from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from 'collaborative-mode/utils/web-socket-messages/sendable/visualization-mode-update';
+} from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedApp,
   SerializedDetachedMenu,
-} from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
-import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
+} from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;

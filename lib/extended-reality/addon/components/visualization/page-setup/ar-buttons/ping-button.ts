@@ -1,7 +1,7 @@
 import { computed } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface PingButtonArgs {

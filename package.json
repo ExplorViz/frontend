@@ -172,7 +172,7 @@
   },
   "ember-addon": {
     "paths": [
-      "lib/collaborative-mode",
+      "lib/collaboration",
       "lib/heatmap",
       "lib/extended-reality"
     ]

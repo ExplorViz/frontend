@@ -5,7 +5,7 @@ import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 
 export type OpenEntityButtonArgs = ThreeMeshUI.BlockOptions & {
   owner: any;

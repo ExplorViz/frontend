@@ -1,8 +1,8 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
 import UserListItem, { BLOCK_OPTIONS_LIST_ITEM } from './user-list-item';
-import LocalUser from 'collaborative-mode/services/local-user';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import { setOwner } from '@ember/application';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 export type UserListArgs = ThreeMeshUI.BlockOptions & {

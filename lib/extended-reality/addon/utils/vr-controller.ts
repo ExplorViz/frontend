@@ -13,7 +13,7 @@ import {
   displayAsWireframe,
 } from './vr-helpers/wireframe';
 import MenuGroup from './vr-menus/menu-group';
-import { ControllerId } from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
+import { ControllerId } from 'collaboration/utils/web-socket-messages/types/controller-id';
 /**
  * Length of the controller's ray when there is no intersection point.
  */

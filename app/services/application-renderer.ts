@@ -1,7 +1,7 @@
 // #region imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
@@ -42,9 +42,9 @@ import {
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import MessageSender from 'collaborative-mode/services/message-sender';
-import RoomSerializer from 'collaborative-mode/services/room-serializer';
-import { SerializedRoom } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({

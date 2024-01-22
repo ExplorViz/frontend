@@ -1,4 +1,4 @@
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaboration/services/local-user';
 import * as THREE from 'three';
 import FloorMesh from 'extended-reality/utils/view-objects/vr/floor-mesh';
 

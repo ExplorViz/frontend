@@ -1,4 +1,4 @@
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';

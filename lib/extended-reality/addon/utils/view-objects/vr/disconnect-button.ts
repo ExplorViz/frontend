@@ -3,7 +3,7 @@ import { IntersectableObject } from '../interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 
 export type DisconnectButtonArgs = ThreeMeshUI.BlockOptions & {
   owner: any;

@@ -3,9 +3,9 @@ import { IntersectableObject } from '../interfaces/intersectable-object';
 import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,

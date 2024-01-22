@@ -1,7 +1,7 @@
 import CollaborationSession, {
   ConnectionStatus,
-} from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+} from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import UiMenu, { UiMenuArgs } from '../../ui-menu';
 
 export type ConnectionBaseMenuArgs = UiMenuArgs & {

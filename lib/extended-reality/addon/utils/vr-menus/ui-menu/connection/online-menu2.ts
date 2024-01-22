@@ -3,7 +3,7 @@ import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import UserList from 'extended-reality/utils/view-objects/vr/user-list';
 import { UiMenuArgs } from '../../ui-menu';
 import VRControllerThumbpadBinding, {
@@ -11,7 +11,7 @@ import VRControllerThumbpadBinding, {
 } from 'extended-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import VRController from 'extended-reality/utils/vr-controller';
 import InteractiveMenu from '../../interactive-menu';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import DisconnectButton from 'extended-reality/utils/view-objects/vr/disconnect-button';
 
 export type UserMenuArgs = UiMenuArgs & {

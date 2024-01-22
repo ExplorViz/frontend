@@ -1,7 +1,7 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
-import { TIMESTAMP_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/timetsamp-update';
+import { TIMESTAMP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 
 export default class TimestampService extends Service.extend(Evented) {
   @tracked

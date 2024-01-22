@@ -7,9 +7,9 @@ import { inject as service } from '@ember/service';
 import * as THREE from 'three';
 import { SIZE_RESOLUTION_FACTOR } from '../../ui-menu';
 import VRControllerButtonBinding from 'extended-reality/utils/vr-controller/vr-controller-button-binding';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import { setOwner } from '@ember/application';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,

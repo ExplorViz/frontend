@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -30,7 +30,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import GrabbedObjectService from 'extended-reality/services/grabbed-object';
-import SpectateUser from 'collaborative-mode/services/spectate-user';
+import SpectateUser from 'collaboration/services/spectate-user';
 import VrMenuFactoryService from 'extended-reality/services/vr-menu-factory';
 import {
   findGrabbableObject,
@@ -67,13 +67,13 @@ import DisconnectButton from 'extended-reality/utils/view-objects/vr/disconnect-
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import gsap from 'gsap';
-import MessageSender from 'collaborative-mode/services/message-sender';
-import WebSocketService from 'collaborative-mode/services/web-socket';
+import MessageSender from 'collaboration/services/message-sender';
+import WebSocketService from 'collaboration/services/web-socket';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
-} from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
+} from 'collaboration/utils/web-socket-messages/types/controller-id';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
@@ -82,7 +82,7 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { ForwardedMessage } from 'collaborative-mode/utils/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   OBJECT_MOVED_EVENT,
@@ -95,7 +95,7 @@ import {
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
-} from 'collaborative-mode/utils/web-socket-messages/sendable/ping-update';
+} from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 

@@ -1,11 +1,11 @@
 import {
   Position,
   isPosition,
-} from 'collaborative-mode/utils/web-socket-messages/types/position';
+} from 'collaboration/utils/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'collaborative-mode/utils/web-socket-messages/types/quaternion';
+} from 'collaboration/utils/web-socket-messages/types/quaternion';
 
 export const USER_POSITIONS_EVENT = 'user_positions';
 

@@ -1,4 +1,4 @@
-import SpectateUser from 'collaborative-mode/services/spectate-user';
+import SpectateUser from 'collaboration/services/spectate-user';
 import VRControllerButtonBinding from 'extended-reality/utils/vr-controller/vr-controller-button-binding';
 import TextbuttonItem from '../../items/textbutton-item';
 import TitleItem from '../../items/title-item';

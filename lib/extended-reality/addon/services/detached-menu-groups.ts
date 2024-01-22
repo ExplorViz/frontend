@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -10,7 +10,7 @@ import { DetachableMenu } from '../utils/vr-menus/detachable-menu';
 import DetachedMenuGroup from '../utils/vr-menus/detached-menu-group';
 import VrAssetRepository from './vr-asset-repo';
 import SpectateViewMenu from 'extended-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
-import WebSocketService from 'collaborative-mode/services/web-socket';
+import WebSocketService from 'collaboration/services/web-socket';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,

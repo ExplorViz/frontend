@@ -1,7 +1,7 @@
 import {
   Nonce,
   isNonce,
-} from 'collaborative-mode/utils/web-socket-messages/types/nonce';
+} from 'collaboration/utils/web-socket-messages/types/nonce';
 
 export const OBJECT_GRABBED_EVENT = 'object_grabbed';
 

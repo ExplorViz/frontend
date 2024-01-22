@@ -1,7 +1,7 @@
 import {
   ControllerId,
   isControllerId,
-} from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
+} from 'collaboration/utils/web-socket-messages/types/controller-id';
 
 export const USER_CONTROLLER_DISCONNECT_EVENT = 'user_controller_disconnect';
 

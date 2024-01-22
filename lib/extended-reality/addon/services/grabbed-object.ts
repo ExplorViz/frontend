@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
-import MessageSender from 'collaborative-mode/services/message-sender';
-import WebSocketService from 'collaborative-mode/services/web-socket';
+import MessageSender from 'collaboration/services/message-sender';
+import WebSocketService from 'collaboration/services/web-socket';
 import * as THREE from 'three';
 import { GrabbableObject } from 'extended-reality/utils/view-objects/interfaces/grabbable-object';
 import {

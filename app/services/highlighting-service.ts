@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -18,7 +18,7 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import MessageSender from 'collaborative-mode/services/message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here

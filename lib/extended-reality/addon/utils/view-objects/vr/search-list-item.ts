@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,

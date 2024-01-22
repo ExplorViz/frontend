@@ -1,8 +1,8 @@
 import { getOwner } from '@ember/application';
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
-import RemoteUser from 'collaborative-mode/utils/remote-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -31,7 +31,7 @@ import MainMenu from '../utils/vr-menus/ui-menu/main-menu';
 import SettingsMenu from '../utils/vr-menus/ui-menu/settings-menu';
 import ZoomMenu from '../utils/vr-menus/ui-menu/zoom-menu';
 import DetachedMenuGroupsService from './detached-menu-groups';
-import SpectateUser from '../../../collaborative-mode/addon/services/spectate-user';
+import SpectateUser from '../../../collaboration/addon/services/spectate-user';
 import SearchMenu from 'extended-reality/utils/vr-menus/search-menu';
 import { AuxiliaryScrollMenu } from 'extended-reality/utils/vr-menus/ui-menu/auxiliary-scroll-menu';
 import DetailInfoScrollarea from 'extended-reality/utils/view-objects/vr/detail-info-scrollarea';
@@ -40,8 +40,8 @@ import VRController from 'extended-reality/utils/vr-controller';
 import SpectateViewMenu from 'extended-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 import InteractiveMenu from 'extended-reality/utils/vr-menus/interactive-menu';
-import MessageSender from 'collaborative-mode/services/message-sender';
-import RoomService from 'collaborative-mode/services/room-service';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomService from 'collaboration/services/room-service';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')

@@ -4,9 +4,9 @@ import Evented from '@ember/object/evented';
 import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
-import LocalUser from 'collaborative-mode/services/local-user';
-import { SerializedDetachedMenu } from 'collaborative-mode/utils/web-socket-messages/types/serialized-room';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'collaborative-mode/utils/web-socket-messages/types/entity-type';
+import LocalUser from 'collaboration/services/local-user';
+import { SerializedDetachedMenu } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'collaboration/utils/web-socket-messages/types/entity-type';
 
 export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('vr-menu-factory')

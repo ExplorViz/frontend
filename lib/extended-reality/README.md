@@ -1,7 +1,7 @@
 # Extended Reality Rendering
 
 ExplorViz provides Virtual Reality (VR) and Augmented Reality (AR) rendering next to the on-screen (Desktop) version.
-All three renderings can be used in our [collaborative environment](../collaborative-mode/README.md), therefore, have the potential to form a device-heterogeneous (mixed) environment.
+All three renderings can be used in our [collaborative environment](../collaboration/README.md), therefore, have the potential to form a device-heterogeneous (mixed) environment.
 
 ## Virtual Reality Development
 

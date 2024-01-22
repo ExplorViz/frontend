@@ -1,15 +1,15 @@
 import {
   Scale,
   isScale,
-} from 'collaborative-mode/utils/web-socket-messages/types/Scale';
+} from 'collaboration/utils/web-socket-messages/types/Scale';
 import {
   Position,
   isPosition,
-} from 'collaborative-mode/utils/web-socket-messages/types/position';
+} from 'collaboration/utils/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'collaborative-mode/utils/web-socket-messages/types/quaternion';
+} from 'collaboration/utils/web-socket-messages/types/quaternion';
 
 export const OBJECT_MOVED_EVENT = 'object_moved';
 
