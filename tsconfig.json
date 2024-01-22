@@ -26,7 +26,7 @@
         "app/*",
         "lib/collaborative-mode/app/*",
         "lib/heatmap/app/*",
-        "lib/virtual-reality/app/*"
+        "lib/extended-reality/app/*"
       ],
       "explorviz-frontend/tests/*": ["tests/*"],
       "collaborative-mode": ["lib/collaborative-mode/addon"],
@@ -41,13 +41,13 @@
       "heatmap/*": ["lib/heatmap/addon/*"],
       "heatmap/test-support": ["lib/heatmap/addon-test-support"],
       "heatmap/test-support/*": ["lib/heatmap/addon-test-support/*"],
-      "virtual-reality": ["lib/virtual-reality/addon"],
-      "virtual-reality/*": ["lib/virtual-reality/addon/*"],
-      "virtual-reality/test-support": [
-        "lib/virtual-reality/addon-test-support"
+      "extended-reality": ["lib/extended-reality/addon"],
+      "extended-reality/*": ["lib/extended-reality/addon/*"],
+      "extended-reality/test-support": [
+        "lib/extended-reality/addon-test-support"
       ],
-      "virtual-reality/test-support/*": [
-        "lib/virtual-reality/addon-test-support/*"
+      "extended-reality/test-support/*": [
+        "lib/extended-reality/addon-test-support/*"
       ],
       "*": ["types/*"]
     }
@@ -61,7 +61,7 @@
     "config",
     "types",
     "lib/collaborative-mode",
-    "lib/virtual-reality",
+    "lib/extended-reality",
     "lib/heatmap"
   ],
   "exclude": ["tests/*"]

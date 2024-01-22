@@ -1,15 +1,15 @@
 import LocalUser from 'collaborative-mode/services/local-user';
 import * as THREE from 'three';
-import NameTagSprite from 'virtual-reality/utils/view-objects/vr/name-tag-sprite';
-import PingMesh from 'virtual-reality/utils/view-objects/vr/ping-mesh';
-import RayMesh from 'virtual-reality/utils/view-objects/vr/ray-mesh';
-import { DEFAULT_RAY_LENGTH } from 'virtual-reality/utils/vr-controller';
-import VrControllerModelFactory from 'virtual-reality/utils/vr-controller/vr-controller-model-factory';
+import NameTagSprite from 'extended-reality/utils/view-objects/vr/name-tag-sprite';
+import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
+import RayMesh from 'extended-reality/utils/view-objects/vr/ray-mesh';
+import { DEFAULT_RAY_LENGTH } from 'extended-reality/utils/vr-controller';
+import VrControllerModelFactory from 'extended-reality/utils/vr-controller/vr-controller-model-factory';
 import MousePing from './mouse-ping-helper';
 import {
   ControllerPose,
   Pose,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,

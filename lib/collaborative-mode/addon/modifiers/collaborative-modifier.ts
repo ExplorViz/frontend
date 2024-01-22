@@ -25,7 +25,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
-import WaypointIndicator from 'virtual-reality/utils/view-objects/vr/waypoint-indicator';
+import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,

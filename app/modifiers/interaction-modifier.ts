@@ -11,7 +11,7 @@ import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import VrMessageSender from 'extended-reality/services/vr-message-sender';
 
 export type Position2D = {
   x: number;

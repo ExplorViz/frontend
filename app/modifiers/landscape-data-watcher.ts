@@ -18,7 +18,7 @@ import computeClassCommunication, {
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import LocalUser from 'collaborative-mode/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';

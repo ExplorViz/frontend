@@ -12,28 +12,28 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
-} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 
 export default class PopupHandler {
   @service('application-renderer')

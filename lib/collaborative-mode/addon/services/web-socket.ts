@@ -9,7 +9,7 @@ import { SELF_CONNECTED_EVENT } from 'collaborative-mode/utils/web-socket-messag
 import { USER_CONNECTED_EVENT } from 'collaborative-mode/utils/web-socket-messages/receivable/user-connected';
 import { USER_DISCONNECTED_EVENT } from 'collaborative-mode/utils/web-socket-messages/receivable/user-disconnect';
 import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'collaborative-mode/utils/web-socket-messages/receivable/timestamp-update-timer';
-import { MENU_DETACHED_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 import { APP_OPENED_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/app-opened';
 import { HEATMAP_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/heatmap-update';
 import { COMPONENT_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/component-update';
@@ -17,18 +17,18 @@ import { HIGHLIGHTING_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-m
 import { MOUSE_PING_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/mouse-ping-update';
 import { PING_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/ping-update';
 import { TIMESTAMP_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/timetsamp-update';
-import { USER_CONTROLLER_CONNECT_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
-import { USER_CONTROLLER_DISCONNECT_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
-import { USER_POSITIONS_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-positions';
-import { OBJECT_MOVED_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/object-moved';
-import { APP_CLOSED_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/app-closed';
-import { DETACHED_MENU_CLOSED_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import { USER_CONTROLLER_CONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+import { USER_CONTROLLER_DISCONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+import { OBJECT_MOVED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
+import { APP_CLOSED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/app-closed';
+import { DETACHED_MENU_CLOSED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import { SPECTATING_UPDATE_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/spectating-update';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaborative-mode/utils/web-socket-messages/sendable/all-highlights-reset';
-import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/join-vr';
-import { OBJECT_CLOSED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
-import { MENU_DETACHED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
-import { OBJECT_GRABBED_RESPONSE_EVENT } from 'virtual-reality/utils/vr-web-wocket-messages/receivable/response/object-grabbed';
+import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import { OBJECT_CLOSED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+import { MENU_DETACHED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+import { OBJECT_GRABBED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-grabbed';
 import { Nonce } from 'collaborative-mode/utils/web-socket-messages/types/nonce';
 
 type ResponseHandler<T> = (msg: T) => void;

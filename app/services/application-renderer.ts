@@ -27,8 +27,8 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'virtual-reality/services/ar-settings';
-import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
+import ArSettings from 'extended-reality/services/ar-settings';
+import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -39,7 +39,7 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import MessageSender from 'collaborative-mode/services/message-sender';

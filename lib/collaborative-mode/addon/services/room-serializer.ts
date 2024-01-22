@@ -12,11 +12,11 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import DetachedMenuGroupsService from 'virtual-reality/services/detached-menu-groups';
+import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import {
   DetachableMenu,
   isDetachableMenu,
-} from 'virtual-reality/utils/vr-menus/detachable-menu';
+} from 'extended-reality/utils/vr-menus/detachable-menu';
 import {
   SerializedApp,
   SerializedDetachedMenu,

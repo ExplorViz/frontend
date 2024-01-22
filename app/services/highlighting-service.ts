@@ -16,7 +16,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import MessageSender from 'collaborative-mode/services/message-sender';
 

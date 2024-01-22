@@ -46,22 +46,22 @@ import {
   ControllerPose,
   Pose,
   UserPositionsMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 import {
   OBJECT_MOVED_EVENT,
   ObjectMovedMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/object-moved';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
 import {
   OBJECT_RELEASED_EVENT,
   ObjectReleasedMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/object-released';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-released';
 import { ControllerId } from 'collaborative-mode/utils/web-socket-messages/types/controller-id';
-import { JoinVrMessage } from 'virtual-reality/utils/vr-web-wocket-messages/sendable/join-vr';
-import VRController from 'virtual-reality/utils/vr-controller';
+import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import VRController from 'extended-reality/utils/vr-controller';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
@@ -73,7 +73,7 @@ import {
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
-} from 'virtual-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,

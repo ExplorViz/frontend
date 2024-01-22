@@ -4,8 +4,8 @@ import MousePing from 'collaborative-mode/utils/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
-import VRController from 'virtual-reality/utils/vr-controller';
-import { getPoses } from 'virtual-reality/utils/vr-helpers/vr-poses';
+import VRController from 'extended-reality/utils/vr-controller';
+import { getPoses } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';

@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import * as THREE from 'three';
-import HmdService from 'virtual-reality/services/hmd-service';
+import HmdService from 'extended-reality/services/hmd-service';
 import LocalUser from './local-user';
 import { Color } from 'collaborative-mode/utils/web-socket-messages/types/color';
 import { Position } from 'collaborative-mode/utils/web-socket-messages/types/position';

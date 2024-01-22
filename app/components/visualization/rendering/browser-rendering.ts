@@ -39,7 +39,7 @@ import SpectateUser from 'collaborative-mode/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
