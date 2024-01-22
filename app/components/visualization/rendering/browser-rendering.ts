@@ -44,8 +44,8 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import RoomSerializer from 'collaborative-mode/services/room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -91,8 +91,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;

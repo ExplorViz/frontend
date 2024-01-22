@@ -295,7 +295,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       }
     });
 
-    // TODO: extern links too (currently handled in vr-room-serializer.ts, serializeApplication function)
+    // TODO: extern links too (currently handled in room-serializer.ts, serializeApplication function)
 
     return transparentComponentIds;
   }

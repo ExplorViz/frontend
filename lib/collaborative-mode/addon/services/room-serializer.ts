@@ -163,16 +163,6 @@ export default class RoomSerializer extends Service {
       });
 
       return list;
-      // return [
-      //   {
-      //     appId: application.getModelId(),
-      //     userId: '1',
-      //     entityType: highlightedEntity.constructor.name,
-      //     entityId: highlightedEntity.getModelId(),
-      //     isHighlighted: true,
-      //     color: highlightedEntity.highlightingColor.toArray(),
-      //   },
-      // ];
     }
     return [];
   }
@@ -222,6 +212,6 @@ export default class RoomSerializer extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'virtual-reality@vr-room-serializer': RoomSerializer;
+    'room-serializer': RoomSerializer;
   }
 }

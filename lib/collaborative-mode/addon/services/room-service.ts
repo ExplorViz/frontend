@@ -18,7 +18,7 @@ export default class RoomService extends Service {
   @service('auth')
   private auth!: Auth;
 
-  @service('virtual-reality@vr-room-serializer')
+  @service('room-serializer')
   private roomSerializer!: RoomSerializer;
 
   async listRooms(): Promise<RoomListRecord[]> {
@@ -90,6 +90,6 @@ export default class RoomService extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'vr-room': RoomService;
+    'room-service': RoomService;
   }
 }
