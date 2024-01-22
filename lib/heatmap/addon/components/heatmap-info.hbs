@@ -1,8 +1,9 @@
+{{! template-lint-disable no-pointer-down-event-binding }}
 <div
   id='heatmapInfo'
   class='foreground'
   style='position: absolute; cursor: move'
-  {{on 'pointerup' this.dragMouseDown}}
+  {{on 'pointerdown' this.dragMouseDown}}
   {{did-insert this.setPopupPosition}}
 >
   <HeatmapLegend />
