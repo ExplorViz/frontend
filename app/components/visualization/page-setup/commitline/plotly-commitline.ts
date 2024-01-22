@@ -809,7 +809,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 const callback = (landscapeStructure: StructureLandscapeData) => {
                   this.args.clicked?.(this.selectedCommits!,1, landscapeStructure);
                 };
-                this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]); 
+                this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]); 
 
               }
             }else { 
@@ -825,7 +825,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
                 const callback = (landscapeStructure: StructureLandscapeData) => {
                   this.args.clicked?.(this.selectedCommits!, timelineOfSelectedCommit, landscapeStructure);
                 };
-                this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, selectedCommitList);
+                this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, selectedCommitList);
               }else {
                 // no structure since we unselected the only selected commit
                 this.args.clicked?.(this.selectedCommits!, 0);
@@ -842,7 +842,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
             const callback = (landscapeStructure: StructureLandscapeData) => {
                 this.args.clicked?.(this.selectedCommits!, 0, landscapeStructure);
             };
-            this.codeServiceFetchingService.initStaticLandscapeStructureFetchingWithCallback(callback, this.selectedApplication!, [selectedCommit]);
+            this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, [selectedCommit]);
           }
 
           // end of add selected commit ---------------------------------------------

@@ -382,7 +382,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     let indexDeleted = 0;
     for(const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
-      const deletedPackages = commitComparison.deletedPackages[indexAdded];
+      const deletedPackages = commitComparison.deletedPackages[indexDeleted];
 
 
       if(id){

@@ -14,27 +14,27 @@ export interface CommitComparison {
     deleted: string[]; // the component id's from the first commit components that got deleted in the second commit
     addedPackages: string[];
     deletedPackages: string[];
-    metrics: {
-      entityName: string;
-      metricMap: {
-        LCOM4: {
-          oldValue: string | null;
-          newValue: string;
-        } | undefined;
-        cyclomatic_complexity: {
-          oldValue: string | null;
-          newValue: string;
-        } | undefined;
-        cyclomatic_complexity_weighted: {
-          oldValue: string | null;
-          newValue: string;
-        } | undefined;
-        loc: {
-          oldValue: string | null;
-          newValue: string;
-        } | undefined;
-      }
-    }[];
+    // metrics: { // TODO: DELETE THIS STUFF
+    //   entityName: string;
+    //   metricMap: {
+    //     LCOM4: {
+    //       oldValue: string | null;
+    //       newValue: string;
+    //     } | undefined;
+    //     cyclomatic_complexity: {
+    //       oldValue: string | null;
+    //       newValue: string;
+    //     } | undefined;
+    //     cyclomatic_complexity_weighted: {
+    //       oldValue: string | null;
+    //       newValue: string;
+    //     } | undefined;
+    //     loc: {
+    //       oldValue: string | null;
+    //       newValue: string;
+    //     } | undefined;
+    //   }
+    // }[];
 }
 
 export default class CommitComparisonRepository extends Service.extend(Evented) {

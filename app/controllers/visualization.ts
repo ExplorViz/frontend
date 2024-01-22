@@ -533,7 +533,6 @@ export default class VisualizationController extends Controller {
       return;
     }
 
-    console.log("MARKER STATE -------------> ", markerState);
     //selectedTimestamps = [selectedTimestamps[selectedTimestamps.length - 1]];
     this.selectedTimestampRecords[selectedTimeline] = selectedTimestamps;
     this.markerState[selectedTimeline] = markerState;
@@ -633,13 +632,11 @@ export default class VisualizationController extends Controller {
       this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
       // ---
 
-      console.log("VOOORHER XXXXXXXXXXX : ", this.dynamicStructureData);
+
       const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       //let newStruct : StructureLandscapeData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       //let newDynamic: DynamicLandscapeData = dynamicData;
       //const newDynamic = dynamicData;
-      console.log("NACHHHEEEEEEEER XXXXXXXXXXX: ", this.dynamicStructureData);
-      console.log("XXXXXXXXXXXXXXXXXXXXXXXXX: ", newStruct);
 
       // TODO: combine dynamic structure with static structure
       const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;

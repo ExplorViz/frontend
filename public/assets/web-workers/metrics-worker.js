@@ -4,15 +4,28 @@ self.addEventListener(
   function (e) {
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
+    const staticMetrics = e.data?.staticMetrics;
 
     const metrics = calculateMetrics(structureData, dynamicData);
-    postMessage(metrics);
+    const staticMetricsConverted = convertStaticMetrics(staticMetrics);
+    postMessage([...metrics, ...staticMetricsConverted]);
   },
   false
 );
 
 // Ping the Ember service to say that everything is ok.
 postMessage(true);
+
+// ****** Convert Static Metrics ******
+
+function convertStaticMetrics(staticMetrics) {
+  if(!staticMetrics) {
+    return [];
+  }
+
+  // ...
+  console.log("TODO: convert static metrics");
+}
 
 /******* Define Metrics *******/
 

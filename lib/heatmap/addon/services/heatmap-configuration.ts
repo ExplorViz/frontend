@@ -10,6 +10,7 @@ import revertKey from '../utils/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
 
 export type Metric = {
+  commitId: string;
   name: string;
   description: string;
   min: number;

@@ -27,6 +27,7 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import { LinkObject, NodeObject } from 'three-forcegraph';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -74,6 +75,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('repos/static-metrics-repository')
+  staticMetricsRepo!: StaticMetricsRepository;
 
   @service
   private worker!: any;
@@ -275,17 +279,56 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     ) => {
       const workerPayload = {
         structure: application,
-        dynamic: this.dynamicLandscapeData,
+        dynamic: this.dynamicLandscapeData, // note that this combines dynamics[0] and dynamics[1]
       };
-      
+  
       const cityLayout = this.worker.postMessage(
         'city-layouter',
         workerPayload
       );
-      const heatmapMetrics = this.worker.postMessage(
-        'metrics-worker',
-        workerPayload
-      );
+
+      
+      let heatmapMetrics: any[] = [];
+      if(application.name === this.selectedApplication) {
+        // consider selected commits
+        console.log("YEEEEEEEEEEEES ::::::::: YEEEEEEEEEEEES");
+
+        if(this.dynamics && this.dynamics[0]) {
+          const workerPayloadFirstCommit = {
+            structure: application,
+            dynamic: this.dynamics[0],
+            id: this.selectedCommits!.get(this.selectedApplication)![0].commitId
+          }
+
+          const heatmapMetricsFirstCommit: any[] = this.worker.postMessage(
+            'metrics-worker',
+            workerPayloadFirstCommit 
+          );
+
+          let heatmapMetricsSecondCommit: any[] = [];
+          if(this.dynamics[1]) {
+            const workerPayloadSecondCommit = {
+              structure: application,
+              dynamic: this.dynamics[1],
+              id: this.selectedCommits!.get(this.selectedApplication)![1].commitId
+            }
+            heatmapMetricsSecondCommit = this.worker.postMessage(
+              'metrics-worker',
+              workerPayloadSecondCommit 
+            );
+          }
+
+          heatmapMetrics = [heatmapMetricsFirstCommit, heatmapMetricsSecondCommit]
+        }else {
+          console.log("Error: no dynamic data for first selected commit");
+        }
+      }else {
+        console.log("NOOOOOOOOOO ::::::::: NOOOOOOOOOOOO");
+        heatmapMetrics = [this.worker.postMessage(
+          'metrics-worker',
+          workerPayload, 
+        )];
+      }
 
       const flatData = this.worker.postMessage(
         'flat-data-worker',
@@ -294,18 +337,18 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       const results = (await all([
         cityLayout,
-        heatmapMetrics,
+        ...heatmapMetrics,
         flatData,
       ])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0], results[2]);
+        applicationData.updateApplication(application, results[0], results[results.length - 1]);
       } else {
         applicationData = new ApplicationData(
           application,
           results[0],
-          results[2]
+          results[results.length - 1] // since heatmapMetrics can be list of size 2 or 1 we must not hard code the index
         );
       }
       applicationData.classCommunications = classCommunication.filter(

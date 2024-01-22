@@ -126,13 +126,12 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) {
+  updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) { 
     const hasStateChanged =
       this.hoveredOnHighlightedMesh !== hoveredOnHighlightedMesh;
     if (!this.applyHighlightingOnHover || !hasStateChanged) {
       return;
     }
-
     this.hoveredOnHighlightedMesh = hoveredOnHighlightedMesh;
 
     if (hoveredOnHighlightedMesh) {

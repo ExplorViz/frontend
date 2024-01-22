@@ -467,6 +467,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
+
     // applicationObject3D.position.y = 10;
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
@@ -516,7 +517,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     // this.runOrRestartMouseMovementTimer();
-    if (intersection) {
+    if (intersection) { console.log("INTERSECTION");
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
     } else if (this.hoveredObject) {
@@ -525,7 +526,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
     this.popupHandler.hover(intersection?.object);
 
-    if (!event.altKey)
+    if (!event.altKey /*&& !this.heatmapConf.heatmapActive*/)
       this.highlightingService.updateHighlightingOnHover(
         isEntityMesh(intersection?.object) && intersection.object.highlighted
       );
@@ -552,7 +553,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       enableAppHoverEffects &&
       !this.heatmapConf.heatmapActive
     ) 
-    {
+    { console.log("HOVERED");
       if (this.hoveredObject) {
         this.hoveredObject.resetHoverEffect();
       }
