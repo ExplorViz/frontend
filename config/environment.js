@@ -13,7 +13,11 @@ module.exports = (environment) => {
     const dotEnvConfig = DOTENV.config(path);
     // Detect and output errors when loading a config, e.g. a missing file
     if (dotEnvConfig.error) {
-      throw dotEnvConfig.error;
+      throw (
+        new Error(
+          'Could not find .env-custom file. Did you follow the development instructions?\n'
+        ) + dotEnvConfig.error
+      );
     }
   } else if (environment === 'production') {
     DOTENV.config({ path: '.env-prod' });
