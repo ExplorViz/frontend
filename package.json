@@ -75,7 +75,6 @@
     "ember-css-properties": "^0.2.0",
     "ember-decorators": "^6.1.1",
     "ember-did-resize-modifier": "jacobq/ember-did-resize-modifier#566bf6ef1f85d727987e06547aab13d323dff254",
-    "ember-export-application-global": "^2.0.1",
     "ember-fetch": "^8.1.2",
     "ember-load-initializers": "^2.1.2",
     "ember-math-helpers": "4.0.0",
