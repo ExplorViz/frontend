@@ -11,14 +11,10 @@
   <div class='ml-3'>
     <div class='d-flex justify-content-between'>
       <label>Enable Restructure Mode: </label>
-      <div class='d-flex align-self-center'>
-        <XToggle
-          class='mr-4'
-          @theme='skewed'
-          @value={{this.landscapeRestructure.restructureMode}}
-          @onToggle={{this.landscapeRestructure.toggleRestructureMode}}
-        />
-      </div>
+      <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
+        @value={{this.landscapeRestructure.restructureMode}}
+        @onToggle={{this.landscapeRestructure.toggleRestructureMode}}
+      />
     </div>
   </div>
 
