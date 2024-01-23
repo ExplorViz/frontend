@@ -5,9 +5,10 @@ self.addEventListener(
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
     const staticMetrics = e.data?.staticMetrics;
+    const commitId = e.data?.commitId;
 
     const metrics = calculateMetrics(structureData, dynamicData);
-    const staticMetricsConverted = convertStaticMetrics(staticMetrics);
+    const staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics, commitId);
     postMessage([...metrics, ...staticMetricsConverted]);
   },
   false
@@ -18,13 +19,98 @@ postMessage(true);
 
 // ****** Convert Static Metrics ******
 
-function convertStaticMetrics(staticMetrics) {
-  if(!staticMetrics) {
+function convertStaticMetrics(application, staticMetrics, commitId) {
+  if(!staticMetrics || !commitId) {
     return [];
   }
 
-  // ...
-  console.log("TODO: convert static metrics");
+  const metricList = [];
+  const metricsNameToMetricsValuesMap = new Map();
+  const metricsNameToMinAndMax = new Map();
+  for(let i = 0; i < staticMetrics.files.length; i++) {
+    //const fqFileName = staticMetrics.files[i];
+    const classesWithMetricsOfFile = staticMetrics.classMetrics[i];
+    const classes = Object.keys(classesWithMetricsOfFile);
+
+    for(const fqClassName of classes) {
+      const clazz = getClazzInApplicationByFullQualifiedClazzName(application, fqClassName);
+
+      const clazzMetricNames = Object.keys(classesWithMetricsOfFile[fqClassName]);
+      for(const metricName of clazzMetricNames) {
+        //console.log(fqClassName, ":::", metricName, ":::", classesWithMetricsOfFile[fqClassName][metricName]);
+
+        const metricValuesMap = metricsNameToMetricsValuesMap.get(metricName);
+        const metricMinMax = metricsNameToMinAndMax.get(metricName);
+        const metricVal = parseInt(classesWithMetricsOfFile[fqClassName][metricName]);
+
+        if(metricMinMax) {
+          if(metricVal > metricMinMax.max){
+            metricMinMax.max = metricVal;
+          }
+          if(metricVal < metricMinMax.min){
+            metricMinMax.min = metricVal;
+          }
+        }else {
+          const minMax = {
+            min: metricVal,
+            max: metricVal
+          };
+          metricsNameToMinAndMax.set(metricName, minMax);
+        }
+
+        if(metricValuesMap){
+          metricValuesMap.set(clazz.id, metricVal);
+        }else {
+          const map = new Map();
+          map.set(clazz.id, metricVal);
+          metricsNameToMetricsValuesMap.set(metricName, map);
+        }
+      }
+    }
+  }
+
+  for (const [key, value] of metricsNameToMetricsValuesMap) {
+    console.log("Wir haben die Metrik: ", key, " für diese Anzahl an Klassen: ", value.size);
+    const minMax = metricsNameToMinAndMax.get(key);
+    const metric = {
+      commitId: commitId,
+      name: key,
+      description: "", // TODO: use a predefined map between metric names and descriptions and get the corresponding value
+      min: minMax.min,
+      max: minMax.max,
+      values: value
+    };
+    metricList.push(metric);
+  }
+
+  return metricList;
+
+
+  // helper function
+
+  function getClazzInApplicationByFullQualifiedClazzName(application, fqClazzName) {
+    const fqClazzNameSplit = fqClazzName.split(".");
+    let index = 0;
+    let children;
+    while(index < fqClazzNameSplit.length - 1) {
+      if(index == 0) {
+        children = application.packages;
+      }else {
+        children = children.subPackages;
+      }
+
+      children = children.find(child => child.name === fqClazzNameSplit[index]);
+      if(!children) {
+        return undefined;
+      }
+      index++;
+    }
+
+    children = children.classes;
+    children = children.find(child => child.name === fqClazzNameSplit[index]);
+
+    return children;
+  }
 }
 
 /******* Define Metrics *******/

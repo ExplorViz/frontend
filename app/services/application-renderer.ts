@@ -414,7 +414,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   private fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
     try {
-
+      console.log("fqFileName::::::: ", fqFileName);
       // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
       // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
 

@@ -50,7 +50,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
   modify(_element: any, _positionalArgs: any[], { camera, scene }: any) {
     this.scene = scene;
     this.camera = camera;
-
+    console.log("<-<-<");
     // Avoid unwanted reflections in heatmap mode
     this.setSpotLightVisibilityInScene(this.metric === undefined);
 

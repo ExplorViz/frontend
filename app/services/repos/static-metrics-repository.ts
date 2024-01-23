@@ -1,10 +1,5 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
-import { inject as service } from '@ember/service';
-import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
-import ApplicationRenderer from '../application-renderer';
-import Evented from '@ember/object/evented';
 
 export interface Metrics {
     files: string[]; // fileMetrics, classMetrics and methodMetrics should have
@@ -30,16 +25,15 @@ export interface Metrics {
 
 const staticMetricNames = ["loc", "cyclomatic_complexity", "LCOM4", "cyclomatic_complexity_weighted", "cyclomatic_complexity", "nestedBlockDepth"];
 export { staticMetricNames };
-export default class StaticMetricsRepository extends Service.extend(Evented) {
+export default class StaticMetricsRepository extends Service.extend({
+    // anything which *must* be merged to prototype here
+  }) {
 
-  //@tracked
+  @tracked
   staticMetrics: Map<string, Metrics> = new Map<
     string,
     Metrics
   >();
-
-  //@tracked
-  //communications: ApplicationCommunication[] = [];
 
   getById(id: string) {
     return this.staticMetrics.get(id);
@@ -48,7 +42,7 @@ export default class StaticMetricsRepository extends Service.extend(Evented) {
   add(id: string, metrics: Metrics) {
     console.log("add metrics with id ", id, " ::: ", metrics);
     this.staticMetrics.set(id, metrics);
-    //this.notifyPropertyChange('commitComparisons');
+    this.notifyPropertyChange('staticMetrics');
   }
 
   cleanup() {

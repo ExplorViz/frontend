@@ -39,14 +39,11 @@ export interface CommitComparison {
 
 export default class CommitComparisonRepository extends Service.extend(Evented) {
 
-  //@tracked
+  @tracked
   commitComparisons: Map<string, CommitComparison> = new Map<
     string,
     CommitComparison
   >();
-
-  //@tracked
-  //communications: ApplicationCommunication[] = [];
 
   getById(id: string) {
     return this.commitComparisons.get(id);
@@ -55,12 +52,12 @@ export default class CommitComparisonRepository extends Service.extend(Evented) 
   add(commitComparison: CommitComparison) {
     const idList = [commitComparison.firstCommitSelected.commitId, commitComparison.secondCommitSelected.commitId];
     this.commitComparisons.set(idList[0] + "_" + idList[1], commitComparison);
-    //this.notifyPropertyChange('commitComparisons');
+    this.notifyPropertyChange('commitComparisons');
   }
 
   cleanup() {
     this.commitComparisons.clear();
-    //this.notifyPropertyChange('commitComparisons');
+    this.notifyPropertyChange('commitComparisons');
   }
 }
 

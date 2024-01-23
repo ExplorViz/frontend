@@ -374,36 +374,36 @@ export default class CodeServiceFetchingService extends Service {
   }
 
 
-  private fetchStaticMetrics(applicationName: string, commits: SelectedCommit[]) {
+  private async fetchStaticMetrics(applicationName: string, commits: SelectedCommit[]) {
       
     if(commits.length === 1 && !this.staticMetricsRepo.getById(applicationName + commits[0].commitId)) {
       const firstSelectedCommitId = commits[0].commitId;
-      const metricsPromise = this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
-      metricsPromise
-      .then((metrics: Metrics) => this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics))
-      .catch((error: Error) => {
+      const metrics = await this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
+      try {
+        this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics)
+      } catch (error) {
         console.log(error);
-      });
+      }
     } else if(commits.length === 2) {
       const firstSelectedCommitId = commits[0].commitId;
       const secondSelectedCommitId = commits[1].commitId;
       
       if(!this.staticMetricsRepo.getById(applicationName + firstSelectedCommitId)) {
-        const metricsPromise = this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
-        metricsPromise
-        .then((metrics: Metrics) => this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics))
-        .catch((error: Error) => {
+        const metrics = await this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
+        try {
+          this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics)
+        } catch (error) {
           console.log(error);
-        });
+        }
       }
 
       if(!this.staticMetricsRepo.getById(applicationName + secondSelectedCommitId)) {
-        const metricsPromise = this.httpFetchStaticMetrics(applicationName, secondSelectedCommitId);
-        metricsPromise
-        .then((metrics: Metrics) => this.staticMetricsRepo.add(applicationName + secondSelectedCommitId, metrics))
-        .catch((error: Error) => {
+        const metrics = await this.httpFetchStaticMetrics(applicationName, secondSelectedCommitId);
+        try {
+          this.staticMetricsRepo.add(applicationName + secondSelectedCommitId, metrics)
+        } catch (error) {
           console.log(error);
-        });
+        }
       }  
     }  
   }

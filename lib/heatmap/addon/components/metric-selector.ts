@@ -13,6 +13,6 @@ export default class MetricSelector extends Component<Args> {
   heatmapConfiguration!: HeatmapConfiguration;
 
   get metricNames() {
-    return this.heatmapConfiguration.latestClazzMetricScores.map((m) => m.name);
+    return this.heatmapConfiguration.latestClazzMetricScores;
   }
 }

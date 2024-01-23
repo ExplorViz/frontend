@@ -294,10 +294,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         console.log("YEEEEEEEEEEEES ::::::::: YEEEEEEEEEEEES");
 
         if(this.dynamics && this.dynamics[0]) {
+          const commitId = this.selectedCommits!.get(this.selectedApplication)![0].commitId;
+          const staticMetrics = this.staticMetricsRepo.getById(this.selectedApplication + commitId);
+
+          console.log("YEEEEEEEEEEEES ::::::::: ", commitId, " ::: ", staticMetrics);
           const workerPayloadFirstCommit = {
             structure: application,
             dynamic: this.dynamics[0],
-            id: this.selectedCommits!.get(this.selectedApplication)![0].commitId
+            commitId: commitId,
+            staticMetrics: staticMetrics
           }
 
           const heatmapMetricsFirstCommit: any[] = this.worker.postMessage(

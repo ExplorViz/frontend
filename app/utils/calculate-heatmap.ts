@@ -12,6 +12,7 @@ export default function calculateHeatmap(
   newScores: Metric[],
 ) {
   applicationHeatmap.latestClazzMetricScores = newScores;
+  console.log("======================>", applicationHeatmap.latestClazzMetricScores);
   function roundToTwoDecimalPlaces(num: number): number {
     return Math.round((num + Number.EPSILON) * 100) / 100;
   }
@@ -20,7 +21,6 @@ export default function calculateHeatmap(
   newScores.forEach((newMetricScore) => {
     const metricName = newMetricScore.name;
     if(!staticMetricNames.includes(metricName)) { // Do not apply this aggregated logic for static metrics
-      console.log("neswScore");
       if (Object.values(newMetricScore)) {
         applicationHeatmap.metrics.push(newMetricScore);
   
@@ -180,6 +180,8 @@ export default function calculateHeatmap(
           // console.log('new windowed metrics', this.differenceMetricScores);
         }
       }
+    }else {
+      // TODO: is there a static metrics logic for aggregatedHeatmap mode?
     }
   });
   applicationHeatmap.metricsArray.push(newScores);
