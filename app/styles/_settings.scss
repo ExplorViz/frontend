@@ -13,3 +13,90 @@
 .reset-all-button {
   margin-top: 1rem;
 }
+
+/* Customize the label (the wide-checkbox-container) */
+.wide-checkbox-container {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  width: 5rem;
+}
+
+/* Hide the browser's default checkbox */
+.wide-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.wide-checkbox {
+  position: absolute;
+  border-radius: 0.25rem;
+  top: 0;
+  left: 0;
+  height: 2rem;
+  width: 4rem;
+  background-color: #ffbaba;
+
+}
+
+/* On mouse-over, add a grey background color */
+.wide-checkbox-container:hover input ~ .wide-checkbox {
+  background-color: #ff9b9b;
+}
+
+/* When the checkbox is checked, add a blue background */
+.wide-checkbox-container input:checked ~ .wide-checkbox {
+  background-color: #86d993;
+}
+
+.wide-checkbox-container:hover input:checked ~ .wide-checkbox {
+  background-color: #5cc86c;
+}
+
+.wide-checkbox:before {
+  content: "Off";
+  position: absolute;
+  margin: 0.1rem 1rem;
+  font-size: 1.25rem;
+  color: white;
+  display: block;
+}
+
+.wide-checkbox-container input:checked ~ .wide-checkbox:before {
+  display: none;
+}
+
+/* Create the wide-checkbox/indicator (hidden when not checked) */
+.wide-checkbox:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the wide-checkbox when checked */
+.wide-checkbox-container input:checked ~ .wide-checkbox:after {
+  display: block;
+}
+
+/* Style the wide-checkbox/indicator */
+.wide-checkbox-container .wide-checkbox:after {
+  left: 1.75rem;
+  top: 0.4rem;
+  width: 0.5rem;
+  height: 1rem;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
