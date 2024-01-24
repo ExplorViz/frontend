@@ -71,6 +71,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   simpleHeatGradient = getSimpleDefaultGradient();
 
+  commitId?: string;
+
   debug = debugLogger();
 
   @action
@@ -81,17 +83,24 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @action
   toggleHeatmap() {
     this.heatmapActive = !this.heatmapActive;
+    this.commitId = undefined;
   }
 
   @action
   deactivate() {
     this.heatmapActive = false;
     this.currentApplication = null;
+    this.commitId = undefined;
   }
 
   @action
   activate() {
     this.heatmapActive = true;
+  }
+
+  setCommitIdAndApplication(commitId: string, currentApplication: ApplicationObject3D) {
+    this.commitId = commitId;
+    this.setActiveApplication(currentApplication);
   }
 
   get latestClazzMetricScores() {
@@ -139,10 +148,23 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     switch (this.selectedMode) { 
       case 'snapshotHeatmap':
         if (applicationHeatmapData.latestClazzMetricScores) {
+          
           chosenMetric = applicationHeatmapData.latestClazzMetricScores.find(
-            (metric) => metric.name === this.selectedMetricName
+            (metric) => {
+              if(!this.commitId) {
+                return metric.name === this.selectedMetricName;
+              } else {
+                if(metric.commitId) { console.log("TWO COMMITS 1", this.commitId);
+                  return metric.name === this.selectedMetricName && metric.commitId === this.commitId
+                }else {
+                  console.log("TWO COMMITS 2", this.commitId);
+                  return metric.name === this.selectedMetricName;
+                }
+              }
+            }
           );
           if (chosenMetric) {
+            console.log("return chosenMetric:", chosenMetric);
             return chosenMetric;
           }
         }

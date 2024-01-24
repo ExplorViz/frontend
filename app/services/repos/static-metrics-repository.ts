@@ -23,7 +23,20 @@ export interface Metrics {
     }[];
   }
 
-const staticMetricNames = ["loc", "cyclomatic_complexity", "LCOM4", "cyclomatic_complexity_weighted", "cyclomatic_complexity", "nestedBlockDepth"];
+const staticMetricNames = [
+    "loc (#1 sel. commit)", 
+    "cyclomatic_complexity (#1 sel. commit)", 
+    "LCOM4 (#1 sel. commit)", 
+    "cyclomatic_complexity_weighted (#1 sel. commit)", 
+    "cyclomatic_complexity (#1 sel. commit)", 
+    "nestedBlockDepth (#1 sel. commit)",
+    "loc (#2 sel. commit)", 
+    "cyclomatic_complexity (#2 sel. commit)", 
+    "LCOM4 (#2 sel. commit)", 
+    "cyclomatic_complexity_weighted (#2 sel. commit)", 
+    "cyclomatic_complexity (#2 sel. commit)", 
+    "nestedBlockDepth (#2 sel. commit)"
+];
 export { staticMetricNames };
 export default class StaticMetricsRepository extends Service.extend({
     // anything which *must* be merged to prototype here

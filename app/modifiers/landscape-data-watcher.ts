@@ -293,46 +293,36 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         // consider selected commits
         console.log("YEEEEEEEEEEEES ::::::::: YEEEEEEEEEEEES");
 
-        if(this.dynamics && this.dynamics[0]) {
-          const commitId = this.selectedCommits!.get(this.selectedApplication)![0].commitId;
-          const staticMetrics = this.staticMetricsRepo.getById(this.selectedApplication + commitId);
+        if(this.dynamics) {
 
-          console.log("YEEEEEEEEEEEES ::::::::: ", commitId, " ::: ", staticMetrics);
-          const workerPayloadFirstCommit = {
+          const commitIds = [ this.selectedCommits!.get(this.selectedApplication)![0].commitId,
+          this.selectedCommits!.get(this.selectedApplication)![1]?.commitId ];
+          const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
+          this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
+
+          const workerPayload = {
             structure: application,
-            dynamic: this.dynamics[0],
-            commitId: commitId,
+            dynamic: this.dynamics,
+            commitId: commitIds,
             staticMetrics: staticMetrics
           }
 
-          const heatmapMetricsFirstCommit: any[] = this.worker.postMessage(
+          console.log("workerPayload: ", workerPayload);
+
+          heatmapMetrics = this.worker.postMessage(
             'metrics-worker',
-            workerPayloadFirstCommit 
+            workerPayload 
           );
 
-          let heatmapMetricsSecondCommit: any[] = [];
-          if(this.dynamics[1]) {
-            const workerPayloadSecondCommit = {
-              structure: application,
-              dynamic: this.dynamics[1],
-              id: this.selectedCommits!.get(this.selectedApplication)![1].commitId
-            }
-            heatmapMetricsSecondCommit = this.worker.postMessage(
-              'metrics-worker',
-              workerPayloadSecondCommit 
-            );
-          }
-
-          heatmapMetrics = [heatmapMetricsFirstCommit, heatmapMetricsSecondCommit]
         }else {
           console.log("Error: no dynamic data for first selected commit");
         }
       }else {
         console.log("NOOOOOOOOOO ::::::::: NOOOOOOOOOOOO");
-        heatmapMetrics = [this.worker.postMessage(
+        heatmapMetrics = this.worker.postMessage(
           'metrics-worker',
           workerPayload, 
-        )];
+        );
       }
 
       const flatData = this.worker.postMessage(
@@ -342,7 +332,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       const results = (await all([
         cityLayout,
-        ...heatmapMetrics,
+        heatmapMetrics,
         flatData,
       ])) as any[];
 

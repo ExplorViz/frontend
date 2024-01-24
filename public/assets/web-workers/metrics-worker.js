@@ -7,8 +7,24 @@ self.addEventListener(
     const staticMetrics = e.data?.staticMetrics;
     const commitId = e.data?.commitId;
 
-    const metrics = calculateMetrics(structureData, dynamicData);
-    const staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics, commitId);
+    let metrics = [];
+    let staticMetricsConverted = [];
+
+    if(commitId && staticMetrics) {
+      metrics = calculateMetrics(structureData, dynamicData[0]);
+      if(dynamicData[1]){
+        metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1])];
+      }else {
+        metrics = calculateMetrics(structureData, dynamicData[0]);
+      }
+      staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics[0], commitId[0], "(#1 sel. commit)");
+      staticMetricsConverted = [...staticMetricsConverted, ...convertStaticMetrics(structureData, staticMetrics[1], commitId[1], "(#2 sel. commit)")];
+    }else {
+      metrics = calculateMetrics(structureData, dynamicData);
+    }
+
+    const ret = [...metrics, ...staticMetricsConverted];
+    console.log("RETTTT ", ret);
     postMessage([...metrics, ...staticMetricsConverted]);
   },
   false
@@ -19,7 +35,7 @@ postMessage(true);
 
 // ****** Convert Static Metrics ******
 
-function convertStaticMetrics(application, staticMetrics, commitId) {
+function convertStaticMetrics(application, staticMetrics, commitId, text) {
   if(!staticMetrics || !commitId) {
     return [];
   }
@@ -70,11 +86,11 @@ function convertStaticMetrics(application, staticMetrics, commitId) {
   }
 
   for (const [key, value] of metricsNameToMetricsValuesMap) {
-    console.log("Wir haben die Metrik: ", key, " für diese Anzahl an Klassen: ", value.size);
+    console.log("Wir haben die Metrik: ", key, " für diese Anzahl an Klassen: ", value.size, " (COMMIT ID: ", commitId, ")");
     const minMax = metricsNameToMinAndMax.get(key);
     const metric = {
       commitId: commitId,
-      name: key,
+      name: key + " " + text,
       description: "", // TODO: use a predefined map between metric names and descriptions and get the corresponding value
       min: minMax.min,
       max: minMax.max,

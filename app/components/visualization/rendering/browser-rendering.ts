@@ -6,7 +6,7 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import LocalUser from 'collaborative-mode/services/local-user';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
@@ -55,6 +55,8 @@ interface BrowserRenderingArgs {
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   switchToVR(): void;
+  readonly selectedCommits: Map<string, SelectedCommit[]>;
+  readonly selectedApplication: string;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -129,6 +131,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   initDone: boolean = false;
 
+  tickCounter = 0;
+  indexCounter = 0;
+  firstTime = true;
+
   @tracked
   mousePosition: Vector3 = new Vector3(0, 0, 0);
 
@@ -151,6 +157,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   get appSettings() {
     return this.userSettings.applicationSettings;
+  }
+
+  get selectedCommits() {
+    return this.args.selectedCommits.get(this.args.selectedApplication);
   }
 
   debug = debugLogger('BrowserRendering');
@@ -199,6 +209,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
+
+    // If two commits got selected the same metric alternates between the two commits every few seconds
+    // if(this.selectedCommits?.length === 2 && this.heatmapConf.heatmapActive && this.heatmapConf.currentApplication){
+    //   if(this.tickCounter === 180 && this.firstTime) {
+    //     console.log("TICK");
+    //     this.indexCounter = (this.indexCounter + 1) % 2;
+    //     const commitId = this.selectedCommits[this.indexCounter].commitId;
+    //     //this.heatmapConf.toggleHeatmap(); // deactivate without deselecting the selected application
+    //     const currentApplicationForHeatMap = this.applicationRenderer.getApplicationById(this.heatmapConf.currentApplication.data.application.id);
+    //     this.heatmapConf.deactivate();
+    //     console.log("after deactivate: ", currentApplicationForHeatMap);
+    //     this.heatmapConf.setCommitIdAndApplication(commitId, currentApplicationForHeatMap!);
+    //     this.heatmapConf.activate();
+    //   }
+    //   this.tickCounter = (this.tickCounter + 1) % 181;
+    // }
   }
 
   get rightClickMenuItems() {

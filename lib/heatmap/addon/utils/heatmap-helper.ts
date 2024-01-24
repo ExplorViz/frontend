@@ -35,7 +35,6 @@ export function computeHeatMapViewPos(
   // Create viewpoint from which the faces of the foundation are computed for each clazz.
   const viewPos = foundationMesh.position.clone();
   viewPos.y = Math.max(camera.position.z * 0.8, 100);
-
   foundationMesh.localToWorld(viewPos);
 
   return viewPos;

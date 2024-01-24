@@ -2,6 +2,7 @@ import { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
+import { staticMetricNames } from 'explorviz-frontend/services/repos/static-metrics-repository';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -70,7 +71,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     }
   }
 
-  private removeHeatmap(applicationObject3D: ApplicationObject3D) {
+  private removeHeatmap(applicationObject3D: ApplicationObject3D) { console.log("removeHeatmap");
     applicationObject3D.setOpacity(1);
     removeHeatmapHelperLines(applicationObject3D);
 
@@ -98,7 +99,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     async (
       applicationObject3D: ApplicationObject3D,
       selectedMetric: Metric
-    ) => {
+    ) => { console.log("applyHeatmap", selectedMetric.commitId);
       applicationObject3D.setComponentMeshOpacity(0.1);
       applicationObject3D.setCommunicationOpacity(0.1);
 
@@ -191,7 +192,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     const worldIntersectionPoint = firstIntersection.point.clone();
     applicationObject3D.worldToLocal(worldIntersectionPoint);
-
+    
     if (this.heatmapConf.useHelperLines) {
       addHeatmapHelperLine(
         applicationObject3D,
@@ -204,7 +205,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     if (firstIntersection && firstIntersection.uv) {
       const xPos = firstIntersection.uv.x * foundationMesh.width;
       const zPos = (1 - firstIntersection.uv.y) * foundationMesh.depth;
-      if (selectedMode === 'aggregatedHeatmap') {
+      if (selectedMode === 'aggregatedHeatmap' || staticMetricNames.includes(selectedMetric.name)) { // no multi mode implemented for static metrics yet
         simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
       } else {
         simpleHeatMap.add([

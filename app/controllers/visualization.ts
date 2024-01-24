@@ -1016,6 +1016,8 @@ export default class VisualizationController extends Controller {
       this.resumeVisualizationUpdating();
     } 
 
+    // TODO: deactivate heatmap when commit gets selected
+
 
     if(staticStructureData){
       this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData);
