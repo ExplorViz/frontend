@@ -13,7 +13,7 @@
     {{#each this.metrics as |metric|}}
         <tr>
             <td>{{metric.name}}</td>
-            <td>{{metric.timestamp}}</td>
+            <td>{{format-date metric.timestamp}}</td>
             <td>{{metric.value}}</td>
             <td>{{metric.unit}}</td>
         </tr>
