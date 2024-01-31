@@ -1,0 +1,22 @@
+<button {{on "click" this.loadMetrics}}>Load Metrics</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric Name</th>
+      <th>Timestamp</th>
+      <th>Value</th>
+      <th>Unit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this.metrics as |metric|}}
+        <tr>
+            <td>{{metric.name}}</td>
+            <td>{{metric.timestamp}}</td>
+            <td>{{metric.value}}</td>
+            <td>{{metric.unit}}</td>
+        </tr>
+    {{/each}}
+  </tbody>
+</table>

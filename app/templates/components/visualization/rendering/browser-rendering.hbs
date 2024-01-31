@@ -142,6 +142,9 @@
               <Visualization::PageSetup::Navbar::RestructureOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::MetricOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -166,6 +169,9 @@
                   @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
+              {{/if}}
+              {{#if (eq componentId 'Metric-Data')}}
+                <Visualization::PageSetup::Sidebar::MetricData/>
               {{/if}}
               {{#if (eq componentId 'trace-selection')}}
                 {{#if this.selectedApplicationObject3D}}

@@ -6,12 +6,13 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { MetricLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/metric-data';
 import ENV from 'explorviz-frontend/config/environment';
 import TimestampRepository from './repos/timestamp-repository';
 import Auth from './auth';
 import LandscapeTokenService from './landscape-token';
 
-const { spanService } = ENV.backendAddresses;
+const { spanService, metricService } = ENV.backendAddresses;
 
 export default class LandscapeListener extends Service.extend(Evented) {
   @service('repos/timestamp-repository')
@@ -180,6 +181,29 @@ export default class LandscapeListener extends Service.extend(Evented) {
         .catch((e) => reject(e));
     });
   }
+
+
+  requestMetricData(Timestamp: number) {
+    return new Promise<MetricLandscapeData>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${metricService}/metrics?landscapeToken=${this.tokenService.token.value}&secret=${this.auth.accessToken}`,
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const metricData = (await response.json()) as MetricLandscapeData;
+            resolve(metricData);
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
 
   static computeTotalRequests(dynamicData: DynamicLandscapeData) {
     // cant't run reduce on empty array
