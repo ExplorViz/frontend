@@ -65,11 +65,10 @@
 
 .wide-checkbox:before {
   content: "Off";
-  position: absolute;
-  margin: 0.1rem 1rem;
-  font-size: 1.25rem;
-  color: white;
   display: block;
+  color: white;
+  text-align: center;
+  font-size: 1.25rem;
 }
 
 .wide-checkbox-container input:checked ~ .wide-checkbox:before {
@@ -78,25 +77,14 @@
 
 /* Create the wide-checkbox/indicator (hidden when not checked) */
 .wide-checkbox:after {
-  content: "";
-  position: absolute;
+  content: "On";
   display: none;
+  color: white;
+  text-align: center;
+  font-size: 1.25rem;
 }
 
 /* Show the wide-checkbox when checked */
 .wide-checkbox-container input:checked ~ .wide-checkbox:after {
   display: block;
-}
-
-/* Style the wide-checkbox/indicator */
-.wide-checkbox-container .wide-checkbox:after {
-  left: 1.75rem;
-  top: 0.4rem;
-  width: 0.5rem;
-  height: 1rem;
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
 }
