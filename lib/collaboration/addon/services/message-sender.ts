@@ -477,6 +477,6 @@ export default class MessageSender extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'vr-message-sender': MessageSender;
+    'message-sender': MessageSender;
   }
 }

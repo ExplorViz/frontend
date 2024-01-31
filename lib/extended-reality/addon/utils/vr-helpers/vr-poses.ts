@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import VRController from '../vr-controller';
-import { ControllerPose, Pose } from '../vr-message/sendable/user_positions';
+import {
+  ControllerPose,
+  Pose,
+} from '../vr-web-wocket-messages/sendable/user-positions';
 
 export interface VrPose {
   camera: Pose;

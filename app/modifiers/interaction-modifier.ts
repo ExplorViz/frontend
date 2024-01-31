@@ -11,7 +11,7 @@ import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
-import VrMessageSender from 'extended-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 
 export type Position2D = {
   x: number;
@@ -89,8 +89,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   isMouseOnCanvas = false;
 

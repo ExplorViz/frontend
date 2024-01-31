@@ -134,7 +134,7 @@ export default class VrRendering extends Component<Args> {
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
 
-  @service('vr-message-sender')
+  @service('message-sender')
   private sender!: MessageSender;
 
   @service('web-socket')

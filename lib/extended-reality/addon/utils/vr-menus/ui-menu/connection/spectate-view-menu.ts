@@ -1,4 +1,3 @@
-import { EntityType } from 'extended-reality/utils/vr-message/util/entity_type';
 import ThreeMeshUI from 'three-mesh-ui';
 import { DetachableMenu } from '../../detachable-menu';
 import InteractiveMenu from '../../interactive-menu';
@@ -14,6 +13,7 @@ import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
 } from '../detail-info-menu';
+import { EntityType } from 'collaboration/utils/web-socket-messages/types/entity-type';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
   owner: any;

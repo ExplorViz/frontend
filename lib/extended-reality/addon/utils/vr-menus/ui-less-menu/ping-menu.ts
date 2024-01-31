@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import VrMessageSender from 'extended-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import VRController from 'extended-reality/utils/vr-controller';
 import VRControllerButtonBinding from 'extended-reality/utils/vr-controller/vr-controller-button-binding';
@@ -8,7 +8,7 @@ import { BaseMenuArgs } from '../base-menu';
 
 export type PingMenuArgs = BaseMenuArgs & {
   scene: THREE.Scene;
-  sender: VrMessageSender;
+  sender: MessageSender;
 };
 
 export default class PingMenu extends AnimatedMenu {
@@ -16,7 +16,7 @@ export default class PingMenu extends AnimatedMenu {
 
   private scene: THREE.Scene;
 
-  private sender: VrMessageSender;
+  private sender: MessageSender;
 
   constructor({ scene, sender, ...args }: PingMenuArgs) {
     super(args);
