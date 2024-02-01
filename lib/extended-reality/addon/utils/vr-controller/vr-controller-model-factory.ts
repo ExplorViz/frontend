@@ -148,7 +148,7 @@ export default class VrControllerModelFactory {
     const controllerModel = new VrControllerModel();
     let lastAssetScene: THREE.Group | null = null;
 
-    controller.addEventListener('connected', async (event) => {
+    controller.addEventListener('connected', async (event: any) => {
       try {
         const xrInputSource = event.data;
         if (

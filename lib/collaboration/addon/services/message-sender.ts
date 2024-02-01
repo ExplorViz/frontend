@@ -23,6 +23,19 @@ import {
   SpectatingUpdateMessage,
 } from '../utils/web-socket-messages/sendable/spectating-update';
 import {
+  RESTRUCTURE_COMMUNICATION_EVENT,
+  RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+  RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
+  RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+  RESTRUCTURE_CUT_AND_INSERT_EVENT,
+  RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+  RESTRUCTURE_DUPLICATE_APP,
+  RESTRUCTURE_MODE_UPDATE_EVENT,
+  RESTRUCTURE_RENAME_OPERATION_EVENT,
+  RESTRUCTURE_RESTORE_APP_EVENT,
+  RESTRUCTURE_RESTORE_CLASS_EVENT,
+  RESTRUCTURE_RESTORE_PACKAGE_EVENT,
+  RESTRUCTURE_UPDATE_EVENT,
   RestructureCommunicationMessage,
   RestructureCopyAndPasteClassMessage,
   RestructureCopyAndPastePackageMessage,
@@ -57,6 +70,7 @@ import {
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-released';
 import { ControllerId } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
 import VRController from 'extended-reality/utils/vr-controller';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
@@ -75,6 +89,8 @@ import {
   UserControllerConnectMessage,
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
+  CHANGELOG_REMOVE_ENTRY_EVENT,
+  CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
@@ -129,7 +145,7 @@ export default class MessageSender extends Service {
     scale: THREE.Vector3
   ) {
     this.webSocket.send<ObjectMovedMessage>(OBJECT_MOVED_EVENT, {
-      event: 'object_moved',
+      event: OBJECT_MOVED_EVENT,
       objectId,
       position: position.toArray(),
       quaternion: quaternion.toArray(),
@@ -145,7 +161,7 @@ export default class MessageSender extends Service {
    */
   sendObjectReleased(objectId: string) {
     this.webSocket.send<ObjectReleasedMessage>(OBJECT_RELEASED_EVENT, {
-      event: 'object_released',
+      event: OBJECT_RELEASED_EVENT,
       objectId,
     });
   }
@@ -166,7 +182,7 @@ export default class MessageSender extends Service {
     forward: boolean = true
   ) {
     this.webSocket.send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
-      event: 'component_update',
+      event: COMPONENT_UPDATE_EVENT,
       appId,
       componentId,
       isOpened,
@@ -202,9 +218,12 @@ export default class MessageSender extends Service {
   }
 
   sendRestructureModeUpdate() {
-    this.webSocket.send<RestructureModeUpdateMessage>({
-      event: 'restructure_mode_update',
-    });
+    this.webSocket.send<RestructureModeUpdateMessage>(
+      RESTRUCTURE_MODE_UPDATE_EVENT,
+      {
+        event: RESTRUCTURE_MODE_UPDATE_EVENT,
+      }
+    );
   }
 
   sendRestructureUpdate(
@@ -214,8 +233,8 @@ export default class MessageSender extends Service {
     appId: string | null,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureUpdateMessage>({
-      event: 'restructure_update',
+    this.webSocket.send<RestructureUpdateMessage>(RESTRUCTURE_UPDATE_EVENT, {
+      event: RESTRUCTURE_UPDATE_EVENT,
       entityType: entityType,
       entityId: entityId,
       newName: newName,
@@ -232,22 +251,28 @@ export default class MessageSender extends Service {
     entityId: string | null,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureCreateOrDeleteMessage>({
-      event: 'restructure_create_delete',
-      action: action,
-      entityType: entityType,
-      name: name,
-      language: language,
-      entityId: entityId,
-      undo: undo,
-    });
+    this.webSocket.send<RestructureCreateOrDeleteMessage>(
+      RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+      {
+        event: RESTRUCTURE_CREATE_OR_DELETE_EVENT,
+        action: action,
+        entityType: entityType,
+        name: name,
+        language: language,
+        entityId: entityId,
+        undo: undo,
+      }
+    );
   }
 
   sendRestructureDuplicateAppMessage(appId: string) {
-    this.webSocket.send<RestructureDuplicateAppMessage>({
-      event: 'restructure_duplicate_app',
-      appId: appId,
-    });
+    this.webSocket.send<RestructureDuplicateAppMessage>(
+      RESTRUCTURE_DUPLICATE_APP,
+      {
+        event: RESTRUCTURE_DUPLICATE_APP,
+        appId: appId,
+      }
+    );
   }
 
   sendRestructureCopyAndPastePackageMessage(
@@ -255,23 +280,29 @@ export default class MessageSender extends Service {
     destinationId: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCopyAndPastePackageMessage>({
-      event: 'restructure_copy_paste_package',
-      destinationEntity: destinationEntity,
-      destinationId: destinationId,
-      clippedEntityId: clippedEntityId,
-    });
+    this.webSocket.send<RestructureCopyAndPastePackageMessage>(
+      RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
+      {
+        event: RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
+        destinationEntity: destinationEntity,
+        destinationId: destinationId,
+        clippedEntityId: clippedEntityId,
+      }
+    );
   }
 
   sendRestructureCopyAndPasteClassMessage(
     destinationId: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCopyAndPasteClassMessage>({
-      event: 'restructure_copy_paste_class',
-      destinationId: destinationId,
-      clippedEntityId: clippedEntityId,
-    });
+    this.webSocket.send<RestructureCopyAndPasteClassMessage>(
+      RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+      {
+        event: RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
+        destinationId: destinationId,
+        clippedEntityId: clippedEntityId,
+      }
+    );
   }
 
   sendRestructureCutAndInsertMessage(
@@ -280,13 +311,16 @@ export default class MessageSender extends Service {
     clippedEntity: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCutAndInsertMessage>({
-      event: 'restructure_cut_insert',
-      destinationEntity: destinationEntity,
-      destinationId: destinationId,
-      clippedEntity: clippedEntity,
-      clippedEntityId: clippedEntityId,
-    });
+    this.webSocket.send<RestructureCutAndInsertMessage>(
+      RESTRUCTURE_CUT_AND_INSERT_EVENT,
+      {
+        event: RESTRUCTURE_CUT_AND_INSERT_EVENT,
+        destinationEntity: destinationEntity,
+        destinationId: destinationId,
+        clippedEntity: clippedEntity,
+        clippedEntityId: clippedEntityId,
+      }
+    );
   }
 
   sendRestructureCommunicationMessage(
@@ -294,20 +328,26 @@ export default class MessageSender extends Service {
     targetClassId: string,
     methodName: string
   ) {
-    this.webSocket.send<RestructureCommunicationMessage>({
-      event: 'restructure_communication',
-      sourceClassId: sourceClassId,
-      targetClassId: targetClassId,
-      methodName: methodName,
-    });
+    this.webSocket.send<RestructureCommunicationMessage>(
+      RESTRUCTURE_COMMUNICATION_EVENT,
+      {
+        event: RESTRUCTURE_COMMUNICATION_EVENT,
+        sourceClassId: sourceClassId,
+        targetClassId: targetClassId,
+        methodName: methodName,
+      }
+    );
   }
 
   sendRestructureDeleteCommunicationMessage(undo: boolean, commId: string) {
-    this.webSocket.send<RestructureDeleteCommunicationMessage>({
-      event: 'restructure_delete_communication',
-      undo: undo,
-      commId: commId,
-    });
+    this.webSocket.send<RestructureDeleteCommunicationMessage>(
+      RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+      {
+        event: RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
+        undo: undo,
+        commId: commId,
+      }
+    );
   }
 
   sendRestructureRenameOperationMessage(
@@ -315,31 +355,40 @@ export default class MessageSender extends Service {
     newName: string,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureRenameOperationMessage>({
-      event: 'restructure_rename_operation',
-      commId: commId,
-      newName: newName,
-      undo: undo,
-    });
+    this.webSocket.send<RestructureRenameOperationMessage>(
+      RESTRUCTURE_RENAME_OPERATION_EVENT,
+      {
+        event: RESTRUCTURE_RENAME_OPERATION_EVENT,
+        commId: commId,
+        newName: newName,
+        undo: undo,
+      }
+    );
   }
 
   sendRestructureRestoreAppMessage(appId: string, undoCutOperation: boolean) {
-    this.webSocket.send<RestructureRestoreAppMessage>({
-      event: 'restructure_restore_app',
-      appId: appId,
-      undoCutOperation: undoCutOperation,
-    });
+    this.webSocket.send<RestructureRestoreAppMessage>(
+      RESTRUCTURE_RESTORE_APP_EVENT,
+      {
+        event: RESTRUCTURE_RESTORE_APP_EVENT,
+        appId: appId,
+        undoCutOperation: undoCutOperation,
+      }
+    );
   }
 
   sendRestructureRestorePackageMessage(
     pckgId: string,
     undoCutOperation: boolean
   ) {
-    this.webSocket.send<RestructureRestorePackageMessage>({
-      event: 'restructure_restore_pckg',
-      pckgId: pckgId,
-      undoCutOperation: undoCutOperation,
-    });
+    this.webSocket.send<RestructureRestorePackageMessage>(
+      RESTRUCTURE_RESTORE_PACKAGE_EVENT,
+      {
+        event: RESTRUCTURE_RESTORE_PACKAGE_EVENT,
+        pckgId: pckgId,
+        undoCutOperation: undoCutOperation,
+      }
+    );
   }
 
   sendRestructureRestoreClassMessage(
@@ -347,26 +396,35 @@ export default class MessageSender extends Service {
     clazzId: string,
     undoCutOperation: boolean
   ) {
-    this.webSocket.send<RestructureRestoreClassMessage>({
-      event: 'restructure_restore_class',
-      appId: appId,
-      clazzId: clazzId,
-      undoCutOperation: undoCutOperation,
-    });
+    this.webSocket.send<RestructureRestoreClassMessage>(
+      RESTRUCTURE_RESTORE_CLASS_EVENT,
+      {
+        event: RESTRUCTURE_RESTORE_CLASS_EVENT,
+        appId: appId,
+        clazzId: clazzId,
+        undoCutOperation: undoCutOperation,
+      }
+    );
   }
 
   sendChangeLogRestoreEntriesMessage(key: string) {
-    this.webSocket.send<ChangeLogRestoreEntriesMessage>({
-      event: 'changelog_restore_entries',
-      key: key,
-    });
+    this.webSocket.send<ChangeLogRestoreEntriesMessage>(
+      CHANGELOG_RESTORE_ENTRIES_EVENT,
+      {
+        event: CHANGELOG_RESTORE_ENTRIES_EVENT,
+        key: key,
+      }
+    );
   }
 
   sendChangeLogRemoveEntryMessage(entryIds: string[]) {
-    this.webSocket.send<ChangeLogRemoveEntryMessage>({
-      event: 'changelog_remove_entry',
-      entryIds: entryIds,
-    });
+    this.webSocket.send<ChangeLogRemoveEntryMessage>(
+      CHANGELOG_REMOVE_ENTRY_EVENT,
+      {
+        event: CHANGELOG_REMOVE_ENTRY_EVENT,
+        entryIds: entryIds,
+      }
+    );
   }
 
   /**
@@ -385,7 +443,7 @@ export default class MessageSender extends Service {
       spectatedUserId,
       spectatingUserIds,
       configurationId,
-      configuration: null,
+      configuration: { id: configurationId, devices: null },
     });
   }
 

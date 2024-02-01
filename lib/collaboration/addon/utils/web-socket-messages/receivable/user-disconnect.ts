@@ -1,11 +1,13 @@
-import { SerializedHighlightedComponent } from '../types/serialized-room';
-
 export const USER_DISCONNECTED_EVENT = 'user_disconnect';
 
 export type UserDisconnectedMessage = {
   event: typeof USER_DISCONNECTED_EVENT;
   id: string;
-  highlightedComponents: SerializedHighlightedComponent[];
+  highlightedComponents: {
+    entityType: string;
+    highlightedApp: string;
+    highlightedEntity: string;
+  }[];
 };
 
 export function isUserDisconnectedMessage(

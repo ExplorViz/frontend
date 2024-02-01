@@ -18,7 +18,7 @@ export default abstract class AnimatedMenu extends BaseMenu {
    */
   waitForAnimation(action: THREE.AnimationAction): Promise<null> {
     return new Promise((resolve) => {
-      const listener = (evt: THREE.Event) => {
+      const listener = (evt: { action: THREE.AnimationAction }) => {
         if (evt.action === action) {
           this.animationMixer.removeEventListener('finished', listener);
           resolve(null);
