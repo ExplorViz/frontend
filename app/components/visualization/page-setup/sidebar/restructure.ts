@@ -8,7 +8,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
