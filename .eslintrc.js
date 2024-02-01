@@ -1,10 +1,15 @@
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
+  parser: '@babel/eslint-parser',
   parserOptions: {
-    ecmaVersion: 2019,
+    ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.json',
+    requireConfigFile: false,
+    babelOptions: {
+      plugins: [
+        ['@babel/plugin-proposal-decorators', { decoratorsBeforeExport: true }],
+      ],
+    },
   },
   plugins: [
     // 'ember',
@@ -61,10 +66,16 @@ module.exports = {
     // node files
     {
       files: [
-        'ember-cli-build.js',
-        'testem.js',
-        'config/**/*.js',
-        'lib/*/index.js',
+        './.eslintrc.js',
+        './.prettierrc.js',
+        './.stylelintrc.js',
+        './.template-lintrc.js',
+        './ember-cli-build.js',
+        './testem.js',
+        './blueprints/*/index.js',
+        './config/**/*.js',
+        './lib/*/index.js',
+        './server/**/*.js',
       ],
       parserOptions: {
         sourceType: 'script',
@@ -74,6 +85,12 @@ module.exports = {
         browser: false,
         node: true,
       },
+      extends: ['plugin:n/recommended'],
+    },
+    {
+      // test files
+      files: ['tests/**/*-test.{js,ts}'],
+      extends: ['plugin:qunit/recommended'],
     },
   ],
 };
