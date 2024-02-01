@@ -4,12 +4,11 @@
     {{@setting.displayName}}
   </div>
   <div class='d-flex align-self-center'>
-    <XToggle
-      class='mr-4'
-      @theme='skewed'
+    <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
       @value={{@setting.value}}
       @onToggle={{@onChange}}
     />
+
     <Visualization::PageSetup::Sidebar::Settings::ResetButton
       @onClick={{@onChange}}
     />
