@@ -185,7 +185,6 @@ export default class ArRendering extends Component<Args> {
 
     this.toastMessage.init();
 
-    //AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
     this.popupHandler = new PopupHandler(getOwner(this));
@@ -716,8 +715,6 @@ export default class ArRendering extends Component<Args> {
 
     // Remove event listers.
     this.willDestroyController.abort();
-
-    //AlertifyHandler.setAlertifyPosition('bottom-right');
   }
 
   @action

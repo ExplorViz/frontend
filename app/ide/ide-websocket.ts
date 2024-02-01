@@ -165,16 +165,6 @@ export default class IdeWebsocket {
       this.toastHandlerService.showErrorToastMessage(
         'IDE connection was unexpectedly closed. Will try to reconnect'
       );
-      /*
-      AlertifyHandler.showAlertifyMessageWithDurationAndClickCallback(
-        'IDE connection was unexpectedly closed. Will try to reconnect. <b><u>Click here to stop reconnection.</u></b>',
-        4,
-        () => {
-          console.log('hello from the other side');
-          socket?.disconnect();
-        },
-        'error'
-      );*/
     });
 
     socket!.on('reconnect_error', (error) => {
