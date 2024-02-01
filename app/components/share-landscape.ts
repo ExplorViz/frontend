@@ -6,6 +6,7 @@ import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
 import { tracked } from '@glimmer/tracking';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 interface ShareLandscapeArgs {
   token: LandscapeToken;
@@ -17,6 +18,9 @@ const { userService } = ENV.backendAddresses;
 export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   @service('auth')
   auth!: Auth;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   focusedClicks = 0;
 
@@ -50,7 +54,8 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
         `Access of ${userId} revoked for token ${this.args.token.value}`
       );
     } catch (e) {
-      AlertifyHandler.showAlertifySuccess(e.message);
+      this.toastHandlerService.showToastMessage('myTitle', e.message);
+      //AlertifyHandler.showAlertifySuccess(e.message);
     }
   }
 
