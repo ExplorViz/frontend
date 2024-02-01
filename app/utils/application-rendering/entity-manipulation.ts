@@ -11,7 +11,7 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
@@ -183,7 +183,7 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -210,7 +210,7 @@ export function openComponentsRecursively(
  */
 export function openAllComponents(
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);

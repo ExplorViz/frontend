@@ -62,7 +62,6 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from './user-settings';
 import {
@@ -75,6 +74,7 @@ import {
 } from 'explorviz-frontend/utils/changelog-entry';
 import LandscapeListener from './landscape-listener';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import MessageSender from 'collaboration/services/message-sender';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -114,8 +114,8 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @tracked
   restructureMode: boolean = false;

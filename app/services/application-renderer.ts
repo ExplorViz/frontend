@@ -1,7 +1,7 @@
 // #region imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
@@ -27,11 +27,8 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'virtual-reality/services/ar-settings';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import ArSettings from 'extended-reality/services/ar-settings';
+import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -42,9 +39,12 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -66,8 +66,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -78,8 +78,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -532,7 +532,7 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  restoreFromSerialization(room: SerializedVrRoom) {
+  restoreFromSerialization(room: SerializedRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
