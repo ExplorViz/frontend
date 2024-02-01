@@ -21,8 +21,6 @@ export default class PageSetupToastMessageComponent extends Component {
   }
 
   private addToastMessage(header: string, message: string) {
-    // new object is necessary to trigger re-render
-    // https://guides.emberjs.com/release/upgrading/current-edition/tracked-properties/
     const htmlIdUnique = 'toast-' + this.uuidv4();
     this.toastMessages.pushObject({ htmlId: htmlIdUnique, message });
   }
@@ -48,7 +46,6 @@ export default class PageSetupToastMessageComponent extends Component {
           this.toastMessages.findIndex((item) => item.htmlId === id),
           1
         );
-        console.log('messages after delete', this.toastMessages.length);
       });
     }
   }
