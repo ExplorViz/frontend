@@ -4,7 +4,7 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import revertKey from '../utils/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
@@ -33,6 +33,9 @@ export type HeatmapMode =
 export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   @tracked
   heatmapActive = false;
@@ -131,7 +134,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     const latestClazzMetricScores =
       this.currentApplicationHeatmapData?.latestClazzMetricScores;
     if (!applicationHeatmapData || !latestClazzMetricScores) {
-      AlertifyHandler.showAlertifyError('No heatmap found');
+      this.toastHandlerService.showErrorToastMessage('No heatmap found');
       return undefined;
     }
 

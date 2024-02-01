@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
@@ -33,6 +33,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -80,19 +83,19 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @action
   hostRoom() {
     this.collaborationSession.hostRoom();
-    AlertifyHandler.showAlertifySuccess('Hosting new Room.');
+    this.toastHandlerService.showSuccessToastMessage('Hosting new Room.');
   }
 
   @action
   leaveSession() {
-    AlertifyHandler.showAlertifyWarning('Disconnected from Room');
+    this.toastHandlerService.showInfoToastMessage('Disconnected from Room');
     this.collaborationSession.disconnect();
   }
 
   @action
   async loadRooms(alert = true) {
     if (alert) {
-      AlertifyHandler.showAlertifySuccess('Reloading Rooms');
+      this.toastHandlerService.showSuccessToastMessage('Reloading Rooms');
     }
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
@@ -102,16 +105,22 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   async joinRoom(room: RoomListRecord) {
     if (this.tokenService.token?.value === room.landscapeToken) {
       this.collaborationSession.joinRoom(room.roomId);
-      AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+      this.toastHandlerService.showSuccessToastMessage(
+        `Join Room: ${room.roomName}`
+      );
     } else {
       const tokens = await this.tokenService.retrieveTokens();
       const token = tokens.findBy('value', room.landscapeToken);
       if (token) {
         this.tokenService.setToken(token);
         this.collaborationSession.joinRoom(room.roomId);
-        AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
+        this.toastHandlerService.showSuccessToastMessage(
+          `Join Room: ${room.roomName}`
+        );
       } else {
-        AlertifyHandler.showAlertifyError(`Landscape token for room not found`);
+        this.toastHandlerService.showErrorToastMessage(
+          `Landscape token for room not found`
+        );
       }
     }
   }

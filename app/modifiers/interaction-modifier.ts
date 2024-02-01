@@ -450,7 +450,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.setPointerCapture(event.pointerId);
     }
     this.pointers.push(event);
-    // AlertifyHandler.showAlertifyMessage('Event-pointer-type: ' + event.pointerType)
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.handlePinchStart();
       this.handleRotateStart();

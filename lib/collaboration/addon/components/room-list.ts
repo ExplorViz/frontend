@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
@@ -20,6 +20,9 @@ export default class RoomList extends Component<RoomListArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
+
   @tracked
   rooms: RoomListRecord[] = [];
 
@@ -32,7 +35,7 @@ export default class RoomList extends Component<RoomListArgs> {
   @action
   async loadRooms(alert = true) {
     if (alert) {
-      AlertifyHandler.showAlertifySuccess('Reloading Rooms');
+      this.toastHandlerService.showSuccessToastMessage('Reloading Rooms');
     }
     const rooms = await this.roomService.listRooms();
     rooms.forEach((room) => {

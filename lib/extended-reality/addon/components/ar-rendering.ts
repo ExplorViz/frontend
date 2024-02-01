@@ -17,7 +17,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';
@@ -78,6 +78,9 @@ export default class ArRendering extends Component<Args> {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger('ArRendering');
 
@@ -182,7 +185,6 @@ export default class ArRendering extends Component<Args> {
 
     this.toastMessage.init();
 
-    AlertifyHandler.setAlertifyPosition('bottom-center');
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
     this.popupHandler = new PopupHandler(getOwner(this));
@@ -494,7 +496,7 @@ export default class ArRendering extends Component<Args> {
   @action
   async handlePing() {
     if (!this.collaborationSession.isOnline) {
-      AlertifyHandler.showAlertifyWarning(
+      this.toastHandlerService.showInfoToastMessage(
         'Offline. <br> Join session with users to ping.'
       );
       return;
@@ -713,8 +715,6 @@ export default class ArRendering extends Component<Args> {
 
     // Remove event listers.
     this.willDestroyController.abort();
-
-    AlertifyHandler.setAlertifyPosition('bottom-right');
   }
 
   @action
