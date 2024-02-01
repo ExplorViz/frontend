@@ -202,7 +202,6 @@ export default class VrRendering extends Component<Args> {
   // #endregion CLASS FIELDS
   //
   constructor(owner: any, args: Args) {
-    console.log('VrRendering constructor');
     super(owner, args);
 
     this.toastMessage.info = (message) => this.showHint(message);

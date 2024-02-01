@@ -214,8 +214,6 @@ export default class DetailInfoMenu
         return;
       }
 
-      console.log('is not equal');
-
       this.informationText = '';
       content.entries.forEach(({ key, value }) => {
         this.informationText += key + ' ' + value + '\n\n';

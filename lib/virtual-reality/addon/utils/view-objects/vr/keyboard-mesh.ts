@@ -135,7 +135,6 @@ export default class KeyboardMesh
         // Component.setState internally call component.set with the options you defined in component.setupState
         if (intersect.object.states['selected']) {
           intersect.object.setState('selected');
-          console.log('selected');
         }
       }
     }
@@ -205,7 +204,6 @@ export default class KeyboardMesh
 
   triggerUp() {
     this.selectState = false;
-    console.log('triggerUp');
   }
 
   triggerDown(controller: VRController | null) {
