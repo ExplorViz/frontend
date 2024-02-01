@@ -3,9 +3,9 @@
   style='z-index: 5; height: 100%; right: 0; bottom: 0;'
 >
   <div style='position: absolute; top: 0; right: 0;'>
-    {{#each-in this.toastMessages as |htmlId message|}}
+    {{#each this.toastMessages as |toast|}}
       <div
-        id={{htmlId}}
+        id={{toast.htmlId}}
         class='toast'
         data-delay='4000'
         role='alert'
@@ -26,9 +26,9 @@
           </button>
         </div>
         <div class='toast-body'>
-          {{message}}
+          {{toast.message}}
         </div>
       </div>
-    {{/each-in}}
+    {{/each}}
   </div>
 </div>

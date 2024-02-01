@@ -1,3 +1,4 @@
+/* eslint-disable no-self-assign */
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
@@ -9,7 +10,7 @@ export default class PageSetupToastMessageComponent extends Component {
   toastHandlerService!: ToastHandlerService;
 
   @tracked
-  toastMessages: { [htmlId: string]: string } = {};
+  toastMessages: { htmlId: string; message: string }[] = [];
 
   private showToastCallback: any;
 
@@ -23,9 +24,7 @@ export default class PageSetupToastMessageComponent extends Component {
     // new object is necessary to trigger re-render
     // https://guides.emberjs.com/release/upgrading/current-edition/tracked-properties/
     const htmlIdUnique = 'toast-' + this.uuidv4();
-    this.toastMessages[htmlIdUnique] = message;
-    this.toastMessages = { ...this.toastMessages };
-    console.log('add', htmlIdUnique);
+    this.toastMessages.pushObject({ htmlId: htmlIdUnique, message });
   }
 
   private uuidv4(): string {
@@ -42,19 +41,14 @@ export default class PageSetupToastMessageComponent extends Component {
   toastRenderIsComplete(htmlElement: HTMLElement) {
     const id = htmlElement.id;
     const toast: any = $(`#${id}`);
-    console.log('dom', id);
     if (toast) {
       toast.toast('show');
-      console.log('show', id);
       toast.on('hidden.bs.toast', () => {
-        console.log('hidden', id);
-        delete this.toastMessages[id];
-        //this.toastMessages = { ...this.toastMessages };
-        if (Object.keys(this.toastMessages).length == 0) {
-          console.log('rerender', id);
-          // re-render is necessary for future toast to appear
-          this.toastMessages = { ...this.toastMessages };
-        }
+        this.toastMessages.splice(
+          this.toastMessages.findIndex((item) => item.htmlId === id),
+          1
+        );
+        console.log('messages after delete', this.toastMessages.length);
       });
     }
   }
