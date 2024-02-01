@@ -296,38 +296,36 @@ export default class VRController extends BaseMesh {
    */
   private updateGamepad() {
     const { gamepad } = this;
-    if (!gamepad) {
+    if (!gamepad || this.timestamp === gamepad.timestamp) {
       return;
     }
 
+    this.timestamp = gamepad.timestamp;
     const callbacks = this.eventCallbacks;
 
-    const THUMBPAD_BUTTON = 3;
+    // Also see: https://github.com/immersive-web/webxr-gamepads-module/blob/main/gamepads-module-explainer.md
+
     const TRIGGER_BUTTON = 0;
     const GRIP_BUTTON = 1;
+    // const TOUCHPAD_BUTTON = 2;
+    const THUMBPAD_BUTTON = 3;
     const A_BUTTON = 4;
     const B_BUTTON = 5;
 
-    const JOYSTICK_X_AXIS = 2;
-    const JOYSTICK_Y_AXIS = 3;
-
-    const { timestamp } = gamepad;
-
-    // Ensure that gamepad data is fresh
-    if (this.timestamp === timestamp) {
-      return;
-    }
-    this.timestamp = timestamp;
+    // const TOUCHPAD_X_AXIS = 0;
+    // const TOUCHPAD_Y_AXIS = 1;
+    const THUMBSTICK_X_AXIS = 2;
+    const THUMBSTICK_Y_AXIS = 3;
 
     // Handle change in joystick / thumbpad position
     if (
       gamepad.axes.length >= 4 &&
-      (this.axes[0] !== gamepad.axes[JOYSTICK_X_AXIS] ||
-        this.axes[1] !== gamepad.axes[JOYSTICK_Y_AXIS])
+      (this.axes[0] !== gamepad.axes[THUMBSTICK_X_AXIS] ||
+        this.axes[1] !== gamepad.axes[THUMBSTICK_Y_AXIS])
     ) {
       [this.axes[0], this.axes[1]] = [
-        gamepad.axes[JOYSTICK_X_AXIS],
-        gamepad.axes[JOYSTICK_Y_AXIS],
+        gamepad.axes[THUMBSTICK_X_AXIS],
+        gamepad.axes[THUMBSTICK_Y_AXIS],
       ];
       if (callbacks.thumbpadTouch) {
         callbacks.thumbpadTouch(this, this.axes);
