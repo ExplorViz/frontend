@@ -6,7 +6,7 @@
     {{#each this.toastMessages as |toast|}}
       <div
         id={{toast.htmlId}}
-        class='toast'
+        class='toast {{toast.cssClasses}}'
         data-delay='4000'
         role='alert'
         aria-live='assertive'
@@ -14,17 +14,19 @@
         style='width: 250px;'
         {{did-insert this.toastRenderIsComplete}}
       >
-        <div class='toast-header'>
-          <strong class='mr-auto'>Information</strong>
-          <button
-            type='button'
-            class='ml-2 mb-1 close'
-            data-dismiss='toast'
-            aria-label='Close'
-          >
-            <span aria-hidden='true'>&times;</span>
-          </button>
-        </div>
+        {{#if toast.header}}
+          <div class='toast-header'>
+            <strong class='mr-auto'>Information</strong>
+            <button
+              type='button'
+              class='ml-2 mb-1 close'
+              data-dismiss='toast'
+              aria-label='Close'
+            >
+              <span aria-hidden='true'>&times;</span>
+            </button>
+          </div>
+        {{/if}}
         <div class='toast-body'>
           {{toast.message}}
         </div>

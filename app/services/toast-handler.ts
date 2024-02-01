@@ -2,8 +2,16 @@ import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 
 export default class ToastHandlerService extends Service.extend(Evented) {
-  showToastMessage(header: string, message: string) {
-    this.trigger('newToastMessage', header, message);
+  showInfoToastMessage(message: string, header: string = '') {
+    this.trigger('newToastMessage', 'info', message, header);
+  }
+
+  showSuccessToastMessage(message: string, header: string = '') {
+    this.trigger('newToastMessage', 'success', message, header);
+  }
+
+  showErrorToastMessage(message: string, header: string = '') {
+    this.trigger('newToastMessage', 'error', message, header);
   }
 }
 

@@ -5,7 +5,7 @@ import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import * as THREE from 'three';
 import VrRoomService from 'virtual-reality/services/vr-room';
 import WebSocketService, {
@@ -75,6 +75,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -315,7 +318,7 @@ export default class CollaborationSession extends Service.extend({
         return true;
       } catch (e: any) {
         // this.connectionStatus = 'offline';
-        AlertifyHandler.showAlertifyError(
+        this.toastHandlerService.showErrorToastMessage(
           'Cannot reach Collaboration-Service.'
         );
         return false;
@@ -349,7 +352,7 @@ export default class CollaborationSession extends Service.extend({
             // If this is the last retry attempt, handle the error and break out of the loop
             this.connectionStatus = 'offline';
             this.currentRoomId = null;
-            AlertifyHandler.showAlertifyError(
+            this.toastHandlerService.showErrorToastMessage(
               'Cannot reach Collaboration-Service after multiple retries.'
             );
             break;

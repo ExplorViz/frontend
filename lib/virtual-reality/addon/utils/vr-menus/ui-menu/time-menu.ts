@@ -1,5 +1,4 @@
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import VRControllerButtonBinding from 'virtual-reality/utils/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
@@ -58,16 +57,10 @@ export default class TimeMenu extends UiMenu {
       height: 60,
       onTriggerPressed: (value) => {
         this.setDateBackBy(value * TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError(
-          `Reduced time${this.date.toTimeString()}`
-        );
         this.redrawMenu();
       },
       onTriggerDown: () => {
         this.setDateBackBy(TIMESTAMP_INTERVAL);
-        AlertifyHandler.showAlertifyError(
-          `Reduced time${this.date.toTimeString()}`
-        );
         this.redrawMenu();
       },
     });

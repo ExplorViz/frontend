@@ -16,7 +16,7 @@ import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -120,6 +120,9 @@ export default class VisualizationController extends Controller {
 
   @service('spectate-user')
   spectateUser!: SpectateUser;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -440,7 +443,9 @@ export default class VisualizationController extends Controller {
       this.timestampService.timestamp = epochMilli;
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
-      AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
+      this.toastHandlerService.showErrorToastMessage(
+        "Landscape couldn't be requested!"
+      );
       this.resumeVisualizationUpdating();
     }
   }

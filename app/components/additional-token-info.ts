@@ -1,9 +1,9 @@
 import Component from '@glimmer/component';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import Auth from 'explorviz-frontend/services/auth';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 interface Args {
   token: LandscapeToken;
@@ -13,18 +13,25 @@ export default class AdditionalTokenInfo extends Component<Args> {
   @service('auth')
   auth!: Auth;
 
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
+
   focusedClicks = 0;
 
   @action
   // eslint-disable-next-line class-methods-use-this
   onTokenIdCopied() {
-    AlertifyHandler.showAlertifySuccess('Token id copied to clipboard');
+    this.toastHandlerService.showSuccessToastMessage(
+      'Token id copied to clipboard'
+    );
   }
 
   @action
   // eslint-disable-next-line class-methods-use-this
   onTokenSecretCopied() {
-    AlertifyHandler.showAlertifySuccess('Token secret copied to clipboard');
+    this.toastHandlerService.showSuccessToastMessage(
+      'Token secret copied to clipboard'
+    );
   }
 
   @action

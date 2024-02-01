@@ -10,9 +10,22 @@ export default class PageSetupToastMessageComponent extends Component {
   toastHandlerService!: ToastHandlerService;
 
   @tracked
-  toastMessages: { htmlId: string; message: string }[] = [];
+  private toastMessages: {
+    htmlId: string;
+    header: string;
+    message: string;
+    cssClasses: string;
+  }[] = [];
 
   private showToastCallback: any;
+
+  private cssClassesValues: [string, string][] = [
+    ['info', 'bg-info text-white'],
+    ['error', 'bg-danger text-white'],
+    ['success', 'bg-success text-white'],
+  ];
+
+  private cssClasses: Map<string, string> = new Map(this.cssClassesValues);
 
   constructor(owner: any, args: any) {
     super(owner, args);
@@ -20,9 +33,21 @@ export default class PageSetupToastMessageComponent extends Component {
     this.toastHandlerService.on('newToastMessage', this.showToastCallback);
   }
 
-  private addToastMessage(header: string, message: string) {
+  private addToastMessage(type: string, message: string, header: string) {
     const htmlIdUnique = 'toast-' + this.uuidv4();
-    this.toastMessages.pushObject({ htmlId: htmlIdUnique, message });
+
+    let cssClasses = this.cssClasses.get(type);
+
+    if (!cssClasses) {
+      cssClasses = '';
+    }
+
+    this.toastMessages.pushObject({
+      htmlId: htmlIdUnique,
+      header,
+      message,
+      cssClasses,
+    });
   }
 
   private uuidv4(): string {
