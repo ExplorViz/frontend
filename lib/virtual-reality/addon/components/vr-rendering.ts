@@ -722,6 +722,10 @@ export default class VrRendering extends Component<Args> {
    */
   @action
   resize(outerDiv: HTMLElement) {
+    if (this.renderer.xr.isPresenting) {
+      return;
+    }
+
     const width = outerDiv.clientWidth;
     const height = outerDiv.clientHeight;
     this.renderer.setSize(width, height);
