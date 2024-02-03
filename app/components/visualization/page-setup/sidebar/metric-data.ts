@@ -26,7 +26,7 @@ export default class MetricDataComponent extends Component {
         //     throw new Error('No landscape token selected'); this.tokenService.token.value this.auth.accessToken
         // }
         try {
-            const response = await fetch(`${metricService}/metrics?landscapeToken=${"IhrLandscapeToken"}&secret=${"IhrTokenSecret"}`); 
+            const response = await fetch(`${metricService}/metrics?landscapeToken=${"ffb31fc2-24d3-4718-b72b-6f054055b69e"}&secret=${"0CgsRRsidIsv3Yw3"}`); 
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
