@@ -22,11 +22,11 @@ export default class MetricDataComponent extends Component {
 
     @action
     async loadMetrics() {
-        // if (this.tokenService.token === null) {
-        //     throw new Error('No landscape token selected'); this.tokenService.token.value this.auth.accessToken
-        // }
+        if (this.tokenService.token === null) {
+            throw new Error('No landscape token selected');  
+        }
         try {
-            const response = await fetch(`${metricService}/metrics?landscapeToken=${"ffb31fc2-24d3-4718-b72b-6f054055b69e"}&secret=${"0CgsRRsidIsv3Yw3"}`); 
+            const response = await fetch(`${metricService}/metrics?landscapeToken=${this.tokenService.token.value}`); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -43,7 +43,6 @@ export default class MetricDataComponent extends Component {
                 unit: metricArray[6]
             }));
 
-            console.log(this.metrics);
         } catch (error) {
             console.error('Error loading metrics', error);
         }
