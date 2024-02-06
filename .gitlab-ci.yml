@@ -27,11 +27,7 @@ linting:
     - node --version
     - npm --version
     - npm cache clean -f
-    - if [ -d .npm ]; then
-       rm -rf .npm/_libvips;
-      fi
-    - npm -g uninstall libvips
-    - npm install --unsafe-perm
+    - npm ci --prefer-offline
   script:
     - npm run lint
   artifacts:
