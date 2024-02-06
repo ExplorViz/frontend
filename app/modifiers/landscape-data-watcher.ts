@@ -144,9 +144,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.findBy(
-          'id',
-          applicationData.application.id
+        const graphNode = graphNodes.find(
+          (node) => node.id == applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
@@ -188,8 +187,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       (x) => x.sourceApp !== x.targetApp
     );
     const communicationLinks = interAppCommunications.map((communication) => ({
-      source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
-      target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
+      source: graphNodes.find(
+        (node) => node.id == communication.sourceApp?.id
+      ) as GraphNode,
+      target: graphNodes.find(
+        (node) => node.id == communication.targetApp?.id
+      ) as GraphNode,
       value: calculateLineThickness(
         communication,
         this.userSettings.applicationSettings

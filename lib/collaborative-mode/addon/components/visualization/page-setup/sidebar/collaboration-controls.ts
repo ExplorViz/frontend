@@ -105,7 +105,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       AlertifyHandler.showAlertifySuccess(`Join Room: ${room.roomName}`);
     } else {
       const tokens = await this.tokenService.retrieveTokens();
-      const token = tokens.findBy('value', room.landscapeToken);
+      const token = tokens.find((elem) => elem.value == room.landscapeToken);
       if (token) {
         this.tokenService.setToken(token);
         this.collaborationSession.joinRoom(room.roomId);

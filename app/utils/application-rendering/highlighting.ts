@@ -291,7 +291,9 @@ export function highlightTrace(
 
   const involvedClazzesArray = Array.from(involvedClazzes);
   const nonInvolvedClazzes = new Set(
-    [...allClazzes].filter((x) => !involvedClazzesArray.findBy('id', x.id))
+    [...allClazzes].filter(
+      (x) => !involvedClazzesArray.find((elem) => elem.id == x.id)
+    )
   );
 
   const componentSet = new Set<Package>();
