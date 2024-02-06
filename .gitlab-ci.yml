@@ -27,7 +27,9 @@ linting:
     - node --version
     - npm --version
     - npm cache clean -f
-    - [ -d .npm ] && rm -rf .npm/_libvips
+    - if [ -d .npm ]; then
+       rm -rf .npm/_libvips;
+      fi
     - npm -g uninstall libvips
     - npm install --unsafe-perm
   script:
