@@ -1,14 +1,14 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
@@ -26,6 +26,9 @@ interface VisualizationPageSetupSidebarRestructureArgs {
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -192,13 +195,15 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         this.args.toggleVisualizationUpdating();
       }
 
-      AlertifyHandler.showAlertifyMessage('Restructure Mode enabled');
+      this.toastHandlerService.showInfoToastMessage('Restructure Mode enabled');
     } else {
       if (this.args.visualizationPaused) {
         this.args.toggleVisualizationUpdating();
       }
       this.landscapeRestructure.resetLandscapeRestructure();
-      AlertifyHandler.showAlertifyMessage('Restructure Mode disabled');
+      this.toastHandlerService.showInfoToastMessage(
+        'Restructure Mode disabled'
+      );
     }
   }
 
@@ -384,7 +389,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         });
 
         if (!response.ok) {
-          AlertifyHandler.showAlertifyError(
+          this.toastHandlerService.showErrorToastMessage(
             `Failed to upload issue: ${issue.title}`
           );
           throw new Error(`Failed to upload issue: ${issue.title}`);
@@ -395,7 +400,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
       const results = await Promise.all(uploadPromises);
 
-      AlertifyHandler.showAlertifySuccess('Issue(s) successfully uploaded');
+      this.toastHandlerService.showSuccessToastMessage(
+        'Issue(s) successfully uploaded'
+      );
       return results;
     } catch (error) {
       console.error(error);

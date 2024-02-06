@@ -20,14 +20,14 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import { tracked } from '@glimmer/tracking';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import MessageSender from 'collaboration/services/message-sender';
 
 export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here
 }) {
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @tracked
   changeLogEntries: BaseChangeLogEntry[] = [];

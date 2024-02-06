@@ -3,7 +3,7 @@ import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { action } from '@ember/object';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import BaseRoute from './base-route';
@@ -23,6 +23,9 @@ export default class VisualizationRoute extends BaseRoute {
 
   @service('repos/font-repository')
   fontRepo!: FontRepository;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger();
 
@@ -67,7 +70,9 @@ export default class VisualizationRoute extends BaseRoute {
   @action
   error(error: any) {
     if (error instanceof ProgressEvent) {
-      AlertifyHandler.showAlertifyError('Failed to load font for labels.');
+      this.toastHandlerService.showErrorToastMessage(
+        'Failed to load font for labels.'
+      );
       return true;
     }
     return super.error(error);

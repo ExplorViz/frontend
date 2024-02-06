@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -10,7 +10,7 @@ import {
   ApplicationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
@@ -37,6 +37,9 @@ export default class Settings extends Component<Args> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
@@ -93,7 +96,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, input);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
 
     switch (settingId) {
@@ -139,14 +142,14 @@ export default class Settings extends Component<Args> {
         this.collaborationSession.connectionStatus === 'online' &&
         settingId === 'keepHighlightingOnOpenOrClose'
       ) {
-        AlertifyHandler.showAlertifyWarning(
+        this.toastHandlerService.showErrorToastMessage(
           'Switching Mode Not Allowed In Collaboration Session'
         );
         return;
       }
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
 
     switch (settingId) {
@@ -166,7 +169,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
   }
 
