@@ -26,7 +26,8 @@ linting:
   before_script:
     - node --version
     - npm --version
-    - npm install
+    - npm cache clean -f
+    - npm install --unsafe-perm 
   script:
     - npm run lint
   artifacts:
