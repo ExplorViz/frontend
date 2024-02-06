@@ -205,7 +205,6 @@ export default class VrRendering extends Component<Args> {
   // #endregion CLASS FIELDS
   //
   constructor(owner: any, args: Args) {
-    console.log('VrRendering constructor');
     super(owner, args);
 
     this.toastMessage.info = (message) => this.showHint(message);
@@ -691,6 +690,10 @@ export default class VrRendering extends Component<Args> {
    */
   @action
   resize(outerDiv: HTMLElement) {
+    if (this.renderer.xr.isPresenting) {
+      return;
+    }
+
     const width = outerDiv.clientWidth;
     const height = outerDiv.clientHeight;
     this.renderer.setSize(width, height);

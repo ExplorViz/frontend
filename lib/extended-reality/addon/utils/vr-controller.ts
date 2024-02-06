@@ -296,96 +296,110 @@ export default class VRController extends BaseMesh {
    */
   private updateGamepad() {
     const { gamepad } = this;
+    if (!gamepad || this.timestamp === gamepad.timestamp) {
+      return;
+    }
+
+    this.timestamp = gamepad.timestamp;
     const callbacks = this.eventCallbacks;
 
-    const THUMBPAD_BUTTON = 3;
+    // Also see: https://github.com/immersive-web/webxr-gamepads-module/blob/main/gamepads-module-explainer.md
+
     const TRIGGER_BUTTON = 0;
     const GRIP_BUTTON = 1;
+    // const TOUCHPAD_BUTTON = 2;
+    const THUMBPAD_BUTTON = 3;
     const A_BUTTON = 4;
     const B_BUTTON = 5;
-    if (gamepad) {
-      const { timestamp } = gamepad;
 
-      // Ensure that gamepad data is fresh
-      if (this.timestamp === timestamp) {
-        return;
+    // const TOUCHPAD_X_AXIS = 0;
+    // const TOUCHPAD_Y_AXIS = 1;
+    const THUMBSTICK_X_AXIS = 2;
+    const THUMBSTICK_Y_AXIS = 3;
+
+    // Handle change in joystick / thumbpad position
+    if (
+      gamepad.axes.length >= 4 &&
+      (this.axes[0] !== gamepad.axes[THUMBSTICK_X_AXIS] ||
+        this.axes[1] !== gamepad.axes[THUMBSTICK_Y_AXIS])
+    ) {
+      [this.axes[0], this.axes[1]] = [
+        gamepad.axes[THUMBSTICK_X_AXIS],
+        gamepad.axes[THUMBSTICK_Y_AXIS],
+      ];
+      if (callbacks.thumbpadTouch) {
+        callbacks.thumbpadTouch(this, this.axes);
       }
-      this.timestamp = timestamp;
+    }
 
-      // Handle change in joystick / thumbpad position
-      if (
-        this.axes[0] !== gamepad.axes[2] ||
-        this.axes[1] !== gamepad.axes[3]
-      ) {
-        [this.axes[0], this.axes[1]] = [gamepad.axes[2], gamepad.axes[3]];
-        if (callbacks.thumbpadTouch) {
-          callbacks.thumbpadTouch(this, this.axes);
-        }
+    // Handle clicked / touched / released thumbpad
+    if (
+      gamepad.buttons.length > THUMBPAD_BUTTON &&
+      this.thumbpadIsPressed !== gamepad.buttons[THUMBPAD_BUTTON].pressed
+    ) {
+      this.thumbpadIsPressed = gamepad.buttons[THUMBPAD_BUTTON].pressed;
+      if (this.thumbpadIsPressed && callbacks.thumbpadDown) {
+        callbacks.thumbpadDown(this, this.axes);
+      } else if (!this.thumbpadIsPressed && callbacks.thumbpadUp) {
+        callbacks.thumbpadUp(this, this.axes);
       }
+    } else if (callbacks.thumbpadPress && this.thumbpadIsPressed) {
+      callbacks.thumbpadPress(this, this.axes);
+    }
 
-      // Handle clicked / touched / released thumbpad
-      if (this.thumbpadIsPressed !== gamepad.buttons[THUMBPAD_BUTTON].pressed) {
-        this.thumbpadIsPressed = gamepad.buttons[THUMBPAD_BUTTON].pressed;
-        if (this.thumbpadIsPressed && callbacks.thumbpadDown) {
-          callbacks.thumbpadDown(this, this.axes);
-        } else if (!this.thumbpadIsPressed && callbacks.thumbpadUp) {
-          callbacks.thumbpadUp(this, this.axes);
-        }
-      } else if (callbacks.thumbpadPress && this.thumbpadIsPressed) {
-        callbacks.thumbpadPress(this, this.axes);
+    // Handle clicked / released trigger
+    if (
+      gamepad.buttons.length > TRIGGER_BUTTON &&
+      this.triggerIsPressed !== gamepad.buttons[TRIGGER_BUTTON].pressed
+    ) {
+      this.triggerIsPressed = gamepad.buttons[TRIGGER_BUTTON].pressed;
+      if (this.triggerIsPressed && callbacks.triggerDown) {
+        callbacks.triggerDown(this);
+      } else if (!this.triggerIsPressed && callbacks.triggerUp) {
+        callbacks.triggerUp(this);
       }
+    } else if (callbacks.triggerPress && this.triggerIsPressed) {
+      callbacks.triggerPress(this, gamepad.buttons[TRIGGER_BUTTON].value);
+    }
 
-      // Handle clicked / released trigger
-      if (this.triggerIsPressed !== gamepad.buttons[TRIGGER_BUTTON].pressed) {
-        this.triggerIsPressed = gamepad.buttons[TRIGGER_BUTTON].pressed;
-        if (this.triggerIsPressed && callbacks.triggerDown) {
-          callbacks.triggerDown(this);
-        } else if (!this.triggerIsPressed && callbacks.triggerUp) {
-          callbacks.triggerUp(this);
+    // Handle clicked released grip button
+    if (gamepad.buttons.length > GRIP_BUTTON && gamepad.buttons[GRIP_BUTTON]) {
+      if (this.gripIsPressed !== gamepad.buttons[GRIP_BUTTON].pressed) {
+        this.gripIsPressed = gamepad.buttons[GRIP_BUTTON].pressed;
+        if (this.gripIsPressed && callbacks.gripDown) {
+          callbacks.gripDown(this);
+        } else if (!this.gripIsPressed && callbacks.gripUp) {
+          callbacks.gripUp(this);
         }
-      } else if (callbacks.triggerPress && this.triggerIsPressed) {
-        callbacks.triggerPress(this, gamepad.buttons[TRIGGER_BUTTON].value);
+      } else if (callbacks.gripPress && this.gripIsPressed) {
+        callbacks.gripPress(this);
       }
+    }
 
-      // Handle clicked released grip button
-      if (gamepad.buttons[GRIP_BUTTON]) {
-        if (this.gripIsPressed !== gamepad.buttons[GRIP_BUTTON].pressed) {
-          this.gripIsPressed = gamepad.buttons[GRIP_BUTTON].pressed;
-          if (this.gripIsPressed && callbacks.gripDown) {
-            callbacks.gripDown(this);
-          } else if (!this.gripIsPressed && callbacks.gripUp) {
-            callbacks.gripUp(this);
-          }
-        } else if (callbacks.gripPress && this.gripIsPressed) {
-          callbacks.gripPress(this);
+    // Handle clicked / released menu button
+    if (gamepad.buttons.length > A_BUTTON && gamepad.buttons[A_BUTTON]) {
+      if (this.menuIsPressed !== gamepad.buttons[A_BUTTON].pressed) {
+        this.menuIsPressed = gamepad.buttons[A_BUTTON].pressed;
+        if (this.menuIsPressed && callbacks.menuDown) {
+          callbacks.menuDown(this);
+        } else if (!this.menuIsPressed && callbacks.menuUp) {
+          callbacks.menuUp(this);
         }
+      } else if (callbacks.menuPress && this.menuIsPressed) {
+        callbacks.menuPress(this);
       }
+    }
 
-      // Handle clicked / released menu button
-      if (gamepad.buttons[A_BUTTON]) {
-        if (this.menuIsPressed !== gamepad.buttons[A_BUTTON].pressed) {
-          this.menuIsPressed = gamepad.buttons[A_BUTTON].pressed;
-          if (this.menuIsPressed && callbacks.menuDown) {
-            callbacks.menuDown(this);
-          } else if (!this.menuIsPressed && callbacks.menuUp) {
-            callbacks.menuUp(this);
-          }
-        } else if (callbacks.menuPress && this.menuIsPressed) {
-          callbacks.menuPress(this);
+    if (gamepad.buttons.length > B_BUTTON && gamepad.buttons[B_BUTTON]) {
+      if (this.bButtonIsPressed !== gamepad.buttons[B_BUTTON].pressed) {
+        this.bButtonIsPressed = gamepad.buttons[B_BUTTON].pressed;
+        if (this.bButtonIsPressed && callbacks.bButtonDown) {
+          callbacks.bButtonDown(this);
+        } else if (!this.bButtonIsPressed && callbacks.bButtonUp) {
+          callbacks.bButtonUp(this);
         }
-      }
-
-      if (gamepad.buttons[B_BUTTON]) {
-        if (this.bButtonIsPressed !== gamepad.buttons[B_BUTTON].pressed) {
-          this.bButtonIsPressed = gamepad.buttons[B_BUTTON].pressed;
-          if (this.bButtonIsPressed && callbacks.bButtonDown) {
-            callbacks.bButtonDown(this);
-          } else if (!this.bButtonIsPressed && callbacks.bButtonUp) {
-            callbacks.bButtonUp(this);
-          }
-        } else if (callbacks.bButtonPress && this.bButtonIsPressed) {
-          callbacks.bButtonPress(this);
-        }
+      } else if (callbacks.bButtonPress && this.bButtonIsPressed) {
+        callbacks.bButtonPress(this);
       }
     }
   }

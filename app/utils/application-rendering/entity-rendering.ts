@@ -31,10 +31,6 @@ export function addMeshToApplication(
 
   mesh.position.copy(centerPoint);
   applicationObject3D.add(mesh);
-
-  // console.log(applicationObject3D.uuid)
-
-  // applObj3D = applicationObject3D
 }
 
 /**
@@ -163,7 +159,6 @@ export function addFoundationAndChildrenToApplication(
 
   addMeshToApplication(mesh, applicationObject3D);
 
-  // console.log(applicationObject3D)
   const children = application.packages;
 
   children.forEach((child: Package) => {

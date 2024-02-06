@@ -241,7 +241,6 @@ export default class CollaborationSession extends Service.extend({
     // walk trough all highlighted entities and unhighlight them
     for (const highlightedEntityComponent of highlightedComponents) {
       const { highlightedApp, highlightedEntity } = highlightedEntityComponent;
-      //console.log('appID:', appId, ' , entityID: ', entityId);
       if (highlightedApp !== '') {
         const application =
           this.applicationRenderer.getApplicationById(highlightedApp);
