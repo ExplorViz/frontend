@@ -26,7 +26,7 @@ linting:
   before_script:
     - node --version
     - npm --version
-    - npm ci --cache .npm --prefer-offline
+    - npm install
   script:
     - npm run lint
   artifacts:
