@@ -47,7 +47,7 @@
     "@types/ember-test-helpers": "^1.0.16",
     "@types/ember-testing-helpers": "0.0.9",
     "@types/hammerjs": "^2.0.45",
-    "@types/node": "20.11.16",
+    "@types/node": "20.11.0",
     "@types/qunit": "^2.19.10",
     "@types/rsvp": "^4.0.9",
     "@types/three": "^0.161.2",
@@ -90,7 +90,7 @@
     "ember-print-this": "^2.0.0",
     "ember-qunit": "^8.0.2",
     "ember-resolver": "^11.0.1",
-    "ember-source": "~5.6.0",
+    "ember-source": "~5.4.0",
     "ember-style-modifier": "^4.2.0",
     "ember-svg-jar": "^2.4.8",
     "ember-template-lint": "^5.13.0",
@@ -108,9 +108,6 @@
     "prettier": "^3.2.5",
     "qunit": "^2.20.0",
     "qunit-dom": "^3.0.0",
-    "stylelint": "^16.2.1",
-    "stylelint-config-standard": "^36.0.0",
-    "stylelint-prettier": "^5.0.0",
     "tracked-built-ins": "^3.3.0",
     "typescript": "5.3.3",
     "webpack": "^5.90.1",
@@ -118,7 +115,8 @@
     "yuidocjs": "^0.10.2"
   },
   "engines": {
-    "node": ">= 18"
+    "node": "20.11.0",
+    "npm": "10.2.4"
   },
   "ember": {
     "edition": "octane"
@@ -140,7 +138,7 @@
     "d3-force-3d": "^3.0.5",
     "dotenv": "^16.4.1",
     "ember-ajax": "^5.1.2",
-    "ember-cli": "^5.6.0",
+    "ember-cli": "^5.4.0",
     "ember-cli-babel": "^8.2.0",
     "ember-cli-clipboard": "^1.1.0",
     "ember-cli-htmlbars": "^6.3.0",
@@ -152,8 +150,7 @@
     "ember-focus-trap": "^1.1.0",
     "ember-modifier": "4.1.0",
     "ember-resolver": "^11.0.1",
-    "ember-right-click-menu": "git://github.com/Alexander-Krause-Glau/ember-right-click-menu.git",
-    "ember-scrollable": "git://github.com/rwwagner90/ember-scrollable#9a986f3f9782b1dd77829a7a584bbe5d5ab68e4d",
+    "ember-right-click-menu": "0.8.0",
     "ember-source-channel-url": "^3.0.0",
     "ember-truth-helpers": "^4.0.3",
     "ember-websockets": "^10.2.1",
@@ -162,7 +159,7 @@
     "jquery": "^3.7.1",
     "meshline": "3.2.0",
     "moment": "^2.30.1",
-    "npm": "^10.4.0",
+    "npm": "^10.2.4",
     "npm-run-all": "^4.1.5",
     "plotly.js-dist": "^2.29.0",
     "rsvp": "^4.8.5",
