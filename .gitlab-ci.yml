@@ -24,10 +24,10 @@ workflow:
 linting:
   stage: code-analysis
   before_script:
-    - npm install --cache .npm --prefer-offline
-  script:
     - node --version
     - npm --version
+    - npm install --cache .npm --prefer-offline
+  script:
     - npm run lint
   artifacts:
     expire_in: 1h
