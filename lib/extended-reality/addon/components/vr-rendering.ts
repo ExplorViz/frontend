@@ -58,7 +58,6 @@ import ScrollDownButton from 'extended-reality/utils/view-objects/vr/scroll-down
 import ScrollUpButton from 'extended-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'extended-reality/utils/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'extended-reality/utils/view-objects/vr/keyboard-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'extended-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'extended-reality/utils/view-objects/vr/user-list-item';
 import OpenEntityButton from 'extended-reality/utils/view-objects/vr/open-entity-button';
@@ -98,6 +97,7 @@ import {
 } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
   debugMode: boolean;
@@ -145,6 +145,9 @@ export default class VrRendering extends Component<Args> {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -345,21 +348,13 @@ export default class VrRendering extends Component<Args> {
     this.primaryInputManager.addInputHandler({
       targetType: BaseMesh,
       hover: (event) => {
-        if (
-          !(event.intersection.object instanceof ClazzMesh) &&
-          !(event.intersection.object instanceof ClazzCommunicationMesh)
-        ) {
-          // prevents BaseMesh and ClazzMesh/ClazzCommunicationMesh fighting over applying the hover-effect since ClazzMesh/ClazzCommunicationMesh is a subclass of BaseMesh
-          event.target.applyHoverEffect();
-        }
+        event.target.applyHoverEffect();
+        this.highlightingService.updateHighlightingOnHover(
+          event.target.highlighted
+        );
       },
       resetHover: (event) => {
-        if (
-          !(event.intersection.object instanceof ClazzMesh) &&
-          !(event.intersection.object instanceof ClazzCommunicationMesh)
-        ) {
-          event.target.resetHoverEffect();
-        }
+        event.target.resetHoverEffect();
       },
     });
 
@@ -511,41 +506,15 @@ export default class VrRendering extends Component<Args> {
     this.secondaryInputManager.addInputHandler({
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
-        if (
-          event.intersection.object instanceof ClazzCommunicationMesh &&
-          event.intersection.object.parent !== null
-        ) {
+        if (event.target.parent !== null) {
           // in VR parent is null if we handle intern communication links. But they are already handled elsewhere anyway
           this.applicationRenderer.highlightExternLink(
-            event.intersection.object,
+            event.target,
             true,
             this.localUser.color
           );
         }
       },
-      hover: (event) => {
-        if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          event.target.applyHoverEffect(this.localUser.visualizationMode);
-        }
-      },
-      resetHover: (event) => {
-        if (event.intersection.object instanceof ClazzCommunicationMesh) {
-          event.target.resetHoverEffect(this.localUser.visualizationMode);
-        }
-      },
-    });
-
-    this.secondaryInputManager.addInputHandler({
-      targetType: ClazzMesh,
-      hover: (
-        event /*{
-      if (event.intersection.object instanceof ClazzMesh) {*/
-      ) =>
-        event.target.applyHoverEffect(this.localUser.visualizationMode) /*}}*/,
-      resetHover: (
-        event /*{ if (event.intersection.object instanceof ClazzMesh) {*/
-      ) =>
-        event.target.resetHoverEffect(this.localUser.visualizationMode) /*}}*/,
     });
   }
 
