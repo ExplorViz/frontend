@@ -15,7 +15,7 @@ module.exports = (environment) => {
     if (dotEnvConfig.error) {
       throw (
         new Error(
-          'Could not find .env-custom file. Did you follow the development instructions?\n',
+          'Could not find .env-custom file. Did you follow the development instructions?\n'
         ) + dotEnvConfig.error
       );
     }
