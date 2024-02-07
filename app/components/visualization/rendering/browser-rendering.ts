@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -35,17 +35,17 @@ import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUser from 'collaborative-mode/services/spectate-user';
+import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -91,8 +91,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;

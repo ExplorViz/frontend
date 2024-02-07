@@ -2,7 +2,7 @@
 @import '_sidebar';
 @import '_settings';
 @import '_timeline';
-@import '_alertify';
+@import '_toast';
 @import '_pagenavigation';
 @import '_navbar';
 @import '_visualization_navbar';
@@ -11,9 +11,9 @@
 @import '_right_click_menu';
 @import '_popover';
 @import '_play_pause';
-// located in lib/virtual-reality/addon/styles
+// located in lib/extended-reality/addon/styles
 @import '_augmented_reality';
-// located in lib/virtual-reality/addon/styles
+// located in lib/extended-reality/addon/styles
 @import '_virtual_reality';
 
 // located in lib/heatmap/addon/styles

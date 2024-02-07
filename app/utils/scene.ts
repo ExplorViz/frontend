@@ -1,6 +1,6 @@
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaboration/services/local-user';
 import * as THREE from 'three';
-import FloorMesh from 'virtual-reality/utils/view-objects/vr/floor-mesh';
+import FloorMesh from 'extended-reality/utils/view-objects/vr/floor-mesh';
 
 const FLOOR_SIZE = 1000;
 

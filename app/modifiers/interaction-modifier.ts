@@ -2,8 +2,8 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -11,7 +11,7 @@ import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 
 export type Position2D = {
   x: number;
@@ -89,8 +89,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   isMouseOnCanvas = false;
 
@@ -450,7 +450,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.setPointerCapture(event.pointerId);
     }
     this.pointers.push(event);
-    // AlertifyHandler.showAlertifyMessage('Event-pointer-type: ' + event.pointerType)
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.handlePinchStart();
       this.handleRotateStart();

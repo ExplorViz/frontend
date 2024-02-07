@@ -1,5 +1,6 @@
 import Service from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { inject as service } from '@ember/service';
 
 export interface MessageArgs {
   title: string;
@@ -12,6 +13,10 @@ export default class ToastMessage extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
   // These functions can be overriden by vr-rendering to enable WebGL-based messages
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
+
   info!: (message: string) => void;
 
   message!: (message: MessageArgs) => void;
@@ -22,14 +27,16 @@ export default class ToastMessage extends Service.extend({
 
   init() {
     super.init();
-    this.info = (message) => AlertifyHandler.showAlertifyMessage(message);
+    this.info = (message) =>
+      this.toastHandlerService.showInfoToastMessage(message);
     this.message = (message) =>
-      AlertifyHandler.showAlertifyMessageWithDuration(
-        `${message.title}: ${message.text}`,
-        message.time
+      this.toastHandlerService.showInfoToastMessage(
+        `${message.title}: ${message.text}`
       );
-    this.success = (message) => AlertifyHandler.showAlertifySuccess(message);
-    this.error = (message) => AlertifyHandler.showAlertifyError(message);
+    this.success = (message) =>
+      this.toastHandlerService.showSuccessToastMessage(message);
+    this.error = (message) =>
+      this.toastHandlerService.showErrorToastMessage(message);
   }
 }
 
