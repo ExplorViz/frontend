@@ -1,7 +1,7 @@
 default:
   tags:
     - exec-docker
-  image: explorviz/build-images:frontend-v20.11.0-npm-latest
+  image: explorviz/build-images:frontend-v20.11.0
   cache: # Cache modules in between jobs
     key: $CI_COMMIT_REF_SLUG
     paths:
@@ -26,7 +26,7 @@ linting:
   before_script:
     - node --version
     - npm --version
-    - npm install --loglevel silly
+    - npm install
   script:
     - npm run lint
   artifacts:
