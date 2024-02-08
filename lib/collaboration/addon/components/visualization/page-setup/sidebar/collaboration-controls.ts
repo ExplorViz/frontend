@@ -53,6 +53,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       users.push({
         name: `${this.localUser.userName} (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
+        isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
       });
@@ -66,6 +67,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
         remoteUserId: user.userId,
         name: user.userName,
         style: `color:#${user.color.getHexString()}`,
+        isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,
       };
@@ -135,6 +137,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     } else {
       this.spectateUserService.deactivate();
     }
+  }
+
+  @action
+  shareSettings() {
+    console.log('share settings');
   }
 
   @action
