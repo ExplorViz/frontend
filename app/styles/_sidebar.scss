@@ -85,6 +85,11 @@
   z-index: 1000;
 }
 
+.sidebar-card-container {
+  overflow: auto;
+  width: 100%;
+}
+
 .sidebar-card {
   background-color: rgba(rgb(255, 255, 255), 0.95) !important;
   pointer-events: all;

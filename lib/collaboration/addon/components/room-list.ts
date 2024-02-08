@@ -39,17 +39,22 @@ export default class RoomList extends Component<RoomListArgs> {
     }
     const rooms = await this.roomService.listRooms();
     rooms.forEach((room) => {
-      room.alias = this.args.tokens.findBy('value', room.landscapeToken)?.alias;
+      room.alias = this.args.tokens.find(
+        (elem) => elem.value == room.landscapeToken
+      )?.alias;
     });
     this.rooms = rooms.filter(
       (room) =>
-        this.args.tokens.findBy('value', room.landscapeToken) !== undefined
+        this.args.tokens.find((elem) => elem.value == room.landscapeToken) !==
+        undefined
     );
   }
 
   @action
   joinRoom(room: RoomListRecord) {
-    const token = this.args.tokens.findBy('value', room.landscapeToken);
+    const token = this.args.tokens.find(
+      (elem) => elem.value == room.landscapeToken
+    );
     if (token) {
       this.args.selectToken(token);
       this.collaborationSession.joinRoom(room.roomId);

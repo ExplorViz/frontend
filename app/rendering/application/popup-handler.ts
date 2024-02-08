@@ -65,12 +65,12 @@ export default class PopupHandler {
 
   @action
   removeUnpinnedPopups() {
-    this.popupData = this.popupData.filterBy('isPinned', true);
+    this.popupData = this.popupData.filter((data) => data.isPinned);
   }
 
   @action
   removeUnmovedPopups() {
-    this.popupData = this.popupData.filterBy('wasMoved', true);
+    this.popupData = this.popupData.filter((data) => data.wasMoved);
   }
 
   @action

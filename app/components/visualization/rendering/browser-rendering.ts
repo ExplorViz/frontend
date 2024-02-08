@@ -171,7 +171,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.camera.position.set(5, 5, 5);
 
-    this.applicationRenderer.getOpenApplications().clear();
+    //this.applicationRenderer.getOpenApplications().clear();
     // force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
     this.graph = forceGraph.graph;

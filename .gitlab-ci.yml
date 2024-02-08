@@ -1,7 +1,7 @@
 default:
   tags:
     - exec-docker
-  image: explorviz/build-images:frontend
+  image: explorviz/build-images:frontend-v20.11.0-debian
   cache: # Cache modules in between jobs
     key: $CI_COMMIT_REF_SLUG
     paths:
@@ -24,10 +24,10 @@ workflow:
 linting:
   stage: code-analysis
   before_script:
-    - npm install --cache .npm --prefer-offline
-  script:
     - node --version
     - npm --version
+    - npm install
+  script:
     - npm run lint
   artifacts:
     expire_in: 1h
