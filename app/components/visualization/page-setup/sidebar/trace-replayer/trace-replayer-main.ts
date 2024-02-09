@@ -42,7 +42,7 @@ export default class TraceReplayerMain extends Component<Args> {
       const [firstStep] = this.traceSteps;
       this.currentTraceStep = firstStep;
 
-      this.args.highlightTrace(this.args.selectedTrace, firstStep.spanId);
+      //this.args.highlightTrace(this.args.selectedTrace, firstStep.spanId);
 
       if (this.isReplayAnimated) {
         this.args.moveCameraTo(this.currentTraceStep);
