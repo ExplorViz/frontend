@@ -145,6 +145,9 @@
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::TraceReplayerOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
             </ul>
           </div>
           {{#each @components as |componentId|}}
@@ -167,7 +170,7 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
-              {{#if (eq componentId 'trace-selection')}}
+              {{#if (eq componentId 'trace-replayer')}}
                 {{#if this.selectedApplicationObject3D}}
                   <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                     @highlightTrace={{this.highlightTrace}}
