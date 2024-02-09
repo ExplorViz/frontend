@@ -66,6 +66,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
@@ -103,6 +104,9 @@ interface IModifierArgs {
 export default class CollaborativeModifierModifier extends Modifier<IModifierArgs> {
   args: IModifierArgs;
   element: unknown;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
@@ -402,10 +406,15 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   }
 
   onShareSettings({
-    // userId,
+    userId,
     originalMessage: { settings },
   }: ForwardedMessage<ShareSettingsMessage>): void {
     this.userSettings.updateSettings(settings as ApplicationSettings);
+
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+    this.toastHandlerService.showInfoToastMessage(
+      'Applied settings from user ' + remoteUser?.userName
+    );
   }
 
   onRestructureModeUpdate(): void {
