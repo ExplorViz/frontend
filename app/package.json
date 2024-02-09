@@ -61,7 +61,6 @@
     "broccoli-asset-rev": "^3.0.0",
     "ember-auto-import": "^2.7.0",
     "ember-bootstrap": "^6.0.1",
-    "ember-bootstrap-power-select": "^5.0.0",
     "ember-cli": "~4.12.1",
     "ember-cli-app-version": "^6.0.1",
     "ember-cli-babel": "^8.2.0",
@@ -95,6 +94,7 @@
     "ember-style-modifier": "^3.0.1",
     "ember-svg-jar": "^2.4.7",
     "ember-template-lint": "^5.13.0",
+    "ember-tether": "3.0.0",
     "ember-try": "^3.0.0",
     "ember-web-workers": "^1.0.0",
     "ember-welcome-page": "^7.0.2",
@@ -110,6 +110,7 @@
     "prettier": "^3.1.0",
     "qunit": "^2.20.0",
     "qunit-dom": "^3.0.0",
+    "some-react-lib": "workspace:^1.0.0",
     "typescript": "5.3.2",
     "webpack": "^5.89.0",
     "webpack-bundle-analyzer": "^4.7.0",
@@ -172,6 +173,11 @@
     "three-forcegraph": "^1.41.10",
     "three-mesh-ui": "^6.5.4",
     "vanilla-picker": "^2.12.2"
+  },
+  "dependenciesMeta": {
+    "some-react-lib": {
+      "injected": true
+    }
   },
   "overrides": {
     "ember-cli-ifa": "~0.10.0"
