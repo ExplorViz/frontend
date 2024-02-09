@@ -170,7 +170,7 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
-              {{#if (eq componentId 'trace-replayer')}}
+              {{#if (eq componentId 'Trace-Replayer')}}
                 {{#if this.selectedApplicationObject3D}}
                   <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                     @highlightTrace={{this.highlightTrace}}
@@ -178,7 +178,7 @@
                     @removeHighlighting={{this.removeHighlighting}}
                     @dynamicData={{@landscapeData.dynamicLandscapeData}}
                     @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.dataModel}}
+                    @application={{this.selectedApplicationObject3D.data.application}}
                   />
                 {{else}}
                   Please select an application to use the trace overview.
