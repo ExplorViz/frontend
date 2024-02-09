@@ -26,10 +26,14 @@ import {
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
+import MessageSender from 'collaboration/services/message-sender';
 
 export default class UserSettings extends Service {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @tracked
   applicationSettings!: ApplicationSettings;
@@ -87,6 +91,15 @@ export default class UserSettings extends Service {
     if (saveSettings) {
       this.saveSettings();
     }
+  }
+
+  shareApplicationSettings() {
+    this.sender.sendSharedSettings(this.applicationSettings);
+  }
+
+  updateSettings(settings: ApplicationSettings) {
+    this.applicationSettings = settings;
+    this.updateColors();
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {

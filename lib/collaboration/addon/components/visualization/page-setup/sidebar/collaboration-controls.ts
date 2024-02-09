@@ -9,6 +9,7 @@ import SpectateUser from 'collaboration/services/spectate-user';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -33,6 +34,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
+
+  @service('user-settings')
+  userSettings!: UserSettings;
 
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
@@ -141,7 +145,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   shareSettings() {
-    console.log('share settings');
+    this.userSettings.shareApplicationSettings();
   }
 
   @action

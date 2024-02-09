@@ -1,35 +1,36 @@
-import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-import debugLogger from 'ember-debug-logger';
-import ENV from 'explorviz-frontend/config/environment';
-import { io, Socket } from 'socket.io-client';
+import Service from '@ember/service';
 import { VisualizationMode } from 'collaboration/services/local-user';
 import { INITIAL_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/landscape';
 import { SELF_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/self-connected';
+import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
 import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-connected';
 import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
-import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
-import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import { APP_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/app-opened';
-import { HEATMAP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/heatmap-update';
 import { COMPONENT_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/component-update';
+import { HEATMAP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/heatmap-update';
 import { HIGHLIGHTING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
 import { MOUSE_PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/mouse-ping-update';
 import { PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
+import { SHARE_SETTINGS_EVENT } from 'collaboration/utils/web-socket-messages/sendable/share-settings';
+import { SPECTATING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
 import { TIMESTAMP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
-import { USER_CONTROLLER_CONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
-import { USER_CONTROLLER_DISCONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
-import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+import { Nonce } from 'collaboration/utils/web-socket-messages/types/nonce';
+import debugLogger from 'ember-debug-logger';
+import ENV from 'explorviz-frontend/config/environment';
+import { MENU_DETACHED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+import { OBJECT_CLOSED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+import { OBJECT_GRABBED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-grabbed';
+import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
 import { OBJECT_MOVED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
 import { APP_CLOSED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/app-closed';
 import { DETACHED_MENU_CLOSED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { SPECTATING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
-import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
-import { OBJECT_CLOSED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
-import { MENU_DETACHED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
-import { OBJECT_GRABBED_RESPONSE_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-grabbed';
-import { Nonce } from 'collaboration/utils/web-socket-messages/types/nonce';
+import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import { USER_CONTROLLER_CONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+import { USER_CONTROLLER_DISCONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+import { io, Socket } from 'socket.io-client';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -38,34 +39,35 @@ const { collaborationService } = ENV.backendAddresses;
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
 const RECEIVABLE_EVENTS = [
-  INITIAL_LANDSCAPE_EVENT,
-  SELF_CONNECTED_EVENT,
-  USER_CONNECTED_EVENT,
-  USER_DISCONNECTED_EVENT,
-  TIMESTAMP_UPDATE_TIMER_EVENT,
-  MENU_DETACHED_EVENT,
+  ALL_HIGHLIGHTS_RESET_EVENT,
+  APP_CLOSED_EVENT,
   APP_OPENED_EVENT,
   COMPONENT_UPDATE_EVENT,
+  DETACHED_MENU_CLOSED_EVENT,
   HEATMAP_UPDATE_EVENT,
   HIGHLIGHTING_UPDATE_EVENT,
+  INITIAL_LANDSCAPE_EVENT,
+  JOIN_VR_EVENT,
+  MENU_DETACHED_EVENT,
+  MENU_DETACHED_EVENT,
   MOUSE_PING_UPDATE_EVENT,
+  OBJECT_MOVED_EVENT,
   PING_UPDATE_EVENT,
+  SELF_CONNECTED_EVENT,
+  SHARE_SETTINGS_EVENT,
+  SPECTATING_UPDATE_EVENT,
   TIMESTAMP_UPDATE_EVENT,
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+  USER_CONNECTED_EVENT,
   USER_CONTROLLER_CONNECT_EVENT,
   USER_CONTROLLER_DISCONNECT_EVENT,
+  USER_DISCONNECTED_EVENT,
   USER_POSITIONS_EVENT,
-  OBJECT_MOVED_EVENT,
-  APP_CLOSED_EVENT,
-  DETACHED_MENU_CLOSED_EVENT,
-  MENU_DETACHED_EVENT,
-  SPECTATING_UPDATE_EVENT,
-  ALL_HIGHLIGHTS_RESET_EVENT,
-  JOIN_VR_EVENT,
 ];
 
 const RESPONSE_EVENTS = [
-  OBJECT_CLOSED_RESPONSE_EVENT,
   MENU_DETACHED_RESPONSE_EVENT,
+  OBJECT_CLOSED_RESPONSE_EVENT,
   OBJECT_GRABBED_RESPONSE_EVENT,
 ];
 
