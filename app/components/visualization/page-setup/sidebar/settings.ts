@@ -10,7 +10,6 @@ import {
   ApplicationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
-import CollaborationSession from 'collaboration/services/collaboration-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
@@ -34,9 +33,6 @@ export default class Settings extends Component<Args> {
 
   @service('configuration')
   configuration!: Configuration;
-
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
 
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
@@ -138,15 +134,6 @@ export default class Settings extends Component<Args> {
   updateFlagSetting(name: ApplicationSettingId, value: boolean) {
     const settingId = name as ApplicationSettingId;
     try {
-      if (
-        this.collaborationSession.connectionStatus === 'online' &&
-        settingId === 'keepHighlightingOnOpenOrClose'
-      ) {
-        this.toastHandlerService.showErrorToastMessage(
-          'Switching Mode Not Allowed In Collaboration Session'
-        );
-        return;
-      }
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);

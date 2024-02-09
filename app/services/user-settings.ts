@@ -27,13 +27,21 @@ import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
 import MessageSender from 'collaboration/services/message-sender';
+import HighlightingService from './highlighting-service';
+import ApplicationRenderer from './application-renderer';
 
 export default class UserSettings extends Service {
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
   @service('message-sender')
   private sender!: MessageSender;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @tracked
   applicationSettings!: ApplicationSettings;
@@ -99,7 +107,10 @@ export default class UserSettings extends Service {
 
   updateSettings(settings: ApplicationSettings) {
     this.applicationSettings = settings;
+
     this.updateColors();
+    this.applicationRenderer.addCommunicationForAllApplications();
+    this.highlightingService.updateHighlighting();
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
