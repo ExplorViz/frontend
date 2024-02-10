@@ -145,6 +145,9 @@
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::TraceReplayerOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
             </ul>
           </div>
           {{#each @components as |componentId|}}
@@ -167,15 +170,15 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
-              {{#if (eq componentId 'trace-selection')}}
+              {{#if (eq componentId 'Trace-Replayer')}}
                 {{#if this.selectedApplicationObject3D}}
                   <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                     @highlightTrace={{this.highlightTrace}}
                     @moveCameraTo={{this.moveCameraTo}}
-                    @removeHighlighting={{this.removeHighlighting}}
+                    @removeHighlighting={{this.removeAllHighlighting}}
                     @dynamicData={{@landscapeData.dynamicLandscapeData}}
                     @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.dataModel}}
+                    @application={{this.selectedApplicationObject3D.data.application}}
                   />
                 {{else}}
                   Please select an application to use the trace overview.
