@@ -131,7 +131,7 @@ export default class VisualizationController extends Controller {
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  roomId?: string;
+  roomId?: string | undefined | null;
 
   @tracked
   showSettingsSidebar = false;
@@ -510,6 +510,8 @@ export default class VisualizationController extends Controller {
     this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
+
+    this.roomId = null;
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(

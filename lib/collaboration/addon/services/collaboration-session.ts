@@ -75,6 +75,9 @@ export default class CollaborationSession extends Service.extend({
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('router')
+  router!: any;
+
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
 
@@ -331,6 +334,9 @@ export default class CollaborationSession extends Service.extend({
 
   async joinRoom(roomId: string) {
     if (this.isConnecting) {
+      this.toastHandlerService.showErrorToastMessage(
+        'Tried to join room while already connecting to a room.'
+      );
       return;
     }
 
@@ -348,6 +354,9 @@ export default class CollaborationSession extends Service.extend({
 
     if (token) {
       this.tokenService.setToken(token);
+      this.router.transitionTo('visualization', {
+        queryParams: { landscapeToken: token.value, roomId: roomId },
+      });
     } else {
       this.toastHandlerService.showErrorToastMessage(
         'Could not find landscape token for room to join.'
@@ -393,6 +402,11 @@ export default class CollaborationSession extends Service.extend({
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
     this.webSocket.closeSocket();
+
+    // Update roomId in URL
+    this.router.transitionTo('visualization', {
+      queryParams: { roomId: null },
+    });
   }
 
   /**
