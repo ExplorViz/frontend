@@ -94,6 +94,11 @@ import {
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
+import {
+  SHARE_SETTINGS_EVENT,
+  ShareSettingsMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/share-settings';
+import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 
 export default class MessageSender extends Service {
   @service('web-socket')
@@ -214,6 +219,13 @@ export default class MessageSender extends Service {
       entityId,
       isHighlighted,
       multiSelected: isMultiSelected,
+    });
+  }
+
+  sendSharedSettings(settings: ApplicationSettings) {
+    this.webSocket.send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
+      event: SHARE_SETTINGS_EVENT,
+      settings,
     });
   }
 

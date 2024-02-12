@@ -122,7 +122,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   controls!: MapControls;
 
-  ortographicCamera!: THREE.OrthographicCamera;
   private frustumSize = 5;
 
   cameraControls!: CameraControls;
@@ -290,14 +289,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
 
-    this.ortographicCamera.left = (this.frustumSize * newAspectRatio) / -2;
-    this.ortographicCamera.right = (this.frustumSize * newAspectRatio) / 2;
-    this.ortographicCamera.top = this.frustumSize / 2;
-    this.ortographicCamera.bottom = -this.frustumSize / 2;
+    this.localUser.ortographicCamera.left =
+      (this.frustumSize * newAspectRatio) / -2;
+    this.localUser.ortographicCamera.right =
+      (this.frustumSize * newAspectRatio) / 2;
+    this.localUser.ortographicCamera.top = this.frustumSize / 2;
+    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
 
-    this.ortographicCamera.userData.aspect = newAspectRatio;
+    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
 
-    this.ortographicCamera.updateProjectionMatrix();
+    this.localUser.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -337,7 +338,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.localUser.defaultCamera);
 
-    this.ortographicCamera = new THREE.OrthographicCamera(
+    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
       -aspectRatio * this.frustumSize,
       aspectRatio * this.frustumSize,
       this.frustumSize,
@@ -346,19 +347,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       100
     );
 
-    this.ortographicCamera.userData.aspect = aspectRatio;
+    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
 
-    this.ortographicCamera.position.setFromSphericalCoords(
+    this.localUser.ortographicCamera.position.setFromSphericalCoords(
       10,
       Math.PI / 3,
       Math.PI / 4
     );
-    this.ortographicCamera.lookAt(this.scene.position);
+    this.localUser.ortographicCamera.lookAt(this.scene.position);
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      this.ortographicCamera,
+      this.localUser.ortographicCamera,
       this.canvas
     );
 
@@ -381,7 +382,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: this.ortographicCamera,
+      orthographicCamera: this.localUser.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,

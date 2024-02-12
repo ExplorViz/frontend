@@ -7,6 +7,7 @@ import { WebXRManager } from 'three';
 import VRController from 'extended-reality/utils/vr-controller';
 import { getPoses } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -19,6 +20,9 @@ export default class LocalUser extends Service.extend({
   @service('message-sender')
   sender!: MessageSender;
 
+  @service('user-settings')
+  settings!: UserSettings;
+
   userId!: string;
 
   @tracked
@@ -29,6 +33,9 @@ export default class LocalUser extends Service.extend({
 
   @tracked
   defaultCamera!: THREE.PerspectiveCamera;
+
+  @tracked
+  orthographicCamera!: THREE.OrthographicCamera;
 
   @tracked
   visualizationMode: VisualizationMode = 'browser';
@@ -59,6 +66,7 @@ export default class LocalUser extends Service.extend({
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
+    this.orthographicCamera = new THREE.OrthographicCamera();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
@@ -75,6 +83,9 @@ export default class LocalUser extends Service.extend({
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
     }
+    if (this.settings.applicationSettings.useOrthographicCamera.value) {
+      return this.orthographicCamera;
+    }
     return this.defaultCamera;
   }
 
@@ -88,7 +99,7 @@ export default class LocalUser extends Service.extend({
 
   sendPositions() {
     const { camera, controller1, controller2 } = getPoses(
-      this.defaultCamera,
+      this.camera,
       this.controller1,
       this.controller2
     );
