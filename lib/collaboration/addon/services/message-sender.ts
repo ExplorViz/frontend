@@ -1,11 +1,56 @@
 import Service, { inject as service } from '@ember/service';
+import { AllHighlightsResetMessage } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
+import {
+  CHANGE_LANDSCAPE_EVENT,
+  ChangeLandscapeMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
+import {
+  CHANGELOG_REMOVE_ENTRY_EVENT,
+  CHANGELOG_RESTORE_ENTRIES_EVENT,
+  ChangeLogRemoveEntryMessage,
+  ChangeLogRestoreEntriesMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/ping-update';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
+import { ControllerId } from 'collaboration/utils/web-socket-messages/types/controller-id';
+import {
+  EntityType,
+  RestructureAction,
+} from 'explorviz-frontend/utils/restructure-helper';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import VRController from 'extended-reality/utils/vr-controller';
+import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
+import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import {
+  OBJECT_MOVED_EVENT,
+  ObjectMovedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
+import {
+  OBJECT_RELEASED_EVENT,
+  ObjectReleasedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-released';
+import {
+  USER_CONTROLLER_CONNECT_EVENT,
+  UserControllerConnectMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+import {
+  USER_CONTROLLER_DISCONNECT_EVENT,
+  UserControllerDisconnectMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+import {
+  ControllerPose,
+  Pose,
+  USER_POSITIONS_EVENT,
+  UserPositionsMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
 import WebSocketService from '../services/web-socket';
-import {
-  MOUSE_PING_UPDATE_EVENT,
-  MousePingUpdateMessage,
-} from '../utils/web-socket-messages/sendable/mouse-ping-update';
 import {
   APP_OPENED_EVENT,
   AppOpenedMessage,
@@ -19,9 +64,9 @@ import {
   HighlightingUpdateMessage,
 } from '../utils/web-socket-messages/sendable/highlighting-update';
 import {
-  SPECTATING_UPDATE_EVENT,
-  SpectatingUpdateMessage,
-} from '../utils/web-socket-messages/sendable/spectating-update';
+  MOUSE_PING_UPDATE_EVENT,
+  MousePingUpdateMessage,
+} from '../utils/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -51,49 +96,9 @@ import {
   RestructureUpdateMessage,
 } from '../utils/web-socket-messages/sendable/restructure-update';
 import {
-  RestructureAction,
-  EntityType,
-} from 'explorviz-frontend/utils/restructure-helper';
-import { AllHighlightsResetMessage } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
-import {
-  ControllerPose,
-  Pose,
-  UserPositionsMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
-import {
-  OBJECT_MOVED_EVENT,
-  ObjectMovedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
-import {
-  OBJECT_RELEASED_EVENT,
-  ObjectReleasedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-released';
-import { ControllerId } from 'collaboration/utils/web-socket-messages/types/controller-id';
-import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
-import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
-import VRController from 'extended-reality/utils/vr-controller';
-import {
-  USER_CONTROLLER_DISCONNECT_EVENT,
-  UserControllerDisconnectMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
-import {
-  PING_UPDATE_EVENT,
-  PingUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/ping-update';
-import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
-import {
-  USER_CONTROLLER_CONNECT_EVENT,
-  UserControllerConnectMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
-import {
-  CHANGELOG_REMOVE_ENTRY_EVENT,
-  CHANGELOG_RESTORE_ENTRIES_EVENT,
-  ChangeLogRemoveEntryMessage,
-  ChangeLogRestoreEntriesMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
+  SPECTATING_UPDATE_EVENT,
+  SpectatingUpdateMessage,
+} from '../utils/web-socket-messages/sendable/spectating-update';
 
 export default class MessageSender extends Service {
   @service('web-socket')
@@ -114,11 +119,18 @@ export default class MessageSender extends Service {
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined
   ) {
-    this.webSocket.send<UserPositionsMessage>('user_positions', {
-      event: 'user_positions',
+    this.webSocket.send<UserPositionsMessage>(USER_POSITIONS_EVENT, {
+      event: USER_POSITIONS_EVENT,
       controller1,
       controller2,
       camera,
+    });
+  }
+
+  sendChangeLandscape(landscapeToken: string) {
+    this.webSocket.send<ChangeLandscapeMessage>(CHANGE_LANDSCAPE_EVENT, {
+      event: CHANGE_LANDSCAPE_EVENT,
+      landscapeToken,
     });
   }
 

@@ -3,29 +3,32 @@ import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
-import debugLogger from 'ember-debug-logger';
-import Modifier, { ArgsFor } from 'ember-modifier';
-import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Changelog from 'explorviz-frontend/services/changelog';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import {
-  Application,
-  Class,
-  Package,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import * as THREE from 'three';
-import { Vector3 } from 'three';
-import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
+  APP_OPENED_EVENT,
+  AppOpenedMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/app-opened';
+import { CHANGE_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
+import {
+  CHANGELOG_REMOVE_ENTRY_EVENT,
+  CHANGELOG_RESTORE_ENTRIES_EVENT,
+  ChangeLogRemoveEntryMessage,
+  ChangeLogRestoreEntriesMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
+import {
+  COMPONENT_UPDATE_EVENT,
+  ComponentUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/component-update';
+import {
+  HIGHLIGHTING_UPDATE_EVENT,
+  HighlightingUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
+import {
+  MOUSE_PING_UPDATE_EVENT,
+  MousePingUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -53,31 +56,29 @@ import {
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/restructure-update';
+import debugLogger from 'ember-debug-logger';
+import Modifier, { ArgsFor } from 'ember-modifier';
+import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Changelog from 'explorviz-frontend/services/changelog';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import {
-  HIGHLIGHTING_UPDATE_EVENT,
-  HighlightingUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
-import {
-  APP_OPENED_EVENT,
-  AppOpenedMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/app-opened';
-import {
-  MOUSE_PING_UPDATE_EVENT,
-  MousePingUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/mouse-ping-update';
-import {
-  COMPONENT_UPDATE_EVENT,
-  ComponentUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/component-update';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
-import {
-  CHANGELOG_REMOVE_ENTRY_EVENT,
-  CHANGELOG_RESTORE_ENTRIES_EVENT,
-  ChangeLogRemoveEntryMessage,
-  ChangeLogRestoreEntriesMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+  Application,
+  Class,
+  Package,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
+import * as THREE from 'three';
+import { Vector3 } from 'three';
 
 interface IModifierArgs {
   positional: [];
@@ -114,6 +115,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.on(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
     this.webSocket.on(
       RESTRUCTURE_MODE_UPDATE_EVENT,
       this,
@@ -202,6 +204,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.off(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
     this.webSocket.off(
       RESTRUCTURE_MODE_UPDATE_EVENT,
       this,
@@ -389,6 +392,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         false // whenever we receive messages we don't want to resend them
       );
     }
+  }
+
+  onChangeLandscape(event: any): void {
+    console.log('Landscape changed', event);
   }
 
   onRestructureModeUpdate(): void {

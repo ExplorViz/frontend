@@ -11,6 +11,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
+import MessageSender from 'collaboration/services/message-sender';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -35,6 +36,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
+
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
@@ -155,7 +159,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   landscapeSelected(event: any) {
-    console.log('Selected landscape ' + event.target.value);
+    this.sender.sendChangeLandscape(event.target.value);
   }
 
   @action
