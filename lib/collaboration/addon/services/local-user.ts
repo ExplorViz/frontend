@@ -8,6 +8,7 @@ import VRController from 'extended-reality/utils/vr-controller';
 import { getPoses } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -152,6 +153,30 @@ export default class LocalUser extends Service.extend({
     this.renderer.setSize(width, height);
     this.defaultCamera.aspect = width / height;
     this.defaultCamera.updateProjectionMatrix();
+  }
+
+  ping(obj: THREE.Object3D | null, pingPosition: THREE.Vector3) {
+    // or touch, primary input ...
+    if (!this.mousePing || !obj) {
+      return;
+    }
+    const parentObj = obj.parent;
+    if (parentObj) {
+      parentObj.worldToLocal(pingPosition);
+
+      this.mousePing.ping.perform({
+        parentObj,
+        position: pingPosition,
+      });
+
+      if (parentObj instanceof ApplicationObject3D) {
+        this.sender.sendMousePingUpdate(
+          parentObj.getModelId(),
+          true,
+          pingPosition
+        );
+      }
+    }
   }
 
   /*

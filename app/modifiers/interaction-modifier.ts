@@ -325,27 +325,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   ping(intersectedViewObj: THREE.Intersection | null) {
-    // or touch, primary input ...
-    if (!this.localUser.mousePing || !intersectedViewObj) {
-      return;
-    }
-    const parentObj = intersectedViewObj.object.parent;
-    const pingPosition = intersectedViewObj.point;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
-
-      this.localUser.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    if (intersectedViewObj) {
+      this.localUser.ping(intersectedViewObj.object, intersectedViewObj.point);
     }
   }
 
