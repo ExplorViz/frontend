@@ -6,7 +6,9 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import SpectateUser from 'collaboration/services/spectate-user';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LandscapeTokenService, {
+  LandscapeToken,
+} from 'explorviz-frontend/services/landscape-token';
 import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 
@@ -42,6 +44,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @tracked
   deviceId = new URLSearchParams(window.location.search).get('deviceId');
+
+  @tracked
+  landscapeTokens: LandscapeToken[] = [];
 
   @computed(
     'collaborationSession.idToRemoteUser',
@@ -99,6 +104,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     }
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
+    this.landscapeTokens = await this.tokenService.retrieveTokens();
   }
 
   @action
@@ -145,6 +151,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => user.userId);
     this.spectateUserService.activateConfig(event?.target.value, remoteUserIds);
+  }
+
+  @action
+  landscapeSelected(event: any) {
+    console.log('Selected landscape ' + event.target.value);
   }
 
   @action
