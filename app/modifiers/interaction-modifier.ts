@@ -8,10 +8,8 @@ import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
-import MessageSender from 'collaboration/services/message-sender';
 
 export type Position2D = {
   x: number;
@@ -88,9 +86,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('user-settings')
   userSettings!: UserSettings;
-
-  @service('message-sender')
-  private sender!: MessageSender;
 
   isMouseOnCanvas = false;
 
@@ -325,27 +320,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   ping(intersectedViewObj: THREE.Intersection | null) {
-    // or touch, primary input ...
-    if (!this.localUser.mousePing || !intersectedViewObj) {
-      return;
-    }
-    const parentObj = intersectedViewObj.object.parent;
-    const pingPosition = intersectedViewObj.point;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
-
-      this.localUser.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    if (intersectedViewObj) {
+      this.localUser.ping(intersectedViewObj.object, intersectedViewObj.point);
     }
   }
 
