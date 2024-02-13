@@ -1,6 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
+import { inject as service } from '@ember/service';
 import {
   Span,
   Trace,
@@ -15,6 +16,8 @@ import {
   getHashCodeToClassMap,
   spanIdToClass,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import LocalUser from 'collaboration/services/local-user';
 
 interface Args {
   selectedTrace: Trace;
@@ -33,6 +36,12 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   traceSteps: Span[] = [];
 
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('local-user')
+  localUser!: LocalUser;
+
   constructor(owner: any, args: Args) {
     super(owner, args);
     const { selectedTrace } = this.args;
@@ -41,6 +50,8 @@ export default class TraceReplayerMain extends Component<Args> {
     if (this.traceSteps.length > 0) {
       const [firstStep] = this.traceSteps;
       this.currentTraceStep = firstStep;
+
+      this.pingTraceStep();
 
       if (this.isReplayAnimated) {
         this.args.moveCameraTo(this.currentTraceStep);
@@ -140,6 +151,8 @@ export default class TraceReplayerMain extends Component<Args> {
       this.currentTraceStep.spanId
     );
 
+    this.pingTraceStep();
+
     if (this.isReplayAnimated) {
       this.args.moveCameraTo(this.currentTraceStep);
     }
@@ -173,8 +186,46 @@ export default class TraceReplayerMain extends Component<Args> {
       this.currentTraceStep.spanId
     );
 
+    this.pingTraceStep();
+
     if (this.isReplayAnimated) {
       this.args.moveCameraTo(this.currentTraceStep);
+    }
+  }
+
+  private pingTraceStep() {
+    const traceOfSpan = this.args.selectedTrace;
+
+    if (!traceOfSpan) {
+      return;
+    }
+
+    if (this.sourceClass) {
+      const sourceAppObject3D = this.applicationRenderer.getApplicationById(
+        this.sourceApplication!.id
+      );
+
+      const sourceClazzMesh = sourceAppObject3D!.getBoxMeshbyModelId(
+        this.sourceClass!.id
+      );
+
+      this.localUser.ping(
+        sourceClazzMesh!,
+        sourceClazzMesh!.getWorldPosition(sourceClazzMesh!.position)
+      );
+    } else if (this.targetClass) {
+      const targetAppObject3D = this.applicationRenderer.getApplicationById(
+        this.targetApplication!.id
+      );
+
+      const targetClazzMesh = targetAppObject3D!.getBoxMeshbyModelId(
+        this.targetClass.id
+      );
+
+      this.localUser.ping(
+        targetClazzMesh!,
+        targetClazzMesh!.getWorldPosition(targetClazzMesh!.position)
+      );
     }
   }
 }
