@@ -18,9 +18,11 @@ export default class MousePing {
     async ({
       parentObj,
       position,
+      durationInMs,
     }: {
       parentObj: THREE.Object3D;
       position: THREE.Vector3;
+      durationInMs: number;
     }) => {
       if (this.mesh) {
         this.mesh.parent?.remove(this.mesh);
@@ -36,7 +38,7 @@ export default class MousePing {
       this.mesh.position.copy(position);
       parentObj.add(this.mesh);
       this.mesh.startPinging();
-      await timeout(5000);
+      await timeout(durationInMs);
       this.mesh.stopPinging();
 
       this.mesh.parent?.remove(this.mesh);

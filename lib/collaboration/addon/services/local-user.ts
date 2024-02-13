@@ -155,7 +155,11 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera.updateProjectionMatrix();
   }
 
-  ping(obj: THREE.Object3D | null, pingPosition: THREE.Vector3) {
+  ping(
+    obj: THREE.Object3D | null,
+    pingPosition: THREE.Vector3,
+    durationInMs: number = 5000
+  ) {
     // or touch, primary input ...
     if (!this.mousePing || !obj) {
       return;
@@ -167,6 +171,7 @@ export default class LocalUser extends Service.extend({
       this.mousePing.ping.perform({
         parentObj,
         position: pingPosition,
+        durationInMs,
       });
 
       if (parentObj instanceof ApplicationObject3D) {

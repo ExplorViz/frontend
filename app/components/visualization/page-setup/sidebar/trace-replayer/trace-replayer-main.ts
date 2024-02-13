@@ -211,7 +211,8 @@ export default class TraceReplayerMain extends Component<Args> {
 
       this.localUser.ping(
         sourceClazzMesh!,
-        sourceClazzMesh!.getWorldPosition(sourceClazzMesh!.position)
+        sourceClazzMesh!.getWorldPosition(sourceClazzMesh!.position),
+        2000
       );
     } else if (this.targetClass) {
       const targetAppObject3D = this.applicationRenderer.getApplicationById(
@@ -224,7 +225,8 @@ export default class TraceReplayerMain extends Component<Args> {
 
       this.localUser.ping(
         targetClazzMesh!,
-        targetClazzMesh!.getWorldPosition(targetClazzMesh!.position)
+        targetClazzMesh!.getWorldPosition(targetClazzMesh!.position),
+        2000
       );
     }
   }
