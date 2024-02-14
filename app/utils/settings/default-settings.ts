@@ -192,13 +192,26 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Switch between orthographic and perspective camera',
     isFlagSetting: true,
   },
+  cameraFov: {
+    value: 75,
+    range: {
+      min: 50.0,
+      max: 150.0,
+      step: 5.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Field of view',
+    description: 'Set field of view for the perspective camera',
+    isRangeSetting: true,
+  },
   // XR Settings
   showXRButton: {
     value: true,
     orderNumber: 1,
-    group: 'Extended Reality',
-    displayName: 'Show XR Button',
-    description: 'Toggle visibility of XR button',
+    group: 'Virtual Reality',
+    displayName: 'Show VR Button',
+    description: 'Toggle visibility of VR button',
     isFlagSetting: true,
   },
   // Debug Settings

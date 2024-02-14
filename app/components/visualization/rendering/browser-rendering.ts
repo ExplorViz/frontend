@@ -305,7 +305,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const aspectRatio = this.canvas.width / this.canvas.height;
     // camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
+      this.userSettings.applicationSettings.cameraFov.value,
       aspectRatio,
       0.1,
       100
