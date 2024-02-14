@@ -222,6 +222,7 @@ export default class SpectateUser extends Service {
     // Add spectating users if we are spectated
     if (spectatedUser instanceof LocalUser) {
       spectatingUserIds.forEach((userId) => this.addSpectatingUser(userId));
+      this.applyCameraConfiguration(configuration);
       return;
     }
 
