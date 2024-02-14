@@ -3,9 +3,9 @@ export type SettingGroup =
   | 'Colors'
   | 'Communication'
   | 'Highlighting'
-  | 'Hover Effects'
-  | 'Popup'
-  | 'Extended Reality'
+  | 'Hover Effect'
+  | 'Popups'
+  | 'Virtual Reality'
   | 'Debugging';
 
 export type ApplicationColorSettingId =

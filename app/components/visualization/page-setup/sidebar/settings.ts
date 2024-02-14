@@ -12,6 +12,7 @@ import {
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LocalUser from 'collaboration/services/local-user';
 
 interface Args {
   updateHighlighting?(): void;
@@ -27,6 +28,9 @@ export default class Settings extends Component<Args> {
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -51,13 +55,13 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       ApplicationSettingId[]
     > = {
-      'Hover Effects': [],
+      Camera: [],
       Colors: [],
       Communication: [],
       Highlighting: [],
-      Popup: [],
-      Camera: [],
-      'Extended Reality': [],
+      'Hover Effect': [],
+      Popups: [],
+      'Virtual Reality': [],
       Debugging: [],
     };
 
@@ -87,6 +91,9 @@ export default class Settings extends Component<Args> {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
+    if (input === undefined) {
+      return;
+    }
 
     const settingId = name as ApplicationSettingId;
     try {
@@ -108,6 +115,10 @@ export default class Settings extends Component<Args> {
           this.args.redrawCommunication();
           this.args.updateHighlighting();
         }
+        break;
+      case 'cameraFov':
+        this.localUser.defaultCamera.fov = input;
+        this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       default:
         break;
@@ -173,6 +184,9 @@ export default class Settings extends Component<Args> {
       this.args.updateColors?.();
       this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
+      this.localUser.defaultCamera.fov =
+        this.userSettings.applicationSettings.cameraFov.value;
+      this.localUser.defaultCamera.updateProjectionMatrix();
     }
   }
 }

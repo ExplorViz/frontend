@@ -126,8 +126,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
   enableHoverEffects: {
     value: true,
     orderNumber: 1,
-    group: 'Hover Effects',
-    displayName: 'Enable Hover Effects',
+    group: 'Hover Effect',
+    displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
     isFlagSetting: true,
   },
@@ -177,7 +177,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   enableCustomPopupPosition: {
     value: true,
     orderNumber: 1,
-    group: 'Popup',
+    group: 'Popups',
     displayName: 'Enable Custom Popup Positioning',
     description:
       'If enabled, popups can be dragged to a prefered, fixed position',
