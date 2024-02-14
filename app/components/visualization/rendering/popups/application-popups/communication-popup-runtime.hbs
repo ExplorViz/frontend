@@ -1,0 +1,141 @@
+<table class='w-100'>
+  <tbody>
+    {{! Aggregated Information }}
+    {{#if (gt @communication.communication.methodCalls.length 1)}}
+      {{! Aggregated request count }}
+      <tr>
+        <td class='text-nowrap align-top'>{{svg-jar
+            'code-16'
+            class='octicon align-middle mr-1'
+          }}</td>
+        <td class='text-right text-break pl-1'>
+          {{@communication.communication.totalRequests}}
+          ( 100% )
+        </td>
+      </tr>
+      {{! # of unique method calls }}
+      <tr>
+        <td class='text-nowrap align-top'>#</td>
+        <td class='text-right text-break pl-1'>
+          {{@communication.communication.methodCalls.length}}
+        </td>
+      </tr>
+      <hr />
+    {{/if}}
+    {{#each
+      @communication.communication.methodCalls
+      as |classCommunication index|
+    }}
+      {{! Relationship }}
+      <tr>
+        <td class='text-nowrap align-top'>
+          {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+        </td>
+        <td class='text-right text-break pl-1'>
+          <button
+            type='button'
+            class='buttonToLink'
+            {{on
+              'click'
+              (fn
+                this.highlightEntity
+                classCommunication.sourceClass
+                classCommunication.sourceApp.id
+              )
+            }}
+          >
+            {{classCommunication.sourceClass.name}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Application:
+              {{classCommunication.sourceApp.name}}
+            </BsTooltip>
+          </button>
+          <button
+            type='button'
+            class='buttonToLink'
+            {{on
+              'click'
+              (fn
+                this.highlightEntity
+                classCommunication.sourceClass
+                classCommunication.sourceApp.id
+              )
+            }}
+          >
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Application:
+              {{classCommunication.sourceApp.name}}
+            </BsTooltip>
+          </button>
+          {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+          <button
+            type='button'
+            class='buttonToLink'
+            {{on
+              'click'
+              (fn
+                this.highlightEntity
+                classCommunication.targetClass
+                classCommunication.targetApp.id
+              )
+            }}
+          >
+            {{classCommunication.targetClass.name}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Application:
+              {{classCommunication.targetApp.name}}
+            </BsTooltip>
+          </button>
+        </td>
+      </tr>
+      {{! Name }}
+      <tr>
+
+        {{!--
+        <Visualization::Rendering::Popups::Interactable-Properties::EditOperationName
+          @communication={{classCommunication}}
+        />
+        --}}
+
+        <td class='text-nowrap align-top'>{{svg-jar
+            'comment-16'
+            class='octicon align-middle mr-1'
+          }}</td>
+        <td class='text-right text-break pl-1'>
+          {{classCommunication.callerMethodName}}
+          {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+          {{classCommunication.operationName}}
+        </td>
+      </tr>
+
+      {{! Requests }}
+      <tr>
+        <td class='text-nowrap align-top'>{{svg-jar
+            'code-16'
+            class='octicon align-middle mr-1'
+          }}</td>
+        <td class='text-right text-break pl-1'>
+          {{classCommunication.totalRequests}}
+          (
+          {{round
+            (mult
+              (div
+                classCommunication.totalRequests
+                this.calculateAggregatedRequestCount
+              )
+              100
+            )
+          }}% )
+        </td>
+      </tr>
+      {{#if this.landscapeRestructure.restructureMode}}
+        <Visualization::Rendering::Popups::Interactable-Properties::EditCommMesh
+          @classCommunication={{classCommunication}}
+        />
+      {{/if}}
+      {{#if (lt index (sub @communication.classCommunications.length 1))}}
+        <hr />
+      {{/if}}
+    {{/each}}
+  </tbody>
+</table>

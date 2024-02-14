@@ -171,8 +171,12 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
-    const popupTopOffset = popoverHeight + 10;
+    let popupTopOffset = popoverHeight + 10;
     const popupLeftOffset = popoverWidth / 2;
+
+    if (this.entityType === 'classCommunication') {
+      popupTopOffset += 150;
+    }
 
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
