@@ -77,7 +77,7 @@
 
   {{! application popups }}
   {{#if (eq this.entityType 'package')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::ComponentPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopup
       @component={{@popupData.entity}}
     />
   {{/if}}

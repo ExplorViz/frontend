@@ -1,0 +1,24 @@
+<h3 class='popover-header'>
+  <div class='text-center text-break font-weight-bold pl-1'>
+    {{@component.name}}
+  </div>
+</h3>
+<div class='popover-body'>
+  <BsTab as |tab|>
+    <tab.pane @title="Runtime">
+      <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRuntime
+      @component={{@component}}
+      />
+    </tab.pane>
+    <tab.pane @title="Code">
+      <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupCode/>
+    </tab.pane>
+    {{#if this.landscapeRestructure.restructureMode}}
+    <tab.pane @title="Restructure">
+      <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRestructure
+      @component={{@component}}
+      />
+    </tab.pane>
+    {{/if}}
+  </BsTab>
+</div>
