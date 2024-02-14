@@ -91,10 +91,6 @@ export default class Settings extends Component<Args> {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
-    if (input === undefined) {
-      return;
-    }
-
     const settingId = name as ApplicationSettingId;
     try {
       this.userSettings.updateApplicationSetting(settingId, input);
@@ -117,7 +113,8 @@ export default class Settings extends Component<Args> {
         }
         break;
       case 'cameraFov':
-        this.localUser.defaultCamera.fov = input;
+        this.localUser.defaultCamera.fov =
+          this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       default:
