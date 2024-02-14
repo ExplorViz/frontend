@@ -205,13 +205,21 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Set field of view for the perspective camera',
     isRangeSetting: true,
   },
-  // XR Settings
-  showXRButton: {
+  // VR Settings
+  showVrButton: {
     value: true,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
     description: 'Toggle visibility of VR button',
+    isFlagSetting: true,
+  },
+  showVrOnClick: {
+    value: false,
+    orderNumber: 2,
+    group: 'Virtual Reality',
+    displayName: 'Show VR in browser',
+    description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
   },
   // Debug Settings
@@ -239,17 +247,9 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Visualizes the directional light',
     isFlagSetting: true,
   },
-  showVrOnClick: {
-    value: false,
-    orderNumber: 4,
-    group: 'Debugging',
-    displayName: 'Show VR in browser',
-    description: 'Shows the VR room in the browser after joining',
-    isFlagSetting: true,
-  },
   fullscreen: {
     value: false,
-    orderNumber: 5,
+    orderNumber: 4,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
@@ -260,7 +260,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   resetToDefaults: {
     value: false,
-    orderNumber: 6,
+    orderNumber: 5,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',

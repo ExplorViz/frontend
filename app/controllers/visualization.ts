@@ -194,8 +194,8 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  get showXRButton() {
-    return this.userSettings.applicationSettings.showXRButton.value;
+  get showVrButton() {
+    return this.userSettings.applicationSettings.showVrButton.value;
   }
 
   @action

@@ -36,13 +36,12 @@ export type ApplicationCommunicationSettingId =
 
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
-export type ApplicationXRSettingId = 'showXRButton';
+export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick'
   | 'fullscreen'
   | 'resetToDefaults';
 
