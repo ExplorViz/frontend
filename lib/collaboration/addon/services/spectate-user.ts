@@ -1,15 +1,9 @@
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import RemoteUser from 'collaboration/utils/remote-user';
-import debugLogger from 'ember-debug-logger';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import * as VrPoses from 'extended-reality/utils/vr-helpers/vr-poses';
-import { VrPose } from 'extended-reality/utils/vr-helpers/vr-poses';
-import { tracked } from '@glimmer/tracking';
-import MessageSender from './message-sender';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
@@ -18,7 +12,13 @@ import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import debugLogger from 'ember-debug-logger';
+import ToastMessage from 'explorviz-frontend/services/toast-message';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import * as VrPoses from 'extended-reality/utils/vr-helpers/vr-poses';
+import { VrPose } from 'extended-reality/utils/vr-helpers/vr-poses';
+import MessageSender from './message-sender';
+import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -154,6 +154,9 @@ export default class SpectateUser extends Service {
    * Deactives spectator mode for our user
    */
   deactivate(sendUpdate = true) {
+    // Reset possibly changed projection matrix to reflect actual camera parameters
+    this.localUser.defaultCamera.updateProjectionMatrix();
+
     if (this.cameraControls) {
       this.cameraControls.enabled = true;
     }
@@ -274,21 +277,26 @@ export default class SpectateUser extends Service {
     id: string;
     devices: { deviceId: string; projectionMatrix: number[] }[] | null;
   }) {
+    if (!configuration || !configuration.devices) {
+      return;
+    }
+
     // Adapt projection matrix according to spectate update
     const deviceId = new URLSearchParams(window.location.search).get(
       'deviceId'
     );
-    if (configuration && configuration.devices) {
-      this.spectateConfigurationId = configuration.id;
-      const deviceConfig = configuration.devices.find(
-        (device) => device.deviceId === deviceId
-      );
-      if (deviceConfig) {
-        this.localUser.camera.projectionMatrix.fromArray(
-          deviceConfig.projectionMatrix
-        );
-      }
+    this.spectateConfigurationId = configuration.id;
+    const deviceConfig = configuration.devices.find(
+      (device) => device.deviceId === deviceId
+    );
+    if (!deviceConfig) {
+      return;
     }
+
+    // Apply projection matrix
+    this.localUser.camera.projectionMatrix.fromArray(
+      deviceConfig.projectionMatrix
+    );
   }
 }
 
