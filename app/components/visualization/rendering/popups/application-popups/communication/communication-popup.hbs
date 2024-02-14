@@ -1,0 +1,30 @@
+<h3 class='popover-header'>
+  <div class='text-center text-break font-weight-bold pl-1'>
+    Communication Information
+  </div>
+</h3>
+<div class='popover-body'>
+  <BsTab as |tab|>
+    <tab.pane @title="Runtime">
+      <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupRuntime
+      @communication={{@communication}}
+      @showApplication={{@showApplication}}
+      @highlightById={{@highlightById}}
+      @openParents={{@openParents}}
+      />
+    </tab.pane>
+    <tab.pane @title="Code">
+      <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupCode/>
+    </tab.pane>
+    {{#if this.landscapeRestructure.restructureMode}}
+    <tab.pane @title="Restructure">
+      <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupRestructure
+      @communication={{@communication}}
+      @showApplication={{@showApplication}}
+      @highlightById={{@highlightById}}
+      @openParents={{@openParents}}
+      />
+    </tab.pane>
+    {{/if}}
+  </BsTab>
+</div>
