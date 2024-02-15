@@ -1,4 +1,5 @@
 import GlimmerComponent from '@glimmer/component';
+import { action } from '@ember/object';
 import {
   Class,
   Package,
@@ -17,4 +18,11 @@ interface Args {
 export default class CommunicationPopup extends GlimmerComponent<Args> {
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
+
+  @action
+  onClick(event: MouseEvent) {
+    if (event.shiftKey) {
+      event.preventDefault();
+    }
+  }
 }
