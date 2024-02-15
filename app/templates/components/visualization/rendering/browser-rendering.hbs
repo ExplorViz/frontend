@@ -42,7 +42,7 @@
         {{interaction-modifier
           raycastObjects=this.raycastObjects
           camera=this.localUser.camera
-          orthographicCamera=this.ortographicCamera
+          orthographicCamera=this.localUser.ortographicCamera
           singleClick=this.handleSingleClick
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
@@ -101,6 +101,9 @@
               <Visualization::PageSetup::Navbar::ApplicationSearchOpener
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::TraceReplayerOpener
+                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              />
             </ul>
           </div>
           {{#each @componentsToolsSidebar as |componentId|}}
@@ -112,6 +115,20 @@
                     @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
                   />
                 {{/if}}
+                {{#if (eq componentId 'Trace-Replayer')}}
+                {{#if this.selectedApplicationObject3D}}
+                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                    @highlightTrace={{this.highlightTrace}}
+                    @moveCameraTo={{this.moveCameraTo}}
+                    @removeHighlighting={{this.removeAllHighlighting}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @structureData={{@landscapeData.structureLandscapeData}}
+                    @application={{this.selectedApplicationObject3D.data.application}}
+                  />
+                {{else}}
+                  Please select an application to use the trace overview.
+                {{/if}}
+              {{/if}}
               </div>
             </div>
           {{/each}}
@@ -127,12 +144,6 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              {{!-- <Visualization::PageSetup::Navbar::TraceOverview
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-                @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
-                @visualizationPaused={{@visualizationPaused}}
-                @dynamicData={{@landscapeData.dynamicLandscapeData}}
-              /> --}}
               <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -144,10 +155,7 @@
               />
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-              />
-              <Visualization::PageSetup::Navbar::TraceReplayerOpener
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-              />
+              />              
             </ul>
           </div>
           {{#each @components as |componentId|}}
@@ -169,21 +177,7 @@
                   @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
-              {{/if}}
-              {{#if (eq componentId 'Trace-Replayer')}}
-                {{#if this.selectedApplicationObject3D}}
-                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                    @highlightTrace={{this.highlightTrace}}
-                    @moveCameraTo={{this.moveCameraTo}}
-                    @removeHighlighting={{this.removeAllHighlighting}}
-                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                    @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.data.application}}
-                  />
-                {{else}}
-                  Please select an application to use the trace overview.
-                {{/if}}
-              {{/if}}
+              {{/if}}              
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Settings
                   @updateHighlighting={{this.highlightingService.updateHighlighting}}

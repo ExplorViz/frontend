@@ -14,6 +14,7 @@ import { HEATMAP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/se
 import { HIGHLIGHTING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
 import { MOUSE_PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/mouse-ping-update';
 import { PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
+import { SHARE_SETTINGS_EVENT } from 'collaboration/utils/web-socket-messages/sendable/share-settings';
 import { SPECTATING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
 import { TIMESTAMP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 import { Nonce } from 'collaboration/utils/web-socket-messages/types/nonce';
@@ -55,6 +56,7 @@ const RECEIVABLE_EVENTS = [
   OBJECT_MOVED_EVENT,
   PING_UPDATE_EVENT,
   SELF_CONNECTED_EVENT,
+  SHARE_SETTINGS_EVENT,
   SPECTATING_UPDATE_EVENT,
   TIMESTAMP_UPDATE_EVENT,
   TIMESTAMP_UPDATE_TIMER_EVENT,

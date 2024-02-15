@@ -12,6 +12,7 @@ import LandscapeTokenService, {
 import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 import MessageSender from 'collaboration/services/message-sender';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -43,6 +44,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
 
+  @service('user-settings')
+  userSettings!: UserSettings;
+
   @tracked
   rooms: RoomListRecord[] = [];
 
@@ -62,6 +66,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       users.push({
         name: `${this.localUser.userName} (you)`,
         style: `color:#${this.localUser.color.getHexString()}`,
+        isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
       });
@@ -75,6 +80,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
         remoteUserId: user.userId,
         name: user.userName,
         style: `color:#${user.color.getHexString()}`,
+        isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,
       };
@@ -145,6 +151,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     } else {
       this.spectateUserService.deactivate();
     }
+  }
+
+  @action
+  shareSettings() {
+    this.userSettings.shareApplicationSettings();
   }
 
   @action

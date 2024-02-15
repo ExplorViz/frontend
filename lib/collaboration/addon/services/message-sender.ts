@@ -15,6 +15,10 @@ import {
   PingUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import {
+  SHARE_SETTINGS_EVENT,
+  ShareSettingsMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/share-settings';
+import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
@@ -23,8 +27,9 @@ import {
   EntityType,
   RestructureAction,
 } from 'explorviz-frontend/utils/restructure-helper';
+import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import VRController from 'extended-reality/utils/vr-controller';
+import { default as VRController } from 'extended-reality/utils/vr-controller';
 import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
 import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
 import {
@@ -226,6 +231,13 @@ export default class MessageSender extends Service {
       entityId,
       isHighlighted,
       multiSelected: isMultiSelected,
+    });
+  }
+
+  sendSharedSettings(settings: ApplicationSettings) {
+    this.webSocket.send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
+      event: SHARE_SETTINGS_EVENT,
+      settings,
     });
   }
 

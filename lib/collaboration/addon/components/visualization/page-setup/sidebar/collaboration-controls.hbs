@@ -46,6 +46,16 @@
             {{user.name}}
           </div>
         </li>
+        {{#if user.isLocalUser}}
+          <BsButton
+            title='Share settings with other users'
+            {{on 'click' this.shareSettings}}
+            @type='primary'
+            @outline={{true}}
+          >
+            Share Settings
+          </BsButton>
+        {{/if}}
         {{#if user.isSpectatable}}
           <BsButton
             title={{if user.isSpectatedByUs 'End Spectating' 'Spectate'}}

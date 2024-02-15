@@ -85,7 +85,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 1,
     group: 'Highlighting',
-    displayName: 'Only Apply Highlighting Effect On Hover',
+    displayName: 'Only Apply Highlighting Effect on Hover',
     description:
       'Toggle to switch between permanent transparency effect and effect on hover',
     isFlagSetting: true,
@@ -94,7 +94,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 2,
     group: 'Highlighting',
-    displayName: 'Keep Highlighting On Open Or Close',
+    displayName: 'Keep Highlighting on Open or Close',
     description:
       'Toggle if highlighting should be reset on double click in application visualization',
     isFlagSetting: true,
@@ -126,8 +126,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
   enableHoverEffects: {
     value: true,
     orderNumber: 1,
-    group: 'Hover Effects',
-    displayName: 'Enable Hover Effects',
+    group: 'Hover Effect',
+    displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
     isFlagSetting: true,
   },
@@ -141,7 +141,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     },
     orderNumber: 1,
     group: 'Communication',
-    displayName: 'Communication line thickness',
+    displayName: 'Communication Line Thickness',
     description: 'Factor that scales thickness of communication lines',
     isRangeSetting: true,
   },
@@ -168,7 +168,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     },
     orderNumber: 3,
     group: 'Communication',
-    displayName: 'Curviness factor of the Communication Lines',
+    displayName: 'Curviness Factor of the Communication Lines',
     description:
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
@@ -177,7 +177,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   enableCustomPopupPosition: {
     value: true,
     orderNumber: 1,
-    group: 'Popup',
+    group: 'Popups',
     displayName: 'Enable Custom Popup Positioning',
     description:
       'If enabled, popups can be dragged to a prefered, fixed position',
@@ -188,17 +188,38 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: false,
     orderNumber: 1,
     group: 'Camera',
-    displayName: 'Use orthographic camera instead of perspective',
+    displayName: 'Use Orthographic Camera Instead of Perspective',
     description: 'Switch between orthographic and perspective camera',
     isFlagSetting: true,
   },
-  // XR Settings
-  showXRButton: {
+  cameraFov: {
+    value: 75,
+    range: {
+      min: 50.0,
+      max: 150.0,
+      step: 5.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Field of View',
+    description: 'Set field of view for the perspective camera',
+    isRangeSetting: true,
+  },
+  // VR Settings
+  showVrButton: {
     value: true,
     orderNumber: 1,
-    group: 'Extended Reality',
-    displayName: 'Show XR Button',
-    description: 'Toggle visibility of XR button',
+    group: 'Virtual Reality',
+    displayName: 'Show VR Button',
+    description: 'Toggle visibility of VR button',
+    isFlagSetting: true,
+  },
+  showVrOnClick: {
+    value: false,
+    orderNumber: 2,
+    group: 'Virtual Reality',
+    displayName: 'Show VR in Browser',
+    description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
   },
   // Debug Settings
@@ -215,7 +236,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 2,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
-    description: 'Visualizes the three dimensional Cartesian coordinate system',
+    description: 'Visualizes the Three Dimensional Cartesian Coordinate System',
     isFlagSetting: true,
   },
   showLightHelper: {
@@ -223,20 +244,12 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 3,
     group: 'Debugging',
     displayName: 'Show Light Helper',
-    description: 'Visualizes the directional light',
-    isFlagSetting: true,
-  },
-  showVrOnClick: {
-    value: false,
-    orderNumber: 4,
-    group: 'Debugging',
-    displayName: 'Show VR in browser',
-    description: 'Shows the VR room in the browser after joining',
+    description: 'Visualizes the Directional Light',
     isFlagSetting: true,
   },
   fullscreen: {
     value: false,
-    orderNumber: 5,
+    orderNumber: 4,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
@@ -247,7 +260,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   resetToDefaults: {
     value: false,
-    orderNumber: 6,
+    orderNumber: 5,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',

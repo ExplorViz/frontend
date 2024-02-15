@@ -122,7 +122,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   controls!: MapControls;
 
-  ortographicCamera!: THREE.OrthographicCamera;
   private frustumSize = 5;
 
   cameraControls!: CameraControls;
@@ -158,28 +157,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
     this.debug('Constructor called');
-    // scene
+    // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      80,
-      1.0,
-      0.1,
-      100
-    );
-    this.camera.position.set(5, 5, 5);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    //this.applicationRenderer.getOpenApplications().clear();
-    // force graph
+    // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
 
-    // spectate
+    // Spectate
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
@@ -290,21 +281,67 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
 
-    this.ortographicCamera.left = (this.frustumSize * newAspectRatio) / -2;
-    this.ortographicCamera.right = (this.frustumSize * newAspectRatio) / 2;
-    this.ortographicCamera.top = this.frustumSize / 2;
-    this.ortographicCamera.bottom = -this.frustumSize / 2;
+    this.localUser.ortographicCamera.left =
+      (this.frustumSize * newAspectRatio) / -2;
+    this.localUser.ortographicCamera.right =
+      (this.frustumSize * newAspectRatio) / 2;
+    this.localUser.ortographicCamera.top = this.frustumSize / 2;
+    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
 
-    this.ortographicCamera.userData.aspect = newAspectRatio;
+    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
 
-    this.ortographicCamera.updateProjectionMatrix();
+    this.localUser.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
+    this.initCameras();
     this.initRenderer();
     this.resize(outerDiv);
+  }
+
+  private initCameras() {
+    const aspectRatio = this.canvas.width / this.canvas.height;
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      this.userSettings.applicationSettings.cameraFov.value,
+      aspectRatio,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
+    this.scene.add(this.camera);
+
+    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * this.frustumSize,
+      aspectRatio * this.frustumSize,
+      this.frustumSize,
+      -this.frustumSize,
+      0.1,
+      100
+    );
+
+    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.localUser.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.localUser.ortographicCamera.lookAt(this.scene.position);
+    // controls
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      this.localUser.ortographicCamera,
+      this.canvas
+    );
+
+    this.spectateUserService.cameraControls = this.cameraControls;
+
+    this.updatables.push(this.localUser);
+    this.updatables.push(this.cameraControls);
   }
 
   /**
@@ -318,51 +355,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       preserveDrawingBuffer: true,
       powerPreference: 'high-performance',
     });
-
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
 
-    const aspectRatio = width / height;
-
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
-      aspectRatio,
-      0.1,
-      100
-    );
-    this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
-
-    this.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.ortographicCamera.lookAt(this.scene.position);
-    // controls
-    this.cameraControls = new CameraControls(
-      getOwner(this),
-      this.camera,
-      this.ortographicCamera,
-      this.canvas
-    );
-
-    this.spectateUserService.cameraControls = this.cameraControls;
+    this.renderingLoop = new RenderingLoop(getOwner(this), {
+      camera: this.camera,
+      orthographicCamera: this.localUser.ortographicCamera,
+      scene: this.scene,
+      renderer: this.renderer,
+      updatables: this.updatables,
+    });
+    this.renderingLoop.start();
 
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
@@ -376,17 +382,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
-    this.updatables.push(this.cameraControls);
-    this.updatables.push(this.localUser);
-
-    this.renderingLoop = new RenderingLoop(getOwner(this), {
-      camera: this.camera,
-      orthographicCamera: this.ortographicCamera,
-      scene: this.scene,
-      renderer: this.renderer,
-      updatables: this.updatables,
-    });
-    this.renderingLoop.start();
   }
 
   @action
@@ -423,7 +418,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     }
 
-    if (isEntityMesh(mesh)) {
+    if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {

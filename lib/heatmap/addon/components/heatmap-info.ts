@@ -19,7 +19,7 @@ export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
 
   @action
   dragMouseDown(event: MouseEvent) {
-    event.preventDefault();
+    event.stopPropagation();
     // get the mouse cursor position at startup:
     this.lastMousePosition.x = event.clientX;
     this.lastMousePosition.y = event.clientY;

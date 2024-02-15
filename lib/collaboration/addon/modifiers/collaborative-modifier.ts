@@ -56,6 +56,10 @@ import {
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/restructure-update';
+import {
+  SHARE_SETTINGS_EVENT,
+  ShareSettingsMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/share-settings';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -63,6 +67,8 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
@@ -74,6 +80,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
+import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
@@ -99,6 +106,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   args: IModifierArgs;
   element: unknown;
 
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
+
   constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
     this.args = args as IModifierArgs;
@@ -116,6 +126,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this.onHighlightingUpdate
     );
     this.webSocket.on(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
+    this.webSocket.on(SHARE_SETTINGS_EVENT, this, this.onShareSettings);
     this.webSocket.on(
       RESTRUCTURE_MODE_UPDATE_EVENT,
       this,
@@ -305,12 +316,15 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('user-settings')
+  private userSettings!: UserSettings;
+
   get canvas(): HTMLCanvasElement {
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
       this.element instanceof HTMLCanvasElement
     );
-    return this.element;
+    return this.element as HTMLCanvasElement;
   }
 
   get raycastObject3D(): THREE.Object3D {
@@ -396,6 +410,18 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   onChangeLandscape(event: any): void {
     console.log('Landscape changed', event);
+  }
+
+  onShareSettings({
+    userId,
+    originalMessage: { settings },
+  }: ForwardedMessage<ShareSettingsMessage>): void {
+    this.userSettings.updateSettings(settings as ApplicationSettings);
+
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+    this.toastHandlerService.showInfoToastMessage(
+      'Applied settings from user ' + remoteUser?.userName
+    );
   }
 
   onRestructureModeUpdate(): void {
