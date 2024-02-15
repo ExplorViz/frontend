@@ -3,7 +3,7 @@
   id='heatmapInfo'
   class='foreground'
   style='position: absolute; cursor: move'
-  {{on 'pointerup' this.dragMouseDown}}
+  {{on 'pointerdown' this.dragMouseDown}}
   {{did-insert this.setPopupPosition}}
 >
   <HeatmapLegend />
