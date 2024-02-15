@@ -157,28 +157,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
     this.debug('Constructor called');
-    // scene
+    // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      80,
-      1.0,
-      0.1,
-      100
-    );
-    this.camera.position.set(5, 5, 5);
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    //this.applicationRenderer.getOpenApplications().clear();
-    // force graph
+    // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
 
-    // spectate
+    // Spectate
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
@@ -304,39 +296,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
+    this.initCameras();
     this.initRenderer();
     this.resize(outerDiv);
   }
 
-  /**
-   * Initiates a WebGLRenderer
-   */
-  private initRenderer() {
-    const { width, height } = this.canvas;
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      canvas: this.canvas,
-      preserveDrawingBuffer: true,
-      powerPreference: 'high-performance',
-    });
-
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(width, height);
-    this.debug('Renderer set up');
-
-    const aspectRatio = width / height;
-
+  private initCameras() {
+    const aspectRatio = this.canvas.width / this.canvas.height;
     // camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
+      this.userSettings.applicationSettings.cameraFov.value,
       aspectRatio,
       0.1,
       100
     );
     this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
+    this.scene.add(this.camera);
 
     this.localUser.ortographicCamera = new THREE.OrthographicCamera(
       -aspectRatio * this.frustumSize,
@@ -365,6 +340,36 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.spectateUserService.cameraControls = this.cameraControls;
 
+    this.updatables.push(this.localUser);
+    this.updatables.push(this.cameraControls);
+  }
+
+  /**
+   * Initiates a WebGLRenderer
+   */
+  private initRenderer() {
+    const { width, height } = this.canvas;
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      canvas: this.canvas,
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance',
+    });
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(width, height);
+    this.debug('Renderer set up');
+
+    this.renderingLoop = new RenderingLoop(getOwner(this), {
+      camera: this.camera,
+      orthographicCamera: this.localUser.ortographicCamera,
+      scene: this.scene,
+      renderer: this.renderer,
+      updatables: this.updatables,
+    });
+    this.renderingLoop.start();
+
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
@@ -377,17 +382,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
-    this.updatables.push(this.cameraControls);
-    this.updatables.push(this.localUser);
-
-    this.renderingLoop = new RenderingLoop(getOwner(this), {
-      camera: this.camera,
-      orthographicCamera: this.localUser.ortographicCamera,
-      scene: this.scene,
-      renderer: this.renderer,
-      updatables: this.updatables,
-    });
-    this.renderingLoop.start();
   }
 
   @action
@@ -424,7 +418,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     }
 
-    if (isEntityMesh(mesh)) {
+    if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
