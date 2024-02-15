@@ -29,10 +29,14 @@ import SceneRepository from './repos/scene-repository';
 import MessageSender from 'collaboration/services/message-sender';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
+import LocalUser from 'collaboration/services/local-user';
 
 export default class UserSettings extends Service {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
@@ -111,6 +115,8 @@ export default class UserSettings extends Service {
     this.updateColors();
     this.applicationRenderer.addCommunicationForAllApplications();
     this.highlightingService.updateHighlighting();
+    this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value;
+    this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {

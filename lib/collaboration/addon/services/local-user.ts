@@ -66,7 +66,7 @@ export default class LocalUser extends Service.extend({
 
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
-    this.defaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
+    this.defaultCamera = new THREE.PerspectiveCamera();
     this.orthographicCamera = new THREE.OrthographicCamera();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
