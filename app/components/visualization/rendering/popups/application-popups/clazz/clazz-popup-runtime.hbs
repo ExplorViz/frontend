@@ -11,9 +11,7 @@
     {{#each this.allMetrics as |metric|}}
       {{#if (eq this.heatmapConf.selectedMetric.name metric.metricName)}}
         <tr>
-          <td
-            class='font-weight-bold text-primary'
-          >{{metric.metricName}}:</td>
+          <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
           <td class='text-center font-weight-bold text-primary'>
             {{metric.snapshotVal}}
           </td>

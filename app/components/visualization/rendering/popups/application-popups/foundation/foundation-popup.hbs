@@ -5,16 +5,21 @@
 </h3>
 <div class='popover-body nav-fill'>
   <BsTab {{on 'click' this.onClick}} as |tab|>
-    <tab.pane @title="Runtime">
-      <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRuntime @application={{@application}} />
+    <tab.pane @title='Runtime'>
+      <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRuntime
+        @application={{@application}}
+      />
     </tab.pane>
-    <tab.pane @title="Code">
-      <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupCode/>
+    <tab.pane @title='Code'>
+      <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupCode
+      />
     </tab.pane>
     {{#if this.landscapeRestructure.restructureMode}}
-    <tab.pane @title="Restructure">
-      <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRestructure @application={{@application}} />
-    </tab.pane>
+      <tab.pane @title='Restructure'>
+        <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRestructure
+          @application={{@application}}
+        />
+      </tab.pane>
     {{/if}}
   </BsTab>
 </div>
