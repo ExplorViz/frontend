@@ -13,12 +13,20 @@ import RoomService from 'collaboration/services/room-service';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 import MessageSender from 'collaboration/services/message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
 }
 
 export default class CollaborationControls extends Component<CollaborationArgs> {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
   @service('local-user')
   localUser!: LocalUser;
 
@@ -40,6 +48,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @service('message-sender')
   private sender!: MessageSender;
+
+  @service('router')
+  router!: any;
 
   @service('toastHandler')
   toastHandlerService!: ToastHandlerService;
@@ -119,26 +130,10 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   async joinRoom(room: RoomListRecord) {
-    if (this.tokenService.token?.value === room.landscapeToken) {
-      this.collaborationSession.joinRoom(room.roomId);
-      this.toastHandlerService.showSuccessToastMessage(
-        `Join Room: ${room.roomName}`
-      );
-    } else {
-      const tokens = await this.tokenService.retrieveTokens();
-      const token = tokens.find((elem) => elem.value == room.landscapeToken);
-      if (token) {
-        this.tokenService.setToken(token);
-        this.collaborationSession.joinRoom(room.roomId);
-        this.toastHandlerService.showSuccessToastMessage(
-          `Join Room: ${room.roomName}`
-        );
-      } else {
-        this.toastHandlerService.showErrorToastMessage(
-          `Landscape token for room not found`
-        );
-      }
-    }
+    // In case join action fails, the room list should be up-to-date
+    this.loadRooms(false);
+
+    this.collaborationSession.joinRoom(room.roomId);
   }
 
   @action
@@ -170,6 +165,16 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   landscapeSelected(event: any) {
+    this.tokenService.setTokenByValue(event.target.value);
+
+    // Cleanup old landscape
+    this.applicationRenderer.cleanup();
+    this.applicationRepo.cleanup();
+
+    // this.tokenService.setToken(event.target.value);
+    this.router.transitionTo('visualization', {
+      queryParams: { landscapeToken: event.target.value },
+    });
     this.sender.sendChangeLandscape(event.target.value);
   }
 
