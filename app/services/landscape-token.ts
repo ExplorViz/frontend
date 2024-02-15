@@ -94,6 +94,14 @@ export default class LandscapeTokenService extends Service {
     this.set('token', token);
   }
 
+  async setTokenByValue(tokenValue: string) {
+    const tokens = await this.retrieveTokens();
+    const token = tokens.find((t) => t.value === tokenValue);
+    if (token) {
+      this.setToken(token);
+    }
+  }
+
   removeToken() {
     localStorage.removeItem('currentLandscapeToken');
     this.set('token', null);
