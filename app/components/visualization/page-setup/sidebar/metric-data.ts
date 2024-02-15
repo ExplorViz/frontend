@@ -6,6 +6,7 @@ import Auth from 'explorviz-frontend/services/auth';
 import { Metric, MetricLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/metric-data';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
+import TimestampService from 'explorviz-frontend/services/timestamp';
 
 const { metricService } = ENV.backendAddresses;
 
@@ -17,6 +18,9 @@ export default class MetricDataComponent extends Component {
     @service('landscape-token')
     tokenService!: LandscapeTokenService;
 
+    @service('timestamp')
+    timestampService!: TimestampService;
+
     @tracked
     metrics: MetricLandscapeData = [];
 
@@ -26,7 +30,9 @@ export default class MetricDataComponent extends Component {
             throw new Error('No landscape token selected');  
         }
         try {
-            const response = await fetch(`${metricService}/metrics?landscapeToken=${this.tokenService.token.value}`); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
+            console.log(this.timestampService.timestamp);
+            
+            const response = await fetch(`${metricService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -39,9 +45,11 @@ export default class MetricDataComponent extends Component {
                 timestamp: new Date(metricArray[2]),
                 value: parseFloat(metricArray[3]),
                 name: metricArray[4],
-                landscapeToken: metricArray[5],
-                unit: metricArray[6]
+                description: metricArray[5],
+                landscapeToken: metricArray[6],
+                unit: metricArray[7]
             }));
+            console.log(this.metrics);
 
         } catch (error) {
             console.error('Error loading metrics', error);

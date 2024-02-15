@@ -12,7 +12,9 @@
   <tbody>
     {{#each this.metrics as |metric|}}
         <tr>
-            <td>{{metric.name}}</td>
+            <td>
+              <HelpTooltip @title="{{metric.description}}"/>{{metric.name}}
+            </td>
             <td>{{format-date metric.timestamp}}</td>
             <td>{{metric.value}}</td>
             <td>{{metric.unit}}</td>

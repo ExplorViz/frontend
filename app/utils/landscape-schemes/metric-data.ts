@@ -6,6 +6,7 @@ export interface Metric {
     timestamp: Date; 
     value: number;
     name: string;
+    description: string;
     landscapeToken: string;
     unit: string;
 }
