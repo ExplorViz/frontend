@@ -424,7 +424,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     }
 
-    if (isEntityMesh(mesh)) {
+    if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
