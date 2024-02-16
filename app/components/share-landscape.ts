@@ -18,7 +18,7 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   @service('auth')
   auth!: Auth;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   focusedClicks = 0;

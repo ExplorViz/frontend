@@ -9,7 +9,7 @@ export default class BaseRoute extends Route {
   @service
   auth!: Auth;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   async beforeModel() {

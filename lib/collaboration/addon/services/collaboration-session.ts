@@ -78,7 +78,7 @@ export default class CollaborationSession extends Service.extend({
   @service('router')
   router!: any;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @service('landscape-token')
@@ -200,6 +200,8 @@ export default class CollaborationSession extends Service.extend({
 
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
+
+    this.toastMessage.success('Joined room successfully');
   }
 
   // Display to other users when another user joins the room

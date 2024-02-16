@@ -79,18 +79,28 @@ export default class LinkRenderer extends Service.extend({}) {
       sourceApp,
       classCommunication.sourceClass
     );
-    const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id)!;
-    const start = sourceMesh.getWorldPosition(new Vector3());
-    forceGraph.worldToLocal(start);
+    const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id);
+    let start = new Vector3();
+    if (sourceMesh) {
+      start = sourceMesh.getWorldPosition(new Vector3());
+      forceGraph.worldToLocal(start);
+    } else {
+      this.debug('Source mesh not found');
+    }
 
     // target
     const targetClass = findFirstOpen(
       targetApp,
       classCommunication.targetClass
     );
-    const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id)!;
-    const end = targetMesh.getWorldPosition(new Vector3());
-    forceGraph.worldToLocal(end);
+    const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id);
+    let end = new Vector3();
+    if (targetMesh) {
+      end = targetMesh.getWorldPosition(new Vector3());
+      forceGraph.worldToLocal(end);
+    } else {
+      this.debug('Target mesh not found');
+    }
 
     // add arrow
     const commLayout = new CommunicationLayout(classCommunication);

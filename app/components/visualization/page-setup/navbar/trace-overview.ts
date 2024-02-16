@@ -15,7 +15,7 @@ interface Args {
 export default class TraceOverview extends Component<Args> {
   @service('landscape-listener') landscapeListener!: LandscapeListener;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @action

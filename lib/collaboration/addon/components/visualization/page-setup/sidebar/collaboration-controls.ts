@@ -52,7 +52,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('router')
   router!: any;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')

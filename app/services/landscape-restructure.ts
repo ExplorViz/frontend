@@ -123,7 +123,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   landscapeData: LandscapeData | null = null;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   /**

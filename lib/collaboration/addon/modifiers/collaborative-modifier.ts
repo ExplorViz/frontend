@@ -137,7 +137,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('toastHandler')
+  @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')

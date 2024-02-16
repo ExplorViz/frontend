@@ -20,7 +20,7 @@ export default class RoomList extends Component<RoomListArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @tracked

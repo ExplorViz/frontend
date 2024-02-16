@@ -79,7 +79,7 @@ export default class ArRendering extends Component<Args> {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger('ArRendering');

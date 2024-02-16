@@ -207,7 +207,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
 
-    if (serializedRoom) {
+    // Apply serialized room data from collaboration service if it seems up-to-date
+    if (
+      serializedRoom &&
+      serializedRoom.openApps.length >= this.applicationRepo.applications.size
+    ) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
       this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
       this.roomSerializer.serializedRoom = undefined;
@@ -222,6 +226,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
       this.highlightingService.updateHighlighting();
     }
+
     this.graph.graphData(gData);
 
     // send new data to ide

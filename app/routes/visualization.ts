@@ -24,7 +24,7 @@ export default class VisualizationRoute extends BaseRoute {
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger();

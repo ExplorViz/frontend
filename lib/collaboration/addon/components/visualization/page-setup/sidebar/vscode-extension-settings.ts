@@ -15,7 +15,7 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   constructor(owner: any, args: VscodeExtensionSettingsArgs) {

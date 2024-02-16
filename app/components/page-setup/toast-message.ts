@@ -6,7 +6,7 @@ import { inject as service } from '@ember/service';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 export default class PageSetupToastMessageComponent extends Component {
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @tracked

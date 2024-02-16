@@ -121,7 +121,7 @@ export default class VisualizationController extends Controller {
   @service('spectate-user')
   spectateUser!: SpectateUser;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   plotlyTimelineRef!: PlotlyTimeline;
@@ -169,7 +169,7 @@ export default class VisualizationController extends Controller {
   @tracked
   flag: boolean = false; // default value
 
-  debug = debugLogger();
+  private readonly debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
     return (
@@ -582,7 +582,7 @@ export default class VisualizationController extends Controller {
     while (this.linkRenderer.flag) {
       await timeout(50);
     }
-    // now we can be sure our linkRenderer has all extern links
+    // Now we can be sure our linkRenderer has all extern links
 
     // Serialized room is used in landscape-data-watcher
     this.roomSerializer.serializedRoom = {
@@ -594,7 +594,7 @@ export default class VisualizationController extends Controller {
 
     this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
-    // disable polling. It is now triggerd by the websocket.
+    // Disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
   }
 

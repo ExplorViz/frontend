@@ -38,7 +38,7 @@ export default class Settings extends Component<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [

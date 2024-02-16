@@ -13,7 +13,7 @@ export default class AdditionalTokenInfo extends Component<Args> {
   @service('auth')
   auth!: Auth;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   focusedClicks = 0;

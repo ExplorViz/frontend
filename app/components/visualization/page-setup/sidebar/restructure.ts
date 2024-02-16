@@ -27,7 +27,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @service('landscape-restructure')
