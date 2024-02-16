@@ -405,10 +405,12 @@ export default class CollaborationSession extends Service.extend({
     this.currentRoomId = null;
     this.webSocket.closeSocket();
 
-    // Update roomId in URL
-    this.router.transitionTo('visualization', {
-      queryParams: { roomId: null },
-    });
+    // Remove roomId from URL
+    if (this.router.currentRouteName === 'visualization') {
+      this.router.transitionTo('visualization', {
+        queryParams: { roomId: null },
+      });
+    }
   }
 
   /**
