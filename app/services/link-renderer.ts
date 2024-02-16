@@ -122,7 +122,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const { id } = classCommunication;
 
     if (!applicationObject3D.data) {
-      console.log('Link renderer has no application data yet');
+      this.debug('Link renderer has no application data yet');
       return;
     }
 

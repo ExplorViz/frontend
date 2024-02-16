@@ -708,6 +708,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       remoteUser.mousePing.ping.perform({
         parentObj: applicationObj,
         position: point,
+        durationInMs: 5000,
       });
     }
 
