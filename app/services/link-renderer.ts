@@ -1,9 +1,14 @@
 /* eslint-disable no-underscore-dangle */
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
+import debugLogger from 'ember-debug-logger/utils/debug-logger';
 import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph';
+import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
 import { Vector3 } from 'three';
@@ -11,9 +16,6 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -32,9 +34,7 @@ export default class LinkRenderer extends Service.extend({}) {
 
   private _flag = false;
 
-  getAllLinks() {
-    return Array.from(this.linkIdToMesh.values());
-  }
+  readonly debug = debugLogger();
 
   get appSettings() {
     return this.userSettings.applicationSettings;
@@ -48,20 +48,32 @@ export default class LinkRenderer extends Service.extend({}) {
     this._flag = b;
   }
 
+  getAllLinks() {
+    return Array.from(this.linkIdToMesh.values());
+  }
+
   @action
   linkPositionUpdate(
     line: ClazzCommunicationMesh,
     _coords: any,
     link: GraphLink
   ) {
-    line.visible = this.isLinkVisible(link);
-    if (!link.communicationData) {
-      return true;
+    const sourceApp = link.source.__threeObj;
+    const targetApp = link.target.__threeObj;
+
+    if (
+      !(sourceApp instanceof ApplicationObject3D) ||
+      !(targetApp instanceof ApplicationObject3D) ||
+      !link.communicationData
+    ) {
+      this.debug('Link data incomplete');
+      return;
     }
+
     const classCommunication: ClassCommunication = link.communicationData;
 
-    // source
-    const sourceApp = link.source.__threeObj;
+    line.visible = this.isLinkVisible(link);
+
     const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
@@ -72,7 +84,6 @@ export default class LinkRenderer extends Service.extend({}) {
     forceGraph.worldToLocal(start);
 
     // target
-    const targetApp = link.target.__threeObj;
     const targetClass = findFirstOpen(
       targetApp,
       classCommunication.targetClass
