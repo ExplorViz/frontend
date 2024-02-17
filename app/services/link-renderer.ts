@@ -15,6 +15,7 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import CommitComparisonRepository from './repos/commit-comparison-repository';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -28,6 +29,9 @@ export default class LinkRenderer extends Service.extend({}) {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
+
+  @service('repos/commit-comparison-repository')
+  commitComparisonRepo!: CommitComparisonRepository;
 
   private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
@@ -55,7 +59,7 @@ export default class LinkRenderer extends Service.extend({}) {
     _coords: any,
     link: GraphLink
   ) {
-    line.visible = this.isLinkVisible(link);
+    line.visible = this.isLinkVisible(link) || false;
     if (!link.communicationData) {
       return true;
     }
@@ -82,6 +86,8 @@ export default class LinkRenderer extends Service.extend({}) {
     const end = targetMesh.getWorldPosition(new Vector3());
     forceGraph.worldToLocal(end);
 
+    // add texture
+      this.changeTexture(line, classCommunication);
     // add arrow
     const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
@@ -171,6 +177,10 @@ export default class LinkRenderer extends Service.extend({}) {
     }
 
     return baseCurveHeight * this.appSettings.curvyCommHeight.value;
+  }
+
+  private changeTexture(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
+    this.applicationRenderer.visualizeCommitComparisonCommunicationLinks(pipe, classCommunication);
   }
 
   private addArrows(

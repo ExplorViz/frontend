@@ -253,52 +253,30 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   setupPlotlyTimelineChart(timestamps: Timestamp[][], numberOfTimelines: number) {
 
+    //console.log("Timestamps =>=>=> ", timestamps);
+
     if (numberOfTimelines === 1 && timestamps[0].length === 0) {
       this.createDummyTimeline();
       return;
     }
 
     const data: any[] = [];
-    const shapez: any[] = [];
+    let shapez: any[] = [];
     let plotlyTimestampsWithoutNullValuesTemp: number = 0;
     // let windowMax = undefined;
     // let windowMin = undefined;
     for(let i = 0; i < numberOfTimelines; i++) {
+      console.log("setupPlotlyTimelineChart: i<numberOfTimelines => ", i , "<", numberOfTimelines);
       data.push(this.getUpdatedPlotlyDataObject(timestamps[i], this.markerState[i], i));
-      // const latestTimestamp = timestamps[i][timestamps[i].length - 1];
-      // const latestTimestampValue = new Date(latestTimestamp.epochMilli);
-      // const windowInterval = PlotlyTimeline.getSlidingWindowInterval(
-      //   latestTimestampValue,
-      //   this.slidingWindowLowerBoundInMinutes,
-      //   this.slidingWindowUpperBoundInMinutes
-      // );
 
-      // if(!windowMax || windowMax <  windowInterval.max){
-      //   windowMax =  windowInterval.max;
-      // }
-
-      // if(!windowMin || windowInterval.min <  windowMin){
-      //   windowMin =  windowInterval.min;
-      // }
-
-      // this.oldPlotlySlidingWindow[i] = windowInterval;
       plotlyTimestampsWithoutNullValuesTemp += data.lastObject.x.filter(
         (x: any) => !!x
       ).length;
-      const { shapes } = data.lastObject;
-      shapez.push(...shapes);
+
+      const { shapes } = data[data.length - 1];
+      shapez = [...shapez, ...shapes];
+
     }
-
-    // const layout = PlotlyTimeline.getPlotlyLayoutObject(
-    //   windowMin!,
-    //   windowMax!
-    // );
-    
-    //const { shapes } = data;
-
-    // this.plotlyTimestampsWithoutNullValues = data.x.filter(
-    //   (x: any) => !!x
-    // ).length;
 
     this.plotlyTimestampsWithoutNullValues = plotlyTimestampsWithoutNullValuesTemp;
 
@@ -328,7 +306,6 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
   extendPlotlyTimelineChart(timestamps: Timestamp[][], numberOfTimelines: number) {
 
-
     const data: any[] = [];
     const shapez: any[] = [];
     let plotlyTimestampsWithoutNullValuesTemp: number = 0;
@@ -336,13 +313,14 @@ selectedTimestamps: Timestamp[][] = [[],[]];
       if (timestamps[i].length === 0) {
         continue;
       }
+      console.log("extendPlotlyTimelineChart: i<numberOfTimelines => ", i , "<", numberOfTimelines);
       data.push(this.getUpdatedPlotlyDataObject(
         timestamps[i],
         this.markerState[i],
         i
       ));
 
-      const { shapes } = data.lastObject;
+      const { shapes } = data[data.length - 1];
       shapez.push(...shapes);
       plotlyTimestampsWithoutNullValuesTemp += data.lastObject.x.filter(
         (x: any) => !!x
@@ -381,6 +359,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     this.resetHighlingInStateObjects(selectedTimeline);
 
     // call this to initialize the internal marker state variable
+    console.log("continueTimeline ", oldSelectedTimestampRecords, selectedTimeline);
+    console.log("this.timestamps[selectedTimeline]: ", this.timestamps[selectedTimeline].lastObject);
     this.getUpdatedPlotlyDataObject(this.timestamps[selectedTimeline], this.markerState[selectedTimeline], selectedTimeline);
 
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
@@ -434,6 +414,27 @@ selectedTimestamps: Timestamp[][] = [[],[]];
           text: 'Time',
         },
       },
+      xaxis2: {
+        type: 'category',
+        tickmode: 'auto',
+        nticks: 5,
+        tickangle: 0,
+        range: [minRange, maxRange],
+        tickfont: {
+          font: {
+          size: 6,
+          }
+        },
+        title: {
+          font: {
+            color: '#7f7f7f',
+            size: 16,
+          },
+          text: 'Time',
+        },
+        overlaying: 'x', 
+        side: 'top'
+      }
     };
   }
 
@@ -454,7 +455,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         margin: {
           b: 40,
           pad: 5,
-          t: 20,
+          t: 40,
           r: 40,
         },
         yaxis: {
@@ -485,11 +486,31 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         .replace('.000Z', '');
     }
 
-    function getGapRectangleObj() {
+    function getGapRectangleObj(timeline: number) {
+      //console.log("getGapRectangleObj: ", timeline);
+      if(timeline === 0) {
+        return {
+          layer: 'below',
+          type: 'rect',
+          xref: 'x',
+          yref: 'paper',
+          x0: '0',
+          y0: 0.1,
+          x1: '0',
+          y1: 1,
+          fillcolor: '#d3d3d3',
+          opacity: 0.4,
+          line: {
+            width: 3,
+            dash: 'dot',
+          },
+        };
+      }
+
       return {
         layer: 'below',
         type: 'rect',
-        xref: 'x',
+        xref: 'x2',
         yref: 'paper',
         x0: '0',
         y0: 0.1,
@@ -549,7 +570,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         x.push(null);
         y.push(null);
         if (!tempGapRectObj) {
-          tempGapRectObj = getGapRectangleObj();
+          tempGapRectObj = getGapRectangleObj(selectedTimeline);
           tempGapRectObj.x0 = getTimestampTickLabel(
             nextExpectedTimestamp - 10000
           );
@@ -592,10 +613,20 @@ selectedTimestamps: Timestamp[][] = [[],[]];
           };
         }
       }
-      timestampIds.push(timestampId);
+      console.log("timestampId: ", timestampId);
+      //timestampIds.push(timestampId);
     }
-
     this.markerState[selectedTimeline] = markerStates;
+
+    //console.log("selectedTimeline: ", selectedTimeline, " shapes: ", shapes);
+
+    if(selectedTimeline === 1){
+      return {
+        ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds),
+        xaxis: 'x2',
+        ...{ shapes: shapes },
+      };
+    }
 
     return {
       ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds),
@@ -610,7 +641,6 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     timelineColor: string,
     sizes: number[],
     timestampIds: number[],
-    //name: string,
   ) {
     return {
       // IMPORTANT BUG WORKAROUND https://community.plotly.com/t/scatter-line-plot-fill-option-fills-gaps/21264

@@ -24,7 +24,6 @@ self.addEventListener(
     }
 
     const ret = [...metrics, ...staticMetricsConverted];
-    console.log("RETTTT ", ret);
     postMessage([...metrics, ...staticMetricsConverted]);
   },
   false
@@ -86,7 +85,7 @@ function convertStaticMetrics(application, staticMetrics, commitId, text) {
   }
 
   for (const [key, value] of metricsNameToMetricsValuesMap) {
-    console.log("Wir haben die Metrik: ", key, " für diese Anzahl an Klassen: ", value.size, " (COMMIT ID: ", commitId, ")");
+    //console.log("Wir haben die Metrik: ", key, " für diese Anzahl an Klassen: ", value.size, " (COMMIT ID: ", commitId, ")");
     const minMax = metricsNameToMinAndMax.get(key);
     const metric = {
       commitId: commitId,

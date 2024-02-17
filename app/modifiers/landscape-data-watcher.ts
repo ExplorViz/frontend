@@ -25,7 +25,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { LinkObject, NodeObject } from 'three-forcegraph';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
 
@@ -121,8 +121,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
 
-    console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
+    //console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
     await Promise.resolve();
+    
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       //this.dynamicLandscapeData,
@@ -291,7 +292,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       let heatmapMetrics: any[] = [];
       if(application.name === this.selectedApplication) {
         // consider selected commits
-        console.log("YEEEEEEEEEEEES ::::::::: YEEEEEEEEEEEES");
 
         if(this.dynamics) {
 
@@ -307,7 +307,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             staticMetrics: staticMetrics
           }
 
-          console.log("workerPayload: ", workerPayload);
+          //console.log("workerPayload: ", workerPayload);
 
           heatmapMetrics = this.worker.postMessage(
             'metrics-worker',
@@ -318,7 +318,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           console.log("Error: no dynamic data for first selected commit");
         }
       }else {
-        console.log("NOOOOOOOOOO ::::::::: NOOOOOOOOOOOO");
         heatmapMetrics = this.worker.postMessage(
           'metrics-worker',
           workerPayload, 
@@ -346,6 +345,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           results[results.length - 1] // since heatmapMetrics can be list of size 2 or 1 we must not hard code the index
         );
       }
+
+
       applicationData.classCommunications = classCommunication.filter(
         (communication) => {
           return (
@@ -354,6 +355,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
         }
       );
+
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);
       return applicationData;

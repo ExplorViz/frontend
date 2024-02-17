@@ -268,7 +268,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
         }
       }
 
-      const layout = PlotlyCommitline.getPlotlyLayoutObject(-5,15);
+      const layout = PlotlyCommitline.getPlotlyLayoutObject(-5,20, -1,8);
         this.branchToY.forEach((val, key) => {
             layout.annotations.push({
                 xref: 'paper',
@@ -609,7 +609,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
         return "no commit id found";
       }
 
-      static getPlotlyLayoutObject(minRange: number, maxRange: number) : {
+      static getPlotlyLayoutObject(minRangeX: number, maxRangeX: number, minRangeY: number, maxRangeY: number) : {
         dragmode: string;
         margin: {
             b: number;
@@ -628,6 +628,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
             zeroline: boolean;
             showline: boolean;
             showticklabels: boolean;
+            range: number[];
             title: {
                 font: {
                     color: string;
@@ -643,19 +644,20 @@ export default class PlotlyCommitline extends Component<IArgs> {
         //   hoverdistance: 10,
         //   hovermode: 'closest',
           margin: {
-            b: 40,
+            b: 120,
             pad: 5,
             t: 20,
             r: 40,
           },
           xaxis: {
-            range: [minRange,maxRange],
+            range: [minRangeX,maxRangeX],
             showline: false,
             showgrid: false,
             showticklabels: false,
           },
         
           yaxis: {
+            range: [minRangeY,maxRangeY],
             showgrid: false,
             zeroline: false,
             showline: false,

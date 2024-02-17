@@ -50,10 +50,11 @@ import Evented from '@ember/object/evented';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import { applicationHasClass, getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
-import CommitComparisonRepository from './repos/commit-comparison-repository';
+import CommitComparisonRepository, { CommitComparison } from './repos/commit-comparison-repository';
 import { getClassAncestorPackages, getClassById } from 'explorviz-frontend/utils/class-helpers';
 import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
 import { MeshLineMaterial } from 'meshline';
+import MethodCall from 'explorviz-frontend/utils/landscape-schemes/dynamic/method-call';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -105,6 +106,9 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   private structureLandscapeData!: StructureLandscapeData;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
+
+  selectedCommits?: Map<string, SelectedCommit[]>;
+  selectedApplication?: string;
 
   readonly appCommRendering: CommunicationRendering;
 
@@ -218,6 +222,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       renderMode?: RenderMode 
     ) => {
 
+      this.selectedCommits = selectedCommits;
+      this.selectedApplication = selectedApplication;
 
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
@@ -315,7 +321,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       // commit comparison visualization
       if(selectedApplication && applicationObject3D.data.application.name === selectedApplication && selectedCommits?.get(selectedApplication)?.length == 2){
-        this.visualizeCommitComparison(applicationObject3D, selectedCommits);
+        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D, selectedCommits);
       }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
         // remove existing comparison visualizations
         this.removeCommitComparisonVisualization(applicationObject3D);
@@ -342,26 +348,21 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   );
 
-
-  visualizeCommitComparison(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
-    const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
-    const ids = [commits[0].commitId, commits[1].commitId];
-    const id = ids.join("_");
-
-    const commitComparison = this.commitComparisonRepo.getById(id);
-
-    console.log(commitComparison);
-
-    if(!commitComparison) return;
-
+  private visualizeAddedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
     let indexAdded = 0;
     for(const fqFileName of commitComparison.added) {
-      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
       const addedPackages = commitComparison.addedPackages[indexAdded];
-
 
       if(id){
         this.highlightingService.markAsAddedById(id);
+        console.log(applicationObject3D.data.classCommunications);
+        applicationObject3D.classCommunicationSet.forEach(classCommu => {
+          const clazzes = classCommu.getClasses();
+          clazzes.filter(clazz => clazz.id === id);
+          console.log(clazzes);
+        });
+
         if(addedPackages !== "") {
           const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
           let pckg : Package | undefined = clazz?.parent;
@@ -378,7 +379,9 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       }
       indexAdded++;
     }
+  }
 
+  private visualizeDeletedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
     let indexDeleted = 0;
     for(const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
@@ -403,7 +406,160 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       }
       indexDeleted++;
     }
+  }
 
+  private visualizeModifiedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
+    // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would 
+    // have to mark every parent package as modified. The design choice is to not do that as it seems overloaded
+
+    for(const fqFileName of commitComparison.modified) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+
+      if(id){
+        this.highlightingService.markAsModifiedById(id);
+        // TODO: mark communication line as modified if it contains a modified method 
+      }
+    }
+  }
+
+
+  visualizeAddedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
+    pipe: ClazzCommunicationMesh, clazz: Class) {
+    for(const fqFileName of commitComparison.deleted) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && clazz.id === id) {
+        this.highlightingService.markAsDeletedById(pipe.dataModel.id);
+        return;
+      }
+    }
+  }
+
+  visualizeDeletedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
+    pipe: ClazzCommunicationMesh, clazz: Class) {
+    for(const fqFileName of commitComparison.added) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && clazz.id === id) {
+        this.highlightingService.markAsAddedById(pipe.dataModel.id);
+        return;
+      }
+    }
+  }
+
+  visualizeChangedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
+    pipe: ClazzCommunicationMesh, clazz: Class) {
+    for(const fqFileName of commitComparison.modified) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && clazz.id === id) {
+        // find out if at least one modified method is involved in communication of second selected commit
+
+        //const firstSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[0] as MethodCall[];
+        const secondSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[1] as MethodCall[];
+
+        console.log("commitComparison: ", commitComparison);
+
+        let name = "";
+        for(const methodCall of secondSelectedCommitMethodCalls) {
+          if(methodCall.sourceClass.id === id) {
+            name = methodCall.callerMethodName;
+          }else if(methodCall.targetClass.id === id) {
+            name = methodCall.operationName;
+          }
+
+          if(name !== "") { console.log("NAME => ", name);
+            for(const metric of commitComparison.metrics) { // check if method is modified
+              const methodNameSplit = metric.entityName.split("#");
+              const methodName = methodNameSplit[0];
+              if(methodName.endsWith(name)) {
+                //let isModified : boolean = false;
+
+                // future work: adapt code-agent such that it sends the names of the modified methods
+                // to the code-service. Relying on the loc metric alone doesn't detect the case where
+                // a modified method still has the same number of code lines.
+                if(metric.metricMap.loc?.newValue !== metric.metricMap.loc?.oldValue) { 
+                  //isModified = true;
+                  this.highlightingService.markAsModifiedById(pipe.dataModel.id);
+                  return;
+                }
+
+              }
+            }
+
+
+          }
+        }
+
+
+        // const methodCallsBothCommits = firstSelectedCommitMethodCalls.filter(
+        //   methodCall => secondSelectedCommitMethodCalls.find(mc => mc.id === methodCall.id)
+        // );
+
+        // console.log("methodCallsBothCommits: ", methodCallsBothCommits);
+
+       
+
+        console.log("pipe datamodel communication methodcalls ", pipe.dataModel.communication.methodCalls);
+        return;
+      }
+    }
+  }
+
+  visualizeCommitComparisonCommunicationLinks(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
+    const selectedCommits = this.selectedCommits;
+    const selectedApplication = this.selectedApplication;
+
+    if(!selectedCommits || !selectedApplication) return;
+
+    const sourceApp = classCommunication.sourceApp;
+    const targetApp = classCommunication.targetApp;
+
+    
+
+    const commits = selectedCommits.get(selectedApplication)!;
+    if(commits.length !== 2) { // remove texture. TODO: if this approach produces a bug in
+      // combination with the restructure feature, put this kind of code to visualization.ts when
+      // deselecting the second selected commit
+      if (pipe.material instanceof THREE.MeshBasicMaterial ||
+          pipe.material instanceof THREE.MeshLambertMaterial ||
+          pipe.material instanceof MeshLineMaterial) {
+        pipe.material.map = null;
+      }
+      return;
+    }
+
+    const ids = [commits[0].commitId, commits[1].commitId];
+    const id = ids.join("_");
+
+    const commitComparison = this.commitComparisonRepo.getById(id);
+    if(!commitComparison) return;
+
+    if(sourceApp.name === selectedApplication) {
+      const appObj = this.getApplicationById(sourceApp.id);
+      if(appObj) {
+        const sourceClass = classCommunication.sourceClass;
+        this.visualizeAddedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
+        this.visualizeDeletedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
+        this.visualizeChangedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
+      }
+    } else if(targetApp.name === selectedApplication) { 
+      const appObj = this.getApplicationById(targetApp.id);
+      if(appObj) {
+        const targetClass = classCommunication.targetClass;
+        this.visualizeAddedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
+        this.visualizeDeletedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
+        this.visualizeChangedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
+      }
+    }
+  }
+
+  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
+    const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
+    const ids = [commits[0].commitId, commits[1].commitId];
+    const id = ids.join("_");
+    const commitComparison = this.commitComparisonRepo.getById(id);
+    if(!commitComparison) return;
+    this.visualizeAddedPackagesAndClasses(commitComparison, applicationObject3D);
+    this.visualizeDeletedPackagesAndClasses(commitComparison, applicationObject3D);
+    this.visualizeModifiedPackagesAndClasses(commitComparison, applicationObject3D);
     commitComparison.modified.forEach(fqFileName => {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
       //if(id)
@@ -412,7 +568,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   }
 
-  private fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
+  public fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
     try {
       console.log("fqFileName::::::: ", fqFileName);
       // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)

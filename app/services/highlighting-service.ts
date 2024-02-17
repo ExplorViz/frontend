@@ -313,21 +313,49 @@ export default class HighlightingService extends Service.extend({
 
 
  private markAsAdded(mesh: EntityMesh){
-    const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
-    const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
-    mesh.changeTexture("../images/plus.png", repeatX, repeatY);
+
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      console.log("DIST: ", dist);
+      (mesh as EntityMesh).changeTexture("../images/plus.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/plus.png", repeatX, repeatY);
+    }
   }
 
 
   private markAsDeleted(mesh: EntityMesh){
-    const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
-    const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
-    mesh.changeTexture("../images/minus.png", repeatX, repeatY);
+
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      console.log("DIST: ", dist);
+      (mesh as EntityMesh).changeTexture("../images/minus.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/minus.png", repeatX, repeatY);
+    }
   }
 
 
   private markAsModified(mesh: EntityMesh){
-    mesh.changeTexture("../images/hashtag.png");
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      console.log("DIST: ", dist);
+      (mesh as EntityMesh).changeTexture("../images/hashtag.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/hashtag.png", repeatX, repeatY);
+    }
   }
 }
 

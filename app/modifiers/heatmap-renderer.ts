@@ -51,7 +51,6 @@ export default class HeatmapRenderer extends Modifier<Args> {
   modify(_element: any, _positionalArgs: any[], { camera, scene }: any) {
     this.scene = scene;
     this.camera = camera;
-    console.log("<-<-<");
     // Avoid unwanted reflections in heatmap mode
     this.setSpotLightVisibilityInScene(this.metric === undefined);
 
@@ -71,7 +70,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     }
   }
 
-  private removeHeatmap(applicationObject3D: ApplicationObject3D) { console.log("removeHeatmap");
+  private removeHeatmap(applicationObject3D: ApplicationObject3D) { 
     applicationObject3D.setOpacity(1);
     removeHeatmapHelperLines(applicationObject3D);
 
@@ -99,7 +98,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     async (
       applicationObject3D: ApplicationObject3D,
       selectedMetric: Metric
-    ) => { console.log("applyHeatmap", selectedMetric.commitId);
+    ) => { 
       applicationObject3D.setComponentMeshOpacity(0.1);
       applicationObject3D.setCommunicationOpacity(0.1);
 

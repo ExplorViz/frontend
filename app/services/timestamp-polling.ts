@@ -62,17 +62,30 @@ export default class TimestampPollingService extends Service {
       secondCommitTimestampPromise = this.httpFetchTimestamps(commits[1], secondCommitNewestLocalTimestamp);
     }
 
+    // TODO: do this stuff only if the returned JSON is NOT identical to the previous one. 
+    // Otherwise, return [undefined, undefined] (if both JSONS are identical to their previous ones), 
+    // [undefined, [...]] (if only the JSON of the first commit is identical to its previous one) 
+    // [[...], undefined] (if only the JSON of the second commit is identical to its previous one)
+
     const timestampsArr : Timestamp[][] = [];
 
     await firstCommitTimestampPromise
-      .then((timestamps: Timestamp[]) => timestampsArr.push(timestamps))
+      .then((timestamps: Timestamp[]) => {
+      timestampsArr.push(timestamps);
+    })
       .catch((error: Error) => {
         console.log(error);
       });
 
     if(secondCommitTimestampPromise) {
       await secondCommitTimestampPromise
-      .then((timestamps: Timestamp[]) => timestampsArr.push(timestamps))
+      .then((timestamps: Timestamp[]) => { 
+        // timestamps = [{
+        //   epochMilli: 1702891010000,
+        //   spanCount: 1
+        // }, ...timestamps]; // TODO: DELETE. Only for test purposes. Not bug free anyway
+        timestampsArr.push(timestamps);  
+      })
       .catch((error: Error) => {
         console.log(error);
       });

@@ -80,7 +80,9 @@ export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
   landscapeDynamicDataArr: [DynamicLandscapeData?, DynamicLandscapeData?] // first element => first selected commit dynamics, second element => second selected commit dynamics
 ) {
+  // if no dynamic landscape for any commit available => return empty list
   if ((!landscapeDynamicDataArr[0] && !landscapeDynamicDataArr[1]) || !(landscapeDynamicDataArr[0]?.length !== 0 || landscapeDynamicDataArr[1]?.length !== 0) ) return [];
+
 
   const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
     landscapeStructureData
@@ -100,14 +102,25 @@ export default function computeClassCommunication(
     landscapeDynamicDataArr[i]!.forEach((trace) => { 
       const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
 
+      if(trace.traceId === "607257096554b5c9236116464bc4TEST") {
+        console.log(" MEIN TRACE GEFUNDEN !");
+        console.log(traceSpanTree);
+      }
+
       if (traceSpanTree) {
         const firstSpan = traceSpanTree.root;
+        const x = computeClassCommunicationRecursively(
+          firstSpan,
+          traceSpanTree.tree,
+          hashCodeToClassMap
+        ); 
+
+        if(firstSpan.traceId === "607257096554b5c9236116464bc4TEST") {
+          console.log(" X: ", x);
+        }
+
         totalClassCommunications.push(
-          ...computeClassCommunicationRecursively(
-            firstSpan,
-            traceSpanTree.tree,
-            hashCodeToClassMap
-          )
+          ...x // replace x with function call
         );
       }
     });
@@ -221,7 +234,7 @@ function createLookupMaps(
     const classes = getAllClassesInApplication(application);
 
     for (const clazz of classes) {
-      clazz.methods.forEach(({ methodHash }) =>
+      clazz.methods.forEach(({ methodHash }) => 
         hashCodeToClassMap.set(methodHash, clazz)
       );
 
