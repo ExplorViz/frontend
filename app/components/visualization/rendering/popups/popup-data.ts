@@ -1,5 +1,5 @@
 import { tracked } from '@glimmer/tracking';
-import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import {
   Application,
   Class,

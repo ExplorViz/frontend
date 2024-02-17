@@ -195,12 +195,6 @@ export default function computeClassCommunication(
   computeCommunicationMetrics(computedCommunication, 0);
   computeCommunicationMetrics(computedCommunication, 1);
 
-  //for (const computedCommu of computedCommunication) {
-  //console.log(
-  // computedCommu.operationName + ' of ' + computedCommu.sourceClass.name
-  //);
-  //}
-
   return computedCommunication;
 }
 

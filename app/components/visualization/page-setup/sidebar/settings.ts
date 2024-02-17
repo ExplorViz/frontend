@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -10,9 +10,9 @@ import {
   ApplicationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LocalUser from 'collaboration/services/local-user';
 import { RenderMode } from 'explorviz-frontend/controllers/visualization';
 
 interface Args {
@@ -30,14 +30,17 @@ export default class Settings extends Component<Args> {
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
+  @service('local-user')
+  localUser!: LocalUser;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
   @service('configuration')
   configuration!: Configuration;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
@@ -53,14 +56,13 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       ApplicationSettingId[]
     > = {
-      Rendering: [],
-      'Hover Effects': [],
+      Camera: [],
       Colors: [],
       Communication: [],
       Highlighting: [],
-      Popup: [],
-      Camera: [],
-      'Extended Reality': [],
+      'Hover Effect': [],
+      Popups: [],
+      'Virtual Reality': [],
       Debugging: [],
     };
 
@@ -90,12 +92,11 @@ export default class Settings extends Component<Args> {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
-
     const settingId = name as ApplicationSettingId;
     try {
       this.userSettings.updateApplicationSetting(settingId, input);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
 
     switch (settingId) {
@@ -111,6 +112,11 @@ export default class Settings extends Component<Args> {
           this.args.redrawCommunication();
           this.args.updateHighlighting();
         }
+        break;
+      case 'cameraFov':
+        this.localUser.defaultCamera.fov =
+          this.userSettings.applicationSettings.cameraFov.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       default:
         break;
@@ -137,18 +143,9 @@ export default class Settings extends Component<Args> {
   updateFlagSetting(name: ApplicationSettingId, value: boolean) {
     const settingId = name as ApplicationSettingId;
     try {
-      if (
-        this.collaborationSession.connectionStatus === 'online' &&
-        settingId === 'keepHighlightingOnOpenOrClose'
-      ) {
-        AlertifyHandler.showAlertifyWarning(
-          'Switching Mode Not Allowed In Collaboration Session'
-        );
-        return;
-      }
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
 
     
@@ -164,7 +161,7 @@ export default class Settings extends Component<Args> {
           if (
             !this.userSettings.applicationSettings.dynamicStructure.value && !value
           ) {
-            AlertifyHandler.showAlertifyWarning(
+            this.toastHandlerService.showInfoToastMessage(
               'One structure to render required!'
             );
             this.userSettings.updateApplicationSetting(settingId, !value);
@@ -182,7 +179,7 @@ export default class Settings extends Component<Args> {
           if (
             !this.userSettings.applicationSettings.staticStructure.value && !value
           ) {
-            AlertifyHandler.showAlertifyWarning(
+            this.toastHandlerService.showInfoToastMessage(
               'One structure to render required!'
             );
             this.userSettings.updateApplicationSetting(settingId, !value);
@@ -207,7 +204,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
   }
 
@@ -224,6 +221,9 @@ export default class Settings extends Component<Args> {
       this.args.updateColors?.();
       this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
+      this.localUser.defaultCamera.fov =
+        this.userSettings.applicationSettings.cameraFov.value;
+      this.localUser.defaultCamera.updateProjectionMatrix();
     }
   }
 

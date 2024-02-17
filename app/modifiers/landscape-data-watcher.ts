@@ -18,16 +18,15 @@ import computeClassCommunication, {
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import LocalUser from 'collaborative-mode/services/local-user';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import LocalUser from 'collaboration/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { LinkObject, NodeObject } from 'three-forcegraph';
 import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
+import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData;
@@ -55,8 +54,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -178,9 +177,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.findBy(
-          'id',
-          applicationData.application.id
+        const graphNode = graphNodes.find(
+          (node) => node.id == applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
@@ -222,8 +220,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       (x) => x.sourceApp !== x.targetApp
     );
     const communicationLinks = interAppCommunications.map((communication) => ({
-      source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
-      target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
+      source: graphNodes.find(
+        (node) => node.id == communication.sourceApp?.id
+      ) as GraphNode,
+      target: graphNodes.find(
+        (node) => node.id == communication.targetApp?.id
+      ) as GraphNode,
       value: calculateLineThickness(
         communication,
         this.userSettings.applicationSettings

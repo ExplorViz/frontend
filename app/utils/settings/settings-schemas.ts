@@ -1,12 +1,11 @@
 export type SettingGroup =
-  | 'Rendering'
-  | 'Colors'
-  | 'Highlighting'
-  | 'Hover Effects'
-  | 'Communication'
-  | 'Popup'
   | 'Camera'
-  | 'Extended Reality'
+  | 'Colors'
+  | 'Communication'
+  | 'Highlighting'
+  | 'Hover Effect'
+  | 'Popups'
+  | 'Virtual Reality'
   | 'Debugging';
 
 export type ApplicationRenderSettingId =
@@ -39,15 +38,14 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationCameraSettingId = 'useOrthographicCamera';
+export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
-export type ApplicationXRSettingId = 'showXRButton';
+export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick'
   | 'fullscreen'
   | 'resetToDefaults';
 
@@ -107,10 +105,10 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
-export type ApplicationCameraSettings = Record<
-  ApplicationCameraSettingId,
-  FlagSetting
->;
+export type ApplicationCameraSettings = {
+  useOrthographicCamera: FlagSetting;
+  cameraFov: RangeSetting;
+};
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 

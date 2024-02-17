@@ -26,10 +26,26 @@ import {
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
+import MessageSender from 'collaboration/services/message-sender';
+import HighlightingService from './highlighting-service';
+import ApplicationRenderer from './application-renderer';
+import LocalUser from 'collaboration/services/local-user';
 
 export default class UserSettings extends Service {
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('local-user')
+  private localUser!: LocalUser;
+
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('message-sender')
+  private sender!: MessageSender;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @tracked
   applicationSettings!: ApplicationSettings;
@@ -87,6 +103,20 @@ export default class UserSettings extends Service {
     if (saveSettings) {
       this.saveSettings();
     }
+  }
+
+  shareApplicationSettings() {
+    this.sender.sendSharedSettings(this.applicationSettings);
+  }
+
+  updateSettings(settings: ApplicationSettings) {
+    this.applicationSettings = settings;
+
+    this.updateColors();
+    this.applicationRenderer.addCommunicationForAllApplications();
+    this.highlightingService.updateHighlighting();
+    this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value;
+    this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {

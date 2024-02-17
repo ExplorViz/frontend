@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -35,18 +35,17 @@ import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUserService from 'virtual-reality/services/spectate-user';
+import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -83,7 +82,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private highlightingService!: HighlightingService;
 
   @service('spectate-user')
-  private spectateUserService!: SpectateUserService;
+  private spectateUserService!: SpectateUser;
 
   @service('heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
@@ -94,8 +93,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
@@ -125,7 +124,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   controls!: MapControls;
 
-  ortographicCamera!: THREE.OrthographicCamera;
   private frustumSize = 5;
 
   cameraControls!: CameraControls;
@@ -169,19 +167,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   constructor(owner: any, args: BrowserRenderingArgs) { console.log("CONSTRUCTOR");
     super(owner, args);
     this.debug('Constructor called');
-    // scene
+    // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
-    this.applicationRenderer.getOpenApplications().clear();
-    // force graph
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera();
+
+    // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
     this.graph = forceGraph.graph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
 
-    // spectate
+    // Spectate
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
@@ -308,21 +307,67 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
 
-    this.ortographicCamera.left = (this.frustumSize * newAspectRatio) / -2;
-    this.ortographicCamera.right = (this.frustumSize * newAspectRatio) / 2;
-    this.ortographicCamera.top = this.frustumSize / 2;
-    this.ortographicCamera.bottom = -this.frustumSize / 2;
+    this.localUser.ortographicCamera.left =
+      (this.frustumSize * newAspectRatio) / -2;
+    this.localUser.ortographicCamera.right =
+      (this.frustumSize * newAspectRatio) / 2;
+    this.localUser.ortographicCamera.top = this.frustumSize / 2;
+    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
 
-    this.ortographicCamera.userData.aspect = newAspectRatio;
+    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
 
-    this.ortographicCamera.updateProjectionMatrix();
+    this.localUser.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
+    this.initCameras();
     this.initRenderer();
     this.resize(outerDiv);
+  }
+
+  private initCameras() {
+    const aspectRatio = this.canvas.width / this.canvas.height;
+    // camera
+    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
+      this.userSettings.applicationSettings.cameraFov.value,
+      aspectRatio,
+      0.1,
+      100
+    );
+    this.camera.position.set(5, 5, 5);
+    this.scene.add(this.camera);
+
+    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * this.frustumSize,
+      aspectRatio * this.frustumSize,
+      this.frustumSize,
+      -this.frustumSize,
+      0.1,
+      100
+    );
+
+    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.localUser.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.localUser.ortographicCamera.lookAt(this.scene.position);
+    // controls
+    this.cameraControls = new CameraControls(
+      getOwner(this),
+      this.camera,
+      this.localUser.ortographicCamera,
+      this.canvas
+    );
+
+    this.spectateUserService.cameraControls = this.cameraControls;
+
+    this.updatables.push(this.localUser);
+    this.updatables.push(this.cameraControls);
   }
 
   /**
@@ -336,51 +381,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       preserveDrawingBuffer: true,
       powerPreference: 'high-performance',
     });
-
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
 
-    const aspectRatio = width / height;
+    this.renderingLoop = new RenderingLoop(getOwner(this), {
+      camera: this.camera,
+      orthographicCamera: this.localUser.ortographicCamera,
+      scene: this.scene,
+      renderer: this.renderer,
+      updatables: this.updatables,
+    });
+    this.renderingLoop.start();
 
-    // camera
-    this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      75,
-      aspectRatio,
-      0.1,
-      100
-    );
-    this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
-
-    this.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.ortographicCamera.lookAt(this.scene.position);
-    // controls
-    this.cameraControls = new CameraControls(
-      getOwner(this),
-      this.camera,
-      this.ortographicCamera,
-      this.canvas
-    );
-
-    this.spectateUserService.cameraControls = this.cameraControls;
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
@@ -393,17 +408,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
-    this.updatables.push(this.cameraControls);
-    this.updatables.push(this.localUser);
-
-    this.renderingLoop = new RenderingLoop(getOwner(this), {
-      camera: this.camera,
-      orthographicCamera: this.ortographicCamera,
-      scene: this.scene,
-      renderer: this.renderer,
-      updatables: this.updatables,
-    });
-    this.renderingLoop.start();
   }
 
   @action
@@ -414,9 +418,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.ideWebsocket.jumpToLocation(intersection.object);
       this.ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
-      this.highlightingService.removeHighlightingForAllApplications(true);
-      this.highlightingService.updateHighlighting();
+      this.removeAllHighlighting();
     }
+  }
+
+  @action
+  removeAllHighlighting() {
+    this.highlightingService.removeHighlightingForAllApplications(true);
+    this.highlightingService.updateHighlighting();
   }
 
   @action
@@ -442,14 +451,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
-
-
-      if(mesh instanceof ClazzMesh) {
-        console.log("CLASS METHODS: ", mesh.dataModel.methods);
-      }
-
-
-
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
@@ -502,8 +503,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
-
-    // applicationObject3D.position.y = 10;
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }

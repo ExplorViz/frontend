@@ -1,7 +1,7 @@
 // #region imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
@@ -27,11 +27,8 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'virtual-reality/services/ar-settings';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import ArSettings from 'extended-reality/services/ar-settings';
+import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -42,19 +39,21 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { getAncestorPackages, getClassesInPackage, getPackageById, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { getClassesInPackage, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import { applicationHasClass, getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import CommitComparisonRepository, { CommitComparison } from './repos/commit-comparison-repository';
-import { getClassAncestorPackages, getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
 import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
 import { MeshLineMaterial } from 'meshline';
 import MethodCall from 'explorviz-frontend/utils/landscape-schemes/dynamic/method-call';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -74,8 +73,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -86,8 +85,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -560,12 +559,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     this.visualizeAddedPackagesAndClasses(commitComparison, applicationObject3D);
     this.visualizeDeletedPackagesAndClasses(commitComparison, applicationObject3D);
     this.visualizeModifiedPackagesAndClasses(commitComparison, applicationObject3D);
-    commitComparison.modified.forEach(fqFileName => {
-      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
-      //if(id)
-        //this.highlightingService.markAsModifiedById(id);
-    });
-
   }
 
   public fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
@@ -1011,7 +1004,10 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application);
+        this.appCommRendering.addCommunication(
+          application,
+          this.userSettings.applicationSettings
+        );
       } else {
         application.removeAllCommunication();
       }
@@ -1043,7 +1039,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     });
   }
 
-  restoreFromSerialization(room: SerializedVrRoom) {
+  restoreFromSerialization(room: SerializedRoom) {
     this.forEachOpenApplication(this.removeApplicationLocally);
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {

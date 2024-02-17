@@ -3,10 +3,10 @@ import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
-} from 'collaborative-mode/services/local-user';
+} from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline, { IMarkerStates } from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
@@ -16,36 +16,10 @@ import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
 import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Application, Node, Package, StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import WebSocketService from 'virtual-reality/services/web-socket';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import {
-  InitialLandscapeMessage,
-  INITIAL_LANDSCAPE_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/landscape';
-import {
-  TimestampUpdateTimerMessage,
-  TIMESTAMP_UPDATE_TIMER_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
-import {
-  TimestampUpdateMessage,
-  TIMESTAMP_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
-import {
-  VISUALIZATION_MODE_UPDATE_EVENT,
-  VisualizationModeUpdateMessage,
-} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import {
-  SerializedApp,
-  SerializedDetachedMenu,
-  SerializedHighlightedComponent,
-} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
@@ -59,7 +33,32 @@ import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-s
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 import { combineStructures } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
-
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import SpectateUser from 'collaboration/services/spectate-user';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import WebSocketService from 'collaboration/services/web-socket';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {
+  INITIAL_LANDSCAPE_EVENT,
+  InitialLandscapeMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/landscape';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
+import {
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+  TimestampUpdateTimerMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
+import {
+  SerializedApp,
+  SerializedDetachedMenu,
+} from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -115,8 +114,8 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('timestamp')
   timestampService!: TimestampService;
@@ -148,6 +147,12 @@ export default class VisualizationController extends Controller {
   plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
 
   plotlyCommitlineRef!: PlotlyCommitline;
+  @service('spectate-user')
+  spectateUser!: SpectateUser;
+
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
+
 
   queryParams = ['roomId'];
 
@@ -253,11 +258,16 @@ export default class VisualizationController extends Controller {
   }
 
   get showTimeline() {
-    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+    return (
+      !this.showAR &&
+      !this.showVR &&
+      !this.isSingleLandscapeMode &&
+      this.spectateUser.spectateConfigurationId !== 'arena-2'
+    );
   }
 
-  get showXRButton() {
-    return this.userSettings.applicationSettings.showXRButton.value;
+  get showVrButton() {
+    return this.userSettings.applicationSettings.showVrButton.value;
   }
 
   @action
@@ -723,9 +733,10 @@ export default class VisualizationController extends Controller {
       //console.log("THIS.SELECTEDTIMESTAMPRECORDS ---------------------> ", this.selectedTimestampRecords);
       //console.log("THIS.TIMESTAMPSERVICE.TIMESTAMP --------------------> " , this.timestampService.timestamp);
     } catch (e) {
-      //this.debug("Landscape couldn't be requested!", e);
-      console.log("Landscape couldn't be requested!", e);
-      AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
+      this.debug("Landscape couldn't be requested!", e);
+      this.toastHandlerService.showErrorToastMessage(
+        "Landscape couldn't be requested!"
+      );
       this.resumeVisualizationUpdating();
     }
   }
@@ -939,9 +950,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-  }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+  }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
       await timeout(50);
@@ -953,8 +962,7 @@ export default class VisualizationController extends Controller {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks:
-        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+      highlightedExternCommunicationLinks,
     };
 
     this.highlightingService.updateHighlighting();

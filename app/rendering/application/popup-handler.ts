@@ -2,38 +2,38 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { SerializedDetachedMenu } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
-import WebSocketService from 'virtual-reality/services/web-socket';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
-  isMenuDetachedResponse,
   MenuDetachedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
+  isMenuDetachedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
-  isObjectClosedResponse,
   ObjectClosedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+  isObjectClosedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 import {
-  DetachedMenuClosedMessage,
   DETACHED_MENU_CLOSED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+  DetachedMenuClosedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
-  MenuDetachedMessage,
   MENU_DETACHED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+  MenuDetachedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -65,12 +65,12 @@ export default class PopupHandler {
 
   @action
   removeUnpinnedPopups() {
-    this.popupData = this.popupData.filterBy('isPinned', true);
+    this.popupData = this.popupData.filter((data) => data.isPinned);
   }
 
   @action
   removeUnmovedPopups() {
-    this.popupData = this.popupData.filterBy('wasMoved', true);
+    this.popupData = this.popupData.filter((data) => data.wasMoved);
   }
 
   @action

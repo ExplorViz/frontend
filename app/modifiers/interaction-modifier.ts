@@ -2,16 +2,14 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
-import LocalUser from 'collaborative-mode/services/local-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 
 export type Position2D = {
   x: number;
@@ -88,9 +86,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('user-settings')
   userSettings!: UserSettings;
-
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
 
   isMouseOnCanvas = false;
 
@@ -325,27 +320,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @action
   ping(intersectedViewObj: THREE.Intersection | null) {
-    // or touch, primary input ...
-    if (!this.localUser.mousePing || !intersectedViewObj) {
-      return;
-    }
-    const parentObj = intersectedViewObj.object.parent;
-    const pingPosition = intersectedViewObj.point;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
-
-      this.localUser.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    if (intersectedViewObj) {
+      this.localUser.ping(intersectedViewObj.object, intersectedViewObj.point);
     }
   }
 
@@ -450,7 +426,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.setPointerCapture(event.pointerId);
     }
     this.pointers.push(event);
-    // AlertifyHandler.showAlertifyMessage('Event-pointer-type: ' + event.pointerType)
     if (event.pointerType === 'touch' && this.pointers.length === 2) {
       this.handlePinchStart();
       this.handleRotateStart();
