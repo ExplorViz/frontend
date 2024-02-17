@@ -3,7 +3,7 @@ import Component from '@glimmer/component';
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 interface IArgs {
   configurations: ConfigurationItem[];
@@ -19,6 +19,10 @@ export default class ConfigurationOverview extends Component<IArgs> {
 
   @service('repos/configuration-repository')
   configRepo!: ConfigurationRepository;
+
+  
+  @service('toastHandler')
+  toastHandlerService!: ToastHandlerService;
 
   @action
   didRender() {
@@ -116,7 +120,7 @@ export default class ConfigurationOverview extends Component<IArgs> {
   deleteConfig(id: string) {
     const landscapeToken = this.tokenService.token!.value;
     this.configRepo.removeConfiguration(landscapeToken, id);
-    AlertifyHandler.showAlertifySuccess('Configuration removed!');
+    this.toastHandlerService.showSuccessToastMessage('Configuration removed!');
   }
 
   @action
@@ -128,12 +132,12 @@ export default class ConfigurationOverview extends Component<IArgs> {
       const color: string = event.target[3].value;
       if (name && key && color && name !== '' && key !== '' && key != "Metric Key" && color !== '' && /^#[0-9A-F]{6}$/i.test(color)) {
         this.configRepo.addConfiguration(landscapeToken, name, key, color);
-        AlertifyHandler.showAlertifySuccess('Configuration created!');
+        this.toastHandlerService.showSuccessToastMessage('Configuration created!');
       } else {
         throw Error('Invalid Input!');
       }
     } catch (e) {
-      AlertifyHandler.showAlertifyError('Creation failed: Invalid Input!');
+      this.toastHandlerService.showErrorToastMessage('Creation failed: Invalid Input!');
     }
     event.preventDefault(); // Prevents page refresh after submit
   }
