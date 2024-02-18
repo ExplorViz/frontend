@@ -59,7 +59,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
       id: uuidv4(), name, key, color, status: false,
     };
     this.configurations.set(landscapeToken, [...config, item]);
-    this.triggerCommitlineUpdate();
+    this.triggerCommitTreeUpdate();
     return item.id;
   }
 
@@ -71,7 +71,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
       }
     }
 
-     this.triggerCommitlineUpdate();
+     this.triggerCommitTreeUpdate();
   }
 
   // Remove
@@ -79,7 +79,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
     const config = this.getConfiguration(landscapeToken);
     this.configurations.set(landscapeToken, config.filter((x) => x.id !== id));
     this.deactiveConfiguration(landscapeToken, id);
-    this.triggerCommitlineUpdate();
+    this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
   }
 
@@ -94,7 +94,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
         },
       );
     }
-    this.triggerCommitlineUpdate();
+    this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
   }
 
@@ -108,7 +108,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
         },
       );
     }
-    this.triggerCommitlineUpdate();
+    this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
   }
 
@@ -123,10 +123,10 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
         [...configs.slice(0, index), configuration, ...configs.slice(index + 1)],
       );
     }
-    this.triggerCommitlineUpdate();
+    this.triggerCommitTreeUpdate();
   }
 
-  triggerCommitlineUpdate() {
+  triggerCommitTreeUpdate() {
     this.trigger('updated');
   }
 

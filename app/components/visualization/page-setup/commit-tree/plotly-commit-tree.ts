@@ -25,7 +25,7 @@ interface IMarkerStates {
   };
 }
 
-type FileMetric = {
+type FileMetric = { // file-wise metric (can be visualized in commit tree)
   fileName: string;
   loc: number;
   cyclomaticComplexity: number | undefined;
@@ -49,7 +49,7 @@ interface IArgs {
   selectedApplication?: string;
   selectedCommits?: Map<string, SelectedCommit[]>;
   highlightedMarkerColor?: string;
-  setChildReference?(timeline: PlotlyCommitline): void;
+  setChildReference?(timeline: PlotlyCommitTree): void;
   clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, structureData?: StructureLandscapeData): void;
   toggleConfigurationOverview(): void;
   applicationNameAndBranchNameToColorMap? : Map<string, string>;
@@ -85,7 +85,7 @@ function isFileMetricType(fileMetric: any): fileMetric is FileMetric {
 const { codeService } = ENV.backendAddresses;
 
 
-export default class PlotlyCommitline extends Component<IArgs> {
+export default class PlotlyCommitTree extends Component<IArgs> {
 
   private MAX_SELECTION = 2;
 
@@ -111,7 +111,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
   markerState: IMarkerStates = {};
 
-  commitlineDiv: any;
+  commitTreeDiv: any;
 
   commitSizes: Map<string, number> = new Map();
   usedColors: Set<number[]> = new Set();
@@ -176,7 +176,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
       parentFunction(this);
     }
 
-    this.commitlineDiv = plotlyDiv;
+    this.commitTreeDiv = plotlyDiv;
     const evolutionData = this.evolutionData;
     const application = this.selectedApplication;
     const selectedCommits = this.selectedCommits;
@@ -185,7 +185,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
       //console.log("DID RENDER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
       //console.log("CURRENT SELECTED COMMITS: ", selectedCommits);
       this.computeSizes(evolutionData, application);
-      this.createPlotlyCommitlineChart(evolutionData, application, selectedCommits);
+      this.createPlotlyCommitTreeChart(evolutionData, application, selectedCommits);
       this.setupPlotlyListener(evolutionData, application, selectedCommits);
         // TODO: select latest commit on main branch
     }
@@ -209,7 +209,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
     }
   }
 
-  createPlotlyCommitlineChart(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
+  createPlotlyCommitTreeChart(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
     let application = evolutionData.applications.find(application => application.name === selectedApplication);
     if(application && application.branches.find(branch => branch.commits.length > 0)) { 
       
@@ -268,7 +268,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
         }
       }
 
-      const layout = PlotlyCommitline.getPlotlyLayoutObject(-5,20, -1,8);
+      const layout = PlotlyCommitTree.getPlotlyLayoutObject(-5,20, -1,8);
         this.branchToY.forEach((val, key) => {
             layout.annotations.push({
                 xref: 'paper',
@@ -287,10 +287,10 @@ export default class PlotlyCommitline extends Component<IArgs> {
         });
 
         Plotly.newPlot(
-            this.commitlineDiv,
+            this.commitTreeDiv,
             plotlyBranches,
             layout,
-            PlotlyCommitline.getPlotlyOptionsObject()
+            PlotlyCommitTree.getPlotlyOptionsObject()
           );
 
 
@@ -388,7 +388,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
       const numOfCircles = activeIdList.length;
 
       let newData = [];
-      let nonMetricData = this.commitlineDiv.data.filter((data: any) => 
+      let nonMetricData = this.commitTreeDiv.data.filter((data: any) => 
         data.mode === "lines+markers" || data.mode === "lines"
       ); // consider non-metric data so it won't get deleted when updating the plot
 
@@ -411,10 +411,10 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
 
       Plotly.newPlot(
-        this.commitlineDiv,
+        this.commitTreeDiv,
         newData,
-        this.commitlineDiv.layout,
-        PlotlyCommitline.getPlotlyOptionsObject()
+        this.commitTreeDiv.layout,
+        PlotlyCommitTree.getPlotlyOptionsObject()
       );
 
       this.setupPlotlyListener(this.evolutionData!, this.selectedApplication!, this.selectedCommits!);
@@ -504,7 +504,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
           }
         }
 
-        let oldData = this.commitlineDiv.data;
+        let oldData = this.commitTreeDiv.data;
         let xValues : number[] = [];
         let yValues : number[] = [];
         let sizes : number[][] = [];
@@ -586,7 +586,7 @@ export default class PlotlyCommitline extends Component<IArgs> {
           hoverlabel: {
             align: 'left',
           },
-          text: PlotlyCommitline.hoverText(evolutionData, selectedApplication, branch),
+          text: PlotlyCommitTree.hoverText(evolutionData, selectedApplication, branch),
           x: commits,
           y: Array.from(Array(commits.length)).map(() => branch)
         };
@@ -716,10 +716,10 @@ export default class PlotlyCommitline extends Component<IArgs> {
 
    setupPlotlyListener(evolutionData: EvolutionLandscapeData, selectedApplication: string, selectedCommits: Map<string,SelectedCommit[]>) {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
-    const plotlyDiv = this.commitlineDiv;
+    const plotlyDiv = this.commitTreeDiv;
 
     if (plotlyDiv && plotlyDiv.layout) {
-      const self: PlotlyCommitline = this;
+      const self: PlotlyCommitTree = this;
 
       // singe click
       plotlyDiv.on('plotly_click', async (data: any) => {

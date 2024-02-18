@@ -29,7 +29,8 @@ export interface CommitComparison {
           oldValue: string | null;
           newValue: string;
         } | undefined;
-        loc: {
+        loc: { // used to identify which communication line needs to be marked as modified
+          // during the commit comparison
           oldValue: string | null;
           newValue: string;
         } | undefined;

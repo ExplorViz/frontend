@@ -56,6 +56,7 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       ApplicationSettingId[]
     > = {
+      Rendering: [],
       Camera: [],
       Colors: [],
       Communication: [],
@@ -70,6 +71,7 @@ export default class Settings extends Component<Args> {
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in applicationSettings) {
       const setting = applicationSettings[settingId];
+      console.log("setting: ", setting);
       settingGroupToSettingIds[setting.group].push(settingId);
     }
 

@@ -29,7 +29,7 @@ import TimestampPollingService from 'explorviz-frontend/services/timestamp-polli
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import CodeServiceFetchingService from 'explorviz-frontend/services/code-service-fetching';
 import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
-import PlotlyCommitline from 'explorviz-frontend/components/visualization/page-setup/commitline/plotly-commitline';
+import PlotlyCommitTree from 'explorviz-frontend/components/visualization/page-setup/commit-tree/plotly-commit-tree';
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
 import { combineStructures } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
@@ -146,7 +146,7 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
 
-  plotlyCommitlineRef!: PlotlyCommitline;
+  plotlyCommitTreeRef!: PlotlyCommitTree;
   @service('spectate-user')
   spectateUser!: SpectateUser;
 
@@ -203,10 +203,10 @@ export default class VisualizationController extends Controller {
   showConfigurationOverview: boolean = false;
 
   @tracked
-  commitlineConfiguration: ConfigurationItem[] = [];
+  commitTreeConfiguration: ConfigurationItem[] = [];
 
   @tracked
-  commitlineMetrics: String[] = [];
+  commitTreeMetrics: String[] = [];
 
   @tracked
   visualizationPaused = false;
@@ -1050,32 +1050,32 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  getCommitlineReference(plotlyCommitlineRef: PlotlyCommitline) {
+  getCommitTreeReference(plotlyCommitTreeRef: PlotlyCommitTree) {
     // called from within the plotly timeline component
-    set(this, 'plotlyCommitlineRef', plotlyCommitlineRef);
+    set(this, 'plotlyCommitTreeRef', plotlyCommitTreeRef);
   }
 
   @action
-  toggleCommitlineConfigurationOverview() {
+  toggleCommitTreeConfigurationOverview() {
     this.showConfigurationOverview = !this.showConfigurationOverview;
   }
 
   @action
   updateConfigurationsAndMetrics() {
     const currentToken = this.landscapeTokenService.token!.value;
-    this.commitlineConfiguration = this.configurationRepo.getConfiguration(currentToken);
-    this.commitlineMetrics = this.configurationRepo.getSoftwaremetrics(currentToken)
+    this.commitTreeConfiguration = this.configurationRepo.getConfiguration(currentToken);
+    this.commitTreeMetrics = this.configurationRepo.getSoftwaremetrics(currentToken)
   }
 
   @action 
   updatePlotForMetrics(){
-    if(this.plotlyCommitlineRef){
-      this.plotlyCommitlineRef.updatePlotlineForMetric();
+    if(this.plotlyCommitTreeRef){
+      this.plotlyCommitTreeRef.updatePlotlineForMetric();
     }
   }
 
   @action
-  async commitlineClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
+  async commitTreeClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
 
     // always resume when commit got clicked so the landscape updates
     if(this.visualizationPaused) {

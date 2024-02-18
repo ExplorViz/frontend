@@ -235,15 +235,15 @@
             @selectedApplication={{this.currentSelectedApplication}}
             @clicked={{this.applicationButtonClicked}}
           />
-        <Visualization::PageSetup::Commitline::PlotlyCommitline
+        <Visualization::PageSetup::CommitTree::PlotlyCommitTree
           @evolutionData={{this.evolutionLandscapeData}}
           @selectedApplication={{this.currentSelectedApplication}}
           @selectedCommits={{this.currentSelectedCommits}}
-          @setChildReference={{this.getCommitlineReference}}
-          @toggleConfigurationOverview={{this.toggleCommitlineConfigurationOverview}}
-          @clicked={{this.commitlineClicked}}
-          @configurations={{this.commitlineConfiguration}}
-          @softwaremetrics={{this.commitlineMetrics}}
+          @setChildReference={{this.getCommitTreeReference}}
+          @toggleConfigurationOverview={{this.toggleCommitTreeConfigurationOverview}}
+          @clicked={{this.commitTreeClicked}}
+          @configurations={{this.commitTreeConfiguration}}
+          @softwaremetrics={{this.commitTreeMetrics}}
           @showConfiguration={{this.showConfigurationOverview}}
           @applicationNameAndBranchNameToColorMap={{this.applicationNameAndBranchNameToColorMap}}
         />

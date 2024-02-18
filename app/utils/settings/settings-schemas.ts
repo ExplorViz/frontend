@@ -1,4 +1,5 @@
 export type SettingGroup =
+  | 'Rendering'
   | 'Camera'
   | 'Colors'
   | 'Communication'
