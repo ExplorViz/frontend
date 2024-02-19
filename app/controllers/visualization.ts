@@ -73,11 +73,14 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
 
-  @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
-  @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
 
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
@@ -187,6 +190,7 @@ export default class VisualizationController extends Controller {
 
   get showTimeline() {
     return (
+      this.landscapeData &&
       !this.showAR &&
       !this.showVR &&
       !this.isSingleLandscapeMode &&
@@ -251,6 +255,8 @@ export default class VisualizationController extends Controller {
       return;
     }
     if (!structureData) {
+      // Update timestamps in case landscape token changed
+      this.updateTimestampList();
       this.landscapeData = null;
       return;
     }
