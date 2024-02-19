@@ -4,6 +4,7 @@ import Service from '@ember/service';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
 import LandscapeListener from './landscape-listener';
+import ToastHandlerService from './toast-handler';
 const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
@@ -23,6 +24,9 @@ export default class LandscapeTokenService extends Service {
 
   @service('landscape-listener')
   landscapeListener!: LandscapeListener;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
 
   token: LandscapeToken | null = null;
 
@@ -101,6 +105,9 @@ export default class LandscapeTokenService extends Service {
     this.set('latestToken', token);
     this.set('token', token);
     this.landscapeListener.resetLandscapeData();
+    this.toastHandler.showInfoToastMessage(
+      `Set landscape token to " ${token.alias || token.value}"`
+    );
   }
 
   async setTokenByValue(tokenValue: string) {
