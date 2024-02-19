@@ -171,15 +171,15 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
-    let popupTopOffset = popoverHeight + 10;
+    const popupTopOffset = popoverHeight + 30;
     const popupLeftOffset = popoverWidth / 2;
-
-    if (this.entityType === 'classCommunication') {
-      popupTopOffset += 130;
-    }
 
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
+
+    //console.log('mouse', popupData.mouseX);
+    //console.log('popupLeftPosition', popupLeftPosition);
+    //console.log('popupLeftOffset', popupLeftOffset);
 
     // Prevent popup positioning on top of rendering canvas =>
     // position under mouse cursor
