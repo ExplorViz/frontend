@@ -243,20 +243,26 @@ export default class VisualizationController extends Controller {
 
   @action
   receiveNewLandscapeData(
-    structureData: StructureLandscapeData,
+    structureData: StructureLandscapeData | null,
     dynamicData: DynamicLandscapeData
   ) {
     this.debug('receiveNewLandscapeData');
-    if (!this.visualizationPaused) {
-      this.updateLandscape(structureData, dynamicData);
-      if (this.timelineTimestamps.lastObject) {
-        this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.epochMilli;
-        this.selectedTimestampRecords = [
-          this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
-        ];
-        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-      }
+    if (this.visualizationPaused) {
+      return;
+    }
+    if (!structureData) {
+      this.landscapeData = null;
+      return;
+    }
+
+    this.updateLandscape(structureData, dynamicData);
+    if (this.timelineTimestamps.lastObject) {
+      this.timestampService.timestamp =
+        this.timelineTimestamps.lastObject?.epochMilli;
+      this.selectedTimestampRecords = [
+        this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
+      ];
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
     }
   }
 

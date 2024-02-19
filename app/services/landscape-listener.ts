@@ -181,6 +181,10 @@ export default class LandscapeListener extends Service.extend(Evented) {
     });
   }
 
+  resetLandscapeData() {
+    this.trigger('newLandscapeData', null, null);
+  }
+
   static computeTotalRequests(dynamicData: DynamicLandscapeData) {
     // cant't run reduce on empty array
     if (dynamicData.length === 0) {
