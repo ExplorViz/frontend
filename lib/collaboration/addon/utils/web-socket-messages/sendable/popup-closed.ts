@@ -6,7 +6,7 @@ export type PopupClosedMessage = {
   meshId: string;
 };
 
-export function isPopupOpenedMessage(msg: any): msg is PopupClosedMessage {
+export function isPopupClosedMessage(msg: any): msg is PopupClosedMessage {
   return (
     msg !== null &&
     typeof msg === 'object' &&

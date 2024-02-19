@@ -73,10 +73,10 @@
       {{/if}}
 
       {{! popup(s) }}
-      {{#each this.popupHandler.popupData as |d|}}
+      {{#each this.popupHandler.popupData as |data|}}
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
-          @popupData={{d}}
+          @popupData={{data}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
           @updateMeshReference={{this.popupHandler.updateMeshReference}}
