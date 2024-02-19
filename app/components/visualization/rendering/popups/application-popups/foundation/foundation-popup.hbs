@@ -1,0 +1,23 @@
+<h3 class='popover-header'>
+  <div class='text-center text-break font-weight-bold pl-1'>
+    {{@application.name}}
+  </div>
+</h3>
+<Visualization::Rendering::Popups::PopupTabs
+  @restructureMode={{@restructureMode}}
+>
+  <:runtimeTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRuntime
+      @application={{@application}}
+    />
+  </:runtimeTab>
+  <:codeTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupCode
+    />
+  </:codeTab>
+  <:restructureTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRestructure
+      @application={{@application}}
+    />
+  </:restructureTab>
+</Visualization::Rendering::Popups::PopupTabs>

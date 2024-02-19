@@ -49,8 +49,7 @@
       </BsButton>
 
       <BsButton
-        id='popup-close-button'
-        style='float: right;'
+        class='popup-close-button'
         @type='secondary'
         @outline='true'
         @onClick={{fn @removePopup @popupData.entity.id}}
@@ -70,25 +69,29 @@
   {{/if}}
 
   {{#if (eq this.entityType 'application')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @application={{@popupData.entity}}
     />
   {{/if}}
 
   {{! application popups }}
   {{#if (eq this.entityType 'package')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::ComponentPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @component={{@popupData.entity}}
     />
   {{/if}}
   {{#if (eq this.entityType 'class')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @clazz={{@popupData.entity}}
       @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
   {{#if (eq this.entityType 'classCommunication')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @communication={{@popupData.entity}}
       @showApplication={{@showApplication}}
       @highlightById={{@highlightById}}
