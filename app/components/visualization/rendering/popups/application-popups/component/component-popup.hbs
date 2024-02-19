@@ -3,78 +3,22 @@
     {{@component.name}}
   </div>
 </h3>
-<div class='popover-body'>
-  <ul class='nav nav-tabs justify-content-center' role='tablist'>
-    <li class='nav-item' role='presentation'>
-      <button
-        class='nav-link active'
-        id='runtime-tab-{{@htmlId}}'
-        data-toggle='tab'
-        data-target='#runtime-{{@htmlId}}'
-        type='button'
-        role='tab'
-        aria-controls='runtime-{{@htmlId}}'
-        aria-selected='true'
-      >Runtime</button>
-    </li>
-    <li class='nav-item' role='presentation'>
-      <button
-        class='nav-link'
-        id='code-tab-{{@htmlId}}'
-        data-toggle='tab'
-        data-target='#code-{{@htmlId}}'
-        type='button'
-        role='tab'
-        aria-controls='code-{{@htmlId}}'
-        aria-selected='false'
-      >Code</button>
-    </li>
-    {{#if @restructureMode}}
-      <li class='nav-item' role='presentation'>
-        <button
-          class='nav-link'
-          id='restructure-tab-{{@htmlId}}'
-          data-toggle='tab'
-          data-target='#restructure-{{@htmlId}}'
-          type='button'
-          role='tab'
-          aria-controls='restructure-{{@htmlId}}'
-          aria-selected='false'
-        >Restructure</button>
-      </li>
-    {{/if}}
-  </ul>
-  <div class='tab-content'>
-    <div
-      class='tab-pane fade show active'
-      id='runtime-{{@htmlId}}'
-      role='tabpanel'
-      aria-labelledby='runtime-tab-{{@htmlId}}'
-    >
-      <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRuntime
-        @component={{@component}}
-      />
-    </div>
-    <div
-      class='tab-pane fade'
-      id='code-{{@htmlId}}'
-      role='tabpanel'
-      aria-labelledby='code-tab-{{@htmlId}}'
-    >
-      <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupCode
-      />
-    </div>
-    {{#if @restructureMode}}
-      <div
-        class='tab-pane fade'
-        id='restructure-{{@htmlId}}'
-        role='tabpanel'
-        aria-labelledby='restructure-tab-{{@htmlId}}'
-      >
-        <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRestructure
-          @component={{@component}}
-        />
-      </div>
-    {{/if}}
-  </div>
-</div>
+<Visualization::Rendering::Popups::PopupTabs
+  @htmlId={{@htmlId}}
+  @restructureMode={{@restructureMode}}
+>
+  <:runtimeTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRuntime
+      @component={{@component}}
+    />
+  </:runtimeTab>
+  <:codeTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupCode
+    />
+  </:codeTab>
+  <:restructureTab>
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopupRestructure
+      @component={{@component}}
+    />
+  </:restructureTab>
+</Visualization::Rendering::Popups::PopupTabs>
