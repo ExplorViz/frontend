@@ -29,18 +29,20 @@
         aria-selected='false'
       >Code</button>
     </li>
-    <li class='nav-item' role='presentation'>
-      <button
-        class='nav-link'
-        id='restructure-tab-{{this.htmlIdUnique}}'
-        data-toggle='tab'
-        data-target='#restructure-{{this.htmlIdUnique}}'
-        type='button'
-        role='tab'
-        aria-controls='restructure-{{this.htmlIdUnique}}'
-        aria-selected='false'
-      >Restructure</button>
-    </li>
+    {{#if this.landscapeRestructure.restructureMode}}
+      <li class='nav-item' role='presentation'>
+        <button
+          class='nav-link'
+          id='restructure-tab-{{this.htmlIdUnique}}'
+          data-toggle='tab'
+          data-target='#restructure-{{this.htmlIdUnique}}'
+          type='button'
+          role='tab'
+          aria-controls='restructure-{{this.htmlIdUnique}}'
+          aria-selected='false'
+        >Restructure</button>
+      </li>
+    {{/if}}
   </ul>
   <div class='tab-content'>
     <div
@@ -65,18 +67,20 @@
       <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupCode
       />
     </div>
-    <div
-      class='tab-pane fade'
-      id='restructure-{{this.htmlIdUnique}}'
-      role='tabpanel'
-      aria-labelledby='restructure-tab-{{this.htmlIdUnique}}'
-    >
-      <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupRestructure
-        @communication={{@communication}}
-        @showApplication={{@showApplication}}
-        @highlightById={{@highlightById}}
-        @openParents={{@openParents}}
-      />
-    </div>
+    {{#if this.landscapeRestructure.restructureMode}}
+      <div
+        class='tab-pane fade'
+        id='restructure-{{this.htmlIdUnique}}'
+        role='tabpanel'
+        aria-labelledby='restructure-tab-{{this.htmlIdUnique}}'
+      >
+        <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopupRestructure
+          @communication={{@communication}}
+          @showApplication={{@showApplication}}
+          @highlightById={{@highlightById}}
+          @openParents={{@openParents}}
+        />
+      </div>
+    {{/if}}
   </div>
 </div>
