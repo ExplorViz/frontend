@@ -8,37 +8,37 @@
     <li class='nav-item' role='presentation'>
       <button
         class='nav-link active'
-        id='runtime-tab-{{this.htmlIdUnique}}'
+        id='runtime-tab-{{@htmlId}}'
         data-toggle='tab'
-        data-target='#runtime-{{this.htmlIdUnique}}'
+        data-target='#runtime-{{@htmlId}}'
         type='button'
         role='tab'
-        aria-controls='runtime-{{this.htmlIdUnique}}'
+        aria-controls='runtime-{{@htmlId}}'
         aria-selected='true'
       >Runtime</button>
     </li>
     <li class='nav-item' role='presentation'>
       <button
         class='nav-link'
-        id='code-tab-{{this.htmlIdUnique}}'
+        id='code-tab-{{@htmlId}}'
         data-toggle='tab'
-        data-target='#code-{{this.htmlIdUnique}}'
+        data-target='#code-{{@htmlId}}'
         type='button'
         role='tab'
-        aria-controls='code-{{this.htmlIdUnique}}'
+        aria-controls='code-{{@htmlId}}'
         aria-selected='false'
       >Code</button>
     </li>
-    {{#if this.landscapeRestructure.restructureMode}}
+    {{#if @restructureMode}}
       <li class='nav-item' role='presentation'>
         <button
           class='nav-link'
-          id='restructure-tab-{{this.htmlIdUnique}}'
+          id='restructure-tab-{{@htmlId}}'
           data-toggle='tab'
-          data-target='#restructure-{{this.htmlIdUnique}}'
+          data-target='#restructure-{{@htmlId}}'
           type='button'
           role='tab'
-          aria-controls='restructure-{{this.htmlIdUnique}}'
+          aria-controls='restructure-{{@htmlId}}'
           aria-selected='false'
         >Restructure</button>
       </li>
@@ -47,9 +47,9 @@
   <div class='tab-content'>
     <div
       class='tab-pane fade show active'
-      id='runtime-{{this.htmlIdUnique}}'
+      id='runtime-{{@htmlId}}'
       role='tabpanel'
-      aria-labelledby='runtime-tab-{{this.htmlIdUnique}}'
+      aria-labelledby='runtime-tab-{{@htmlId}}'
     >
       <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRuntime
         @application={{@application}}
@@ -57,19 +57,19 @@
     </div>
     <div
       class='tab-pane fade'
-      id='code-{{this.htmlIdUnique}}'
+      id='code-{{@htmlId}}'
       role='tabpanel'
-      aria-labelledby='code-tab-{{this.htmlIdUnique}}'
+      aria-labelledby='code-tab-{{@htmlId}}'
     >
       <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupCode
       />
     </div>
-    {{#if this.landscapeRestructure.restructureMode}}
+    {{#if @restructureMode}}
       <div
         class='tab-pane fade'
-        id='restructure-{{this.htmlIdUnique}}'
+        id='restructure-{{@htmlId}}'
         role='tabpanel'
-        aria-labelledby='restructure-tab-{{this.htmlIdUnique}}'
+        aria-labelledby='restructure-tab-{{@htmlId}}'
       >
         <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopupRestructure
           @application={{@application}}

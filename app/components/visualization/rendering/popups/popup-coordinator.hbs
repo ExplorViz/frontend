@@ -71,6 +71,8 @@
 
   {{#if (eq this.entityType 'application')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopup
+      @htmlId={{this.htmlIdUnique}}
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @application={{@popupData.entity}}
     />
   {{/if}}
@@ -78,17 +80,23 @@
   {{! application popups }}
   {{#if (eq this.entityType 'package')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopup
+      @htmlId={{this.htmlIdUnique}}
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @component={{@popupData.entity}}
     />
   {{/if}}
   {{#if (eq this.entityType 'class')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopup
+      @htmlId={{this.htmlIdUnique}}
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @clazz={{@popupData.entity}}
       @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
   {{#if (eq this.entityType 'classCommunication')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopup
+      @htmlId={{this.htmlIdUnique}}
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @communication={{@popupData.entity}}
       @showApplication={{@showApplication}}
       @highlightById={{@highlightById}}

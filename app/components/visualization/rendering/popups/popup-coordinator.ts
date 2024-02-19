@@ -15,6 +15,8 @@ import {
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
 import LocalUser from 'collaboration/services/local-user';
+import generateUuidv4 from 'explorviz-frontend/utils/helpers/uuid4-generator';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
   isMovable: boolean;
@@ -27,14 +29,17 @@ interface IArgs {
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
   @service('configuration')
   configuration!: Configuration;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('local-user')
   localUser!: LocalUser;
@@ -45,6 +50,8 @@ export default class PopupCoordinator extends Component<IArgs> {
     x: 0,
     y: 0,
   };
+
+  htmlIdUnique = generateUuidv4();
 
   @action
   onPointerOver() {
