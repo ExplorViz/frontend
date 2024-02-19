@@ -3,24 +3,24 @@
     <li class='nav-item' role='presentation'>
       <button
         class='nav-link active'
-        id='runtime-tab-{{@htmlId}}'
+        id='runtime-tab-{{this.htmlIdUnique}}'
         data-toggle='tab'
-        data-target='#runtime-{{@htmlId}}'
+        data-target='#runtime-{{this.htmlIdUnique}}'
         type='button'
         role='tab'
-        aria-controls='runtime-{{@htmlId}}'
+        aria-controls='runtime-{{this.htmlIdUnique}}'
         aria-selected='true'
       >Runtime</button>
     </li>
     <li class='nav-item' role='presentation'>
       <button
         class='nav-link'
-        id='code-tab-{{@htmlId}}'
+        id='code-tab-{{this.htmlIdUnique}}'
         data-toggle='tab'
-        data-target='#code-{{@htmlId}}'
+        data-target='#code-{{this.htmlIdUnique}}'
         type='button'
         role='tab'
-        aria-controls='code-{{@htmlId}}'
+        aria-controls='code-{{this.htmlIdUnique}}'
         aria-selected='false'
       >Code</button>
     </li>
@@ -28,12 +28,12 @@
       <li class='nav-item' role='presentation'>
         <button
           class='nav-link'
-          id='restructure-tab-{{@htmlId}}'
+          id='restructure-tab-{{this.htmlIdUnique}}'
           data-toggle='tab'
-          data-target='#restructure-{{@htmlId}}'
+          data-target='#restructure-{{this.htmlIdUnique}}'
           type='button'
           role='tab'
-          aria-controls='restructure-{{@htmlId}}'
+          aria-controls='restructure-{{this.htmlIdUnique}}'
           aria-selected='false'
         >Restructure</button>
       </li>
@@ -42,17 +42,17 @@
   <div class='tab-content'>
     <div
       class='tab-pane fade show active'
-      id='runtime-{{@htmlId}}'
+      id='runtime-{{this.htmlIdUnique}}'
       role='tabpanel'
-      aria-labelledby='runtime-tab-{{@htmlId}}'
+      aria-labelledby='runtime-tab-{{this.htmlIdUnique}}'
     >
       {{yield to='runtimeTab'}}
     </div>
     <div
       class='tab-pane fade'
-      id='code-{{@htmlId}}'
+      id='code-{{this.htmlIdUnique}}'
       role='tabpanel'
-      aria-labelledby='code-tab-{{@htmlId}}'
+      aria-labelledby='code-tab-{{this.htmlIdUnique}}'
     >
       {{yield to='codeTab'}}
 
@@ -60,9 +60,9 @@
     {{#if @restructureMode}}
       <div
         class='tab-pane fade'
-        id='restructure-{{@htmlId}}'
+        id='restructure-{{this.htmlIdUnique}}'
         role='tabpanel'
-        aria-labelledby='restructure-tab-{{@htmlId}}'
+        aria-labelledby='restructure-tab-{{this.htmlIdUnique}}'
       >
         {{yield to='restructureTab'}}
       </div>
