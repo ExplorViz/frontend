@@ -250,14 +250,18 @@ export default class VisualizationController extends Controller {
     structureData: StructureLandscapeData | null,
     dynamicData: DynamicLandscapeData
   ) {
-    this.debug('receiveNewLandscapeData');
-    if (this.visualizationPaused) {
+    if (
+      !structureData ||
+      this.landscapeTokenService.token?.value !==
+        this.landscapeData?.structureLandscapeData.landscapeToken
+    ) {
+      this.landscapeData = null;
+      this.updateTimestampList();
       return;
     }
-    if (!structureData) {
-      // Update timestamps in case landscape token changed
-      this.updateTimestampList();
-      this.landscapeData = null;
+
+    this.debug('receiveNewLandscapeData');
+    if (this.visualizationPaused) {
       return;
     }
 
