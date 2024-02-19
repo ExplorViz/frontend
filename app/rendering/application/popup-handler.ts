@@ -88,7 +88,7 @@ export default class PopupHandler {
     >(
       MENU_DETACHED_EVENT,
       {
-        event: 'menu_detached',
+        event: MENU_DETACHED_EVENT,
         detachId: entityId,
         entityType: getTypeOfEntity(mesh),
         position: worldPosition.toArray(),
@@ -183,6 +183,7 @@ export default class PopupHandler {
   addPopup({
     mesh,
     position,
+    wasMoved,
     pinned,
     replace,
     menuId,
@@ -191,6 +192,7 @@ export default class PopupHandler {
   }: {
     mesh: THREE.Object3D;
     position?: Position2D;
+    wasMoved?: boolean;
     pinned?: boolean;
     replace?: boolean;
     menuId?: string;
@@ -214,7 +216,7 @@ export default class PopupHandler {
     const newPopup = new PopupData({
       mouseX: popupPosition.x,
       mouseY: popupPosition.y,
-      wasMoved: false,
+      wasMoved: wasMoved || false,
       entity: mesh.dataModel,
       mesh,
       applicationId: (
@@ -264,6 +266,7 @@ export default class PopupHandler {
 
     this.addPopup({
       mesh,
+      wasMoved: true,
       pinned: true,
       sharedBy: userId,
       menuId: objectId,

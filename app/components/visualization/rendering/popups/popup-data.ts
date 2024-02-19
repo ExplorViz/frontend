@@ -54,6 +54,7 @@ export default class PopupData {
     entity,
     mesh,
     applicationId,
+    wasMoved,
     isPinned,
     sharedBy,
     menuId,
@@ -62,7 +63,7 @@ export default class PopupData {
     this.mouseX = mouseX;
     this.mouseY = mouseY;
     this.entity = entity;
-    this.wasMoved = false;
+    this.wasMoved = wasMoved;
     this.mesh = mesh;
     this.applicationId = applicationId;
     this.isPinned = isPinned;
