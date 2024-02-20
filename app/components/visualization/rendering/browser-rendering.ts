@@ -55,7 +55,6 @@ interface BrowserRenderingArgs {
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
-  switchToVR(): void;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -227,7 +226,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 

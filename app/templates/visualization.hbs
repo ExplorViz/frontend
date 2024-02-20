@@ -115,22 +115,8 @@
           @removeTimestampListener={{this.removeTimestampListener}}
           @restructureLandscape={{this.restructureLandscape}}
           @switchToAR={{this.switchToAR}}
-          @switchToVR={{this.switchToVR}}
           @applicationArgs={{this.applicationArgs}}
         />
-
-        {{#unless this.showTimeline}}
-          {{#if this.showVrButton}}
-            <button
-              id='VrButton'
-              type='button'
-              {{did-insert this.updateVrStatus}}
-              {{on 'click' this.switchToVR}}
-            >
-              {{this.buttonText}}
-            </button>
-          {{/if}}
-        {{/unless}}
       {{/if}}
 
       {{#unless this.allLandscapeDataExistsAndNotEmpty}}
@@ -177,7 +163,7 @@
 
     {{#if this.showVrButton}}
       <button
-        class='btn-timeline-above'
+        class='timeline-vr-button'
         type='button'
         {{did-insert this.updateVrStatus}}
         {{on 'click' this.switchToVR}}
