@@ -1,17 +1,26 @@
 import GlimmerComponent from '@glimmer/component';
 import { action } from '@ember/object';
+import { inject as service } from '@ember/service';
 import { isBlank } from '@ember/utils';
 import $ from 'jquery';
 import { getOwner } from '@ember/application';
 import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
+import LocalUser from 'collaboration/services/local-user';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface Args {
   removeToolsSidebarComponent(nameOfComponent: string): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
+  @service('local-user')
+  localUser!: LocalUser;
+
+  @service
+  applicationRenderer!: ApplicationRenderer;
+
   @tracked
   searchString: string = '';
 
@@ -59,12 +68,14 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
     this.selected = [...emberPowerSelectObject];
 
-    const firstEntity = emberPowerSelectObject[0];
+    for (const selectedEntity of emberPowerSelectObject) {
+      this.pingEntity(selectedEntity);
 
-    this.searchLogic.highlightEntityMeshByModelId(
-      firstEntity.modelId,
-      firstEntity.applicationModelId
-    );
+      this.searchLogic.highlightEntityMeshByModelId(
+        selectedEntity.modelId,
+        selectedEntity.applicationModelId
+      );
+    }
   }
 
   @action
@@ -82,5 +93,17 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     this.searchString = term;
 
     return this.searchLogic.getPossibleEntityNames(term);
+  }
+
+  private pingEntity(entity: any) {
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
+      entity.applicationModelId
+    );
+
+    if (applicationObject3D) {
+      const mesh = applicationObject3D.getBoxMeshbyModelId(entity.modelId);
+
+      this.localUser.ping(mesh!, mesh!.getWorldPosition(mesh!.position), 2000);
+    }
   }
 }
