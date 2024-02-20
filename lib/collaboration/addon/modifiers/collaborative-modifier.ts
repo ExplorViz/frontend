@@ -71,6 +71,7 @@ import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -130,6 +131,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('landscape-restructure')
   private landscapeRestructure!: LandscapeRestructure;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
@@ -430,6 +434,9 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
     this.applicationRenderer.cleanup();
     this.applicationRepo.cleanup();
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.removeFromParent();
+    });
   }
 
   onShareSettings({

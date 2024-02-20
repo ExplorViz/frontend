@@ -1,20 +1,21 @@
-import Component from '@glimmer/component';
 import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomService from 'collaboration/services/room-service';
 import SpectateUser from 'collaboration/services/spectate-user';
+import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
-import RoomService from 'collaboration/services/room-service';
-import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
-import MessageSender from 'collaboration/services/message-sender';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -27,30 +28,33 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('local-user')
-  localUser!: LocalUser;
-
-  @service('room-service')
-  roomService!: RoomService;
-
-  @service('timestamp')
-  // @ts-ignore since it is used in template
-  private timestampService!: TimestampService;
-
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('spectate-user')
-  private spectateUserService!: SpectateUser;
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
 
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
+
+  @service('local-user')
+  localUser!: LocalUser;
+
   @service('message-sender')
   private sender!: MessageSender;
 
+  @service('room-service')
+  roomService!: RoomService;
+
   @service('router')
   router!: any;
+
+  @service('spectate-user')
+  private spectateUserService!: SpectateUser;
+
+  @service('timestamp')
+  // @ts-ignore since it is used in template
+  private timestampService!: TimestampService;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
@@ -170,6 +174,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     // Cleanup old landscape
     this.applicationRenderer.cleanup();
     this.applicationRepo.cleanup();
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.removeFromParent();
+    });
 
     // this.tokenService.setToken(event.target.value);
     this.router.transitionTo('visualization', {

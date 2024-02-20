@@ -533,7 +533,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   restoreFromSerialization(room: SerializedRoom) {
-    this.forEachOpenApplication(this.removeApplicationLocally);
+    this.cleanup();
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.unhighlight();
@@ -567,6 +567,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   cleanup() {
+    this.forEachOpenApplication(this.removeApplicationLocally);
     this.openApplicationsMap.clear();
   }
 
