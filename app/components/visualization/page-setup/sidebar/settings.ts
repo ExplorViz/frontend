@@ -13,6 +13,8 @@ import {
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface Args {
   updateHighlighting?(): void;
@@ -37,6 +39,12 @@ export default class Settings extends Component<Args> {
 
   @service('configuration')
   configuration!: Configuration;
+
+  @service('message-sender')
+  private sender!: MessageSender;
+
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
@@ -125,6 +133,9 @@ export default class Settings extends Component<Args> {
   @action
   updateButtonSetting(settingId: ApplicationSettingId) {
     switch (settingId) {
+      case 'syncRoomState':
+        this.sender.sendSyncRoomState(this.roomSerializer.serializeRoom());
+        break;
       case 'fullscreen':
         if (this.args.enterFullscreen) {
           this.args.enterFullscreen();
