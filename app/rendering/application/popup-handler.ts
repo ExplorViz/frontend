@@ -129,41 +129,41 @@ export default class PopupHandler {
   @action
   removePopup(entityId: string) {
     const popup = this.popupData.find((pd) => pd.entity.id === entityId);
-    if (popup) {
-      if (!popup.menuId) {
-        this.popupData = this.popupData.filter(
-          (pd) => pd.entity.id !== entityId
-        );
-        return;
-      }
-      this.webSocket.sendRespondableMessage<
-        DetachedMenuClosedMessage,
-        ObjectClosedResponse
-      >(
-        DETACHED_MENU_CLOSED_EVENT,
-        {
-          event: 'detached_menu_closed',
-          menuId: popup.menuId,
-          nonce: 0, // will be overwritten
-        },
-        {
-          responseType: isObjectClosedResponse,
-          onResponse: (response: ObjectClosedResponse) => {
-            if (response.isSuccess) {
-              this.popupData = this.popupData.filter(
-                (pd) => pd.entity.id !== entityId
-              );
-            }
-            return response.isSuccess;
-          },
-          onOffline: () => {
+    if (!popup) {
+      return;
+    }
+
+    if (!popup.menuId) {
+      this.popupData = this.popupData.filter((pd) => pd.entity.id !== entityId);
+      return;
+    }
+    this.webSocket.sendRespondableMessage<
+      DetachedMenuClosedMessage,
+      ObjectClosedResponse
+    >(
+      DETACHED_MENU_CLOSED_EVENT,
+      {
+        event: 'detached_menu_closed',
+        menuId: popup.menuId,
+        nonce: 0, // will be overwritten
+      },
+      {
+        responseType: isObjectClosedResponse,
+        onResponse: (response: ObjectClosedResponse) => {
+          if (response.isSuccess) {
             this.popupData = this.popupData.filter(
               (pd) => pd.entity.id !== entityId
             );
-          },
-        }
-      );
-    }
+          }
+          return response.isSuccess;
+        },
+        onOffline: () => {
+          this.popupData = this.popupData.filter(
+            (pd) => pd.entity.id !== entityId
+          );
+        },
+      }
+    );
   }
 
   @action
@@ -271,6 +271,7 @@ export default class PopupHandler {
   }
 
   onRestoreMenus(detachedMenus: SerializedDetachedMenu[]) {
+    this.popupData = [];
     for (const detachedMenu of detachedMenus) {
       const { userId, objectId, entityId } = detachedMenu;
 

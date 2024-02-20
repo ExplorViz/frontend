@@ -47,7 +47,7 @@ export default class RoomSerializer extends Service {
    * Creates a JSON object for the current state of the room.
    */
   serializeRoom(): SerializedRoom {
-    this.serializedRoom = {
+    const serializedRoom = {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       detachedMenus: this.serializeDetachedMenus(),
@@ -55,7 +55,7 @@ export default class RoomSerializer extends Service {
         this.serializehighlightedExternCommunicationLinks(),
       // openPopups: this.serializeOpenPopups(),
     };
-    return this.serializedRoom;
+    return serializedRoom;
   }
 
   // ToDo: Add both global and local positions

@@ -104,6 +104,11 @@ import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from '../utils/web-socket-messages/sendable/spectating-update';
+import {
+  SYNC_ROOM_STATE_EVENT,
+  SyncRoomStateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
 export default class MessageSender extends Service {
   @service('web-socket')
@@ -468,6 +473,20 @@ export default class MessageSender extends Service {
       spectatingUserIds,
       configurationId,
       configuration: { id: configurationId, devices: null },
+    });
+  }
+
+  sendSyncRoomState(room: SerializedRoom | null) {
+    if (!room) {
+      return;
+    }
+    this.webSocket.send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
+      event: SYNC_ROOM_STATE_EVENT,
+      landscape: room.landscape,
+      openApps: room.openApps.map(({ ...app }) => app),
+      detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
+      highlightedExternCommunicationLinks:
+        room.highlightedExternCommunicationLinks,
     });
   }
 

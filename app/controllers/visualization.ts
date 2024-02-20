@@ -1,4 +1,3 @@
-import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -7,43 +6,26 @@ import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
 } from 'collaboration/services/local-user';
-import debugLogger from 'ember-debug-logger';
-import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ReloadHandler from 'explorviz-frontend/services/reload-handler';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import TimestampService from 'explorviz-frontend/services/timestamp';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import * as THREE from 'three';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import { timeout } from 'ember-concurrency';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
-import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import SpectateUser from 'collaboration/services/spectate-user';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import SpectateUser from 'collaboration/services/spectate-user';
 import WebSocketService from 'collaboration/services/web-socket';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/landscape';
 import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
-import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
+import {
+  SYNC_ROOM_STATE_EVENT,
+  SyncRoomStateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
@@ -52,7 +34,30 @@ import {
   SerializedApp,
   SerializedDetachedMenu,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { timeout } from 'ember-concurrency';
+import debugLogger from 'ember-debug-logger';
+import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
+import ENV from 'explorviz-frontend/config/environment';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import ReloadHandler from 'explorviz-frontend/services/reload-handler';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampService from 'explorviz-frontend/services/timestamp';
+import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import * as THREE from 'three';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -96,6 +101,9 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
+
+  @service('detached-menu-renderer')
+  detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('room-serializer')
   roomSerializer!: RoomSerializer;
@@ -206,6 +214,7 @@ export default class VisualizationController extends Controller {
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
 
     if (!this.isSingleLandscapeMode) {
       this.webSocket.on(
@@ -541,6 +550,7 @@ export default class VisualizationController extends Controller {
         this,
         this.onTimestampUpdateTimer
       );
+      this.webSocket.off(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
     }
 
     if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
@@ -628,6 +638,32 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
+  }
+
+  async onSyncRoomState(event: {
+    userId: string;
+    originalMessage: SyncRoomStateMessage;
+  }) {
+    const {
+      landscape,
+      openApps,
+      detachedMenus,
+      highlightedExternCommunicationLinks,
+    } = event.originalMessage;
+    const serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+      highlightedExternCommunicationLinks,
+    };
+
+    this.applicationRenderer.restoreFromSerialization(serializedRoom);
+    this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+    this.highlightingService.updateHighlighting();
+
+    this.toastHandlerService.showInfoToastMessage(
+      'Room state synchronizing ...'
+    );
   }
 
   /**
