@@ -17,7 +17,10 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import LocalUser from 'collaboration/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -25,9 +28,10 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface NamedArgs {
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly graph: ForceGraph3DInstance;
 }
 
@@ -79,12 +83,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private graph!: ForceGraph3DInstance;
 
-  get structureLandscapeData() {
-    return this.landscapeData.structureLandscapeData;
+  get structureLandscapeData(): StructureLandscapeData | null {
+    return this.landscapeData?.structureLandscapeData;
   }
 
-  get dynamicLandscapeData() {
-    return this.landscapeData.dynamicLandscapeData;
+  get dynamicLandscapeData(): DynamicLandscapeData | null {
+    return this.landscapeData?.dynamicLandscapeData;
   }
 
   async modify(
@@ -99,6 +103,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
+    if (!this.structureLandscapeData || !this.dynamicLandscapeData) {
+      return;
+    }
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData

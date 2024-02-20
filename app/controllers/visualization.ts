@@ -564,21 +564,23 @@ export default class VisualizationController extends Controller {
 
     const lastSelectTimestamp = this.timestampService.timestamp;
 
-    if (!this.visualizationPaused) {
-      const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
-        this.landscapeTokenService.token!.value,
-        lastSelectTimestamp
-      );
+    if (this.visualizationPaused) {
+      return;
+    }
 
-      if (
-        timestampToRender &&
-        JSON.stringify(this.selectedTimestampRecords) !==
-          JSON.stringify([timestampToRender])
-      ) {
-        this.updateTimestamp(timestampToRender.epochMilli);
-        this.selectedTimestampRecords = [timestampToRender];
-        this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-      }
+    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
+      this.landscapeTokenService.token!.value,
+      lastSelectTimestamp
+    );
+
+    if (
+      timestampToRender &&
+      JSON.stringify(this.selectedTimestampRecords) !==
+        JSON.stringify([timestampToRender])
+    ) {
+      this.updateTimestamp(timestampToRender.epochMilli);
+      this.selectedTimestampRecords = [timestampToRender];
+      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords);
     }
   }
 

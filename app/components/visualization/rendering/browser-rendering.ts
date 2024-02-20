@@ -49,8 +49,9 @@ import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly visualizationPaused: boolean;
+  readonly isDisplayed: boolean;
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
@@ -239,14 +240,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   highlightTrace(trace: Trace, traceStep: string) {
-    if (this.selectedApplicationObject3D) {
-      this.highlightingService.highlightTrace(
-        trace,
-        traceStep,
-        this.selectedApplicationObject3D,
-        this.args.landscapeData.structureLandscapeData
-      );
+    if (!this.args.landscapeData || !this.selectedApplicationObject3D) {
+      return;
     }
+
+    this.highlightingService.highlightTrace(
+      trace,
+      traceStep,
+      this.selectedApplicationObject3D,
+      this.args.landscapeData.structureLandscapeData
+    );
   }
 
   @action
@@ -605,7 +608,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   moveCameraTo(emberModel: Class | Span) {
-    if (!this.selectedApplicationObject3D) {
+    if (!this.selectedApplicationObject3D || !this.args.landscapeData) {
       return;
     }
     moveCameraTo(
