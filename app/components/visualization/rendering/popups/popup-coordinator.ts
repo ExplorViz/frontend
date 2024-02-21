@@ -15,6 +15,7 @@ import {
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
 import LocalUser from 'collaboration/services/local-user';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
   isMovable: boolean;
@@ -27,14 +28,17 @@ interface IArgs {
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
   @service('configuration')
   configuration!: Configuration;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('local-user')
   localUser!: LocalUser;
@@ -171,11 +175,15 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
-    const popupTopOffset = popoverHeight + 10;
+    const popupTopOffset = popoverHeight + 30;
     const popupLeftOffset = popoverWidth / 2;
 
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
+
+    //console.log('mouse', popupData.mouseX);
+    //console.log('popupLeftPosition', popupLeftPosition);
+    //console.log('popupLeftOffset', popupLeftOffset);
 
     // Prevent popup positioning on top of rendering canvas =>
     // position under mouse cursor
