@@ -484,9 +484,10 @@ export default class MessageSender extends Service {
       event: SYNC_ROOM_STATE_EVENT,
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
-      detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
       highlightedExternCommunicationLinks:
         room.highlightedExternCommunicationLinks,
+      popups: room.popups.map(({ ...popup }) => popup),
+      detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
     });
   }
 

@@ -5,7 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import LocalUser from 'collaboration/services/local-user';
 import WebSocketService from 'collaboration/services/web-socket';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
-import { SerializedDetachedMenu } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import { SerializedPopup } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -55,7 +55,7 @@ export default class PopupHandler {
     setOwner(this, owner);
     this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
     this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-    this.detachedMenuRenderer.on('restore_popups', this, this.onRestoreMenus);
+    this.detachedMenuRenderer.on('restore_popups', this, this.onRestorePopups);
   }
 
   @action
@@ -195,14 +195,13 @@ export default class PopupHandler {
     wasMoved?: boolean;
     pinned?: boolean;
     replace?: boolean;
-    menuId?: string;
+    menuId?: string | null;
     sharedBy?: string;
     hovered?: boolean;
   }) {
     if (!isEntityMesh(mesh)) {
       return;
     }
-
     let popupPosition = position;
 
     // Popups shared by other users have no position information
@@ -273,23 +272,20 @@ export default class PopupHandler {
     });
   }
 
-  onRestoreMenus(detachedMenus: SerializedDetachedMenu[]) {
+  onRestorePopups(popups: SerializedPopup[]) {
     this.popupData = [];
-    for (const detachedMenu of detachedMenus) {
-      const { userId, objectId, entityId } = detachedMenu;
-
-      if (!userId || !objectId) {
-        continue;
-      }
+    for (const popup of popups) {
+      const { entityId } = popup;
 
       const mesh = this.applicationRenderer.getMeshById(entityId);
 
       if (mesh) {
         this.addPopup({
           mesh,
+          wasMoved: true,
           pinned: true,
-          sharedBy: userId,
-          menuId: objectId,
+          sharedBy: popup.userId || undefined,
+          menuId: popup.menuId,
         });
       }
     }
@@ -316,5 +312,6 @@ export default class PopupHandler {
   willDestroy() {
     this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
     this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.detachedMenuRenderer.off('restore_popups', this, this.onRestorePopups);
   }
 }

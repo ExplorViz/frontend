@@ -3,7 +3,10 @@ import {
   InitialRoomDetachedMenu,
   InitialRoomLandscape,
 } from 'collaboration/utils/room-payload/sendable/initial-room';
-import { SerializedHighlightedExternLink } from '../types/serialized-room';
+import {
+  SerializedHighlightedExternLink,
+  SerializedPopup,
+} from '../types/serialized-room';
 
 export const SYNC_ROOM_STATE_EVENT = 'sync_room_state';
 
@@ -11,8 +14,9 @@ export type SyncRoomStateMessage = {
   event: typeof SYNC_ROOM_STATE_EVENT;
   landscape: InitialRoomLandscape;
   openApps: InitialRoomApp[];
-  detachedMenus: InitialRoomDetachedMenu[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
+  popups: SerializedPopup[];
+  detachedMenus: InitialRoomDetachedMenu[];
 };
 
 export function isSyncRoomStateMessage(msg: any): msg is SyncRoomStateMessage {

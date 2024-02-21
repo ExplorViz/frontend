@@ -221,9 +221,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       serializedRoom.openApps.length >= this.applicationRepo.applications.size
     ) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      this.detachedMenuRenderer.restore(
+        serializedRoom.popups,
+        serializedRoom.detachedMenus
+      );
       this.roomSerializer.serializedRoom = undefined;
     } else {
+      // Remove possibly oudated applications
+      // ToDo: Refactor
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
       for (let i = 0; i < openApplicationsIds.length; ++i) {
         const applicationId = openApplicationsIds[i];

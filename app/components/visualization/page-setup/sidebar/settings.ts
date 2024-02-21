@@ -3,7 +3,6 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import Configuration from 'explorviz-frontend/services/configuration';
 import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
   ApplicationSettingId,
@@ -15,39 +14,38 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import PopupData from '../../rendering/popups/popup-data';
 
 interface Args {
-  updateHighlighting?(): void;
-  updateColors?(): void;
+  enterFullscreen?(): void;
+  popups: PopupData[];
   redrawCommunication?(): void;
   resetSettings?(): void;
-  enterFullscreen?(): void;
+  updateColors?(): void;
+  updateHighlighting?(): void;
 }
 
 export default class Settings extends Component<Args> {
   @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
+  private applicationRenderer!: ApplicationRenderer;
 
   @service('highlighting-service')
-  highlightingService!: HighlightingService;
+  private highlightingService!: HighlightingService;
 
   @service('local-user')
-  localUser!: LocalUser;
-
-  @service('user-settings')
-  userSettings!: UserSettings;
-
-  @service('configuration')
-  configuration!: Configuration;
+  private localUser!: LocalUser;
 
   @service('message-sender')
   private sender!: MessageSender;
 
   @service('room-serializer')
-  roomSerializer!: RoomSerializer;
+  private roomSerializer!: RoomSerializer;
 
   @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
+  private toastHandlerService!: ToastHandlerService;
+
+  @service('user-settings')
+  private userSettings!: UserSettings;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
@@ -134,7 +132,9 @@ export default class Settings extends Component<Args> {
   updateButtonSetting(settingId: ApplicationSettingId) {
     switch (settingId) {
       case 'syncRoomState':
-        this.sender.sendSyncRoomState(this.roomSerializer.serializeRoom());
+        this.sender.sendSyncRoomState(
+          this.roomSerializer.serializeRoom(this.args.popups)
+        );
         break;
       case 'fullscreen':
         if (this.args.enterFullscreen) {

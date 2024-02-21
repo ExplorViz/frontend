@@ -33,6 +33,7 @@ import {
 import {
   SerializedApp,
   SerializedDetachedMenu,
+  SerializedPopup,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
@@ -618,6 +619,7 @@ export default class VisualizationController extends Controller {
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
+      popups: [], // ToDo
     };
 
     this.highlightingService.updateHighlighting();
@@ -647,18 +649,24 @@ export default class VisualizationController extends Controller {
     const {
       landscape,
       openApps,
-      detachedMenus,
       highlightedExternCommunicationLinks,
+      popups,
+      detachedMenus,
     } = event.originalMessage;
     const serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
+      popups: popups as SerializedPopup[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
 
     this.applicationRenderer.restoreFromSerialization(serializedRoom);
-    this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+    this.detachedMenuRenderer.restore(
+      serializedRoom.popups,
+      serializedRoom.detachedMenus
+    );
+
     this.highlightingService.updateHighlighting();
 
     this.toastHandlerService.showInfoToastMessage(

@@ -180,11 +180,12 @@
               {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Settings
-                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
-                  @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                  @updateColors={{this.updateColors}}
-                  @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
                   @enterFullscreen={{this.enterFullscreen}}
+                  @popups={{this.popupHandler.popupData}}
+                  @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
+                  @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
+                  @updateColors={{this.updateColors}}
+                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
                 />
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>

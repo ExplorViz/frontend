@@ -22,15 +22,20 @@ import {
   SerializedDetachedMenu,
   SerializedHighlightedComponent,
   SerializedLandscape,
+  SerializedPopup,
   SerializedRoom,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 
 export default class RoomSerializer extends Service {
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
+  @service('landscape-token')
+  private landscapeTokenService!: LandscapeTokenService;
 
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
@@ -38,22 +43,19 @@ export default class RoomSerializer extends Service {
   @service('timestamp')
   private timestampService!: TimestampService;
 
-  @service('landscape-token')
-  landscapeTokenService!: LandscapeTokenService;
-
-  serializedRoom?: SerializedRoom;
+  public serializedRoom?: SerializedRoom;
 
   /**
    * Creates a JSON object for the current state of the room.
    */
-  serializeRoom(): SerializedRoom {
+  serializeRoom(popupData: PopupData[] = []): SerializedRoom {
     const serializedRoom = {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
-      detachedMenus: this.serializeDetachedMenus(),
       highlightedExternCommunicationLinks:
         this.serializehighlightedExternCommunicationLinks(),
-      // openPopups: this.serializeOpenPopups(),
+      popups: this.serializeOpenPopups(popupData),
+      detachedMenus: this.serializeDetachedMenus(),
     };
     return serializedRoom;
   }
@@ -165,6 +167,16 @@ export default class RoomSerializer extends Service {
       return list;
     }
     return [];
+  }
+
+  private serializeOpenPopups(popupData: PopupData[]): SerializedPopup[] {
+    return popupData.map((popup) => {
+      return {
+        userId: popup.sharedBy,
+        entityId: popup.mesh.dataModel.id,
+        menuId: popup.menuId,
+      };
+    });
   }
 
   private serializeDetachedMenus(): SerializedDetachedMenu[] {
