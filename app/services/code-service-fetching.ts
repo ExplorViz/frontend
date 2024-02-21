@@ -11,7 +11,7 @@ import StaticMetricsRepository, { Metrics } from './repos/static-metrics-reposit
 
 const { codeService } = ENV.backendAddresses;
 
-export default class CodeServiceFetchingService extends Service {
+export default class CodeServiceRequestService extends Service {
   @service('landscape-token') tokenService!: LandscapeTokenService;
   @service('auth') auth!: Auth;
   
@@ -74,55 +74,6 @@ export default class CodeServiceFetchingService extends Service {
         .catch((e) => reject(e));
     });
   }
-
-  // async initCommitComparisonFetchingWithCallback(
-  //   callback: (commitComparison: CommitComparison) => void,
-  //   applicationName: string,
-  //   commits: SelectedCommit[]
-  // ) {
-  //   const commitComparisonPromise = this.fetchCommitComparison(applicationName, commits);
-  //   commitComparisonPromise
-  //     .then((commitComparison: CommitComparison) => {
-  //       commitComparison.firstCommitSelected = commits[0];
-  //       commitComparison.secondCommitSelected = commits[1];
-  //       callback(commitComparison);
-  //     })
-  //     .catch((error: Error) => {
-  //       console.log(error);
-  //     });
-  // }
-
-  // private fetchCommitComparison(applicationName: string, commits: SelectedCommit[]) {
-  //   this.debug('Fetching commit comparison');
-  //   return new Promise<CommitComparison>((resolve, reject) => {
-  //     if (this.tokenService.token === null) {
-  //       reject(new Error('No landscape token selected'));
-  //       return;
-  //     }
-
-  //     const firstSelectedCommitId = commits[0].commitId;
-  //     const secondSelectedCommitId = commits[1].commitId;
-
-  //     let url = `${codeService}/commit-comparison/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`; 
-
-  //     fetch(url, {
-  //       headers: {
-  //         Authorization: `Bearer ${this.auth.accessToken}`,
-  //         'Access-Control-Allow-Origin': '*',
-  //       },
-  //     })
-  //       .then(async (response: Response) => {
-  //         if (response.ok) {
-  //           const commitComparison = (await response.json()) as CommitComparison;
-  //           resolve(commitComparison);
-  //         } else {
-  //           reject();
-  //         }
-  //       })
-  //       .catch((e) => reject(e));
-  //   });
-
-  // }
 
   private httpFetchStaticMetrics(applicationName: string, commitId: string) {
    
@@ -210,8 +161,13 @@ export default class CodeServiceFetchingService extends Service {
     applicationName: string,
     commits: SelectedCommit[]
   ) {
-    await this.fetchStaticMetrics(applicationName, commits);
+    await this.fetchStaticMetrics(applicationName, commits.lastObject!);
     const landscapeStructure = this.fetchStaticLandscapeStructure(applicationName, commits);
+
+    if(commits.length == 2) {
+      // also request commit comparison
+      await this.fetchCommitComparison(applicationName, commits);
+    }
    
     landscapeStructure
       .then((landscapeStructure: StructureLandscapeData) => callback(landscapeStructure))
@@ -221,36 +177,13 @@ export default class CodeServiceFetchingService extends Service {
   }
 
 
-  // TODO: Use this in fetchStaticLandscapeStructure
-  // private httpFetchStaticLandscapeStructure(applicationName: string, commitId: string) {
-   
-  //   return new Promise<StructureLandscapeData>((resolve, reject) => {
-  //     if (this.tokenService.token === null) {
-  //       reject(new Error('No landscape token selected'));
-  //       return;
-  //     }
-
-  //     let url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commitId}`; 
-
-  //     fetch(url, {
-  //       headers: {
-  //         Authorization: `Bearer ${this.auth.accessToken}`,
-  //         'Access-Control-Allow-Origin': '*',
-  //       },
-  //     })
-  //       .then(async (response: Response) => {
-  //         if (response.ok) {
-  //           const structure = (await response.json()) as StructureLandscapeData;
-  //           resolve(structure);
-  //         } else {
-  //           reject();
-  //         }
-  //       })
-  //       .catch((e) => reject(e));
-  //   });
-  // }
-
   private fetchStaticLandscapeStructure(applicationName: string, commits: SelectedCommit[]) {
+    const staticLandscapeStructurePromise = this.httpFetchStaticLandscapeStructure(applicationName, commits);
+    return staticLandscapeStructurePromise;
+  }
+      
+
+  private httpFetchStaticLandscapeStructure(applicationName: string, commits: SelectedCommit[]) {
     this.debug('Fetching static landscape structure');
     return new Promise<StructureLandscapeData>((resolve, reject) => {
       if (this.tokenService.token === null) {
@@ -259,8 +192,9 @@ export default class CodeServiceFetchingService extends Service {
       }
 
       let url : string | undefined = undefined;
+      const firstSelectedCommitId = commits[0].commitId;
       if(commits.length === 1) {
-        url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}`; 
+        url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}`; 
         fetch(url, {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
@@ -277,142 +211,83 @@ export default class CodeServiceFetchingService extends Service {
           })
           .catch((e) => reject(e));
       } else if(commits.length === 2) {
-
-
-        const firstSelectedCommitId = commits[0].commitId;
         const secondSelectedCommitId = commits[1].commitId;
-        url = `${codeService}/commit-comparison/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`; 
-        
-        if (!this.commitComparisonRepo.getById(`${firstSelectedCommitId}_${secondSelectedCommitId}`)) {
-          const commitComparisonPromise = new Promise<CommitComparison>((resolve, reject) => {
-            fetch(url!, {
-              headers: {
-                Authorization: `Bearer ${this.auth.accessToken}`,
-                'Access-Control-Allow-Origin': '*',
-              },
-            })
-              .then(async (response: Response) => {
-                if (response.ok) {
-                  const commitComparison = (await response.json()) as CommitComparison;
-                  resolve(commitComparison);
-                } else {
-                  reject();
-                }
-              })
-              .catch((e) => reject(e));
-          });
-  
-          commitComparisonPromise.then(
-            (commitComparison : CommitComparison) => {
-              commitComparison.firstCommitSelected = commits[0];
-              commitComparison.secondCommitSelected = commits[1];
-              this.commitComparisonRepo.add(commitComparison);
-
-              url = `${codeService}/structure/${this.tokenService.token!.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
-              fetch(url, {
-                headers: {
-                  Authorization: `Bearer ${this.auth.accessToken}`,
-                  'Access-Control-Allow-Origin': '*',
-                },
-              })
-                .then(async (response: Response) => {
-                  if (response.ok) {
-                    const landscapeStructure = (await response.json()) as StructureLandscapeData;
-                    resolve(landscapeStructure);
-                  } else {
-                    reject();
-                  }
-                })
-                .catch((e) => reject(e));
-
+        url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`;
+        fetch(url, {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        })
+          .then(async (response: Response) => {
+            if (response.ok) {
+              const landscapeStructure = (await response.json()) as StructureLandscapeData;
+              resolve(landscapeStructure);
+            } else {
+              reject();
             }
-          ).catch((error: Error) => {
-            console.log(error);
-          });
-        }else {
-          url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`;
-          fetch(url, {
-            headers: {
-              Authorization: `Bearer ${this.auth.accessToken}`,
-              'Access-Control-Allow-Origin': '*',
-            },
           })
-            .then(async (response: Response) => {
-              if (response.ok) {
-                const landscapeStructure = (await response.json()) as StructureLandscapeData;
-                resolve(landscapeStructure);
-              } else {
-                reject();
-              }
-            })
-            .catch((e) => reject(e));
-        }
+          .catch((e) => reject(e));
+      }});
+  }
 
-        //url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${commits[0].commitId}-${commits[1].commitId}`; 
+  private async fetchCommitComparison(applicationName: string, commits: SelectedCommit[]) {
+    const firstSelectedCommitId = commits[0].commitId;
+    const secondSelectedCommitId = commits[1].commitId;
+    if (!this.commitComparisonRepo.getById(`${firstSelectedCommitId}_${secondSelectedCommitId}`)) {
+      const commitComparison = await this.httpFetchCommitComparison(applicationName, commits);
+      commitComparison.firstCommitSelected = commits[0];
+      commitComparison.secondCommitSelected = commits[1];
+      this.commitComparisonRepo.add(commitComparison);
+    }
+  }
+
+  private httpFetchCommitComparison(applicationName: string, commits: SelectedCommit[]) {
+    this.debug('Fetching commit comparison');
+    return new Promise<CommitComparison>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
       }
-      
-      // if (!url) {
-      //   console.debug("No url to fetch data from");
-      //   return;
-      // }
-      // fetch(url, {
-      //   headers: {
-      //     Authorization: `Bearer ${this.auth.accessToken}`,
-      //     'Access-Control-Allow-Origin': '*',
-      //   },
-      // })
-      //   .then(async (response: Response) => {
-      //     if (response.ok) {
-      //       const landscapeStructure = (await response.json()) as StructureLandscapeData;
-      //       resolve(landscapeStructure);
-      //     } else {
-      //       reject();
-      //     }
-      //   })
-      //   .catch((e) => reject(e));
-    });
+
+    const firstSelectedCommitId = commits[0].commitId;
+    const secondSelectedCommitId = commits[1].commitId;
+    const url = `${codeService}/commit-comparison/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`;
+
+    fetch(url!, {
+      headers: {
+        Authorization: `Bearer ${this.auth.accessToken}`,
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          const commitComparison = (await response.json()) as CommitComparison;
+          resolve(commitComparison);
+        } else {
+          reject();
+        }
+      })
+      .catch((e) => reject(e));
+  });
   }
 
 
-  private async fetchStaticMetrics(applicationName: string, commits: SelectedCommit[]) {
-      
-    if(commits.length === 1 && !this.staticMetricsRepo.getById(applicationName + commits[0].commitId)) {
-      const firstSelectedCommitId = commits[0].commitId;
-      const metrics = await this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
+  private async fetchStaticMetrics(applicationName: string, commit: SelectedCommit) {
+      const commitId = commit.commitId;
+      const metrics = await this.httpFetchStaticMetrics(applicationName, commitId);
+      const id = applicationName + commitId;
       try {
-        this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics)
+        this.staticMetricsRepo.add(id, metrics)
       } catch (error) {
         console.log(error);
-      }
-    } else if(commits.length === 2) {
-      const firstSelectedCommitId = commits[0].commitId;
-      const secondSelectedCommitId = commits[1].commitId;
-      
-      if(!this.staticMetricsRepo.getById(applicationName + firstSelectedCommitId)) {
-        const metrics = await this.httpFetchStaticMetrics(applicationName, firstSelectedCommitId);
-        try {
-          this.staticMetricsRepo.add(applicationName + firstSelectedCommitId, metrics)
-        } catch (error) {
-          console.log(error);
-        }
-      }
-
-      if(!this.staticMetricsRepo.getById(applicationName + secondSelectedCommitId)) {
-        const metrics = await this.httpFetchStaticMetrics(applicationName, secondSelectedCommitId);
-        try {
-          this.staticMetricsRepo.add(applicationName + secondSelectedCommitId, metrics)
-        } catch (error) {
-          console.log(error);
-        }
-      }  
-    }  
+      } 
   }
-
 
 }
 
 declare module '@ember/service' {
   interface Registry {
-    'code-service-fetching': CodeServiceFetchingService;
+    'code-service-fetching': CodeServiceRequestService;
   }
 }

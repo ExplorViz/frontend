@@ -15,7 +15,7 @@ import CommitComparisonRepository, { CommitComparison } from 'explorviz-frontend
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import { getApplicationFromPackage, getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
-import CodeServiceFetchingService from 'explorviz-frontend/services/code-service-fetching';
+import CodeServiceRequestService from 'explorviz-frontend/services/code-service-fetching';
 
 interface IMarkerStates {
   [commitId: string]: {
@@ -50,7 +50,7 @@ interface IArgs {
   selectedCommits?: Map<string, SelectedCommit[]>;
   highlightedMarkerColor?: string;
   setChildReference?(timeline: PlotlyCommitTree): void;
-  clicked?(selectedCommits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, structureData?: StructureLandscapeData): void;
+  clicked?(selectedCommits: Map<string,SelectedCommit[]>, structureData?: StructureLandscapeData, timelineOfSelectedCommit?: number): void;
   toggleConfigurationOverview(): void;
   applicationNameAndBranchNameToColorMap? : Map<string, string>;
 }
@@ -101,7 +101,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   commitComparisonRepo!: CommitComparisonRepository;
 
   @service('code-service-fetching')
-  codeServiceFetchingService!: CodeServiceFetchingService;
+  codeServiceFetchingService!: CodeServiceRequestService;
 
   readonly debug = debugLogger();
 
@@ -809,7 +809,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
                 //await this.codeServiceFetchingService.initCommitComparisonFetchingWithCallback(callbackCommitComparison, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]);
 
                 const callback = (landscapeStructure: StructureLandscapeData) => {
-                  this.args.clicked?.(this.selectedCommits!,1, landscapeStructure);
+                  this.args.clicked?.(this.selectedCommits!, landscapeStructure);
                 };
                 this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]); 
 
@@ -825,12 +825,12 @@ export default class PlotlyCommitTree extends Component<IArgs> {
               Plotly.restyle(plotlyDiv, update, [tn]);
               if(selectedCommitList.length == 1){
                 const callback = (landscapeStructure: StructureLandscapeData) => {
-                  this.args.clicked?.(this.selectedCommits!, timelineOfSelectedCommit, landscapeStructure);
+                  this.args.clicked?.(this.selectedCommits!, landscapeStructure, timelineOfSelectedCommit);
                 };
                 this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, selectedCommitList);
               }else {
                 // no structure since we unselected the only selected commit
-                this.args.clicked?.(this.selectedCommits!, 0);
+                this.args.clicked?.(this.selectedCommits!);
               }
             }
           }else { 
@@ -842,7 +842,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
             Plotly.restyle(plotlyDiv, update, [tn]);
 
             const callback = (landscapeStructure: StructureLandscapeData) => {
-                this.args.clicked?.(this.selectedCommits!, 0, landscapeStructure);
+                this.args.clicked?.(this.selectedCommits!, landscapeStructure);
             };
             this.codeServiceFetchingService.initStaticLandscapeStructureAndMetricsFetchingWithCallback(callback, this.selectedApplication!, [selectedCommit]);
           }

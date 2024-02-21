@@ -27,7 +27,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import CodeServiceFetchingService from 'explorviz-frontend/services/code-service-fetching';
+import CodeServiceRequestService from 'explorviz-frontend/services/code-service-fetching';
 import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import PlotlyCommitTree from 'explorviz-frontend/components/visualization/page-setup/commit-tree/plotly-commit-tree';
 import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
@@ -100,7 +100,7 @@ export default class VisualizationController extends Controller {
   timestampPollingService!: TimestampPollingService;
 
   @service('code-service-fetching')
-  codeServiceFetchingService!: CodeServiceFetchingService;
+  codeServiceFetchingService!: CodeServiceRequestService;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
@@ -1075,14 +1075,14 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async commitTreeClicked(commits: Map<string,SelectedCommit[]>, timelineOfSelectedCommit?: number, staticStructureData?: StructureLandscapeData ) {
+  async commitTreeClicked(commits: Map<string,SelectedCommit[]>, staticStructureData?: StructureLandscapeData, timelineOfSelectedCommit?: number) {
 
     // always resume when commit got clicked so the landscape updates
     if(this.visualizationPaused) {
       this.resumeVisualizationUpdating();
     } 
 
-    // TODO: deactivate heatmap when commit gets selected
+    // TODO: deactivate (if activated) heatmap when commit gets selected
 
 
     if(staticStructureData){
@@ -1096,7 +1096,7 @@ export default class VisualizationController extends Controller {
 
     this.timestampPollingService.resetPolling();
     if(numOfSelectedCommits && numOfSelectedCommits > 0){
-      if(this.selectedTimestampRecords[1]) {
+      if(this.selectedTimestampRecords[1]) {console.log("UNSELECT");
         // One of two (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) commits got unselected 
         this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so the landscape gets updated within the timestampPollingCallback call-chain
         this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit!]];
