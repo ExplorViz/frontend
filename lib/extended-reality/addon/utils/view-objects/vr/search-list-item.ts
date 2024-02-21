@@ -5,6 +5,8 @@ import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'collaboration/services/local-user';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,
@@ -26,6 +28,9 @@ export default class SearchListItem
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
   isHovered = false;
   text: string;
@@ -61,9 +66,9 @@ export default class SearchListItem
     if (application) {
       this.applicationRenderer.openAllComponents(application);
       if (mesh)
-        this.applicationRenderer.highlight(
-          mesh,
-          application,
+        this.highlightingService.highlight(
+          mesh as EntityMesh,
+          true,
           this.localUser.color
         );
     }

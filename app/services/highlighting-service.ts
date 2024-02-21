@@ -179,8 +179,10 @@ export default class HighlightingService extends Service.extend({
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.highlightComponent(parent, mesh, sendMessage, color); // Includes app-internal communication
+      this.applicationRenderer.updateApplicationObject3DAfterUpdate(parent);
     } else if (mesh instanceof ClazzCommunicationMesh) {
       this.highlightLink(mesh, sendMessage, color); // Communication between applications
+      this.highlightingService.updateHighlighting();
     }
   }
 

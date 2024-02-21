@@ -7,6 +7,7 @@ import {
   getAllAncestorComponents,
   openComponentsByList,
 } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 /**
  * @class ApplicationSearchLogic
@@ -19,6 +20,9 @@ export default class ApplicationSearchLogic {
 
   @service
   applicationRenderer!: ApplicationRenderer;
+
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
@@ -74,7 +78,7 @@ export default class ApplicationSearchLogic {
         applicationObject3D
       );
 
-      this.applicationRenderer.highlight(clazzMesh, applicationObject3D);
+      this.highlightingService.highlight(clazzMesh, true);
     }
   }
 }
