@@ -16,6 +16,7 @@ import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import { getApplicationFromPackage, getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
 import CodeServiceRequestService from 'explorviz-frontend/services/code-service-fetching';
+import CommitReportRepository from 'explorviz-frontend/services/repos/commit-report-repository';
 
 interface IMarkerStates {
   [commitId: string]: {
@@ -55,33 +56,6 @@ interface IArgs {
   applicationNameAndBranchNameToColorMap? : Map<string, string>;
 }
 
-function isCommitData(commitData: any): commitData is CommitData {
-  return (
-    commitData !== null &&
-    typeof commitData === 'object' &&
-    typeof commitData.commitId === 'string' &&
-    typeof commitData.parentCommitId === 'string' &&
-    typeof commitData.branchName === 'string' &&
-    (typeof commitData.modified === 'undefined' || typeof commitData.modified.every((x: any) => typeof x === 'string')) &&
-    (typeof commitData.deleted === 'undefined' || typeof commitData.deleted.every((x: any) => typeof x === 'string')) &&
-    (typeof commitData.added === 'undefined' || typeof commitData.added.every((x: any) => typeof x === 'string')) &&
-    commitData.fileMetric.every(isFileMetricType)
-  );
-}
-
-function isFileMetricType(fileMetric: any): fileMetric is FileMetric {
-  return (
-    fileMetric !== null &&
-    typeof fileMetric === 'object' &&
-    typeof fileMetric.fileName === 'string' &&
-    typeof fileMetric.loc === 'number' &&
-    (typeof fileMetric.cyclomaticComplexity === 'number' ||
-    typeof fileMetric.cyclomaticComplexity === 'undefined') &&
-    (typeof fileMetric.numberOfMethods === 'number' ||
-    typeof fileMetric.numberOfMethods === 'undefined')
-  );
-}
-
 const { codeService } = ENV.backendAddresses;
 
 
@@ -99,6 +73,9 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
   @service('repos/commit-comparison-repository')
   commitComparisonRepo!: CommitComparisonRepository;
+
+  @service('repos/commit-report-repository')
+  commitReportRepo!: CommitReportRepository;
 
   @service('code-service-fetching')
   codeServiceFetchingService!: CodeServiceRequestService;
@@ -118,11 +95,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   branchNameToLineColor: Map<string, string> = new Map();
   branchToY: Map<string,number> = new Map();
   branchToColor: Map<string,string> = new Map();
-  commitIdToCommitData: Map<string, CommitData> = new Map();
-
-
-
-
 
 
     // BEGIN template-argument getters 
@@ -373,8 +345,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     }
 
     async updatePlotlineForMetric(){
-      const activeIdList = this.configRepo.getActiveConfigurations(this.tokenService.token!.value);
-      const configItemList = this.configRepo.getConfiguration(this.tokenService.token!.value);
 
       if(!this.evolutionData){
         return;
@@ -384,7 +354,17 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         return;
       }
 
-      this.commitIdToCommitData = await this.requestData(this.evolutionData, this.selectedApplication); // TODO: only request data that was not requested before for better performance 
+      console.log("updatePlotlineForMetric");
+      await this.requestData(this.evolutionData, this.selectedApplication);
+      this.commitReportRepo.triggerCommitReportUpdate();
+    }
+
+
+    plotFileMetrics() {
+      
+      const activeIdList = this.configRepo.getActiveConfigurations(this.tokenService.token!.value);
+      const configItemList = this.configRepo.getConfiguration(this.tokenService.token!.value);
+
       const numOfCircles = activeIdList.length;
 
       let newData = [];
@@ -418,56 +398,21 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       );
 
       this.setupPlotlyListener(this.evolutionData!, this.selectedApplication!, this.selectedCommits!);
-
     }
 
     async requestData(evolutionData: EvolutionLandscapeData, selectedApplication: string) {
-      const commitIdToCommitData = new Map();
       for (const application of evolutionData.applications) {
         if(application.name === selectedApplication ) {
           for(const branch of application.branches) {
             for(const commitId of branch.commits){
-              const commitData =  await this.requestCommitData(commitId, selectedApplication);
-              if(isCommitData(commitData)){
-                console.log("commitData -> ", commitData);
-                commitIdToCommitData.set(commitData.commitId, commitData);
-              }
+              await this.codeServiceFetchingService.fetchCommitReport(commitId, selectedApplication);
             }
           }
           break;
         }
       }
-  
-      return commitIdToCommitData;
     }
 
-    requestCommitData(commitId: string, selectedApplication: string) {
-      return new Promise<CommitData>((resolve, reject) => {
-        if (this.tokenService.token === null) {
-          reject(new Error('No landscape token selected'));
-          return;
-        }
-        fetch(
-          `${codeService}/commit-report/${this.tokenService.token.value}/${selectedApplication}/${commitId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${this.auth.accessToken}`,
-            },
-          }
-        )
-          .then(async (response: Response) => {
-            if (response.ok) {
-              const commitData =
-                (await response.json()) as CommitData;
-              resolve(commitData);
-            } else {
-              reject();
-            }
-          })
-          .catch((e) => reject(e));
-      });
-    }
-  
   
     private plotNumberOfChangedFiles(color: string, metricId: string, order: number) {
       let maxOfChangedFiles = 0;
@@ -477,8 +422,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         if(application.name === this.selectedApplication ) {
             for(const branch of application.branches) {
               let numOfChangedFilesList = [];
-              for(const commit of branch.commits){console.log(commit);
-                const commitData = this.commitIdToCommitData.get(commit);
+              for(const commit of branch.commits){
+                const id = this.selectedApplication + commit;
+                console.log(commit);
+                const commitData = this.commitReportRepo.getById(id)!;
                 let changedFiles = 0;
 
                 if(commitData?.deleted)
@@ -558,8 +505,12 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         if(application.name === this.selectedApplication ) {
             for(const branch of application.branches) {
               let numOfMethodsList = [];
-              for(const commit of branch.commits){console.log(commit);
-                const commitData = this.commitIdToCommitData.get(commit);
+              for(const commit of branch.commits){
+                const id = this.selectedApplication + commit;
+                console.log(commit);
+                console.log("REPO ID:", id);
+                const commitData = this.commitReportRepo.getById(id);
+                console.log(commitData);
                 const fileMetrics = commitData?.fileMetric;
                 if(fileMetrics){
                   let numOfMethods = 0;
@@ -637,8 +588,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         if(application.name === this.selectedApplication ) {
             for(const branch of application.branches) {
               let avgCyclomaticComplexityList = [];
-              for(const commit of branch.commits){console.log(commit);
-                const commitData = this.commitIdToCommitData.get(commit);
+              for(const commit of branch.commits){
+                const id = this.selectedApplication + commit;
+                console.log(commit);
+                const commitData = this.commitReportRepo.getById(id);
                 const fileMetrics = commitData?.fileMetric;
                 if(fileMetrics){
                   let cyclomaticComplexity = 0;

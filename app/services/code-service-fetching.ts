@@ -8,6 +8,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import CommitComparisonRepository, { CommitComparison } from './repos/commit-comparison-repository';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import StaticMetricsRepository, { Metrics } from './repos/static-metrics-repository';
+import CommitReportRepository, { CommitReport, isCommitReport } from './repos/commit-report-repository';
 
 const { codeService } = ENV.backendAddresses;
 
@@ -20,6 +21,9 @@ export default class CodeServiceRequestService extends Service {
 
   @service('repos/static-metrics-repository')
   staticMetricsRepo!: StaticMetricsRepository;
+
+  @service('repos/commit-report-repository')
+  commitReportRepo!: CommitReportRepository;
 
   private debug = debugLogger();
 
@@ -270,6 +274,44 @@ export default class CodeServiceRequestService extends Service {
       })
       .catch((e) => reject(e));
   });
+  }
+
+  private httpFetchCommitReport(commitId: string, selectedApplication: string) {
+    return new Promise<CommitReport>((resolve, reject) => {
+      if (this.tokenService.token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${codeService}/commit-report/${this.tokenService.token.value}/${selectedApplication}/${commitId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+        }
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const commitReport =
+              (await response.json()) as CommitReport;
+              if(isCommitReport(commitReport))
+                resolve(commitReport);
+              else
+                reject("NO COMMIT REPORT TYPE");
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  async fetchCommitReport(commitId: string, selectedApplication: string) {
+    const id = selectedApplication + commitId;
+    if(!this.commitReportRepo.getById(id)) {
+      const commitReport =  await this.httpFetchCommitReport(commitId, selectedApplication);
+      this.commitReportRepo.add(id, commitReport);
+    }
   }
 
 

@@ -6,6 +6,7 @@
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 {{add-listener this.configurationRepo 'updated' this.updateConfigurationsAndMetrics}}
 {{add-listener this.configurationRepo 'updatePlot' this.updatePlotForMetrics}}
+{{add-listener this.commitReportRepo 'updated' this.plotFileMetrics}}
 {{add-listener this.applicationRenderer 'renderSettingChanged' this.onRenderSettingChange}}
 {{add-listener
   this.landscapeRestructure

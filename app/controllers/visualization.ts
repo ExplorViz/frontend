@@ -59,6 +59,7 @@ import {
   SerializedDetachedMenu,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import CommitReportRepository from 'explorviz-frontend/services/repos/commit-report-repository';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -143,6 +144,9 @@ export default class VisualizationController extends Controller {
 
   @service('repos/commit-comparison-repository')
   commitComparisonRepo!: CommitComparisonRepository;
+
+  @service('repos/commit-report-repository')
+  commitReportRepo!: CommitReportRepository;
 
   plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
 
@@ -1071,6 +1075,13 @@ export default class VisualizationController extends Controller {
   updatePlotForMetrics(){
     if(this.plotlyCommitTreeRef){
       this.plotlyCommitTreeRef.updatePlotlineForMetric();
+    }
+  }
+
+  @action
+  plotFileMetrics() {
+    if(this.plotlyCommitTreeRef){
+      this.plotlyCommitTreeRef.plotFileMetrics();
     }
   }
 
