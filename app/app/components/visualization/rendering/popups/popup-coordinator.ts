@@ -12,7 +12,7 @@ import {
   isNode,
   isPackage,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'some-react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
 import LocalUser from 'collaborative-mode/services/local-user';
 

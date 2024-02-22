@@ -15,7 +15,9 @@
     "alertifyjs": "1",
     "gsap": "3",
     "jquery": "3",
+    "meshline": "3",
     "react": "18",
+    "three": "0.159",
     "typescript": "5"
   }
 }

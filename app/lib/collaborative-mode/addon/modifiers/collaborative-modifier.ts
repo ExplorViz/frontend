@@ -22,7 +22,7 @@ import {
 import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'some-react-lib/src/utils/package-helpers';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';

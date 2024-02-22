@@ -18,9 +18,9 @@ import ToastMessage, {
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';

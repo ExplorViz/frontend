@@ -1,7 +1,7 @@
 import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
-import BoxMesh from './box-mesh';
+import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
 

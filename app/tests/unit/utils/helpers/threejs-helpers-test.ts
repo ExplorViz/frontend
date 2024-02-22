@@ -1,4 +1,4 @@
-import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
+import calculateColorBrightness from 'some-react-lib/src/utils/helpers/threejs-helpers';
 import { module, test } from 'qunit';
 import { Color } from 'three';
 

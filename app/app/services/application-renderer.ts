@@ -22,7 +22,7 @@ import {
 import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -38,7 +38,7 @@ import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,

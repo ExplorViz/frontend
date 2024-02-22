@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/communication-layout';
-import BaseMesh from '../base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
-import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'some-react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
 
 export default class ClazzCommunicationMesh extends BaseMesh {

@@ -1,5 +1,5 @@
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import {
   Class,
   Package,

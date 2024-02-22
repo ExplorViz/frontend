@@ -5,7 +5,7 @@ import Modifier from 'ember-modifier';
 import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration, {
   Metric,
 } from 'heatmap/services/heatmap-configuration';

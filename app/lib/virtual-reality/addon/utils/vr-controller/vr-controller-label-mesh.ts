@@ -1,4 +1,4 @@
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 import TextTexture from '../vr-helpers/text-texture';
 import { VRControllerLabelPosition } from './vr-controller-label-positions';

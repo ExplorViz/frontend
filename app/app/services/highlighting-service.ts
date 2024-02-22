@@ -11,8 +11,8 @@ import { StructureLandscapeData } from 'some-react-lib/src/utils/landscape-schem
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import {
   EntityMesh,

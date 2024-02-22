@@ -3,12 +3,12 @@ import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynami
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import { tracked } from '@glimmer/tracking';
 import { earthTexture } from 'explorviz-frontend/controllers/visualization';
-import FoundationMesh from './foundation-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import ClazzMesh from './clazz-mesh';
-import ComponentMesh from './component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzCommunicationMesh from './clazz-communication-mesh';
-import BaseMesh from '../base-mesh';
-import BoxMesh from './box-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
+import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'some-react-lib/src/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';

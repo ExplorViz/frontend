@@ -398,7 +398,7 @@ importers:
         version: 3.0.0
       some-react-lib:
         specifier: workspace:^1.0.0
-        version: file:some-react-lib(@types/react-dom@18.2.18)(@types/react@18.2.48)(alertifyjs@1.13.1)(gsap@3.12.4)(jquery@3.7.1)(react@18.2.0)(typescript@5.3.2)
+        version: file:some-react-lib(@types/react-dom@18.2.18)(@types/react@18.2.48)(alertifyjs@1.13.1)(gsap@3.12.4)(jquery@3.7.1)(meshline@3.1.7)(react@18.2.0)(three@0.159.0)(typescript@5.3.2)
       typescript:
         specifier: 5.3.2
         version: 5.3.2
@@ -435,9 +435,15 @@ importers:
       jquery:
         specifier: '3'
         version: 3.7.1
+      meshline:
+        specifier: '3'
+        version: 3.1.7(three@0.159.0)
       react:
         specifier: '18'
         version: 18.2.0
+      three:
+        specifier: '0.159'
+        version: 0.159.0
       typescript:
         specifier: '5'
         version: 5.3.2
@@ -12539,7 +12545,6 @@ packages:
       three: '>=0.137'
     dependencies:
       three: 0.159.0
-    dev: false
 
   /meshoptimizer@0.18.1:
     resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
@@ -15900,7 +15905,6 @@ packages:
 
   /three@0.159.0:
     resolution: {integrity: sha512-eCmhlLGbBgucuo4VEA9IO3Qpc7dh8Bd4VKzr7WfW4+8hMcIfoAVi1ev0pJYN9PTTsCslbcKgBwr2wNZ1EvLInA==}
-    dev: false
 
   /through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
@@ -17083,7 +17087,7 @@ packages:
       - supports-color
     dev: true
 
-  file:some-react-lib(@types/react-dom@18.2.18)(@types/react@18.2.48)(alertifyjs@1.13.1)(gsap@3.12.4)(jquery@3.7.1)(react@18.2.0)(typescript@5.3.2):
+  file:some-react-lib(@types/react-dom@18.2.18)(@types/react@18.2.48)(alertifyjs@1.13.1)(gsap@3.12.4)(jquery@3.7.1)(meshline@3.1.7)(react@18.2.0)(three@0.159.0)(typescript@5.3.2):
     resolution: {directory: some-react-lib, type: directory}
     id: file:some-react-lib
     name: some-react-lib
@@ -17093,7 +17097,9 @@ packages:
       alertifyjs: '1'
       gsap: '3'
       jquery: '3'
+      meshline: '3'
       react: '18'
+      three: '0.159'
       typescript: '5'
     dependencies:
       '@types/react': 18.2.48
@@ -17101,7 +17107,9 @@ packages:
       alertifyjs: 1.13.1
       gsap: 3.12.4
       jquery: 3.7.1
+      meshline: 3.1.7(three@0.159.0)
       react: 18.2.0
+      three: 0.159.0
       typescript: 5.3.2
     dev: true
 

@@ -1,5 +1,5 @@
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
@@ -23,7 +23,7 @@ import {
   Trace,
 } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { getHashCodeToClassMap } from 'some-react-lib/src/utils/landscape-structure-helpers';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 /**

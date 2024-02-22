@@ -1,4 +1,4 @@
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { Color } from 'three';
@@ -43,4 +43,4 @@ module('Unit | View Object | 3d/base-mesh', (hooks) => {
 
 // BaseMesh is an abstract class
 // need to extend from it for testing
-class BaseMeshMock extends BaseMesh {}
+class BaseMeshMock extends BaseMesh { }

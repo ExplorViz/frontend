@@ -1,4 +1,4 @@
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -15,9 +15,9 @@ import { spanIdToClass } from 'some-react-lib/src/utils/landscape-structure-help
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 

@@ -28,8 +28,8 @@ import {
 } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';

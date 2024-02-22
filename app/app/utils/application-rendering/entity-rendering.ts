@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
+import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
-import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
+import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
+import AnimationMesh from 'some-react-lib/src/view-objects/3d/animation-mesh';
 import {
   Class,
   Package,

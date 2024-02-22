@@ -1,4 +1,4 @@
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 
 export default class TeleportMesh extends BaseMesh {

@@ -7,7 +7,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/communication-layout';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'some-react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
