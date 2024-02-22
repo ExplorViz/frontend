@@ -11,8 +11,8 @@ import {
   defaultApplicationColors,
   blueApplicationColors,
   ColorScheme,
-} from 'explorviz-frontend/utils/settings/color-schemes';
-import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
+} from 'some-react-lib/src/utils/settings/color-schemes';
+import { defaultApplicationSettings } from 'some-react-lib/src/utils/settings/default-settings';
 import {
   ApplicationColorSettingId,
   ApplicationColorSettings,
@@ -22,7 +22,7 @@ import {
   isFlagSetting,
   isRangeSetting,
   RangeSetting,
-} from 'explorviz-frontend/utils/settings/settings-schemas';
+} from 'some-react-lib/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';

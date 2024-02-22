@@ -9,7 +9,7 @@ import {
 import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
-} from './landscape-structure-helpers';
+} from 'some-react-lib/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import { tracked } from '@glimmer/tracking';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';

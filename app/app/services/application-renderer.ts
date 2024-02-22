@@ -19,7 +19,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';

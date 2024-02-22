@@ -11,7 +11,7 @@ import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getClassById } from 'some-react-lib/src/utils/class-helpers';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -19,7 +19,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'some-react-lib/src/utils/package-helpers';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';

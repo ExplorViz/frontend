@@ -1,4 +1,4 @@
-/* import landscapeStructureHelpers from 'explorviz-frontend/utils/landscape-structure-helpers'; */
+/* import landscapeStructureHelpers from 'some-react-lib/src/utils/landscape-structure-helpers'; */
 import { module /* test */ } from 'qunit';
 
 module('Unit | Utility | landscape-structure-helpers', function () {

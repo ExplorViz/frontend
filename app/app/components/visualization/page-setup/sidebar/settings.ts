@@ -4,12 +4,12 @@ import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
+import { ColorSchemeId } from 'some-react-lib/src/utils/settings/color-schemes';
 import {
   ApplicationSettingId,
   ApplicationSettings,
   SettingGroup,
-} from 'explorviz-frontend/utils/settings/settings-schemas';
+} from 'some-react-lib/src/utils/settings/settings-schemas';
 import CollaborationSession from 'collaborative-mode/services/collaboration-session';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';

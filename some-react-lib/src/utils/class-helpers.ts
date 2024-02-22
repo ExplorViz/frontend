@@ -1,9 +1,9 @@
-import { getAllClassesInApplication } from 'some-react-lib/src/utils/application-helpers';
+import { getAllClassesInApplication } from './application-helpers';
 import {
   Class,
   StructureLandscapeData,
-} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getAncestorPackages } from 'some-react-lib/src/utils/package-helpers';
+} from './landscape-schemes/structure-data';
+import { getAncestorPackages } from './package-helpers';
 
 export function getClassAncestorPackages(clss: Class) {
   return [clss.parent, ...getAncestorPackages(clss.parent)];

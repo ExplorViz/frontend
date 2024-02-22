@@ -1,4 +1,4 @@
-import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   sortTracesByDuration,
   sortTracesById,

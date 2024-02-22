@@ -40,7 +40,7 @@ import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
+} from 'some-react-lib/src/utils/landscape-structure-helpers';
 import ApplicationRepository from './repos/application-repository';
 import Changelog from './changelog';
 import {
@@ -48,7 +48,7 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'some-react-lib/src/utils/package-helpers';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getClassById } from 'some-react-lib/src/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   RestructureAction,

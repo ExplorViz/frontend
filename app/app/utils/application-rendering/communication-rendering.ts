@@ -13,7 +13,7 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/component-communication';
-import { ApplicationSettings } from '../settings/settings-schemas';
+import { ApplicationSettings } from 'some-react-lib/src/utils/settings/settings-schemas';
 
 export default class CommunicationRendering {
   // Service to access preferences

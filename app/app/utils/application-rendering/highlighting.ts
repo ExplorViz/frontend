@@ -16,13 +16,13 @@ import {
   getAllPackagesInApplication,
 } from 'some-react-lib/src/utils/application-helpers';
 import { getClassesInPackage } from 'some-react-lib/src/utils/package-helpers';
-import { getClassAncestorPackages } from '../class-helpers';
+import { getClassAncestorPackages } from 'some-react-lib/src/utils/class-helpers';
 import {
   isTrace,
   Span,
   Trace,
 } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { getHashCodeToClassMap } from '../landscape-structure-helpers';
+import { getHashCodeToClassMap } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 

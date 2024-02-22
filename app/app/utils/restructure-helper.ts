@@ -12,7 +12,7 @@ import {
   Method,
   isApplication,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationFromPackage } from './landscape-structure-helpers';
+import { getApplicationFromPackage } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import {
   getAncestorPackages,

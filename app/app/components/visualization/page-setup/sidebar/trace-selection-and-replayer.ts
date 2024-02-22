@@ -11,7 +11,7 @@ import {
   Class,
   StructureLandscapeData,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getHashCodeToClassMap } from 'some-react-lib/src/utils/landscape-structure-helpers';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;

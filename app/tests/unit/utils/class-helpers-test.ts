@@ -1,7 +1,7 @@
 import {
   getClassMethodHashCodes,
   getClassAncestorPackages,
-} from 'explorviz-frontend/utils/class-helpers';
+} from 'some-react-lib/src/utils/class-helpers';
 import {
   Class,
   Method,

@@ -9,12 +9,12 @@ import {
   Class,
   StructureLandscapeData,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import { getSortedTraceSpans } from 'some-react-lib/src/utils/trace-helpers';
 import {
   getApplicationFromClass,
   getHashCodeToClassMap,
   spanIdToClass,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
+} from 'some-react-lib/src/utils/landscape-structure-helpers';
 
 interface Args {
   selectedTrace: Trace;

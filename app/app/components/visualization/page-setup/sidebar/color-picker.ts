@@ -7,7 +7,7 @@ import UserSettings, {
 import {
   ApplicationColorSettingId,
   ColorSetting,
-} from 'explorviz-frontend/utils/settings/settings-schemas';
+} from 'some-react-lib/src/utils/settings/settings-schemas';
 import Picker from 'vanilla-picker';
 
 interface Args {
