@@ -27,8 +27,8 @@ export default class ConfigurationOverview extends Component<IArgs> {
   @action
   didRender() {
     this.configRepo.addSoftwaremetric(this.tokenService.token!.value, "number of changed files");
-    this.configRepo.addSoftwaremetric(this.tokenService.token!.value, "total lines of code of changed files");
-
+    this.configRepo.addSoftwaremetric(this.tokenService.token!.value, "total number of methods");
+    this.configRepo.addSoftwaremetric(this.tokenService.token!.value, "average cyclomatic complexity");
     console.log("software metric added!");
   }
 

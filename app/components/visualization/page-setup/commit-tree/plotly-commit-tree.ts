@@ -469,90 +469,256 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     }
   
   
+    private plotNumberOfChangedFiles(color: string, metricId: string, order: number) {
+      let maxOfChangedFiles = 0;
+      const branchNameToNumOfChangedFilesList = new Map<string, number[]>();
+
+      for (const application of this.evolutionData!.applications) {
+        if(application.name === this.selectedApplication ) {
+            for(const branch of application.branches) {
+              let numOfChangedFilesList = [];
+              for(const commit of branch.commits){console.log(commit);
+                const commitData = this.commitIdToCommitData.get(commit);
+                let changedFiles = 0;
+
+                if(commitData?.deleted)
+                  changedFiles += commitData.deleted.length;
+
+                if(commitData?.modified)
+                  changedFiles += commitData.modified.length;
+
+                if(commitData?.added)
+                  changedFiles += commitData.added.length;
+
+                numOfChangedFilesList.push(changedFiles);
+                if(changedFiles > maxOfChangedFiles)
+                  maxOfChangedFiles = changedFiles;
+              }
+              branchNameToNumOfChangedFilesList.set(branch.name, numOfChangedFilesList);
+            }
+          break;
+        }
+      }
+
+      let oldData = this.commitTreeDiv.data;
+      let xValues : number[] = [];
+      let yValues : number[] = [];
+      let sizes : number[][] = [];
+      let displayedInformation : number[] = [];
+
+      let counter = 0;
+
+      for (const data of oldData) {
+
+        if(data.mode === "lines+markers"){ // branch lines
+          counter += data.x.length;
+
+
+          const information = branchNameToNumOfChangedFilesList.get(data.name);
+          if(information)
+            displayedInformation = [...displayedInformation, ...information];
+          //else
+            // throw error since every commit should have this information
+
+          let sizeList = branchNameToNumOfChangedFilesList.get(data.name)?.map(num => 5 + (num/maxOfChangedFiles) * 5);
+
+          if(sizeList)
+            sizes.push(sizeList);
+          //else
+            // throw error since every commit should have this metric
+
+          const newXCoordinates = data.x.map((xval: number) => (xval - 0.3) + (order%MAX_ACTIVE_ITEMS)*0.1); 
+          const newYCoordinates = data.y.map((yval: number) => yval + 0.0 + (order%MAX_ACTIVE_ITEMS)*0.1);
+
+          xValues = [...xValues, ...newXCoordinates];
+          yValues = [...yValues, ...newYCoordinates];
+        }              
+      }
+
+      const colors = Array(counter).fill(color);
+      const sizesFinal = sizes.flat();
+      const circle = {
+        marker: { color: colors, size: sizesFinal },
+        mode: 'markers',
+        type: 'scatter',
+        customData: [metricId],
+        name: "number of changed files",
+        text: displayedInformation.map((val: number) => `number of changed files: ${val}` ),
+        x: xValues,
+        y: yValues,
+      }
+      return circle;
+    }
+
+    private plotNumberOfMethods(color: string, metricId: string, order: number) {
+      let maxNumOfMethods = 0;
+      const branchNameToNumOfMethodsList = new Map<string, number[]>();
+
+      for (const application of this.evolutionData!.applications) {
+        if(application.name === this.selectedApplication ) {
+            for(const branch of application.branches) {
+              let numOfMethodsList = [];
+              for(const commit of branch.commits){console.log(commit);
+                const commitData = this.commitIdToCommitData.get(commit);
+                const fileMetrics = commitData?.fileMetric;
+                if(fileMetrics){
+                  let numOfMethods = 0;
+                  for(const fileMetric of fileMetrics) {
+                    if(fileMetric.numberOfMethods)
+                      numOfMethods += fileMetric.numberOfMethods;
+                  }
+
+                  numOfMethodsList.push(numOfMethods);
+                  if(numOfMethods > maxNumOfMethods)
+                    maxNumOfMethods = numOfMethods;
+                }
+              }
+              branchNameToNumOfMethodsList.set(branch.name, numOfMethodsList);
+            }
+          break;
+        }
+      }
+
+      let oldData = this.commitTreeDiv.data;
+      let xValues : number[] = [];
+      let yValues : number[] = [];
+      let sizes : number[][] = [];
+      let displayedInformation : number[] = [];
+
+      let counter = 0;
+
+      for (const data of oldData) {
+
+        if(data.mode === "lines+markers"){ // branch lines
+          counter += data.x.length;
+
+
+          const information = branchNameToNumOfMethodsList.get(data.name);
+          if(information)
+            displayedInformation = [...displayedInformation, ...information];
+          //else
+            // throw error since every commit should have this information
+
+          let sizeList = branchNameToNumOfMethodsList.get(data.name)?.map(num => 5 + (num/maxNumOfMethods) * 5);
+
+          if(sizeList)
+            sizes.push(sizeList);
+          //else
+            // throw error since every commit should have this metric
+
+          const newXCoordinates = data.x.map((xval: number) => (xval - 0.3) + (order%MAX_ACTIVE_ITEMS)*0.1); 
+          const newYCoordinates = data.y.map((yval: number) => yval + 0.0 + (order%MAX_ACTIVE_ITEMS)*0.1);
+
+          xValues = [...xValues, ...newXCoordinates];
+          yValues = [...yValues, ...newYCoordinates];
+        }              
+      }
+
+      const colors = Array(counter).fill(color);
+      const sizesFinal = sizes.flat();
+      const circle = {
+        marker: { color: colors, size: sizesFinal },
+        mode: 'markers',
+        type: 'scatter',
+        customData: [metricId],
+        name: "number of methods",
+        text: displayedInformation.map((val: number) => `number of methods: ${val}` ),
+        x: xValues,
+        y: yValues,
+      }
+      return circle;
+    }
+
+    private plotCyclomaticComplexity(color: string, metricId: string, order: number) {
+      let maxAvgCyclomaticComplexity = 0;
+      const branchNameToNumOfMethodsList = new Map<string, number[]>();
+
+      for (const application of this.evolutionData!.applications) {
+        if(application.name === this.selectedApplication ) {
+            for(const branch of application.branches) {
+              let avgCyclomaticComplexityList = [];
+              for(const commit of branch.commits){console.log(commit);
+                const commitData = this.commitIdToCommitData.get(commit);
+                const fileMetrics = commitData?.fileMetric;
+                if(fileMetrics){
+                  let cyclomaticComplexity = 0;
+                  for(const fileMetric of fileMetrics) {
+                    if(fileMetric.cyclomaticComplexity)
+                      cyclomaticComplexity += fileMetric.cyclomaticComplexity;
+                  }
+
+                  if(fileMetrics.length > 0) {
+                    cyclomaticComplexity = Math.floor(cyclomaticComplexity/fileMetrics.length);
+                  }
+                  avgCyclomaticComplexityList.push(cyclomaticComplexity);
+                  if(cyclomaticComplexity > maxAvgCyclomaticComplexity)
+                    maxAvgCyclomaticComplexity = cyclomaticComplexity;
+                }
+              }
+              branchNameToNumOfMethodsList.set(branch.name, avgCyclomaticComplexityList);
+            }
+          break;
+        }
+      }
+
+      let oldData = this.commitTreeDiv.data;
+      let xValues : number[] = [];
+      let yValues : number[] = [];
+      let sizes : number[][] = [];
+      let displayedInformation : number[] = [];
+
+      let counter = 0;
+
+      for (const data of oldData) {
+
+        if(data.mode === "lines+markers"){ // branch lines
+          counter += data.x.length;
+
+
+          const information = branchNameToNumOfMethodsList.get(data.name);
+          if(information)
+            displayedInformation = [...displayedInformation, ...information];
+          //else
+            // throw error since every commit should have this information
+
+          let sizeList = branchNameToNumOfMethodsList.get(data.name)?.map(num => 5 + (num/maxAvgCyclomaticComplexity) * 5);
+
+          if(sizeList)
+            sizes.push(sizeList);
+          //else
+            // throw error since every commit should have this metric
+
+          const newXCoordinates = data.x.map((xval: number) => (xval - 0.3) + (order%MAX_ACTIVE_ITEMS)*0.1); 
+          const newYCoordinates = data.y.map((yval: number) => yval + 0.0 + (order%MAX_ACTIVE_ITEMS)*0.1);
+
+          xValues = [...xValues, ...newXCoordinates];
+          yValues = [...yValues, ...newYCoordinates];
+        }              
+      }
+
+      const colors = Array(counter).fill(color);
+      const sizesFinal = sizes.flat();
+      const circle = {
+        marker: { color: colors, size: sizesFinal },
+        mode: 'markers',
+        type: 'scatter',
+        customData: [metricId],
+        name: "average cyclomatic complexity",
+        text: displayedInformation.map((val: number) => `average cyclomatic complexity: ${val}` ),
+        x: xValues,
+        y: yValues,
+      }
+      return circle;
+    }
 
     plotMetric(color: string, metric: string, metricId: string, order: number){
       console.log("order: ", order);
       if(metric === "number of changed files"){
-
-        let maxOfChangedFiles = 0;
-        const branchNameToNumOfChangedFilesList = new Map<string, number[]>();
-
-        for (const application of this.evolutionData!.applications) {
-          if(application.name === this.selectedApplication ) {
-              for(const branch of application.branches) {
-                let numOfChangedFilesList = [];
-                for(const commit of branch.commits){
-                  const commitData = this.commitIdToCommitData.get(commit);
-                  let changedFiles = 0;
-
-                  if(commitData?.deleted)
-                    changedFiles += commitData.deleted.length;
-
-                  if(commitData?.modified)
-                    changedFiles += commitData.modified.length;
-
-                  if(commitData?.added)
-                    changedFiles += commitData.added.length;
-
-                  numOfChangedFilesList.push(changedFiles);
-                  if(changedFiles > maxOfChangedFiles)
-                    maxOfChangedFiles = changedFiles;
-                }
-                branchNameToNumOfChangedFilesList.set(branch.name, numOfChangedFilesList);
-              }
-            break;
-          }
-        }
-
-        let oldData = this.commitTreeDiv.data;
-        let xValues : number[] = [];
-        let yValues : number[] = [];
-        let sizes : number[][] = [];
-        let displayedInformation : number[] = [];
-
-        let counter = 0;
-
-        for (const data of oldData) {
-
-          if(data.mode === "lines+markers"){ // branch lines
-            counter += data.x.length;
-
-
-            const information = branchNameToNumOfChangedFilesList.get(data.name);
-            if(information)
-              displayedInformation = [...displayedInformation, ...information];
-            //else
-              // throw error since every commit should have this information
-
-            let sizeList = branchNameToNumOfChangedFilesList.get(data.name)?.map(num => 5 + (num/maxOfChangedFiles) * 5);
-
-            if(sizeList)
-              sizes.push(sizeList);
-            //else
-              // throw error since every commit should have this metric
-
-            const newXCoordinates = data.x.map((xval: number) => (xval - 0.3) + (order%MAX_ACTIVE_ITEMS)*0.1); 
-            const newYCoordinates = data.y.map((yval: number) => yval + 0.0 + (order%MAX_ACTIVE_ITEMS)*0.1);
-
-            xValues = [...xValues, ...newXCoordinates];
-            yValues = [...yValues, ...newYCoordinates];
-          }              
-        }
-
-        const colors = Array(counter).fill(color);
-        const sizesFinal = sizes.flat();
-        const circle = {
-          marker: { color: colors, size: sizesFinal },
-          mode: 'markers',
-          type: 'scatter',
-          customData: [metricId],
-          name: "number of changed files",
-          text: displayedInformation.map((val: number) => `number of changed files: ${val}` ),
-          x: xValues,
-          y: yValues,
-        }
-        return circle;
-
+        return this.plotNumberOfChangedFiles(color, metricId, order);
+      }else if(metric === "total number of methods") {
+        return this.plotNumberOfMethods(color, metricId, order);
+      }else if(metric === "average cyclomatic complexity") {
+        return this.plotCyclomaticComplexity(color, metricId, order);
       }
 
       else {
