@@ -1,16 +1,16 @@
 import {
   DynamicLandscapeData,
   Span,
-} from '../landscape-schemes/dynamic/dynamic-data';
-import MethodCall from '../landscape-schemes/dynamic/method-call';
+} from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import MethodCall from 'some-react-lib/src/utils/landscape-schemes/dynamic/method-call';
 import {
   Application,
   Class,
   StructureLandscapeData,
-} from '../landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
-import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
-import { getAllClassesInApplication } from '../application-helpers';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { getAllClassesInApplication } from 'some-react-lib/src/utils/application-helpers';
 
 function computeClassCommunicationRecursively(
   span: Span,

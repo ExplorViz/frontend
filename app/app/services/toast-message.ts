@@ -1,5 +1,5 @@
 import Service from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 
 export interface MessageArgs {
   title: string;

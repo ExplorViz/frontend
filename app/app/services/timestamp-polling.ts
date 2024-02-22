@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'some-react-lib/src/utils/landscape-schemes/timestamp';
 import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';

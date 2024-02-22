@@ -59,7 +59,7 @@ export function packageContainsClass(
   return (
     component.classes.includes(clazz) ||
     (component.subPackages.length > 0 &&
-      component.subPackages.any((subPackage) =>
+      component.subPackages.some((subPackage) =>
         packageContainsClass(subPackage, clazz)
       ))
   );

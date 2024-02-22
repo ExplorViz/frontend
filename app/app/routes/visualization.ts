@@ -3,7 +3,7 @@ import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import { action } from '@ember/object';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import BaseRoute from './base-route';

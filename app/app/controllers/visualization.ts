@@ -16,9 +16,9 @@ import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
+import { DynamicLandscapeData } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
@@ -50,9 +50,9 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { timeout } from 'ember-concurrency';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import { animatePlayPauseButton } from 'some-react-lib/src/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'some-react-lib/src/utils/landscape-schemes/timestamp';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -544,7 +544,7 @@ export default class VisualizationController extends Controller {
       if (
         timestampToRender &&
         JSON.stringify(this.selectedTimestampRecords) !==
-          JSON.stringify([timestampToRender])
+        JSON.stringify([timestampToRender])
       ) {
         this.updateTimestamp(timestampToRender.epochMilli);
         this.selectedTimestampRecords = [timestampToRender];
@@ -565,8 +565,8 @@ export default class VisualizationController extends Controller {
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
   }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+    //detachedMenus,
+    InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
       await timeout(50);

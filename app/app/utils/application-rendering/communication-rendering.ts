@@ -12,7 +12,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
-import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+import ComponentCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {

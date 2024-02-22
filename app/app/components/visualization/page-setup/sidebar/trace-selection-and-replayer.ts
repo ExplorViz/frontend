@@ -4,13 +4,13 @@ import {
   DynamicLandscapeData,
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import {
   Application,
   Class,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 interface Args {

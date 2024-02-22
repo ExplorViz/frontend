@@ -18,7 +18,7 @@ import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -43,7 +43,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getSubPackagesOfPackage } from 'some-react-lib/src/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 // #endregion imports
 
@@ -228,8 +228,8 @@ export default class ApplicationRenderer extends Service.extend({
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
           ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
+            applicationObject3D
+          )
           : addApplicationArgs;
 
       if (layoutChanged) {

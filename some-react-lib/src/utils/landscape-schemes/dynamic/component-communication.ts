@@ -1,4 +1,4 @@
-import { getClassesInPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getClassesInPackage } from '../../package-helpers';
 import { Application, Class, Package, isClass } from '../structure-data';
 import ClassCommunication from './class-communication';
 import MethodCall from './method-call';

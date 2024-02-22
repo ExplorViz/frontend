@@ -5,7 +5,7 @@ import ApplicationRenderer, {
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import { isTrace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { isTrace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
@@ -150,10 +150,10 @@ export default class VrRoomSerializer extends Service {
             entityType: entityType.constructor.name,
             entityId: (
               application.getMeshById(meshId) as
-                | ComponentMesh
-                | ClazzMesh
-                | ClazzCommunicationMesh
-                | FoundationMesh
+              | ComponentMesh
+              | ClazzMesh
+              | ClazzCommunicationMesh
+              | FoundationMesh
             ).getModelId(),
             isHighlighted: true,
             color: color,

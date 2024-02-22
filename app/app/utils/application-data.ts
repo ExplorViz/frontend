@@ -1,11 +1,11 @@
 import { tracked } from '@glimmer/tracking';
 import { LayoutData } from 'explorviz-frontend/services/application-renderer';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import {
   ApplicationHeatmapData,
   Metric,
 } from 'heatmap/services/heatmap-configuration';
-import ClassCommunication from './landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 export default class ApplicationData {
   application: Application;

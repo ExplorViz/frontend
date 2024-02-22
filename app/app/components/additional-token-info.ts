@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';

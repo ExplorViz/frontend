@@ -7,7 +7,7 @@ import {
   isApplication,
   isClass,
   isPackage,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface Args {

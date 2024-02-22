@@ -12,6 +12,9 @@
   "peerDependencies": {
     "@types/react": "18",
     "@types/react-dom": "18",
+    "alertifyjs": "1",
+    "gsap": "3",
+    "jquery": "3",
     "react": "18",
     "typescript": "5"
   }

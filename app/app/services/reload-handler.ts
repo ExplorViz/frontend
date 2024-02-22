@@ -2,11 +2,11 @@ import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 
 import debugLogger from 'ember-debug-logger';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import LandscapeListener from './landscape-listener';
 
 export default class ReloadHandler extends Service.extend(Evented) {

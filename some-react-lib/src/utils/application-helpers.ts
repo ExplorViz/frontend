@@ -36,7 +36,7 @@ export function getAllMethodHashCodesInApplication(application: Application) {
 }
 
 export function applicationHasClass(application: Application, clazz: Class) {
-  return application.packages.any((component) =>
+  return application.packages.some((component) =>
     packageContainsClass(component, clazz)
   );
 }

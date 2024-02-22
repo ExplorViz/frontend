@@ -5,7 +5,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 

@@ -9,22 +9,22 @@ import {
   isPackage,
   Package,
   StructureLandscapeData,
-} from '../landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getAllClassesInApplication,
   getAllClassIdsInApplication,
   getAllPackagesInApplication,
-} from '../application-helpers';
-import { getClassesInPackage } from '../package-helpers';
+} from 'some-react-lib/src/utils/application-helpers';
+import { getClassesInPackage } from 'some-react-lib/src/utils/package-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
 import {
   isTrace,
   Span,
   Trace,
-} from '../landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 /**
  * Restores default color and transparency for all application meshes
@@ -428,10 +428,10 @@ function getAllSelectedClassIds(
 
       const model = (
         baseMesh as
-          | FoundationMesh
-          | ComponentMesh
-          | ClazzMesh
-          | ClazzCommunicationMesh
+        | FoundationMesh
+        | ComponentMesh
+        | ClazzMesh
+        | ClazzCommunicationMesh
       ).dataModel;
       // Add all clazzes which are contained in a component
       if (isPackage(model)) {

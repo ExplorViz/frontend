@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'some-react-lib/src/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 
 interface IMarkerStates {
@@ -227,9 +227,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
     let layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : this.getPlotlyLayoutObject(
-          this.plotlyTimestampsWithoutNullValues - 30,
-          this.plotlyTimestampsWithoutNullValues
-        );
+        this.plotlyTimestampsWithoutNullValues - 30,
+        this.plotlyTimestampsWithoutNullValues
+      );
 
     this.oldPlotlySlidingWindow = {
       min: this.plotlyTimestampsWithoutNullValues - 30,
@@ -264,9 +264,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
     let layout = this.userSlidingWindow
       ? this.userSlidingWindow
       : this.getPlotlyLayoutObject(
-          this.plotlyTimestampsWithoutNullValues - 30,
-          this.plotlyTimestampsWithoutNullValues
-        );
+        this.plotlyTimestampsWithoutNullValues - 30,
+        this.plotlyTimestampsWithoutNullValues
+      );
 
     this.oldPlotlySlidingWindow = {
       min: this.plotlyTimestampsWithoutNullValues - 30,

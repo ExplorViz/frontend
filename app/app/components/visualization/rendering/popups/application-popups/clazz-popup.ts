@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';

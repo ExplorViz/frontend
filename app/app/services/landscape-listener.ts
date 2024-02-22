@@ -4,8 +4,8 @@ import debugLogger from 'ember-debug-logger';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ENV from 'explorviz-frontend/config/environment';
 import TimestampRepository from './repos/timestamp-repository';
 import Auth from './auth';
@@ -65,7 +65,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         if (
           !this.latestStructureJsonString ||
           JSON.stringify(this.latestStructureJsonString) !==
-            JSON.stringify(strucDataProm.value)
+          JSON.stringify(strucDataProm.value)
         ) {
           // preProcessAndEnhanceStructureLandscape introduces cycle to the original value, therefore no more JSON.stringify. Use different variable latestStructureJsonString to check if update is necessary
 
@@ -82,7 +82,7 @@ export default class LandscapeListener extends Service.extend(Evented) {
         if (
           !this.latestDynamicData ||
           JSON.stringify(this.latestDynamicData) !==
-            JSON.stringify(dynamicDataProm.value)
+          JSON.stringify(dynamicDataProm.value)
         ) {
           this.latestDynamicData = dynamicDataProm.value;
           triggerUpdate = true;

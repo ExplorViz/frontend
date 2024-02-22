@@ -16,7 +16,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/utils/hit-test';

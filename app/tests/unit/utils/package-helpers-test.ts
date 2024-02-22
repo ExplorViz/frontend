@@ -1,11 +1,11 @@
 import {
   Class,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getClassesInPackage,
   getSubPackagesOfPackage,
-} from 'explorviz-frontend/utils/package-helpers';
+} from 'some-react-lib/src/utils/package-helpers';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | package-helpers', function () {
@@ -13,8 +13,8 @@ module('Unit | Utility | package-helpers', function () {
     const classes = getClassesInPackage(getTestPackage(), false);
     assert.ok(
       classes.length === 2 &&
-        classes.some((clss) => clss.id === 'class1') &&
-        classes.some((clss) => clss.id === 'class2')
+      classes.some((clss) => clss.id === 'class1') &&
+      classes.some((clss) => clss.id === 'class2')
     );
   });
 
@@ -22,9 +22,9 @@ module('Unit | Utility | package-helpers', function () {
     const classes = getClassesInPackage(getTestPackage(), true);
     assert.ok(
       classes.length === 3 &&
-        classes.some((clss) => clss.id === 'class1') &&
-        classes.some((clss) => clss.id === 'class2') &&
-        classes.some((clss) => clss.id === 'class3')
+      classes.some((clss) => clss.id === 'class1') &&
+      classes.some((clss) => clss.id === 'class2') &&
+      classes.some((clss) => clss.id === 'class3')
     );
   });
 
@@ -32,8 +32,8 @@ module('Unit | Utility | package-helpers', function () {
     const pckgs = getSubPackagesOfPackage(getTestPackage(), false);
     assert.ok(
       pckgs.length === 2 &&
-        pckgs.some((pckg) => pckg.id === 'subPackage') &&
-        pckgs.some((pckg) => pckg.id === 'subPackage2')
+      pckgs.some((pckg) => pckg.id === 'subPackage') &&
+      pckgs.some((pckg) => pckg.id === 'subPackage2')
     );
   });
 
@@ -41,9 +41,9 @@ module('Unit | Utility | package-helpers', function () {
     const pckgs = getSubPackagesOfPackage(getTestPackage(), true);
     assert.ok(
       pckgs.length === 3 &&
-        pckgs.some((pckg) => pckg.id === 'subPackage') &&
-        pckgs.some((pckg) => pckg.id === 'subPackage2') &&
-        pckgs.some((pckg) => pckg.id === 'subSubPackage')
+      pckgs.some((pckg) => pckg.id === 'subPackage') &&
+      pckgs.some((pckg) => pckg.id === 'subPackage2') &&
+      pckgs.some((pckg) => pckg.id === 'subSubPackage')
     );
   });
 });

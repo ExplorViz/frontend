@@ -1,4 +1,4 @@
-// import AlertifyHandlerMixin from 'explorviz-frontend/utils/alertify-handler';
+// import AlertifyHandlerMixin from 'some-react-lib/src/utils/alertify-handler';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 

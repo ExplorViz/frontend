@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 //import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 interface Args {
   classCommunication: ClassCommunication;

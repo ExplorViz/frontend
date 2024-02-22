@@ -6,7 +6,7 @@ import {
   Class,
   Method,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | class-helpers', function () {

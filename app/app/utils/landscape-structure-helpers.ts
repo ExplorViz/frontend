@@ -2,15 +2,18 @@ import {
   applicationHasClass,
   getAllClassesInApplication,
   getAllMethodHashCodesInApplication,
-} from './application-helpers';
-import { Trace } from './landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/application-helpers';
+import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
   Class,
   isApplication,
   StructureLandscapeData,
-} from './landscape-schemes/structure-data';
-import { getAncestorPackages, getPackageById } from './package-helpers';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
+import {
+  getAncestorPackages,
+  getPackageById,
+} from 'some-react-lib/src/utils/package-helpers';
 import { getTraceIdToSpanTree, SpanTree } from './trace-helpers';
 
 export function getAllApplicationsInLandscape(

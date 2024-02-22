@@ -4,11 +4,11 @@ import { tracked } from '@glimmer/tracking';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import {
   getApplicationFromClass,

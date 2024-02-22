@@ -1,8 +1,8 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
+import { Span } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 
 type TimeUnit = 'ns' | 'ms' | 's';
 

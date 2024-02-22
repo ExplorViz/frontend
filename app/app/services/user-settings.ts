@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import isObject, {
   objectsHaveSameKeys,
-} from 'explorviz-frontend/utils/object-helpers';
+} from 'some-react-lib/src/utils/object-helpers';
 import {
   classicApplicationColors,
   ColorSchemeId,

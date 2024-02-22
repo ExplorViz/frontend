@@ -1,9 +1,9 @@
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic-data';
 import {
   sortTracesByDuration,
   sortTracesById,
   sortSpanArrayByTime,
-} from 'explorviz-frontend/utils/trace-helpers';
+} from 'some-react-lib/src/utils/trace-helpers';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | trace-helpers', function () {
@@ -12,8 +12,8 @@ module('Unit | Utility | trace-helpers', function () {
     sortTracesByDuration(testTraces);
     assert.ok(
       testTraces[0].traceId === 'trace2' &&
-        testTraces[1].traceId === 'trace3' &&
-        testTraces[2].traceId === 'trace1',
+      testTraces[1].traceId === 'trace3' &&
+      testTraces[2].traceId === 'trace1',
       'Traces must be sorted in ascending order and original array mutated'
     );
 
@@ -21,8 +21,8 @@ module('Unit | Utility | trace-helpers', function () {
     sortTracesByDuration(testTraces2, false);
     assert.ok(
       testTraces2[0].traceId === 'trace1' &&
-        testTraces2[1].traceId === 'trace3' &&
-        testTraces2[2].traceId === 'trace2',
+      testTraces2[1].traceId === 'trace3' &&
+      testTraces2[2].traceId === 'trace2',
       'Traces must be sorted in descending order and original array mutated'
     );
 
@@ -30,9 +30,9 @@ module('Unit | Utility | trace-helpers', function () {
     const sortedArray = sortTracesByDuration(testTraces3, true, true);
     assert.ok(
       sortedArray[0].traceId === 'trace2' &&
-        sortedArray[1].traceId === 'trace3' &&
-        sortedArray[2].traceId === 'trace1' &&
-        sortedArray !== testTraces3,
+      sortedArray[1].traceId === 'trace3' &&
+      sortedArray[2].traceId === 'trace1' &&
+      sortedArray !== testTraces3,
       'Traces must be sorted in ascending order and original array unmutated'
     );
   });
@@ -42,8 +42,8 @@ module('Unit | Utility | trace-helpers', function () {
     sortTracesById(testTraces);
     assert.ok(
       testTraces[0].traceId === 'trace1' &&
-        testTraces[1].traceId === 'trace2' &&
-        testTraces[2].traceId === 'trace3',
+      testTraces[1].traceId === 'trace2' &&
+      testTraces[2].traceId === 'trace3',
       'Traces must be sorted in ascending order and original array mutated'
     );
 
@@ -51,8 +51,8 @@ module('Unit | Utility | trace-helpers', function () {
     sortTracesById(testTraces2, false);
     assert.ok(
       testTraces2[0].traceId === 'trace3' &&
-        testTraces2[1].traceId === 'trace2' &&
-        testTraces2[2].traceId === 'trace1',
+      testTraces2[1].traceId === 'trace2' &&
+      testTraces2[2].traceId === 'trace1',
       'Traces must be sorted in descending order and original array mutated'
     );
 
@@ -60,9 +60,9 @@ module('Unit | Utility | trace-helpers', function () {
     const sortedArray = sortTracesById(testTraces3, true, true);
     assert.ok(
       sortedArray[0].traceId === 'trace1' &&
-        sortedArray[1].traceId === 'trace2' &&
-        sortedArray[2].traceId === 'trace3' &&
-        sortedArray !== testTraces3,
+      sortedArray[1].traceId === 'trace2' &&
+      sortedArray[2].traceId === 'trace3' &&
+      sortedArray !== testTraces3,
       'Traces must be sorted in ascending order and original array unmutated'
     );
   });
@@ -74,9 +74,9 @@ module('Unit | Utility | trace-helpers', function () {
     // also matches the array sorted by spanId
     assert.ok(
       testSpanList[0].spanId === 'span1' &&
-        testSpanList[1].spanId === 'span2' &&
-        testSpanList[2].spanId === 'span3' &&
-        testSpanList[3].spanId === 'span4',
+      testSpanList[1].spanId === 'span2' &&
+      testSpanList[2].spanId === 'span3' &&
+      testSpanList[3].spanId === 'span4',
       'Spans must be sorted in ascending order and original array mutated'
     );
 
@@ -84,10 +84,10 @@ module('Unit | Utility | trace-helpers', function () {
     const sortedArray = sortSpanArrayByTime(testSpanList2, true);
     assert.ok(
       testSpanList[0].spanId === 'span1' &&
-        testSpanList[1].spanId === 'span2' &&
-        testSpanList[2].spanId === 'span3' &&
-        testSpanList[3].spanId === 'span4' &&
-        sortedArray !== testSpanList2,
+      testSpanList[1].spanId === 'span2' &&
+      testSpanList[2].spanId === 'span3' &&
+      testSpanList[3].spanId === 'span4' &&
+      sortedArray !== testSpanList2,
       'Spans must be sorted in ascending order and original array unmutated'
     );
   });

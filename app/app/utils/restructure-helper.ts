@@ -1,7 +1,7 @@
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from './application-helpers';
+} from 'some-react-lib/src/utils/application-helpers';
 import {
   StructureLandscapeData,
   Node,
@@ -11,15 +11,15 @@ import {
   isPackage,
   Method,
   isApplication,
-} from './landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
-} from './package-helpers';
-import ClassCommunication from './landscape-schemes/dynamic/class-communication';
+} from 'some-react-lib/src/utils/package-helpers';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 export enum EntityType {
   App = 'APP',
@@ -193,13 +193,13 @@ export function addMethodToClass(
 ) {
   const newMethod: Method = !isCopy
     ? {
-        name: methodName,
-        methodHash: sha256(methodName).toString(),
-      }
+      name: methodName,
+      methodHash: sha256(methodName).toString(),
+    }
     : {
-        name: methodName,
-        methodHash: methodName,
-      };
+      name: methodName,
+      methodHash: methodName,
+    };
 
   clazz.methods.push(newMethod);
 }
@@ -687,7 +687,7 @@ function copyCommunication(commToCopy: ClassCommunication, idCounter: number) {
     operationName: 'copied' + idCounter + '|' + commToCopy.operationName,
     sourceApp: commToCopy.sourceApp,
     targetApp: commToCopy.targetApp,
-    addMethodCalls: () => {},
+    addMethodCalls: () => { },
     getClasses: () => [commToCopy.sourceClass, commToCopy.targetClass],
   };
 

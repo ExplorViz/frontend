@@ -1,6 +1,6 @@
-import { getAllClassesInApplication } from './application-helpers';
-import ClassCommunication from './landscape-schemes/dynamic/class-communication';
-import { Application } from './landscape-schemes/structure-data';
+import { getAllClassesInApplication } from 'some-react-lib/src/utils/application-helpers';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { Application } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 
 export default function calculateCommunications(
   application: Application,

@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 //import ENV from 'explorviz-frontend/config/environment';
 import { inject as service } from '@ember/service';

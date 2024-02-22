@@ -2,7 +2,7 @@ import Service from '@ember/service';
 
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'some-react-lib/src/utils/landscape-schemes/timestamp';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines

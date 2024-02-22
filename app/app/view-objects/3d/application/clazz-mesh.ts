@@ -1,4 +1,4 @@
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';

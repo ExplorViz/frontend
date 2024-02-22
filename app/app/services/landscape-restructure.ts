@@ -34,7 +34,7 @@ import {
   isClass,
   isPackage,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
@@ -47,7 +47,7 @@ import {
   getClassesInPackage,
   getPackageById,
   getSubPackagesOfPackage,
-} from 'explorviz-frontend/utils/package-helpers';
+} from 'some-react-lib/src/utils/package-helpers';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
@@ -61,9 +61,9 @@ import * as THREE from 'three';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'explorviz-frontend/utils/application-helpers';
+} from 'some-react-lib/src/utils/application-helpers';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import AlertifyHandler from 'some-react-lib/src/utils/alertify-handler';
 import UserSettings from './user-settings';
 import {
   AppChangeLogEntry,
@@ -74,7 +74,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import LandscapeListener from './landscape-listener';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -306,7 +306,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         operationName: methodName,
         sourceApp: sourceApp!,
         targetApp: targetApp!,
-        addMethodCalls: () => {},
+        addMethodCalls: () => { },
         getClasses: () => [this.sourceClass!, this.targetClass!],
       };
 

@@ -4,12 +4,12 @@ import { tracked } from '@glimmer/tracking';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Application,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import {
   calculateDuration,

@@ -7,9 +7,9 @@ import {
   Application,
   Class,
   Package,
-} from '../landscape-schemes/structure-data';
-import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from '../settings/settings-schemas';
 
 export function calculateLineThickness(
@@ -258,15 +258,15 @@ export default function applyCommunicationLayout(
 
     const centerCommuIcon = new THREE.Vector3(
       foundationLayout.positionX +
-        foundationLayout.width * 2.0 +
-        externalPortsExtension.x * 4.0,
+      foundationLayout.width * 2.0 +
+      externalPortsExtension.x * 4.0,
       foundationLayout.positionY -
-        foundationLayout.height +
-        externalPortsExtension.y,
+      foundationLayout.height +
+      externalPortsExtension.y,
       foundationLayout.positionZ +
-        foundationLayout.depth * 2.0 -
-        externalPortsExtension.z -
-        12.0
+      foundationLayout.depth * 2.0 -
+      externalPortsExtension.z -
+      12.0
     );
 
     layoutInAndOutCommunication(commu, commu.sourceClass, centerCommuIcon);

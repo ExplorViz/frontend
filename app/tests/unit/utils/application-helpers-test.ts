@@ -1,13 +1,13 @@
 import {
   getAllMethodHashCodesInApplication,
   applicationHasClass,
-} from 'explorviz-frontend/utils/application-helpers';
+} from 'some-react-lib/src/utils/application-helpers';
 import {
   Application,
   Class,
   Node,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | application-helpers', function () {
