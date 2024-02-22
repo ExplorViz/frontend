@@ -267,6 +267,7 @@ export default class PopupHandler {
       mesh,
       wasMoved: true,
       pinned: true,
+      replace: true,
       sharedBy: userId,
       menuId: objectId,
     });

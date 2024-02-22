@@ -170,13 +170,17 @@ export default class RoomSerializer extends Service {
   }
 
   private serializeOpenPopups(popupData: PopupData[]): SerializedPopup[] {
-    return popupData.map((popup) => {
-      return {
-        userId: popup.sharedBy,
-        entityId: popup.mesh.dataModel.id,
-        menuId: popup.menuId,
-      };
-    });
+    return popupData
+      .filter((popup) => {
+        return popup.isPinned && popup.sharedBy;
+      })
+      .map((popup) => {
+        return {
+          userId: popup.sharedBy,
+          entityId: popup.mesh.dataModel.id,
+          menuId: popup.menuId,
+        };
+      });
   }
 
   private serializeDetachedMenus(): SerializedDetachedMenu[] {
