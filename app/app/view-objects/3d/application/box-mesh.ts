@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import BaseMesh from '../base-mesh';
 
 export default abstract class BoxMesh<

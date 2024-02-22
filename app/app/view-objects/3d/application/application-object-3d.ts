@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import { tracked } from '@glimmer/tracking';
 import { earthTexture } from 'explorviz-frontend/controllers/visualization';
 import FoundationMesh from './foundation-mesh';

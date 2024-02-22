@@ -5,7 +5,7 @@ import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph'
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
+import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/communication-layout';
 import { Vector3 } from 'three';
 import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';

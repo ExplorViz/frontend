@@ -23,7 +23,7 @@ import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscap
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';

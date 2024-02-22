@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CommunicationLayout from '../../layout-models/communication-layout';
+import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
