@@ -521,7 +521,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
     }
-    this.popupHandler.hover(intersection?.object);
+    this.popupHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
@@ -581,7 +581,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseOut(event: PointerEvent) {
-    this.popupHandler.hover();
+    this.popupHandler.handleHoverOnMesh();
     if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
       this.popupHandler.removeUnmovedPopups();
     }

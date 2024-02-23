@@ -638,7 +638,7 @@ export default class ArRendering extends Component<Args> {
 
   tick(delta: number, frame: XRFrame) {
     const intersection = this.raycastCenter();
-    this.popupHandler.hover(intersection?.object);
+    this.popupHandler.handleHoverOnMesh(intersection?.object);
     if (intersection) {
       const mesh = intersection.object;
       if (isEntityMesh(mesh)) {
