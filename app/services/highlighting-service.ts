@@ -128,6 +128,27 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
+  unhighlight(mesh: EntityMesh, options?: { sendMessage?: boolean }) {
+    mesh.unhighlight();
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.removeHighlightingForAllApplications(false);
+    }
+
+    this.updateHighlighting();
+
+    if (options?.sendMessage) {
+      this.sender.sendHighlightingUpdate(
+        '',
+        this.getEntityType(mesh),
+        mesh.getModelId(),
+        mesh.highlighted,
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      );
+    }
+  }
+
   updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) {
     const hasStateChanged =
       this.hoveredOnHighlightedMesh !== hoveredOnHighlightedMesh;
