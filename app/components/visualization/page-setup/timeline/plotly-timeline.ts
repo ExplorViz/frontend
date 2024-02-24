@@ -151,6 +151,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyTimeline = this;
 
+
+
       // singe click
       plotlyDiv.on('plotly_click', (data: any) => {
         // https://plot.ly/javascript/reference/#scatter-marker
@@ -190,6 +192,10 @@ selectedTimestamps: Timestamp[][] = [[],[]];
         sizes[pn] = highlightedMarkerSize;
 
         const timestampId = data.points[0].data.timestampId[pn];
+
+        console.log("data:", data.points[0].data);
+        console.log("timestamp ID:", timestampId);
+        console.log("MARKER STATE:", self.markerState[selectedTimeline]);
 
 
 
@@ -531,7 +537,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     const x: (string | null)[] = [];
     const y: (number | null)[] = [];
 
-    const timestampIds: number[] = [];
+    const timestampIds: [number[],number[]] = [[],[]];
 
     const shapes = [];
 
@@ -543,6 +549,8 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     while (i < timestamps.length) {
       const timestamp = timestamps[i];
       const timestampId = timestamp.epochMilli;
+
+      timestampIds[selectedTimeline].push(timestampId);
 
       if (nextExpectedTimestamp === 0) {
         // first timestamp in series
@@ -622,14 +630,14 @@ selectedTimestamps: Timestamp[][] = [[],[]];
 
     if(selectedTimeline === 1){
       return {
-        ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds),
+        ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds[1]),
         xaxis: 'x2',
         ...{ shapes: shapes },
       };
     }
 
     return {
-      ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds),
+      ...this.getPlotlyDataObject(x, y, colors, this.timelineColors![selectedTimeline]!, sizes, timestampIds[0]),
       ...{ shapes: shapes },
     };
   }
@@ -642,6 +650,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     sizes: number[],
     timestampIds: number[],
   ) {
+    console.log("timestampIds: ====>", timestampIds);
     return {
       // IMPORTANT BUG WORKAROUND https://community.plotly.com/t/scatter-line-plot-fill-option-fills-gaps/21264
       //fill: 'tozeroy',

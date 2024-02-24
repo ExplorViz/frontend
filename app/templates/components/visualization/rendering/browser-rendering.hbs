@@ -73,10 +73,10 @@
       {{/if}}
 
       {{! popup(s) }}
-      {{#each this.popupHandler.popupData as |d|}}
+      {{#each this.popupHandler.popupData as |data|}}
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
-          @popupData={{d}}
+          @popupData={{data}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
           @updateMeshReference={{this.popupHandler.updateMeshReference}}
@@ -85,6 +85,8 @@
           @showApplication={{this.showApplication}}
           @highlightById={{this.highlightingService.highlightById}}
           @openParents={{this.applicationRenderer.openParents}}
+          @selectedCommits={{@selectedCommits}}
+          @selectedApplication={{@selectedApplication}}
         />
       {{/each}}
 
@@ -116,19 +118,19 @@
                   />
                 {{/if}}
                 {{#if (eq componentId 'Trace-Replayer')}}
-                {{#if this.selectedApplicationObject3D}}
-                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                    @highlightTrace={{this.highlightTrace}}
-                    @moveCameraTo={{this.moveCameraTo}}
-                    @removeHighlighting={{this.removeAllHighlighting}}
-                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                    @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.data.application}}
-                  />
-                {{else}}
-                  Please select an application to use the trace overview.
+                  {{#if this.selectedApplicationObject3D}}
+                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                      @highlightTrace={{this.highlightTrace}}
+                      @moveCameraTo={{this.moveCameraTo}}
+                      @removeHighlighting={{this.removeAllHighlighting}}
+                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                      @structureData={{@landscapeData.structureLandscapeData}}
+                      @application={{this.selectedApplicationObject3D.data.application}}
+                    />
+                  {{else}}
+                    Please select an application to use the trace overview.
+                  {{/if}}
                 {{/if}}
-              {{/if}}
               </div>
             </div>
           {{/each}}
@@ -155,7 +157,7 @@
               />
               <Visualization::PageSetup::Navbar::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-              />              
+              />
             </ul>
           </div>
           {{#each @components as |componentId|}}
@@ -177,7 +179,7 @@
                   @resetLandscapeListenerPolling={{@resetLandscapeListenerPolling}}
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
-              {{/if}}              
+              {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Settings
                   @updateHighlighting={{this.highlightingService.updateHighlighting}}

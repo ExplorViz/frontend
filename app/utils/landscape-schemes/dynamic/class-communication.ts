@@ -22,6 +22,23 @@ export default class ClassCommunication {
   }
 ];
 
+// get firstSelectedCommitMethodCalls() {
+//   return this.methodCalls[0];
+// }
+
+// get secondSelectedCommitMethodCalls() {
+//   return this.methodCalls[1];
+// }
+
+// get firstSelectedCommitTotalRequests() {
+//   return this.totalRequests[0];
+// }
+
+
+// get secondSelectedCommitTotalRequests() {
+//   return this.totalRequests[1];
+// }
+
   constructor(
     id: string,
     sourceApp: Application,
@@ -57,4 +74,5 @@ export default class ClassCommunication {
   getClasses() {
     return [this.sourceClass, this.targetClass];
   }
+
 }

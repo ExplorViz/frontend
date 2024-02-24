@@ -6,19 +6,23 @@ import MethodCall from './method-call';
 export default class ComponentCommunication {
   id: string = '';
   classCommunications: ClassCommunication[] = [];
-  methodCalls: MethodCall[] = [];
+  methodCalls: [MethodCall[], MethodCall[]] = [[], []]; // method calls for first and second selected commit
   isRecursive = false;
   isBidirectional: boolean = false;
-  totalRequests: number = 0;
+  totalRequests: [number, number] = [0,0];
   sourceApp: Application;
   targetApp: Application;
   sourceEntity: Class | Package;
   targetEntity: Class | Package;
 
-  metrics = {
-    // Normalized request count might be above 1 when combining multiple class communications
-    normalizedRequestCount: 1,
-  };
+  metrics = [{
+    normalizedRequestCount: 1, // // Normalized request count might be above 1 when combining multiple class communications
+  },
+  {
+    normalizedRequestCount: 1, // // Normalized request count might be above 1 when combining multiple class communications
+  }
+];
+
 
   constructor(
     id: string,
@@ -42,17 +46,14 @@ export default class ComponentCommunication {
     this.classCommunications.push(communication);
     
     if(communication.methodCalls[0].length > 0){
-      this.totalRequests += communication.totalRequests[0];
-      this.metrics.normalizedRequestCount +=
+      this.totalRequests[0] += communication.totalRequests[0];
+      this.totalRequests[1] += communication.totalRequests[1];
+      this.metrics[0].normalizedRequestCount +=
       communication.metrics[0].normalizedRequestCount;
-      this.methodCalls.push(...communication.methodCalls[0]);
-    }
-
-    if(communication.methodCalls[1].length > 0){
-      this.totalRequests += communication.totalRequests[1];
-      this.metrics.normalizedRequestCount +=
+      this.metrics[1].normalizedRequestCount +=
       communication.metrics[1].normalizedRequestCount;
-      this.methodCalls.push(...communication.methodCalls[1]);
+      this.methodCalls[0].push(...communication.methodCalls[0]);
+      this.methodCalls[1].push(...communication.methodCalls[1]);
     }
 
     if (communication.isBidirectional || isReversedDirection) {
