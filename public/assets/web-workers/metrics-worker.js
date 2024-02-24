@@ -11,12 +11,12 @@ self.addEventListener(
     let staticMetricsConverted = [];
 
     if(commitId && staticMetrics) {
-      metrics = calculateMetrics(structureData, dynamicData[0]);
+      metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
       if(dynamicData[1]){
-        metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1])];
-      }else {
-        metrics = calculateMetrics(structureData, dynamicData[0]);
-      }
+        metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
+      }//else {
+      //   metrics = calculateMetrics(structureData, dynamicData[0]);
+      // }
       staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics[0], commitId[0], "(#1 sel. commit)");
       staticMetricsConverted = [...staticMetricsConverted, ...convertStaticMetrics(structureData, staticMetrics[1], commitId[1], "(#2 sel. commit)")];
     }else {
@@ -24,7 +24,7 @@ self.addEventListener(
     }
 
     const ret = [...metrics, ...staticMetricsConverted];
-    postMessage([...metrics, ...staticMetricsConverted]);
+    postMessage(ret);
   },
   false
 );
@@ -130,8 +130,8 @@ function convertStaticMetrics(application, staticMetrics, commitId, text) {
 
 /******* Define Metrics *******/
 
-function calculateMetrics(application, allLandscapeTraces) {
-  function calcInstanceCountMetric(application, allLandscapeTraces) {
+function calculateMetrics(application, allLandscapeTraces, text) {
+  function calcInstanceCountMetric(application, allLandscapeTraces, text) {
     // Initialize metric properties
     let min = 0;
     let max = 0;
@@ -174,6 +174,17 @@ function calculateMetrics(application, allLandscapeTraces) {
         values.set(classMatchingTraceHashCode.id, newInstanceCount);
         max = Math.max(max, newInstanceCount);
       }
+    }
+
+    if(text) {
+      return {
+        name: 'Instance Count' + ' ' + text,
+        mode: 'aggregatedHeatmap',
+        description: 'Number of newly created instances (objects)',
+        min,
+        max,
+        values,
+      };
     }
 
     return {
@@ -233,6 +244,16 @@ function calculateMetrics(application, allLandscapeTraces) {
       max = Math.max(max, newRequestCount);
     }
 
+    if(text){
+      return {
+        name: 'Incoming Requests' + ' ' + text,
+        mode: 'aggregatedHeatmap',
+        description: 'Number of incoming requests of a class',
+        min,
+        max,
+        values,
+      };
+    }
     return {
       name: 'Incoming Requests',
       mode: 'aggregatedHeatmap',
@@ -287,6 +308,17 @@ function calculateMetrics(application, allLandscapeTraces) {
       );
     }
 
+    if(text) {
+      return {
+        name: 'Outgoing Requests' + ' ' + text,
+        mode: 'aggregatedHeatmap',
+        description: 'Number of outgoing requests of a class',
+        min,
+        max,
+        values,
+      };
+    }
+
     return {
       name: 'Outgoing Requests',
       mode: 'aggregatedHeatmap',
@@ -318,6 +350,17 @@ function calculateMetrics(application, allLandscapeTraces) {
 
     if (min > max) {
       min = max = 0;
+    }
+
+    if(text){
+      return {
+        name: 'Overall Requests' + ' ' + text,
+        mode: 'aggregatedHeatmap',
+        description: 'Number of in- and outgoing requests of a class',
+        min,
+        max,
+        values,
+      };
     }
 
     return {
@@ -368,25 +411,29 @@ function calculateMetrics(application, allLandscapeTraces) {
 
   const instanceCountMetric = calcInstanceCountMetric(
     application,
-    allLandscapeTraces
+    allLandscapeTraces,
+    text
   );
   metrics.push(instanceCountMetric);
 
   const incomingRequestCountMetric = calculateIncomingRequestCountMetric(
     application,
-    allLandscapeTraces
+    allLandscapeTraces,
+    text
   );
   metrics.push(incomingRequestCountMetric);
 
   const outgoingRequestCountMetric = calculateOutgoingRequestCountMetric(
     application,
-    allLandscapeTraces
+    allLandscapeTraces,
+    text
   );
   metrics.push(outgoingRequestCountMetric);
 
   const overallRequestCountMetric = calculateOverallRequestCountMetric(
     incomingRequestCountMetric,
-    outgoingRequestCountMetric
+    outgoingRequestCountMetric,
+    text
   );
   metrics.push(overallRequestCountMetric);
 

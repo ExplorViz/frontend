@@ -210,21 +210,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.linkRenderer.flag = false;
     }
 
-    // If two commits got selected the same metric alternates between the two commits every few seconds
-    // if(this.selectedCommits?.length === 2 && this.heatmapConf.heatmapActive && this.heatmapConf.currentApplication){
-    //   if(this.tickCounter === 180 && this.firstTime) {
-    //     console.log("TICK");
-    //     this.indexCounter = (this.indexCounter + 1) % 2;
-    //     const commitId = this.selectedCommits[this.indexCounter].commitId;
-    //     //this.heatmapConf.toggleHeatmap(); // deactivate without deselecting the selected application
-    //     const currentApplicationForHeatMap = this.applicationRenderer.getApplicationById(this.heatmapConf.currentApplication.data.application.id);
-    //     this.heatmapConf.deactivate();
-    //     console.log("after deactivate: ", currentApplicationForHeatMap);
-    //     this.heatmapConf.setCommitIdAndApplication(commitId, currentApplicationForHeatMap!);
-    //     this.heatmapConf.activate();
-    //   }
-    //   this.tickCounter = (this.tickCounter + 1) % 181;
-    // }
   }
 
   get rightClickMenuItems() {

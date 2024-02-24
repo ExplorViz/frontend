@@ -1,11 +1,11 @@
 import { helper } from '@ember/component/helper';
 
-export function divideAndRound([value, divider, decimals]: [
+export function divideAndRound([max, min, decimals]: [
   number,
   number,
   number,
 ]) {
-  const result = value / divider;
+  const result = min + ((max-min) / 2);
   return result.toFixed(decimals);
 }
 

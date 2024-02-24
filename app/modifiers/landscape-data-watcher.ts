@@ -331,6 +331,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         workerPayload
       );
 
+
       const results = (await all([
         cityLayout,
         heatmapMetrics,
@@ -344,7 +345,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         applicationData = new ApplicationData(
           application,
           results[0],
-          results[results.length - 1] // since heatmapMetrics can be list of size 2 or 1 we must not hard code the index
+          results[results.length - 1]
         );
       }
 

@@ -10,7 +10,6 @@ import revertKey from '../utils/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
 
 export type Metric = {
-  commitId?: string;
   name: string;
   description: string;
   min: number;
@@ -52,6 +51,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   // TODO this is never assigned another value, but used in calculation. What is it supposed to do?
   largestValue = 0;
+  smallestValue = 0;
 
   windowSize: number = 9;
 
@@ -74,8 +74,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   simpleHeatGradient = getSimpleDefaultGradient();
 
-  commitId?: string;
-
   debug = debugLogger();
 
   @action
@@ -86,24 +84,17 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @action
   toggleHeatmap() {
     this.heatmapActive = !this.heatmapActive;
-    this.commitId = undefined;
   }
 
   @action
   deactivate() {
     this.heatmapActive = false;
     this.currentApplication = null;
-    this.commitId = undefined;
   }
 
   @action
   activate() {
     this.heatmapActive = true;
-  }
-
-  setCommitIdAndApplication(commitId: string, currentApplication: ApplicationObject3D) {
-    this.commitId = commitId;
-    this.setActiveApplication(currentApplication);
   }
 
   get latestClazzMetricScores() {
@@ -148,26 +139,13 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       return undefined;
     }
 
-    switch (this.selectedMode) { 
+    switch (this.selectedMode) {
       case 'snapshotHeatmap':
         if (applicationHeatmapData.latestClazzMetricScores) {
-          
           chosenMetric = applicationHeatmapData.latestClazzMetricScores.find(
-            (metric) => {
-              if(!this.commitId) {
-                return metric.name === this.selectedMetricName;
-              } else {
-                if(metric.commitId) { console.log("TWO COMMITS 1", this.commitId);
-                  return metric.name === this.selectedMetricName && metric.commitId === this.commitId
-                }else {
-                  console.log("TWO COMMITS 2", this.commitId);
-                  return metric.name === this.selectedMetricName;
-                }
-              }
-            }
+            (metric) => metric.name === this.selectedMetricName
           );
           if (chosenMetric) {
-            console.log("return chosenMetric:", chosenMetric);
             return chosenMetric;
           }
         }
@@ -202,6 +180,10 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   updateMetric(metric: Metric) {
     const metricName = metric.name;
     this.selectedMetricName = metricName;
+    this.largestValue = metric.max;
+    this.smallestValue = metric.min;
+
+    console.log("METRIK:", metric);
   }
 
   switchMode() {
