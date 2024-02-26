@@ -20,6 +20,8 @@ import {
 import LinkRenderer from './link-renderer';
 import MessageSender from 'collaboration/services/message-sender';
 
+type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
+
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
@@ -114,41 +116,27 @@ export default class HighlightingService extends Service.extend({
 
   // BEGIN public functions
 
-  toggleHighlight(
-    mesh: EntityMesh,
-    options?: { sendMessage?: boolean; remoteColor?: THREE.Color }
-  ) {
+  toggleHighlight(mesh: EntityMesh, options?: HighlightOptions) {
     if (mesh.highlighted) {
       this.unhighlight(mesh, options);
     } else {
-      this.highlight(mesh, options?.sendMessage, options?.remoteColor);
+      this.highlight(mesh, options);
     }
   }
 
-  highlight(
-    mesh: EntityMesh,
-    sendMessage?: boolean,
-    remoteColor?: THREE.Color
-  ) {
-    const color = remoteColor || this.highlightingColor;
+  highlight(mesh: EntityMesh, options?: HighlightOptions) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       // Includes app-internal communication
-      this.handleHighlightForComponent(parent, mesh, true, {
-        sendMessage,
-        color,
-      });
+      this.handleHighlightForComponent(parent, mesh, true, options);
     } else if (mesh instanceof ClazzCommunicationMesh) {
       // Communication between applications
-      this.handleHighlightForLink(mesh, true, {
-        sendMessage,
-        color,
-      });
+      this.handleHighlightForLink(mesh, true, options);
     }
     this.updateHighlighting();
   }
 
-  unhighlight(mesh: EntityMesh, options?: { sendMessage?: boolean }) {
+  unhighlight(mesh: EntityMesh, options?: HighlightOptions) {
     const { parent } = mesh;
     if (parent instanceof ApplicationObject3D) {
       this.handleHighlightForComponent(parent, mesh, false, options); // Includes app-internal communication
@@ -249,10 +237,10 @@ export default class HighlightingService extends Service.extend({
   private handleHighlightForLink(
     mesh: ClazzCommunicationMesh,
     highlighted: boolean,
-    options?: { sendMessage?: boolean; color?: THREE.Color }
+    options?: HighlightOptions
   ) {
     mesh.highlightingColor =
-      options?.color ||
+      options?.remoteColor ||
       this.userSettings.applicationColors.highlightedEntityColor;
     if (highlighted) {
       mesh.highlight();
@@ -282,14 +270,14 @@ export default class HighlightingService extends Service.extend({
     application: ApplicationObject3D,
     object: THREE.Object3D,
     highlighted: boolean,
-    options?: { sendMessage?: boolean; color?: THREE.Color }
+    options?: HighlightOptions
   ) {
     if (Highlighting.isHighlightableMesh(object)) {
       this.setHightlightStatusForMesh(
         application,
         object,
         highlighted,
-        options?.color
+        options?.remoteColor
       );
 
       if (options?.sendMessage) {
