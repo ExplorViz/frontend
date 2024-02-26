@@ -70,9 +70,10 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     this.selected = [...emberPowerSelectObject];
     const addedEntity = emberPowerSelectObject.slice(-1)[0];
 
-    this.searchLogic.highlightEntityMeshByModelId(
+    this.highlightingService.highlightById(
       addedEntity.modelId,
-      addedEntity.applicationModelId
+      undefined,
+      true
     );
   }
 

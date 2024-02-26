@@ -19,6 +19,10 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
+import {
+  getAllAncestorComponents,
+  openComponentsByList,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
@@ -80,6 +84,13 @@ export default class HighlightingService extends Service.extend({
         communicationMeshes,
         this.opacity
       );
+    }
+  }
+
+  highlightById(modelId: string, color?: THREE.Color, sendMessage = false) {
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.highlight(mesh, { sendMessage, remoteColor: color });
     }
   }
 
@@ -289,6 +300,20 @@ export default class HighlightingService extends Service.extend({
   ) {
     if (!Highlighting.isHighlightableMesh(object)) {
       return;
+    }
+
+    // Open parent components when nested entity is highlighted
+    if (
+      highlighted &&
+      (object instanceof ComponentMesh || object instanceof ClazzMesh)
+    ) {
+      openComponentsByList(
+        getAllAncestorComponents(object.dataModel),
+        application
+      );
+      this.applicationRenderer.updateApplicationObject3DAfterUpdate(
+        application
+      );
     }
 
     this.setHightlightStatusForMesh(

@@ -2,11 +2,6 @@ import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import {
-  getAllAncestorComponents,
-  openComponentsByList,
-} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 /**
@@ -62,25 +57,5 @@ export default class ApplicationSearchLogic {
     }
 
     return returnValue;
-  }
-
-  highlightEntityMeshByModelId(modelId: string, applicationModelId: string) {
-    const clazzMesh = this.applicationRenderer.getBoxMeshByModelId(
-      modelId
-    ) as ClazzMesh;
-
-    const applicationObject3D =
-      this.applicationRenderer.getApplicationById(applicationModelId);
-
-    if (applicationObject3D) {
-      openComponentsByList(
-        getAllAncestorComponents(clazzMesh.dataModel),
-        applicationObject3D
-      );
-
-      this.highlightingService.highlight(clazzMesh, {
-        sendMessage: true,
-      });
-    }
   }
 }
