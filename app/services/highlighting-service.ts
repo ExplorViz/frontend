@@ -259,11 +259,6 @@ export default class HighlightingService extends Service.extend({
       mesh.highlight();
     } else {
       mesh.unhighlight();
-      if (
-        !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-      ) {
-        this.removeHighlightingForAllApplications(false);
-      }
     }
 
     this.updateHighlighting();
@@ -285,26 +280,28 @@ export default class HighlightingService extends Service.extend({
     highlighted: boolean,
     options?: HighlightOptions
   ) {
-    if (Highlighting.isHighlightableMesh(object)) {
-      this.setHightlightStatusForMesh(
-        application,
-        object,
-        highlighted,
-        options?.remoteColor
-      );
+    if (!Highlighting.isHighlightableMesh(object)) {
+      return;
+    }
 
-      if (options?.sendMessage) {
-        const appId = application.getModelId();
-        const entityType = this.getEntityType(object);
-        const entityId = object.getModelId();
-        this.sender.sendHighlightingUpdate(
-          appId,
-          entityType,
-          entityId,
-          object.highlighted,
-          this.userSettings.applicationSettings.enableMultipleHighlighting.value
-        );
-      }
+    this.setHightlightStatusForMesh(
+      application,
+      object,
+      highlighted,
+      options?.remoteColor
+    );
+
+    if (options?.sendMessage) {
+      const appId = application.getModelId();
+      const entityType = this.getEntityType(object);
+      const entityId = object.getModelId();
+      this.sender.sendHighlightingUpdate(
+        appId,
+        entityType,
+        entityId,
+        object.highlighted,
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      );
     }
   }
 
@@ -327,8 +324,7 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor = color || this.highlightingColor;
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      !highlighted
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }

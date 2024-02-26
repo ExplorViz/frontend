@@ -48,16 +48,19 @@ export function setHightlightStatusForMesh(
     return;
   }
 
-  if (!highlighted && applicationObject3D.highlightedEntity instanceof Set) {
-    applicationObject3D.highlightedEntity.delete(modelId);
+  if (
+    !applicationObject3D.highlightedEntity ||
+    isTrace(applicationObject3D.highlightedEntity)
+  ) {
+    applicationObject3D.highlightedEntity = new Set<string>();
+  }
 
-    mesh.unhighlight();
-  } else {
-    if (!(applicationObject3D.highlightedEntity instanceof Set)) {
-      applicationObject3D.highlightedEntity = new Set<string>();
-    }
+  if (highlighted) {
     mesh.highlight();
     applicationObject3D.highlightedEntity.add(modelId);
+  } else {
+    mesh.unhighlight();
+    applicationObject3D.highlightedEntity.delete(modelId);
   }
 }
 
