@@ -614,7 +614,7 @@ export default class VisualizationController extends Controller {
                 startTime: 1522023023151,
                 endTime: 1522023023153,
                 //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-                methodHash: "testBEinsdefaulthashcode"
+                methodHash: "testEinsdefaulthashcode"
             },
             {
                 landscapeToken: "token3",
@@ -624,7 +624,8 @@ export default class VisualizationController extends Controller {
                 startTime: 1522023023123,
                 endTime: 1522023023164,
                 //methodHash: "testBEinsdefaulthashcode"
-                methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+                //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+                methodHash: "testCEinsdefaulthashcode"
             }
         ]
     };

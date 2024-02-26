@@ -319,8 +319,16 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
       // commit comparison visualization
-      if(selectedApplication && applicationObject3D.data.application.name === selectedApplication && selectedCommits?.get(selectedApplication)?.length == 2){
-        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D, selectedCommits);
+      const commitComparison = this.getCommitComparison(applicationObject3D);
+
+      // change texture if needed
+      // applicationObject3D.getCommMeshes().forEach((commMesh) => {
+      //   if (applicationState.transparentComponents?.has(commMesh.getModelId()))
+      //     commMesh.turnTransparent(this.highlightingService.opacity);
+      // });
+
+      if(commitComparison){
+        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D);
       }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
         // remove existing comparison visualizations
         this.removeCommitComparisonVisualization(applicationObject3D);
@@ -358,8 +366,12 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
         console.log(applicationObject3D.data.classCommunications);
         applicationObject3D.classCommunicationSet.forEach(classCommu => {
           const clazzes = classCommu.getClasses();
+          console.log("CLAZZES:", clazzes);
           clazzes.filter(clazz => clazz.id === id);
-          console.log(clazzes);
+          console.log("CLAZZES:", clazzes);
+          if(clazzes.length > 0) {
+            this.highlightingService.markAsAddedById(classCommu.id);
+          }
         });
 
         if(addedPackages !== "") {
@@ -416,13 +428,12 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       if(id){
         this.highlightingService.markAsModifiedById(id);
-        // TODO: mark communication line as modified if it contains a modified method 
       }
     }
   }
 
 
-  visualizeAddedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
+  visualizeDeletedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
     pipe: ClazzCommunicationMesh, clazz: Class) {
     for(const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
@@ -432,8 +443,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       }
     }
   }
-
-  visualizeDeletedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
+  
+  visualizeAddedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
     pipe: ClazzCommunicationMesh, clazz: Class) {
     for(const fqFileName of commitComparison.added) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
@@ -502,6 +513,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   }
 
+  // handle extern communication links
   visualizeCommitComparisonCommunicationLinks(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
     const selectedCommits = this.selectedCommits;
     const selectedApplication = this.selectedApplication;
@@ -510,7 +522,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
     const sourceApp = classCommunication.sourceApp;
     const targetApp = classCommunication.targetApp;
-
     
 
     const commits = selectedCommits.get(selectedApplication)!;
@@ -550,11 +561,21 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   }
 
-  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D, selectedCommits: Map<string, SelectedCommit[]>){
-    const commits = selectedCommits.get(applicationObject3D.data.application.name)!;
-    const ids = [commits[0].commitId, commits[1].commitId];
-    const id = ids.join("_");
-    const commitComparison = this.commitComparisonRepo.getById(id);
+  getCommitComparison(applicationObject3D: ApplicationObject3D) {
+
+    if(this.selectedApplication && applicationObject3D.data.application.name === this.selectedApplication && 
+        this.selectedCommits?.get(this.selectedApplication)?.length == 2) {
+      const commits = this.selectedCommits!.get(applicationObject3D.data.application.name)!;
+      const ids = [commits[0].commitId, commits[1].commitId];
+      const id = ids.join("_");
+      const commitComparison = this.commitComparisonRepo.getById(id);
+      return commitComparison;
+    }
+    return undefined;
+  }
+
+  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D){
+    const commitComparison = this.getCommitComparison(applicationObject3D);
     if(!commitComparison) return;
     this.visualizeAddedPackagesAndClasses(commitComparison, applicationObject3D);
     this.visualizeDeletedPackagesAndClasses(commitComparison, applicationObject3D);
@@ -811,9 +832,21 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
+    const commitComparison = this.getCommitComparison(applicationObject3D);
+    if(commitComparison) {
+      // may change some inner communication links' texture
+      this.appCommRendering.addCommunication(
+        applicationObject3D,
+        this.userSettings.applicationSettings,
+        commitComparison,
+        this
+      );
+      return;
+    }
+    
     this.appCommRendering.addCommunication(
       applicationObject3D,
-      this.userSettings.applicationSettings
+      this.userSettings.applicationSettings,
     );
   }
 

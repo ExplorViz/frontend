@@ -13,7 +13,12 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
-import { ApplicationSettings } from '../settings/settings-schemas';
+import { ApplicationSettings } from '../settings/settings-schemas';;
+import { CommitComparison } from 'explorviz-frontend/services/repos/commit-comparison-repository';
+import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -87,7 +92,9 @@ export default class CommunicationRendering {
    */
   addCommunication(
     applicationObject3D: ApplicationObject3D,
-    settings: ApplicationSettings
+    settings: ApplicationSettings,
+    commitComparison?: CommitComparison,
+    applicationRenderer?: ApplicationRenderer
   ) {
     if (!this.configuration.isCommRendered) return;
 
@@ -224,6 +231,10 @@ export default class CommunicationRendering {
 
         const curveHeight = this.computeCurveHeight(commLayout);
 
+        if(commitComparison && applicationRenderer){
+          this.commitComparisonTexture(applicationObject3D, pipe, commitComparison, applicationRenderer); // may change the texture 
+        }
+
         pipe.render(viewCenterPoint, curveHeight);
 
         applicationObject3D.add(pipe);
@@ -239,4 +250,53 @@ export default class CommunicationRendering {
     // Apply highlighting properties to newly added communication
     applicationObject3D.updateCommunicationMeshHighlighting();
   }
+
+  commitComparisonTexture(applicationObject3D: ApplicationObject3D, pipe: ClazzCommunicationMesh, commitComparison: CommitComparison, applicationRenderer: ApplicationRenderer) {
+
+    // Note that the order is important for this one and only scenario: communication line between a new added class and a modified class.
+    // In this scenario, we want to mark the communication line as added and not as modified! Therefore, we handle the added case after the modified
+    // case to overwrite the texture
+
+    const classCommunication = pipe.dataModel.communication as ClassCommunication;
+    const sourceClass = classCommunication.sourceClass;
+    const targetClass = classCommunication.targetClass;
+
+
+    // modified classes
+    for(const fqFileName of commitComparison.modified) {
+      const id = applicationRenderer.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && (sourceClass.id === id || targetClass.id === id)) {
+        const start = pipe.layout.startPoint;
+        const end = pipe.layout.endPoint;
+        const dist = start.distanceTo(end);
+        pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
+        return;
+      }
+    }
+
+    // deleted classes
+    for(const fqFileName of commitComparison.deleted) {
+      const id = applicationRenderer.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && (sourceClass.id === id || targetClass.id === id)) {
+        const start = pipe.layout.startPoint;
+        const end = pipe.layout.endPoint;
+        const dist = start.distanceTo(end);
+        pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
+        return;
+      }
+    }
+
+    // added classes
+    for(const fqFileName of commitComparison.added) {
+      const id = applicationRenderer.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      if(id && (sourceClass.id === id || targetClass.id === id)) {
+        const start = pipe.layout.startPoint;
+        const end = pipe.layout.endPoint;
+        const dist = start.distanceTo(end);
+        pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
+        return;
+      }
+    }
+  }
+
 }

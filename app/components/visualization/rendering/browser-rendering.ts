@@ -46,6 +46,7 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -436,6 +437,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
+      console.log((mesh as ClazzMesh).dataModel.methods);
       if (mesh.parent instanceof ApplicationObject3D) {
         this.applicationRenderer.highlight(mesh, mesh.parent);
       } else {
