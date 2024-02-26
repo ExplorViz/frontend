@@ -62,11 +62,10 @@ export default class OpenEntityButton
     if (application) {
       this.applicationRenderer.openAllComponents(application);
       if (mesh) {
-        this.highlightingService.highlight(
-          mesh as EntityMesh,
-          true,
-          this.localUser.color
-        );
+        this.highlightingService.toggleHighlight(mesh as EntityMesh, {
+          sendMessage: true,
+          remoteColor: this.localUser.color,
+        });
       }
     }
   }
