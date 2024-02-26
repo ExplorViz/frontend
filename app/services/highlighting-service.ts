@@ -245,9 +245,16 @@ export default class HighlightingService extends Service.extend({
     highlighted: boolean,
     options?: HighlightOptions
   ) {
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.removeHighlightingForAllApplications(false);
+    }
+
     mesh.highlightingColor =
       options?.remoteColor ||
       this.userSettings.applicationColors.highlightedEntityColor;
+
     if (highlighted) {
       mesh.highlight();
     } else {
