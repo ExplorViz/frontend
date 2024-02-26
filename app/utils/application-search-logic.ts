@@ -78,7 +78,7 @@ export default class ApplicationSearchLogic {
         applicationObject3D
       );
 
-      this.highlightingService.toggleHighlight(clazzMesh, {
+      this.highlightingService.highlight(clazzMesh, {
         sendMessage: true,
       });
     }

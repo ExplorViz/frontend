@@ -162,6 +162,13 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
+  unhighlightById(modelId: string, color?: THREE.Color, sendMessage = true) {
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.unhighlight(mesh, { sendMessage, remoteColor: color });
+    }
+  }
+
   updateHighlightingOnHover(hoveredOnHighlightedMesh: boolean) {
     const hasStateChanged =
       this.hoveredOnHighlightedMesh !== hoveredOnHighlightedMesh;

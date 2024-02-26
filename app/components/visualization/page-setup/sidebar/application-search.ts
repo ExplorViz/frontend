@@ -1,22 +1,27 @@
-import GlimmerComponent from '@glimmer/component';
-import { action } from '@ember/object';
-import { isBlank } from '@ember/utils';
-import $ from 'jquery';
 import { getOwner } from '@ember/application';
+import { action } from '@ember/object';
+import { inject as service } from '@ember/service';
 import { htmlSafe } from '@ember/template';
+import { isBlank } from '@ember/utils';
+import GlimmerComponent from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
+import $ from 'jquery';
 
 interface Args {
   removeToolsSidebarComponent(nameOfComponent: string): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
+  @service('highlighting-service')
+  highlightingService!: HighlightingService;
+
   @tracked
   searchString: string = '';
 
   @tracked
-  selected: string[] = [];
+  selected: any[] = [];
 
   searchLogic!: ApplicationSearchLogic;
 
@@ -52,19 +57,31 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   @action
   onSelect(emberPowerSelectObject: any[]) {
-    if (emberPowerSelectObject.length < 1) {
-      this.selected = [];
+    // Handle case that entry was removed (user selected already selected class again)
+    if (
+      this.selected.length > emberPowerSelectObject.length ||
+      emberPowerSelectObject.length < 1
+    ) {
+      this.removeEntry();
+      this.selected = [...emberPowerSelectObject];
       return;
     }
 
     this.selected = [...emberPowerSelectObject];
-
-    const firstEntity = emberPowerSelectObject[0];
+    const addedEntity = emberPowerSelectObject.slice(-1)[0];
 
     this.searchLogic.highlightEntityMeshByModelId(
-      firstEntity.modelId,
-      firstEntity.applicationModelId
+      addedEntity.modelId,
+      addedEntity.applicationModelId
     );
+  }
+
+  private removeEntry() {
+    if (!this.selected || this.selected.length < 1) {
+      return;
+    }
+    const removedEntry = this.selected.slice(-1)[0];
+    this.highlightingService.unhighlightById(removedEntry.modelId);
   }
 
   @action
