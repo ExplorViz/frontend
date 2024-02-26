@@ -278,7 +278,7 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.highlightById(
+          this.highlightingService.toggleHighlightById(
             highlightedComponent.entityId,
             highlightedComponent.color
           );

@@ -84,7 +84,11 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  highlightById(modelId: string, color?: THREE.Color, sendMessage = false) {
+  toggleHighlightById(
+    modelId: string,
+    color?: THREE.Color,
+    sendMessage = false
+  ) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
       this.toggleHighlight(mesh, { sendMessage, remoteColor: color });
