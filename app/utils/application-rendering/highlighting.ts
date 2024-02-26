@@ -135,9 +135,10 @@ export function turnComponentAndAncestorsOpaque(
  * @param modelId Either component, class or class communication id of model which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
  */
-export function highlight(
+export function setHightlightStatusForMesh(
   modelId: string,
-  applicationObject3D: ApplicationObject3D
+  applicationObject3D: ApplicationObject3D,
+  highlighted: boolean
 ) {
   const mesh = applicationObject3D.getMeshById(modelId) as
     | ComponentMesh
@@ -148,11 +149,9 @@ export function highlight(
     return;
   }
 
-  if (
-    mesh.highlighted &&
-    applicationObject3D.highlightedEntity instanceof Set
-  ) {
+  if (!highlighted && applicationObject3D.highlightedEntity instanceof Set) {
     applicationObject3D.highlightedEntity.delete(modelId);
+
     mesh.unhighlight();
   } else {
     if (!(applicationObject3D.highlightedEntity instanceof Set)) {
@@ -526,7 +525,8 @@ export function removeHighlighting(
   mesh: ComponentMesh | ClazzMesh | ClazzCommunicationMesh | FoundationMesh,
   applicationObject3D: ApplicationObject3D
 ) {
-  if (mesh.highlighted) highlight(mesh.getModelId(), applicationObject3D);
+  if (mesh.highlighted)
+    setHightlightStatusForMesh(mesh.getModelId(), applicationObject3D, false);
 }
 
 export function isHighlightableMesh(

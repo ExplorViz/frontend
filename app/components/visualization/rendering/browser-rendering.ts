@@ -419,12 +419,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.highlightingService.highlight(mesh, true);
-      } else {
-        // extern communication link
-        this.highlightingService.highlight(mesh, true);
-      }
+      this.highlightingService.toggleHighlight(mesh, { sendMessage: true });
     }
   }
 

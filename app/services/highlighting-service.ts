@@ -69,7 +69,6 @@ export default class HighlightingService extends Service.extend({
 
   @action
   updateHighlighting() {
-    console.log('updateHighlighting');
     if (this.applyHighlightingOnHover && !this.hoveredOnHighlightedMesh) {
       this.turnLandscapeOpaque();
     } else {
@@ -115,25 +114,47 @@ export default class HighlightingService extends Service.extend({
 
   // BEGIN public functions
 
-  highlight(mesh: EntityMesh, sendMessage: boolean, remoteColor?: THREE.Color) {
-    console.log('highlight');
-    const color = remoteColor || this.highlightingColor;
-    const { parent } = mesh;
-    if (parent instanceof ApplicationObject3D) {
-      this.highlightComponent(parent, mesh, sendMessage, color); // Includes app-internal communication
-      this.applicationRenderer.updateApplicationObject3DAfterUpdate(parent);
-    } else if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightLink(mesh, sendMessage, color); // Communication between applications
-      this.highlightingService.updateHighlighting();
+  toggleHighlight(
+    mesh: EntityMesh,
+    options?: { sendMessage?: boolean; remoteColor?: THREE.Color }
+  ) {
+    if (mesh.highlighted) {
+      this.unhighlight(mesh, options);
+    } else {
+      this.highlight(mesh, options?.sendMessage, options?.remoteColor);
     }
   }
 
+  highlight(
+    mesh: EntityMesh,
+    sendMessage?: boolean,
+    remoteColor?: THREE.Color
+  ) {
+    const color = remoteColor || this.highlightingColor;
+    const { parent } = mesh;
+    if (parent instanceof ApplicationObject3D) {
+      // Includes app-internal communication
+      this.handleHighlightForComponent(parent, mesh, true, {
+        sendMessage,
+        color,
+      });
+    } else if (mesh instanceof ClazzCommunicationMesh) {
+      // Communication between applications
+      this.handleHighlightForLink(mesh, true, {
+        sendMessage,
+        color,
+      });
+    }
+    this.updateHighlighting();
+  }
+
   unhighlight(mesh: EntityMesh, options?: { sendMessage?: boolean }) {
-    mesh.unhighlight();
-    if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-    ) {
-      this.removeHighlightingForAllApplications(false);
+    const { parent } = mesh;
+    if (parent instanceof ApplicationObject3D) {
+      this.handleHighlightForComponent(parent, mesh, false, options); // Includes app-internal communication
+    } else if (mesh instanceof ClazzCommunicationMesh) {
+      // Communication between applications
+      this.handleHighlightForLink(mesh, false, options);
     }
 
     this.updateHighlighting();
@@ -225,27 +246,28 @@ export default class HighlightingService extends Service.extend({
     };
   }
 
-  private highlightLink(
+  private handleHighlightForLink(
     mesh: ClazzCommunicationMesh,
-    sendMessage: boolean,
-    color?: THREE.Color
+    highlighted: boolean,
+    options?: { sendMessage?: boolean; color?: THREE.Color }
   ) {
     mesh.highlightingColor =
-      color || this.userSettings.applicationColors.highlightedEntityColor;
-    if (mesh.highlighted) {
+      options?.color ||
+      this.userSettings.applicationColors.highlightedEntityColor;
+    if (highlighted) {
+      mesh.highlight();
+    } else {
       mesh.unhighlight();
       if (
         !this.userSettings.applicationSettings.enableMultipleHighlighting.value
       ) {
         this.removeHighlightingForAllApplications(false);
       }
-    } else {
-      mesh.highlight();
     }
 
     this.updateHighlighting();
 
-    if (sendMessage) {
+    if (options?.sendMessage) {
       this.sender.sendHighlightingUpdate(
         '',
         this.getEntityType(mesh),
@@ -256,20 +278,24 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  private highlightComponent(
+  private handleHighlightForComponent(
     application: ApplicationObject3D,
     object: THREE.Object3D,
-    sendMessage: boolean,
-    color?: THREE.Color
+    highlighted: boolean,
+    options?: { sendMessage?: boolean; color?: THREE.Color }
   ) {
     if (Highlighting.isHighlightableMesh(object)) {
-      this.hightlightMesh(application, object, color);
+      this.setHightlightStatusForMesh(
+        application,
+        object,
+        highlighted,
+        options?.color
+      );
 
-      const appId = application.getModelId();
-      const entityType = this.getEntityType(object);
-      const entityId = object.getModelId();
-
-      if (sendMessage) {
+      if (options?.sendMessage) {
+        const appId = application.getModelId();
+        const entityType = this.getEntityType(object);
+        const entityId = object.getModelId();
         this.sender.sendHighlightingUpdate(
           appId,
           entityType,
@@ -291,22 +317,26 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
-  private hightlightMesh(
+  private setHightlightStatusForMesh(
     application: ApplicationObject3D,
     mesh: FoundationMesh | ComponentMesh | ClazzMesh | ClazzCommunicationMesh,
+    highlighted: boolean,
     color?: THREE.Color
   ) {
-    mesh.highlightingColor =
-      color || this.userSettings.applicationColors.highlightedEntityColor;
+    mesh.highlightingColor = color || this.highlightingColor;
 
     if (
       !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      !mesh.highlighted
+      !highlighted
     ) {
       this.removeHighlightingForAllApplications(false);
     }
 
-    Highlighting.highlight(mesh.getModelId(), application);
+    Highlighting.setHightlightStatusForMesh(
+      mesh.getModelId(),
+      application,
+      highlighted
+    );
   }
 
   private getEntityType(mesh: Highlighting.HighlightableMesh): string {
