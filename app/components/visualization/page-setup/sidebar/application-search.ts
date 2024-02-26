@@ -62,8 +62,7 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       this.selected.length > emberPowerSelectObject.length ||
       emberPowerSelectObject.length < 1
     ) {
-      this.removeEntry();
-      this.selected = [...emberPowerSelectObject];
+      this.removeEntry(this.selected, emberPowerSelectObject);
       return;
     }
 
@@ -77,12 +76,19 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     );
   }
 
-  private removeEntry() {
-    if (!this.selected || this.selected.length < 1) {
+  private removeEntry(oldSelection: any[], newSelection: any[]) {
+    if (!oldSelection || oldSelection.length < 1 || !newSelection) {
       return;
     }
-    const removedEntry = this.selected.slice(-1)[0];
-    this.highlightingService.unhighlightById(removedEntry.modelId);
+
+    const removedEntries = oldSelection.filter(
+      (x) => !newSelection.includes(x)
+    );
+    if (removedEntries.length > 0) {
+      // Expecting only one entry to be removed
+      this.highlightingService.unhighlightById(removedEntries[0].modelId);
+    }
+    this.selected = [...newSelection];
   }
 
   @action
