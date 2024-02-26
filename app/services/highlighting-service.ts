@@ -2,6 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -18,30 +19,29 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import MessageSender from 'collaboration/services/message-sender';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('user-settings')
-  private userSettings!: UserSettings;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
 
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
-
   @service('message-sender')
   private sender!: MessageSender;
 
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
-
-  @service('link-renderer')
-  linkRenderer!: LinkRenderer;
+  @service('user-settings')
+  private userSettings!: UserSettings;
 
   debug = debugLogger('HighlightingService');
 
@@ -67,7 +67,7 @@ export default class HighlightingService extends Service.extend({
     return `color:#${this.highlightingColor.getHexString()}`;
   }
 
-  // BEGIN action functions (called from different template files and functions)
+  // #region action functions (called from different template files and functions)
 
   @action
   updateHighlighting() {
@@ -112,9 +112,9 @@ export default class HighlightingService extends Service.extend({
     );
   }
 
-  // END action functions
+  // #endregion  action functions
 
-  // BEGIN public functions
+  // #region public functions
 
   toggleHighlight(mesh: EntityMesh, options?: HighlightOptions) {
     if (mesh.highlighted) {
@@ -215,7 +215,9 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
-  // END public functions
+  // #endregion public functions
+
+  // #region private functions
 
   private getParams(): {
     communicationMeshes: ClazzCommunicationMesh[];
@@ -330,6 +332,8 @@ export default class HighlightingService extends Service.extend({
   private getEntityType(mesh: Highlighting.HighlightableMesh): string {
     return mesh.constructor.name;
   }
+
+  // #endregion private functions
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
