@@ -9,7 +9,6 @@ import { tracked } from '@glimmer/tracking';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 import LocalUser from 'collaboration/services/local-user';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 interface Args {
   removeToolsSidebarComponent(nameOfComponent: string): void;
@@ -19,8 +18,6 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
   @service('local-user')
   localUser!: LocalUser;
 
-  @service
-  applicationRenderer!: ApplicationRenderer;
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
@@ -82,17 +79,31 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
 
     this.selected = [...emberPowerSelectObject];
-    const addedEntity = emberPowerSelectObject.slice(-1)[0];
+    //const addedEntity = emberPowerSelectObject.slice(-1)[0];
 
     for (const selectedEntity of emberPowerSelectObject) {
-      this.pingEntity(selectedEntity);
+      this.localUser.pingByModelId(
+        selectedEntity.modelId,
+        selectedEntity.applicationModelId
+      );
 
-      this.highlightingService.highlightById(
+      /*this.highlightingService.highlightById(
         addedEntity.modelId,
         undefined,
         true
-      );
+      );*/
     }
+  }
+
+  @action
+  onClick(clickedElement: any) {
+    if (!clickedElement) {
+      return;
+    }
+    this.localUser.pingByModelId(
+      clickedElement.modelId,
+      clickedElement.applicationModelId
+    );
   }
 
   private removeEntry(oldSelection: any[], newSelection: any[]) {
@@ -125,17 +136,5 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     this.searchString = term;
 
     return this.searchLogic.getPossibleEntityNames(term);
-  }
-
-  private pingEntity(entity: any) {
-    const applicationObject3D = this.applicationRenderer.getApplicationById(
-      entity.applicationModelId
-    );
-
-    if (applicationObject3D) {
-      const mesh = applicationObject3D.getBoxMeshbyModelId(entity.modelId);
-
-      this.localUser.ping(mesh!, mesh!.getWorldPosition(mesh!.position), 2000);
-    }
   }
 }

@@ -9,6 +9,7 @@ import { getPoses } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -23,6 +24,9 @@ export default class LocalUser extends Service.extend({
 
   @service('user-settings')
   settings!: UserSettings;
+
+  @service
+  applicationRenderer!: ApplicationRenderer;
 
   userId!: string;
 
@@ -153,6 +157,21 @@ export default class LocalUser extends Service.extend({
     this.renderer.setSize(width, height);
     this.defaultCamera.aspect = width / height;
     this.defaultCamera.updateProjectionMatrix();
+  }
+
+  pingByModelId(modelId: string, appId: string, durationInMs: number = 5000) {
+    if (!this.mousePing || !modelId) {
+      return;
+    }
+
+    const applicationObject3D =
+      this.applicationRenderer.getApplicationById(appId);
+
+    if (applicationObject3D) {
+      const mesh = applicationObject3D.getBoxMeshbyModelId(modelId);
+
+      this.ping(mesh!, mesh!.getWorldPosition(mesh!.position), durationInMs);
+    }
   }
 
   ping(
