@@ -433,18 +433,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-    ) {
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        true;
-    }
+    // nothing to do atm
   }
 
   @action
   handleStrgUp() {
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-      false;
+    // nothing to do atm
   }
 
   @action
