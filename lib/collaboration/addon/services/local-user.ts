@@ -187,6 +187,11 @@ export default class LocalUser extends Service.extend({
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
 
+      this.applicationRenderer.openParents(
+        obj.dataModel,
+        parentObj.data.application.id
+      );
+
       this.mousePing.ping.perform({
         parentObj,
         position: pingPosition,
