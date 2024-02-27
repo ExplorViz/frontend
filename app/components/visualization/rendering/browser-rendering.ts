@@ -412,10 +412,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    if (mesh instanceof FoundationMesh) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.selectActiveApplication(mesh.parent);
-      }
+    if (
+      mesh instanceof FoundationMesh &&
+      mesh.parent instanceof ApplicationObject3D
+    ) {
+      this.selectActiveApplication(mesh.parent);
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
