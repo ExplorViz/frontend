@@ -1,12 +1,6 @@
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import {
-  getAllAncestorComponents,
-  openComponentsByList,
-} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 
 /**
  * @class ApplicationSearchLogic
@@ -16,9 +10,6 @@ import {
 export default class ApplicationSearchLogic {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
-
-  @service
-  applicationRenderer!: ApplicationRenderer;
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
@@ -58,23 +49,5 @@ export default class ApplicationSearchLogic {
     }
 
     return returnValue;
-  }
-
-  highlightEntityMeshByModelId(modelId: string, applicationModelId: string) {
-    const clazzMesh = this.applicationRenderer.getBoxMeshByModelId(
-      modelId
-    ) as ClazzMesh;
-
-    const applicationObject3D =
-      this.applicationRenderer.getApplicationById(applicationModelId);
-
-    if (applicationObject3D) {
-      openComponentsByList(
-        getAllAncestorComponents(clazzMesh.dataModel),
-        applicationObject3D
-      );
-
-      this.applicationRenderer.highlight(clazzMesh, applicationObject3D);
-    }
   }
 }
