@@ -161,16 +161,6 @@ export default class HighlightingService extends Service.extend({
     }
 
     this.updateHighlighting();
-
-    if (options?.sendMessage) {
-      this.sender.sendHighlightingUpdate(
-        '',
-        this.getEntityType(mesh),
-        mesh.getModelId(),
-        mesh.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
-      );
-    }
   }
 
   unhighlightById(modelId: string, color?: THREE.Color, sendMessage = true) {
@@ -327,6 +317,7 @@ export default class HighlightingService extends Service.extend({
       const appId = application.getModelId();
       const entityType = this.getEntityType(object);
       const entityId = object.getModelId();
+
       this.sender.sendHighlightingUpdate(
         appId,
         entityType,
