@@ -10,7 +10,6 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 import LocalUser from 'collaboration/services/local-user';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import $ from 'jquery';
 
 interface Args {
   removeToolsSidebarComponent(nameOfComponent: string): void;
