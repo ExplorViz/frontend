@@ -2,6 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -18,30 +19,33 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
-import MessageSender from 'collaboration/services/message-sender';
+import {
+  getAllAncestorComponents,
+  openComponentsByList,
+} from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
 export default class HighlightingService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('user-settings')
-  private userSettings!: UserSettings;
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
 
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
-
   @service('message-sender')
   private sender!: MessageSender;
 
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
-
-  @service('link-renderer')
-  linkRenderer!: LinkRenderer;
+  @service('user-settings')
+  private userSettings!: UserSettings;
 
   debug = debugLogger('HighlightingService');
 
@@ -67,7 +71,7 @@ export default class HighlightingService extends Service.extend({
     return `color:#${this.highlightingColor.getHexString()}`;
   }
 
-  // BEGIN action functions (called from different template files and functions)
+  // #region action functions (called from different template files and functions)
 
   @action
   updateHighlighting() {
@@ -83,8 +87,19 @@ export default class HighlightingService extends Service.extend({
     }
   }
 
-  @action
   highlightById(modelId: string, color?: THREE.Color, sendMessage = false) {
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.highlight(mesh, { sendMessage, remoteColor: color });
+    }
+  }
+
+  @action
+  toggleHighlightById(
+    modelId: string,
+    color?: THREE.Color,
+    sendMessage = false
+  ) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
       this.toggleHighlight(mesh, { sendMessage, remoteColor: color });
@@ -112,9 +127,9 @@ export default class HighlightingService extends Service.extend({
     );
   }
 
-  // END action functions
+  // #endregion  action functions
 
-  // BEGIN public functions
+  // #region public functions
 
   toggleHighlight(mesh: EntityMesh, options?: HighlightOptions) {
     if (mesh.highlighted) {
@@ -146,15 +161,12 @@ export default class HighlightingService extends Service.extend({
     }
 
     this.updateHighlighting();
+  }
 
-    if (options?.sendMessage) {
-      this.sender.sendHighlightingUpdate(
-        '',
-        this.getEntityType(mesh),
-        mesh.getModelId(),
-        mesh.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
-      );
+  unhighlightById(modelId: string, color?: THREE.Color, sendMessage = true) {
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.unhighlight(mesh, { sendMessage, remoteColor: color });
     }
   }
 
@@ -215,7 +227,9 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
-  // END public functions
+  // #endregion public functions
+
+  // #region private functions
 
   private getParams(): {
     communicationMeshes: ClazzCommunicationMesh[];
@@ -239,18 +253,17 @@ export default class HighlightingService extends Service.extend({
     highlighted: boolean,
     options?: HighlightOptions
   ) {
-    mesh.highlightingColor =
-      options?.remoteColor ||
-      this.userSettings.applicationColors.highlightedEntityColor;
+    if (
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    ) {
+      this.removeHighlightingForAllApplications(false);
+    }
+
+    mesh.highlightingColor = options?.remoteColor || this.highlightingColor;
     if (highlighted) {
       mesh.highlight();
     } else {
       mesh.unhighlight();
-      if (
-        !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-      ) {
-        this.removeHighlightingForAllApplications(false);
-      }
     }
 
     this.updateHighlighting();
@@ -272,26 +285,46 @@ export default class HighlightingService extends Service.extend({
     highlighted: boolean,
     options?: HighlightOptions
   ) {
-    if (Highlighting.isHighlightableMesh(object)) {
-      this.setHightlightStatusForMesh(
-        application,
-        object,
-        highlighted,
-        options?.remoteColor
-      );
+    if (!Highlighting.isHighlightableMesh(object)) {
+      return;
+    }
 
-      if (options?.sendMessage) {
-        const appId = application.getModelId();
-        const entityType = this.getEntityType(object);
-        const entityId = object.getModelId();
-        this.sender.sendHighlightingUpdate(
-          appId,
-          entityType,
-          entityId,
-          object.highlighted,
-          this.userSettings.applicationSettings.enableMultipleHighlighting.value
+    // Open parent components when nested entity is highlighted
+    if (
+      highlighted &&
+      (object instanceof ComponentMesh || object instanceof ClazzMesh)
+    ) {
+      const didOpenComponent = openComponentsByList(
+        getAllAncestorComponents(object.dataModel),
+        application
+      );
+      // Only update application if component state did change
+      if (didOpenComponent) {
+        this.applicationRenderer.updateApplicationObject3DAfterUpdate(
+          application
         );
       }
+    }
+
+    this.setHightlightStatusForMesh(
+      application,
+      object,
+      highlighted,
+      options?.remoteColor
+    );
+
+    if (options?.sendMessage) {
+      const appId = application.getModelId();
+      const entityType = this.getEntityType(object);
+      const entityId = object.getModelId();
+
+      this.sender.sendHighlightingUpdate(
+        appId,
+        entityType,
+        entityId,
+        object.highlighted,
+        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      );
     }
   }
 
@@ -314,8 +347,7 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor = color || this.highlightingColor;
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value &&
-      !highlighted
+      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }
@@ -330,6 +362,8 @@ export default class HighlightingService extends Service.extend({
   private getEntityType(mesh: Highlighting.HighlightableMesh): string {
     return mesh.constructor.name;
   }
+
+  // #endregion private functions
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

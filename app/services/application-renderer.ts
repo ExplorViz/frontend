@@ -278,7 +278,7 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.highlightById(
+          this.highlightingService.toggleHighlightById(
             highlightedComponent.entityId,
             highlightedComponent.color
           );
@@ -516,12 +516,10 @@ export default class ApplicationRenderer extends Service.extend({
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
-          this.highlightExternLink(
-            linkMesh,
-            false,
-            new THREE.Color().fromArray(externLink.color)
-          );
-          linkMesh.highlight();
+          this.highlightingService.highlight(linkMesh, {
+            sendMessage: false,
+            remoteColor: new THREE.Color().fromArray(externLink.color),
+          });
         }
       });
     }

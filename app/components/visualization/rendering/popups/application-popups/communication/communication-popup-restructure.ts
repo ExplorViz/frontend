@@ -11,7 +11,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 interface Args {
   communication: ClazzCommuMeshDataModel;
   showApplication?(applicationId: string): void;
-  highlightById(modelId: string): void;
+  toggleHighlightById(modelId: string): void;
   openParents(entity: Class | Package, applicationId: string): void;
 }
 
@@ -30,7 +30,7 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   @action
   highlightEntity(entity: Package | Class, applicationId: string) {
     this.args.openParents(entity, applicationId);
-    this.args.highlightById(entity.id);
+    this.args.toggleHighlightById(entity.id);
     this.args.showApplication?.(applicationId);
   }
 }

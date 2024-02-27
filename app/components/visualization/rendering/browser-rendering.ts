@@ -412,10 +412,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    if (mesh instanceof FoundationMesh) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.selectActiveApplication(mesh.parent);
-      }
+    if (
+      mesh instanceof FoundationMesh &&
+      mesh.parent instanceof ApplicationObject3D
+    ) {
+      this.selectActiveApplication(mesh.parent);
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
@@ -432,18 +433,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-    ) {
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        true;
-    }
+    // nothing to do atm
   }
 
   @action
   handleStrgUp() {
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-      false;
+    // nothing to do atm
   }
 
   @action
