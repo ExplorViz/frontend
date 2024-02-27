@@ -29,9 +29,7 @@ export default class MetricDataComponent extends Component {
         if (this.tokenService.token === null) {
             throw new Error('No landscape token selected');  
         }
-        try {
-            console.log(this.timestampService.timestamp);
-            
+        try {            
             const response = await fetch(`${metricService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
