@@ -407,19 +407,20 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       const mesh = this.applicationRenderer.getMeshById(entityId);
       if (mesh instanceof ClazzCommunicationMesh) {
         // multi selected extern links?
-        this.applicationRenderer.highlightExternLink(mesh, false, user.color);
+        this.highlightingService.toggleHighlight(mesh, {
+          sendMessage: false,
+          remoteColor: user.color,
+        });
       }
       return;
     }
 
-    const mesh = application.getMeshById(entityId);
+    const mesh: any = application.getMeshById(entityId);
     if (mesh?.highlighted !== isHighlighted) {
-      this.applicationRenderer.highlight(
-        mesh,
-        application,
-        user.color,
-        false // whenever we receive messages we don't want to resend them
-      );
+      this.highlightingService.toggleHighlight(mesh, {
+        sendMessage: false,
+        remoteColor: user.color,
+      });
     }
   }
 

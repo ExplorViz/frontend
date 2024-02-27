@@ -496,10 +496,12 @@ export default class VrRendering extends Component<Args> {
     this.secondaryInputManager.addInputHandler({
       targetType: ApplicationObject3D,
       triggerDown: (event) =>
-        this.applicationRenderer.highlight(
-          event.intersection.object,
-          event.target,
-          this.localUser.color
+        this.highlightingService.toggleHighlight(
+          event.intersection.object as EntityMesh,
+          {
+            sendMessage: true,
+            remoteColor: this.localUser.color,
+          }
         ),
     });
 
@@ -508,11 +510,10 @@ export default class VrRendering extends Component<Args> {
       triggerDown: (event) => {
         if (event.target.parent !== null) {
           // in VR parent is null if we handle intern communication links. But they are already handled elsewhere anyway
-          this.applicationRenderer.highlightExternLink(
-            event.target,
-            true,
-            this.localUser.color
-          );
+          this.highlightingService.toggleHighlight(event.target as EntityMesh, {
+            sendMessage: true,
+            remoteColor: this.localUser.color,
+          });
         }
       },
     });

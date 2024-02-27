@@ -256,19 +256,18 @@ export default class CollaborationSession extends Service.extend({
         if (application) {
           const mesh = application.getMeshById(highlightedEntity);
           if (isEntityMesh(mesh)) {
-            this.applicationRenderer.highlight(
-              mesh,
-              application,
-              undefined,
-              false
-            );
+            this.highlightingService.toggleHighlight(mesh, {
+              sendMessage: false,
+            });
           }
         }
       } else {
         //extern Link
         const link = this.linkRenderer.getLinkById(highlightedEntity);
         if (link) {
-          this.applicationRenderer.highlightExternLink(link, false);
+          this.highlightingService.toggleHighlight(link, {
+            sendMessage: false,
+          });
         }
       }
     }

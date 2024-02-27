@@ -36,10 +36,6 @@ import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import MessageSender from 'collaboration/services/message-sender';
@@ -282,7 +278,7 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.highlightById(
+          this.highlightingService.toggleHighlightById(
             highlightedComponent.entityId,
             highlightedComponent.color
           );
@@ -364,40 +360,6 @@ export default class ApplicationRenderer extends Service.extend({
       this.removeCommunicationForAllApplications();
     }
     this.updateLinks?.();
-  }
-
-  /**
-   * Highlights a given component or clazz
-   *
-   * @param entity Component, communication link or clazz which shall be highlighted
-   * @param applicationObject3D Application which contains the entity
-   */
-
-  @action
-  highlight(
-    entity: any,
-    applicationObject3D: ApplicationObject3D,
-    color?: THREE.Color,
-    sendMessage = true
-  ) {
-    if (isEntityMesh(entity)) {
-      this.highlightingService.highlight(entity, sendMessage, color);
-
-      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
-    }
-  }
-
-  @action
-  highlightExternLink(
-    mesh: EntityMesh,
-    sendMessage: boolean,
-    color?: THREE.Color
-  ) {
-    if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightingService.highlight(mesh, sendMessage, color);
-      //this.updateLinks?.();
-      this.highlightingService.updateHighlighting();
-    }
   }
 
   /**
@@ -554,12 +516,10 @@ export default class ApplicationRenderer extends Service.extend({
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
-          this.highlightExternLink(
-            linkMesh,
-            false,
-            new THREE.Color().fromArray(externLink.color)
-          );
-          linkMesh.highlight();
+          this.highlightingService.highlight(linkMesh, {
+            sendMessage: false,
+            remoteColor: new THREE.Color().fromArray(externLink.color),
+          });
         }
       });
     }

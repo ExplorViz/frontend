@@ -41,12 +41,15 @@ export function openComponentsByList(
   components: Package[],
   application: ApplicationObject3D
 ) {
+  let didOpenComponent = false;
   components.forEach((component) => {
     const ancestorMesh = application.getBoxMeshbyModelId(component.id);
-    if (ancestorMesh instanceof ComponentMesh) {
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
+      didOpenComponent = true;
       openComponentMesh(ancestorMesh, application);
     }
   });
+  return didOpenComponent;
 }
 
 /**
