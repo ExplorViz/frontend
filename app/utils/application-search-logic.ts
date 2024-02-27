@@ -1,8 +1,6 @@
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 /**
  * @class ApplicationSearchLogic
@@ -12,12 +10,6 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 export default class ApplicationSearchLogic {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
-
-  @service
-  applicationRenderer!: ApplicationRenderer;
-
-  @service('highlighting-service')
-  highlightingService!: HighlightingService;
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component

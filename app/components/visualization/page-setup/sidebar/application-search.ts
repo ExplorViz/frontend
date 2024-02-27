@@ -50,9 +50,17 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
   }
 
   @action
-  /* eslint-disable-next-line class-methods-use-this */
-  removePowerselectArrow() {
+  initPowerSelect() {
+    // Remove arrow from powerselect
     $('.ember-power-select-status-icon').remove();
+
+    // Place cursor into text input field
+    const inputField = document.querySelector(
+      '.ember-power-select-trigger-multiple-input'
+    );
+    if (inputField instanceof HTMLInputElement) {
+      inputField.focus();
+    }
   }
 
   @action
