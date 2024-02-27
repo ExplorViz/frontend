@@ -294,13 +294,16 @@ export default class HighlightingService extends Service.extend({
       highlighted &&
       (object instanceof ComponentMesh || object instanceof ClazzMesh)
     ) {
-      openComponentsByList(
+      const didOpenComponent = openComponentsByList(
         getAllAncestorComponents(object.dataModel),
         application
       );
-      this.applicationRenderer.updateApplicationObject3DAfterUpdate(
-        application
-      );
+      // Only update application if component state did change
+      if (didOpenComponent) {
+        this.applicationRenderer.updateApplicationObject3DAfterUpdate(
+          application
+        );
+      }
     }
 
     this.setHightlightStatusForMesh(
