@@ -5,6 +5,7 @@ import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 
 export default class MousePing {
   mesh: PingMesh;
+  meshes: Map<THREE.Vector3, PingMesh> = new Map();
   color: THREE.Color;
   animationMixer: AnimationMixer;
 
@@ -45,8 +46,8 @@ export default class MousePing {
       await timeout(durationInMs);
       this.mesh.stopPinging();
 
-      //this.mesh.geometry.dispose();
-      //this.mesh.material.dispose();
+      this.mesh.geometry.dispose();
+      (this.mesh.material as THREE.Material).dispose();
       this.mesh.parent?.remove(this.mesh);
     }
   );
@@ -61,6 +62,10 @@ export default class MousePing {
       position: THREE.Vector3;
       durationInMs: number;
     }) => {
+      if (this.meshes.get(position)) {
+        return;
+      }
+
       const animationMixer = this.animationMixer;
       const color = this.color;
 
@@ -78,13 +83,15 @@ export default class MousePing {
 
       mesh.position.copy(position);
       parentObj.add(mesh);
+      this.meshes.set(position, mesh);
       mesh.startPinging();
       await timeout(durationInMs);
       mesh.stopPinging();
 
       mesh.geometry.dispose();
-      mesh.material.dispose();
+      (mesh.material as THREE.Material).dispose();
       mesh.parent?.remove(mesh);
+      this.meshes.delete(position);
     }
   );
 }

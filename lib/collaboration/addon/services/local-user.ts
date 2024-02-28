@@ -204,7 +204,7 @@ export default class LocalUser extends Service.extend({
 
       this.applicationRenderer.openParents(
         obj as EntityMesh,
-        parentObj.data.application.id
+        (parentObj as ApplicationObject3D).data.application.id
       );
 
       this.mousePing.pingNonRestartable.perform({
@@ -238,7 +238,7 @@ export default class LocalUser extends Service.extend({
 
       this.applicationRenderer.openParents(
         obj as EntityMesh,
-        parentObj.data.application.id
+        (parentObj as ApplicationObject3D).data.application.id
       );
 
       this.mousePing.ping.perform({
