@@ -10,11 +10,13 @@
   @selected={{this.selected}}
   @selectedItemComponent={{component
     'visualization/page-setup/sidebar/application-search-selected-item'
+    onClick=this.onClick
   }}
   @onChange={{this.onSelect}}
   @searchEnabled={{true}}
   @search={{this.searchEntity}}
   @searchMessage='Insert substring...'
+  @searchField='fqn'
   @placeholder='Search Entity...'
   @loadingMessage='loading...'
   @matchTriggerWidth={{false}}
@@ -22,3 +24,20 @@
 >
   {{this.formatEntry entity.fqn}}
 </PowerSelectMultiple>
+
+<div class='mt-3 col text-center'>
+  <BsButton
+    {{on 'click' this.highlightAllSelectedEntities}}
+    @type='secondary'
+    @outline={{true}}
+  >
+    Hightlight All
+  </BsButton>
+  <BsButton
+    {{on 'click' this.pingAllSelectedEntities}}
+    @type='secondary'
+    @outline={{true}}
+  >
+    Ping All
+  </BsButton>
+</div>

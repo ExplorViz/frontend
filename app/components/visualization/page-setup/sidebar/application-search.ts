@@ -1,19 +1,23 @@
-import { getOwner } from '@ember/application';
+import GlimmerComponent from '@glimmer/component';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { htmlSafe } from '@ember/template';
 import { isBlank } from '@ember/utils';
-import GlimmerComponent from '@glimmer/component';
+import $ from 'jquery';
+import { getOwner } from '@ember/application';
+import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
-import $ from 'jquery';
+import LocalUser from 'collaboration/services/local-user';
 
 interface Args {
   removeToolsSidebarComponent(nameOfComponent: string): void;
 }
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent<Args> {
+  @service('local-user')
+  localUser!: LocalUser;
+
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
@@ -77,11 +81,45 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     this.selected = [...emberPowerSelectObject];
     const addedEntity = emberPowerSelectObject.slice(-1)[0];
 
-    this.highlightingService.highlightById(
+    this.localUser.pingByModelId(
       addedEntity.modelId,
-      undefined,
-      true
+      addedEntity.applicationModelId,
+      { durationInMs: 3500, nonrestartable: true }
     );
+  }
+
+  @action
+  onClick(clickedElement: any) {
+    if (!clickedElement) {
+      return;
+    }
+    this.localUser.pingByModelId(
+      clickedElement.modelId,
+      clickedElement.applicationModelId,
+      { durationInMs: 3500, nonrestartable: true }
+    );
+  }
+
+  @action
+  highlightAllSelectedEntities() {
+    for (const selectedEntity of this.selected) {
+      this.highlightingService.highlightById(
+        selectedEntity.modelId,
+        undefined,
+        true
+      );
+    }
+  }
+
+  @action
+  pingAllSelectedEntities() {
+    for (const selectedEntity of this.selected) {
+      this.localUser.pingByModelId(
+        selectedEntity.modelId,
+        selectedEntity.applicationModelId,
+        { durationInMs: 3500, nonrestartable: true }
+      );
+    }
   }
 
   private removeEntry(oldSelection: any[], newSelection: any[]) {
@@ -89,13 +127,13 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       return;
     }
 
-    const removedEntries = oldSelection.filter(
+    /*const removedEntries = oldSelection.filter(
       (x) => !newSelection.includes(x)
     );
     if (removedEntries.length > 0) {
       // Expecting only one entry to be removed
       this.highlightingService.unhighlightById(removedEntries[0].modelId);
-    }
+    }*/
     this.selected = [...newSelection];
   }
 

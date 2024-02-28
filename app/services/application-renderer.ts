@@ -41,6 +41,10 @@ import HighlightingService from './highlighting-service';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -369,14 +373,29 @@ export default class ApplicationRenderer extends Service.extend({
    * @param entity Component or Clazz of which the mesh parents shall be opened
    */
   @action
-  openParents(entity: Package | Class, applicationId: string) {
+  openParents(entity: Package | Class | EntityMesh, applicationId: string) {
+    let entityModel = entity;
+
+    if (!entity) {
+      return;
+    }
+
+    // do not re-calculate if mesh is already visible
+    if (isEntityMesh(entityModel)) {
+      if (entityModel.visible) {
+        return;
+      } else {
+        entityModel = (entity as EntityMesh).dataModel as Package | Class;
+      }
+    }
+
     const applicationObject3D = this.getApplicationById(applicationId);
     if (!applicationObject3D) {
       return;
     }
 
     EntityManipulation.openComponentsByList(
-      EntityManipulation.getAllAncestorComponents(entity),
+      EntityManipulation.getAllAncestorComponents(entityModel),
       applicationObject3D
     );
 
