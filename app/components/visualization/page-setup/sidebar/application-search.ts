@@ -79,20 +79,13 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
 
     this.selected = [...emberPowerSelectObject];
-    //const addedEntity = emberPowerSelectObject.slice(-1)[0];
+    const addedEntity = emberPowerSelectObject.slice(-1)[0];
 
-    for (const selectedEntity of emberPowerSelectObject) {
-      this.localUser.pingByModelId(
-        selectedEntity.modelId,
-        selectedEntity.applicationModelId
-      );
-
-      /*this.highlightingService.highlightById(
-        addedEntity.modelId,
-        undefined,
-        true
-      );*/
-    }
+    this.localUser.pingByModelId(
+      addedEntity.modelId,
+      addedEntity.applicationModelId,
+      { durationInMs: 3500, nonrestartable: true }
+    );
   }
 
   @action
@@ -102,8 +95,31 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
     }
     this.localUser.pingByModelId(
       clickedElement.modelId,
-      clickedElement.applicationModelId
+      clickedElement.applicationModelId,
+      { durationInMs: 3500, nonrestartable: true }
     );
+  }
+
+  @action
+  highlightAllSelectedEntities() {
+    for (const selectedEntity of this.selected) {
+      this.highlightingService.highlightById(
+        selectedEntity.modelId,
+        undefined,
+        true
+      );
+    }
+  }
+
+  @action
+  pingAllSelectedEntities() {
+    for (const selectedEntity of this.selected) {
+      this.localUser.pingByModelId(
+        selectedEntity.modelId,
+        selectedEntity.applicationModelId,
+        { durationInMs: 3500, nonrestartable: true }
+      );
+    }
   }
 
   private removeEntry(oldSelection: any[], newSelection: any[]) {

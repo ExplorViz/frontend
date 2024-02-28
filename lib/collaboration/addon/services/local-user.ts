@@ -10,6 +10,7 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -159,10 +160,16 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera.updateProjectionMatrix();
   }
 
-  pingByModelId(modelId: string, appId: string, durationInMs: number = 5000) {
+  pingByModelId(
+    modelId: string,
+    appId: string,
+    options?: { durationInMs?: number; nonrestartable?: boolean }
+  ) {
     if (!this.mousePing || !modelId) {
       return;
     }
+
+    const duration = options?.durationInMs ?? 5000;
 
     const applicationObject3D =
       this.applicationRenderer.getApplicationById(appId);
@@ -170,7 +177,49 @@ export default class LocalUser extends Service.extend({
     if (applicationObject3D) {
       const mesh = applicationObject3D.getBoxMeshbyModelId(modelId);
 
-      this.ping(mesh!, mesh!.getWorldPosition(mesh!.position), durationInMs);
+      if (options?.nonrestartable) {
+        this.pingNonRestartable(
+          mesh!,
+          mesh!.getWorldPosition(mesh!.position),
+          duration
+        );
+      } else {
+        this.ping(mesh!, mesh!.getWorldPosition(mesh!.position), duration);
+      }
+    }
+  }
+
+  pingNonRestartable(
+    obj: THREE.Object3D | null,
+    pingPosition: THREE.Vector3,
+    durationInMs: number = 5000
+  ) {
+    // or touch, primary input ...
+    if (!this.mousePing || !obj) {
+      return;
+    }
+    const parentObj = obj.parent;
+    if (parentObj) {
+      parentObj.worldToLocal(pingPosition);
+
+      this.applicationRenderer.openParents(
+        obj as EntityMesh,
+        parentObj.data.application.id
+      );
+
+      this.mousePing.pingNonRestartable.perform({
+        parentObj,
+        position: pingPosition,
+        durationInMs,
+      });
+
+      if (parentObj instanceof ApplicationObject3D) {
+        this.sender.sendMousePingUpdate(
+          parentObj.getModelId(),
+          true,
+          pingPosition
+        );
+      }
     }
   }
 
@@ -188,7 +237,7 @@ export default class LocalUser extends Service.extend({
       parentObj.worldToLocal(pingPosition);
 
       this.applicationRenderer.openParents(
-        obj.dataModel,
+        obj as EntityMesh,
         parentObj.data.application.id
       );
 
