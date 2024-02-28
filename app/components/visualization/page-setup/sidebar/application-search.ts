@@ -127,13 +127,13 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       return;
     }
 
-    const removedEntries = oldSelection.filter(
+    /*const removedEntries = oldSelection.filter(
       (x) => !newSelection.includes(x)
     );
     if (removedEntries.length > 0) {
       // Expecting only one entry to be removed
       this.highlightingService.unhighlightById(removedEntries[0].modelId);
-    }
+    }*/
     this.selected = [...newSelection];
   }
 
