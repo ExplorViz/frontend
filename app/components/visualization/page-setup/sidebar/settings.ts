@@ -132,9 +132,15 @@ export default class Settings extends Component<Args> {
   updateButtonSetting(settingId: ApplicationSettingId) {
     switch (settingId) {
       case 'syncRoomState':
-        this.sender.sendSyncRoomState(
-          this.roomSerializer.serializeRoom(this.args.popups)
-        );
+        if (
+          confirm(
+            'Synchronize room state: This may lead to loading times for other users. Continue?'
+          )
+        ) {
+          this.sender.sendSyncRoomState(
+            this.roomSerializer.serializeRoom(this.args.popups)
+          );
+        }
         break;
       case 'fullscreen':
         if (this.args.enterFullscreen) {
@@ -143,6 +149,7 @@ export default class Settings extends Component<Args> {
         break;
       case 'resetToDefaults':
         this.resetSettings();
+        this.toastHandlerService.showSuccessToastMessage('Settings reset');
         break;
       default:
         break;
