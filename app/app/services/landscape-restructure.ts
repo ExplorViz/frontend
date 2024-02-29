@@ -24,7 +24,7 @@ import {
   pastePackage,
   pasteClass,
   duplicateApplication,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'some-react-lib/src/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
   Application,
@@ -53,7 +53,7 @@ import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/
 import {
   RestructureAction,
   EntityType,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'some-react-lib/src/utils/restructure-helper';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import LinkRenderer from './link-renderer';

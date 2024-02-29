@@ -12,7 +12,7 @@ import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 import CommunicationArrowMesh from 'some-react-lib/src/view-objects/3d/application/communication-arrow-mesh';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'some-react-lib/src/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 export default class LinkRenderer extends Service.extend({}) {

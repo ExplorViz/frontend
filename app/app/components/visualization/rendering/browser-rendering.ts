@@ -42,7 +42,7 @@ import {
 } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
-import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'some-react-lib/src/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';

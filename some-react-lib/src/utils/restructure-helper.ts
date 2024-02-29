@@ -123,11 +123,11 @@ export function duplicateApplication(
     packages: [],
   };
 
-  duplicatedNode.applications.pushObject(duplicatedApp);
+  duplicatedNode.applications.push(duplicatedApp);
 
   app.packages.forEach((pckg) => {
     const duplicatedPackage = copyPackageContent(pckg);
-    duplicatedApp.packages.pushObject(duplicatedPackage);
+    duplicatedApp.packages.push(duplicatedPackage);
   });
 
   // Copy the communications
@@ -139,7 +139,7 @@ export function duplicateApplication(
 
   changeID({ entity: duplicatedApp }, 'duplicated|');
 
-  landscapeData.nodes.pushObject(duplicatedNode);
+  landscapeData.nodes.push(duplicatedNode);
 
   return duplicatedApp;
 }
@@ -722,6 +722,6 @@ export function removeAffectedCommunications(
       (comm) =>
         comm.sourceClass.id === clazz.id || comm.targetClass.id === clazz.id
     );
-    commsWrapper.deletedComms?.pushObjects(commsToDelete);
+    commsWrapper.deletedComms?.push(...commsToDelete);
   });
 }

@@ -13,7 +13,7 @@ import {
 } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from 'some-react-lib/src/utils/landscape-structure-helpers';
 import CameraControls from 'some-react-lib/src/utils/application-rendering/camera-controls';
-import { removeHighlighting } from './highlighting';
+import { removeHighlighting } from 'some-react-lib/src/utils/application-rendering/highlighting';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';

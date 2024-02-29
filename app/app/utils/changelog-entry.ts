@@ -1,4 +1,4 @@
-import { RestructureAction } from './restructure-helper';
+import { RestructureAction } from 'some-react-lib/src/utils/restructure-helper';
 import {
   Application,
   Class,

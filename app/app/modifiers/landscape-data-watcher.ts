@@ -15,7 +15,7 @@ import ApplicationData from 'some-react-lib/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'some-react-lib/src/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import { Application } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';

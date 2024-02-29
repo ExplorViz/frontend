@@ -4,12 +4,16 @@ import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/compon
 import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
-import AnimationMesh from 'some-react-lib/src/view-objects/3d/animation-mesh';
+/* import AnimationMesh from 'some-react-lib/src/view-objects/3d/animation-mesh'; */
 import {
   Class,
   Package,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { ApplicationColorSettingId } from 'some-react-lib/src/utils/settings/settings-schemas';
+/* import { ApplicationColors } from 'explorviz-frontend/services/user-settings'; */
+
+/* type copied from user-settings service. Remove when service is migrated */
+export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -185,7 +189,7 @@ export function addFoundationAndChildrenToApplication(
  * @param applicationObject3D Object which shall contain all application meshes
  * @param applicationColors Object which defines the colors for different application entities
  */
-export function addGlobeToApplication(
+/* export function addGlobeToApplication(
   appObject3D: ApplicationObject3D
 ): AnimationMesh {
   const geometry = new THREE.SphereGeometry(2.5, 15, 15);
@@ -204,7 +208,7 @@ export function addGlobeToApplication(
   appObject3D.add(mesh);
 
   return mesh;
-}
+} */
 
 export function repositionGlobeToApplication(
   appObject3D: ApplicationObject3D,

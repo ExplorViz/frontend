@@ -9,7 +9,7 @@ import {
 import {
   RestructureAction,
   EntityType,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'some-react-lib/src/utils/restructure-helper';
 import { getAncestorPackages } from 'some-react-lib/src/utils/package-helpers';
 import {
   AppChangeLogEntry,

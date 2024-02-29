@@ -7,7 +7,7 @@ import UiMenu, { UiMenuArgs } from '../ui-menu';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
+import { removeAllHighlightingFor } from 'some-react-lib/src/utils/application-rendering/highlighting';
 
 export type ResetMenuArgs = UiMenuArgs & {
   owner: any;

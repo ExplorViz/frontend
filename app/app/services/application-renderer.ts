@@ -7,11 +7,11 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'some-react-lib/src/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import * as EntityRendering from 'some-react-lib/src/utils/application-rendering/entity-rendering';
 import {
   HightlightComponentArgs,
   removeAllHighlightingFor,
-} from 'explorviz-frontend/utils/application-rendering/highlighting';
+} from 'some-react-lib/src/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Application,
