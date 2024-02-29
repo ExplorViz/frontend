@@ -26,16 +26,16 @@
   grid-column-gap: 0.5rem;
 }
 
-.navbar-spectate-icon {
-  display: flex;
-  align-items: center;
-  color: red;
-}
-
-.navbar-connection-icon {
+.navbar-success-icon {
   display: flex;
   align-items: center;
   color: green;
+}
+
+.navbar-danger-icon {
+  display: flex;
+  align-items: center;
+  color: red;
 }
 
 #navbar-user-options {
