@@ -1,14 +1,20 @@
-import Component from '@glimmer/component';
 import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
-import SpectateUser from 'collaboration/services/spectate-user';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import MessageSender from 'collaboration/services/message-sender';
 import RoomService from 'collaboration/services/room-service';
+import SpectateUser from 'collaboration/services/spectate-user';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import LandscapeTokenService, {
+  LandscapeToken,
+} from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 
 interface CollaborationArgs {
@@ -16,36 +22,54 @@ interface CollaborationArgs {
 }
 
 export default class CollaborationControls extends Component<CollaborationArgs> {
+  @service('application-renderer')
+  applicationRenderer!: ApplicationRenderer;
+
+  @service('repos/application-repository')
+  applicationRepo!: ApplicationRepository;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('landscape-token')
+  private tokenService!: LandscapeTokenService;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
+
   @service('local-user')
   localUser!: LocalUser;
 
+  @service('message-sender')
+  private sender!: MessageSender;
+
   @service('room-service')
   roomService!: RoomService;
+
+  @service('router')
+  router!: any;
+
+  @service('spectate-user')
+  private spectateUserService!: SpectateUser;
 
   @service('timestamp')
   // @ts-ignore since it is used in template
   private timestampService!: TimestampService;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
-
-  @service('spectate-user')
-  private spectateUserService!: SpectateUser;
-
-  @service('landscape-token')
-  private tokenService!: LandscapeTokenService;
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')
   userSettings!: UserSettings;
-
-  @service('toastHandler')
-  toastHandlerService!: ToastHandlerService;
 
   @tracked
   rooms: RoomListRecord[] = [];
 
   @tracked
   deviceId = new URLSearchParams(window.location.search).get('deviceId');
+
+  @tracked
+  landscapeTokens: LandscapeToken[] = [];
 
   @computed(
     'collaborationSession.idToRemoteUser',
@@ -105,30 +129,15 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     }
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
+    this.landscapeTokens = await this.tokenService.retrieveTokens();
   }
 
   @action
   async joinRoom(room: RoomListRecord) {
-    if (this.tokenService.token?.value === room.landscapeToken) {
-      this.collaborationSession.joinRoom(room.roomId);
-      this.toastHandlerService.showSuccessToastMessage(
-        `Join Room: ${room.roomName}`
-      );
-    } else {
-      const tokens = await this.tokenService.retrieveTokens();
-      const token = tokens.find((elem) => elem.value == room.landscapeToken);
-      if (token) {
-        this.tokenService.setToken(token);
-        this.collaborationSession.joinRoom(room.roomId);
-        this.toastHandlerService.showSuccessToastMessage(
-          `Join Room: ${room.roomName}`
-        );
-      } else {
-        this.toastHandlerService.showErrorToastMessage(
-          `Landscape token for room not found`
-        );
-      }
-    }
+    // In case join action fails, the room list should be up-to-date
+    this.loadRooms(false);
+
+    this.collaborationSession.joinRoom(room.roomId);
   }
 
   @action
@@ -156,6 +165,24 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => user.userId);
     this.spectateUserService.activateConfig(event?.target.value, remoteUserIds);
+  }
+
+  @action
+  landscapeSelected(event: any) {
+    this.tokenService.setTokenByValue(event.target.value);
+
+    // Cleanup old landscape
+    this.applicationRenderer.cleanup();
+    this.applicationRepo.cleanup();
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.removeFromParent();
+    });
+
+    // this.tokenService.setToken(event.target.value);
+    this.router.transitionTo('visualization', {
+      queryParams: { landscapeToken: event.target.value },
+    });
+    this.sender.sendChangeLandscape(event.target.value);
   }
 
   @action

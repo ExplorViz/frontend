@@ -49,12 +49,12 @@ import RoomSerializer from 'collaboration/services/room-serializer';
 
 interface BrowserRenderingArgs {
   readonly id: string;
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly visualizationPaused: boolean;
+  readonly isDisplayed: boolean;
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
-  switchToVR(): void;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -226,7 +226,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -239,14 +238,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   highlightTrace(trace: Trace, traceStep: string) {
-    if (this.selectedApplicationObject3D) {
-      this.highlightingService.highlightTrace(
-        trace,
-        traceStep,
-        this.selectedApplicationObject3D,
-        this.args.landscapeData.structureLandscapeData
-      );
+    if (!this.args.landscapeData || !this.selectedApplicationObject3D) {
+      return;
     }
+
+    this.highlightingService.highlightTrace(
+      trace,
+      traceStep,
+      this.selectedApplicationObject3D,
+      this.args.landscapeData.structureLandscapeData
+    );
   }
 
   @action
@@ -510,7 +511,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
     }
-    this.popupHandler.hover(intersection?.object);
+    this.popupHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
@@ -570,7 +571,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseOut(event: PointerEvent) {
-    this.popupHandler.hover();
+    this.popupHandler.handleHoverOnMesh();
     if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
       this.popupHandler.removeUnmovedPopups();
     }
@@ -595,7 +596,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   moveCameraTo(emberModel: Class | Span) {
-    if (!this.selectedApplicationObject3D) {
+    if (!this.selectedApplicationObject3D || !this.args.landscapeData) {
       return;
     }
     moveCameraTo(

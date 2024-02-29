@@ -4,6 +4,23 @@
     <label>{{this.collaborationSession.currentRoomId}}</label>
   </div>
 
+  <div>
+    <label class='bold'>Landscape: </label>
+    <select
+      class='form-select'
+      aria-label='Default select example'
+      style='max-width: calc(100% - 100px);'
+      {{on 'change' this.landscapeSelected}}
+    >
+      {{#each this.landscapeTokens as |token|}}
+        <option
+          selected={{eq token.value this.tokenService.token.value}}
+          value={{token.value}}
+        >{{token.alias}}</option>
+      {{/each}}
+    </select>
+  </div>
+
   {{! Indicator that device should be in control of spectating configurations }}
   {{#if (eq this.deviceId 'main')}}
     <div>

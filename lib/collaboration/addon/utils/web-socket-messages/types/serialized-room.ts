@@ -3,14 +3,27 @@ import { Position } from './position';
 import { Quaternion } from './quaternion';
 import { Scale } from './Scale';
 
-export type SerializedDetachedMenu = {
-  objectId: string | null;
-  userId: string | null;
-  entityId: string;
-  entityType: EntityType;
+export type SerializedRoom = {
+  landscape: SerializedLandscape;
+  openApps: SerializedApp[];
+  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
+  popups: SerializedPopup[];
+  detachedMenus: SerializedDetachedMenu[];
+};
+
+export type SerializedLandscape = {
+  landscapeToken: string | undefined;
+  timestamp: number;
+};
+
+export type SerializedApp = {
+  id: string;
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
+  openComponents: string[];
+  transparentComponents: string[];
+  highlightedComponents: SerializedHighlightedComponent[];
 };
 
 export type SerializedHighlightedComponent = {
@@ -31,24 +44,18 @@ export type SerializedHighlightedExternLink = {
   userId: string;
 };
 
-export type SerializedApp = {
-  id: string;
+export type SerializedPopup = {
+  userId: string | null;
+  entityId: string;
+  menuId: string | null | undefined;
+};
+
+export type SerializedDetachedMenu = {
+  objectId: string | null;
+  userId: string | null;
+  entityId: string;
+  entityType: EntityType;
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
-  openComponents: string[];
-  transparentComponents: string[];
-  highlightedComponents: SerializedHighlightedComponent[];
-};
-
-export type SerializedLandscape = {
-  landscapeToken: string | undefined;
-  timestamp: number;
-};
-
-export type SerializedRoom = {
-  landscape: SerializedLandscape;
-  openApps: SerializedApp[];
-  detachedMenus: SerializedDetachedMenu[];
-  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
 };

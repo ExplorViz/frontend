@@ -76,7 +76,7 @@ export default class VrButton extends Component<VrButtonArgs> {
 
     this.currentSession = null;
 
-    this.buttonText = 'ENTER VR';
+    this.buttonText = 'Enter VR';
 
     if (this.args.onSessionEndedCallback) {
       this.args.onSessionEndedCallback();

@@ -43,6 +43,7 @@ export type ApplicationDebugSettingId =
   | 'showAxesHelper'
   | 'showLightHelper'
   | 'fullscreen'
+  | 'syncRoomState'
   | 'resetToDefaults';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
@@ -85,6 +86,7 @@ export type ApplicationDebugSettings = {
   showLightHelper: FlagSetting;
   showVrOnClick: FlagSetting;
   fullscreen: ButtonSetting;
+  syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
 };
 

@@ -7,7 +7,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import generateUuidv4 from 'explorviz-frontend/utils/helpers/uuid4-generator';
 
 export default class PageSetupToastMessageComponent extends Component {
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @tracked

@@ -14,7 +14,7 @@ export default class ToastMessage extends Service.extend({
 }) {
   // These functions can be overriden by vr-rendering to enable WebGL-based messages
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   info!: (message: string) => void;

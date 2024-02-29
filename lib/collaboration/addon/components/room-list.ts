@@ -20,7 +20,7 @@ export default class RoomList extends Component<RoomListArgs> {
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @tracked
@@ -52,12 +52,6 @@ export default class RoomList extends Component<RoomListArgs> {
 
   @action
   joinRoom(room: RoomListRecord) {
-    const token = this.args.tokens.find(
-      (elem) => elem.value == room.landscapeToken
-    );
-    if (token) {
-      this.args.selectToken(token);
-      this.collaborationSession.joinRoom(room.roomId);
-    }
+    this.collaborationSession.joinRoom(room.roomId);
   }
 }
