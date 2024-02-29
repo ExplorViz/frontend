@@ -266,7 +266,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
       );
       const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
       if (pckgMesh instanceof ComponentMesh) {
-        //console.log(this.data.application.name, ":::",pckgMesh.dataModel.name);
         if (pckgMesh.opened) {
           pckgMesh.dataModel.subPackages.forEach((subPckg) => {
             const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
@@ -295,7 +294,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
       }
     });
 
-    // TODO: extern links too (currently handled in vr-room-serializer.ts, serializeApplication function)
+    // TODO: extern links too (currently handled in room-serializer.ts, serializeApplication function)
 
     return transparentComponentIds;
   }

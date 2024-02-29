@@ -17,16 +17,21 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import LocalUser from 'collaborative-mode/services/local-user';
+import {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import LocalUser from 'collaboration/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface NamedArgs {
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly graph: ForceGraph3DInstance;
 }
 
@@ -50,8 +55,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -68,6 +73,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('user-settings')
+  userSettings!: UserSettings;
+
   @service
   private worker!: any;
 
@@ -75,12 +83,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private graph!: ForceGraph3DInstance;
 
-  get structureLandscapeData() {
-    return this.landscapeData.structureLandscapeData;
+  get structureLandscapeData(): StructureLandscapeData | null {
+    return this.landscapeData?.structureLandscapeData;
   }
 
-  get dynamicLandscapeData() {
-    return this.landscapeData.dynamicLandscapeData;
+  get dynamicLandscapeData(): DynamicLandscapeData | null {
+    return this.landscapeData?.dynamicLandscapeData;
   }
 
   async modify(
@@ -95,6 +103,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
+    if (!this.structureLandscapeData || !this.dynamicLandscapeData) {
+      return;
+    }
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -115,8 +127,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
-    const { nodes: graphNodes } = this.graph.graphData();
+    let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
+
+    // Filter out any nodes that are no longer present in the new landscape data
+    graphNodes = graphNodes.filter((node: GraphNode) => {
+      return nodes.some((n) => n.applications[0].id === node.id);
+    });
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
@@ -135,9 +152,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
 
         // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.findBy(
-          'id',
-          applicationData.application.id
+        const graphNode = graphNodes.find(
+          (node) => node.id == applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
@@ -179,9 +195,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       (x) => x.sourceApp !== x.targetApp
     );
     const communicationLinks = interAppCommunications.map((communication) => ({
-      source: graphNodes.findBy('id', communication.sourceApp?.id) as GraphNode,
-      target: graphNodes.findBy('id', communication.targetApp?.id) as GraphNode,
-      value: calculateLineThickness(communication),
+      source: graphNodes.find(
+        (node) => node.id == communication.sourceApp?.id
+      ) as GraphNode,
+      target: graphNodes.find(
+        (node) => node.id == communication.targetApp?.id
+      ) as GraphNode,
+      value: calculateLineThickness(
+        communication,
+        this.userSettings.applicationSettings
+      ),
       communicationData: communication,
     }));
 
@@ -192,11 +215,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
 
-    if (serializedRoom) {
+    // Apply serialized room data from collaboration service if it seems up-to-date
+    if (
+      serializedRoom &&
+      serializedRoom.openApps.length >= this.applicationRepo.applications.size
+    ) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      this.detachedMenuRenderer.restore(
+        serializedRoom.popups,
+        serializedRoom.detachedMenus
+      );
       this.roomSerializer.serializedRoom = undefined;
     } else {
+      // Remove possibly oudated applications
+      // ToDo: Refactor
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
       for (let i = 0; i < openApplicationsIds.length; ++i) {
         const applicationId = openApplicationsIds[i];
@@ -207,6 +239,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
       this.highlightingService.updateHighlighting();
     }
+
     this.graph.graphData(gData);
 
     // send new data to ide

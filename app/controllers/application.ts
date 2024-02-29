@@ -4,7 +4,6 @@ import { tracked } from '@glimmer/tracking';
 import Auth from 'explorviz-frontend/services/auth';
 
 /**
- * TODO
  *
  * @class Application-Controller
  * @extends Ember.Controller
@@ -15,6 +14,8 @@ import Auth from 'explorviz-frontend/services/auth';
 export default class ApplicationController extends Controller {
   @service('auth') auth!: Auth;
 
+  @tracked
+  tokenId = '';
   queryParams = ['landscapeToken'];
 
   @tracked

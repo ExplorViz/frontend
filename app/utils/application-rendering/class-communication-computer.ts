@@ -4,60 +4,59 @@ import {
 } from '../landscape-schemes/dynamic/dynamic-data';
 import MethodCall from '../landscape-schemes/dynamic/method-call';
 import {
+  Application,
   Class,
   StructureLandscapeData,
 } from '../landscape-schemes/structure-data';
-import {
-  getHashCodeToClassMap,
-  getApplicationFromClass,
-} from '../landscape-structure-helpers';
 import { getTraceIdToSpanTreeMap } from '../trace-helpers';
 import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import { getAllClassesInApplication } from '../application-helpers';
 
 function computeClassCommunicationRecursively(
   span: Span,
-  potentialParentSpan: Span | undefined,
   spanIdToChildSpanMap: Map<string, Span[]>,
   hashCodeToClassMap: Map<string, Class>
 ) {
-  const childSpans = spanIdToChildSpanMap.get(span.spanId);
-
-  if (childSpans === undefined) {
+  if (span === undefined) {
     return [];
   }
 
-  const classMatchingSpan = hashCodeToClassMap.get(span.hashCode);
+  const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
+  if (childSpans === undefined || childSpans.length === 0) {
+    // no childspan, therefore no one to call => no communication line
+    return [];
+  }
+
+  const classMatchingSpan = hashCodeToClassMap.get(span.methodHash);
   if (classMatchingSpan === undefined) {
     return [];
   }
 
   let callerMethodName = 'UNKNOWN';
 
-  if (potentialParentSpan) {
-    const classMatchingParentSpan = hashCodeToClassMap.get(
-      potentialParentSpan.hashCode
-    );
-    classMatchingParentSpan?.methods.forEach((method) => {
-      if (method.hashCode === potentialParentSpan.hashCode) {
-        callerMethodName = method.name;
-      }
-    });
-  }
+  classMatchingSpan.methods.forEach((method) => {
+    if (method.methodHash === span.methodHash) {
+      callerMethodName = method.name;
+    }
+  });
 
   const classCommunications: SingleClassCommunication[] = [];
+
   childSpans.forEach((childSpan) => {
-    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.hashCode);
+    const classMatchingChildSpan = hashCodeToClassMap.get(childSpan.methodHash);
     if (classMatchingChildSpan !== undefined) {
       // retrieve operationName
       const methodMatchingSpanHash = classMatchingChildSpan.methods.find(
-        (method) => method.hashCode === childSpan.hashCode
+        (method) => method.methodHash === childSpan.methodHash
       );
 
       const methodName = methodMatchingSpanHash
         ? methodMatchingSpanHash.name
         : 'UNKNOWN';
 
+      // create classCommunication (eventually results in a single
+      // communication line) and proceed with remaining method calls
       classCommunications.push({
         sourceClass: classMatchingSpan,
         targetClass: classMatchingChildSpan,
@@ -67,7 +66,6 @@ function computeClassCommunicationRecursively(
       classCommunications.push(
         ...computeClassCommunicationRecursively(
           childSpan,
-          span,
           spanIdToChildSpanMap,
           hashCodeToClassMap
         )
@@ -84,7 +82,9 @@ export default function computeClassCommunication(
 ) {
   if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
 
-  const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
+  const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
+    landscapeStructureData
+  );
 
   const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
 
@@ -98,7 +98,6 @@ export default function computeClassCommunication(
       totalClassCommunications.push(
         ...computeClassCommunicationRecursively(
           firstSpan,
-          undefined,
           traceSpanTree.tree,
           hashCodeToClassMap
         )
@@ -113,16 +112,10 @@ export default function computeClassCommunication(
       const sourceTargetClassMethodId = `${sourceClass.id}_${targetClass.id}_${operationName}`;
 
       // get source app
-      const sourceApp = getApplicationFromClass(
-        landscapeStructureData,
-        sourceClass
-      );
+      const sourceApp = classToApplicationMap.get(sourceClass);
 
       // get target app
-      const targetApp = getApplicationFromClass(
-        landscapeStructureData,
-        targetClass
-      );
+      const targetApp = classToApplicationMap.get(targetClass);
 
       if (!sourceApp || !targetApp) {
         console.error('Application for class communication not found!');
@@ -199,6 +192,31 @@ function computeCommunicationMetrics(
         totalRequests / maxRequests;
     }
   });
+}
+
+function createLookupMaps(
+  structureData: StructureLandscapeData
+): [Map<string, Class>, Map<Class, Application>] {
+  const hashCodeToClassMap = new Map<string, Class>();
+  const classToApplicationMap = new Map<Class, Application>();
+
+  const allApplications = structureData.nodes
+    .map((node) => node.applications)
+    .flat();
+
+  for (const application of allApplications) {
+    const classes = getAllClassesInApplication(application);
+
+    for (const clazz of classes) {
+      clazz.methods.forEach(({ methodHash }) =>
+        hashCodeToClassMap.set(methodHash, clazz)
+      );
+
+      classToApplicationMap.set(clazz, application);
+    }
+  }
+
+  return [hashCodeToClassMap, classToApplicationMap];
 }
 
 export function computeRestructuredClassCommunication(

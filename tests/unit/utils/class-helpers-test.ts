@@ -53,7 +53,7 @@ function getTestPackageWithOneClassAndOneMethod() {
 
   const testMethod: Method = {
     name: 'testMethod',
-    hashCode: 'testHash',
+    methodHash: 'testHash',
   };
 
   testClass.methods.push(testMethod);

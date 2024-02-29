@@ -1,7 +1,10 @@
 // #region imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
@@ -20,33 +23,30 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import ArSettings from 'extended-reality/services/ar-settings';
+import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'virtual-reality/services/ar-settings';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import VrApplicationObject3D from 'virtual-reality/utils/view-objects/application/vr-application-object-3d';
-import { SerializedVrRoom } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+import VrAssetRepository from 'extended-reality/services/vr-asset-repo';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import Configuration from './configuration';
+import { default as HighlightingService } from './highlighting-service';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
-import HighlightingService from './highlighting-service';
-import DisplayButton from 'explorviz-frontend/view-objects/3d/application/display-button';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -59,7 +59,7 @@ export default class ApplicationRenderer extends Service.extend({
   @service('local-user')
   localUser!: LocalUser;
 
-  @service('virtual-reality@vr-asset-repo')
+  @service('extended-reality@vr-asset-repo')
   private assetRepo!: VrAssetRepository;
 
   @service('configuration')
@@ -71,8 +71,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @service('heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -83,8 +83,8 @@ export default class ApplicationRenderer extends Service.extend({
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('toast-message')
   toastMessage!: ToastMessage;
@@ -287,7 +287,7 @@ export default class ApplicationRenderer extends Service.extend({
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.highlightById(
+          this.highlightingService.toggleHighlightById(
             highlightedComponent.entityId,
             highlightedComponent.color
           );
@@ -313,7 +313,10 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.appCommRendering.addCommunication(applicationObject3D);
+    this.appCommRendering.addCommunication(
+      applicationObject3D,
+      this.userSettings.applicationSettings
+    );
   }
 
   @action
@@ -373,54 +376,35 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   /**
-   * Highlights a given component or clazz
-   *
-   * @param entity Component, communication link or clazz which shall be highlighted
-   * @param applicationObject3D Application which contains the entity
-   */
-
-  @action
-  highlight(
-    entity: any,
-    applicationObject3D: ApplicationObject3D,
-    color?: THREE.Color,
-    sendMessage = true
-  ) {
-    if (isEntityMesh(entity)) {
-      this.highlightingService.highlight(entity, sendMessage, color);
-
-      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
-    }
-  }
-
-  @action
-  highlightExternLink(
-    mesh: EntityMesh,
-    sendMessage: boolean,
-    color?: THREE.Color
-  ) {
-    if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightingService.highlight(mesh, sendMessage, color);
-      //this.updateLinks?.();
-      this.highlightingService.updateHighlighting();
-    }
-  }
-
-  /**
    * Opens all parents / components of a given component or clazz.
    * Adds communication and restores highlighting.
    *
    * @param entity Component or Clazz of which the mesh parents shall be opened
    */
   @action
-  openParents(entity: Package | Class, applicationId: string) {
+  openParents(entity: Package | Class | EntityMesh, applicationId: string) {
+    let entityModel = entity;
+
+    if (!entity) {
+      return;
+    }
+
+    // do not re-calculate if mesh is already visible
+    if (isEntityMesh(entityModel)) {
+      if (entityModel.visible) {
+        return;
+      } else {
+        entityModel = (entity as EntityMesh).dataModel as Package | Class;
+      }
+    }
+
     const applicationObject3D = this.getApplicationById(applicationId);
     if (!applicationObject3D) {
       return;
     }
 
     EntityManipulation.openComponentsByList(
-      EntityManipulation.getAllAncestorComponents(entity),
+      EntityManipulation.getAllAncestorComponents(entityModel),
       applicationObject3D
     );
 
@@ -503,7 +487,10 @@ export default class ApplicationRenderer extends Service.extend({
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(application);
+        this.appCommRendering.addCommunication(
+          application,
+          this.userSettings.applicationSettings
+        );
       } else {
         application.removeAllCommunication();
       }
@@ -535,8 +522,8 @@ export default class ApplicationRenderer extends Service.extend({
     });
   }
 
-  restoreFromSerialization(room: SerializedVrRoom) {
-    this.forEachOpenApplication(this.removeApplicationLocally);
+  restoreFromSerialization(room: SerializedRoom) {
+    this.cleanup();
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.unhighlight();
@@ -557,12 +544,10 @@ export default class ApplicationRenderer extends Service.extend({
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
-          this.highlightExternLink(
-            linkMesh,
-            false,
-            new THREE.Color().fromArray(externLink.color)
-          );
-          linkMesh.highlight();
+          this.highlightingService.highlight(linkMesh, {
+            sendMessage: false,
+            remoteColor: new THREE.Color().fromArray(externLink.color),
+          });
         }
       });
     }
@@ -570,6 +555,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   cleanup() {
+    this.forEachOpenApplication(this.removeApplicationLocally);
     this.openApplicationsMap.clear();
   }
 

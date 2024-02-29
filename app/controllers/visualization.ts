@@ -1,58 +1,64 @@
-import ENV from 'explorviz-frontend/config/environment';
 import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
-} from 'collaborative-mode/services/local-user';
-import ElkConstructor from 'elkjs/lib/elk-api';
-import debugLogger from 'ember-debug-logger';
-import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ReloadHandler from 'explorviz-frontend/services/reload-handler';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import TimestampRepository, {
-  Timestamp,
-} from 'explorviz-frontend/services/repos/timestamp-repository';
-import TimestampService from 'explorviz-frontend/services/timestamp';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import * as THREE from 'three';
-import VrRoomSerializer from 'virtual-reality/services/vr-room-serializer';
-import WebSocketService from 'virtual-reality/services/web-socket';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
+} from 'collaboration/services/local-user';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import SpectateUser from 'collaboration/services/spectate-user';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import {
-  InitialLandscapeMessage,
   INITIAL_LANDSCAPE_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/landscape';
+  InitialLandscapeMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/landscape';
 import {
-  TimestampUpdateTimerMessage,
   TIMESTAMP_UPDATE_TIMER_EVENT,
-} from 'virtual-reality/utils/vr-message/receivable/timestamp-update-timer';
+  TimestampUpdateTimerMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
 import {
-  TimestampUpdateMessage,
+  SYNC_ROOM_STATE_EVENT,
+  SyncRoomStateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
+import {
   TIMESTAMP_UPDATE_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/timetsamp_update';
+  TimestampUpdateMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from 'virtual-reality/utils/vr-message/sendable/visualization_mode_update';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+} from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedApp,
   SerializedDetachedMenu,
-  SerializedHighlightedComponent,
-} from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+  SerializedPopup,
+} from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
+import debugLogger from 'ember-debug-logger';
+import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
+import ENV from 'explorviz-frontend/config/environment';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import ReloadHandler from 'explorviz-frontend/services/reload-handler';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import TimestampService from 'explorviz-frontend/services/timestamp';
+import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import * as THREE from 'three';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -73,11 +79,17 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
 
-  @service('landscape-restructure') landscapeRestructure!: LandscapeRestructure;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
-  @service('repos/timestamp-repository') timestampRepo!: TimestampRepository;
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
+
+  @service('timestamp-polling')
+  timestampPollingService!: TimestampPollingService;
 
   @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
 
@@ -91,8 +103,11 @@ export default class VisualizationController extends Controller {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('virtual-reality@vr-room-serializer')
-  roomSerializer!: VrRoomSerializer;
+  @service('detached-menu-renderer')
+  detachedMenuRenderer!: DetachedMenuRenderer;
+
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
 
   @service('timestamp')
   timestampService!: TimestampService;
@@ -115,15 +130,20 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('spectate-user')
+  spectateUser!: SpectateUser;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
+
   plotlyTimelineRef!: PlotlyTimeline;
 
   queryParams = ['roomId'];
 
-  @tracked
-  roomId?: string;
+  selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
-  selectedTimestampRecords: Timestamp[] = [];
+  roomId?: string | undefined | null;
 
   @tracked
   showSettingsSidebar = false;
@@ -150,20 +170,18 @@ export default class VisualizationController extends Controller {
   timelineTimestamps: Timestamp[] = [];
 
   @tracked
+  highlightedMarkerColor = 'blue';
+
+  @tracked
   vrSupported: boolean = false;
 
   @tracked
   buttonText: string = '';
 
   @tracked
-  elk = new ElkConstructor({
-    workerUrl: './assets/web-workers/elk-worker.min.js',
-  });
-
-  @tracked
   flag: boolean = false; // default value
 
-  debug = debugLogger();
+  private readonly debug = debugLogger();
 
   get isLandscapeExistentAndEmpty() {
     return (
@@ -180,17 +198,24 @@ export default class VisualizationController extends Controller {
   }
 
   get showTimeline() {
-    return !this.showAR && !this.showVR && !this.isSingleLandscapeMode;
+    return (
+      this.landscapeData &&
+      !this.showAR &&
+      !this.showVR &&
+      !this.isSingleLandscapeMode &&
+      this.spectateUser.spectateConfigurationId !== 'arena-2'
+    );
   }
 
-  get showXRButton() {
-    return this.userSettings.applicationSettings.showXRButton.value;
+  get showVrButton() {
+    return this.userSettings.applicationSettings.showVrButton.value;
   }
 
   @action
   setupListeners() {
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
 
     if (!this.isSingleLandscapeMode) {
       this.webSocket.on(
@@ -232,16 +257,32 @@ export default class VisualizationController extends Controller {
 
   @action
   receiveNewLandscapeData(
-    structureData: StructureLandscapeData,
+    structureData: StructureLandscapeData | null,
     dynamicData: DynamicLandscapeData
   ) {
+    if (
+      !structureData ||
+      this.landscapeTokenService.token?.value !==
+        this.landscapeData?.structureLandscapeData.landscapeToken
+    ) {
+      this.landscapeData = null;
+      this.updateTimestampList();
+      return;
+    }
+
     this.debug('receiveNewLandscapeData');
-    if (!this.visualizationPaused) {
-      this.updateLandscape(structureData, dynamicData);
-      if (this.timelineTimestamps.lastObject) {
-        this.timestampService.timestamp =
-          this.timelineTimestamps.lastObject?.timestamp;
-      }
+    if (this.visualizationPaused) {
+      return;
+    }
+
+    this.updateLandscape(structureData, dynamicData);
+    if (this.timelineTimestamps.lastObject) {
+      this.timestampService.timestamp =
+        this.timelineTimestamps.lastObject?.epochMilli;
+      this.selectedTimestampRecords = [
+        this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
+      ];
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
     }
   }
 
@@ -308,6 +349,11 @@ export default class VisualizationController extends Controller {
   @action
   resetView() {
     this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+  }
+
+  @action
+  resetTimestampPolling() {
+    this.timestampPollingService.resetPolling();
   }
 
   @action
@@ -396,33 +442,36 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(timestampRecordArray: Timestamp[]) {
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
     if (
       this.selectedTimestampRecords.length > 0 &&
-      timestampRecordArray[0] === this.selectedTimestampRecords[0]
+      selectedTimestamps[0] === this.selectedTimestampRecords[0]
     ) {
       return;
     }
+    this.selectedTimestampRecords = selectedTimestamps;
     this.pauseVisualizationUpdating();
-    this.updateTimestamp(
-      timestampRecordArray[0].timestamp,
-      timestampRecordArray
-    );
+    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
 
-  async updateTimestamp(timestamp: number, timestampRecordArray?: Timestamp[]) {
+  async updateTimestamp(
+    epochMilli: number,
+    timestampRecordArray?: Timestamp[]
+  ) {
     try {
       const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
 
       this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
-        set(this, 'selectedTimestampRecords', timestampRecordArray);
+        this.selectedTimestampRecords = timestampRecordArray;
       }
-      this.timestampService.timestamp = timestamp;
+      this.timestampService.timestamp = epochMilli;
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
-      AlertifyHandler.showAlertifyMessage("Landscape couldn't be requested!");
+      this.toastHandlerService.showErrorToastMessage(
+        "Landscape couldn't be requested!"
+      );
       this.resumeVisualizationUpdating();
     }
   }
@@ -451,16 +500,18 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      set(this, 'selectedTimestampRecords', []);
-      this.plotlyTimelineRef.resetHighlighting();
-      AlertifyHandler.showAlertifyMessage('Visualization resumed!');
+      this.highlightedMarkerColor = 'blue ';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(false);
     }
   }
 
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      AlertifyHandler.showAlertifyMessage('Visualization paused!');
+      this.highlightedMarkerColor = 'red';
+      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      animatePlayPauseButton(true);
     }
   }
 
@@ -470,7 +521,9 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    this.landscapeListener.initLandscapePolling();
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -480,8 +533,11 @@ export default class VisualizationController extends Controller {
     this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
     this.resetLandscapeListenerPolling();
+    this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
+
+    this.roomId = null;
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -495,6 +551,7 @@ export default class VisualizationController extends Controller {
         this,
         this.onTimestampUpdateTimer
       );
+      this.webSocket.off(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
     }
 
     if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
@@ -503,6 +560,38 @@ export default class VisualizationController extends Controller {
         this,
         this.onTimestampUpdate
       );
+    }
+  }
+
+  timestampPollingCallback(timestamps: Timestamp[]) {
+    this.timestampRepo.addTimestamps(
+      this.landscapeTokenService.token!.value,
+      timestamps
+    );
+
+    if (timestamps.length > 0) {
+      this.timestampRepo.triggerTimelineUpdate();
+    }
+
+    const lastSelectTimestamp = this.timestampService.timestamp;
+
+    if (this.visualizationPaused) {
+      return;
+    }
+
+    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
+      this.landscapeTokenService.token!.value,
+      lastSelectTimestamp
+    );
+
+    if (
+      timestampToRender &&
+      JSON.stringify(this.selectedTimestampRecords) !==
+        JSON.stringify([timestampToRender])
+    ) {
+      this.updateTimestamp(timestampToRender.epochMilli);
+      this.selectedTimestampRecords = [timestampToRender];
+      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords);
     }
   }
 
@@ -517,27 +606,25 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-  }: //openApps,
-  //detachedMenus,
-  InitialLandscapeMessage): Promise<void> {
+  }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
       await timeout(50);
     }
-    // now we can be sure our linkRenderer has all extern links
+    // Now we can be sure our linkRenderer has all extern links
 
     // Serialized room is used in landscape-data-watcher
     this.roomSerializer.serializedRoom = {
       landscape: landscape,
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks:
-        highlightedExternCommunicationLinks as SerializedHighlightedComponent[],
+      highlightedExternCommunicationLinks,
+      popups: [], // ToDo
     };
 
     this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
-    // disable polling. It is now triggerd by the websocket.
+    // Disable polling. It is now triggerd by the websocket.
     this.resetLandscapeListenerPolling();
   }
 
@@ -553,6 +640,38 @@ export default class VisualizationController extends Controller {
     this.resetLandscapeListenerPolling();
     this.landscapeListener.pollData(timestamp);
     this.updateTimestamp(timestamp);
+  }
+
+  async onSyncRoomState(event: {
+    userId: string;
+    originalMessage: SyncRoomStateMessage;
+  }) {
+    const {
+      landscape,
+      openApps,
+      highlightedExternCommunicationLinks,
+      popups,
+      detachedMenus,
+    } = event.originalMessage;
+    const serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      highlightedExternCommunicationLinks,
+      popups: popups as SerializedPopup[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+    };
+
+    this.applicationRenderer.restoreFromSerialization(serializedRoom);
+    this.detachedMenuRenderer.restore(
+      serializedRoom.popups,
+      serializedRoom.detachedMenus
+    );
+
+    this.highlightingService.updateHighlighting();
+
+    this.toastHandlerService.showInfoToastMessage(
+      'Room state synchronizing ...'
+    );
   }
 
   /**

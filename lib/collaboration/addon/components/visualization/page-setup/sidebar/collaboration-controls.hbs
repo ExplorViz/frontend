@@ -1,0 +1,130 @@
+{{#if (eq this.collaborationSession.connectionStatus 'online')}}
+  <div>
+    <label class='bold'>Room: </label>
+    <label>{{this.collaborationSession.currentRoomId}}</label>
+  </div>
+
+  <div>
+    <label class='bold'>Landscape: </label>
+    <select
+      class='form-select'
+      aria-label='Default select example'
+      style='max-width: calc(100% - 100px);'
+      {{on 'change' this.landscapeSelected}}
+    >
+      {{#each this.landscapeTokens as |token|}}
+        <option
+          selected={{eq token.value this.tokenService.token.value}}
+          value={{token.value}}
+        >{{token.alias}}</option>
+      {{/each}}
+    </select>
+  </div>
+
+  {{! Indicator that device should be in control of spectating configurations }}
+  {{#if (eq this.deviceId 'main')}}
+    <div>
+      <label class='bold'>Spectate Configuration: </label>
+      <select
+        class='form-select'
+        aria-label='Default select example'
+        {{on 'change' this.configurationSelected}}
+      >
+        <option value='default'>Default</option>
+        <option value='arena-2'>ARENA2</option>
+      </select>
+    </div>
+  {{/if}}
+
+  <label class='bold'>Users:</label>
+
+  <ul>
+    {{#each this.users as |user|}}
+      <div class='flex-space-between collaboration-list-item'>
+        <li style={{html-safe user.style}}>
+          <div class='nav-link-with-cursor'>
+            {{user.name}}
+          </div>
+        </li>
+        {{#if user.isLocalUser}}
+          <BsButton
+            title='Share settings with other users'
+            {{on 'click' this.shareSettings}}
+            @type='primary'
+            @outline={{true}}
+          >
+            Share Settings
+          </BsButton>
+        {{/if}}
+        {{#if user.isSpectatable}}
+          <BsButton
+            title={{if user.isSpectatedByUs 'End Spectating' 'Spectate'}}
+            {{on 'click' (fn this.toggleSpectate user)}}
+            @type={{if user.isSpectatedByUs 'danger' 'success'}}
+            @outline={{true}}
+          >
+            {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
+          </BsButton>
+        {{/if}}
+      </div>
+    {{/each}}
+  </ul>
+
+{{/if}}
+
+{{#if (eq this.collaborationSession.connectionStatus 'offline')}}
+  <div class='flex-space-between'>
+    <label class='bold'>{{if this.rooms 'Rooms:' 'No rooms available'}}</label>
+
+    <BsButton
+      title='Reload Rooms'
+      {{on 'click' this.loadRooms}}
+      @type='secondary'
+      @outline={{true}}
+    >
+      {{svg-jar 'sync-16' class='octicon'}}
+    </BsButton>
+  </div>
+
+  <ul>
+    {{#each this.rooms as |room|}}
+      <div class='flex-space-between collaboration-list-item'>
+        <li>
+          {{room.roomName}}
+        </li>
+        <BsButton
+          title='Join Room'
+          {{on 'click' (fn this.joinRoom room)}}
+          @type='success'
+          @outline={{true}}
+        >
+          Join
+        </BsButton>
+      </div>
+    {{/each}}
+  </ul>
+
+  {{#if this.timestampService.timestamp}}
+    <BsButton
+      title='Host Room'
+      {{on 'click' this.hostRoom}}
+      @type='secondary'
+      @outline={{true}}
+    >
+      Host Room
+    </BsButton>
+  {{else}}
+    <label class='bold'>No landscape data available. Cannot host room. </label>
+  {{/if}}
+{{/if}}
+
+{{#if (eq this.collaborationSession.connectionStatus 'online')}}
+  <BsButton
+    title='Disconnect from Room'
+    {{on 'click' this.leaveSession}}
+    @type='danger'
+    @outline={{true}}
+  >
+    Disconnect
+  </BsButton>
+{{/if}}

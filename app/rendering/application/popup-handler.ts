@@ -2,38 +2,39 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { SerializedPopup } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
-import * as THREE from 'three';
-import DetachedMenuRenderer from 'virtual-reality/services/detached-menu-renderer';
-import WebSocketService from 'virtual-reality/services/web-socket';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'virtual-reality/utils/vr-helpers/detail-info-composer';
-import { ForwardedMessage } from 'virtual-reality/utils/vr-message/receivable/forwarded';
-import { MenuDetachedForwardMessage } from 'virtual-reality/utils/vr-message/receivable/menu-detached-forward';
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
-  isMenuDetachedResponse,
   MenuDetachedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/menu-detached';
+  isMenuDetachedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
-  isObjectClosedResponse,
   ObjectClosedResponse,
-} from 'virtual-reality/utils/vr-message/receivable/response/object-closed';
+  isObjectClosedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 import {
-  DetachedMenuClosedMessage,
   DETACHED_MENU_CLOSED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/detached_menu_closed';
+  DetachedMenuClosedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
-  MenuDetachedMessage,
   MENU_DETACHED_EVENT,
-} from 'virtual-reality/utils/vr-message/sendable/request/menu_detached';
-import { SerializedDetachedMenu } from 'virtual-reality/utils/vr-multi-user/serialized-vr-room';
+  MenuDetachedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import * as THREE from 'three';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -42,11 +43,14 @@ export default class PopupHandler {
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('web-socket')
-  private webSocket!: WebSocketService;
-
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   @tracked
   popupData: PopupData[] = [];
@@ -55,7 +59,7 @@ export default class PopupHandler {
     setOwner(this, owner);
     this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
     this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-    this.detachedMenuRenderer.on('restore_popups', this, this.onRestoreMenus);
+    this.detachedMenuRenderer.on('restore_popups', this, this.onRestorePopups);
   }
 
   @action
@@ -65,7 +69,12 @@ export default class PopupHandler {
 
   @action
   removeUnpinnedPopups() {
-    this.popupData = this.popupData.filterBy('isPinned', true);
+    this.popupData = this.popupData.filter((data) => data.isPinned);
+  }
+
+  @action
+  removeUnmovedPopups() {
+    this.popupData = this.popupData.filter((data) => data.wasMoved);
   }
 
   @action
@@ -83,7 +92,7 @@ export default class PopupHandler {
     >(
       MENU_DETACHED_EVENT,
       {
-        event: 'menu_detached',
+        event: MENU_DETACHED_EVENT,
         detachId: entityId,
         entityType: getTypeOfEntity(mesh),
         position: worldPosition.toArray(),
@@ -100,7 +109,7 @@ export default class PopupHandler {
           return true;
         },
         onOffline: () => {
-          // not used atm
+          // Not used at the moment
         },
       }
     );
@@ -108,61 +117,55 @@ export default class PopupHandler {
 
   @action
   pinPopup(popup: PopupData) {
-    this.pinPopupLocally(popup.mesh.getModelId());
+    popup.isPinned = true;
   }
 
   @action
-  pinPopupLocally(entityId: string) {
-    this.popupData.forEach((popup) => {
-      if (popup.entity.id === entityId) {
-        popup.isPinned = true;
-      }
-    });
-    this.popupData = [...this.popupData];
-  }
-
-  @action
-  removePopup(entityId: string) {
+  async removePopup(entityId: string) {
     const popup = this.popupData.find((pd) => pd.entity.id === entityId);
-    if (popup) {
-      if (!popup.menuId) {
-        this.popupData = this.popupData.filter(
-          (pd) => pd.entity.id !== entityId
-        );
-        return;
-      }
-      this.webSocket.sendRespondableMessage<
-        DetachedMenuClosedMessage,
-        ObjectClosedResponse
-      >(
-        DETACHED_MENU_CLOSED_EVENT,
-        {
-          event: 'detached_menu_closed',
-          menuId: popup.menuId,
-          nonce: 0, // will be overwritten
-        },
-        {
-          responseType: isObjectClosedResponse,
-          onResponse: (response: ObjectClosedResponse) => {
-            if (response.isSuccess) {
-              this.popupData = this.popupData.filter(
-                (pd) => pd.entity.id !== entityId
-              );
-            }
-            return response.isSuccess;
-          },
-          onOffline: () => {
-            this.popupData = this.popupData.filter(
-              (pd) => pd.entity.id !== entityId
-            );
-          },
-        }
+    if (!popup) {
+      return;
+    }
+
+    if (await this.canRemovePopup(popup)) {
+      this.popupData = this.popupData.filter((pd) => pd.entity.id !== entityId);
+    } else {
+      this.toastHandlerService.showErrorToastMessage(
+        'Could not remove popup since it is currently in use by another user.'
       );
     }
   }
 
+  private async canRemovePopup(popup: PopupData) {
+    // Popup / menu cannot be grabbed by other user without menuId
+    if (!popup.menuId) {
+      return true;
+    }
+
+    return this.webSocket.sendRespondableMessage<
+      DetachedMenuClosedMessage,
+      ObjectClosedResponse
+    >(
+      DETACHED_MENU_CLOSED_EVENT,
+      {
+        event: 'detached_menu_closed',
+        menuId: popup.menuId,
+        nonce: 0, // will be overwritten
+      },
+      {
+        responseType: isObjectClosedResponse,
+        onResponse: (response: ObjectClosedResponse) => {
+          return response.isSuccess;
+        },
+        onOffline: () => {
+          return true;
+        },
+      }
+    );
+  }
+
   @action
-  hover(mesh?: THREE.Object3D) {
+  handleHoverOnMesh(mesh?: THREE.Object3D) {
     if (isEntityMesh(mesh)) {
       this.popupData.forEach((pd) => {
         pd.hovered = pd.entity.id === mesh.getModelId();
@@ -178,6 +181,7 @@ export default class PopupHandler {
   addPopup({
     mesh,
     position,
+    wasMoved,
     pinned,
     replace,
     menuId,
@@ -186,30 +190,30 @@ export default class PopupHandler {
   }: {
     mesh: THREE.Object3D;
     position?: Position2D;
+    wasMoved?: boolean;
     pinned?: boolean;
     replace?: boolean;
-    menuId?: string;
+    menuId?: string | null;
     sharedBy?: string;
     hovered?: boolean;
   }) {
     if (!isEntityMesh(mesh)) {
       return;
     }
-
     let popupPosition = position;
 
     // Popups shared by other users have no position information
     if (!popupPosition) {
       popupPosition = {
         x: 100,
-        y: 200 + this.popupData.length * 50,
+        y: 200 + this.popupData.length * 50, // Stack popups vertically
       };
     }
 
     const newPopup = new PopupData({
       mouseX: popupPosition.x,
       mouseY: popupPosition.y,
-      wasMoved: false,
+      wasMoved: wasMoved || false,
       entity: mesh.dataModel,
       mesh,
       applicationId: (
@@ -221,36 +225,52 @@ export default class PopupHandler {
       hovered: hovered || false,
     });
 
+    // Replace all existing popups with new popup
     if (replace) {
       this.popupData = [newPopup];
+      return;
+    }
+
+    // Check if popup for entity already exists and update it if so
+    const maybePopup = this.popupData.find(
+      (pd) => pd.entity.id === newPopup.entity.id
+    );
+    if (maybePopup) {
+      this.updateExistingPopup(maybePopup, newPopup);
+      return;
+    }
+
+    // Ensure that there is at most one unpinned popup
+    const unpinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
+
+    if (unpinnedPopupIndex === -1 || newPopup.isPinned) {
+      this.popupData = [...this.popupData, newPopup];
     } else {
-      const popupAlreadyExists = this.popupData.find(
-        (pd) => pd.entity.id === newPopup.entity.id
-      );
-      if (popupAlreadyExists) {
-        return;
-      }
+      const unpinnedPopup = this.popupData[unpinnedPopupIndex];
+      // Replace unpinned popup
+      this.popupData[unpinnedPopupIndex] = newPopup;
+      this.popupData = [...this.popupData];
 
-      const unpinnedPopupIndex = this.popupData.findIndex((pd) => !pd.isPinned);
-
-      if (unpinnedPopupIndex === -1) {
-        this.popupData = [...this.popupData, newPopup];
-      } else {
-        const unpinnedPopup = this.popupData[unpinnedPopupIndex];
-        // Replace unpinned popup
-        this.popupData[unpinnedPopupIndex] = newPopup;
-        this.popupData = [...this.popupData];
-
-        // Place new popup at same position of previously moved popup
-        if (unpinnedPopup.wasMoved) {
-          newPopup.mouseX = unpinnedPopup.mouseX;
-          newPopup.mouseY = unpinnedPopup.mouseY;
-          newPopup.wasMoved = true;
-        }
+      // Place new popup at same position of previously moved popup
+      if (unpinnedPopup.wasMoved) {
+        newPopup.mouseX = unpinnedPopup.mouseX;
+        newPopup.mouseY = unpinnedPopup.mouseY;
+        newPopup.wasMoved = true;
       }
     }
   }
 
+  private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
+    popup.wasMoved = newPopup.wasMoved;
+    popup.isPinned = newPopup.isPinned;
+    popup.sharedBy = newPopup.sharedBy;
+    this.updateMeshReference(popup);
+  }
+
+  /**
+   *
+   * React on detached menu (popup in VR) update and show a regular HTML popup.
+   */
   onMenuDetached({ objectId, userId, detachId }: MenuDetachedForwardMessage) {
     const mesh = this.applicationRenderer.getMeshById(detachId);
     if (!mesh) {
@@ -259,30 +279,29 @@ export default class PopupHandler {
 
     this.addPopup({
       mesh,
+      wasMoved: true,
       pinned: true,
       sharedBy: userId,
       menuId: objectId,
     });
   }
 
-  onRestoreMenus(detachedMenus: SerializedDetachedMenu[]) {
-    for (const detachedMenu of detachedMenus) {
-      const { userId, objectId, entityId } = detachedMenu;
+  onRestorePopups(popups: SerializedPopup[]) {
+    this.popupData = [];
 
-      if (!userId || !objectId) {
+    for (const popup of popups) {
+      const mesh = this.applicationRenderer.getMeshById(popup.entityId);
+      if (!mesh) {
         continue;
       }
 
-      const mesh = this.applicationRenderer.getMeshById(entityId);
-
-      if (mesh) {
-        this.addPopup({
-          mesh,
-          pinned: true,
-          sharedBy: userId,
-          menuId: objectId,
-        });
-      }
+      this.addPopup({
+        mesh,
+        wasMoved: true,
+        pinned: true,
+        sharedBy: popup.userId || undefined,
+        menuId: popup.menuId,
+      });
     }
   }
 
@@ -307,5 +326,6 @@ export default class PopupHandler {
   willDestroy() {
     this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
     this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.detachedMenuRenderer.off('restore_popups', this, this.onRestorePopups);
   }
 }

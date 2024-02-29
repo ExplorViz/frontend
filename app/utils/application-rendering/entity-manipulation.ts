@@ -11,7 +11,7 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
@@ -41,12 +41,15 @@ export function openComponentsByList(
   components: Package[],
   application: ApplicationObject3D
 ) {
+  let didOpenComponent = false;
   components.forEach((component) => {
     const ancestorMesh = application.getBoxMeshbyModelId(component.id);
-    if (ancestorMesh instanceof ComponentMesh) {
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
+      didOpenComponent = true;
       openComponentMesh(ancestorMesh, application);
     }
   });
+  return didOpenComponent;
 }
 
 /**
@@ -70,7 +73,7 @@ export function openComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.25,
-    y: mesh.position.y - mesh.layout.height / 2 + 0.75,
+    y: mesh.layout.positionY,
   });
 
   mesh.opened = true;
@@ -118,7 +121,7 @@ export function closeComponentMesh(
 
   gsap.to(mesh.position, {
     duration: 0.5,
-    y: mesh.position.y - 0.75 + mesh.layout.height / 2,
+    y: mesh.layout.positionY + 0.75,
   });
 
   mesh.opened = false;
@@ -183,7 +186,7 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -210,7 +213,7 @@ export function openComponentsRecursively(
  */
 export function openAllComponents(
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);

@@ -194,11 +194,11 @@ export function addMethodToClass(
   const newMethod: Method = !isCopy
     ? {
         name: methodName,
-        hashCode: sha256(methodName).toString(),
+        methodHash: sha256(methodName).toString(),
       }
     : {
         name: methodName,
-        hashCode: methodName,
+        methodHash: methodName,
       };
 
   clazz.methods.push(newMethod);
@@ -546,7 +546,7 @@ export function changeID(
       clazz.id = id + clazz.id;
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
-          method.hashCode = id + method.hashCode;
+          method.methodHash = id + method.methodHash;
         });
       }
     });
@@ -554,7 +554,7 @@ export function changeID(
     wrapper.entity.id = id + wrapper.entity.id;
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
-        method.hashCode = id + method.hashCode;
+        method.methodHash = id + method.methodHash;
       });
     }
   }
@@ -589,7 +589,7 @@ export function restoreID(
       clazz.id = removePrependFromID(clazz.id, prependID);
       if (clazz.methods.length) {
         clazz.methods.forEach((method) => {
-          method.hashCode = removePrependFromID(method.hashCode, prependID);
+          method.methodHash = removePrependFromID(method.methodHash, prependID);
         });
       }
     });
@@ -597,7 +597,7 @@ export function restoreID(
     wrapper.entity.id = removePrependFromID(wrapper.entity.id, prependID);
     if (wrapper.entity.methods.length) {
       wrapper.entity.methods.forEach((method) => {
-        method.hashCode = removePrependFromID(method.hashCode, prependID);
+        method.methodHash = removePrependFromID(method.methodHash, prependID);
       });
     }
   }

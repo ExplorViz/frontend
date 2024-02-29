@@ -8,9 +8,17 @@ module.exports = (environment) => {
 
   const P_ENV = process.env;
 
-  // custom DOTENV file, e.g., "DOTENV=.env-custom ember s"
+  // Custom DOTENV file, e.g., "DOTENV=.env-custom ember s"
   if (P_ENV.DOTENV) {
-    DOTENV.config(path);
+    const dotEnvConfig = DOTENV.config(path);
+    // Detect and output errors when loading a config, e.g. a missing file
+    if (dotEnvConfig.error) {
+      throw (
+        new Error(
+          'Could not find .env-custom file. Did you follow the development instructions?\n'
+        ) + dotEnvConfig.error
+      );
+    }
   } else if (environment === 'production') {
     DOTENV.config({ path: '.env-prod' });
   } else {
@@ -24,13 +32,10 @@ module.exports = (environment) => {
     rootURL: '/',
     locationType: 'history',
     EmberENV: {
+      EXTEND_PROTOTYPES: true,
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
         // e.g. 'with-controller': true
-      },
-      EXTEND_PROTOTYPES: {
-        // Prevent Ember Data from overriding Date.parse.
-        Date: false,
       },
     },
     auth0: {
@@ -49,8 +54,7 @@ module.exports = (environment) => {
       },
     },
     backendAddresses: {
-      landscapeService: P_ENV.LANDSCAPE_SERV_URL,
-      traceService: P_ENV.TRACE_SERV_URL,
+      spanService: P_ENV.SPAN_SERV_URL,
       userService: P_ENV.USER_SERV_URL,
       vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,

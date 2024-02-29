@@ -62,8 +62,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from './user-settings';
 import {
   AppChangeLogEntry,
@@ -75,6 +74,7 @@ import {
 } from 'explorviz-frontend/utils/changelog-entry';
 import LandscapeListener from './landscape-listener';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import MessageSender from 'collaboration/services/message-sender';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -114,14 +114,17 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('vr-message-sender')
-  private sender!: VrMessageSender;
+  @service('message-sender')
+  private sender!: MessageSender;
 
   @tracked
   restructureMode: boolean = false;
 
   @tracked
   landscapeData: LandscapeData | null = null;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   /**
    * Using amount of new Meshes for unique mesh id's
@@ -256,12 +259,16 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
       this.sourceClass === null ||
       this.targetClass === null
     ) {
-      AlertifyHandler.showAlertifyError('Missing communication data');
+      this.toastHandlerService.showErrorToastMessage(
+        'Missing communication data'
+      );
       return;
     }
 
     if (this.sourceClass === this.targetClass) {
-      AlertifyHandler.showAlertifyError('Select 2 different classes');
+      this.toastHandlerService.showErrorToastMessage(
+        'Select 2 different classes'
+      );
       return;
     }
 
@@ -1644,7 +1651,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         });
       } else {
         if (!canDeletePackage(pckg, app as Application)) {
-          AlertifyHandler.showAlertifyError('Package cannot be removed');
+          this.toastHandlerService.showErrorToastMessage(
+            'Package cannot be removed'
+          );
           return;
         }
         removePackageFromApplication(pckg, app as Application);
@@ -1809,7 +1818,9 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         this.deletedDataModels.pushObject(clazz);
       } else {
         if (!canDeleteClass(clazz)) {
-          AlertifyHandler.showAlertifyError('Class cannot be removed');
+          this.toastHandlerService.showErrorToastMessage(
+            'Class cannot be removed'
+          );
           return;
         }
 

@@ -118,9 +118,9 @@ export function getHashCodeToClassMap(
   }
 
   classList.forEach((clazz) => {
-    clazz.methods.forEach(({ hashCode }) =>
-      hashCodeToClassMap.set(hashCode, clazz)
-    );
+    clazz.methods.forEach(({ methodHash }) => {
+      hashCodeToClassMap.set(methodHash, clazz);
+    });
   });
 
   return hashCodeToClassMap;
@@ -145,9 +145,9 @@ export function getSpanIdToClassMap(
   const spanIdToClassMap = new Map<string, Class>();
 
   trace.spanList.forEach((span) => {
-    const { hashCode, spanId } = span;
+    const { methodHash, spanId } = span;
 
-    const clazz = hashCodeToClassMap.get(hashCode);
+    const clazz = hashCodeToClassMap.get(methodHash);
 
     if (clazz !== undefined) {
       spanIdToClassMap.set(spanId, clazz);

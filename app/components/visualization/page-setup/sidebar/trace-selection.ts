@@ -75,7 +75,7 @@ export default class TraceSelection extends Component<Args> {
     this.args.applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
 
-      const firstClassHashCode = spanList[0].hashCode;
+      const firstClassHashCode = spanList[0].methodHash;
       const firstClass = hashCodeToClassInLandscapeMap.get(firstClassHashCode)!;
 
       traceIdToFirstClassMap.set(trace.traceId, firstClass);
@@ -99,7 +99,7 @@ export default class TraceSelection extends Component<Args> {
     this.args.applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
 
-      const lastClassHashCode = spanList[spanList.length - 1].hashCode;
+      const lastClassHashCode = spanList[spanList.length - 1].methodHash;
       const lastClass = hashCodeToClassInLandscapeMap.get(lastClassHashCode)!;
 
       traceIdToLastClassMap.set(trace.traceId, lastClass);

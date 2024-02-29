@@ -1,11 +1,11 @@
 export type SettingGroup =
-  | 'Colors'
-  | 'Highlighting'
-  | 'Hover Effects'
-  | 'Communication'
-  | 'Popup'
   | 'Camera'
-  | 'Extended Reality'
+  | 'Colors'
+  | 'Communication'
+  | 'Highlighting'
+  | 'Hover Effect'
+  | 'Popups'
+  | 'Virtual Reality'
   | 'Debugging';
 
 export type ApplicationColorSettingId =
@@ -30,18 +30,21 @@ export type ApplicationHighlightingSettingId =
 export type ApplicationHoveringSettingId = 'enableHoverEffects';
 
 export type ApplicationCommunicationSettingId =
+  | 'commThickness'
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationCameraSettingId = 'useOrthographicCamera';
+export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
-export type ApplicationXRSettingId = 'showXRButton';
+export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick';
+  | 'fullscreen'
+  | 'syncRoomState'
+  | 'resetToDefaults';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
@@ -77,20 +80,25 @@ export type ApplicationCommunicationSettings = Record<
   RangeSetting
 >;
 
-export type ApplicationDebugSettings = Record<
-  ApplicationDebugSettingId,
-  FlagSetting
->;
+export type ApplicationDebugSettings = {
+  showFpsCounter: FlagSetting;
+  showAxesHelper: FlagSetting;
+  showLightHelper: FlagSetting;
+  showVrOnClick: FlagSetting;
+  fullscreen: ButtonSetting;
+  syncRoomState: ButtonSetting;
+  resetToDefaults: ButtonSetting;
+};
 
 export type ApplicationPopupSettings = Record<
   ApplicationPopupSettingId,
   FlagSetting
 >;
 
-export type ApplicationCameraSettings = Record<
-  ApplicationCameraSettingId,
-  FlagSetting
->;
+export type ApplicationCameraSettings = {
+  useOrthographicCamera: FlagSetting;
+  cameraFov: RangeSetting;
+};
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
@@ -107,6 +115,23 @@ export interface Setting<T> {
   value: T;
   orderNumber: number;
   group: SettingGroup;
+}
+
+export interface ButtonSetting extends Setting<boolean> {
+  type:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'danger'
+    | 'warning'
+    | 'info'
+    | 'light'
+    | 'dark'
+    | 'link';
+  displayName: string;
+  description: string;
+  buttonText: string;
+  readonly isButtonSetting: true;
 }
 
 export interface FlagSetting extends Setting<boolean> {

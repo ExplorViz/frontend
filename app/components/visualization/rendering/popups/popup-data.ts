@@ -1,5 +1,5 @@
 import { tracked } from '@glimmer/tracking';
-import { EntityMesh } from 'virtual-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import {
   Application,
   Class,
@@ -28,6 +28,7 @@ export default class PopupData {
   @tracked
   mouseY: number;
 
+  @tracked
   wasMoved: boolean;
 
   entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
@@ -53,6 +54,7 @@ export default class PopupData {
     entity,
     mesh,
     applicationId,
+    wasMoved,
     isPinned,
     sharedBy,
     menuId,
@@ -61,7 +63,7 @@ export default class PopupData {
     this.mouseX = mouseX;
     this.mouseY = mouseY;
     this.entity = entity;
-    this.wasMoved = false;
+    this.wasMoved = wasMoved;
     this.mesh = mesh;
     this.applicationId = applicationId;
     this.isPinned = isPinned;

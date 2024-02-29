@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface Args {
@@ -13,7 +13,11 @@ interface Args {
 }
 
 export default class TraceOverview extends Component<Args> {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   @action
   showTraces() {
@@ -21,13 +25,13 @@ export default class TraceOverview extends Component<Args> {
       this.args;
 
     if (dynamicData.length === 0) {
-      AlertifyHandler.showAlertifyMessage('No Traces found!');
+      this.toastHandlerService.showInfoToastMessage('No Traces found!');
       return;
     }
     if (!visualizationPaused) {
       toggleVisualizationUpdating();
     }
-    AlertifyHandler.showAlertifyMessage('Visualization paused!');
+    this.toastHandlerService.showInfoToastMessage('Visualization paused!');
     this.args.toggleSettingsSidebarComponent('trace-selection');
   }
 }

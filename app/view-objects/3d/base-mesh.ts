@@ -148,6 +148,12 @@ export default abstract class BaseMesh<
       this.material.transparent = isTransparent;
       this.material.needsUpdate = true;
     }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.changeOpacity(opacity);
+      }
+    });
   }
 
   turnOpaque() {

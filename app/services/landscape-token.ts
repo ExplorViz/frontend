@@ -1,6 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import ENV from 'explorviz-frontend/config/environment';
 import Service from '@ember/service';
+import { inject as service } from '@ember/service';
+import Auth from 'explorviz-frontend/services/auth';
+import LandscapeListener from './landscape-listener';
+import ToastHandlerService from './toast-handler';
+const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
   alias: string;
@@ -14,6 +19,15 @@ export type LandscapeToken = {
 const tokenToShow = ENV.mode.tokenToShow;
 
 export default class LandscapeTokenService extends Service {
+  @service('auth')
+  private auth!: Auth;
+
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
+
   token: LandscapeToken | null = null;
 
   // Used in landscape selection to go back to last selected token
@@ -56,10 +70,52 @@ export default class LandscapeTokenService extends Service {
     }
   }
 
+  retrieveTokens() {
+    return new Promise<LandscapeToken[]>((resolve, reject) => {
+      const userId = encodeURI(this.auth.user?.sub || '');
+      if (!userId) {
+        resolve([]);
+      }
+
+      fetch(`${userService}/user/${userId}/token`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+        },
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as LandscapeToken[];
+            resolve(tokens);
+          } else {
+            reject();
+          }
+        })
+        .catch(async (e) => {
+          reject(e);
+        });
+    });
+  }
+
   setToken(token: LandscapeToken) {
+    if (token.value === this.token?.value) {
+      return;
+    }
+
     localStorage.setItem('currentLandscapeToken', JSON.stringify(token));
     this.set('latestToken', token);
     this.set('token', token);
+    this.landscapeListener.resetLandscapeData();
+    this.toastHandler.showInfoToastMessage(
+      `Set landscape token to " ${token.alias || token.value}"`
+    );
+  }
+
+  async setTokenByValue(tokenValue: string) {
+    const tokens = await this.retrieveTokens();
+    const token = tokens.find((t) => t.value === tokenValue);
+    if (token) {
+      this.setToken(token);
+    }
   }
 
   removeToken() {

@@ -1,4 +1,4 @@
-<div class='row h-100'>
+<div class='row h-100 {{if @isDisplayed "show" "hide"}}'>
   <div class='d-flex flex-column h-100 col-12'>
     <div
       id='rendering'
@@ -37,13 +37,12 @@
       {{/if}}
 
       <canvas
-        class='main-content-majority
-          {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
+        class='webgl {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{sync-state}}
         {{interaction-modifier
           raycastObjects=this.raycastObjects
           camera=this.localUser.camera
-          orthographicCamera=this.ortographicCamera
+          orthographicCamera=this.localUser.ortographicCamera
           singleClick=this.handleSingleClick
           doubleClick=this.handleDoubleClick
           mouseMove=this.handleMouseMove
@@ -51,6 +50,9 @@
           mouseStop=this.handleMouseStop
           strgDown=this.handleStrgDown
           strgUp=this.handleStrgUp
+          altDown=this.handleAltDown
+          altUp=this.handleAltUp
+          spaceDown=this.handleSpaceBar
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
         {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
@@ -71,17 +73,17 @@
       {{/if}}
 
       {{! popup(s) }}
-      {{#each this.popupHandler.popupData as |d|}}
+      {{#each this.popupHandler.popupData as |data|}}
         <Visualization::Rendering::Popups::PopupCoordinator
           @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
-          @popupData={{d}}
+          @popupData={{data}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
           @updateMeshReference={{this.popupHandler.updateMeshReference}}
           @removePopup={{this.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
           @showApplication={{this.showApplication}}
-          @highlightById={{this.highlightingService.highlightById}}
+          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
       {{/each}}
@@ -99,6 +101,9 @@
               <Visualization::PageSetup::Navbar::ApplicationSearchOpener
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
+              <Visualization::PageSetup::Navbar::TraceReplayerOpener
+                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              />
             </ul>
           </div>
           {{#each @componentsToolsSidebar as |componentId|}}
@@ -109,6 +114,20 @@
                   <Visualization::PageSetup::Sidebar::ApplicationSearch
                     @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
                   />
+                {{/if}}
+                {{#if (eq componentId 'Trace-Replayer')}}
+                  {{#if this.selectedApplicationObject3D}}
+                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                      @highlightTrace={{this.highlightTrace}}
+                      @moveCameraTo={{this.moveCameraTo}}
+                      @removeHighlighting={{this.removeAllHighlighting}}
+                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                      @structureData={{@landscapeData.structureLandscapeData}}
+                      @application={{this.selectedApplicationObject3D.data.application}}
+                    />
+                  {{else}}
+                    Please select an application to use the trace overview.
+                  {{/if}}
                 {{/if}}
               </div>
             </div>
@@ -125,16 +144,10 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              {{!-- <Visualization::PageSetup::Navbar::TraceOverview
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
-                @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
-                @visualizationPaused={{@visualizationPaused}}
-                @dynamicData={{@landscapeData.dynamicLandscapeData}}
-              /> --}}
-              <Visualization::PageSetup::Navbar::XrCollaborationOpener
+              <Visualization::PageSetup::Navbar::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::XrVscodeExtensionSettingsOpener
+              <Visualization::PageSetup::Navbar::VscodeExtensionSettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::RestructureOpener
@@ -150,10 +163,10 @@
               @componentId={{componentId}}
             >
               {{#if (eq componentId 'Collaboration')}}
-                <Visualization::PageSetup::Sidebar::XrCollaboration />
+                <Visualization::PageSetup::Sidebar::CollaborationControls />
               {{/if}}
               {{#if (eq componentId 'VSCode-Extension-Settings')}}
-                <Visualization::PageSetup::Sidebar::XrVscodeExtensionSettings />
+                <Visualization::PageSetup::Sidebar::VscodeExtensionSettings />
               {{/if}}
               {{#if (eq componentId 'Restructure-Landscape')}}
                 <Visualization::PageSetup::Sidebar::Restructure
@@ -165,26 +178,14 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
-              {{#if (eq componentId 'trace-selection')}}
-                {{#if this.selectedApplicationObject3D}}
-                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                    @highlightTrace={{this.highlightTrace}}
-                    @moveCameraTo={{this.moveCameraTo}}
-                    @removeHighlighting={{this.removeHighlighting}}
-                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                    @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.dataModel}}
-                  />
-                {{else}}
-                  Please select an application to use the trace overview.
-                {{/if}}
-              {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Settings
-                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
+                  @enterFullscreen={{this.enterFullscreen}}
+                  @popups={{this.popupHandler.popupData}}
                   @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                  @updateColors={{this.updateColors}}
                   @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
+                  @updateColors={{this.updateColors}}
+                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
                 />
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>

@@ -48,7 +48,7 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
     });
   } else {
     gsap.to(label.position, {
-      duration: 0.5,
+      duration: 0.25,
       x: 0,
     });
   }

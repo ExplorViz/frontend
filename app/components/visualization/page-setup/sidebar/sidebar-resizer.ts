@@ -75,28 +75,25 @@ export default class SidebarResizer extends Component<SidebarArgs> {
     };
 
     const elementMouseDrag = (e: MouseEvent) => {
-      const event = e || window.event;
-      event.preventDefault();
+      e.preventDefault();
 
       handleDragInput(e.clientX);
     };
 
     const elementTouchDrag = (e: TouchEvent) => {
-      const event = e || window.event;
-      event.preventDefault();
+      e.preventDefault();
 
-      if (event.targetTouches.length < 1) {
+      if (e.targetTouches.length < 1) {
         cancelDragElement();
       } else {
-        const { clientX } = event.targetTouches[0];
+        const { clientX } = e.targetTouches[0];
 
         handleDragInput(clientX);
       }
     };
 
     const dragMouseDown = (e: MouseEvent) => {
-      const event = e || window.event;
-      event.preventDefault();
+      e.preventDefault();
 
       document.onmouseup = cancelDragElement;
       // Call a function whenever the cursor moves:
@@ -104,10 +101,9 @@ export default class SidebarResizer extends Component<SidebarArgs> {
     };
 
     const dragTouchDown = (e: TouchEvent) => {
-      const event = e || window.event;
-      event.preventDefault();
+      e.preventDefault();
 
-      if (event.targetTouches.length > 0) {
+      if (e.targetTouches.length > 0) {
         document.ontouchcancel = cancelDragElement;
         document.ontouchend = cancelDragElement;
 

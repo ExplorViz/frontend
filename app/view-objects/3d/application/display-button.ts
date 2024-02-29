@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import BaseMesh from '../base-mesh';
 import Css3dFrame from './css-3d-frame';
-import CloseIcon from 'virtual-reality/utils/view-objects/vr/close-icon';
-import VrAssetRepository from 'virtual-reality/services/vr-asset-repo';
+import CloseIcon from 'extended-reality/utils/view-objects/vr/close-icon';
+import VrAssetRepository from 'extended-reality/services/vr-asset-repo';
 
 export default class DisplayButton extends BaseMesh {
   assetRepo: VrAssetRepository;

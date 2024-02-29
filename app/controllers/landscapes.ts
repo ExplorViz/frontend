@@ -5,7 +5,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
-import AlertifyHandler from 'explorviz-frontend/utils/alertify-handler';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 
@@ -26,6 +26,9 @@ export default class Landscapes extends Controller {
 
   @tracked
   tokenAlias: string = '';
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   @action
   openTokenCreationModal() {
@@ -52,10 +55,12 @@ export default class Landscapes extends Controller {
     try {
       const token = await this.sendTokenCreateRequest(this.tokenAlias);
       this.closeTokenCreationModal();
-      AlertifyHandler.showAlertifySuccess(`Token created: ${token.value}`);
+      this.toastHandlerService.showSuccessToastMessage(
+        `Token created: ${token.value}`
+      );
       this.send('refreshRoute');
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
   }
 
@@ -66,9 +71,11 @@ export default class Landscapes extends Controller {
 
     try {
       await this.sendTokenDeleteRequest(tokenId);
-      AlertifyHandler.showAlertifySuccess('Token successfully deleted');
+      this.toastHandlerService.showSuccessToastMessage(
+        'Token successfully deleted'
+      );
     } catch (e) {
-      AlertifyHandler.showAlertifyError(e.message);
+      this.toastHandlerService.showErrorToastMessage(e.message);
     }
     if (this.tokenService.token?.value === tokenId) {
       this.tokenService.removeToken();

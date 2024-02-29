@@ -10,7 +10,8 @@ import {
 import LandscapeListener from './landscape-listener';
 
 export default class ReloadHandler extends Service.extend(Evented) {
-  @service('landscape-listener') landscapeListener!: LandscapeListener;
+  @service('landscape-listener')
+  landscapeListener!: LandscapeListener;
 
   debug = debugLogger();
 
@@ -36,7 +37,17 @@ export default class ReloadHandler extends Service.extend(Evented) {
           structureDataPromise.value
         );
 
-        return [structure, dynamicDataPromise.value] as [
+        const dynamic = dynamicDataPromise.value;
+
+        for (const t of dynamic) {
+          const traceId = t.traceId;
+
+          for (const s of t.spanList) {
+            s.traceId = traceId;
+          }
+        }
+
+        return [structure, dynamic] as [
           StructureLandscapeData,
           DynamicLandscapeData,
         ];

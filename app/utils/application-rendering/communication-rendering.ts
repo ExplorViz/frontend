@@ -8,11 +8,12 @@ import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/c
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+import { ApplicationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -84,7 +85,10 @@ export default class CommunicationRendering {
    * @param applicationObject3D Contains all application meshes.
    *                            Computed communication is added to to object.
    */
-  addCommunication(applicationObject3D: ApplicationObject3D) {
+  addCommunication(
+    applicationObject3D: ApplicationObject3D,
+    settings: ApplicationSettings
+  ) {
     if (!this.configuration.isCommRendered) return;
 
     const application = applicationObject3D.data.application;
@@ -115,7 +119,10 @@ export default class CommunicationRendering {
     applicationObject3D.removeAllCommunication();
 
     // Compute communication Layout
-    const commLayoutMap = applyCommunicationLayout(applicationObject3D);
+    const commLayoutMap = applyCommunicationLayout(
+      applicationObject3D,
+      settings
+    );
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =
@@ -175,7 +182,8 @@ export default class CommunicationRendering {
             applicationObject3D.remove(mesh);
 
             commLayout.lineThickness = calculateLineThickness(
-              componentCommunication
+              componentCommunication,
+              this.userSettings.applicationSettings
             );
             // Create new component communication
           } else {

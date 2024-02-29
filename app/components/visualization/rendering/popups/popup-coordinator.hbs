@@ -1,85 +1,100 @@
 {{! template-lint-disable no-pointer-down-event-binding }}
 <div
-  class='popover'
+  class='popover {{unless @popupData.wasMoved "no-user-select"}}'
   {{on 'pointerdown' this.dragMouseDown}}
   {{on 'pointerover' this.onPointerOver}}
   {{on 'pointerout' this.onPointerOut}}
   {{did-insert this.setPopupPosition}}
   hover={{@popupData.hovered}}
 >
+  {{#if @isMovable}}
+    {{#if @popupData.wasMoved}}
+      {{#if @popupData.isPinned}}
+        <BsButton @type='secondary' @outline='true' disabled='true'>
+          {{svg-jar 'pin-16' class='octicon align-right'}}
+          <BsTooltip @placement='top' @triggerEvents='hover'>
+            Popup is pinned
+          </BsTooltip>
+        </BsButton>
+      {{else}}
+        <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
+          {{svg-jar 'pin-16' class='octicon align-right'}}
+          <BsTooltip @placement='top' @triggerEvents='hover'>
+            Pin Popup
+          </BsTooltip>
+        </BsButton>
+      {{/if}}
 
-  {{#if @popupData.isPinned}}
-    <BsButton @type='secondary' @outline='true' disabled='true'>
-      {{svg-jar 'pin-16' class='octicon align-right'}}
-      <BsTooltip @placement='top' @triggerEvents='hover'>
-        Popup is pinned
-      </BsTooltip>
-    </BsButton>
-  {{else}}
-    <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
-      {{svg-jar 'pin-16' class='octicon align-right'}}
-      <BsTooltip @placement='top' @triggerEvents='hover'>
-        Pin Popup
-      </BsTooltip>
-    </BsButton>
+      {{#if @popupData.sharedBy}}
+        <BsButton @type='secondary' @outline='true' disabled='true'>
+          {{svg-jar 'share-android-16' class='octicon align-right'}}
+          <BsTooltip @placement='top' @triggerEvents='hover'>
+            Popup is shared
+          </BsTooltip>
+        </BsButton>
+      {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
+        <BsButton @type='primary' @onClick={{fn @sharePopup @popupData}}>
+          {{svg-jar 'share-android-16' class='octicon align-middle'}}
+          <BsTooltip @placement='top' @triggerEvents='hover'>
+            Share popup with other users.
+          </BsTooltip>
+        </BsButton>
+      {{/if}}
+
+      <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
+        {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Highlight
+        </BsTooltip>
+      </BsButton>
+
+      <BsButton
+        class='popup-close-button'
+        @type='secondary'
+        @outline='true'
+        @onClick={{fn @removePopup @popupData.entity.id}}
+      >
+        X
+      </BsButton>
+    {{else}}
+      <BsButton
+        @type='secondary'
+        size='extra-small'
+        @outline='true'
+        disabled='true'
+      >
+        Shift + Mouse to Drag
+      </BsButton>
+    {{/if}}
   {{/if}}
-
-  {{#if @popupData.sharedBy}}
-    <BsButton @type='secondary' @outline='true' disabled='true'>
-      {{svg-jar 'share-android-16' class='octicon align-right'}}
-      <BsTooltip @placement='top' @triggerEvents='hover'>
-        Popup is shared
-      </BsTooltip>
-    </BsButton>
-  {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
-    <BsButton @type='primary' @onClick={{fn @sharePopup @popupData}}>
-      {{svg-jar 'share-android-16' class='octicon align-middle'}}
-      <BsTooltip @placement='top' @triggerEvents='hover'>
-        Share popup with other users.
-      </BsTooltip>
-    </BsButton>
-  {{/if}}
-
-  <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
-    {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
-    <BsTooltip @placement='top' @triggerEvents='hover'>
-      Highlight
-    </BsTooltip>
-  </BsButton>
-
-  <BsButton
-    id='popup-close-button'
-    style='float: right;'
-    @type='secondary'
-    @outline='true'
-    @onClick={{fn @removePopup @popupData.entity.id}}
-  >
-    X
-  </BsButton>
 
   {{#if (eq this.entityType 'application')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::FoundationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @application={{@popupData.entity}}
     />
   {{/if}}
 
   {{! application popups }}
   {{#if (eq this.entityType 'package')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::ComponentPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @component={{@popupData.entity}}
     />
   {{/if}}
   {{#if (eq this.entityType 'class')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::ClazzPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @clazz={{@popupData.entity}}
       @applicationId={{@popupData.applicationId}}
     />
   {{/if}}
   {{#if (eq this.entityType 'classCommunication')}}
-    <Visualization::Rendering::Popups::ApplicationPopups::CommunicationPopup
+    <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
       @communication={{@popupData.entity}}
       @showApplication={{@showApplication}}
-      @highlightById={{@highlightById}}
+      @toggleHighlightById={{@toggleHighlightById}}
       @openParents={{@openParents}}
     />
   {{/if}}

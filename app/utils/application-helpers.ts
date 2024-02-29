@@ -31,7 +31,7 @@ export function getAllMethodsInApplication(application: Application) {
 
 export function getAllMethodHashCodesInApplication(application: Application) {
   return getAllMethodsInApplication(application)
-    .map((method) => method.hashCode)
+    .map((method) => method.methodHash)
     .flat();
 }
 
