@@ -1,9 +1,9 @@
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import applyCommunicationLayout, {
   calculateLineThickness,
 } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import Configuration from 'explorviz-frontend/services/configuration';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/communication-layout';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
@@ -11,7 +11,7 @@ import ClazzCommuMeshDataModel from 'some-react-lib/src/view-objects/3d/applicat
 import LocalUser from 'collaborative-mode/services/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
-import { findFirstOpen } from '../link-helper';
+import { findFirstOpen } from 'some-react-lib/src/utils/link-helper';
 import ComponentCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from 'some-react-lib/src/utils/settings/settings-schemas';
 

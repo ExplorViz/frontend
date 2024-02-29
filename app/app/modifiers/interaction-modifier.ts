@@ -8,7 +8,7 @@ import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';

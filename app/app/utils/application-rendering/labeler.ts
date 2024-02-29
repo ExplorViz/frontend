@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ClazzLabelMesh from 'explorviz-frontend/view-objects/3d/application/clazz-label-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
+import ClazzLabelMesh from 'some-react-lib/src/view-objects/3d/application/clazz-label-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import ComponentLabelMesh from 'some-react-lib/src/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 

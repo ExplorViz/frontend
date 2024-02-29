@@ -7,14 +7,8 @@ import {
   Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import { setOwner } from '@ember/application';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import { inject as service } from '@ember/service';
 
 export default class CameraControls {
-  @service('user-settings')
-  userSettings!: UserSettings;
-
   private perspectiveCamera: PerspectiveCamera;
   private orthographicCamera: OrthographicCamera | undefined;
 
@@ -23,12 +17,10 @@ export default class CameraControls {
   enabled: boolean = true;
 
   constructor(
-    owner: any,
     perspectiveCamera: PerspectiveCamera,
     orthographicCamera: OrthographicCamera | undefined,
     canvas: HTMLCanvasElement
   ) {
-    setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
     this.orthographicCamera = orthographicCamera;
 

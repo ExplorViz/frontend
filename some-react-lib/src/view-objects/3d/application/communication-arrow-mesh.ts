@@ -1,7 +1,10 @@
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+/* import { VisualizationMode } from 'collaborative-mode/services/local-user'; */
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
+
+/* type copied from local-user service. Delete once it is migrated */
+export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   dataModel: ClassCommunication | ComponentCommunication;

@@ -17,7 +17,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'some-react-lib/src/utils/application-rendering/camera-controls';
 import {
   moveCameraTo,
   updateColors,
@@ -27,7 +27,7 @@ import {
   Trace,
 } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -347,7 +347,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.ortographicCamera.lookAt(this.scene.position);
     // controls
     this.cameraControls = new CameraControls(
-      getOwner(this),
       this.camera,
       this.ortographicCamera,
       this.canvas

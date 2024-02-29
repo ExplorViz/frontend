@@ -1,7 +1,7 @@
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import {
   Class,
   isApplication,

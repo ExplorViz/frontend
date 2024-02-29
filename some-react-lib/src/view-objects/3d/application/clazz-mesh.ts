@@ -2,8 +2,11 @@ import { Class } from 'some-react-lib/src/utils/landscape-schemes/structure-data
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
-import ClazzLabelMesh from './clazz-label-mesh';
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import ClazzLabelMesh from 'some-react-lib/src/view-objects/3d/application/clazz-label-mesh';
+/* import { VisualizationMode } from 'collaborative-mode/services/local-user'; */
+
+/* type copied from local-user service. Delete once it is migrated */
+export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
 export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;

@@ -1,4 +1,4 @@
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 
 /**
  * For the VR extension, we need a custom view object for applications to

@@ -3,7 +3,10 @@ import CommunicationLayout from 'some-react-lib/src/view-objects/layout-models/c
 import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'some-react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+/* import { VisualizationMode } from 'collaborative-mode/services/local-user'; */
+
+/* type copied from local-user service. Delete once it is migrated */
+export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;

@@ -9,7 +9,7 @@ export default class Spheres {
 
   constructor(color: string, vector: THREE.Vector3) {
     this.vector = vector;
-    const spheres = [];
+    const spheres: THREE.Mesh[] = [];
     const sphereGeometry = new THREE.SphereGeometry(0.02, 32, 32);
     const sphereMaterial = new THREE.MeshBasicMaterial({ color });
 

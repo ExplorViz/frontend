@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import LabelMesh from 'some-react-lib/src/view-objects/3d/label-mesh';
+import LabelMesh from '../label-mesh';
 
 export default class ClazzLabelMesh extends LabelMesh {
   constructor(

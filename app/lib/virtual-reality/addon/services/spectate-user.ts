@@ -4,7 +4,7 @@ import LocalUser from 'collaborative-mode/services/local-user';
 import RemoteUser from 'collaborative-mode/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import ToastMessage from 'explorviz-frontend/services/toast-message';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'some-react-lib/src/utils/application-rendering/camera-controls';
 import * as THREE from 'three';
 import VrMessageSender from 'virtual-reality/services/vr-message-sender';
 import * as VrPoses from 'virtual-reality/utils/vr-helpers/vr-poses';

@@ -11,7 +11,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData from 'some-react-lib/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';

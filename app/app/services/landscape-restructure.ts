@@ -49,13 +49,13 @@ import {
   getSubPackagesOfPackage,
 } from 'some-react-lib/src/utils/package-helpers';
 import { getClassById } from 'some-react-lib/src/utils/class-helpers';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import {
   RestructureAction,
   EntityType,
 } from 'explorviz-frontend/utils/restructure-helper';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import LinkRenderer from './link-renderer';
 import * as THREE from 'three';
 import {

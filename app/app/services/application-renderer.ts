@@ -4,7 +4,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaborative-mode/services/local-user';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData from 'some-react-lib/src/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
@@ -20,8 +20,8 @@ import {
   StructureLandscapeData,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'some-react-lib/src/utils/landscape-structure-helpers';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';

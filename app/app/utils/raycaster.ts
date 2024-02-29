@@ -1,4 +1,4 @@
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import CommunicationArrowMesh from 'some-react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import LabelMesh from 'some-react-lib/src/view-objects/3d/label-mesh';
 import LogoMesh from 'some-react-lib/src/view-objects/3d/logo-mesh';
 import * as THREE from 'three';

@@ -2,7 +2,7 @@ import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import {
   getAllAncestorComponents,
   openComponentsByList,

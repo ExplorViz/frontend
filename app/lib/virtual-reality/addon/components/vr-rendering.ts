@@ -15,9 +15,9 @@ import ApplicationRenderer, {
 import ToastMessage, {
   MessageArgs,
 } from 'explorviz-frontend/services/toast-message';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import CameraControls from 'some-react-lib/src/utils/application-rendering/camera-controls';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
@@ -88,7 +88,7 @@ import ScrollDownButton from 'virtual-reality/utils/view-objects/vr/scroll-down-
 import ScrollUpButton from 'virtual-reality/utils/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'virtual-reality/utils/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'virtual-reality/utils/view-objects/vr/keyboard-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import SearchListItem from 'virtual-reality/utils/view-objects/vr/search-list-item';
 import UserListItem from 'virtual-reality/utils/view-objects/vr/user-list-item';
 import { JOIN_VR_EVENT } from 'virtual-reality/utils/vr-message/sendable/join_vr';
@@ -312,7 +312,6 @@ export default class VrRendering extends Component<Args> {
     this.localUser.xr = this.renderer.xr;
 
     this.cameraControls = new CameraControls(
-      getOwner(this),
       this.camera,
       undefined,
       this.canvas

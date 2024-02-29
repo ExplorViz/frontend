@@ -1,6 +1,6 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData from 'some-react-lib/src/utils/application-data';
 import { ApplicationCommunication } from 'some-react-lib/src/utils/landscape-rendering/application-communication-computer';
 
 export default class ApplicationRepository extends Service.extend({

@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import * as THREE from 'three';
 import WebSocketService from 'virtual-reality/services/web-socket';
 import {

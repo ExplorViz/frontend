@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 
 export default class ApplicationGroup extends THREE.Group {

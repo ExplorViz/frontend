@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { Socket, io } from 'socket.io-client';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'some-react-lib/src/view-objects/3d/application/application-object-3d';
 import Auth from 'explorviz-frontend/services/auth';
 import { setOwner } from '@ember/application';
 import {
@@ -9,9 +9,9 @@ import {
   Class,
   Package,
 } from 'some-react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
+import CommunicationArrowMesh from 'some-react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
 import debugLogger from 'ember-debug-logger';

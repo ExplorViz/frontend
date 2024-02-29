@@ -28,7 +28,7 @@ import VRControllerThumbpadBinding, {
 } from 'virtual-reality/utils/vr-controller/vr-controller-thumbpad-binding';
 import DetailInfoMesh from 'virtual-reality/utils/view-objects/vr/detail-info-mesh';
 import VRController from 'virtual-reality/utils/vr-controller';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -55,8 +55,7 @@ export const BLOCK_OPTIONS_INFO = {
 
 export default class DetailInfoMenu
   extends InteractiveMenu
-  implements DetachableMenu
-{
+  implements DetachableMenu {
   private object: EntityMesh;
 
   @service('repos/application-repository')

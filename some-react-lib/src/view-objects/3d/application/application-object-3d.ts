@@ -1,17 +1,16 @@
 import * as THREE from 'three';
 import { Trace } from 'some-react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import BoxLayout from 'some-react-lib/src/view-objects/layout-models/box-layout';
-import { tracked } from '@glimmer/tracking';
-import { earthTexture } from 'explorviz-frontend/controllers/visualization';
+/* import { earthTexture } from 'explorviz-frontend/controllers/visualization'; */
 import FoundationMesh from 'some-react-lib/src/view-objects/3d/application/foundation-mesh';
-import ClazzMesh from './clazz-mesh';
+import ClazzMesh from 'some-react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'some-react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzCommunicationMesh from './clazz-communication-mesh';
+import ClazzCommunicationMesh from 'some-react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import BaseMesh from 'some-react-lib/src/view-objects/3d/base-mesh';
 import BoxMesh from 'some-react-lib/src/view-objects/3d/application/box-mesh';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData from 'some-react-lib/src/utils/application-data';
 import { getAllClassesInApplication } from 'some-react-lib/src/utils/application-helpers';
-import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
+import { findFirstOpenOrLastClosedAncestorComponent } from 'some-react-lib/src/utils/link-helper';
 import ClassCommunication from 'some-react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 /**
@@ -47,7 +46,6 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   animationMixer: THREE.AnimationMixer | undefined;
 
-  @tracked
   highlightedEntity: Set<string> | Trace | null = null; // Multiple entities may be highlighted at once
 
   classCommunicationSet: Set<ClassCommunication> = new Set();
@@ -111,12 +109,13 @@ export default class ApplicationObject3D extends THREE.Object3D {
     return this;
   }
 
+  /* Remove method for migration duration. Furthermore, it is never called. Still needed? */
   /**
    * Creates a GlobeMesh and adds it to the given application object.
    * Communication that come from the outside
    *
    */
-  addGlobeToApplication(): THREE.Mesh {
+  /*   addGlobeToApplication(): THREE.Mesh {
     const geometry = new THREE.SphereGeometry(2.5, 15, 15);
     const material = new THREE.MeshPhongMaterial({ map: earthTexture });
     const mesh = new THREE.Mesh(geometry, material);
@@ -133,7 +132,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     this.globeMesh = mesh;
 
     return mesh;
-  }
+  } */
 
   initializeGlobeAnimation() {
     if (!this.globeMesh) {
