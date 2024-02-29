@@ -116,6 +116,7 @@
                   <h5 class='text-center'>Entity Filtering</h5>
                   <Visualization::PageSetup::Sidebar::EntityFiltering
                     @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
                   />
                 {{/if}}
                 {{#if (eq componentId 'application-search')}}
