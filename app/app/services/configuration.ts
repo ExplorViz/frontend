@@ -1,30 +1,51 @@
 import Service from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import { useConfigurationStore } from 'some-react-lib/src/stores/configuration';
 
 /**
  * The Configuration Service handles settings for the
  * visualization (which are not persisted in LocalStorage)
  */
 export default class Configuration extends Service {
-  // #region APPLICATION LAYOUT
+  get isCommRendered(): boolean {
+    return useConfigurationStore.getState().isCommRendered;
+  }
 
-  @tracked
-  isCommRendered = true;
+  set isCommRendered(value: boolean) {
+    useConfigurationStore.setState({ isCommRendered: value });
+  }
 
-  commCurveHeightDependsOnDistance = true;
+  get commCurveHeightDependsOnDistance(): boolean {
+    return useConfigurationStore.getState().commCurveHeightDependsOnDistance;
+  }
 
-  // Determines height of class communication curves, 0 results in straight lines
-  @tracked
-  commCurveHeightMultiplier = 1;
+  set commCurveHeightDependsOnDistance(value: boolean) {
+    useConfigurationStore.setState({ commCurveHeightDependsOnDistance: value });
+  }
 
-  @tracked
-  commWidthMultiplier = 1;
+  get commCurveHeightMultiplier(): number {
+    return useConfigurationStore.getState().commCurveHeightMultiplier;
+  }
 
-  @tracked
-  popupPosition: Position2D | undefined = undefined;
+  set commCurveHeightMultiplier(value: number) {
+    useConfigurationStore.setState({ commCurveHeightMultiplier: value });
+  }
 
-  // #endregion APPLICATION LAYOUT
+  get commWidthMultiplier(): number {
+    return useConfigurationStore.getState().commWidthMultiplier;
+  }
+
+  set commWidthMultiplier(value: number) {
+    useConfigurationStore.setState({ commWidthMultiplier: value });
+  }
+
+  get popupPosition(): Position2D | undefined {
+    return useConfigurationStore.getState().popupPosition;
+  }
+
+  set popupPosition(value: Position2D | undefined) {
+    useConfigurationStore.setState({ popupPosition: value });
+  }
 }
 
 declare module '@ember/service' {

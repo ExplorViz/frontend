@@ -42,12 +42,12 @@
     "@types/chart.js": "^2.9.41",
     "@types/crypto-js": "^4.2.1",
     "@types/ember": "^4.0.10",
-    "@types/ember__destroyable": "^4.0.4",
-    "@types/ember__routing": "^4.0.19",
-    "@types/ember__test-helpers": "^2.8.3",
     "@types/ember-qunit": "^5.0.2",
     "@types/ember-test-helpers": "^1.0.15",
     "@types/ember-testing-helpers": "0.0.7",
+    "@types/ember__destroyable": "^4.0.4",
+    "@types/ember__routing": "^4.0.19",
+    "@types/ember__test-helpers": "^2.8.3",
     "@types/hammerjs": "^2.0.45",
     "@types/node": "20.10.3",
     "@types/qunit": "^2.19.9",
@@ -124,13 +124,13 @@
     "edition": "octane"
   },
   "dependencies": {
+    "3d-force-graph": "^1.73.0",
     "@embroider/compat": "^3.4.0",
     "@embroider/core": "^3.4.2",
     "@embroider/webpack": "^3.2.1",
     "@popperjs/core": "^2.11.8",
     "@primer/octicons": "^19.8.0",
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
-    "3d-force-graph": "^1.73.0",
     "alertifyjs": "^1.13.1",
     "auth0-js": "^9.23.3",
     "auth0-lock": "^12.3.1",
@@ -172,7 +172,8 @@
     "three": "^0.159.0",
     "three-forcegraph": "^1.41.10",
     "three-mesh-ui": "^6.5.4",
-    "vanilla-picker": "^2.12.2"
+    "vanilla-picker": "^2.12.2",
+    "zustand": "^4.5.1"
   },
   "dependenciesMeta": {
     "some-react-lib": {
