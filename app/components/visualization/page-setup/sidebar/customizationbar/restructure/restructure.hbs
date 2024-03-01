@@ -1,0 +1,338 @@
+{{add-listener
+  this.landscapeRestructure
+  'restructureMode'
+  this.toggleRestructureMode
+}}
+{{add-listener this.landscapeRestructure 'showChangeLog' this.showChangelog}}
+
+<div>
+
+  <h6 class='mb-3 mt-3'><strong>Restructure Mode</strong></h6>
+  <div class='ml-3'>
+    <div class='d-flex justify-content-between'>
+      <label>Enable Restructure Mode: </label>
+      <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::WideCheckbox
+        @value={{this.landscapeRestructure.restructureMode}}
+        @onToggle={{this.landscapeRestructure.toggleRestructureMode}}
+      />
+    </div>
+  </div>
+
+  {{#if this.landscapeRestructure.restructureMode}}
+    <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
+    <div class='ml-3'>
+      <label for='token'>API Token:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='token'
+          class='form-control mr-2'
+          oninput={{this.updateToken}}
+          value={{this.token}}
+        />
+      </div>
+      <ul></ul>
+      <label for='issueURL'>Gitlab Issue Link:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='issueURL'
+          class='form-control mr-2'
+          oninput={{this.updateIssueURL}}
+          value={{this.issueURL}}
+        />
+      </div>
+      <ul></ul>
+      <label for='uploadURL'>Gitlab Upload Link:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='uploadURL'
+          class='form-control mr-2'
+          oninput={{this.updateUploadURL}}
+          value={{this.uploadURL}}
+        />
+      </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Save Gitlab Credentials'
+          {{on 'click' this.saveGitlabCredentials}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.saveCredBtnDisabled}}
+        >
+          Save
+        </BsButton>
+      </div>
+    </div>
+
+    <h6 class='mb-3 mt-3'><strong>Application</strong></h6>
+    <div class='ml-3'>
+      <label for='appName'>Application name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='appName'
+          class='form-control mr-2'
+          oninput={{this.updateNewAppName}}
+          value={{this.appName}}
+        />
+      </div>
+      <ul></ul>
+      <label for='language'>Language:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='language'
+          class='form-control mr-2'
+          oninput={{this.updateLanguage}}
+          value={{this.language}}
+        />
+      </div>
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Create a new Application'
+          {{on 'click' this.addFoundation}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.createAppBtnDisabled}}
+        >
+          Create Application
+        </BsButton>
+      </div>
+    </div>
+
+    <h6 class='mb-3 mt-3'><strong>Communication</strong></h6>
+    <div class='ml-3'>
+      <label for='methodName'>Method name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='methodName'
+          class='form-control mr-2'
+          oninput={{this.updateMethodName}}
+          value={{this.methodName}}
+        />
+      </div>
+
+      <ul></ul>
+      <label for='srcClass'>Source Class:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='srcClass'
+          class='form-control mr-2'
+          value={{this._sourceClass}}
+          disabled
+        />
+        <button
+          style='margin-left: 5px;'
+          type='button'
+          class='btn btn-danger'
+          title='Reset Source Class'
+          onclick={{this.resetSourceClass}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+      </div>
+
+      <ul></ul>
+      <label for='targetClass'>Target Class:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='targetClass'
+          class='form-control mr-2'
+          value={{this._targetClass}}
+          disabled
+        />
+        <button
+          style='margin-left: 5px;'
+          type='button'
+          class='btn btn-danger'
+          title='Reset Target Class'
+          onclick={{this.resetTargetClass}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+      </div>
+
+      <ul></ul>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Create Communication between Source and Target Class'
+          {{on 'click' this.createCommunication}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Generate Communication
+        </BsButton>
+      </div>
+    </div>
+
+    <h6 class='mb-3 mt-3'><strong>Clipboard</strong></h6>
+    <div class='ml-3'>
+      <label for='clipboard'></label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='clipboard'
+          class='form-control mr-2'
+          value={{this.clip_board}}
+          disabled
+        />
+        <button
+          type='button'
+          class='btn btn-danger'
+          title='Reset Clipboard'
+          onclick={{this.resetClipboardBtn}}
+        >{{svg-jar 'trash-16' class='octicon align-right'}}</button>
+      </div>
+    </div>
+
+    <h6 class='mb-3 mt-3'><strong>Changelog</strong></h6>
+    <div class='ml-3'>
+      <div
+        class='d-flex flex-column justify-content-between'
+        style='max-height: 600px; overflow-y: auto;'
+      >
+        <label for='changelog'></label>
+        {{#if this.logTexts.length}}
+          <label for='selectAll'></label>
+          <div class='form-check'>
+            <input
+              class='form-check-input'
+              type='checkbox'
+              value=''
+              id='selectAll'
+              onclick={{this.toggleSelectAll}}
+            />
+            <label class='form-check-label' for='selectAll'>Select All</label>
+          </div>
+        {{/if}}
+        {{#each this.logTexts as |entry index|}}
+          <div
+            id='card-{{index}}'
+            class='card'
+            onclick={{fn this.toggleCheckBox index}}
+            style='cursor: pointer;'
+          >
+            <div class='card-body'>
+              <div class='form-check position-relative' hidden>
+                <input
+                  class='form-check-input position-absolute top-50 start-50 translate-middle'
+                  type='checkbox'
+                  value=''
+                  id='checkbox-{{index}}'
+                />
+                <label
+                  class='form-check-label'
+                  for='checkbox-{{index}}'
+                ></label>
+              </div>
+              <p
+                class={{this.getActionColor index}}
+                style='user-select: none;'
+              >#{{add index 1}}</p>
+              <div class='d-flex justify-content-between align-items-center'>
+                <p>{{entry}}</p>
+                <button
+                  type='button'
+                  style='padding: 0; margin: 0;'
+                  class='btn btn-sm link-secondary'
+                  title='Delete Entry'
+                  onclick={{fn this.deleteEntry index}}
+                >{{svg-jar 'x-16' class='octicon'}}</button>
+              </div>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+
+    <h6 class='mb-3 mt-3'><strong>Gitlab</strong></h6>
+    {{#each this.issues as |issue index|}}
+      <div class='ml-3'>
+        <div class='d-flex justify-content-between'>
+          <label for='issueTitle'></label>
+          <input
+            id='issueTitle'
+            class='form-control mr-2'
+            type='text'
+            placeholder='Issue Title'
+            value={{issue.title}}
+            {{on 'input' (fn this.updateIssueTitle index)}}
+          />
+          <button
+            type='button'
+            class='btn btn-sm'
+            title='Delete Issue'
+            onclick={{fn this.deleteIssue index}}
+          >{{svg-jar 'x-16' class='octicon align-right'}}</button>
+        </div>
+        <ul></ul>
+        <div class='d-flex flex-column justify-content-between'>
+          <label for='issue'></label>
+          <textarea
+            id='issue'
+            placeholder='Issue Content'
+            rows='10'
+            value={{issue.content}}
+            {{on 'input' (fn this.updateIssueContent index)}}
+          ></textarea>
+          <button
+            type='button'
+            class='btn btn-sm'
+            title='Add Selected Entries'
+            onclick={{fn this.addSelectedEntriesToIssue index}}
+          >Add Selected Entries</button>
+        </div>
+        <ul></ul>
+        <div class='d-flex justify-content-between'>
+          <button
+            type='button'
+            class='btn btn-light'
+            title='Take a Screenshot'
+            onclick={{fn this.screenshotCanvas index}}
+          >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
+        </div>
+        <ul></ul>
+        <ul
+          id='ember-power-select-multiple-options-ember141'
+          class='ember-power-select-multiple-options'
+        >
+          {{#each issue.screenshots as |screenshot screenshotIndex|}}
+            <li class='ember-power-select-multiple-option'>
+              <button
+                type='button'
+                style='padding: 0; margin: 0;'
+                class='btn btn-sm link-secondary'
+                title='Delete Screenshot'
+                onclick={{fn this.deleteScreenshot index screenshotIndex}}
+              >{{svg-jar 'x-16' class='octicon'}}</button>
+              <span>Screenshot{{screenshotIndex}}</span>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+      <ul></ul>
+    {{/each}}
+
+    <div class='ml-3'>
+      <div class='d-flex justify-content-between'>
+        <BsButton
+          title='Create Issue'
+          {{on 'click' this.createIssue}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          Create Issue
+        </BsButton>
+
+        {{#if this.issues.length}}
+          <BsButton
+            title='Upload Issue to Gitlab'
+            {{on 'click' this.uploadIssueToGitLab}}
+            @type='secondary'
+            @outline={{true}}
+            disabled={{this.uploadIssueBtnDisabled}}
+          >
+            Upload to Gitlab
+          </BsButton>
+        {{/if}}
+      </div>
+      <ul></ul>
+
+    </div>
+  {{/if}}
+
+</div>

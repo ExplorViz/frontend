@@ -3,8 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import * as THREE from 'three';
 import LocalUser from './local-user';
@@ -45,17 +43,11 @@ export default class CollaborationSession extends Service.extend({
 }) {
   debug = debugLogger('CollaborationSession');
 
-  @service('toast-message')
-  toastMessage!: ToastMessage;
-
   @service('web-socket')
   private webSocket!: WebSocketService;
 
   @service('room-service')
   private roomService!: RoomService;
-
-  @service('landscape-listener')
-  private landscapeListener!: LandscapeListener;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -201,7 +193,9 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
-    this.toastMessage.success('Joined room successfully');
+    this.toastHandlerService.showSuccessToastMessage(
+      'Joined room successfully'
+    );
   }
 
   // Display to other users when another user joins the room
@@ -222,12 +216,9 @@ export default class CollaborationSession extends Service.extend({
     });
     this.addRemoteUser(remoteUser);
 
-    this.toastMessage.message({
-      title: 'User connected',
-      text: remoteUser.userName,
-      color: `#${remoteUser.color.getHexString()}`,
-      time: 3.0,
-    });
+    this.toastHandlerService.showInfoToastMessage(
+      `User connected: ${remoteUser.userName}`
+    );
   }
 
   /**
@@ -239,12 +230,9 @@ export default class CollaborationSession extends Service.extend({
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
-      this.toastMessage.message({
-        title: 'User disconnected',
-        text: removedUser.userName,
-        color: `#${removedUser.color.getHexString()}`,
-        time: 3.0,
-      });
+      this.toastHandlerService.showInfoToastMessage(
+        `User disconnected: ${removedUser.userName}`
+      );
     }
 
     // walk trough all highlighted entities and unhighlight them
@@ -277,21 +265,25 @@ export default class CollaborationSession extends Service.extend({
     this.disconnect();
 
     if (this.isConnecting) {
-      this.toastMessage.info('Collaboration backend service not responding');
+      this.toastHandlerService.showInfoToastMessage(
+        'Collaboration backend service not responding.'
+      );
     } else if (event) {
       switch (event) {
         case 'io client disconnect':
-          this.toastMessage.info('Successfully disconnected');
+          this.toastHandlerService.showInfoToastMessage(
+            'Successfully disconnected'
+          );
           break;
         default:
-          this.toastMessage.error('Unexpected disconnect');
+          this.toastHandlerService.showErrorToastMessage(
+            'Unexpected disconnect'
+          );
       }
     }
 
     // Remove remote users.
     this.removeAllRemoteUsers();
-
-    this.landscapeListener.initLandscapePolling();
 
     this.highlightingService.resetColorsOfHighlightedEntities();
     this.userSettings.restoreApplicationSettings();

@@ -12,9 +12,6 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
-import ToastMessage, {
-  MessageArgs,
-} from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -99,6 +96,13 @@ import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sen
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
+export interface MessageArgs {
+  title: string;
+  text: string;
+  color: string;
+  time: number;
+}
+
 interface Args {
   debugMode: boolean;
   readonly id: string;
@@ -113,9 +117,6 @@ const MOUSE_ROTATION_SPEED = Math.PI;
 
 export default class VrRendering extends Component<Args> {
   // #region SERVICES
-  @service('toast-message')
-  private toastMessage!: ToastMessage;
-
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
@@ -206,11 +207,6 @@ export default class VrRendering extends Component<Args> {
   //
   constructor(owner: any, args: Args) {
     super(owner, args);
-
-    this.toastMessage.info = (message) => this.showHint(message);
-    this.toastMessage.message = (message) => this.showMessage(message);
-    this.toastMessage.success = (message) => this.showHint(message);
-    this.toastMessage.error = (message) => this.showHint(message);
 
     this.scene = this.sceneRepo.getScene('vr', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
@@ -853,12 +849,6 @@ export default class VrRendering extends Component<Args> {
     }
   }
 
-  private showMessage(message: MessageArgs) {
-    this.messageMenuQueue.enqueueMenu(
-      this.menuFactory.buildMessageBoxMenu(message)
-    );
-  }
-
   private openToolMenu(controller: VRController) {
     controller.menuGroup.openMenu(this.menuFactory.buildToolMenu());
   }
@@ -1121,10 +1111,7 @@ export default class VrRendering extends Component<Args> {
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
-      this.localUser.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-      });
+      this.localUser.ping(parentObj, pingPosition);
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
           parentObj.getModelId(),

@@ -33,7 +33,6 @@ import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
-import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
@@ -80,9 +79,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   @service('room-serializer')
   roomSerializer!: RoomSerializer;
-
-  @service('toast-message')
-  toastMessage!: ToastMessage;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
