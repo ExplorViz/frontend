@@ -76,9 +76,14 @@ export default class CollaborationSession extends Service.extend({
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group();
+
+  get userCount() {
+    return this.idToRemoteUser.size + 1;
+  }
 
   @tracked
   connectionStatus: ConnectionStatus = 'offline';
