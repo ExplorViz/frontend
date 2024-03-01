@@ -357,7 +357,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   private initRenderer() {
     const { width, height } = this.canvas;
-    const aspectRatio = width / height;
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: this.canvas,
@@ -388,35 +387,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     });
     this.renderingLoop.start();
 
-    this.camera.position.set(5, 5, 5);
-    this.scene.add(this.localUser.defaultCamera);
-
-    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.localUser.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.localUser.ortographicCamera.lookAt(this.scene.position);
-    // controls
-    this.cameraControls = new CameraControls(
-      getOwner(this),
-      this.camera,
-      this.localUser.ortographicCamera,
-      this.canvas
-    );
-
-    this.spectateUserService.cameraControls = this.cameraControls;
     this.graph.onFinishUpdate(() => {
       if (!this.initDone && this.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
@@ -429,18 +399,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
-    this.updatables.push(this.cameraControls);
-    this.updatables.push(this.localUser);
-
-    this.renderingLoop = new RenderingLoop(getOwner(this), {
-      camera: this.camera,
-      orthographicCamera: this.localUser.ortographicCamera,
-      scene: this.scene,
-      renderer: this.renderer,
-      cssRenderer: this.cssRendrerer,
-      updatables: this.updatables,
-    });
-    this.renderingLoop.start();
   }
 
   @action
@@ -471,10 +429,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-    if (mesh instanceof FoundationMesh) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.selectActiveApplication(mesh.parent);
-      }
+    if (
+      mesh instanceof FoundationMesh &&
+      mesh.parent instanceof ApplicationObject3D
+    ) {
+      this.selectActiveApplication(mesh.parent);
     } else if (isEntityMesh(mesh)) {
       if (mesh.parent instanceof ApplicationObject3D) {
         this.highlightingService.highlight(mesh);
