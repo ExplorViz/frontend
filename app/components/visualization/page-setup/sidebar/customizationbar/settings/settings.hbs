@@ -4,7 +4,7 @@
     <h6 class='mb-3 mt-3'><strong>{{groupId}}</strong></h6>
     {{#if (eq groupId 'Colors')}}
       <div id='colorHeader' class='mb-2'>
-        <Visualization::PageSetup::Sidebar::ColorSchemeSelector
+        <Visualization::PageSetup::Sidebar::Customizationbar::Settings::ColorSchemeSelector
           @colorSchemes={{this.colorSchemes}}
           @applyColorScheme={{this.applyColorScheme}}
         />
@@ -17,23 +17,23 @@
           as |setting|
         }}
           {{#if setting.isFlagSetting}}
-            <Visualization::PageSetup::Sidebar::Settings::FlagSetting
+            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::FlagSetting
               @setting={{setting}}
               @onChange={{fn this.updateFlagSetting settingId}}
             />
           {{else if setting.isRangeSetting}}
-            <Visualization::PageSetup::Sidebar::Settings::RangeSetting
+            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::RangeSetting
               @setting={{setting}}
               @onChange={{fn this.updateRangeSetting settingId}}
             />
           {{else if setting.isColorSetting}}
-            <Visualization::PageSetup::Sidebar::ColorPicker
+            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::ColorPicker
               @id={{settingId}}
               @setting={{setting}}
               @updateColors={{@updateColors}}
             />
           {{else if setting.isButtonSetting}}
-            <Visualization::PageSetup::Sidebar::Settings::ButtonSetting
+            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ButtonSetting
               @setting={{setting}}
               @onClick={{fn this.updateButtonSetting settingId}}
             />

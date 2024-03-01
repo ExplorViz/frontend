@@ -93,15 +93,15 @@
   {{#if @showToolsSidebar}}
     <div class='sidebar left' id='toolselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
-        <Visualization::PageSetup::Sidebar::ToolSelection
+        <Visualization::PageSetup::Sidebar::Toolbar::ToolSelection
           @closeToolSelection={{@closeToolsSidebar}}
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Navbar::ApplicationSearchOpener
+              <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearchOpener
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::TraceReplayerOpener
+              <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerOpener
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
             </ul>
@@ -111,13 +111,13 @@
               <div class='card-body d-flex flex-column'>
                 {{#if (eq componentId 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
-                  <Visualization::PageSetup::Sidebar::ApplicationSearch
+                  <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch
                     @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
                   />
                 {{/if}}
                 {{#if (eq componentId 'Trace-Replayer')}}
                   {{#if this.selectedApplicationObject3D}}
-                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelectionAndReplayer
                       @highlightTrace={{this.highlightTrace}}
                       @moveCameraTo={{this.moveCameraTo}}
                       @removeHighlighting={{this.removeAllHighlighting}}
@@ -132,28 +132,28 @@
               </div>
             </div>
           {{/each}}
-        </Visualization::PageSetup::Sidebar::ToolSelection>
+        </Visualization::PageSetup::Sidebar::Toolbar::ToolSelection>
       </div>
     </div>
   {{/if}}
   {{#if @showSettingsSidebar}}
     <div class='sidebar right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
-        <Visualization::PageSetup::Sidebar::DataSelection
+        <Visualization::PageSetup::Sidebar::Customizationbar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Navbar::CollaborationOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::VscodeExtensionSettingsOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::RestructureOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::RestructureOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::SettingsOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>
@@ -163,13 +163,15 @@
               @componentId={{componentId}}
             >
               {{#if (eq componentId 'Collaboration')}}
-                <Visualization::PageSetup::Sidebar::CollaborationControls />
+                <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
+                />
               {{/if}}
               {{#if (eq componentId 'VSCode-Extension-Settings')}}
-                <Visualization::PageSetup::Sidebar::VscodeExtensionSettings />
+                <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
+                />
               {{/if}}
               {{#if (eq componentId 'Restructure-Landscape')}}
-                <Visualization::PageSetup::Sidebar::Restructure
+                <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::Restructure
                   @landscapeData={{@landscapeData}}
                   @restructureLandscape={{@restructureLandscape}}
                   @visualizationPaused={{@visualizationPaused}}
@@ -178,7 +180,7 @@
                 />
               {{/if}}
               {{#if (eq componentId 'Settings')}}
-                <Visualization::PageSetup::Sidebar::Settings
+                <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
                   @enterFullscreen={{this.enterFullscreen}}
                   @popups={{this.popupHandler.popupData}}
                   @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
@@ -189,7 +191,7 @@
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>
           {{/each}}
-        </Visualization::PageSetup::Sidebar::DataSelection>
+        </Visualization::PageSetup::Sidebar::Customizationbar::DataSelection>
       </div>
     </div>
   {{/if}}

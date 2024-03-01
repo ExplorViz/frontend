@@ -4,12 +4,12 @@
     {{@setting.displayName}}
   </div>
   <div class='d-flex align-self-center'>
-    <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
+    <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::WideCheckbox
       @value={{@setting.value}}
       @onToggle={{@onChange}}
     />
 
-    <Visualization::PageSetup::Sidebar::Settings::ResetButton
+    <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ResetButton
       @onClick={{@onChange}}
     />
   </div>

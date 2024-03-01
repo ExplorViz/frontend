@@ -14,7 +14,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import PopupData from '../../rendering/popups/popup-data';
+import PopupData from '../../../../rendering/popups/popup-data';
 
 interface Args {
   enterFullscreen?(): void;
