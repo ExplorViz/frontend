@@ -7,15 +7,11 @@ import VrAssetRepository from 'extended-reality/services/vr-asset-repo';
 export default class DisplayButton extends BaseMesh {
   assetRepo: VrAssetRepository;
 
-  geometry: THREE.BoxGeometry;
+  geometry: THREE.SphereGeometry;
 
   material: THREE.MeshLambertMaterial;
 
-  width = 5;
-
-  height = 5;
-
-  depth = 5;
+  radius = 2.5;
 
   url: string;
 
@@ -32,7 +28,7 @@ export default class DisplayButton extends BaseMesh {
     this.material = new THREE.MeshLambertMaterial({
       color: new THREE.Color('grey'),
     });
-    const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
+    const geometry = new THREE.SphereGeometry(this.radius);
     this.geometry = geometry;
     this.changeOpacity(0.5);
   }
@@ -49,9 +45,9 @@ export default class DisplayButton extends BaseMesh {
     const size = new THREE.Vector3();
     boundingBox.getSize(size);
     this.position.set(
-      boundingBox.max.z + this.width / 2,
+      boundingBox.max.z - this.radius,
       boundingBox.max.y,
-      boundingBox.max.x - this.depth / 2
+      boundingBox.max.x - this.radius
     );
   }
 
