@@ -19,7 +19,6 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   ) => void;
   visualizationPaused: boolean;
   toggleVisualizationUpdating: () => void;
-  resetLandscapeListenerPolling: () => void;
   removeTimestampListener: () => void;
 }
 
@@ -190,7 +189,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         this.args.removeTimestampListener();
       this.landscapeRestructure.setLandscapeData(this.args.landscapeData);
 
-      this.args.resetLandscapeListenerPolling();
       if (!this.args.visualizationPaused) {
         this.args.toggleVisualizationUpdating();
       }

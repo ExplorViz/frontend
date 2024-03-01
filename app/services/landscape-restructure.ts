@@ -72,7 +72,6 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
-import LandscapeListener from './landscape-listener';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import MessageSender from 'collaboration/services/message-sender';
 
@@ -107,9 +106,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 
   @service('changelog')
   changeLog!: Changelog;
-
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
@@ -218,8 +214,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
     this.targetClass = null;
     this.changeLog.resetChangeLog();
     this.trigger('showChangeLog');
-
-    this.landscapeListener.initLandscapePolling();
   }
 
   setSourceOrTargetClass(type: string) {

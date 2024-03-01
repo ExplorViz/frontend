@@ -1,7 +1,6 @@
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
@@ -13,9 +12,6 @@ interface Args {
 }
 
 export default class TraceOverview extends Component<Args> {
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
-
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
