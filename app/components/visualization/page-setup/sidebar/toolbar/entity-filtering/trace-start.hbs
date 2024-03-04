@@ -6,17 +6,23 @@
       <input
         id='filtering-trace-start'
         value={{this.currentValue}}
-        min={{this.minValue}}
-        max={{this.maxValue}}
+        min={{this.minAndMaxAndMidStartTimestamp.min}}
+        max={{this.minAndMaxAndMidStartTimestamp.max}}
         type='range'
         step='1'
         class='form-control mr-2'
         {{on 'change' this.onChange}}
       />
       <div class='range-slider--values'>
-        <span>{{this.minValue}}</span>
-        <span style='font-weight: bold;'>{{this.currentValue}}</span>
-        <span>{{this.maxValue}}</span>
+        <span>{{this.formatTimestampToDate
+            this.minAndMaxAndMidStartTimestamp.min
+          }}</span>
+        <span style='font-weight: bold;'>{{this.formatTimestampToDate
+            this.currentValue
+          }}</span>
+        <span>{{this.formatTimestampToDate
+            this.minAndMaxAndMidStartTimestamp.max
+          }}</span>
       </div>
     </div>
   </div>

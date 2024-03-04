@@ -7,17 +7,12 @@ interface Args {
   readonly dynamicData: DynamicLandscapeData;
 }
 
-export default class ButtonSetting extends Component<Args> {
+export default class TraceStartFiltering extends Component<Args> {
   @tracked
-  currentValue: number = this.minAndMaxStartTimestamp.mid;
+  currentValue: number = this.minAndMaxAndMidStartTimestamp.mid;
 
-  @tracked
-  maxValue: number = this.minAndMaxStartTimestamp.max;
-
-  @tracked
-  minValue: number = this.minAndMaxStartTimestamp.min;
-
-  get minAndMaxStartTimestamp() {
+  get minAndMaxAndMidStartTimestamp() {
+    console.log('min and max');
     let min = Number.MAX_VALUE;
     let max = -1;
 
@@ -29,9 +24,13 @@ export default class ButtonSetting extends Component<Args> {
     return { min: min, max: max, mid: Math.round((min + max) / 2) };
   }
 
+  formatTimestampToDate(timestamp: number) {
+    return new Date(timestamp);
+  }
+
   @action
   onChange(event: any) {
-    this.currentValue = event.target.value;
+    this.currentValue = Number(event.target.value);
 
     // hide all traces that start the selected timestamp
     const tracesToFilter = this.args.dynamicData.filter(
