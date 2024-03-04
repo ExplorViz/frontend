@@ -290,6 +290,7 @@ export default class VisualizationController extends Controller {
     this.updateLandscape(structureData, dynamicData);
   }
 
+  @action
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -492,6 +493,7 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  @action
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;

@@ -1,6 +1,7 @@
 <div class='mb-3'>
   <HelpTooltip @title='bla' />
-  <label class='m-0' for='filtering-trace-start'>Start timestamp</label>
+  <label class='m-0' for='filtering-trace-start'>Start timestamp (# traces:
+    {{this.traceCount}})</label>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
       <input
@@ -9,7 +10,7 @@
         min={{this.minAndMaxAndMidStartTimestamp.min}}
         max={{this.minAndMaxAndMidStartTimestamp.max}}
         type='range'
-        step='1'
+        step='1000'
         class='form-control mr-2'
         {{on 'change' this.onChange}}
       />
