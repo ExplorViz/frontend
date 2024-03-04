@@ -67,11 +67,6 @@ export default class TimestampPollingService extends Service {
       secondCommitTimestampPromise = this.httpFetchTimestamps(commits[1], secondCommitNewestLocalTimestamp);
     }
 
-    // TODO: do this stuff only if the returned JSON is NOT identical to the previous one. 
-    // Otherwise, return [undefined, undefined] (if both JSONS are identical to their previous ones), 
-    // [undefined, [...]] (if only the JSON of the first commit is identical to its previous one) 
-    // [[...], undefined] (if only the JSON of the second commit is identical to its previous one)
-
     const timestampsArr : Timestamp[][] = [];
 
     await firstCommitTimestampPromise

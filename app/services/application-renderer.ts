@@ -321,14 +321,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       // commit comparison visualization
       const commitComparison = this.getCommitComparison(applicationObject3D);
 
-      // change texture if needed
-      // applicationObject3D.getCommMeshes().forEach((commMesh) => {
-      //   if (applicationState.transparentComponents?.has(commMesh.getModelId()))
-      //     commMesh.turnTransparent(this.highlightingService.opacity);
-      // });
-
       if(commitComparison){
-        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D);
+        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D, commitComparison);
       }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
         // remove existing comparison visualizations
         this.removeCommitComparisonVisualization(applicationObject3D);
@@ -363,16 +357,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       if(id){
         this.highlightingService.markAsAddedById(id);
-        console.log(applicationObject3D.data.classCommunications);
-        applicationObject3D.classCommunicationSet.forEach(classCommu => {
-          const clazzes = classCommu.getClasses();
-          console.log("CLAZZES:", clazzes);
-          clazzes.filter(clazz => clazz.id === id);
-          console.log("CLAZZES:", clazzes);
-          if(clazzes.length > 0) {
-            this.highlightingService.markAsAddedById(classCommu.id);
-          }
-        });
 
         if(addedPackages !== "") {
           const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
@@ -574,9 +558,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     return undefined;
   }
 
-  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D){
-    const commitComparison = this.getCommitComparison(applicationObject3D);
-    if(!commitComparison) return;
+  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D, commitComparison: CommitComparison){
     this.visualizeAddedPackagesAndClasses(commitComparison, applicationObject3D);
     this.visualizeDeletedPackagesAndClasses(commitComparison, applicationObject3D);
     this.visualizeModifiedPackagesAndClasses(commitComparison, applicationObject3D);

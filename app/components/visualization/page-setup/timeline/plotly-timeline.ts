@@ -133,7 +133,7 @@ selectedTimestamps: Timestamp[][] = [[],[]];
     if (this.initDone) {
       this.extendPlotlyTimelineChart(this.timestamps, numberOfTimelines.length);
     } else {
-        this.setupPlotlyTimelineChart(this.timestamps, numberOfTimelines);
+        this.setupPlotlyTimelineChart(this.timestamps, numberOfTimelines.length);
         if (this.initDone) {
           this.setupPlotlyListener();
         }

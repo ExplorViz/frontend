@@ -597,40 +597,40 @@ export default class VisualizationController extends Controller {
 
       // DELETE THIS. ONLY FOR TEST PURPOSES
 
-      const newTrace : Trace = {
-        landscapeToken: "token3",
-        startTime: 1522023023123,
-        traceId: "607257096554b5c9236116464bc4TEST",
-        endTime: 1522023023153,
-        duration: 2,
-        overallRequestCount: 1,
-        traceCount: 1,
-        spanList: [
-            {
-                landscapeToken: "token3",
-                traceId: "607257096554b5c9236116464bc4TEST",
-                spanId: "3fc0b7e5590aTEST",
-                parentSpanId: "783503290017TEST",
-                startTime: 1522023023151,
-                endTime: 1522023023153,
-                //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-                methodHash: "testEinsdefaulthashcode"
-            },
-            {
-                landscapeToken: "token3",
-                traceId: "607257096554b5c9236116464bc4TEST",
-                spanId: "783503290017TEST",
-                parentSpanId: "",
-                startTime: 1522023023123,
-                endTime: 1522023023164,
-                //methodHash: "testBEinsdefaulthashcode"
-                //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-                methodHash: "testCEinsdefaulthashcode"
-            }
-        ]
-    };
-    dynamics[0]?.dynamicLandscapeData.push(newTrace);
-    dynamics[1]?.dynamicLandscapeData.push(newTrace);
+    //   const newTrace : Trace = {
+    //     landscapeToken: "token3",
+    //     startTime: 1522023023123,
+    //     traceId: "607257096554b5c9236116464bc4TEST",
+    //     endTime: 1522023023153,
+    //     duration: 2,
+    //     overallRequestCount: 1,
+    //     traceCount: 1,
+    //     spanList: [
+    //         {
+    //             landscapeToken: "token3",
+    //             traceId: "607257096554b5c9236116464bc4TEST",
+    //             spanId: "3fc0b7e5590aTEST",
+    //             parentSpanId: "783503290017TEST",
+    //             startTime: 1522023023151,
+    //             endTime: 1522023023153,
+    //             //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+    //             methodHash: "testEinsdefaulthashcode"
+    //         },
+    //         {
+    //             landscapeToken: "token3",
+    //             traceId: "607257096554b5c9236116464bc4TEST",
+    //             spanId: "783503290017TEST",
+    //             parentSpanId: "",
+    //             startTime: 1522023023123,
+    //             endTime: 1522023023164,
+    //             //methodHash: "testBEinsdefaulthashcode"
+    //             //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+    //             methodHash: "testCEinsdefaulthashcode"
+    //         }
+    //     ]
+    // };
+    // dynamics[0]?.dynamicLandscapeData.push(newTrace);
+    // dynamics[1]?.dynamicLandscapeData.push(newTrace);
 
       // ------
 
@@ -806,6 +806,8 @@ export default class VisualizationController extends Controller {
     // this.timestampPollingService.initTimestampPollingWithCallback(
     //   this.timestampPollingCallback.bind(this)
     // );
+
+    // applications to build a commit tree for
     this.codeServiceFetchingService.initApplicationFetchingWithCallback(
       this.applicationFetchingCallback.bind(this)
     );
@@ -845,7 +847,7 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  timestampPollingCallback(timestamps: (Timestamp[] | undefined)[]) {
+  timestampPollingCallback(timestamps: Timestamp[][]) {
     console.log("timestampPollingCallback: ", timestamps);
 
     const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
@@ -859,15 +861,15 @@ export default class VisualizationController extends Controller {
       console.debug("No commits selected during polling callback");
       return;
     }else {
-      if(timestamps[0]) {
-        this.timestampRepo.addTimestamps(
-          this.landscapeTokenService.token!.value,
-          selectedCommits[0].commitId,
-          timestamps[0]
-        );
-      }
+      
+      this.timestampRepo.addTimestamps(
+        this.landscapeTokenService.token!.value,
+        selectedCommits[0].commitId,
+        timestamps[0]
+      );
+      
   
-      if(selectedCommits.length === 2 && timestamps[1]) {
+      if(selectedCommits.length === 2) {
         this.timestampRepo.addTimestamps(
           this.landscapeTokenService.token!.value,
           selectedCommits[1].commitId,
@@ -877,6 +879,7 @@ export default class VisualizationController extends Controller {
     }
 
 
+    
     if ((timestamps[0] && timestamps[0].length > 0) || (selectedCommits.length > 1 && timestamps[1] && timestamps[1].length > 0)) {
       this.timestampRepo.triggerTimelineUpdate();
       //console.log("triggerTimelineUpdate: ", timestamps);
