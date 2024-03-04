@@ -296,7 +296,11 @@ export default class VRController extends BaseMesh {
    */
   private updateGamepad() {
     const { gamepad } = this;
-    if (!gamepad || this.timestamp === gamepad.timestamp) {
+
+    if (
+      !gamepad ||
+      (gamepad.timestamp && this.timestamp === gamepad.timestamp)
+    ) {
       return;
     }
 

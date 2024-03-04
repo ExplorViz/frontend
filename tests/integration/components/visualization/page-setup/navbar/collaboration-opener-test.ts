@@ -11,7 +11,7 @@ module('Integration | Component | collaboration-opener', function (hooks) {
     // Handle any actions with this.set('myAction', function(val) { ... });
 
     await render(
-      hbs`<Visualization::PageSetup::Navbar::CollaborationOpener />`
+      hbs`<Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener />`
     );
 
     const { textContent } = this.element;

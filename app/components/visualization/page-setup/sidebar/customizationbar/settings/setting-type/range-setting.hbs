@@ -1,0 +1,26 @@
+<div class='mb-3'>
+  <HelpTooltip @title={{@setting.description}} />
+  <label class='m-0' for={{@setting.name}}>{{@setting.displayName}}</label>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <input
+        id={{@setting.name}}
+        value={{@setting.value}}
+        min={{@setting.range.min}}
+        max={{@setting.range.max}}
+        type='range'
+        step={{@setting.range.step}}
+        class='form-control mr-2'
+        {{on 'change' @onChange}}
+      />
+      <div class='range-slider--values'>
+        <span>{{@setting.range.min}}</span>
+        <span style='font-weight: bold;'>{{@setting.value}}</span>
+        <span>{{@setting.range.max}}</span>
+      </div>
+    </div>
+    <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ResetButton
+      @onClick={{@onChange}}
+    />
+  </div>
+</div>

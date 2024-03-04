@@ -15,7 +15,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -51,9 +50,6 @@ interface Args {
 
 export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
-
-  @service('toast-message')
-  private toastMessage!: ToastMessage;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -182,8 +178,6 @@ export default class ArRendering extends Component<Args> {
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
-
-    this.toastMessage.init();
 
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
@@ -512,10 +506,7 @@ export default class ArRendering extends Component<Args> {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    this.localUser.mousePing.ping.perform({
-      parentObj,
-      position: pingPosition,
-    });
+    this.localUser.ping(parentObj, pingPosition);
 
     if (this.collaborationSession.isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
