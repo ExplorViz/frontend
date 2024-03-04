@@ -7,6 +7,7 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 
 interface Args {
   readonly landscapeData: LandscapeData;
+  readonly visualizationPaused: boolean;
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -16,56 +17,71 @@ interface Args {
 
 export default class TraceStartFiltering extends Component<Args> {
   @tracked
-  currentValue: number = this.minAndMaxAndMidStartTimestamp.mid;
+  selected: number | null = null;
 
   private initialLandscapeData: LandscapeData | null = null;
 
   get traceCount() {
+    console.log('tracecount');
     return this.args.landscapeData.dynamicLandscapeData.length;
   }
 
-  get minAndMaxAndMidStartTimestamp() {
-    console.log('min and max');
+  get timestamps() {
     let min = Number.MAX_VALUE;
     let max = -1;
 
-    const traces =
-      this.initialLandscapeData?.dynamicLandscapeData ??
-      this.args.landscapeData.dynamicLandscapeData;
+    let traces = [];
+
+    if (this.args.visualizationPaused) {
+      traces =
+        this.initialLandscapeData?.dynamicLandscapeData ??
+        this.args.landscapeData.dynamicLandscapeData;
+    } else {
+      this.initialLandscapeData = null;
+      this.selected = null;
+      traces = this.args.landscapeData.dynamicLandscapeData;
+    }
 
     for (const trace of traces) {
       min = trace.startTime <= min ? trace.startTime : min;
       max = trace.startTime >= max ? trace.startTime : max;
     }
 
-    return { min: min, max: max, mid: Math.round((min + max) / 2) };
+    let selected = min;
+
+    if (this.args.visualizationPaused && this.selected) {
+      selected = this.selected;
+    }
+    console.log('timestamps', min, max, selected);
+
+    return { min: min, max: max, selected: selected };
   }
 
   formatTimestampToDate(timestamp: number) {
+    console.log('format');
     return new Date(timestamp);
   }
 
   @action
   onChange(event: any) {
+    console.log('onChange');
     if (!this.initialLandscapeData) {
       this.initialLandscapeData = this.args.landscapeData;
     }
 
     this.args.pauseVisualizationUpdating();
 
-    this.currentValue = Number(event.target.value);
+    this.selected = Number(event.target.value);
 
     // hide all traces that start the selected timestamp
     const tracesToFilter =
       this.initialLandscapeData.dynamicLandscapeData.filter(
-        (t) => t.startTime > this.currentValue
+        (t) => t.startTime > this.selected!
       );
 
     this.args.updateLandscape(
       this.args.landscapeData.structureLandscapeData,
       tracesToFilter
     );
-
-    console.log('length', tracesToFilter.length);
   }
 }
