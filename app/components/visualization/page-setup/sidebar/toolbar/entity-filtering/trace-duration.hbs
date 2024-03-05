@@ -1,8 +1,7 @@
 <div class='mb-3'>
   <HelpTooltip @title='bla' />
-  <label class='m-0' for='filtering-trace-duration'>Min. trace duration (#
-    traces:
-    <b>{{this.traceCount}}</b>)</label>
+  <label class='m-0' for='filtering-trace-duration'>Min. duration (# excl.:
+    <b>{{@filteredTraceCount}} / {{@initialTraceCount}}</b>)</label>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
       <input

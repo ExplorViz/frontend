@@ -17,15 +17,8 @@ export default class TraceStartFiltering extends Component<Args> {
   private min: number = Number.MAX_VALUE;
   private max: number = -1;
 
-  private initialTraces: DynamicLandscapeData | null = null;
-
-  get traceCount() {
-    return this.args.traces.length;
-  }
-
   get timestamps() {
     if (!this.args.visualizationPaused) {
-      this.initialTraces = null;
       this.selected = null;
       const traces = this.args.traces;
 
@@ -62,14 +55,8 @@ export default class TraceStartFiltering extends Component<Args> {
   @action
   onChange(event: any) {
     console.log('onchange');
-    if (!this.initialTraces) {
-      this.initialTraces = this.args.traces;
-    }
-
     this.args.pauseVisualizationUpdating();
-
     this.selected = Number(event.target.value);
-
     this.args.updateStartTimestamp(this.selected);
   }
 }
