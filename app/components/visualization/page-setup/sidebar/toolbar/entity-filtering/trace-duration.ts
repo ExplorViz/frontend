@@ -25,7 +25,17 @@ export default class TraceDuration extends Component<Args> {
   private initialLandscapeData: LandscapeData | null = null;
 
   get traceCount() {
-    return this.args.landscapeData.dynamicLandscapeData.length;
+    if (
+      this.args.visualizationPaused &&
+      this.selected &&
+      this.initialLandscapeData
+    ) {
+      return this.initialLandscapeData.dynamicLandscapeData.filter(
+        (t) => t.duration >= this.selected!
+      ).length;
+    } else {
+      return this.args.landscapeData.dynamicLandscapeData.length;
+    }
   }
 
   get timestamps() {
@@ -53,9 +63,10 @@ export default class TraceDuration extends Component<Args> {
 
   @action
   onInput(_: any, htmlInputElement: any) {
-    console.log('onchange');
+    console.log('onInput');
     const newValue = htmlInputElement.target.value;
     if (newValue) {
+      this.args.pauseVisualizationUpdating();
       this.selected = Number(newValue);
     }
   }
