@@ -1,8 +1,3 @@
-{{add-listener
-  this.landscapeListener
-  'newLandscapeData'
-  this.receiveNewLandscapeData
-}}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 
 {{add-listener
@@ -19,11 +14,6 @@
   this.landscapeRestructure
   'restructureComponent'
   this.toggleSettingsSidebarComponent
-}}
-{{add-listener
-  this.landscapeRestructure
-  'resetPolling'
-  this.resetLandscapeListenerPolling
 }}
 {{add-listener
   this.landscapeRestructure
@@ -111,7 +101,6 @@
           @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
           @addComponent={{this.addComponent}}
           @visualizationPaused={{this.visualizationPaused}}
-          @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
           @removeTimestampListener={{this.removeTimestampListener}}
           @restructureLandscape={{this.restructureLandscape}}
           @switchToAR={{this.switchToAR}}

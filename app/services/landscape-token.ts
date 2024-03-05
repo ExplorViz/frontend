@@ -3,7 +3,6 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import LandscapeListener from './landscape-listener';
 import ToastHandlerService from './toast-handler';
 const { userService } = ENV.backendAddresses;
 
@@ -21,9 +20,6 @@ const tokenToShow = ENV.mode.tokenToShow;
 export default class LandscapeTokenService extends Service {
   @service('auth')
   private auth!: Auth;
-
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
@@ -110,7 +106,6 @@ export default class LandscapeTokenService extends Service {
     }
 
     this.token = token;
-    this.landscapeListener.resetLandscapeData();
 
     if (token) {
       this.toastHandler.showInfoToastMessage(

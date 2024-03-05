@@ -41,7 +41,6 @@ import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-set
 import ENV from 'explorviz-frontend/config/environment';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
@@ -79,9 +78,6 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
-
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -357,16 +353,6 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  resetLandscapeListenerPolling() {
-    if (this.landscapeListener.timer !== null) {
-      this.debug('Stopping timer');
-      clearTimeout(this.landscapeListener.timer);
-      this.landscapeListener.latestStructureJsonString = null;
-      this.landscapeListener.latestDynamicData = null;
-    }
-  }
-
-  @action
   closeDataSelection() {
     this.debug('closeDataSelection');
     this.showSettingsSidebar = false;
@@ -532,7 +518,6 @@ export default class VisualizationController extends Controller {
   willDestroy() {
     this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
-    this.resetLandscapeListenerPolling();
     this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
@@ -625,7 +610,6 @@ export default class VisualizationController extends Controller {
     this.highlightingService.updateHighlighting();
     await this.updateTimestamp(landscape.timestamp);
     // Disable polling. It is now triggerd by the websocket.
-    this.resetLandscapeListenerPolling();
   }
 
   async onTimestampUpdate({
@@ -637,8 +621,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
-    this.resetLandscapeListenerPolling();
-    this.landscapeListener.pollData(timestamp);
+    await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
     this.updateTimestamp(timestamp);
   }
 

@@ -97,7 +97,6 @@ export default class VisualizationRoute extends BaseRoute {
     isExiting: boolean /* , transition: any */
   ) {
     if (isExiting) {
-      controller.send('resetLandscapeListenerPolling');
       this.landscapeToken.removeToken();
 
       controller.willDestroy();
