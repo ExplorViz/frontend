@@ -23,6 +23,7 @@ import {
   getAllAncestorComponents,
   openComponentsByList,
 } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
@@ -227,6 +228,31 @@ export default class HighlightingService extends Service.extend({
     });
   }
 
+  @action
+  markAsAddedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsAdded(mesh);
+    }
+  }
+
+	
+  @action
+  markAsDeletedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsDeleted(mesh);
+    }
+  }
+
+  @action
+  markAsModifiedById(modelId: string){
+    const mesh = this.applicationRenderer.getMeshById(modelId);
+    if (isEntityMesh(mesh)) {
+      this.markAsModified(mesh);
+    }
+  }
+
   // #endregion public functions
 
   // #region private functions
@@ -361,6 +387,46 @@ export default class HighlightingService extends Service.extend({
 
   private getEntityType(mesh: Highlighting.HighlightableMesh): string {
     return mesh.constructor.name;
+  }
+
+ private markAsAdded(mesh: EntityMesh){
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      (mesh as EntityMesh).changeTexture("../images/plus.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/plus.png", repeatX, repeatY);
+    }
+  }
+
+  private markAsDeleted(mesh: EntityMesh){
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      (mesh as EntityMesh).changeTexture("../images/minus.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/minus.png", repeatX, repeatY);
+    }
+  }
+
+	
+  private markAsModified(mesh: EntityMesh){
+    if(mesh instanceof ClazzCommunicationMesh) {
+      const start = mesh.layout.startPoint;
+      const end = mesh.layout.endPoint;
+      const dist = start.distanceTo(end);
+      (mesh as EntityMesh).changeTexture("../images/hashtag.png", Math.ceil(dist), 3);
+    }else {
+      const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
+      const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
+      mesh.changeTexture("../images/hashtag.png", repeatX, repeatY);
+    }
   }
 
   // #endregion private functions

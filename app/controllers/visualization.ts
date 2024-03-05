@@ -254,7 +254,8 @@ export default class VisualizationController extends Controller {
   @tracked
   timelineColors : [string?, string?] = [undefined, undefined];
 
-  
+  private firstCommitSelected = false; // gets true whenever we get from no commits selected to commit selected
+  private allCommitsUnselected = false; // gets true whenever we get from any commit selected to no commits selected
   
 
   private readonly debug = debugLogger();
@@ -325,11 +326,22 @@ export default class VisualizationController extends Controller {
       this.debug('No token available to update timestamp list');
       return;
     }
+
     this.debug('updateTimestampList');
+
+    let selectedCommits = undefined;
+    if(this.currentSelectedApplication) {
+      selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
+    }
+
     const currentToken = this.landscapeTokenService.token.value;
-    const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
     const timelineTimestamps : Timestamp[][] = [];
-    if (selectedCommits?.length) {
+
+    if(!selectedCommits || selectedCommits.length === 0) {
+      const commitId = "";
+      const allCommitsTimestamps = this.timestampRepo.getTimestamps(currentToken, commitId);
+      timelineTimestamps.push(allCommitsTimestamps);
+    }else {
       const firstCommitTimestamps = this.timestampRepo.getTimestamps(currentToken, selectedCommits[0].commitId);
       timelineTimestamps.push(firstCommitTimestamps);
 
@@ -338,33 +350,15 @@ export default class VisualizationController extends Controller {
         timelineTimestamps.push(secondCommitTimestamps);
       }
     }
-    console.log("Timeline Timestamps =>>>>>>>>>>>>>>>>>> ", timelineTimestamps);
+
     this.timelineTimestamps = timelineTimestamps;
   }
 
   @action
   onRenderSettingChange(renderMode: RenderMode) {
+    console.log("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
     this.renderMode = renderMode;
-    this.landscapeData = this.landscapeData; // trigger update
-  //   console.log("updateLandscapeTriggered dynamic landscape data: ", this.landscapeData?.dynamicLandscapeData);
-  //  switch(renderMode){
-  //   case RenderMode.STATIC_ONLY:
-  //     console.log("STATIC ONLY");
-  //     this.applicationRenderer.hideDynamicVisualization(this.dynamicStructureData);
-  //     break;
-  //   case RenderMode.DYNAMIC_ONLY:
-  //     console.log("DYNAMIC ONLY");
-  //     this.applicationRenderer.hideStaticVisualization(this.staticStructureData);
-  //     break;
-  //   case RenderMode.STATIC_DYNAMIC:
-  //     console.log("STATIC AND DYNAMIC");
-  //   this.applicationRenderer.showDynamicVisualization(this.dynamicStructureData);
-  //   this.applicationRenderer.showStaticVisualization(this.staticStructureData);
-  //     break;
-  //   default:
-  //     this.debug("unknown render mode");
-  //  } 
-
+    this.landscapeData = this.landscapeData; // trigger render update
   }
 
   @action
@@ -409,11 +403,13 @@ export default class VisualizationController extends Controller {
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
-  ) { //console.log("updateLandscape called");
+  ) { 
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
     };
+
+    console.log("updateLandscape called", this.landscapeData);
   }
 
   @action
@@ -579,79 +575,49 @@ export default class VisualizationController extends Controller {
     epochMilli: [number?, number?],
     timestampRecordArray?: [Timestamp[]?, Timestamp[]?] 
   ) { 
-    //console.log("updateTimeStamp with epochMilli -----------> ",  epochMilli);
+
+    console.log("updateTimestamp", epochMilli);
+
+
     try {
-      const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+
+      let selectedCommits = undefined;
+      if(this.currentSelectedApplication){
+        selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
+      }
+
       const dynamics : [LandscapeData?, LandscapeData?] = [undefined, undefined];
-      if(epochMilli[0]) {
-        const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits![0], epochMilli[0])
-        dynamics[0] = {
-          structureLandscapeData: structureData,
-          dynamicLandscapeData: dynamicData
-        };
+
+      if(!selectedCommits || selectedCommits.length === 0) {
+        // Load dynamic structure and dynamic data with respect to all commits ("cross-commit")
+        if(epochMilli[0]) {
+          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(undefined, epochMilli[0])
+          dynamics[0] = {
+            structureLandscapeData: structureData,
+            dynamicLandscapeData: dynamicData
+          };
+        }
+      } else {
+
+        // Load dynamic structure and dynamic data for selected commits
+
+        if(epochMilli[0] && selectedCommits.length > 0) {
+          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits[0], epochMilli[0])
+          dynamics[0] = {
+            structureLandscapeData: structureData,
+            dynamicLandscapeData: dynamicData
+          };
+        }
+  
+        if(epochMilli[1] && selectedCommits.length === 2) {
+          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits[1], epochMilli[1])
+          dynamics[1] = {
+            structureLandscapeData: structureData,
+            dynamicLandscapeData: dynamicData
+          };
+        }
+
       }
-
-      if(epochMilli[1]) {
-        const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits![1], epochMilli[1])
-        dynamics[1] = {
-          structureLandscapeData: structureData,
-          dynamicLandscapeData: dynamicData
-        };
-      }
-
-
-
-
-
-
-      // DELETE THIS. ONLY FOR TEST PURPOSES
-
-    //   const newTrace : Trace = {
-    //     landscapeToken: "token3",
-    //     startTime: 1522023023123,
-    //     traceId: "607257096554b5c9236116464bc4TEST",
-    //     endTime: 1522023023153,
-    //     duration: 2,
-    //     overallRequestCount: 1,
-    //     traceCount: 1,
-    //     spanList: [
-    //         {
-    //             landscapeToken: "token3",
-    //             traceId: "607257096554b5c9236116464bc4TEST",
-    //             spanId: "3fc0b7e5590aTEST",
-    //             parentSpanId: "783503290017TEST",
-    //             startTime: 1522023023151,
-    //             endTime: 1522023023153,
-    //             //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-    //             methodHash: "testEinsdefaulthashcode"
-    //         },
-    //         {
-    //             landscapeToken: "token3",
-    //             traceId: "607257096554b5c9236116464bc4TEST",
-    //             spanId: "783503290017TEST",
-    //             parentSpanId: "",
-    //             startTime: 1522023023123,
-    //             endTime: 1522023023164,
-    //             //methodHash: "testBEinsdefaulthashcode"
-    //             //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-    //             methodHash: "testCEinsdefaulthashcode"
-    //         }
-    //     ]
-    // };
-    // dynamics[0]?.dynamicLandscapeData.push(newTrace);
-    // dynamics[1]?.dynamicLandscapeData.push(newTrace);
-
-      // ------
-
-
-
-
-
-
-
-
-
-
 
 
       this.dynamics= [dynamics[0]?.dynamicLandscapeData, dynamics[1]?.dynamicLandscapeData];
@@ -659,6 +625,7 @@ export default class VisualizationController extends Controller {
 
       let newDynamic : DynamicLandscapeData;
       if (dynamics[0] && dynamics[1]) {
+        // TODO: don't let the frontend combine the dynamic structures. Provide an endpoint in the backend for that
         const combinedDynamicStructure = combineStructures(dynamics[0].structureLandscapeData, dynamics[1].structureLandscapeData);
         this.dynamicStructureData = combinedDynamicStructure;
         newDynamic = this.combineDynamics(dynamics[0].dynamicLandscapeData, dynamics[1].dynamicLandscapeData);
@@ -669,76 +636,85 @@ export default class VisualizationController extends Controller {
         this.dynamicStructureData = dynamics[1].structureLandscapeData;
         newDynamic = dynamics[1].dynamicLandscapeData;
       }else {
+        this.dynamicStructureData = undefined;
         newDynamic = [];
       }
 
+
+
+
+
+
+
+
+
+
+
+
       // Schnittmenge erzeugen und testen. TODO: Delete
-      const commonStructure : StructureLandscapeData = {
-        landscapeToken: this.dynamicStructureData!.landscapeToken,
-        nodes: [],
-      };
-      const commonNode : Node = {
-        id: this.dynamicStructureData!.nodes[0].id,
-        ipAddress: this.dynamicStructureData!.nodes[0].ipAddress,
-        hostName: this.dynamicStructureData!.nodes[0].hostName,
-        applications: []
-      };
-      const commonApplication : Application = {
-        id: this.dynamicStructureData!.nodes[0].applications[0].id,
-        name: this.dynamicStructureData!.nodes[0].applications[0].name,
-        language: this.dynamicStructureData!.nodes[0].applications[0].language,
-        instanceId: this.dynamicStructureData!.nodes[0].applications[0].instanceId,
-        parent: this.dynamicStructureData!.nodes[0].applications[0].parent, // parent: commonNode
-        packages: [],
-      };
+      // const commonStructure : StructureLandscapeData = {
+      //   landscapeToken: this.dynamicStructureData!.landscapeToken,
+      //   nodes: [],
+      // };
+      // const commonNode : Node = {
+      //   id: this.dynamicStructureData!.nodes[0].id,
+      //   ipAddress: this.dynamicStructureData!.nodes[0].ipAddress,
+      //   hostName: this.dynamicStructureData!.nodes[0].hostName,
+      //   applications: []
+      // };
+      // const commonApplication : Application = {
+      //   id: this.dynamicStructureData!.nodes[0].applications[0].id,
+      //   name: this.dynamicStructureData!.nodes[0].applications[0].name,
+      //   language: this.dynamicStructureData!.nodes[0].applications[0].language,
+      //   instanceId: this.dynamicStructureData!.nodes[0].applications[0].instanceId,
+      //   parent: this.dynamicStructureData!.nodes[0].applications[0].parent, // parent: commonNode
+      //   packages: [],
+      // };
 
-      const commonPackage : Package = {
-        id: this.dynamicStructureData!.nodes[0].applications[0].packages[2].id,
-        name: this.dynamicStructureData!.nodes[0].applications[0].packages[2].name,
-        subPackages: this.dynamicStructureData!.nodes[0].applications[0].packages[2].subPackages,
-        classes: this.dynamicStructureData!.nodes[0].applications[0].packages[2].classes,
-        parent: this.dynamicStructureData!.nodes[0].applications[0].packages[2].parent
-      };
+      // const commonPackage : Package = {
+      //   id: this.dynamicStructureData!.nodes[0].applications[0].packages[2].id,
+      //   name: this.dynamicStructureData!.nodes[0].applications[0].packages[2].name,
+      //   subPackages: this.dynamicStructureData!.nodes[0].applications[0].packages[2].subPackages,
+      //   classes: this.dynamicStructureData!.nodes[0].applications[0].packages[2].classes,
+      //   parent: this.dynamicStructureData!.nodes[0].applications[0].packages[2].parent
+      // };
       
       
-      commonApplication.packages.push(commonPackage);
-      commonNode.applications.push(commonApplication);
-      commonStructure.nodes.push(commonNode);
+      // commonApplication.packages.push(commonPackage);
+      // commonNode.applications.push(commonApplication);
+      // commonStructure.nodes.push(commonNode);
 
-      //console.log("DYNAMIC WHICH ALSO SHOULD BE STATIC: ", commonStructure);
-      //console.log("STATIC AND DYNAMIC COMBINED: ", combineStructures(this.staticStructureData, commonStructure));
-      this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
+      // this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
       // ---
 
 
-      const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
-      //let newStruct : StructureLandscapeData = {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
-      //let newDynamic: DynamicLandscapeData = dynamicData;
-      //const newDynamic = dynamicData;
 
-      // TODO: combine dynamic structure with static structure
+
+
+
+
+      const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
+
+      console.log("this.dynamicStructureData ==>", this.dynamicStructureData);
+      console.log("this.staticStructureData ==>", this.staticStructureData);
+
+      // Refactor this (find a better place for this logic)
       const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
       const renderDynamicStructure = this.userSettings.applicationSettings.dynamicStructure.value;
 
       if(renderStaticStructure && renderDynamicStructure) {
         this.renderMode = RenderMode.STATIC_DYNAMIC;
-        //newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
       } else if (renderStaticStructure && !renderDynamicStructure) {
         this.renderMode = RenderMode.STATIC_ONLY;
-        //newDynamic = [];
-        //if(this.staticStructureData)
-          //newStruct = this.staticStructureData;
       } else if (!renderStaticStructure && renderDynamicStructure) {
         this.renderMode = RenderMode.DYNAMIC_ONLY;
-        //if(this.dynamicStructureData)
-          //newStruct = this.dynamicStructureData;
       } else {
         console.debug("Should never happen!");
-        //newDynamic = [];
       }
+      
+      
+      this.updateLandscape(newStruct, newDynamic);
 
-
-      this.updateLandscape(newStruct, newDynamic!); // TODO: if two commits selected we need to combine their data before we update the landscape
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
@@ -808,13 +784,19 @@ export default class VisualizationController extends Controller {
 
   initRendering() {
     this.debug('initRendering');
+    console.log("initRendering");
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.closeDataSelection();
-    // this.timestampPollingService.initTimestampPollingWithCallback(
-    //   this.timestampPollingCallback.bind(this)
-    // );
+
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      /*(this.currentSelectedApplication && 
+        this.currentSelectedCommits.get(this.currentSelectedApplication)
+      ) || */
+      [],
+      this.timestampPollingCallback.bind(this)
+    );
 
     // applications to build a commit tree for
     this.codeServiceFetchingService.initApplicationFetchingWithCallback(
@@ -859,27 +841,33 @@ export default class VisualizationController extends Controller {
   }
 
   timestampPollingCallback(timestamps: Timestamp[][]) {
-    console.log("timestampPollingCallback: ", timestamps);
 
-    const selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication!);
-
-    if(!selectedCommits) {
-      console.debug("Error during polling callback");
-      return;
+    let selectedCommits : SelectedCommit[] | undefined = undefined;
+    if(this.currentSelectedApplication) {
+      selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
     }
 
-    if(selectedCommits.length === 0) {
-      console.debug("No commits selected during polling callback");
-      return;
+    if(!selectedCommits || selectedCommits.length === 0) {
+        // No application or commit selected
+        // Load all time dynamics evolution => all commits considered
+
+        const commitId = ""; // use empty string as commit id
+
+        this.timestampRepo.addTimestamps(
+          this.landscapeTokenService.token!.value,
+          commitId,
+          timestamps[0]
+        );
+        
     }else {
-      
+
       this.timestampRepo.addTimestamps(
         this.landscapeTokenService.token!.value,
         selectedCommits[0].commitId,
         timestamps[0]
       );
-      
   
+
       if(selectedCommits.length === 2) {
         this.timestampRepo.addTimestamps(
           this.landscapeTokenService.token!.value,
@@ -889,36 +877,49 @@ export default class VisualizationController extends Controller {
       }
     }
 
-
-    
-    if ((timestamps[0] && timestamps[0].length > 0) || (selectedCommits.length > 1 && timestamps[1] && timestamps[1].length > 0)) {
+        
+    if ((timestamps[0].length > 0) || (selectedCommits && selectedCommits.length > 1 && timestamps[1].length > 0)) {
       this.timestampRepo.triggerTimelineUpdate();
-      //console.log("triggerTimelineUpdate: ", timestamps);
     }
 
+    let timestampToRender : (Timestamp | undefined)[];
     if (!this.visualizationPaused) { 
-      //console.log("NOT PAUSED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", this.staticStructureData);
+
       const lastSelectTimestamp = this.timestampService.timestamp;
-      const timestampToRender : (Timestamp | undefined)[] = [
-        this.timestampRepo.getNextTimestampOrLatest(
-        this.landscapeTokenService.token!.value,
-        selectedCommits[0].commitId,
-        lastSelectTimestamp[0]!
-      ), 
-      selectedCommits[1] &&
-      this.timestampRepo.getNextTimestampOrLatest(
-        this.landscapeTokenService.token!.value,
-        selectedCommits[1].commitId,
-        lastSelectTimestamp[1]!
-      )];
+      if(!selectedCommits || selectedCommits.length === 0) {
+        const commitId = "";
+        timestampToRender = [
+          this.timestampRepo.getNextTimestampOrLatest(
+          this.landscapeTokenService.token!.value,
+          commitId,
+          lastSelectTimestamp[0]
+        ),
+      undefined];
+      }else {
+        timestampToRender = [
+          this.timestampRepo.getNextTimestampOrLatest(
+            this.landscapeTokenService.token!.value,
+            selectedCommits[0].commitId,
+            lastSelectTimestamp[0]
+          ), 
+          selectedCommits[1] &&
+          this.timestampRepo.getNextTimestampOrLatest(
+            this.landscapeTokenService.token!.value,
+            selectedCommits[1].commitId,
+            lastSelectTimestamp[1]
+          )
+        ];
+      }
 
 
       const epochMillis: [number?, number?] = [undefined, undefined];
       if (
         timestampToRender[0] &&
-        JSON.stringify(this.selectedTimestampRecords[0]) !==
-          JSON.stringify([timestampToRender[0]])
+        (this.firstCommitSelected || this.allCommitsUnselected || JSON.stringify(this.selectedTimestampRecords[0]) !==
+          JSON.stringify([timestampToRender[0]]))
       ) {
+        this.firstCommitSelected = false;
+        this.allCommitsUnselected = false;
         epochMillis[0] = timestampToRender[0].epochMilli;
         epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0].epochMilli; 
         this.selectedTimestampRecords[0] = [timestampToRender[0]];
@@ -1132,6 +1133,8 @@ export default class VisualizationController extends Controller {
   @action
   async commitTreeClicked(commits: Map<string,SelectedCommit[]>, staticStructureData?: StructureLandscapeData, timelineOfSelectedCommit?: number) {
 
+    this.timestampPollingService.resetPolling();
+
     // always resume when commit got clicked so the landscape updates
     if(this.visualizationPaused) {
       this.resumeVisualizationUpdating();
@@ -1149,7 +1152,6 @@ export default class VisualizationController extends Controller {
     const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
     const numOfSelectedCommits = selected?.length;
 
-    this.timestampPollingService.resetPolling();
     if(numOfSelectedCommits && numOfSelectedCommits > 0){
       if(this.selectedTimestampRecords[1]) {console.log("UNSELECT");
         // One of two (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) commits got unselected 
@@ -1166,12 +1168,18 @@ export default class VisualizationController extends Controller {
 
       }else {
 
-        if(this.timelineTimestamps.length === 0) {
+        if(numOfSelectedCommits === 1) {
           // first commit got selected
+
+          console.log("First commit selected!", this.staticStructureData);
+
           const keyForColor = this.currentSelectedApplication + selected[0].branchName;
           this.timelineColors[0] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
-        } else if(this.timelineTimestamps.length === 1) {
+          this.firstCommitSelected = true;
+        } else if(numOfSelectedCommits === 2) {
           // second commit got selected
+
+          console.log("Second commit selected!");
           const keyForColor = this.currentSelectedApplication + selected[1].branchName;
           this.timelineColors[1] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
         }
@@ -1185,13 +1193,22 @@ export default class VisualizationController extends Controller {
     
     } else {
       // no commits selected anymore
+
+      console.log("No commit selected");
+
       this.selectedTimestampRecords = [undefined, undefined];
       this.timelineTimestamps = [];
       this.markerState = [{}, {}];
       this.timestampService.timestamp = [undefined, undefined];
       this.timelineColors = [undefined, undefined];
       this.plotlyTimelineRef = undefined;
-      this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
+      this.allCommitsUnselected = true;
+      this.staticStructureData = undefined;
+      //this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
+      this.timestampPollingService.initTimestampPollingWithCallback(
+        [],
+        this.timestampPollingCallback.bind(this)
+      );
     }
 
   

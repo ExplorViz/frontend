@@ -15,6 +15,7 @@ import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
+import { RenderMode } from 'explorviz-frontend/controllers/visualization';
 
 interface Args {
   enterFullscreen?(): void;
@@ -61,6 +62,7 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       ApplicationSettingId[]
     > = {
+      Rendering: [],
       Camera: [],
       Colors: [],
       Communication: [],
@@ -170,6 +172,42 @@ export default class Settings extends Component<Args> {
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
         }
+        break;
+        case 'staticStructure':
+          if (
+            !this.userSettings.applicationSettings.dynamicStructure.value && !value
+          ) {
+            this.toastHandlerService.showInfoToastMessage(
+              'One structure to render required!'
+            );
+            this.userSettings.updateApplicationSetting(settingId, !value);
+          }else {
+            if(value) {
+              // turned on
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
+            } else {
+              // turned off
+              this.applicationRenderer.renderSettingChanged(RenderMode.DYNAMIC_ONLY);
+            }
+          }
+        break;
+      case 'dynamicStructure':
+          if (
+            !this.userSettings.applicationSettings.staticStructure.value && !value
+          ) {
+            this.toastHandlerService.showInfoToastMessage(
+              'One structure to render required!'
+            );
+            this.userSettings.updateApplicationSetting(settingId, !value);
+          } else {
+            if(value) {
+              // turned on
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
+            }else {
+              //turned off
+              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_ONLY);
+            }
+          } 
         break;
       default:
         break;

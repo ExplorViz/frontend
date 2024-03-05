@@ -244,7 +244,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
         this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
-
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
           ? this.roomSerializer.serializeToAddApplicationArgs(
@@ -495,17 +494,18 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   // handle extern communication links
   visualizeCommitComparisonCommunicationLinks(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
-    const selectedCommits = this.selectedCommits;
     const selectedApplication = this.selectedApplication;
+    const selectedCommits = this.selectedCommits;
 
-    if(!selectedCommits || !selectedApplication) return;
+    if(!selectedApplication || !selectedCommits) return;
+
+    const commits = selectedCommits.get(selectedApplication);
 
     const sourceApp = classCommunication.sourceApp;
     const targetApp = classCommunication.targetApp;
     
 
-    const commits = selectedCommits.get(selectedApplication)!;
-    if(commits.length !== 2) { // remove texture. TODO: if this approach produces a bug in
+    if(!commits || commits.length !== 2) { // remove texture. TODO: if this approach produces a bug in
       // combination with the restructure feature, put this kind of code to visualization.ts when
       // deselecting the second selected commit
       if (pipe.material instanceof THREE.MeshBasicMaterial ||

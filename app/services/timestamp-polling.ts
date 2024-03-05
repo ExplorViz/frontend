@@ -57,6 +57,22 @@ export default class TimestampPollingService extends Service {
       return;
     }
 
+    if(commits.length === 0) { // No commit selected
+      const commitId = ""; // commit id is empty string for "cross-commit" dynamics
+      const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp(landscapeToken, commitId);
+      const allCommitsTimestampPromise = this.httpFetchTimestamps(undefined, newestLocalTimestamp);
+      const timestampsArr : Timestamp[][] = [];
+      await allCommitsTimestampPromise
+        .then((timestamps: Timestamp[]) => {
+        timestampsArr.push(timestamps);
+      })
+      .catch((error: Error) => {
+        console.log(error);
+      });
+      callback(timestampsArr);
+      return;
+    }
+
     const firstCommitNewestLocalTimestamp =
       this.timestampRepo.getLatestTimestamp(landscapeToken, commits[0].commitId);
 
@@ -94,7 +110,7 @@ export default class TimestampPollingService extends Service {
     callback(timestampsArr);
   }
 
-  private httpFetchTimestamps(commit : SelectedCommit, newestLocalTimestamp?: Timestamp) { // TODO: commit wise timestamp data
+  private httpFetchTimestamps(commit?: SelectedCommit, newestLocalTimestamp?: Timestamp) { // TODO: commit wise timestamp data
     this.debug('Polling timestamps');
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {

@@ -179,8 +179,8 @@
 
       <div id="timeline-buttons">
         <BsButton @onClick={{this.showRequestsTimeline}}
-            @outline={{true}} class='timeline-btns {{conditional this.isRequestsTimeline "highlight"}}'>Requests</BsButton>
-        <BsButton @onClick={{this.showCommitsTimeline}}  @outline={{true}} class='timeline-btns {{conditional this.isCommitsTimeline "highlight"}}'>Evolution</BsButton>
+            @outline={{true}} class='timeline-btns {{conditional this.isRequestsTimeline "highlight"}}'>Runtime</BsButton>
+        <BsButton @onClick={{this.showCommitsTimeline}}  @outline={{true}} class='timeline-btns {{conditional this.isCommitsTimeline "highlight"}}'>Code</BsButton>
       </div>
       {{#if this.isRequestsTimeline}}
         {{#if this.currentSelectedApplication}}

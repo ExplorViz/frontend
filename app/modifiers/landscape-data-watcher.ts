@@ -17,17 +17,12 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import {
-  Application,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import LocalUser from 'collaboration/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
@@ -126,6 +121,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
 
     //console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
+    console.log("handleUpdatedLandscapeData,, structureLandscapeData ---->", this.structureLandscapeData);
+    //console.log("handleUpdatedLandscapeData,, dynamicLandscapeData ---->", this.dynamicLandscapeData);
+
     await Promise.resolve();
     if (!this.structureLandscapeData || !this.dynamicLandscapeData) {
       return;
@@ -136,8 +134,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       //this.dynamicLandscapeData,
       [this.dynamics[0], this.dynamics[1]]
     );
-
-    console.log("classCommunications ------>", classCommunications);
 
     if (this.landscapeRestructure.restructureMode) {
       classCommunications = computeRestructuredClassCommunication(
@@ -157,21 +153,37 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
 
+    console.log("graphNodes:", graphNodes);
+
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      return nodes.some((n) => n.applications[0].id === node.id);
+  
+      const appears = nodes.some((n) => n.applications[0].id === node.id);
+
+      if(!appears){
+        // also delete from application renderer so it can be rerendered if it exisitent again
+        // TODO: better layout position computation for applications with NO communication links
+        // This will only affect the static applications. Assumption: the current position computation
+        // assumes that there is at least one communication link per application. With the implementation
+        // of the static analysis this is no longer necessarily the case
+        this.applicationRenderer.removeApplicationLocallyById(node.id)
+      }
+      return appears;
     });
+
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
+
         const applicationData = await this.updateApplicationData.perform(
           application,
           classCommunications
         );
 
+        
         // create or update applicationObject3D
         const app =
           await this.applicationRenderer.addApplicationTask.perform(
@@ -315,8 +327,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
         if(this.dynamics) {
 
-          const commitIds = [ this.selectedCommits!.get(this.selectedApplication)![0].commitId,
-          this.selectedCommits!.get(this.selectedApplication)![1]?.commitId ];
+          const selectedCommits = this.selectedCommits!.get(this.selectedApplication);
+          const firstSelectedCommitId = selectedCommits && selectedCommits[0]?.commitId;
+          const secondSelectedCommitId = selectedCommits && selectedCommits[1]?.commitId;
+
+          const commitIds = [firstSelectedCommitId, secondSelectedCommitId];
           const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
           this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
 

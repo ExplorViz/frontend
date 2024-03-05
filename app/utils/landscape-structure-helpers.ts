@@ -163,8 +163,8 @@ export function getSpanIdToClassMap(
 // TODO: write function that combines two landscape structures. Make sure that we call this methods with copies of the original data since we modify attributes
 export function combineStructures(structureA?: StructureLandscapeData, structureB?: StructureLandscapeData) : StructureLandscapeData | undefined {
  
-  if(!structureA && !structureB)
-    return undefined;
+  //if(!structureA && !structureB)
+    //return undefined;
 
   if(!structureA) {
     return structureB;

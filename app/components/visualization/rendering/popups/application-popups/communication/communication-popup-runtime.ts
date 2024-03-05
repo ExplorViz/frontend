@@ -27,6 +27,7 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get firstSelectedCommitCalculateAggregatedRequestCount() {
+    console.log("firstSelectedCommitCalculateAggregatedRequestCount", this.args.communication.communication.totalRequests[0]);
     return this.args.communication.communication.totalRequests[0];
   }
 
@@ -35,7 +36,7 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get getNumOfCurrentSelectedCommits() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)?.length;
+    return this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0;
   }
 
   get firstSelectedCommitMethodCalls() {

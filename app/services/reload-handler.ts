@@ -23,7 +23,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
    * @method loadLandscapeById
    * @param {*} timestamp
    */
-  async loadLandscapeByTimestamp(selectedCommit: SelectedCommit, timestamp: number, interval: number = 10) {
+  async loadLandscapeByTimestamp(selectedCommit: SelectedCommit | undefined, timestamp: number, interval: number = 10) {
     const self = this;
     //console.log("LOAD LANDSCAPE BY TIMESTAMP FOR COMMIT ", selectedCommit, " and timestamp ", timestamp);
     self.debug('Start import landscape-request');

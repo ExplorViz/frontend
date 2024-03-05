@@ -78,7 +78,7 @@ function computeClassCommunicationRecursively(
 
 export default function computeClassCommunication(
   landscapeStructureData: StructureLandscapeData,
-  landscapeDynamicDataArr: [DynamicLandscapeData?, DynamicLandscapeData?] // first element => first selected commit dynamics, second element => second selected commit dynamics
+  landscapeDynamicDataArr: [DynamicLandscapeData?, DynamicLandscapeData?] // first element => cross-commit dynamics/first selected commit dynamics, second element => second selected commit dynamics
 ) {
   // if no dynamic landscape for any commit available => return empty list
   if ((!landscapeDynamicDataArr[0] && !landscapeDynamicDataArr[1]) || !(landscapeDynamicDataArr[0]?.length !== 0 || landscapeDynamicDataArr[1]?.length !== 0) ) return [];
@@ -94,18 +94,12 @@ export default function computeClassCommunication(
       continue;
     }
 
-
     const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicDataArr[i]!);
 
     const totalClassCommunications: SingleClassCommunication[] = [];
 
     landscapeDynamicDataArr[i]!.forEach((trace) => { 
       const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
-
-      if(trace.traceId === "607257096554b5c9236116464bc4TEST") {
-        console.log(" MEIN TRACE GEFUNDEN !");
-        console.log(traceSpanTree);
-      }
 
       if (traceSpanTree) {
         const firstSpan = traceSpanTree.root;
@@ -114,10 +108,6 @@ export default function computeClassCommunication(
           traceSpanTree.tree,
           hashCodeToClassMap
         ); 
-
-        if(firstSpan.traceId === "607257096554b5c9236116464bc4TEST") {
-          console.log(" X: ", x);
-        }
 
         totalClassCommunications.push(
           ...x // replace x with function call

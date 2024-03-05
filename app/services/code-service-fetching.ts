@@ -216,6 +216,7 @@ export default class CodeServiceRequestService extends Service {
           .catch((e) => reject(e));
       } else if(commits.length === 2) {
         const secondSelectedCommitId = commits[1].commitId;
+        // Note that we already receive the combined structure from the backend!
         url = `${codeService}/structure/${this.tokenService.token.value}/${applicationName}/${firstSelectedCommitId}-${secondSelectedCommitId}`;
         fetch(url, {
           headers: {

@@ -1,6 +1,147 @@
-{{#if (eq this.getNumOfCurrentSelectedCommits 1)}}
+{{#if (eq this.getNumOfCurrentSelectedCommits 0) }}
   <table class='w-100'>
     <tbody>
+      {{! Aggregated Information }}
+      {{#if (gt this.firstSelectedCommitMethodCalls.length 1)}}
+        {{! Aggregated request count }}
+        <tr>
+          <td class='text-nowrap align-top'>{{svg-jar
+              'code-16'
+              class='octicon align-middle mr-1'
+            }}</td>
+          <td class='text-right text-break pl-1'>
+            {{this.firstSelectedCommitTotalRequests}}
+            ( 100% )
+          </td>
+        </tr>
+        {{! # of unique method calls }}
+        <tr>
+          <td class='text-nowrap align-top'>#</td>
+          <td class='text-right text-break pl-1'>
+            {{this.firstSelectedCommitMethodCalls.length}}
+          </td>
+        </tr>
+        <hr />
+      {{/if}}
+      {{#each
+        this.firstSelectedCommitMethodCalls
+        as |classCommunication index|
+      }}
+
+        {{! Relationship }}
+        <tr>
+          <td class='text-nowrap align-top'>
+            {{svg-jar 'arrow-switch-16' class='octicon align-middle mr-1'}}
+          </td>
+          <td class='text-right text-break pl-1'>
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
+                )
+              }}
+            >
+              {{classCommunication.sourceClass.name}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{classCommunication.sourceApp.name}}
+              </BsTooltip>
+            </button>
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.sourceClass
+                  classCommunication.sourceApp.id
+                )
+              }}
+            >
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{classCommunication.sourceApp.name}}
+              </BsTooltip>
+            </button>
+            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+            <button
+              type='button'
+              class='buttonToLink'
+              {{on
+                'click'
+                (fn
+                  this.highlightEntity
+                  classCommunication.targetClass
+                  classCommunication.targetApp.id
+                )
+              }}
+            >
+              {{classCommunication.targetClass.name}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Application:
+                {{classCommunication.targetApp.name}}
+              </BsTooltip>
+            </button>
+          </td>
+        </tr>
+
+        {{! Name }}
+        <tr>
+          <td class='text-nowrap align-top'>{{svg-jar
+              'comment-16'
+              class='octicon align-middle mr-1'
+            }}</td>
+          <td class='text-right text-break pl-1'>
+            {{classCommunication.callerMethodName}}
+            {{svg-jar 'arrow-right-16' class='octicon align-middle'}}
+            {{classCommunication.operationName}}
+          </td>
+        </tr>
+
+        {{! Requests }}
+        <tr>
+          <td class='text-nowrap align-top'>{{svg-jar
+              'code-16'
+              class='octicon align-middle mr-1'
+            }}</td>
+          <td class='text-right text-break pl-1'>
+            {{classCommunication.totalRequests}}
+            (
+            {{round
+              (mult
+                (div
+                  classCommunication.totalRequests
+                  this.firstSelectedCommitCalculateAggregatedRequestCount
+                )
+                100
+              )
+            }}% )
+          </td>
+        </tr>
+        {{#if (lt index (sub @communication.classCommunications.length 1))}}
+          <hr />
+        {{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+{{else if (eq this.getNumOfCurrentSelectedCommits 1)}}
+<table class='w-100'>
+    <tbody>
+      <tr>
+        <th colspan="2">  
+          <h4 class='popover-header'>
+            <div class='text-center text-break font-weight-bold pl-1'>
+              #1 Sel. Commit ({{this.firstSelectedCommitId}})
+            </div>
+          </h4>
+        </th>
+      </tr>
       {{! Aggregated Information }}
       {{#if (gt this.firstSelectedCommitMethodCalls.length 1)}}
         {{! Aggregated request count }}

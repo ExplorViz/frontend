@@ -18,7 +18,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
   getNextTimestampOrLatest(
     landscapeToken: string,
     commitId: string,
-    epochMilli: number
+    epochMilli?: number
   ): Timestamp | undefined {
     const timestampsForLandscapetoken =
       this.timelineTimestamps.get(landscapeToken + "_" + commitId);
