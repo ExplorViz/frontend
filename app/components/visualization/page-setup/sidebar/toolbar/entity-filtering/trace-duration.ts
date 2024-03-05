@@ -15,7 +15,7 @@ interface Args {
   pauseVisualizationUpdating(): void;
 }
 
-export default class TraceStartFiltering extends Component<Args> {
+export default class TraceDuration extends Component<Args> {
   @tracked
   selected: number | null = null;
 
@@ -35,8 +35,8 @@ export default class TraceStartFiltering extends Component<Args> {
       const traces = this.args.landscapeData.dynamicLandscapeData;
 
       for (const trace of traces) {
-        this.min = trace.startTime <= this.min ? trace.startTime : this.min;
-        this.max = trace.startTime >= this.max ? trace.startTime : this.max;
+        this.min = trace.duration <= this.min ? trace.duration : this.min;
+        this.max = trace.duration >= this.max ? trace.duration : this.max;
       }
 
       console.log('timestamps', this.min, this.max);
@@ -51,22 +51,17 @@ export default class TraceStartFiltering extends Component<Args> {
     return { min: this.min, max: this.max, selected: selected };
   }
 
-  formatTimestampToDate(timestamp: number) {
-    return new Date(timestamp);
-  }
-
   @action
   onInput(_: any, htmlInputElement: any) {
+    console.log('onchange');
     const newValue = htmlInputElement.target.value;
     if (newValue) {
-      this.args.pauseVisualizationUpdating();
       this.selected = Number(newValue);
     }
   }
 
   @action
   onChange(event: any) {
-    console.log('onchange');
     if (!this.initialLandscapeData) {
       this.initialLandscapeData = this.args.landscapeData;
     }
@@ -75,9 +70,9 @@ export default class TraceStartFiltering extends Component<Args> {
 
     this.selected = Number(event.target.value);
 
-    // hide all traces that start the selected timestamp
+    // hide all traces that have a strict lower duration than selected
     const newTraces = this.initialLandscapeData.dynamicLandscapeData.filter(
-      (t) => t.startTime >= this.selected!
+      (t) => t.duration >= this.selected!
     );
 
     this.args.updateLandscape(
