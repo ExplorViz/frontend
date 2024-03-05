@@ -11,6 +11,10 @@ import {
   AppOpenedMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/app-opened';
 import {
+  CHANGE_LANDSCAPE_EVENT,
+  ChangeLandscapeMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
+import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
@@ -66,6 +70,9 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
@@ -105,8 +112,59 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   args: IModifierArgs;
   element: unknown;
 
-  @service('toastHandler')
-  toastHandlerService!: ToastHandlerService;
+  debug = debugLogger('CollaborativeModifier');
+
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('repos/application-repository')
+  private applicationRepo!: ApplicationRepository;
+
+  @service('changelog')
+  private changeLog!: Changelog;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
+
+  @service('landscape-restructure')
+  private landscapeRestructure!: LandscapeRestructure;
+
+  @service('link-renderer')
+  private linkRenderer!: LinkRenderer;
+
+  @service('landscape-token')
+  private tokenService!: LandscapeTokenService;
+
+  @service('local-user')
+  private localUser!: LocalUser;
+
+  @service('toast-handler')
+  private toastHandlerService!: ToastHandlerService;
+
+  @service('user-settings')
+  private userSettings!: UserSettings;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
+
+  get canvas(): HTMLCanvasElement {
+    assert(
+      `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
+      this.element instanceof HTMLCanvasElement
+    );
+    return this.element as HTMLCanvasElement;
+  }
+
+  get raycastObject3D(): THREE.Object3D {
+    return this.args.named.raycastObject3D;
+  }
+
+  get camera(): THREE.Camera {
+    return this.args.named.camera;
+  }
 
   constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
@@ -124,6 +182,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.on(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
     this.webSocket.on(SHARE_SETTINGS_EVENT, this, this.onShareSettings);
     this.webSocket.on(
       RESTRUCTURE_MODE_UPDATE_EVENT,
@@ -213,6 +272,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this,
       this.onHighlightingUpdate
     );
+    this.webSocket.off(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
     this.webSocket.off(
       RESTRUCTURE_MODE_UPDATE_EVENT,
       this,
@@ -290,48 +350,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
   }
 
-  debug = debugLogger('CollaborativeModifier');
-
-  @service('web-socket')
-  private webSocket!: WebSocketService;
-
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
-
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
-
-  @service('highlighting-service')
-  private highlightingService!: HighlightingService;
-
-  @service('landscape-restructure')
-  landscapeRestructure!: LandscapeRestructure;
-
-  @service('changelog')
-  changeLog!: Changelog;
-
-  @service('local-user')
-  private localUser!: LocalUser;
-
-  @service('user-settings')
-  private userSettings!: UserSettings;
-
-  get canvas(): HTMLCanvasElement {
-    assert(
-      `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
-      this.element instanceof HTMLCanvasElement
-    );
-    return this.element as HTMLCanvasElement;
-  }
-
-  get raycastObject3D(): THREE.Object3D {
-    return this.args.named.raycastObject3D;
-  }
-
-  get camera(): THREE.Camera {
-    return this.args.named.camera;
-  }
-
   async onAppOpened({
     originalMessage: { id, position, quaternion, scale },
   }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
@@ -389,20 +407,37 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       const mesh = this.applicationRenderer.getMeshById(entityId);
       if (mesh instanceof ClazzCommunicationMesh) {
         // multi selected extern links?
-        this.applicationRenderer.highlightExternLink(mesh, false, user.color);
+        this.highlightingService.toggleHighlight(mesh, {
+          sendMessage: false,
+          remoteColor: user.color,
+        });
       }
       return;
     }
 
-    const mesh = application.getMeshById(entityId);
+    const mesh: any = application.getMeshById(entityId);
     if (mesh?.highlighted !== isHighlighted) {
-      this.applicationRenderer.highlight(
-        mesh,
-        application,
-        user.color,
-        false // whenever we receive messages we don't want to resend them
-      );
+      this.highlightingService.toggleHighlight(mesh, {
+        sendMessage: false,
+        remoteColor: user.color,
+      });
     }
+  }
+
+  onChangeLandscape({
+    // userId,
+    originalMessage: { landscapeToken },
+  }: ForwardedMessage<ChangeLandscapeMessage>): void {
+    if (this.tokenService.token?.value === landscapeToken) {
+      return;
+    }
+    this.tokenService.setTokenByValue(landscapeToken);
+
+    this.applicationRenderer.cleanup();
+    this.applicationRepo.cleanup();
+    this.linkRenderer.getAllLinks().forEach((externLink) => {
+      externLink.removeFromParent();
+    });
   }
 
   onShareSettings({
@@ -681,6 +716,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       remoteUser.mousePing.ping.perform({
         parentObj: applicationObj,
         position: point,
+        durationInMs: 5000,
       });
     }
 

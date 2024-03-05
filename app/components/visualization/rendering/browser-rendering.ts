@@ -50,14 +50,14 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 
 interface BrowserRenderingArgs {
   readonly id: string;
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly visualizationPaused: boolean;
+  readonly isDisplayed: boolean;
+  readonly selectedCommits: Map<string, SelectedCommit[]>;
+  readonly selectedApplication: string;
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
-  switchToVR(): void;
-  readonly selectedCommits: Map<string, SelectedCommit[]>;
-  readonly selectedApplication: string;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -238,7 +238,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      // { title: 'Enter VR', action: this.args.switchToVR },
     ];
   }
 
@@ -251,14 +250,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   highlightTrace(trace: Trace, traceStep: string) {
-    if (this.selectedApplicationObject3D) {
-      this.highlightingService.highlightTrace(
-        trace,
-        traceStep,
-        this.selectedApplicationObject3D,
-        this.args.landscapeData.structureLandscapeData
-      );
+    if (!this.args.landscapeData || !this.selectedApplicationObject3D) {
+      return;
     }
+
+    this.highlightingService.highlightTrace(
+      trace,
+      traceStep,
+      this.selectedApplicationObject3D,
+      this.args.landscapeData.structureLandscapeData
+    );
   }
 
   @action
@@ -430,20 +431,15 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       return;
     }
 
-    if (mesh instanceof FoundationMesh) {
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.selectActiveApplication(mesh.parent);
-      }
+    if (
+      mesh instanceof FoundationMesh &&
+      mesh.parent instanceof ApplicationObject3D
+    ) {
+      this.selectActiveApplication(mesh.parent);
     }
 
     if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
-      console.log((mesh as ClazzMesh).dataModel.methods);
-      if (mesh.parent instanceof ApplicationObject3D) {
-        this.applicationRenderer.highlight(mesh, mesh.parent);
-      } else {
-        // extern communication link
-        this.applicationRenderer.highlightExternLink(mesh, true);
-      }
+      this.highlightingService.toggleHighlight(mesh, { sendMessage: true });
     }
   }
 
@@ -456,18 +452,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
-    ) {
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-        true;
-    }
+    // nothing to do atm
   }
 
   @action
   handleStrgUp() {
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
-      false;
+    // nothing to do atm
   }
 
   @action
@@ -545,7 +535,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
     }
-    this.popupHandler.hover(intersection?.object);
+    this.popupHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey /*&& !this.heatmapConf.heatmapActive*/)
       this.highlightingService.updateHighlightingOnHover(
@@ -606,7 +596,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseOut(event: PointerEvent) {
-    this.popupHandler.hover();
+    this.popupHandler.handleHoverOnMesh();
     if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
       this.popupHandler.removeUnmovedPopups();
     }
@@ -636,7 +626,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
    */
   @action
   moveCameraTo(emberModel: Class | Span) {
-    if (!this.selectedApplicationObject3D) {
+    if (!this.selectedApplicationObject3D || !this.args.landscapeData) {
       return;
     }
     moveCameraTo(

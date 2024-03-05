@@ -1,8 +1,3 @@
-{{add-listener
-  this.landscapeListener
-  'newLandscapeData'
-  this.receiveNewLandscapeData
-}}
 {{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
 {{add-listener this.configurationRepo 'updated' this.updateConfigurationsAndMetrics}}
 {{add-listener this.configurationRepo 'updatePlot' this.updatePlotForMetrics}}
@@ -25,11 +20,6 @@
 }}
 {{add-listener
   this.landscapeRestructure
-  'resetPolling'
-  this.resetLandscapeListenerPolling
-}}
-{{add-listener
-  this.landscapeRestructure
   'toggelVisualization'
   this.toggleVisualizationUpdating
 }}
@@ -41,7 +31,7 @@
 <div id='vizspace' {{sync-state}}>
   {{#if this.showAR}}
     <ArRendering
-      @id='landscape1'
+      @id='ar-rendering'
       @landscapeData={{this.landscapeData}}
       @openLandscapeView={{this.openLandscapeView}}
       @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
@@ -56,7 +46,7 @@
   {{else}}
     {{#if (and this.flag this.showVR)}}
       <VrRendering
-        @id='landscape1'
+        @id='vr-rendering'
         @landscapeData={{this.landscapeData}}
         @components={{this.components}}
         @openSettingsSidebar={{this.openSettingsSidebar}}
@@ -80,85 +70,66 @@
       </div>
 
     {{else}}
-      {{#if this.isLandscapeExistentAndEmpty}}
-        <div class='container-fluid mt-6'>
-          <div class='jumbotron'>
-            <h2>Empty Landscape received!</h2>
-            <p>A new landscape will be fetched every 10 seconds.</p>
-          </div>
-          <div class='spinner-center-3' role='status'></div>
-        </div>
-      {{else if this.allLandscapeDataExistsAndNotEmpty}}
+      {{#if this.showVR}}
 
-        {{#if this.showVR}}
+        <VrRendering
+          @id='vr-rendering'
+          @landscapeData={{this.landscapeData}}
+          @components={{this.components}}
+          @openDataSelection={{this.openDataSelection}}
+          @closeDataSelection={{this.closeDataSelection}}
+          @showDataSelection={{this.showDataSelection}}
+          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+          @visualizationPaused={{this.visualizationPaused}}
+          @applicationArgs={{this.applicationArgs}}
+          @debugMode={{this.flag}}
+        />
 
-          <VrRendering
-            @id='landscape1'
-            @landscapeData={{this.landscapeData}}
-            @components={{this.components}}
-            @openDataSelection={{this.openDataSelection}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @showDataSelection={{this.showDataSelection}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @applicationArgs={{this.applicationArgs}}
-            @debugMode={{this.flag}}
-          />
-
-        {{else}}
-          <Visualization::Rendering::BrowserRendering
-            @landscapeData={{this.landscapeData}}
+      {{else}}
+        <Visualization::Rendering::BrowserRendering
+          @id='browser-rendering'
+          @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
+          @landscapeData={{this.landscapeData}}
             @selectedCommits={{this.currentSelectedCommits}}
             @selectedApplication={{this.currentSelectedApplication}}
             @staticStructure={{this.staticStructureData}}
             @dynamicStructure={{this.dynamicStructureData}}
             @renderMode={{this.renderMode}}
             @dynamics={{this.dynamics}}
-            @components={{this.components}}
-            @componentsToolsSidebar={{this.componentsToolsSidebar}}
-            @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @closeToolsSidebar={{this.closeToolsSidebar}}
-            @openSettingsSidebar={{this.openSettingsSidebar}}
-            @openToolsSidebar={{this.openToolsSidebar}}
-            @showSettingsSidebar={{this.showSettingsSidebar}}
-            @showToolsSidebar={{this.showToolsSidebar}}
-            @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
-            @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @addComponent={{this.addComponent}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
-            @removeTimestampListener={{this.removeTimestampListener}}
-            @restructureLandscape={{this.restructureLandscape}}
-            @switchToAR={{this.switchToAR}}
-            @switchToVR={{this.switchToVR}}
-            @applicationArgs={{this.applicationArgs}}
-          />
+          @components={{this.components}}
+          @componentsToolsSidebar={{this.componentsToolsSidebar}}
+          @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
+          @closeDataSelection={{this.closeDataSelection}}
+          @closeToolsSidebar={{this.closeToolsSidebar}}
+          @openSettingsSidebar={{this.openSettingsSidebar}}
+          @openToolsSidebar={{this.openToolsSidebar}}
+          @showSettingsSidebar={{this.showSettingsSidebar}}
+          @showToolsSidebar={{this.showToolsSidebar}}
+          @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
+          @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
+          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+          @addComponent={{this.addComponent}}
+          @visualizationPaused={{this.visualizationPaused}}
+          @removeTimestampListener={{this.removeTimestampListener}}
+          @restructureLandscape={{this.restructureLandscape}}
+          @switchToAR={{this.switchToAR}}
+          @applicationArgs={{this.applicationArgs}}
+        />
+      {{/if}}
 
-          {{#unless this.showTimeline}}
-            {{#if this.showVrButton}}
-              <button
-                id='VrButton'
-                type='button'
-                {{did-insert this.updateVrStatus}}
-                {{on 'click' this.switchToVR}}
-              >
-                {{this.buttonText}}
-              </button>
-            {{/if}}
-          {{/unless}}
-        {{/if}}
-
-      {{else}}
+      {{#unless this.allLandscapeDataExistsAndNotEmpty}}
         <div class='container-fluid mt-6'>
           <div class='jumbotron'>
-            <h2>No Landscape found!</h2>
+            {{#if this.isLandscapeExistentAndEmpty}}
+              <h2>Empty Landscape received!</h2>
+            {{else}}
+              <h2>No Landscape found!</h2>
+            {{/if}}
             <p>A new landscape will be fetched every 10 seconds.</p>
           </div>
           <div class='spinner-center-3' role='status'></div>
         </div>
-      {{/if}}
+      {{/unless}}
     {{/if}}
   {{/if}}
 </div>
@@ -190,7 +161,7 @@
 
     {{#if this.showVrButton}}
       <button
-        class='btn-timeline-above'
+        class='timeline-vr-button'
         type='button'
         {{did-insert this.updateVrStatus}}
         {{on 'click' this.switchToVR}}

@@ -27,7 +27,7 @@ export default class Landscapes extends Controller {
   @tracked
   tokenAlias: string = '';
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @action

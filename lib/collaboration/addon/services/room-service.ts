@@ -83,7 +83,9 @@ export default class RoomService extends Service {
       },
     });
     const json = await response.json();
-    if (isLobbyJoinedResponse(json)) return json;
+    if (isLobbyJoinedResponse(json)) {
+      return json;
+    }
     throw new Error('invalid data');
   }
 }

@@ -47,7 +47,7 @@
           @sharePopup={{this.popupHandler.sharePopup}}
           @removePopup={{this.popupHandler.removePopup}}
           @structureData={{@landscapeData.structureLandscapeData}}
-          @highlightById={{this.applicationRenderer.highlightById}}
+          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
       {{/each}}
@@ -174,12 +174,12 @@
   {{#if @showSettingsSidebar}}
     <div class='sidebar right col-8' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100'>
-        <Visualization::PageSetup::Sidebar::DataSelection
+        <Visualization::PageSetup::Sidebar::Customizationbar::DataSelection
           @closeDataSelection={{@closeDataSelection}}
         >
           <div class='explorviz-visualization-navbar foreground'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Navbar::CollaborationOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Navbar::ArSettingsOpener
@@ -192,7 +192,8 @@
               @componentId={{componentId}}
             >
               {{#if (eq componentId 'Collaboration')}}
-                <Visualization::PageSetup::Sidebar::CollaborationControls />
+                <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
+                />
               {{/if}}
               {{#if (eq componentId 'AR-Settings')}}
                 <Visualization::PageSetup::Sidebar::ArSettingsSelector
@@ -203,7 +204,7 @@
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>
           {{/each}}
-        </Visualization::PageSetup::Sidebar::DataSelection>
+        </Visualization::PageSetup::Sidebar::Customizationbar::DataSelection>
       </div>
     </div>
   {{/if}}

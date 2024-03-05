@@ -3,7 +3,7 @@ export const POPUP_CLOSED_EVENT = 'popup_closed';
 export type PopupClosedMessage = {
   event: typeof POPUP_CLOSED_EVENT;
   applicationId: string;
-  meshId: string;
+  entityId: string;
 };
 
 export function isPopupClosedMessage(msg: any): msg is PopupClosedMessage {
@@ -11,6 +11,7 @@ export function isPopupClosedMessage(msg: any): msg is PopupClosedMessage {
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === POPUP_CLOSED_EVENT &&
-    typeof msg.id === 'string'
+    typeof msg.applicationId === 'string' &&
+    typeof msg.entityId === 'string'
   );
 }

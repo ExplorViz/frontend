@@ -3,8 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LandscapeListener from 'explorviz-frontend/services/landscape-listener';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import * as THREE from 'three';
 import LocalUser from './local-user';
@@ -36,6 +34,7 @@ import {
   CONTROLLER_2_ID,
 } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -44,17 +43,11 @@ export default class CollaborationSession extends Service.extend({
 }) {
   debug = debugLogger('CollaborationSession');
 
-  @service('toast-message')
-  toastMessage!: ToastMessage;
-
   @service('web-socket')
   private webSocket!: WebSocketService;
 
   @service('room-service')
   private roomService!: RoomService;
-
-  @service('landscape-listener')
-  private landscapeListener!: LandscapeListener;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -74,12 +67,23 @@ export default class CollaborationSession extends Service.extend({
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('toastHandler')
+  @service('router')
+  router!: any;
+
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
+  @service('landscape-token')
+  tokenService!: LandscapeTokenService;
+
+  @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
   readonly remoteUserGroup: THREE.Group = new THREE.Group();
+
+  get userCount() {
+    return this.idToRemoteUser.size + 1;
+  }
 
   @tracked
   connectionStatus: ConnectionStatus = 'offline';
@@ -193,6 +197,10 @@ export default class CollaborationSession extends Service.extend({
 
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
+
+    this.toastHandlerService.showSuccessToastMessage(
+      'Joined room successfully'
+    );
   }
 
   // Display to other users when another user joins the room
@@ -213,12 +221,9 @@ export default class CollaborationSession extends Service.extend({
     });
     this.addRemoteUser(remoteUser);
 
-    this.toastMessage.message({
-      title: 'User connected',
-      text: remoteUser.userName,
-      color: `#${remoteUser.color.getHexString()}`,
-      time: 3.0,
-    });
+    this.toastHandlerService.showInfoToastMessage(
+      `User connected: ${remoteUser.userName}`
+    );
   }
 
   /**
@@ -230,12 +235,9 @@ export default class CollaborationSession extends Service.extend({
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
-      this.toastMessage.message({
-        title: 'User disconnected',
-        text: removedUser.userName,
-        color: `#${removedUser.color.getHexString()}`,
-        time: 3.0,
-      });
+      this.toastHandlerService.showInfoToastMessage(
+        `User disconnected: ${removedUser.userName}`
+      );
     }
 
     // walk trough all highlighted entities and unhighlight them
@@ -247,19 +249,18 @@ export default class CollaborationSession extends Service.extend({
         if (application) {
           const mesh = application.getMeshById(highlightedEntity);
           if (isEntityMesh(mesh)) {
-            this.applicationRenderer.highlight(
-              mesh,
-              application,
-              undefined,
-              false
-            );
+            this.highlightingService.toggleHighlight(mesh, {
+              sendMessage: false,
+            });
           }
         }
       } else {
         //extern Link
         const link = this.linkRenderer.getLinkById(highlightedEntity);
         if (link) {
-          this.applicationRenderer.highlightExternLink(link, false);
+          this.highlightingService.toggleHighlight(link, {
+            sendMessage: false,
+          });
         }
       }
     }
@@ -269,21 +270,25 @@ export default class CollaborationSession extends Service.extend({
     this.disconnect();
 
     if (this.isConnecting) {
-      this.toastMessage.info('Collaboration backend service not responding');
+      this.toastHandlerService.showInfoToastMessage(
+        'Collaboration backend service not responding.'
+      );
     } else if (event) {
       switch (event) {
         case 'io client disconnect':
-          this.toastMessage.info('Successfully disconnected');
+          this.toastHandlerService.showInfoToastMessage(
+            'Successfully disconnected'
+          );
           break;
         default:
-          this.toastMessage.error('Unexpected disconnect');
+          this.toastHandlerService.showErrorToastMessage(
+            'Unexpected disconnect'
+          );
       }
     }
 
     // Remove remote users.
     this.removeAllRemoteUsers();
-
-    this.landscapeListener.initLandscapePolling();
 
     this.highlightingService.resetColorsOfHighlightedEntities();
     this.userSettings.restoreApplicationSettings();
@@ -311,7 +316,7 @@ export default class CollaborationSession extends Service.extend({
       // this.connectionStatus = 'connecting';
       try {
         const response = await this.roomService.createRoom(roomId);
-        this.joinRoom(response.roomId, { checkConnectionStatus: false });
+        this.joinRoom(response.roomId);
         return true;
       } catch (e: any) {
         // this.connectionStatus = 'offline';
@@ -325,39 +330,65 @@ export default class CollaborationSession extends Service.extend({
     }
   }
 
-  async joinRoom(
-    roomId: string,
-    { checkConnectionStatus = true }: { checkConnectionStatus?: boolean } = {}
-  ) {
-    if (!checkConnectionStatus || !this.isConnecting) {
-      this.connectionStatus = 'connecting';
-      this.currentRoomId = roomId;
+  async joinRoom(roomId: string) {
+    if (this.isConnecting) {
+      this.toastHandlerService.showErrorToastMessage(
+        'Tried to join room while already connecting to a room.'
+      );
+      return;
+    }
 
-      const delay = 100;
-      const maxRetries = 5; // Maximum number of retry attempts
-      let retries = 0;
-      while (retries < maxRetries) {
-        try {
-          const response = await this.roomService.joinLobby(this.currentRoomId);
-          this.webSocket.initSocket(
-            response.ticketId,
-            this.localUser.visualizationMode
+    const rooms = await this.roomService.listRooms();
+    const room = rooms.find((room) => room.roomId === roomId);
+    if (!room) {
+      this.toastHandlerService.showErrorToastMessage(
+        'Could not find room with ID ' + roomId
+      );
+      return;
+    }
+
+    const tokens = await this.tokenService.retrieveTokens();
+    const token = tokens.find((elem) => elem.value === room.landscapeToken);
+
+    if (token) {
+      this.tokenService.setToken(token);
+      this.router.transitionTo('visualization', {
+        queryParams: { landscapeToken: token.value, roomId: roomId },
+      });
+    } else {
+      this.toastHandlerService.showErrorToastMessage(
+        'Could not find landscape token for room to join.'
+      );
+      return;
+    }
+
+    this.connectionStatus = 'connecting';
+    this.currentRoomId = roomId;
+
+    const delay = 100;
+    const maxRetries = 5; // Maximum number of retry attempts
+    let retries = 0;
+    while (retries < maxRetries) {
+      try {
+        const response = await this.roomService.joinLobby(this.currentRoomId);
+        this.webSocket.initSocket(
+          response.ticketId,
+          this.localUser.visualizationMode
+        );
+        break; // Break out of the loop if successful
+      } catch (e) {
+        if (retries === maxRetries - 1) {
+          // If this is the last retry attempt, handle the error and break out of the loop
+          this.connectionStatus = 'offline';
+          this.currentRoomId = null;
+          this.toastHandlerService.showErrorToastMessage(
+            'Cannot reach Collaboration-Service after multiple retries.'
           );
-          break; // Break out of the loop if successful
-        } catch (e) {
-          if (retries === maxRetries - 1) {
-            // If this is the last retry attempt, handle the error and break out of the loop
-            this.connectionStatus = 'offline';
-            this.currentRoomId = null;
-            this.toastHandlerService.showErrorToastMessage(
-              'Cannot reach Collaboration-Service after multiple retries.'
-            );
-            break;
-          }
-          retries++;
-          console.error('Error: Unable to join lobby. Retrying...', e);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          break;
         }
+        retries++;
+        console.error('Error: Unable to join lobby. Retrying...', e);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
@@ -369,6 +400,13 @@ export default class CollaborationSession extends Service.extend({
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
     this.webSocket.closeSocket();
+
+    // Remove roomId from URL
+    if (this.router.currentRouteName === 'visualization') {
+      this.router.transitionTo('visualization', {
+        queryParams: { roomId: null },
+      });
+    }
   }
 
   /**

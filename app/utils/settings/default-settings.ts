@@ -278,9 +278,19 @@ export const defaultApplicationSettings: ApplicationSettings = {
     buttonText: 'Enter Fullscreen',
     isButtonSetting: true,
   },
-  resetToDefaults: {
+  syncRoomState: {
     value: false,
     orderNumber: 5,
+    type: 'danger',
+    group: 'Debugging',
+    displayName: 'Synchronize Room State',
+    description: 'Sends current state of room to all users, use with caution.',
+    buttonText: 'Synchronize',
+    isButtonSetting: true,
+  },
+  resetToDefaults: {
+    value: false,
+    orderNumber: 6,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',

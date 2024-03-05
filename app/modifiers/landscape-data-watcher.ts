@@ -17,6 +17,10 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import LocalUser from 'collaboration/services/local-user';
@@ -27,9 +31,10 @@ import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface NamedArgs {
-  readonly landscapeData: LandscapeData;
+  readonly landscapeData: LandscapeData | null;
   readonly graph: ForceGraph3DInstance;
   readonly dynamics: [DynamicLandscapeData?, DynamicLandscapeData?];
 }
@@ -94,12 +99,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   private renderMode?: RenderMode;
   private dynamics!: [DynamicLandscapeData?, DynamicLandscapeData?];
 
-  get structureLandscapeData() {
-    return this.landscapeData.structureLandscapeData;
+  get structureLandscapeData(): StructureLandscapeData | null {
+    return this.landscapeData?.structureLandscapeData;
   }
 
-  get dynamicLandscapeData() {
-    return this.landscapeData.dynamicLandscapeData;
+  get dynamicLandscapeData(): DynamicLandscapeData | null {
+    return this.landscapeData?.dynamicLandscapeData;
   }
 
   async modify(
@@ -122,7 +127,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     //console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
     await Promise.resolve();
-    
+    if (!this.structureLandscapeData || !this.dynamicLandscapeData) {
+      return;
+    }
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       //this.dynamicLandscapeData,
@@ -240,11 +248,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const { serializedRoom } = this.roomSerializer;
 
-    if (serializedRoom) {
+    // Apply serialized room data from collaboration service if it seems up-to-date
+    if (
+      serializedRoom &&
+      serializedRoom.openApps.length >= this.applicationRepo.applications.size
+    ) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
-      this.detachedMenuRenderer.restore(serializedRoom.detachedMenus);
+      this.detachedMenuRenderer.restore(
+        serializedRoom.popups,
+        serializedRoom.detachedMenus
+      );
       this.roomSerializer.serializedRoom = undefined;
     } else {
+      // Remove possibly oudated applications
+      // ToDo: Refactor
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
       for (let i = 0; i < openApplicationsIds.length; ++i) {
         const applicationId = openApplicationsIds[i];
@@ -255,6 +272,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
       this.highlightingService.updateHighlighting();
     }
+
     this.graph.graphData(gData);
 
     // send new data to ide

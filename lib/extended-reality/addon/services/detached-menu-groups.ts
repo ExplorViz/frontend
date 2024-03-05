@@ -233,7 +233,7 @@ export default class DetachedMenuGroupsService extends Service {
       const highlightIcon = new ActionIcon({
         textures: this.assetRepo.paintbrushIconTextures,
         color: new THREE.Color(color),
-        onAction: () => this.highlightComponent(menu.getDetachId()),
+        onAction: () => this.toggleHighlightComponent(menu.getDetachId()),
         radius: 0.04,
       });
       highlightIcon.addToObject(detachedMenuGroup);
@@ -247,9 +247,9 @@ export default class DetachedMenuGroupsService extends Service {
     detachedMenuGroup.scale.copy(scale);
   }
 
-  highlightComponent(entityId: string): Promise<boolean> {
+  toggleHighlightComponent(entityId: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.highlightingService.highlightById(entityId);
+      this.highlightingService.toggleHighlightById(entityId);
       this.highlightingService.updateHighlighting();
       resolve(true);
     });

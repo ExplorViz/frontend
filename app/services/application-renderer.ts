@@ -33,14 +33,9 @@ import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
-import ToastMessage from './toast-message';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import { getClassesInPackage, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
@@ -54,6 +49,10 @@ import MethodCall from 'explorviz-frontend/utils/landscape-schemes/dynamic/metho
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend(Evented) {
@@ -87,9 +86,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   @service('room-serializer')
   roomSerializer!: RoomSerializer;
-
-  @service('toast-message')
-  toastMessage!: ToastMessage;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
@@ -306,7 +302,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
-          this.highlightingService.highlightById(
+          this.highlightingService.toggleHighlightById(
             highlightedComponent.entityId,
             highlightedComponent.color
           );
@@ -889,54 +885,35 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   }
 
   /**
-   * Highlights a given component or clazz
-   *
-   * @param entity Component, communication link or clazz which shall be highlighted
-   * @param applicationObject3D Application which contains the entity
-   */
-
-  @action
-  highlight(
-    entity: any,
-    applicationObject3D: ApplicationObject3D,
-    color?: THREE.Color,
-    sendMessage = true
-  ) {
-    if (isEntityMesh(entity)) {
-      this.highlightingService.highlight(entity, sendMessage, color);
-
-      this.updateApplicationObject3DAfterUpdate(applicationObject3D);
-    }
-  }
-
-  @action
-  highlightExternLink(
-    mesh: EntityMesh,
-    sendMessage: boolean,
-    color?: THREE.Color
-  ) {
-    if (mesh instanceof ClazzCommunicationMesh) {
-      this.highlightingService.highlight(mesh, sendMessage, color);
-      //this.updateLinks?.();
-      this.highlightingService.updateHighlighting();
-    }
-  }
-
-  /**
    * Opens all parents / components of a given component or clazz.
    * Adds communication and restores highlighting.
    *
    * @param entity Component or Clazz of which the mesh parents shall be opened
    */
   @action
-  openParents(entity: Package | Class, applicationId: string) {
+  openParents(entity: Package | Class | EntityMesh, applicationId: string) {
+    let entityModel = entity;
+
+    if (!entity) {
+      return;
+    }
+
+    // do not re-calculate if mesh is already visible
+    if (isEntityMesh(entityModel)) {
+      if (entityModel.visible) {
+        return;
+      } else {
+        entityModel = (entity as EntityMesh).dataModel as Package | Class;
+      }
+    }
+
     const applicationObject3D = this.getApplicationById(applicationId);
     if (!applicationObject3D) {
       return;
     }
 
     EntityManipulation.openComponentsByList(
-      EntityManipulation.getAllAncestorComponents(entity),
+      EntityManipulation.getAllAncestorComponents(entityModel),
       applicationObject3D
     );
 
@@ -1055,7 +1032,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   }
 
   restoreFromSerialization(room: SerializedRoom) {
-    this.forEachOpenApplication(this.removeApplicationLocally);
+    this.cleanup();
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.unhighlight();
@@ -1076,12 +1053,10 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       room.highlightedExternCommunicationLinks.forEach((externLink) => {
         const linkMesh = this.linkRenderer.getLinkById(externLink.entityId);
         if (linkMesh) {
-          this.highlightExternLink(
-            linkMesh,
-            false,
-            new THREE.Color().fromArray(externLink.color)
-          );
-          linkMesh.highlight();
+          this.highlightingService.highlight(linkMesh, {
+            sendMessage: false,
+            remoteColor: new THREE.Color().fromArray(externLink.color),
+          });
         }
       });
     }
@@ -1089,6 +1064,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   }
 
   cleanup() {
+    this.forEachOpenApplication(this.removeApplicationLocally);
     this.openApplicationsMap.clear();
   }
 

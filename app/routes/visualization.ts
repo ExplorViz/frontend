@@ -24,7 +24,7 @@ export default class VisualizationRoute extends BaseRoute {
   @service('repos/font-repository')
   fontRepo!: FontRepository;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger();
@@ -97,7 +97,6 @@ export default class VisualizationRoute extends BaseRoute {
     isExiting: boolean /* , transition: any */
   ) {
     if (isExiting) {
-      controller.send('resetLandscapeListenerPolling');
       this.landscapeToken.removeToken();
 
       controller.willDestroy();

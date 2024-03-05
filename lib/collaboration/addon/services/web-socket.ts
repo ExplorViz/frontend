@@ -8,6 +8,7 @@ import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/re
 import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import { APP_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/app-opened';
+import { CHANGE_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
 import { COMPONENT_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/component-update';
 import { HEATMAP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/heatmap-update';
 import { HIGHLIGHTING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
@@ -15,6 +16,7 @@ import { MOUSE_PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages
 import { PING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import { SHARE_SETTINGS_EVENT } from 'collaboration/utils/web-socket-messages/sendable/share-settings';
 import { SPECTATING_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
+import { SYNC_ROOM_STATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
 import { TIMESTAMP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
 import { Nonce } from 'collaboration/utils/web-socket-messages/types/nonce';
 import debugLogger from 'ember-debug-logger';
@@ -42,6 +44,7 @@ const RECEIVABLE_EVENTS = [
   ALL_HIGHLIGHTS_RESET_EVENT,
   APP_CLOSED_EVENT,
   APP_OPENED_EVENT,
+  CHANGE_LANDSCAPE_EVENT,
   COMPONENT_UPDATE_EVENT,
   DETACHED_MENU_CLOSED_EVENT,
   HEATMAP_UPDATE_EVENT,
@@ -56,6 +59,7 @@ const RECEIVABLE_EVENTS = [
   SELF_CONNECTED_EVENT,
   SHARE_SETTINGS_EVENT,
   SPECTATING_UPDATE_EVENT,
+  SYNC_ROOM_STATE_EVENT,
   TIMESTAMP_UPDATE_EVENT,
   TIMESTAMP_UPDATE_TIMER_EVENT,
   USER_CONNECTED_EVENT,

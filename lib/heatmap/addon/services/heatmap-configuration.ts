@@ -34,7 +34,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @tracked

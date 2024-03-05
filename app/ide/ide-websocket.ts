@@ -101,7 +101,7 @@ export default class IdeWebsocket {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('toastHandler')
+  @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   handleDoubleClickOnMesh: (meshID: string) => void;

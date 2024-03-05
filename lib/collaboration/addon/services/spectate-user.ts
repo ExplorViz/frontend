@@ -13,12 +13,12 @@ import {
   SpectatingUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
 import debugLogger from 'ember-debug-logger';
-import ToastMessage from 'explorviz-frontend/services/toast-message';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import * as VrPoses from 'extended-reality/utils/vr-helpers/vr-poses';
 import { VrPose } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -32,11 +32,11 @@ export default class SpectateUser extends Service {
   @service('collaboration-session')
   collaborationSession!: CollaborationSession;
 
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
+
   @service('web-socket')
   private webSocket!: WebSocketService;
-
-  @service('toast-message')
-  toastMessage!: ToastMessage;
 
   @tracked
   spectatedUser: RemoteUser | null = null;
@@ -247,7 +247,7 @@ export default class SpectateUser extends Service {
     spectatingUsers: (RemoteUser | LocalUser)[],
     isSpectating: boolean
   ) {
-    const spectatedHexColor = `#${spectatedUser.color.getHexString()}`;
+    //const spectatedHexColor = `#${spectatedUser.color.getHexString()}`;
     let text = '';
     let spectatingUserNames = 'Nobody';
 
@@ -264,12 +264,10 @@ export default class SpectateUser extends Service {
     } else {
       text = 'stopped spectating';
     }
-    this.toastMessage.message({
-      title: spectatingUserNames || 'Nobody',
-      text,
-      color: spectatedHexColor,
-      time: 3.0,
-    });
+
+    const userName = spectatingUserNames || 'Unknown';
+
+    this.toastHandlerService.showInfoToastMessage(`${userName} ${text}`);
   }
 
   applyCameraConfiguration(configuration: {
