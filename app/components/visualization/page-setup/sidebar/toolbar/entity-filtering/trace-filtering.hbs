@@ -1,0 +1,18 @@
+<h6 class='mb-3 mt-3'><strong>Dynamic (# traces:
+    {{this.traceCount}}
+    /
+    {{this.initialLandscapeData.dynamicLandscapeData.length}})</strong></h6>
+
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceStart
+  @traces={{@landscapeData.dynamicLandscapeData}}
+  @updateStartTimestamp={{this.updateStartTimestamp}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+  @visualizationPaused={{@visualizationPaused}}
+/>
+
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceDuration
+  @traces={{@landscapeData.dynamicLandscapeData}}
+  @updateDuration={{this.updateDuration}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+  @visualizationPaused={{@visualizationPaused}}
+/>
