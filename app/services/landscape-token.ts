@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
+import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
-import Service from '@ember/service';
-import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
 import ToastHandlerService from './toast-handler';
 const { userService } = ENV.backendAddresses;
@@ -24,9 +24,11 @@ export default class LandscapeTokenService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
+  @tracked
   token: LandscapeToken | null = null;
 
   // Used in landscape selection to go back to last selected token
+  @tracked
   latestToken: LandscapeToken | null = null;
 
   constructor() {
@@ -92,17 +94,24 @@ export default class LandscapeTokenService extends Service {
     });
   }
 
-  setToken(token: LandscapeToken) {
-    if (token.value === this.token?.value) {
+  setToken(token: LandscapeToken | null) {
+    if (token && token.value === this.token?.value) {
       return;
     }
 
+    // Update references to landscape tokens
     localStorage.setItem('currentLandscapeToken', JSON.stringify(token));
-    this.set('latestToken', token);
-    this.set('token', token);
-    this.toastHandler.showInfoToastMessage(
-      `Set landscape token to " ${token.alias || token.value}"`
-    );
+    if (this.token) {
+      this.latestToken = this.token;
+    }
+
+    this.token = token;
+
+    if (token) {
+      this.toastHandler.showInfoToastMessage(
+        `Set landscape token to " ${token.alias || token.value}"`
+      );
+    }
   }
 
   async setTokenByValue(tokenValue: string) {
