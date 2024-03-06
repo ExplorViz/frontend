@@ -3,7 +3,7 @@
     /
     {{this.initialLandscapeData.dynamicLandscapeData.length}})</strong></h6>
 
-<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceStart
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceFiltering::TraceStart
   @traces={{@landscapeData.dynamicLandscapeData}}
   @updateStartTimestamp={{this.updateStartTimestamp}}
   @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
@@ -12,7 +12,7 @@
   @initialTraceCount={{this.initialLandscapeData.dynamicLandscapeData.length}}
 />
 
-<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceDuration
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceFiltering::TraceDuration
   @traces={{@landscapeData.dynamicLandscapeData}}
   @updateDuration={{this.updateDuration}}
   @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
