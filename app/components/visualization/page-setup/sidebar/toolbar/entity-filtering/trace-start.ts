@@ -18,16 +18,13 @@ export default class TraceStartFiltering extends Component<Args> {
   private max: number = -1;
 
   get timestamps() {
-    if (!this.args.visualizationPaused) {
-      this.selected = null;
+    if (!this.selected) {
       const traces = this.args.traces;
 
       for (const trace of traces) {
         this.min = trace.startTime <= this.min ? trace.startTime : this.min;
         this.max = trace.startTime >= this.max ? trace.startTime : this.max;
       }
-
-      console.log('timestamps', this.min, this.max);
     }
 
     let selected = this.min;
@@ -54,7 +51,6 @@ export default class TraceStartFiltering extends Component<Args> {
 
   @action
   onChange(event: any) {
-    console.log('onchange');
     this.args.pauseVisualizationUpdating();
     this.selected = Number(event.target.value);
     this.args.updateStartTimestamp(this.selected);

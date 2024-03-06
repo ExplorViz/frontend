@@ -80,4 +80,11 @@ export default class TraceFiltering extends Component<Args> {
       newTraces
     );
   }
+
+  willDestroy(): void {
+    this.args.updateLandscape(
+      this.initialLandscapeData.structureLandscapeData,
+      this.initialLandscapeData.dynamicLandscapeData
+    );
+  }
 }

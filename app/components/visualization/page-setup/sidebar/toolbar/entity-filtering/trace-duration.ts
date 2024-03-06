@@ -18,21 +18,18 @@ export default class TraceDuration extends Component<Args> {
   private max: number = -1;
 
   get timestamps() {
-    if (!this.args.visualizationPaused) {
-      this.selected = null;
+    if (!this.selected) {
       const traces = this.args.traces;
 
       for (const trace of traces) {
         this.min = trace.duration <= this.min ? trace.duration : this.min;
         this.max = trace.duration >= this.max ? trace.duration : this.max;
       }
-
-      console.log('timestamps', this.min, this.max);
     }
 
     let selected = this.min;
 
-    if (this.args.visualizationPaused && this.selected) {
+    if (this.selected) {
       selected = this.selected;
     }
 
@@ -41,7 +38,6 @@ export default class TraceDuration extends Component<Args> {
 
   @action
   onInput(_: any, htmlInputElement: any) {
-    console.log('onInput');
     const newValue = htmlInputElement.target.value;
     if (newValue) {
       this.args.pauseVisualizationUpdating();
