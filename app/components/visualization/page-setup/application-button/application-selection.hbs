@@ -1,28 +1,28 @@
 {{#if @evolutionData}}
-<div id='application-selection' class='dropdown'>
-  <button
-    class='btn btn-outline-dark dropdown-toggle'
-    type='button'
-    data-toggle='dropdown'
-    aria-haspopup='true'
-    aria-expanded='false'
-  >
-    {{#if (not @selectedApplication)}}
-      Applications
-    {{else}}
-      {{@selectedApplication}}
-    {{/if}}
-  </button>
+  <div id='application-selection' class='dropdown'>
+    <button
+      class='btn btn-outline-dark dropdown-toggle'
+      type='button'
+      data-toggle='dropdown'
+      aria-haspopup='true'
+      aria-expanded='false'
+    >
+      {{#if (not @selectedApplication)}}
+        Applications
+      {{else}}
+        {{@selectedApplication}}
+      {{/if}}
+    </button>
 
-  <div class='dropdown-menu'>
-    {{#each this.evolutionData.applications as |application|}}
-      <div
-        class='dropdown-item pointer-cursor'
-        {{on 'click' (fn this.onClick application.name)}}
-      >
-        {{application.name}}
-      </div>
-    {{/each}}
+    <div class='dropdown-menu'>
+      {{#each this.evolutionData.applications as |application|}}
+        <div
+          class='dropdown-item pointer-cursor'
+          {{on 'click' (fn this.onClick application.name)}}
+        >
+          {{application.name}}
+        </div>
+      {{/each}}
+    </div>
   </div>
-</div>
 {{/if}}

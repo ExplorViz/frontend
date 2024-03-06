@@ -11,7 +11,7 @@ interface Args {
   clazz: Class;
   applicationId: string;
   readonly selectedCommits: Map<string, SelectedCommit[]>;
-  readonly selectedApplication: string | undefined; 
+  readonly selectedApplication: string | undefined;
 }
 
 type AllMetricScoresObject = {
@@ -32,39 +32,49 @@ export default class ClazzPopup extends Component<Args> {
   landscapeRestructure!: LandscapeRestructure;
 
   get firstSelectedCommitMetrics() {
-    const commitMetrics = this.allMetrics.filter(metric => {
-      return metric.metricName.endsWith("(#1 sel. commit)");
+    const commitMetrics = this.allMetrics.filter((metric) => {
+      return metric.metricName.endsWith('(#1 sel. commit)');
     });
     // TODO: get rid of the #1 selected commit suffix
-    return commitMetrics.map(metric => {
-      const metricNameSplit = metric.metricName.split("(#");
+    return commitMetrics.map((metric) => {
+      const metricNameSplit = metric.metricName.split('(#');
       metric.metricName = metricNameSplit[0];
       return metric;
     });
   }
 
   get selectedMetricNameFromFirstCommit() {
-    return this.heatmapConf.selectedMetricName.endsWith("(#1 sel. commit)");
+    return this.heatmapConf.selectedMetricName.endsWith('(#1 sel. commit)');
   }
 
   get getNumOfCurrentSelectedCommits() {
-    if(!this.args.selectedApplication) {
+    if (!this.args.selectedApplication) {
       return 0;
     }
-    return this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0;
+    return (
+      this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0
+    );
   }
 
   get firstSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication!)![0].commitId.slice(0, 5) + "...";
+    return (
+      this.args.selectedCommits
+        .get(this.args.selectedApplication!)![0]
+        .commitId.slice(0, 5) + '...'
+    );
   }
 
   get secondSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication!)![1].commitId.slice(0, 5) + "...";
+    return (
+      this.args.selectedCommits
+        .get(this.args.selectedApplication!)![1]
+        .commitId.slice(0, 5) + '...'
+    );
   }
 
   get isSelectedMetricFromFirstSelectedCommit() {
     const currentSelectedMetricName = this.heatmapConf.selectedMetricName;
-    return currentSelectedMetricName.endsWith("(#1 sel. commit)");
+    return currentSelectedMetricName.endsWith('(#1 sel. commit)');
   }
 
   get isSelectedMetricFromSecondSelectedCommit() {
@@ -72,23 +82,26 @@ export default class ClazzPopup extends Component<Args> {
   }
 
   get selectedMetricName() {
-    const selectedMetricNameSplit = this.heatmapConf.selectedMetricName.split("(#");
+    const selectedMetricNameSplit =
+      this.heatmapConf.selectedMetricName.split('(#');
     return selectedMetricNameSplit[0];
   }
 
   get isSelectedApplication() {
-    const applicationData = this.applicationRepo.getById(this.args.applicationId)
+    const applicationData = this.applicationRepo.getById(
+      this.args.applicationId
+    );
     return applicationData?.application.name === this.args.selectedApplication;
   }
 
   get secondSelectedCommitMetrics() {
     const numOfCurrentSelectedCommits = this.getNumOfCurrentSelectedCommits;
-    if(numOfCurrentSelectedCommits === 2) {
-      const commitMetrics = this.allMetrics.filter(metric => {
-        return metric.metricName.endsWith("(#2 sel. commit)");
+    if (numOfCurrentSelectedCommits === 2) {
+      const commitMetrics = this.allMetrics.filter((metric) => {
+        return metric.metricName.endsWith('(#2 sel. commit)');
       });
-      return commitMetrics.map(metric => {
-        const metricNameSplit = metric.metricName.split("(#");
+      return commitMetrics.map((metric) => {
+        const metricNameSplit = metric.metricName.split('(#');
         metric.metricName = metricNameSplit[0];
         return metric;
       });
@@ -110,9 +123,12 @@ export default class ClazzPopup extends Component<Args> {
 
     // snapshot
     if (currentApplicationHeatmapData) {
-      const metrics = currentApplicationHeatmapData.latestClazzMetricScores.filter(metric => {
-        return !staticMetricNames.includes(metric.name);
-      });
+      const metrics =
+        currentApplicationHeatmapData.latestClazzMetricScores.filter(
+          (metric) => {
+            return !staticMetricNames.includes(metric.name);
+          }
+        );
 
       metrics.forEach((metric) => {
         const aggMetrics =
@@ -191,7 +207,4 @@ export default class ClazzPopup extends Component<Args> {
     }
     return classMetrics;
   }
-
-
-
 }

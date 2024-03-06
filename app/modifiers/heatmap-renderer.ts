@@ -70,7 +70,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     }
   }
 
-  private removeHeatmap(applicationObject3D: ApplicationObject3D) { 
+  private removeHeatmap(applicationObject3D: ApplicationObject3D) {
     applicationObject3D.setOpacity(1);
     removeHeatmapHelperLines(applicationObject3D);
 
@@ -98,7 +98,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     async (
       applicationObject3D: ApplicationObject3D,
       selectedMetric: Metric
-    ) => { 
+    ) => {
       applicationObject3D.setComponentMeshOpacity(0.1);
       applicationObject3D.setCommunicationOpacity(0.1);
 
@@ -191,7 +191,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
     const worldIntersectionPoint = firstIntersection.point.clone();
     applicationObject3D.worldToLocal(worldIntersectionPoint);
-    
+
     if (this.heatmapConf.useHelperLines) {
       addHeatmapHelperLine(
         applicationObject3D,
@@ -206,25 +206,34 @@ export default class HeatmapRenderer extends Modifier<Args> {
       const zPos = (1 - firstIntersection.uv.y) * foundationMesh.depth;
       if (selectedMode === 'aggregatedHeatmap') {
         simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
-      } else if(selectedMode === 'snapshotHeatmap') {
-        if ((this.heatmapConf.largestValue - this.heatmapConf.smallestValue) >= 0) {
-          if(heatmapValue !== 0 && heatmapValue === this.heatmapConf.smallestValue) {
+      } else if (selectedMode === 'snapshotHeatmap') {
+        if (
+          this.heatmapConf.largestValue - this.heatmapConf.smallestValue >=
+          0
+        ) {
+          if (
+            heatmapValue !== 0 &&
+            heatmapValue === this.heatmapConf.smallestValue
+          ) {
             simpleHeatMap.add([
               xPos,
               zPos,
-              0.1, // Note that we our coloring is measured in % of this.heatmapConf.largestValue, meaning that 
+              0.1, // Note that we our coloring is measured in % of this.heatmapConf.largestValue, meaning that
               // 50% of this.heatmapConf.largestValue is colored in green, 100% of this.heatmapConf.largestValue is colored in red. 0% of this.heatmapConf.largestValue
               // should be colored as blue, but 0 will not be visualized. Therefore, we use a small enough value that can be visualized.
             ]);
-          }else {
+          } else {
             simpleHeatMap.add([
               xPos,
               zPos,
-              (heatmapValue - this.heatmapConf.smallestValue) / (this.heatmapConf.largestValue - this.heatmapConf.smallestValue) * this.heatmapConf.largestValue,
+              ((heatmapValue - this.heatmapConf.smallestValue) /
+                (this.heatmapConf.largestValue -
+                  this.heatmapConf.smallestValue)) *
+                this.heatmapConf.largestValue,
             ]);
           }
         }
-      }else {
+      } else {
         simpleHeatMap.add([
           xPos,
           zPos,

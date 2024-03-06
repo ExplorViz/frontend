@@ -1,10 +1,9 @@
-
 {{#if (eq this.getNumOfCurrentSelectedCommits 1)}}
   <table class='w-100'>
     <thead>
       <tr>
         <!--<th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>-->
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #1 Sel. Commit ({{this.firstSelectedCommitId}})
@@ -20,7 +19,9 @@
       {{#each this.firstSelectedCommitMetrics as |metric|}}
         {{#if (eq this.selectedMetricName metric.metricName)}}
           <tr>
-            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td
+              class='font-weight-bold text-primary'
+            >{{metric.metricName}}:</td>
             <td class='text-center font-weight-bold text-primary'>
               {{metric.snapshotVal}}
             </td>
@@ -53,7 +54,7 @@
     <thead>
       <tr>
         <!--<th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>-->
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #1 Sel. Commit ({{this.firstSelectedCommitId}})
@@ -67,9 +68,16 @@
     </thead>
     <tbody>
       {{#each this.firstSelectedCommitMetrics as |metric|}}
-        {{#if (and this.isSelectedMetricFromFirstSelectedCommit (eq this.selectedMetricName metric.metricName))}}
+        {{#if
+          (and
+            this.isSelectedMetricFromFirstSelectedCommit
+            (eq this.selectedMetricName metric.metricName)
+          )
+        }}
           <tr>
-            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td
+              class='font-weight-bold text-primary'
+            >{{metric.metricName}}:</td>
             <td class='text-center font-weight-bold text-primary'>
               {{metric.snapshotVal}}
             </td>
@@ -99,7 +107,7 @@
     <thead>
       <tr>
         <!--<th>Metric Name (#2 sel. commit ({{this.secondSelectedCommitId}}))</th>-->
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #2 Sel. Commit ({{this.secondSelectedCommitId}})
@@ -113,9 +121,16 @@
     </thead>
     <tbody>
       {{#each this.secondSelectedCommitMetrics as |metric|}}
-        {{#if (and this.isSelectedMetricFromSecondSelectedCommit (eq this.selectedMetricName metric.metricName))}}
+        {{#if
+          (and
+            this.isSelectedMetricFromSecondSelectedCommit
+            (eq this.selectedMetricName metric.metricName)
+          )
+        }}
           <tr>
-            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td
+              class='font-weight-bold text-primary'
+            >{{metric.metricName}}:</td>
             <td class='text-center font-weight-bold text-primary'>
               {{metric.snapshotVal}}
             </td>
@@ -157,7 +172,9 @@
       {{#each this.allMetrics as |metric|}}
         {{#if (eq this.heatmapConf.selectedMetric.name metric.metricName)}}
           <tr>
-            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td
+              class='font-weight-bold text-primary'
+            >{{metric.metricName}}:</td>
             <td class='text-center font-weight-bold text-primary'>
               {{metric.snapshotVal}}
             </td>
@@ -184,5 +201,5 @@
         {{/if}}
       {{/each}}
     </tbody>
-  </table>    
+  </table>
 {{/if}}

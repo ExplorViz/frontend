@@ -1,4 +1,4 @@
-{{#if (eq this.getNumOfCurrentSelectedCommits 0) }}
+{{#if (eq this.getNumOfCurrentSelectedCommits 0)}}
   <table class='w-100'>
     <tbody>
       {{! Aggregated Information }}
@@ -131,10 +131,10 @@
     </tbody>
   </table>
 {{else if (eq this.getNumOfCurrentSelectedCommits 1)}}
-<table class='w-100'>
+  <table class='w-100'>
     <tbody>
       <tr>
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #1 Sel. Commit ({{this.firstSelectedCommitId}})
@@ -272,10 +272,10 @@
     </tbody>
   </table>
 {{else}}
-<table class='w-100'>
+  <table class='w-100'>
     <tbody>
       <tr>
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #1 Sel. Commit ({{this.firstSelectedCommitId}})
@@ -416,7 +416,7 @@
   <table class='w-100'>
     <tbody>
       <tr>
-        <th colspan="2">  
+        <th colspan='2'>
           <h4 class='popover-header'>
             <div class='text-center text-break font-weight-bold pl-1'>
               #2 Sel. Commit ({{this.secondSelectedCommitId}})

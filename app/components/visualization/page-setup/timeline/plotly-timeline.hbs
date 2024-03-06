@@ -1,10 +1,15 @@
-{{#if @timestamps.length }}
+{{#if @timestamps.length}}
   <div
     class='plotlyDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
     {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update this.didRender @timestamps @selectedTimestamps @highlightedMarkerColor}}
-    {{did-insert this.didRender @timestamps }}
+    {{did-update
+      this.didRender
+      @timestamps
+      @selectedTimestamps
+      @highlightedMarkerColor
+    }}
+    {{did-insert this.didRender @timestamps}}
   >
   </div>
 {{else}}

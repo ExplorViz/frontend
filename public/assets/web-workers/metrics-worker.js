@@ -10,35 +10,65 @@ self.addEventListener(
     let metrics = [];
     let staticMetricsConverted = [];
 
-    if(commitId) {
-
-      if(staticMetrics && (staticMetrics[0] || staticMetrics[1])) {
-
+    if (commitId) {
+      if (staticMetrics && (staticMetrics[0] || staticMetrics[1])) {
         // selected application
-        if(dynamicData[0])
-          metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
-        
-        if(dynamicData[1])
-          metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
-        
-        if(staticMetrics[0])
-          staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics[0], commitId[0], "(#1 sel. commit)");
+        if (dynamicData[0])
+          metrics = calculateMetrics(
+            structureData,
+            dynamicData[0],
+            '(#1 sel. commit)'
+          );
 
-        if(staticMetrics[1])
-          staticMetricsConverted = [...staticMetricsConverted, ...convertStaticMetrics(structureData, staticMetrics[1], commitId[1], "(#2 sel. commit)")];
+        if (dynamicData[1])
+          metrics = [
+            ...metrics,
+            ...calculateMetrics(
+              structureData,
+              dynamicData[1],
+              '(#2 sel. commit)'
+            ),
+          ];
+
+        if (staticMetrics[0])
+          staticMetricsConverted = convertStaticMetrics(
+            structureData,
+            staticMetrics[0],
+            commitId[0],
+            '(#1 sel. commit)'
+          );
+
+        if (staticMetrics[1])
+          staticMetricsConverted = [
+            ...staticMetricsConverted,
+            ...convertStaticMetrics(
+              structureData,
+              staticMetrics[1],
+              commitId[1],
+              '(#2 sel. commit)'
+            ),
+          ];
       } else {
         // non selected application
 
-        if(dynamicData[0])
-          metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
+        if (dynamicData[0])
+          metrics = calculateMetrics(
+            structureData,
+            dynamicData[0],
+            '(#1 sel. commit)'
+          );
 
-        if(dynamicData[1])
-          metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
-
+        if (dynamicData[1])
+          metrics = [
+            ...metrics,
+            ...calculateMetrics(
+              structureData,
+              dynamicData[1],
+              '(#2 sel. commit)'
+            ),
+          ];
       }
-
-      
-    }else {
+    } else {
       metrics = calculateMetrics(structureData, dynamicData);
     }
 
@@ -54,47 +84,54 @@ postMessage(true);
 // ****** Convert Static Metrics ******
 
 function convertStaticMetrics(application, staticMetrics, commitId, text) {
-  if(!staticMetrics || !commitId) {
+  if (!staticMetrics || !commitId) {
     return [];
   }
 
   const metricList = [];
   const metricsNameToMetricsValuesMap = new Map();
   const metricsNameToMinAndMax = new Map();
-  for(let i = 0; i < staticMetrics.files.length; i++) {
+  for (let i = 0; i < staticMetrics.files.length; i++) {
     //const fqFileName = staticMetrics.files[i];
     const classesWithMetricsOfFile = staticMetrics.classMetrics[i];
     const classes = Object.keys(classesWithMetricsOfFile);
 
-    for(const fqClassName of classes) {
-      const clazz = getClazzInApplicationByFullQualifiedClazzName(application, fqClassName);
+    for (const fqClassName of classes) {
+      const clazz = getClazzInApplicationByFullQualifiedClazzName(
+        application,
+        fqClassName
+      );
 
-      const clazzMetricNames = Object.keys(classesWithMetricsOfFile[fqClassName]);
-      for(const metricName of clazzMetricNames) {
+      const clazzMetricNames = Object.keys(
+        classesWithMetricsOfFile[fqClassName]
+      );
+      for (const metricName of clazzMetricNames) {
         //console.log(fqClassName, ":::", metricName, ":::", classesWithMetricsOfFile[fqClassName][metricName]);
 
         const metricValuesMap = metricsNameToMetricsValuesMap.get(metricName);
         const metricMinMax = metricsNameToMinAndMax.get(metricName);
-        const metricVal = parseInt(classesWithMetricsOfFile[fqClassName][metricName]);
+        const metricVal = parseInt(
+          classesWithMetricsOfFile[fqClassName][metricName]
+        );
 
-        if(metricMinMax) {
-          if(metricVal > metricMinMax.max){
+        if (metricMinMax) {
+          if (metricVal > metricMinMax.max) {
             metricMinMax.max = metricVal;
           }
-          if(metricVal < metricMinMax.min){
+          if (metricVal < metricMinMax.min) {
             metricMinMax.min = metricVal;
           }
-        }else {
+        } else {
           const minMax = {
             min: metricVal,
-            max: metricVal
+            max: metricVal,
           };
           metricsNameToMinAndMax.set(metricName, minMax);
         }
 
-        if(metricValuesMap){
+        if (metricValuesMap) {
           metricValuesMap.set(clazz.id, metricVal);
-        }else {
+        } else {
           const map = new Map();
           map.set(clazz.id, metricVal);
           metricsNameToMetricsValuesMap.set(metricName, map);
@@ -108,40 +145,44 @@ function convertStaticMetrics(application, staticMetrics, commitId, text) {
     const minMax = metricsNameToMinAndMax.get(key);
     const metric = {
       commitId: commitId,
-      name: key + " " + text,
-      description: "", // TODO: use a predefined map between metric names and descriptions and get the corresponding value
+      name: key + ' ' + text,
+      description: '', // TODO: use a predefined map between metric names and descriptions and get the corresponding value
       min: minMax.min,
       max: minMax.max,
-      values: value
+      values: value,
     };
     metricList.push(metric);
   }
 
   return metricList;
 
-
   // helper function
 
-  function getClazzInApplicationByFullQualifiedClazzName(application, fqClazzName) {
-    const fqClazzNameSplit = fqClazzName.split(".");
+  function getClazzInApplicationByFullQualifiedClazzName(
+    application,
+    fqClazzName
+  ) {
+    const fqClazzNameSplit = fqClazzName.split('.');
     let index = 0;
     let children;
-    while(index < fqClazzNameSplit.length - 1) {
-      if(index == 0) {
+    while (index < fqClazzNameSplit.length - 1) {
+      if (index == 0) {
         children = application.packages;
-      }else {
+      } else {
         children = children.subPackages;
       }
 
-      children = children.find(child => child.name === fqClazzNameSplit[index]);
-      if(!children) {
+      children = children.find(
+        (child) => child.name === fqClazzNameSplit[index]
+      );
+      if (!children) {
         return undefined;
       }
       index++;
     }
 
     children = children.classes;
-    children = children.find(child => child.name === fqClazzNameSplit[index]);
+    children = children.find((child) => child.name === fqClazzNameSplit[index]);
 
     return children;
   }
@@ -195,7 +236,7 @@ function calculateMetrics(application, allLandscapeTraces, text) {
       }
     }
 
-    if(text) {
+    if (text) {
       return {
         name: 'Instance Count' + ' ' + text,
         mode: 'aggregatedHeatmap',
@@ -263,7 +304,7 @@ function calculateMetrics(application, allLandscapeTraces, text) {
       max = Math.max(max, newRequestCount);
     }
 
-    if(text){
+    if (text) {
       return {
         name: 'Incoming Requests' + ' ' + text,
         mode: 'aggregatedHeatmap',
@@ -327,7 +368,7 @@ function calculateMetrics(application, allLandscapeTraces, text) {
       );
     }
 
-    if(text) {
+    if (text) {
       return {
         name: 'Outgoing Requests' + ' ' + text,
         mode: 'aggregatedHeatmap',
@@ -371,7 +412,7 @@ function calculateMetrics(application, allLandscapeTraces, text) {
       min = max = 0;
     }
 
-    if(text){
+    if (text) {
       return {
         name: 'Overall Requests' + ' ' + text,
         mode: 'aggregatedHeatmap',

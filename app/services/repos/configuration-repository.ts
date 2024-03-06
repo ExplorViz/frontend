@@ -4,20 +4,19 @@ import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 
 export interface ConfigurationItem {
-  id: string,
-  name: string,
-  key: string,
-  color: string,
-  status: boolean,
+  id: string;
+  name: string;
+  key: string;
+  color: string;
+  status: boolean;
 }
 
-
 /**
-* Handles all timestamp-based configurations within the application (Timeline, Softwaremetrics)
-*
-* @class Configuration-Repository-Service
-* @extends Ember.Service
-*/
+ * Handles all timestamp-based configurations within the application (Timeline, Softwaremetrics)
+ *
+ * @class Configuration-Repository-Service
+ * @extends Ember.Service
+ */
 export default class ConfigurationRepository extends Service.extend(Evented) {
   debug = debugLogger();
 
@@ -31,7 +30,11 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
   }
 
   getActiveConfigurations(landscapeToken: string) {
-    return this.getConfiguration(landscapeToken).filter((x) => x.status).map((x) => x.id) ?? [];
+    return (
+      this.getConfiguration(landscapeToken)
+        .filter((x) => x.status)
+        .map((x) => x.id) ?? []
+    );
   }
 
   getSoftwaremetrics(landscapeToken: string) {
@@ -39,7 +42,12 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
   }
 
   // Add
-  addConfiguration(landscapeToken: string, name: string, key: string, color: string) {
+  addConfiguration(
+    landscapeToken: string,
+    name: string,
+    key: string,
+    color: string
+  ) {
     const config = this.getConfiguration(landscapeToken);
 
     // Build ConfigurationItem
@@ -49,14 +57,22 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
     //  See: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
     function uuidv4() {
       /* eslint-disable */
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-      });
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+        /[xy]/g,
+        function (c) {
+          let r = (Math.random() * 16) | 0,
+            v = c == 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        }
+      );
       /* eslint-enable */
     }
     const item = {
-      id: uuidv4(), name, key, color, status: false,
+      id: uuidv4(),
+      name,
+      key,
+      color,
+      status: false,
     };
     this.configurations.set(landscapeToken, [...config, item]);
     this.triggerCommitTreeUpdate();
@@ -66,18 +82,21 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
   addSoftwaremetric(landscapeToken: string, metric: string) {
     const metrics = this.getSoftwaremetrics(landscapeToken);
     if (metrics) {
-      if (!(metrics.includes(metric))) {
+      if (!metrics.includes(metric)) {
         this.softwaremetrics.set(landscapeToken, [...metrics, metric]);
       }
     }
 
-     this.triggerCommitTreeUpdate();
+    this.triggerCommitTreeUpdate();
   }
 
   // Remove
   removeConfiguration(landscapeToken: string, id: string) {
     const config = this.getConfiguration(landscapeToken);
-    this.configurations.set(landscapeToken, config.filter((x) => x.id !== id));
+    this.configurations.set(
+      landscapeToken,
+      config.filter((x) => x.id !== id)
+    );
     this.deactiveConfiguration(landscapeToken, id);
     this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
@@ -85,28 +104,34 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
 
   // Active and deactive Configurations
   activateConfiguration(landscapeToken: string, id: string) {
-    const config = this.getConfiguration(landscapeToken).find((x) => x.id === id);
+    const config = this.getConfiguration(landscapeToken).find(
+      (x) => x.id === id
+    );
     if (config) {
-      this.editConfiguration(
-        landscapeToken,
-        {
-          id: config.id, name: config.name, key: config.key, color: config.color, status: true,
-        },
-      );
+      this.editConfiguration(landscapeToken, {
+        id: config.id,
+        name: config.name,
+        key: config.key,
+        color: config.color,
+        status: true,
+      });
     }
     this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
   }
 
   deactiveConfiguration(landscapeToken: string, id: string) {
-    const config = this.getConfiguration(landscapeToken).find((x) => x.id === id);
+    const config = this.getConfiguration(landscapeToken).find(
+      (x) => x.id === id
+    );
     if (config) {
-      this.editConfiguration(
-        landscapeToken,
-        {
-          id: config.id, name: config.name, key: config.key, color: config.color, status: false,
-        },
-      );
+      this.editConfiguration(landscapeToken, {
+        id: config.id,
+        name: config.name,
+        key: config.key,
+        color: config.color,
+        status: false,
+      });
     }
     this.triggerCommitTreeUpdate();
     this.triggerPlotUpdate();
@@ -118,10 +143,11 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
     const config = configs.find((x) => x.id === configuration.id);
     if (config) {
       const index = configs.indexOf(config);
-      this.configurations.set(
-        landscapeToken,
-        [...configs.slice(0, index), configuration, ...configs.slice(index + 1)],
-      );
+      this.configurations.set(landscapeToken, [
+        ...configs.slice(0, index),
+        configuration,
+        ...configs.slice(index + 1),
+      ]);
     }
     this.triggerCommitTreeUpdate();
   }
@@ -130,7 +156,7 @@ export default class ConfigurationRepository extends Service.extend(Evented) {
     this.trigger('updated');
   }
 
-   triggerPlotUpdate() {
+  triggerPlotUpdate() {
     this.trigger('updatePlot');
   }
 }

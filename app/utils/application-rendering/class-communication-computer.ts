@@ -81,24 +81,32 @@ export default function computeClassCommunication(
   landscapeDynamicDataArr: [DynamicLandscapeData?, DynamicLandscapeData?] // first element => cross-commit dynamics/first selected commit dynamics, second element => second selected commit dynamics
 ) {
   // if no dynamic landscape for any commit available => return empty list
-  if ((!landscapeDynamicDataArr[0] && !landscapeDynamicDataArr[1]) || !(landscapeDynamicDataArr[0]?.length !== 0 || landscapeDynamicDataArr[1]?.length !== 0) ) return [];
-
+  if (
+    (!landscapeDynamicDataArr[0] && !landscapeDynamicDataArr[1]) ||
+    !(
+      landscapeDynamicDataArr[0]?.length !== 0 ||
+      landscapeDynamicDataArr[1]?.length !== 0
+    )
+  )
+    return [];
 
   const [hashCodeToClassMap, classToApplicationMap] = createLookupMaps(
     landscapeStructureData
   );
 
   const classCommunications = new Map<string, ClassCommunication>();
-  for (let i=0; i < 2; i++) {
-    if(!landscapeDynamicDataArr[i]) {
+  for (let i = 0; i < 2; i++) {
+    if (!landscapeDynamicDataArr[i]) {
       continue;
     }
 
-    const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicDataArr[i]!);
+    const traceIdToSpanTrees = getTraceIdToSpanTreeMap(
+      landscapeDynamicDataArr[i]!
+    );
 
     const totalClassCommunications: SingleClassCommunication[] = [];
 
-    landscapeDynamicDataArr[i]!.forEach((trace) => { 
+    landscapeDynamicDataArr[i]!.forEach((trace) => {
       const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
 
       if (traceSpanTree) {
@@ -107,7 +115,7 @@ export default function computeClassCommunication(
           firstSpan,
           traceSpanTree.tree,
           hashCodeToClassMap
-        ); 
+        );
 
         totalClassCommunications.push(
           ...x // replace x with function call
@@ -218,7 +226,7 @@ function createLookupMaps(
     const classes = getAllClassesInApplication(application);
 
     for (const clazz of classes) {
-      clazz.methods.forEach(({ methodHash }) => 
+      clazz.methods.forEach(({ methodHash }) =>
         hashCodeToClassMap.set(methodHash, clazz)
       );
 

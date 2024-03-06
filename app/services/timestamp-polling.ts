@@ -23,7 +23,8 @@ export default class TimestampPollingService extends Service {
   private debug = debugLogger();
 
   async initTimestampPollingWithCallback(
-    commits: SelectedCommit[], callback: (timestamps: Timestamp[][]) => void
+    commits: SelectedCommit[],
+    callback: (timestamps: Timestamp[][]) => void
   ) {
     this.startTimestampPolling(commits, callback);
   }
@@ -35,7 +36,10 @@ export default class TimestampPollingService extends Service {
     }
   }
 
-  private startTimestampPolling(commits : SelectedCommit[], callback: (timestamps: Timestamp[][]) => void) {
+  private startTimestampPolling(
+    commits: SelectedCommit[],
+    callback: (timestamps: Timestamp[][]) => void
+  ) {
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
@@ -48,7 +52,10 @@ export default class TimestampPollingService extends Service {
     this.debug('Timestamp timer started');
   }
 
-  private async pollTimestamps(commits : SelectedCommit[], callback: (timestamps: Timestamp[][]) => void) {
+  private async pollTimestamps(
+    commits: SelectedCommit[],
+    callback: (timestamps: Timestamp[][]) => void
+  ) {
     // check if we already have a timestamp that acts as base point
     const landscapeToken = this.tokenService.token?.value;
 
@@ -57,60 +64,84 @@ export default class TimestampPollingService extends Service {
       return;
     }
 
-    if(commits.length === 0) { // No commit selected
-      const commitId = ""; // commit id is empty string for "cross-commit" dynamics
-      const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp(landscapeToken, commitId);
-      const allCommitsTimestampPromise = this.httpFetchTimestamps(undefined, newestLocalTimestamp);
-      const timestampsArr : Timestamp[][] = [];
+    if (commits.length === 0) {
+      // No commit selected
+      const commitId = ''; // commit id is empty string for "cross-commit" dynamics
+      const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp(
+        landscapeToken,
+        commitId
+      );
+      const allCommitsTimestampPromise = this.httpFetchTimestamps(
+        undefined,
+        newestLocalTimestamp
+      );
+      const timestampsArr: Timestamp[][] = [];
       await allCommitsTimestampPromise
         .then((timestamps: Timestamp[]) => {
-        timestampsArr.push(timestamps);
-      })
-      .catch((error: Error) => {
-        console.log(error);
-      });
+          timestampsArr.push(timestamps);
+        })
+        .catch((error: Error) => {
+          console.log(error);
+        });
       callback(timestampsArr);
       return;
     }
 
     const firstCommitNewestLocalTimestamp =
-      this.timestampRepo.getLatestTimestamp(landscapeToken, commits[0].commitId);
+      this.timestampRepo.getLatestTimestamp(
+        landscapeToken,
+        commits[0].commitId
+      );
 
-    const firstCommitTimestampPromise = this.httpFetchTimestamps(commits[0], firstCommitNewestLocalTimestamp);
+    const firstCommitTimestampPromise = this.httpFetchTimestamps(
+      commits[0],
+      firstCommitNewestLocalTimestamp
+    );
     let secondCommitTimestampPromise = undefined;
-    if(commits.length > 1) {
-      const secondCommitNewestLocalTimestamp = this.timestampRepo.getLatestTimestamp(landscapeToken, commits[1].commitId);
-      secondCommitTimestampPromise = this.httpFetchTimestamps(commits[1], secondCommitNewestLocalTimestamp);
+    if (commits.length > 1) {
+      const secondCommitNewestLocalTimestamp =
+        this.timestampRepo.getLatestTimestamp(
+          landscapeToken,
+          commits[1].commitId
+        );
+      secondCommitTimestampPromise = this.httpFetchTimestamps(
+        commits[1],
+        secondCommitNewestLocalTimestamp
+      );
     }
 
-    const timestampsArr : Timestamp[][] = [];
+    const timestampsArr: Timestamp[][] = [];
 
     await firstCommitTimestampPromise
       .then((timestamps: Timestamp[]) => {
-      timestampsArr.push(timestamps);
-    })
-      .catch((error: Error) => {
-        console.log(error);
-      });
-
-    if(secondCommitTimestampPromise) {
-      await secondCommitTimestampPromise
-      .then((timestamps: Timestamp[]) => { 
-        // timestamps = [{
-        //   epochMilli: 1702891010000,
-        //   spanCount: 1
-        // }, ...timestamps]; // TODO: DELETE. Only for test purposes. Not bug free anyway
-        timestampsArr.push(timestamps);  
+        timestampsArr.push(timestamps);
       })
       .catch((error: Error) => {
         console.log(error);
       });
+
+    if (secondCommitTimestampPromise) {
+      await secondCommitTimestampPromise
+        .then((timestamps: Timestamp[]) => {
+          // timestamps = [{
+          //   epochMilli: 1702891010000,
+          //   spanCount: 1
+          // }, ...timestamps]; // TODO: DELETE. Only for test purposes. Not bug free anyway
+          timestampsArr.push(timestamps);
+        })
+        .catch((error: Error) => {
+          console.log(error);
+        });
     }
 
     callback(timestampsArr);
   }
 
-  private httpFetchTimestamps(commit?: SelectedCommit, newestLocalTimestamp?: Timestamp) { // TODO: commit wise timestamp data
+  private httpFetchTimestamps(
+    commit?: SelectedCommit,
+    newestLocalTimestamp?: Timestamp
+  ) {
+    // TODO: commit wise timestamp data
     this.debug('Polling timestamps');
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {

@@ -16,30 +16,27 @@ export function calculateLineThickness(
   communication: ClassCommunication | ComponentCommunication,
   settings: ApplicationSettings
 ) {
-
   let normalizedRequestCount = 1;
   // Normalized request count might be above 1 for component communication
-  if(communication instanceof ComponentCommunication) {
+  if (communication instanceof ComponentCommunication) {
     normalizedRequestCount = clamp(
       communication.metrics.normalizedRequestCount,
       0.5,
       1.5
     );
-  }else if(communication instanceof ClassCommunication) {
+  } else if (communication instanceof ClassCommunication) {
     let meanNormalizedRequestCount = 0;
-    if(communication.methodCalls[0].length > 0){
-      meanNormalizedRequestCount += communication.metrics[0].normalizedRequestCount;
+    if (communication.methodCalls[0].length > 0) {
+      meanNormalizedRequestCount +=
+        communication.metrics[0].normalizedRequestCount;
     }
 
-    if(communication.methodCalls[1].length > 0){
-      meanNormalizedRequestCount += communication.metrics[1].normalizedRequestCount;
+    if (communication.methodCalls[1].length > 0) {
+      meanNormalizedRequestCount +=
+        communication.metrics[1].normalizedRequestCount;
     }
 
-    normalizedRequestCount = clamp(
-      meanNormalizedRequestCount/2,
-      0.5,
-      1.5
-    );
+    normalizedRequestCount = clamp(meanNormalizedRequestCount / 2, 0.5, 1.5);
   }
 
   // Apply line thickness depending on request count

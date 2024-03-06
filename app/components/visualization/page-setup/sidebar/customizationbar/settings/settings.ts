@@ -173,41 +173,51 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
-        case 'staticStructure':
-          if (
-            !this.userSettings.applicationSettings.dynamicStructure.value && !value
-          ) {
-            this.toastHandlerService.showInfoToastMessage(
-              'One structure to render required!'
+      case 'staticStructure':
+        if (
+          !this.userSettings.applicationSettings.dynamicStructure.value &&
+          !value
+        ) {
+          this.toastHandlerService.showInfoToastMessage(
+            'One structure to render required!'
+          );
+          this.userSettings.updateApplicationSetting(settingId, !value);
+        } else {
+          if (value) {
+            // turned on
+            this.applicationRenderer.renderSettingChanged(
+              RenderMode.STATIC_DYNAMIC
             );
-            this.userSettings.updateApplicationSetting(settingId, !value);
-          }else {
-            if(value) {
-              // turned on
-              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
-            } else {
-              // turned off
-              this.applicationRenderer.renderSettingChanged(RenderMode.DYNAMIC_ONLY);
-            }
+          } else {
+            // turned off
+            this.applicationRenderer.renderSettingChanged(
+              RenderMode.DYNAMIC_ONLY
+            );
           }
+        }
         break;
       case 'dynamicStructure':
-          if (
-            !this.userSettings.applicationSettings.staticStructure.value && !value
-          ) {
-            this.toastHandlerService.showInfoToastMessage(
-              'One structure to render required!'
+        if (
+          !this.userSettings.applicationSettings.staticStructure.value &&
+          !value
+        ) {
+          this.toastHandlerService.showInfoToastMessage(
+            'One structure to render required!'
+          );
+          this.userSettings.updateApplicationSetting(settingId, !value);
+        } else {
+          if (value) {
+            // turned on
+            this.applicationRenderer.renderSettingChanged(
+              RenderMode.STATIC_DYNAMIC
             );
-            this.userSettings.updateApplicationSetting(settingId, !value);
           } else {
-            if(value) {
-              // turned on
-              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_DYNAMIC);
-            }else {
-              //turned off
-              this.applicationRenderer.renderSettingChanged(RenderMode.STATIC_ONLY);
-            }
-          } 
+            //turned off
+            this.applicationRenderer.renderSettingChanged(
+              RenderMode.STATIC_ONLY
+            );
+          }
+        }
         break;
       default:
         break;

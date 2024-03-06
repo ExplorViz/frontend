@@ -3,7 +3,11 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData, RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import {
+  LandscapeData,
+  RenderMode,
+  SelectedCommit,
+} from 'explorviz-frontend/controllers/visualization';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -17,14 +21,19 @@ import computeClassCommunication, {
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import { Application, StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import LocalUser from 'collaboration/services/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import StaticMetricsRepository, { Metrics } from 'explorviz-frontend/services/repos/static-metrics-repository';
+import StaticMetricsRepository, {
+  Metrics,
+} from 'explorviz-frontend/services/repos/static-metrics-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
@@ -85,9 +94,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private graph!: ForceGraph3DInstance;
 
-  private selectedApplication? : string;
+  private selectedApplication?: string;
 
-  private selectedCommits?: Map<string,SelectedCommit[]>;
+  private selectedCommits?: Map<string, SelectedCommit[]>;
 
   private dynamicStructure?: StructureLandscapeData;
   private staticStructure?: StructureLandscapeData;
@@ -105,21 +114,29 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph, selectedApplication, selectedCommits, dynamicStructure, staticStructure, renderMode, dynamics}: any
+    {
+      landscapeData,
+      graph,
+      selectedApplication,
+      selectedCommits,
+      dynamicStructure,
+      staticStructure,
+      renderMode,
+      dynamics,
+    }: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph;
     this.selectedApplication = selectedApplication;
     this.selectedCommits = selectedCommits;
     this.dynamicStructure = dynamicStructure;
-    this.staticStructure = staticStructure; 
+    this.staticStructure = staticStructure;
     this.dynamics = dynamics;
     this.renderMode = renderMode;
     this.handleUpdatedLandscapeData.perform();
   }
 
-  handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
-
+  handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     //console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
     //console.log("handleUpdatedLandscapeData,, structureLandscapeData ---->", this.structureLandscapeData);
     //console.log("handleUpdatedLandscapeData,, dynamicLandscapeData ---->", this.dynamicLandscapeData);
@@ -155,14 +172,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-  
       const appears = nodes.some((n) => n.applications[0].id === node.id);
 
-      if(!appears){
+      if (!appears) {
         // also delete from application renderer so it can be rerendered if it exisitent again
         // TODO: layout positioner for reoccuring application doesn't work as intended (intersection with other application)
-        // had to increase collisionRadius from below to improve positioning 
-        this.applicationRenderer.removeApplicationLocallyById(node.id)
+        // had to increase collisionRadius from below to improve positioning
+        this.applicationRenderer.removeApplicationLocallyById(node.id);
       }
       return appears;
     });
@@ -178,18 +194,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           classCommunications
         );
 
-        
         // create or update applicationObject3D
-        const app =
-          await this.applicationRenderer.addApplicationTask.perform(
-            applicationData,
-            {},
-            this.selectedApplication,
-            this.selectedCommits,
-            this.staticStructure,
-            this.dynamicStructure,
-            this.renderMode,
-          );
+        const app = await this.applicationRenderer.addApplicationTask.perform(
+          applicationData,
+          {},
+          this.selectedApplication,
+          this.selectedCommits,
+          this.staticStructure,
+          this.dynamicStructure,
+          this.renderMode
+        );
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.find(
@@ -202,8 +216,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         }
 
         const { x, z } = app.foundationMesh.scale;
-        //const collisionRadius = Math.hypot(x, z) / 2 + 3; 
-        const collisionRadius = Math.hypot(x, z) / 2 + 10; 
+        //const collisionRadius = Math.hypot(x, z) / 2 + 3;
+        const collisionRadius = Math.hypot(x, z) / 2 + 10;
         if (graphNode) {
           graphNode.collisionRadius = collisionRadius;
           graphNode.fx = graphNode.x;
@@ -310,56 +324,61 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         structure: application,
         dynamic: this.dynamicLandscapeData, // note that this combines dynamics[0] and dynamics[1]
       };
-  
+
       const cityLayout = this.worker.postMessage(
         'city-layouter',
         workerPayload
       );
-      
+
       let heatmapMetrics: any[] = [];
 
       let commits = undefined;
-      if(this.selectedApplication && this.selectedCommits) {
+      if (this.selectedApplication && this.selectedCommits) {
         commits = this.selectedCommits.get(this.selectedApplication);
       }
-      if(commits && commits.length !== 0) {
+      if (commits && commits.length !== 0) {
         // consider selected commits
 
-          const firstSelectedCommitId = commits[0].commitId;
-          let secondSelectedCommitId = undefined;
-          if(commits.length === 2) {
-            secondSelectedCommitId = commits[1].commitId;
-          }
+        const firstSelectedCommitId = commits[0].commitId;
+        let secondSelectedCommitId = undefined;
+        if (commits.length === 2) {
+          secondSelectedCommitId = commits[1].commitId;
+        }
 
-          const commitIds = [firstSelectedCommitId, secondSelectedCommitId];
+        const commitIds = [firstSelectedCommitId, secondSelectedCommitId];
 
-          let staticMetrics: [Metrics|undefined, Metrics|undefined] = [undefined, undefined];
-          if(firstSelectedCommitId) {
-            staticMetrics[0] = this.staticMetricsRepo.getById(application.name + firstSelectedCommitId);
-          }
-          if(secondSelectedCommitId) {
-            staticMetrics[1] = this.staticMetricsRepo.getById(application.name + secondSelectedCommitId);
-          }
-          //const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
-          //this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
-
-          const workerPayload = {
-            structure: application,
-            dynamic: this.dynamics,
-            commitId: commitIds,
-            staticMetrics: staticMetrics
-          }
-
-          heatmapMetrics = this.worker.postMessage(
-            'metrics-worker',
-            workerPayload 
+        let staticMetrics: [Metrics | undefined, Metrics | undefined] = [
+          undefined,
+          undefined,
+        ];
+        if (firstSelectedCommitId) {
+          staticMetrics[0] = this.staticMetricsRepo.getById(
+            application.name + firstSelectedCommitId
           );
+        }
+        if (secondSelectedCommitId) {
+          staticMetrics[1] = this.staticMetricsRepo.getById(
+            application.name + secondSelectedCommitId
+          );
+        }
+        //const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
+        //this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
 
-      
-      }else {
+        const workerPayload = {
+          structure: application,
+          dynamic: this.dynamics,
+          commitId: commitIds,
+          staticMetrics: staticMetrics,
+        };
+
         heatmapMetrics = this.worker.postMessage(
           'metrics-worker',
-          workerPayload, 
+          workerPayload
+        );
+      } else {
+        heatmapMetrics = this.worker.postMessage(
+          'metrics-worker',
+          workerPayload
         );
       }
 
@@ -367,7 +386,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         'flat-data-worker',
         workerPayload
       );
-
 
       const results = (await all([
         cityLayout,
@@ -377,7 +395,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0], results[results.length - 1]);
+        applicationData.updateApplication(
+          application,
+          results[0],
+          results[results.length - 1]
+        );
       } else {
         applicationData = new ApplicationData(
           application,
@@ -385,7 +407,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           results[results.length - 1]
         );
       }
-
 
       applicationData.classCommunications = classCommunication.filter(
         (communication) => {

@@ -31,8 +31,6 @@ export default class MethodCall {
     this.callerMethodName = callerMethodName;
   }
 
-
-
   addSpan(/* span: Span */) {
     // this.spans.push(span);
     this.totalRequests++;

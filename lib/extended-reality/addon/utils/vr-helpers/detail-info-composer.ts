@@ -23,7 +23,6 @@ import {
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 
-
 export type DetailedInfo = {
   title: string;
   entries: { key: string; value: string }[];
@@ -167,38 +166,36 @@ function composeAggregatedClassCommunicationContent(
   const aggregatedReqCount = communicationData.communication.totalRequests;
 
   if (communicationData.communication instanceof ComponentCommunication) {
-
     if (communicationData.communication.methodCalls.length > 1) {
       content.entries.push({
         key: 'Aggregated request count:',
         value: `${aggregatedReqCount} ( 100% )`,
       });
-  
+
       // # of unique method calls
       content.entries.push({
         key: 'Number of unique methods:',
         value: `${communicationData.communication.methodCalls.length}`,
       });
-  
+
       content.entries.push({
         key: '---',
         value: '',
       });
     }
-
-  }else if(communicationData.communication instanceof ClassCommunication) {
+  } else if (communicationData.communication instanceof ClassCommunication) {
     if (communicationData.communication.methodCalls[0].length > 1) {
       content.entries.push({
         key: '#1 selected commit aggregated request count:',
         value: `${(aggregatedReqCount as [number, number])[0]} ( 100% )`,
       });
-  
+
       // # of unique method calls
       content.entries.push({
         key: 'Number of unique methods:',
         value: `${communicationData.communication.methodCalls[0].length}`,
       });
-  
+
       content.entries.push({
         key: '---',
         value: '',
@@ -210,20 +207,18 @@ function composeAggregatedClassCommunicationContent(
         key: '#2 selected commit aggregated request count:',
         value: `${(aggregatedReqCount as [number, number])[1]} ( 100% )`,
       });
-  
+
       // # of unique method calls
       content.entries.push({
         key: 'Number of unique methods:',
         value: `${communicationData.communication.methodCalls[1].length}`,
       });
-  
+
       content.entries.push({
         key: '---',
         value: '',
       });
     }
-
-
   }
 
   // add information for each unique method call

@@ -87,7 +87,6 @@ export default class ForceGraph {
     // .linkDirectionalParticles("value")
     // .linkDirectionalParticleWidth(0.6)
 
-
     // forces
     this.graph.d3Force('collision')!.iterations(2);
     this.graph.d3Force('charge')!.strength(-100 * scale);

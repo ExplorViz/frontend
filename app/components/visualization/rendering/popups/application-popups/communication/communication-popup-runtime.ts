@@ -35,7 +35,9 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get getNumOfCurrentSelectedCommits() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0;
+    return (
+      this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0
+    );
   }
 
   get firstSelectedCommitMethodCalls() {
@@ -55,11 +57,19 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get firstSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)![0].commitId.slice(0, 5) + "...";
+    return (
+      this.args.selectedCommits
+        .get(this.args.selectedApplication)![0]
+        .commitId.slice(0, 5) + '...'
+    );
   }
 
   get secondSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)![1].commitId.slice(0, 5) + "...";
+    return (
+      this.args.selectedCommits
+        .get(this.args.selectedApplication)![1]
+        .commitId.slice(0, 5) + '...'
+    );
   }
 
   @action

@@ -8,8 +8,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 1,
     group: 'Rendering',
     displayName: 'Render Static Structure Data',
-    description:
-      'Toggle to turn rendering on/off',
+    description: 'Toggle to turn rendering on/off',
     isFlagSetting: true,
   },
 
@@ -18,8 +17,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 2,
     group: 'Rendering',
     displayName: 'Render Dynamic Structure Data',
-    description:
-      'Toggle to turn rendering on/off',
+    description: 'Toggle to turn rendering on/off',
     isFlagSetting: true,
   },
   // Color Settings

@@ -76,7 +76,6 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   }
 
   hide() {
-
     if (this.line.material instanceof THREE.Material) {
       this.line.material.visible = false;
       this.line.material.needsUpdate = true;
@@ -89,9 +88,7 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
   }
 
   show() {
-
     if (this.line.material instanceof THREE.Material) {
-      
       this.line.material.visible = true;
       this.line.material.needsUpdate = true;
     }
@@ -132,7 +129,6 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
     this.changeOpacity(opacity);
   }
 
- 
   /**
    * Turns the arrow fully opaque again.
    */

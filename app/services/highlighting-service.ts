@@ -229,16 +229,15 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  markAsAddedById(modelId: string){
+  markAsAddedById(modelId: string) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
       this.markAsAdded(mesh);
     }
   }
 
-	
   @action
-  markAsDeletedById(modelId: string){
+  markAsDeletedById(modelId: string) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
       this.markAsDeleted(mesh);
@@ -246,7 +245,7 @@ export default class HighlightingService extends Service.extend({
   }
 
   @action
-  markAsModifiedById(modelId: string){
+  markAsModifiedById(modelId: string) {
     const mesh = this.applicationRenderer.getMeshById(modelId);
     if (isEntityMesh(mesh)) {
       this.markAsModified(mesh);
@@ -389,43 +388,54 @@ export default class HighlightingService extends Service.extend({
     return mesh.constructor.name;
   }
 
- private markAsAdded(mesh: EntityMesh){
-    if(mesh instanceof ClazzCommunicationMesh) {
+  private markAsAdded(mesh: EntityMesh) {
+    if (mesh instanceof ClazzCommunicationMesh) {
       const start = mesh.layout.startPoint;
       const end = mesh.layout.endPoint;
       const dist = start.distanceTo(end);
-      (mesh as EntityMesh).changeTexture("../images/plus.png", Math.ceil(dist), 3);
-    }else {
+      (mesh as EntityMesh).changeTexture(
+        '../images/plus.png',
+        Math.ceil(dist),
+        3
+      );
+    } else {
       const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
       const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
-      mesh.changeTexture("../images/plus.png", repeatX, repeatY);
+      mesh.changeTexture('../images/plus.png', repeatX, repeatY);
     }
   }
 
-  private markAsDeleted(mesh: EntityMesh){
-    if(mesh instanceof ClazzCommunicationMesh) {
+  private markAsDeleted(mesh: EntityMesh) {
+    if (mesh instanceof ClazzCommunicationMesh) {
       const start = mesh.layout.startPoint;
       const end = mesh.layout.endPoint;
       const dist = start.distanceTo(end);
-      (mesh as EntityMesh).changeTexture("../images/minus.png", Math.ceil(dist), 3);
-    }else {
+      (mesh as EntityMesh).changeTexture(
+        '../images/minus.png',
+        Math.ceil(dist),
+        3
+      );
+    } else {
       const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
       const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
-      mesh.changeTexture("../images/minus.png", repeatX, repeatY);
+      mesh.changeTexture('../images/minus.png', repeatX, repeatY);
     }
   }
 
-	
-  private markAsModified(mesh: EntityMesh){
-    if(mesh instanceof ClazzCommunicationMesh) {
+  private markAsModified(mesh: EntityMesh) {
+    if (mesh instanceof ClazzCommunicationMesh) {
       const start = mesh.layout.startPoint;
       const end = mesh.layout.endPoint;
       const dist = start.distanceTo(end);
-      (mesh as EntityMesh).changeTexture("../images/hashtag.png", Math.ceil(dist), 3);
-    }else {
+      (mesh as EntityMesh).changeTexture(
+        '../images/hashtag.png',
+        Math.ceil(dist),
+        3
+      );
+    } else {
       const repeatX = Math.ceil((mesh.layout as BoxLayout).width);
       const repeatY = Math.ceil((mesh.layout as BoxLayout).height);
-      mesh.changeTexture("../images/hashtag.png", repeatX, repeatY);
+      mesh.changeTexture('../images/hashtag.png', repeatX, repeatY);
     }
   }
 

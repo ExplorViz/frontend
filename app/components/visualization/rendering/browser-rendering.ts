@@ -6,7 +6,10 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import {
+  LandscapeData,
+  SelectedCommit,
+} from 'explorviz-frontend/controllers/visualization';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
@@ -210,7 +213,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
-
   }
 
   get rightClickMenuItems() {
@@ -425,8 +427,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
-
-    if((isEntityMesh(mesh) || mesh instanceof FoundationMesh) && !mesh.material.visible){
+    if (
+      (isEntityMesh(mesh) || mesh instanceof FoundationMesh) &&
+      !mesh.material.visible
+    ) {
       // Clicked on invisible. Important for the feature where we can hide the dynamic or static
       // landscape
       return;
@@ -494,8 +498,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
-
-    if((mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) && !mesh.material.visible){
+    if (
+      (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) &&
+      !mesh.material.visible
+    ) {
       // Double clicked on invisible
       return;
     }
@@ -529,7 +535,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     // this.runOrRestartMouseMovementTimer();
-    if (intersection) { 
+    if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
     } else if (this.hoveredObject) {
@@ -564,8 +570,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       isEntityMesh(mesh) &&
       enableAppHoverEffects &&
       !this.heatmapConf.heatmapActive
-    ) 
-    { 
+    ) {
       if (this.hoveredObject) {
         this.hoveredObject.resetHoverEffect();
       }
@@ -605,8 +610,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseStop(intersection: THREE.Intersection, mouseOnCanvas: Position2D) {
-
-    if(isEntityMesh(intersection.object) && !intersection.object.material.visible){
+    if (
+      isEntityMesh(intersection.object) &&
+      !intersection.object.material.visible
+    ) {
       return;
     }
 

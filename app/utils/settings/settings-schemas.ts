@@ -9,9 +9,7 @@ export type SettingGroup =
   | 'Virtual Reality'
   | 'Debugging';
 
-export type ApplicationRenderSettingId =
-  | 'staticStructure'
-  | 'dynamicStructure';
+export type ApplicationRenderSettingId = 'staticStructure' | 'dynamicStructure';
 
 export type ApplicationColorSettingId =
   | 'foundationColor'
@@ -64,8 +62,10 @@ export type ApplicationSettingId =
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
 
-
-export type ApplicationRenderSettings = Record<ApplicationRenderSettingId, FlagSetting>; 
+export type ApplicationRenderSettings = Record<
+  ApplicationRenderSettingId,
+  FlagSetting
+>;
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
   ColorSetting
@@ -116,7 +116,7 @@ export type ApplicationCameraSettings = {
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationRenderSettings &
-ApplicationColorSettings &
+  ApplicationColorSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &

@@ -1,14 +1,13 @@
 import isObject from '../object-helpers';
 
 export interface EvolutionLandscapeData {
-  applications : EvolutedApplication[];
+  applications: EvolutedApplication[];
 }
 
 export interface EvolutedApplication {
-    name: string;
-    branches: Branch[];
+  name: string;
+  branches: Branch[];
 }
-
 
 export interface Branch {
   name: string;
@@ -16,10 +15,9 @@ export interface Branch {
   branchPoint: BranchPoint;
 }
 
-
 export interface BranchPoint {
-    name: string;
-    commit: string;
+  name: string;
+  commit: string;
 }
 
 // export function isTrace(x: any): x is Trace {

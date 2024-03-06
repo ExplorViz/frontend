@@ -188,11 +188,15 @@ export function openComponentsRecursively(
   applicationObject3D: ApplicationObject3D,
   sender: MessageSender
 ) {
-
   const components = component.subPackages;
   components.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened && mesh.material.visible) {
+    if (
+      mesh !== undefined &&
+      mesh instanceof ComponentMesh &&
+      !mesh.opened &&
+      mesh.material.visible
+    ) {
       // !mesh.opened needed!
       openComponentMesh(mesh, applicationObject3D);
       sender.sendComponentUpdate(
@@ -217,7 +221,12 @@ export function openAllComponents(
 ) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened && mesh.material.visible) {
+    if (
+      mesh !== undefined &&
+      mesh instanceof ComponentMesh &&
+      !mesh.opened &&
+      mesh.material.visible
+    ) {
       openComponentMesh(mesh, applicationObject3D);
       sender.sendComponentUpdate(
         applicationObject3D.getModelId(),

@@ -29,7 +29,11 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
-  changeTexture(texturePath: string, repeatX: number = 5, repeatY: number = repeatX) {
+  changeTexture(
+    texturePath: string,
+    repeatX: number = 5,
+    repeatY: number = repeatX
+  ) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial ||

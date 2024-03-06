@@ -63,7 +63,7 @@ export default class HeatmapLegend extends Component<Args> {
     const grad = ctx.createLinearGradient(0, this.canvas.height, 0, 0);
 
     const heatmapGradient = this.heatmapConfiguration.getSimpleHeatGradient();
-    Object.keys(heatmapGradient).forEach((key) => { 
+    Object.keys(heatmapGradient).forEach((key) => {
       grad.addColorStop(Number(key), heatmapGradient[key]);
     });
 

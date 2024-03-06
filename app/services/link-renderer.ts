@@ -107,7 +107,7 @@ export default class LinkRenderer extends Service.extend({}) {
     }
 
     // add texture
-      this.changeTexture(line, classCommunication);
+    this.changeTexture(line, classCommunication);
     // add arrow
     const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
@@ -180,9 +180,19 @@ export default class LinkRenderer extends Service.extend({}) {
     if (!link.communicationData) {
       return false;
     }
-    const sourceClassMesh = this.applicationRenderer.getMeshById(link.communicationData.sourceClass.id);
-    const targetClassMesh = this.applicationRenderer.getMeshById(link.communicationData.targetClass.id);
-    return this.configuration.isCommRendered && sourceClassMesh && targetClassMesh && sourceClassMesh.material.visible && targetClassMesh.material.visible;
+    const sourceClassMesh = this.applicationRenderer.getMeshById(
+      link.communicationData.sourceClass.id
+    );
+    const targetClassMesh = this.applicationRenderer.getMeshById(
+      link.communicationData.targetClass.id
+    );
+    return (
+      this.configuration.isCommRendered &&
+      sourceClassMesh &&
+      targetClassMesh &&
+      sourceClassMesh.material.visible &&
+      targetClassMesh.material.visible
+    );
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
@@ -199,8 +209,14 @@ export default class LinkRenderer extends Service.extend({}) {
     return baseCurveHeight * this.appSettings.curvyCommHeight.value;
   }
 
-  private changeTexture(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
-    this.applicationRenderer.visualizeCommitComparisonCommunicationLinks(pipe, classCommunication);
+  private changeTexture(
+    pipe: ClazzCommunicationMesh,
+    classCommunication: ClassCommunication
+  ) {
+    this.applicationRenderer.visualizeCommitComparisonCommunicationLinks(
+      pipe,
+      classCommunication
+    );
   }
 
   private addArrows(
@@ -226,15 +242,18 @@ export default class LinkRenderer extends Service.extend({}) {
     if (pipe.material.opacity !== 1) {
       // This fixes the problem that every arrow gets opaque (even for transparent pipes) after receiving onTimestampUpdate messages
       pipe.children.forEach((child) => {
-        if (child instanceof CommunicationArrowMesh){
+        if (child instanceof CommunicationArrowMesh) {
           child.turnTransparent(pipe.material.opacity);
         }
       });
     }
     //const [sourceClass, _] = pipe.dataModel.communication.getClasses();
-    if (!pipe.material.visible /*|| !this.applicationRenderer.getMeshById(sourceClass.id)?.material.visible*/) {
+    if (
+      !pipe.material
+        .visible /*|| !this.applicationRenderer.getMeshById(sourceClass.id)?.material.visible*/
+    ) {
       pipe.children.forEach((child) => {
-        if (child instanceof CommunicationArrowMesh){
+        if (child instanceof CommunicationArrowMesh) {
           child.hide();
         }
       });

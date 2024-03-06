@@ -5,7 +5,7 @@ import { TIMESTAMP_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/
 
 export default class TimestampService extends Service.extend(Evented) {
   @tracked
-  timestamp: (number|undefined)[] = [undefined, undefined]; // TODO: number[] for first and second selected commits
+  timestamp: (number | undefined)[] = [undefined, undefined]; // TODO: number[] for first and second selected commits
 
   // TODO not the best solution, should be handled differently
   updateTimestamp(timestamp: number) {

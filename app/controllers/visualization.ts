@@ -7,15 +7,26 @@ import LocalUser, {
   VisualizationMode,
 } from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
-import PlotlyTimeline, { IMarkerStates } from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
+import PlotlyTimeline, {
+  IMarkerStates,
+} from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { Application, Node, Package, StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  DynamicLandscapeData,
+  Trace,
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import {
+  Application,
+  Node,
+  Package,
+  StructureLandscapeData,
+  preProcessAndEnhanceStructureLandscape,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -26,9 +37,14 @@ import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import CodeServiceRequestService from 'explorviz-frontend/services/code-service-fetching';
-import { EvolutedApplication, EvolutionLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
+import {
+  EvolutedApplication,
+  EvolutionLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import PlotlyCommitTree from 'explorviz-frontend/components/visualization/page-setup/commit-tree/plotly-commit-tree';
-import ConfigurationRepository, { ConfigurationItem } from 'explorviz-frontend/services/repos/configuration-repository';
+import ConfigurationRepository, {
+  ConfigurationItem,
+} from 'explorviz-frontend/services/repos/configuration-repository';
 import { combineStructures } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
@@ -66,8 +82,6 @@ import ENV from 'explorviz-frontend/config/environment';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 
-
-
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
@@ -85,8 +99,8 @@ export const earthTexture = new THREE.TextureLoader().load(
 export enum RenderMode {
   STATIC_ONLY,
   DYNAMIC_ONLY,
-  STATIC_DYNAMIC
-};
+  STATIC_DYNAMIC,
+}
 
 /**
  * TODO
@@ -158,7 +172,7 @@ export default class VisualizationController extends Controller {
   @service('repos/commit-report-repository')
   commitReportRepo!: CommitReportRepository;
 
-  plotlyTimelineRef: (PlotlyTimeline | undefined) = undefined;
+  plotlyTimelineRef: PlotlyTimeline | undefined = undefined;
 
   plotlyCommitTreeRef!: PlotlyCommitTree;
   @service('spectate-user')
@@ -167,28 +181,31 @@ export default class VisualizationController extends Controller {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-
   queryParams = ['roomId'];
 
   @tracked
-  selectedTimestampRecords: [Timestamp[]?, Timestamp[]?] = [undefined, undefined];
+  selectedTimestampRecords: [Timestamp[]?, Timestamp[]?] = [
+    undefined,
+    undefined,
+  ];
   @tracked
   markerState: IMarkerStates[] = [{}, {}];
 
   @tracked
-  staticStructureData? : StructureLandscapeData = undefined;
+  staticStructureData?: StructureLandscapeData = undefined;
   @tracked
-  dynamicStructureData? : StructureLandscapeData = undefined;
+  dynamicStructureData?: StructureLandscapeData = undefined;
 
-  
   @tracked
-  dynamics: [DynamicLandscapeData?, DynamicLandscapeData?] = [undefined, undefined];
+  dynamics: [DynamicLandscapeData?, DynamicLandscapeData?] = [
+    undefined,
+    undefined,
+  ];
   @tracked
   renderMode?: RenderMode = undefined;
 
   @tracked
   roomId?: string | undefined | null;
-
 
   @tracked
   showSettingsSidebar = false;
@@ -251,14 +268,13 @@ export default class VisualizationController extends Controller {
   isCommitsTimeline: boolean = false;
 
   @tracked
-  applicationNameAndBranchNameToColorMap : Map<string, string> = new Map();
+  applicationNameAndBranchNameToColorMap: Map<string, string> = new Map();
 
   @tracked
-  timelineColors : [string?, string?] = [undefined, undefined];
+  timelineColors: [string?, string?] = [undefined, undefined];
 
   private firstCommitSelected = false; // gets true whenever we get from no commits selected to commit selected
   private allCommitsUnselected = false; // gets true whenever we get from any commit selected to no commits selected
-  
 
   private readonly debug = debugLogger();
 
@@ -332,23 +348,34 @@ export default class VisualizationController extends Controller {
     this.debug('updateTimestampList');
 
     let selectedCommits = undefined;
-    if(this.currentSelectedApplication) {
-      selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
+    if (this.currentSelectedApplication) {
+      selectedCommits = this.currentSelectedCommits.get(
+        this.currentSelectedApplication
+      );
     }
 
     const currentToken = this.landscapeTokenService.token.value;
-    const timelineTimestamps : Timestamp[][] = [];
+    const timelineTimestamps: Timestamp[][] = [];
 
-    if(!selectedCommits || selectedCommits.length === 0) {
-      const commitId = "";
-      const allCommitsTimestamps = this.timestampRepo.getTimestamps(currentToken, commitId);
+    if (!selectedCommits || selectedCommits.length === 0) {
+      const commitId = '';
+      const allCommitsTimestamps = this.timestampRepo.getTimestamps(
+        currentToken,
+        commitId
+      );
       timelineTimestamps.push(allCommitsTimestamps);
-    }else {
-      const firstCommitTimestamps = this.timestampRepo.getTimestamps(currentToken, selectedCommits[0].commitId);
+    } else {
+      const firstCommitTimestamps = this.timestampRepo.getTimestamps(
+        currentToken,
+        selectedCommits[0].commitId
+      );
       timelineTimestamps.push(firstCommitTimestamps);
 
       if (selectedCommits.length === 2) {
-        const secondCommitTimestamps = this.timestampRepo.getTimestamps(currentToken, selectedCommits[1].commitId);
+        const secondCommitTimestamps = this.timestampRepo.getTimestamps(
+          currentToken,
+          selectedCommits[1].commitId
+        );
         timelineTimestamps.push(secondCommitTimestamps);
       }
     }
@@ -404,7 +431,7 @@ export default class VisualizationController extends Controller {
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
-  ) { 
+  ) {
     this.landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
@@ -540,15 +567,20 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(selectedTimeline: number, selectedTimestamps: Timestamp[], markerState: IMarkerStates) {
+  async timelineClicked(
+    selectedTimeline: number,
+    selectedTimestamps: Timestamp[],
+    markerState: IMarkerStates
+  ) {
     if (
       this.selectedTimestampRecords.length === 0 ||
       (selectedTimeline !== 0 && selectedTimeline !== 1) ||
       !this.selectedTimestampRecords[selectedTimeline] ||
       this.selectedTimestampRecords[selectedTimeline]!.length === 0 ||
-      this.selectedTimestampRecords[selectedTimeline]![0] === selectedTimestamps[0]
+      this.selectedTimestampRecords[selectedTimeline]![0] ===
+        selectedTimestamps[0]
     ) {
-      console.log("return");
+      console.log('return');
       return;
     }
 
@@ -556,169 +588,190 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords[selectedTimeline] = selectedTimestamps;
     this.markerState[selectedTimeline] = markerState;
     this.pauseVisualizationUpdating();
-    const epochMillis : [number?, number?] = [undefined, undefined];
-    if(selectedTimeline === 0) { // timeline of first selected commit
-      console.log("timeline of first selected commit");
+    const epochMillis: [number?, number?] = [undefined, undefined];
+    if (selectedTimeline === 0) {
+      // timeline of first selected commit
+      console.log('timeline of first selected commit');
       epochMillis[0] = selectedTimestamps[0].epochMilli;
-      epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0] && this.selectedTimestampRecords[1][0].epochMilli;
-      this.updateTimestamp(epochMillis, [selectedTimestamps, this.selectedTimestampRecords[1]]);
-    }else if(selectedTimeline === 1) { // timeline of second selected commit
-      console.log("timeline of second selected commit");
+      epochMillis[1] =
+        this.selectedTimestampRecords[1] &&
+        this.selectedTimestampRecords[1][0] &&
+        this.selectedTimestampRecords[1][0].epochMilli;
+      this.updateTimestamp(epochMillis, [
+        selectedTimestamps,
+        this.selectedTimestampRecords[1],
+      ]);
+    } else if (selectedTimeline === 1) {
+      // timeline of second selected commit
+      console.log('timeline of second selected commit');
       epochMillis[1] = selectedTimestamps[0].epochMilli;
-      epochMillis[0] = this.selectedTimestampRecords[0] && this.selectedTimestampRecords[0][0] && this.selectedTimestampRecords[0][0].epochMilli;
-      this.updateTimestamp(epochMillis, [this.selectedTimestampRecords[0], selectedTimestamps]);
+      epochMillis[0] =
+        this.selectedTimestampRecords[0] &&
+        this.selectedTimestampRecords[0][0] &&
+        this.selectedTimestampRecords[0][0].epochMilli;
+      this.updateTimestamp(epochMillis, [
+        this.selectedTimestampRecords[0],
+        selectedTimestamps,
+      ]);
     }
-
   }
 
-  
   async updateTimestamp(
     epochMilli: [number?, number?],
-    timestampRecordArray?: [Timestamp[]?, Timestamp[]?] 
-  ) { 
+    timestampRecordArray?: [Timestamp[]?, Timestamp[]?]
+  ) {
     try {
-
       let selectedCommits = undefined;
-      if(this.currentSelectedApplication){
-        selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
+      if (this.currentSelectedApplication) {
+        selectedCommits = this.currentSelectedCommits.get(
+          this.currentSelectedApplication
+        );
       }
 
-      const dynamics : [LandscapeData?, LandscapeData?] = [undefined, undefined];
+      const dynamics: [LandscapeData?, LandscapeData?] = [undefined, undefined];
 
-      if(!selectedCommits || selectedCommits.length === 0) {
+      if (!selectedCommits || selectedCommits.length === 0) {
         // Load dynamic structure and dynamic data with respect to all commits ("cross-commit")
-        if(epochMilli[0]) {
-          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(undefined, epochMilli[0])
+        if (epochMilli[0]) {
+          const [structureData, dynamicData] =
+            await this.reloadHandler.loadLandscapeByTimestamp(
+              undefined,
+              epochMilli[0]
+            );
           dynamics[0] = {
             structureLandscapeData: structureData,
-            dynamicLandscapeData: dynamicData
+            dynamicLandscapeData: dynamicData,
           };
         }
       } else {
-
         // Load dynamic structure and dynamic data for selected commits
 
-        if(epochMilli[0] && selectedCommits.length > 0) {
-          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits[0], epochMilli[0])
+        if (epochMilli[0] && selectedCommits.length > 0) {
+          const [structureData, dynamicData] =
+            await this.reloadHandler.loadLandscapeByTimestamp(
+              selectedCommits[0],
+              epochMilli[0]
+            );
           dynamics[0] = {
             structureLandscapeData: structureData,
-            dynamicLandscapeData: dynamicData
+            dynamicLandscapeData: dynamicData,
           };
         }
-  
-        if(epochMilli[1] && selectedCommits.length === 2) {
-          const [structureData, dynamicData] = await this.reloadHandler.loadLandscapeByTimestamp(selectedCommits[1], epochMilli[1])
+
+        if (epochMilli[1] && selectedCommits.length === 2) {
+          const [structureData, dynamicData] =
+            await this.reloadHandler.loadLandscapeByTimestamp(
+              selectedCommits[1],
+              epochMilli[1]
+            );
           dynamics[1] = {
             structureLandscapeData: structureData,
-            dynamicLandscapeData: dynamicData
+            dynamicLandscapeData: dynamicData,
           };
         }
 
-
-
-
-                // DELETE THIS. ONLY FOR TEST PURPOSES
-      const newTrace : Trace = {
-        landscapeToken: "token3",
-        startTime: 1522023023123,
-        traceId: "607257096554b5c9236116464bc4TEST",
-        endTime: 1522023023153,
-        duration: 2,
-        overallRequestCount: 1,
-        traceCount: 1,
-        spanList: [
+        // DELETE THIS. ONLY FOR TEST PURPOSES
+        const newTrace: Trace = {
+          landscapeToken: 'token3',
+          startTime: 1522023023123,
+          traceId: '607257096554b5c9236116464bc4TEST',
+          endTime: 1522023023153,
+          duration: 2,
+          overallRequestCount: 1,
+          traceCount: 1,
+          spanList: [
             {
-                landscapeToken: "token3",
-                traceId: "607257096554b5c9236116464bc4TEST",
-                spanId: "3fc0b7e5590aTEST",
-                parentSpanId: "783503290017TEST",
-                startTime: 1522023023151,
-                endTime: 1522023023153,
-                //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-                methodHash: "testCEinsdefaulthashcode"
+              landscapeToken: 'token3',
+              traceId: '607257096554b5c9236116464bc4TEST',
+              spanId: '3fc0b7e5590aTEST',
+              parentSpanId: '783503290017TEST',
+              startTime: 1522023023151,
+              endTime: 1522023023153,
+              //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+              methodHash: 'testCEinsdefaulthashcode',
             },
             {
-                landscapeToken: "token3",
-                traceId: "607257096554b5c9236116464bc4TEST",
-                spanId: "783503290017TEST",
-                parentSpanId: "",
-                startTime: 1522023023123,
-                endTime: 1522023023164,
-                //methodHash: "testBEinsdefaulthashcode"
-                methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
-                //methodHash: "testCEinsdefaulthashcode"
-            }
-        ]
-    };
-    dynamics[0]?.dynamicLandscapeData.push(newTrace);
-    dynamics[1]?.dynamicLandscapeData.push(newTrace);
+              landscapeToken: 'token3',
+              traceId: '607257096554b5c9236116464bc4TEST',
+              spanId: '783503290017TEST',
+              parentSpanId: '',
+              startTime: 1522023023123,
+              endTime: 1522023023164,
+              //methodHash: "testBEinsdefaulthashcode"
+              methodHash:
+                '13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9',
+              //methodHash: "testCEinsdefaulthashcode"
+            },
+          ],
+        };
+        dynamics[0]?.dynamicLandscapeData.push(newTrace);
+        dynamics[1]?.dynamicLandscapeData.push(newTrace);
 
-      // ------
-
-
-
-
-
-
-
-
-
+        // ------
       }
 
+      this.dynamics = [
+        dynamics[0]?.dynamicLandscapeData,
+        dynamics[1]?.dynamicLandscapeData,
+      ];
 
-
-
-
-
-
-      this.dynamics= [dynamics[0]?.dynamicLandscapeData, dynamics[1]?.dynamicLandscapeData];
-
-      let newDynamic : DynamicLandscapeData;
+      let newDynamic: DynamicLandscapeData;
       if (dynamics[0] && dynamics[1]) {
         // TODO: don't let the frontend combine the dynamic structures. Provide an endpoint in the backend for that
-        const combinedDynamicStructure = combineStructures(dynamics[0].structureLandscapeData, dynamics[1].structureLandscapeData);
+        const combinedDynamicStructure = combineStructures(
+          dynamics[0].structureLandscapeData,
+          dynamics[1].structureLandscapeData
+        );
         this.dynamicStructureData = combinedDynamicStructure;
-        newDynamic = this.combineDynamics(dynamics[0].dynamicLandscapeData, dynamics[1].dynamicLandscapeData);
+        newDynamic = this.combineDynamics(
+          dynamics[0].dynamicLandscapeData,
+          dynamics[1].dynamicLandscapeData
+        );
       } else if (dynamics[0]) {
         this.dynamicStructureData = dynamics[0].structureLandscapeData;
         newDynamic = dynamics[0].dynamicLandscapeData;
-      } else if(dynamics[1]) {
+      } else if (dynamics[1]) {
         this.dynamicStructureData = dynamics[1].structureLandscapeData;
         newDynamic = dynamics[1].dynamicLandscapeData;
-      }else {
+      } else {
         this.dynamicStructureData = undefined;
         newDynamic = [];
       }
 
-
-      const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
+      const newStruct = combineStructures(
+        this.staticStructureData,
+        this.dynamicStructureData
+      ) || {
+        landscapeToken: this.landscapeTokenService.token!.value,
+        nodes: [],
+      };
 
       //console.log("this.dynamicStructureData ==>", this.dynamicStructureData);
       //console.log("this.staticStructureData ==>", this.staticStructureData);
 
       // Refactor this (find a better place for this logic) --------------
-      const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
-      const renderDynamicStructure = this.userSettings.applicationSettings.dynamicStructure.value;
+      const renderStaticStructure =
+        this.userSettings.applicationSettings.staticStructure.value;
+      const renderDynamicStructure =
+        this.userSettings.applicationSettings.dynamicStructure.value;
 
-      if(renderStaticStructure && renderDynamicStructure) {
+      if (renderStaticStructure && renderDynamicStructure) {
         this.renderMode = RenderMode.STATIC_DYNAMIC;
       } else if (renderStaticStructure && !renderDynamicStructure) {
         this.renderMode = RenderMode.STATIC_ONLY;
       } else if (!renderStaticStructure && renderDynamicStructure) {
         this.renderMode = RenderMode.DYNAMIC_ONLY;
       } else {
-        console.debug("Should never happen!");
+        console.debug('Should never happen!');
       }
       // ---------------------------------------------------------------------
-      
-      
+
       this.updateLandscape(newStruct, newDynamic);
 
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.timestamp = epochMilli;
-
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
@@ -728,7 +781,10 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  private combineDynamics(dynamicsA: DynamicLandscapeData, dynamicsB: DynamicLandscapeData) {
+  private combineDynamics(
+    dynamicsA: DynamicLandscapeData,
+    dynamicsB: DynamicLandscapeData
+  ) {
     const dynamics = [...dynamicsA, ...dynamicsB];
     return dynamics;
   }
@@ -758,9 +814,15 @@ export default class VisualizationController extends Controller {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       this.highlightedMarkerColor = 'blue';
-      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
-      if(this.selectedTimestampRecords[1]){
-        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
+      this.plotlyTimelineRef?.continueTimeline(
+        this.selectedTimestampRecords,
+        0
+      );
+      if (this.selectedTimestampRecords[1]) {
+        this.plotlyTimelineRef?.continueTimeline(
+          this.selectedTimestampRecords,
+          1
+        );
       }
       animatePlayPauseButton(false);
     }
@@ -770,9 +832,15 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
-      if(this.selectedTimestampRecords[1]){
-        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
+      this.plotlyTimelineRef?.continueTimeline(
+        this.selectedTimestampRecords,
+        0
+      );
+      if (this.selectedTimestampRecords[1]) {
+        this.plotlyTimelineRef?.continueTimeline(
+          this.selectedTimestampRecords,
+          1
+        );
       }
       animatePlayPauseButton(true);
     }
@@ -836,34 +904,32 @@ export default class VisualizationController extends Controller {
   }
 
   timestampPollingCallback(timestamps: Timestamp[][]) {
-
-    let selectedCommits : SelectedCommit[] | undefined = undefined;
-    if(this.currentSelectedApplication) {
-      selectedCommits = this.currentSelectedCommits.get(this.currentSelectedApplication);
+    let selectedCommits: SelectedCommit[] | undefined = undefined;
+    if (this.currentSelectedApplication) {
+      selectedCommits = this.currentSelectedCommits.get(
+        this.currentSelectedApplication
+      );
     }
 
-    if(!selectedCommits || selectedCommits.length === 0) {
-        // No application or commit selected
-        // Load all time dynamics evolution => all commits considered
+    if (!selectedCommits || selectedCommits.length === 0) {
+      // No application or commit selected
+      // Load all time dynamics evolution => all commits considered
 
-        const commitId = ""; // use empty string as commit id
+      const commitId = ''; // use empty string as commit id
 
-        this.timestampRepo.addTimestamps(
-          this.landscapeTokenService.token!.value,
-          commitId,
-          timestamps[0]
-        );
-        
-    }else {
-
+      this.timestampRepo.addTimestamps(
+        this.landscapeTokenService.token!.value,
+        commitId,
+        timestamps[0]
+      );
+    } else {
       this.timestampRepo.addTimestamps(
         this.landscapeTokenService.token!.value,
         selectedCommits[0].commitId,
         timestamps[0]
       );
-  
 
-      if(selectedCommits.length === 2) {
+      if (selectedCommits.length === 2) {
         this.timestampRepo.addTimestamps(
           this.landscapeTokenService.token!.value,
           selectedCommits[1].commitId,
@@ -872,53 +938,63 @@ export default class VisualizationController extends Controller {
       }
     }
 
-        
-    if ((timestamps[0].length > 0) || (selectedCommits && selectedCommits.length > 1 && timestamps[1].length > 0)) {
+    if (
+      timestamps[0].length > 0 ||
+      (selectedCommits &&
+        selectedCommits.length > 1 &&
+        timestamps[1].length > 0)
+    ) {
       this.timestampRepo.triggerTimelineUpdate();
     }
 
-    let timestampToRender : (Timestamp | undefined)[];
-    if (!this.visualizationPaused) { 
-
+    let timestampToRender: (Timestamp | undefined)[];
+    if (!this.visualizationPaused) {
       const lastSelectTimestamp = this.timestampService.timestamp;
-      if(!selectedCommits || selectedCommits.length === 0) {
-        const commitId = "";
+      if (!selectedCommits || selectedCommits.length === 0) {
+        const commitId = '';
         timestampToRender = [
           this.timestampRepo.getNextTimestampOrLatest(
-          this.landscapeTokenService.token!.value,
-          commitId,
-          lastSelectTimestamp[0]
-        ),
-      undefined];
-      }else {
+            this.landscapeTokenService.token!.value,
+            commitId,
+            lastSelectTimestamp[0]
+          ),
+          undefined,
+        ];
+      } else {
         timestampToRender = [
           this.timestampRepo.getNextTimestampOrLatest(
             this.landscapeTokenService.token!.value,
             selectedCommits[0].commitId,
             lastSelectTimestamp[0]
-          ), 
+          ),
           selectedCommits[1] &&
-          this.timestampRepo.getNextTimestampOrLatest(
-            this.landscapeTokenService.token!.value,
-            selectedCommits[1].commitId,
-            lastSelectTimestamp[1]
-          )
+            this.timestampRepo.getNextTimestampOrLatest(
+              this.landscapeTokenService.token!.value,
+              selectedCommits[1].commitId,
+              lastSelectTimestamp[1]
+            ),
         ];
       }
-
 
       const epochMillis: [number?, number?] = [undefined, undefined];
       if (
         timestampToRender[0] &&
-        (this.firstCommitSelected || this.allCommitsUnselected || JSON.stringify(this.selectedTimestampRecords[0]) !==
-          JSON.stringify([timestampToRender[0]]))
+        (this.firstCommitSelected ||
+          this.allCommitsUnselected ||
+          JSON.stringify(this.selectedTimestampRecords[0]) !==
+            JSON.stringify([timestampToRender[0]]))
       ) {
         this.firstCommitSelected = false;
         this.allCommitsUnselected = false;
         epochMillis[0] = timestampToRender[0].epochMilli;
-        epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0].epochMilli; 
+        epochMillis[1] =
+          this.selectedTimestampRecords[1] &&
+          this.selectedTimestampRecords[1][0].epochMilli;
         this.selectedTimestampRecords[0] = [timestampToRender[0]];
-        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 0);
+        this.plotlyTimelineRef?.continueTimeline(
+          this.selectedTimestampRecords,
+          0
+        );
       }
 
       if (
@@ -927,29 +1003,37 @@ export default class VisualizationController extends Controller {
           JSON.stringify([timestampToRender[1]])
       ) {
         epochMillis[1] = timestampToRender[1].epochMilli;
-        if(!epochMillis[0]){
-          epochMillis[0] = this.selectedTimestampRecords[0] && this.selectedTimestampRecords[0][0].epochMilli;
+        if (!epochMillis[0]) {
+          epochMillis[0] =
+            this.selectedTimestampRecords[0] &&
+            this.selectedTimestampRecords[0][0].epochMilli;
         }
         this.selectedTimestampRecords[1] = [timestampToRender[1]];
-        this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords, 1);
+        this.plotlyTimelineRef?.continueTimeline(
+          this.selectedTimestampRecords,
+          1
+        );
       }
 
-      if(epochMillis[0] || epochMillis[1]){
+      if (epochMillis[0] || epochMillis[1]) {
         this.updateTimestamp(epochMillis);
       }
     }
   }
 
   applicationFetchingCallback(applications: string[]) {
-    const evolutionLandscapeData : EvolutionLandscapeData = {
+    const evolutionLandscapeData: EvolutionLandscapeData = {
       applications: [],
     };
-    applications.forEach(appName => {
-      const evolutedApplication : EvolutedApplication = {
+    applications.forEach((appName) => {
+      const evolutedApplication: EvolutedApplication = {
         name: appName,
         branches: [],
       };
-      evolutionLandscapeData.applications = [...evolutionLandscapeData.applications, evolutedApplication];
+      evolutionLandscapeData.applications = [
+        ...evolutionLandscapeData.applications,
+        evolutedApplication,
+      ];
     });
     this.evolutionLandscapeData = evolutionLandscapeData;
   }
@@ -1054,40 +1138,44 @@ export default class VisualizationController extends Controller {
     }
   }
 
-
   @action
-  showRequestsTimeline(){
+  showRequestsTimeline() {
     this.isCommitsTimeline = false;
     this.isRequestsTimeline = true;
   }
 
   @action
-  showCommitsTimeline(){
+  showCommitsTimeline() {
     this.isRequestsTimeline = false;
     this.isCommitsTimeline = true;
   }
 
   @action
   async applicationButtonClicked(application: string) {
-    if(this.currentSelectedApplication !== application){ // don't trigger reload
+    if (this.currentSelectedApplication !== application) {
+      // don't trigger reload
       this.currentSelectedApplication = application;
       this.codeServiceFetchingService.initCommitTreeFetchingWithCallback(
-        this.commitTreeFetchingCallback.bind(this), this.currentSelectedApplication);
+        this.commitTreeFetchingCallback.bind(this),
+        this.currentSelectedApplication
+      );
     }
   }
 
   commitTreeFetchingCallback(commitTree: EvolutedApplication) {
-    const oldCommitTree = this.evolutionLandscapeData?.applications.find(application => {
-      return application.name === this.currentSelectedApplication;
-    });
-    if(oldCommitTree) {
-      const index = this.evolutionLandscapeData!.applications.indexOf(oldCommitTree);
-      if(index !== -1){
+    const oldCommitTree = this.evolutionLandscapeData?.applications.find(
+      (application) => {
+        return application.name === this.currentSelectedApplication;
+      }
+    );
+    if (oldCommitTree) {
+      const index =
+        this.evolutionLandscapeData!.applications.indexOf(oldCommitTree);
+      if (index !== -1) {
         this.evolutionLandscapeData!.applications[index] = commitTree;
         set(this, 'evolutionLandscapeData', this.evolutionLandscapeData); // trigger reload
       }
     }
-
   }
 
   @action
@@ -1104,27 +1192,32 @@ export default class VisualizationController extends Controller {
   @action
   updateConfigurationsAndMetrics() {
     const currentToken = this.landscapeTokenService.token!.value;
-    this.commitTreeConfiguration = this.configurationRepo.getConfiguration(currentToken);
-    this.commitTreeMetrics = this.configurationRepo.getSoftwaremetrics(currentToken)
+    this.commitTreeConfiguration =
+      this.configurationRepo.getConfiguration(currentToken);
+    this.commitTreeMetrics =
+      this.configurationRepo.getSoftwaremetrics(currentToken);
   }
 
-  @action 
-  updatePlotForMetrics(){
-    if(this.plotlyCommitTreeRef){
+  @action
+  updatePlotForMetrics() {
+    if (this.plotlyCommitTreeRef) {
       this.plotlyCommitTreeRef.updatePlotlineForMetric();
     }
   }
 
   @action
   plotFileMetrics() {
-    if(this.plotlyCommitTreeRef){
+    if (this.plotlyCommitTreeRef) {
       this.plotlyCommitTreeRef.plotFileMetrics();
     }
   }
 
   @action
-  async commitTreeClicked(commits: Map<string,SelectedCommit[]>, staticStructureData?: StructureLandscapeData, timelineOfSelectedCommit?: number) {
-
+  async commitTreeClicked(
+    commits: Map<string, SelectedCommit[]>,
+    staticStructureData?: StructureLandscapeData,
+    timelineOfSelectedCommit?: number
+  ) {
     // clear landscape so that we don't get collisions (see landscape data watcher layouter problem)
     // TODO: delete this line and fix layouter properly
     //this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
@@ -1132,39 +1225,47 @@ export default class VisualizationController extends Controller {
     this.timestampPollingService.resetPolling();
 
     // always resume when commit got clicked so the landscape updates
-    if(this.visualizationPaused) {
+    if (this.visualizationPaused) {
       this.resumeVisualizationUpdating();
-    } 
+    }
 
     // TODO: deactivate (if activated) heatmap when commit gets selected
 
-
-    if(staticStructureData){
-      this.staticStructureData = preProcessAndEnhanceStructureLandscape(staticStructureData);
+    if (staticStructureData) {
+      this.staticStructureData =
+        preProcessAndEnhanceStructureLandscape(staticStructureData);
     }
     this.currentSelectedCommits = commits;
     //set(this, "currentSelectedCommits", commits);
 
-    const selected = this.currentSelectedCommits.get(this.currentSelectedApplication!);
+    const selected = this.currentSelectedCommits.get(
+      this.currentSelectedApplication!
+    );
     const numOfSelectedCommits = selected?.length;
 
-    if(numOfSelectedCommits && numOfSelectedCommits > 0){
-      if(this.selectedTimestampRecords[1]) {
-        // One of two (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) commits got unselected 
+    if (numOfSelectedCommits && numOfSelectedCommits > 0) {
+      if (this.selectedTimestampRecords[1]) {
+        // One of two (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) commits got unselected
         this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so the landscape gets updated within the timestampPollingCallback call-chain
-        this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit!]];
-        this.timestampService.timestamp = [this.timestampService.timestamp[1-timelineOfSelectedCommit!], undefined];
-        this.markerState = [this.markerState[1-timelineOfSelectedCommit!], {}];
+        this.timelineTimestamps = [
+          this.timelineTimestamps[1 - timelineOfSelectedCommit!],
+        ];
+        this.timestampService.timestamp = [
+          this.timestampService.timestamp[1 - timelineOfSelectedCommit!],
+          undefined,
+        ];
+        this.markerState = [
+          this.markerState[1 - timelineOfSelectedCommit!],
+          {},
+        ];
         this.timelineColors[timelineOfSelectedCommit!] = undefined;
-                
+
         this.timestampPollingService.initTimestampPollingWithCallback(
           selected,
           this.timestampPollingCallback.bind(this)
         );
-
-      }else {
-
-        if(numOfSelectedCommits === 1) {
+      } else {
+        if (numOfSelectedCommits === 1) {
           // first commit got selected
 
           this.selectedTimestampRecords = [undefined, undefined];
@@ -1174,27 +1275,28 @@ export default class VisualizationController extends Controller {
           this.timelineColors = [undefined, undefined];
           this.plotlyTimelineRef = undefined;
 
-
-          const keyForColor = this.currentSelectedApplication + selected[0].branchName;
-          this.timelineColors[0] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
+          const keyForColor =
+            this.currentSelectedApplication + selected[0].branchName;
+          this.timelineColors[0] =
+            this.applicationNameAndBranchNameToColorMap.get(keyForColor);
           this.firstCommitSelected = true;
-        } else if(numOfSelectedCommits === 2) {
+        } else if (numOfSelectedCommits === 2) {
           // second commit got selected
 
-          const keyForColor = this.currentSelectedApplication + selected[1].branchName;
-          this.timelineColors[1] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
+          const keyForColor =
+            this.currentSelectedApplication + selected[1].branchName;
+          this.timelineColors[1] =
+            this.applicationNameAndBranchNameToColorMap.get(keyForColor);
         }
-  
+
         this.timestampPollingService.initTimestampPollingWithCallback(
           selected,
           this.timestampPollingCallback.bind(this)
         );
-
       }
-    
     } else {
       // no commits selected anymore
-      
+
       this.selectedTimestampRecords = [undefined, undefined];
       this.timelineTimestamps = [];
       this.markerState = [{}, {}];
@@ -1209,10 +1311,7 @@ export default class VisualizationController extends Controller {
         this.timestampPollingCallback.bind(this)
       );
     }
-    
   }
-
-
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

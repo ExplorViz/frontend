@@ -7,37 +7,37 @@ export default class ClassCommunication {
 
   isRecursive: boolean = false;
   isBidirectional: boolean = false;
-  totalRequests: [number, number] = [0,0];
+  totalRequests: [number, number] = [0, 0];
   sourceApp: Application;
   sourceClass: Class;
   targetApp: Application;
   targetClass: Class;
   operationName: string;
 
-  metrics = [{
-    normalizedRequestCount: 1, // Normalized request count between 0 and 1
-  },
-  {
-    normalizedRequestCount: 1, // Normalized request count between 0 and 1
-  }
-];
+  metrics = [
+    {
+      normalizedRequestCount: 1, // Normalized request count between 0 and 1
+    },
+    {
+      normalizedRequestCount: 1, // Normalized request count between 0 and 1
+    },
+  ];
 
-// get firstSelectedCommitMethodCalls() {
-//   return this.methodCalls[0];
-// }
+  // get firstSelectedCommitMethodCalls() {
+  //   return this.methodCalls[0];
+  // }
 
-// get secondSelectedCommitMethodCalls() {
-//   return this.methodCalls[1];
-// }
+  // get secondSelectedCommitMethodCalls() {
+  //   return this.methodCalls[1];
+  // }
 
-// get firstSelectedCommitTotalRequests() {
-//   return this.totalRequests[0];
-// }
+  // get firstSelectedCommitTotalRequests() {
+  //   return this.totalRequests[0];
+  // }
 
-
-// get secondSelectedCommitTotalRequests() {
-//   return this.totalRequests[1];
-// }
+  // get secondSelectedCommitTotalRequests() {
+  //   return this.totalRequests[1];
+  // }
 
   constructor(
     id: string,
@@ -74,5 +74,4 @@ export default class ClassCommunication {
   getClasses() {
     return [this.sourceClass, this.targetClass];
   }
-
 }

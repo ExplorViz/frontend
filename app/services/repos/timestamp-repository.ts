@@ -20,8 +20,9 @@ export default class TimestampRepository extends Service.extend(Evented) {
     commitId: string,
     epochMilli?: number
   ): Timestamp | undefined {
-    const timestampsForLandscapetoken =
-      this.timelineTimestamps.get(landscapeToken + "_" + commitId);
+    const timestampsForLandscapetoken = this.timelineTimestamps.get(
+      landscapeToken + '_' + commitId
+    );
     if (timestampsForLandscapetoken) {
       let isNextTimestamp: boolean = false;
       for (const [, value] of timestampsForLandscapetoken.entries()) {
@@ -38,8 +39,9 @@ export default class TimestampRepository extends Service.extend(Evented) {
   }
 
   getTimestamps(landscapeToken: string, commitId: string): Timestamp[] {
-    const timestampsForLandscapetokenAndCommitId =
-      this.timelineTimestamps.get(landscapeToken + "_" + commitId);
+    const timestampsForLandscapetokenAndCommitId = this.timelineTimestamps.get(
+      landscapeToken + '_' + commitId
+    );
     if (timestampsForLandscapetokenAndCommitId) {
       return [...timestampsForLandscapetokenAndCommitId.values()];
     } else {
@@ -57,7 +59,11 @@ export default class TimestampRepository extends Service.extend(Evented) {
     return undefined;
   }
 
-  addTimestamps(landscapeToken: string, commitId: string, timestamps: Timestamp[]) {
+  addTimestamps(
+    landscapeToken: string,
+    commitId: string,
+    timestamps: Timestamp[]
+  ) {
     for (const timestamp of timestamps) {
       this.addTimestamp(landscapeToken, commitId, timestamp);
     }
@@ -68,15 +74,24 @@ export default class TimestampRepository extends Service.extend(Evented) {
     }
   }
 
-  private addTimestamp(landscapeToken: string, commitId: string, timestamp: Timestamp) {
-    const timestamps = this.timelineTimestamps.get(landscapeToken + "_" + commitId);
+  private addTimestamp(
+    landscapeToken: string,
+    commitId: string,
+    timestamp: Timestamp
+  ) {
+    const timestamps = this.timelineTimestamps.get(
+      landscapeToken + '_' + commitId
+    );
 
     if (timestamps) {
       timestamps.set(timestamp.epochMilli, timestamp);
     } else {
       const newTimestampMap = new Map<number, Timestamp>();
       newTimestampMap.set(timestamp.epochMilli, timestamp);
-      this.timelineTimestamps.set(landscapeToken + "_" + commitId, newTimestampMap);
+      this.timelineTimestamps.set(
+        landscapeToken + '_' + commitId,
+        newTimestampMap
+      );
     }
   }
 

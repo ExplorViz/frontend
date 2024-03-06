@@ -1,9 +1,9 @@
 {{#if (and @evolutionData @selectedApplication)}}
   <Visualization::PageSetup::CommitTree::Configuration::ConfigurationOverview
-        @configurations={{@configurations}}
-        @softwaremetrics={{@softwaremetrics}}
-        @showConfiguration={{@showConfiguration}}
-        @toggleConfigurationOverview={{@toggleConfigurationOverview}}
+    @configurations={{@configurations}}
+    @softwaremetrics={{@softwaremetrics}}
+    @showConfiguration={{@showConfiguration}}
+    @toggleConfigurationOverview={{@toggleConfigurationOverview}}
   />
   <div
     class='plotlyCommitDiv'
@@ -12,13 +12,13 @@
     {{did-update this.didRender @evolutionData @selectedApplication}}
     {{did-insert this.didRender}}
   >
-  <button
-      class="btn-configuration"
-      type="button"
-      {{ on "click" this.toggleConfigOverview }}
+    <button
+      class='btn-configuration'
+      type='button'
+      {{on 'click' this.toggleConfigOverview}}
     >
-      {{svg-jar "gear-16" class="octicon align-middle"}}
-      <BsTooltip @placement="bottom" @triggerEvents="hover">
+      {{svg-jar 'gear-16' class='octicon align-middle'}}
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
         Open configuration overview
       </BsTooltip>
     </button>

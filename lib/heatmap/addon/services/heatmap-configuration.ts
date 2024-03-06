@@ -183,7 +183,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     this.largestValue = metric.max;
     this.smallestValue = metric.min;
 
-    console.log("METRIK:", metric);
+    console.log('METRIK:', metric);
   }
 
   switchMode() {

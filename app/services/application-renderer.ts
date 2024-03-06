@@ -35,13 +35,25 @@ import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { getClassesInPackage, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import {
+  getClassesInPackage,
+  getSubPackagesOfPackage,
+} from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import {
+  RenderMode,
+  SelectedCommit,
+} from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { applicationHasClass, getAllClassesInApplication, getAllPackagesInApplication } from 'explorviz-frontend/utils/application-helpers';
-import CommitComparisonRepository, { CommitComparison } from './repos/commit-comparison-repository';
+import {
+  applicationHasClass,
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/utils/application-helpers';
+import CommitComparisonRepository, {
+  CommitComparison,
+} from './repos/commit-comparison-repository';
 import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
 import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
 import { MeshLineMaterial } from 'meshline';
@@ -214,9 +226,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       selectedCommits?: Map<string, SelectedCommit[]>,
       staticStructure?: StructureLandscapeData,
       dynamicStructure?: StructureLandscapeData,
-      renderMode?: RenderMode 
+      renderMode?: RenderMode
     ) => {
-
       this.selectedCommits = selectedCommits;
       this.selectedApplication = selectedApplication;
 
@@ -228,9 +239,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
 
-
       let layoutChanged = true;
-      if (applicationObject3D) { 
+      if (applicationObject3D) {
         // Maps cannot be compared directly. Thus, we compare their size.
         layoutChanged =
           boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
@@ -251,7 +261,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
             )
           : addApplicationArgs;
 
-      if (layoutChanged) { 
+      if (layoutChanged) {
         applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
@@ -316,16 +326,22 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       // commit comparison visualization
       const commitComparison = this.getCommitComparison(applicationObject3D);
 
-      if(commitComparison){
-        this.visualizeCommitComparisonPackagesAndClasses(applicationObject3D, commitComparison);
-      }else if(selectedApplication && selectedCommits?.get(selectedApplication)?.length == 1){
+      if (commitComparison) {
+        this.visualizeCommitComparisonPackagesAndClasses(
+          applicationObject3D,
+          commitComparison
+        );
+      } else if (
+        selectedApplication &&
+        selectedCommits?.get(selectedApplication)?.length == 1
+      ) {
         // remove existing comparison visualizations
         this.removeCommitComparisonVisualization(applicationObject3D);
       }
 
       applicationObject3D.resetRotation();
 
-      switch(renderMode){
+      switch (renderMode) {
         case RenderMode.DYNAMIC_ONLY:
           this.hideVisualization(applicationObject3D, staticStructure);
           this.showVisualization(applicationObject3D, dynamicStructure);
@@ -344,25 +360,31 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   );
 
-  private visualizeAddedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
+  private visualizeAddedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
     let indexAdded = 0;
-    for(const fqFileName of commitComparison.added) {
+    for (const fqFileName of commitComparison.added) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
       const addedPackages = commitComparison.addedPackages[indexAdded];
 
-      if(id){
+      if (id) {
         this.highlightingService.markAsAddedById(id);
 
-        if(addedPackages !== "") {
-          const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
-          let pckg : Package | undefined = clazz?.parent;
-          const addedPackagesSplit = addedPackages.split(".");
+        if (addedPackages !== '') {
+          const clazz = getClassInApplicationById(
+            applicationObject3D.data.application,
+            id
+          );
+          let pckg: Package | undefined = clazz?.parent;
+          const addedPackagesSplit = addedPackages.split('.');
           const firstAddedPackageName = addedPackagesSplit[0];
-          while(pckg && pckg.name !== firstAddedPackageName) {
+          while (pckg && pckg.name !== firstAddedPackageName) {
             this.highlightingService.markAsAddedById(pckg.id);
             pckg = pckg.parent;
           }
-          if(pckg) {
+          if (pckg) {
             this.highlightingService.markAsAddedById(pckg.id);
           }
         }
@@ -371,25 +393,30 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   }
 
-  private visualizeDeletedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
+  private visualizeDeletedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
     let indexDeleted = 0;
-    for(const fqFileName of commitComparison.deleted) {
+    for (const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
       const deletedPackages = commitComparison.deletedPackages[indexDeleted];
 
-
-      if(id){
+      if (id) {
         this.highlightingService.markAsDeletedById(id);
-        if(deletedPackages !== "") {
-          const clazz = getClassInApplicationById(applicationObject3D.data.application, id);
-          let pckg : Package | undefined = clazz?.parent;
-          const deletedPackagesSplit = deletedPackages.split(".");
+        if (deletedPackages !== '') {
+          const clazz = getClassInApplicationById(
+            applicationObject3D.data.application,
+            id
+          );
+          let pckg: Package | undefined = clazz?.parent;
+          const deletedPackagesSplit = deletedPackages.split('.');
           const firstDeletedPackageName = deletedPackagesSplit[0];
-          while(pckg && pckg.name !== firstDeletedPackageName) {
+          while (pckg && pckg.name !== firstDeletedPackageName) {
             this.highlightingService.markAsDeletedById(pckg.id);
             pckg = pckg.parent;
           }
-          if(pckg) {
+          if (pckg) {
             this.highlightingService.markAsDeletedById(pckg.id);
           }
         }
@@ -398,83 +425,100 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   }
 
-  private visualizeModifiedPackagesAndClasses(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D) {
-    // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would 
+  private visualizeModifiedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
+    // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would
     // have to mark every parent package as modified. The design choice is to not do that as it seems overloaded
 
-    for(const fqFileName of commitComparison.modified) {
+    for (const fqFileName of commitComparison.modified) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
 
-      if(id){
+      if (id) {
         this.highlightingService.markAsModifiedById(id);
       }
     }
   }
 
-
-  visualizeDeletedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
-    pipe: ClazzCommunicationMesh, clazz: Class) {
-    for(const fqFileName of commitComparison.deleted) {
+  visualizeDeletedCommunicationLinks(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D,
+    pipe: ClazzCommunicationMesh,
+    clazz: Class
+  ) {
+    for (const fqFileName of commitComparison.deleted) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
-      if(id && clazz.id === id) {
+      if (id && clazz.id === id) {
         this.highlightingService.markAsDeletedById(pipe.dataModel.id);
         return;
       }
     }
   }
-  
-  visualizeAddedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
-    pipe: ClazzCommunicationMesh, clazz: Class) {
-    for(const fqFileName of commitComparison.added) {
+
+  visualizeAddedCommunicationLinks(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D,
+    pipe: ClazzCommunicationMesh,
+    clazz: Class
+  ) {
+    for (const fqFileName of commitComparison.added) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
-      if(id && clazz.id === id) {
+      if (id && clazz.id === id) {
         this.highlightingService.markAsAddedById(pipe.dataModel.id);
         return;
       }
     }
   }
 
-  visualizeChangedCommunicationLinks(commitComparison: CommitComparison, applicationObject3D: ApplicationObject3D, 
-    pipe: ClazzCommunicationMesh, clazz: Class) {
-    for(const fqFileName of commitComparison.modified) {
+  visualizeChangedCommunicationLinks(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D,
+    pipe: ClazzCommunicationMesh,
+    clazz: Class
+  ) {
+    for (const fqFileName of commitComparison.modified) {
       const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
-      if(id && clazz.id === id) {
+      if (id && clazz.id === id) {
         // find out if at least one modified method is involved in communication of second selected commit
 
         //const firstSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[0] as MethodCall[];
-        const secondSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[1] as MethodCall[];
+        const secondSelectedCommitMethodCalls = pipe.dataModel.communication
+          .methodCalls[1] as MethodCall[];
 
-        let name = "";
-        for(const methodCall of secondSelectedCommitMethodCalls) {
-          if(methodCall.sourceClass.id === id) {
+        let name = '';
+        for (const methodCall of secondSelectedCommitMethodCalls) {
+          if (methodCall.sourceClass.id === id) {
             name = methodCall.callerMethodName;
-          }else if(methodCall.targetClass.id === id) {
+          } else if (methodCall.targetClass.id === id) {
             name = methodCall.operationName;
           }
 
-          if(name !== "") {
-            for(const metric of commitComparison.metrics) { // check if method is modified
-              const methodNameSplit = metric.entityName.split("#");
+          if (name !== '') {
+            for (const metric of commitComparison.metrics) {
+              // check if method is modified
+              const methodNameSplit = metric.entityName.split('#');
               const methodName = methodNameSplit[0];
-              if(methodName.endsWith(name)) {
+              if (methodName.endsWith(name)) {
                 //let isModified : boolean = false;
 
                 // future work: adapt code-agent such that it sends the names of the modified methods
                 // to the code-service. Relying on the loc metric alone doesn't detect the case where
                 // a modified method still has the same number of code lines.
-                if(metric.metricMap.loc?.newValue !== metric.metricMap.loc?.oldValue) { 
+                if (
+                  metric.metricMap.loc?.newValue !==
+                  metric.metricMap.loc?.oldValue
+                ) {
                   //isModified = true;
-                  this.highlightingService.markAsModifiedById(pipe.dataModel.id);
+                  this.highlightingService.markAsModifiedById(
+                    pipe.dataModel.id
+                  );
                   return;
                 }
-
               }
             }
-
-
           }
         }
-
 
         // const methodCallsBothCommits = firstSelectedCommitMethodCalls.filter(
         //   methodCall => secondSelectedCommitMethodCalls.find(mc => mc.id === methodCall.id)
@@ -488,96 +532,152 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
   }
 
   // handle extern communication links
-  visualizeCommitComparisonCommunicationLinks(pipe: ClazzCommunicationMesh, classCommunication: ClassCommunication) {
+  visualizeCommitComparisonCommunicationLinks(
+    pipe: ClazzCommunicationMesh,
+    classCommunication: ClassCommunication
+  ) {
     const selectedApplication = this.selectedApplication;
     const selectedCommits = this.selectedCommits;
 
-    if(!selectedApplication || !selectedCommits) return;
+    if (!selectedApplication || !selectedCommits) return;
 
     const commits = selectedCommits.get(selectedApplication);
 
     const sourceApp = classCommunication.sourceApp;
     const targetApp = classCommunication.targetApp;
-    
 
-    if(!commits || commits.length !== 2) { // remove texture. TODO: if this approach produces a bug in
+    if (!commits || commits.length !== 2) {
+      // remove texture. TODO: if this approach produces a bug in
       // combination with the restructure feature, put this kind of code to visualization.ts when
       // deselecting the second selected commit
-      if (pipe.material instanceof THREE.MeshBasicMaterial ||
-          pipe.material instanceof THREE.MeshLambertMaterial ||
-          pipe.material instanceof MeshLineMaterial) {
+      if (
+        pipe.material instanceof THREE.MeshBasicMaterial ||
+        pipe.material instanceof THREE.MeshLambertMaterial ||
+        pipe.material instanceof MeshLineMaterial
+      ) {
         pipe.material.map = null;
       }
       return;
     }
 
     const ids = [commits[0].commitId, commits[1].commitId];
-    const id = ids.join("_");
+    const id = ids.join('_');
 
     const commitComparison = this.commitComparisonRepo.getById(id);
-    if(!commitComparison) return;
+    if (!commitComparison) return;
 
-    if(sourceApp.name === selectedApplication) {
+    if (sourceApp.name === selectedApplication) {
       const appObj = this.getApplicationById(sourceApp.id);
-      if(appObj) {
+      if (appObj) {
         const sourceClass = classCommunication.sourceClass;
-        this.visualizeAddedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
-        this.visualizeDeletedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
-        this.visualizeChangedCommunicationLinks(commitComparison, appObj, pipe, sourceClass);
+        this.visualizeAddedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          sourceClass
+        );
+        this.visualizeDeletedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          sourceClass
+        );
+        this.visualizeChangedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          sourceClass
+        );
       }
-    } else if(targetApp.name === selectedApplication) { 
+    } else if (targetApp.name === selectedApplication) {
       const appObj = this.getApplicationById(targetApp.id);
-      if(appObj) {
+      if (appObj) {
         const targetClass = classCommunication.targetClass;
-        this.visualizeAddedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
-        this.visualizeDeletedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
-        this.visualizeChangedCommunicationLinks(commitComparison, appObj, pipe, targetClass);
+        this.visualizeAddedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          targetClass
+        );
+        this.visualizeDeletedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          targetClass
+        );
+        this.visualizeChangedCommunicationLinks(
+          commitComparison,
+          appObj,
+          pipe,
+          targetClass
+        );
       }
     }
   }
 
   getCommitComparison(applicationObject3D: ApplicationObject3D) {
-
-    if(this.selectedApplication && applicationObject3D.data.application.name === this.selectedApplication && 
-        this.selectedCommits?.get(this.selectedApplication)?.length == 2) {
-      const commits = this.selectedCommits!.get(applicationObject3D.data.application.name)!;
+    if (
+      this.selectedApplication &&
+      applicationObject3D.data.application.name === this.selectedApplication &&
+      this.selectedCommits?.get(this.selectedApplication)?.length == 2
+    ) {
+      const commits = this.selectedCommits!.get(
+        applicationObject3D.data.application.name
+      )!;
       const ids = [commits[0].commitId, commits[1].commitId];
-      const id = ids.join("_");
+      const id = ids.join('_');
       const commitComparison = this.commitComparisonRepo.getById(id);
       return commitComparison;
     }
     return undefined;
   }
 
-  visualizeCommitComparisonPackagesAndClasses(applicationObject3D: ApplicationObject3D, commitComparison: CommitComparison){
-    this.visualizeAddedPackagesAndClasses(commitComparison, applicationObject3D);
-    this.visualizeDeletedPackagesAndClasses(commitComparison, applicationObject3D);
-    this.visualizeModifiedPackagesAndClasses(commitComparison, applicationObject3D);
+  visualizeCommitComparisonPackagesAndClasses(
+    applicationObject3D: ApplicationObject3D,
+    commitComparison: CommitComparison
+  ) {
+    this.visualizeAddedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
+    this.visualizeDeletedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
+    this.visualizeModifiedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
   }
 
-  public fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
+  public fqFileNameToMeshId(
+    applicationObject3D: ApplicationObject3D,
+    fqFileName: string
+  ): string | undefined {
     try {
       // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
       // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
 
-      const clazzes = getAllClassesInApplication(applicationObject3D.data.application);
-      const split1 = fqFileName.split("/");
-      const prefixAndPackageNames = split1.slice(0, split1.length-1);
-      const split2 = split1[split1.length - 1].split(".");
+      const clazzes = getAllClassesInApplication(
+        applicationObject3D.data.application
+      );
+      const split1 = fqFileName.split('/');
+      const prefixAndPackageNames = split1.slice(0, split1.length - 1);
+      const split2 = split1[split1.length - 1].split('.');
       const className = split2[split2.length - 2];
 
-      const candidates = clazzes.filter(clazz => clazz.name === className);
+      const candidates = clazzes.filter((clazz) => clazz.name === className);
 
-      for(const candidate of candidates) {
+      for (const candidate of candidates) {
         const packages = getClassAncestorPackages(candidate);
         let index = prefixAndPackageNames.length - 1;
-        for(const pckg of packages.slice().reverse()) {
-          if(index < 0) {
+        for (const pckg of packages.slice().reverse()) {
+          if (index < 0) {
             break;
           }
-          if(pckg.name === prefixAndPackageNames[index]) {
+          if (pckg.name === prefixAndPackageNames[index]) {
             index--;
-          }else {
+          } else {
             break;
           }
         }
@@ -589,8 +689,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       return undefined;
     }
 
-
-    // const candidates : number[] = []; // fqFileName contains some prefix that isn't important for now. TODO: improve code-agent such that this prefix 
+    // const candidates : number[] = []; // fqFileName contains some prefix that isn't important for now. TODO: improve code-agent such that this prefix
     // // is not sent to our code-service and therefore safe us some effort by using exact matching
     // applicationObject3D.data.application.packages.forEach(pckg => {
     //   console.log("check pckg: ", pckg.name);
@@ -602,68 +701,87 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     // console.log("search in " + fqFileName + " for " + applicationObject3D.data.application.name + ": " +  candidates);
   }
 
-
-  private removeCommitComparisonVisualization(applicationObject3D: ApplicationObject3D){
-    const packages = getAllPackagesInApplication(applicationObject3D.data.application);
-    const classes = getAllClassesInApplication(applicationObject3D.data.application);
-    packages.forEach(pckg => {
+  private removeCommitComparisonVisualization(
+    applicationObject3D: ApplicationObject3D
+  ) {
+    const packages = getAllPackagesInApplication(
+      applicationObject3D.data.application
+    );
+    const classes = getAllClassesInApplication(
+      applicationObject3D.data.application
+    );
+    packages.forEach((pckg) => {
       const mesh = this.getBoxMeshByModelId(pckg.id);
-      if(mesh && 
+      if (
+        mesh &&
         (mesh.material instanceof THREE.MeshBasicMaterial ||
-        mesh.material instanceof THREE.MeshLambertMaterial ||
-        mesh.material instanceof MeshLineMaterial)
-        ){
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
         mesh.material.map = null;
       }
     });
-    classes.forEach(clazz => {
+    classes.forEach((clazz) => {
       const mesh = this.getBoxMeshByModelId(clazz.id);
-      if(mesh && 
+      if (
+        mesh &&
         (mesh.material instanceof THREE.MeshBasicMaterial ||
-        mesh.material instanceof THREE.MeshLambertMaterial ||
-        mesh.material instanceof MeshLineMaterial)
-        ){
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
         mesh.material.map = null;
       }
     });
   }
 
-
-  private hideVisualization(applicationObject3D: ApplicationObject3D, structure?: StructureLandscapeData) {
-    structure?.nodes.forEach(node => {
-      const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
-      if(app) {
-        if(app.packages.length === applicationObject3D.data.application.packages.length) {
+  private hideVisualization(
+    applicationObject3D: ApplicationObject3D,
+    structure?: StructureLandscapeData
+  ) {
+    structure?.nodes.forEach((node) => {
+      const app = node.applications.find(
+        (a) => a.id === applicationObject3D.data.application.id
+      );
+      if (app) {
+        if (
+          app.packages.length ===
+          applicationObject3D.data.application.packages.length
+        ) {
           // hide everything (including foundation)
 
           applicationObject3D.hideMeshes();
           applicationObject3D.getCommMeshes().forEach((commMesh) => {
             commMesh.hide();
           });
-          this.linkRenderer.getAllLinks().forEach(externPipe => {
-            if(externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id
-              || 
-              externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id) {
-                externPipe.hide();
-              }
+          this.linkRenderer.getAllLinks().forEach((externPipe) => {
+            if (
+              externPipe.dataModel.communication.sourceApp.id ===
+                applicationObject3D.data.application.id ||
+              externPipe.dataModel.communication.targetApp.id ===
+                applicationObject3D.data.application.id
+            ) {
+              externPipe.hide();
+            }
           });
         } else {
-          // hide partial 
-          app.packages.forEach(pckg => {
+          // hide partial
+          app.packages.forEach((pckg) => {
             const packageMesh = applicationObject3D.getMeshById(pckg.id);
-            if(packageMesh) {
+            if (packageMesh) {
               packageMesh.hide();
               const subPackages = getSubPackagesOfPackage(pckg);
               const clazzes = getClassesInPackage(pckg);
-              subPackages.forEach(subPckg => {
-                const subPackageMesh = applicationObject3D.getMeshById(subPckg.id);
-                if(subPackageMesh){
+              subPackages.forEach((subPckg) => {
+                const subPackageMesh = applicationObject3D.getMeshById(
+                  subPckg.id
+                );
+                if (subPackageMesh) {
                   subPackageMesh.hide();
                 }
               });
-              clazzes.forEach(clss => {
+              clazzes.forEach((clss) => {
                 const clazzMesh = applicationObject3D.getMeshById(clss.id);
-                if(clazzMesh){
+                if (clazzMesh) {
                   clazzMesh.hide();
                 }
               });
@@ -671,32 +789,44 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
           });
 
           applicationObject3D.getCommMeshes().forEach((commMesh) => {
-            const sourceClass = (commMesh.dataModel.communication as ClassCommunication).sourceClass;
-            const targetClass = (commMesh.dataModel.communication as ClassCommunication).targetClass;
-            const sourceClassMesh = applicationObject3D.getMeshById(sourceClass.id);
-            const targetClassMesh = applicationObject3D.getMeshById(targetClass.id);
-            if(sourceClassMesh){
-              if(!sourceClassMesh.visible){
+            const sourceClass = (
+              commMesh.dataModel.communication as ClassCommunication
+            ).sourceClass;
+            const targetClass = (
+              commMesh.dataModel.communication as ClassCommunication
+            ).targetClass;
+            const sourceClassMesh = applicationObject3D.getMeshById(
+              sourceClass.id
+            );
+            const targetClassMesh = applicationObject3D.getMeshById(
+              targetClass.id
+            );
+            if (sourceClassMesh) {
+              if (!sourceClassMesh.visible) {
                 commMesh.hide();
               }
             }
-            if(targetClassMesh){
-              if(!targetClassMesh.visible){
+            if (targetClassMesh) {
+              if (!targetClassMesh.visible) {
                 commMesh.hide();
               }
             }
           });
 
-          this.linkRenderer.getAllLinks().forEach(externPipe => {
-            const sourceClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[0];
-            const targetClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[1];
-            if(sourceClass){
-              if(applicationHasClass(app, sourceClass)){
+          this.linkRenderer.getAllLinks().forEach((externPipe) => {
+            const sourceClass =
+              externPipe.dataModel.communication.getClasses().length !== 0 &&
+              externPipe.dataModel.communication.getClasses()[0];
+            const targetClass =
+              externPipe.dataModel.communication.getClasses().length !== 0 &&
+              externPipe.dataModel.communication.getClasses()[1];
+            if (sourceClass) {
+              if (applicationHasClass(app, sourceClass)) {
                 externPipe.hide();
               }
             }
-            if(targetClass){
-              if(applicationHasClass(app, targetClass)){
+            if (targetClass) {
+              if (applicationHasClass(app, targetClass)) {
                 externPipe.hide();
               }
             }
@@ -706,43 +836,56 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     });
   }
 
-  private showVisualization(applicationObject3D: ApplicationObject3D, structure?: StructureLandscapeData) {
-    structure?.nodes.forEach(node => {
-      const app = node.applications.find(a => a.id === applicationObject3D.data.application.id);
-      if(app) {
-        if(app.packages.length === applicationObject3D.data.application.packages.length) {
+  private showVisualization(
+    applicationObject3D: ApplicationObject3D,
+    structure?: StructureLandscapeData
+  ) {
+    structure?.nodes.forEach((node) => {
+      const app = node.applications.find(
+        (a) => a.id === applicationObject3D.data.application.id
+      );
+      if (app) {
+        if (
+          app.packages.length ===
+          applicationObject3D.data.application.packages.length
+        ) {
           // show everything (including foundation)
 
           applicationObject3D.showMeshes();
           applicationObject3D.getCommMeshes().forEach((commMesh) => {
             commMesh.show();
           });
-          this.linkRenderer.getAllLinks().forEach(externPipe => {
-            if((externPipe.dataModel.communication.sourceApp.id === applicationObject3D.data.application.id)
-              || 
-              (externPipe.dataModel.communication.targetApp.id === applicationObject3D.data.application.id)) {
-                externPipe.show(); // Note that if the source is visible so must be the target and vice versa (according to the inherent logic of the dynamic structure)
-              }
+          this.linkRenderer.getAllLinks().forEach((externPipe) => {
+            if (
+              externPipe.dataModel.communication.sourceApp.id ===
+                applicationObject3D.data.application.id ||
+              externPipe.dataModel.communication.targetApp.id ===
+                applicationObject3D.data.application.id
+            ) {
+              externPipe.show(); // Note that if the source is visible so must be the target and vice versa (according to the inherent logic of the dynamic structure)
+            }
           });
         } else {
-          // show partial 
+          // show partial
           const foundationMesh = applicationObject3D.foundationMesh;
           foundationMesh?.show();
-          app.packages.forEach(pckg => {
+          app.packages.forEach((pckg) => {
             const packageMesh = applicationObject3D.getMeshById(pckg.id);
-            if(packageMesh) {
+            if (packageMesh) {
               packageMesh.show();
               const subPackages = getSubPackagesOfPackage(pckg);
               const clazzes = getClassesInPackage(pckg);
-              subPackages.forEach(subPckg => {
-                const subPackageMesh = applicationObject3D.getMeshById(subPckg.id);
-                if(subPackageMesh){
+              subPackages.forEach((subPckg) => {
+                const subPackageMesh = applicationObject3D.getMeshById(
+                  subPckg.id
+                );
+                if (subPackageMesh) {
                   subPackageMesh.show();
                 }
               });
-              clazzes.forEach(clss => {
+              clazzes.forEach((clss) => {
                 const clazzMesh = applicationObject3D.getMeshById(clss.id);
-                if(clazzMesh){
+                if (clazzMesh) {
                   clazzMesh.show();
                 }
               });
@@ -750,39 +893,48 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
           });
 
           applicationObject3D.getCommMeshes().forEach((commMesh) => {
-            const sourceClass = (commMesh.dataModel.communication as ClassCommunication).sourceClass;
-            const targetClass = (commMesh.dataModel.communication as ClassCommunication).targetClass;
-            const sourceClassMesh = applicationObject3D.getMeshById(sourceClass.id);
-            const targetClassMesh = applicationObject3D.getMeshById(targetClass.id);
-            if(sourceClassMesh){
-              if(!sourceClassMesh.visible){
+            const sourceClass = (
+              commMesh.dataModel.communication as ClassCommunication
+            ).sourceClass;
+            const targetClass = (
+              commMesh.dataModel.communication as ClassCommunication
+            ).targetClass;
+            const sourceClassMesh = applicationObject3D.getMeshById(
+              sourceClass.id
+            );
+            const targetClassMesh = applicationObject3D.getMeshById(
+              targetClass.id
+            );
+            if (sourceClassMesh) {
+              if (!sourceClassMesh.visible) {
                 commMesh.show();
               }
             }
-            if(targetClassMesh){
-              if(!targetClassMesh.visible){
+            if (targetClassMesh) {
+              if (!targetClassMesh.visible) {
                 commMesh.show();
               }
             }
           });
 
-          this.linkRenderer.getAllLinks().forEach(externPipe => {
-            const sourceClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[0];
-            const targetClass = externPipe.dataModel.communication.getClasses().length !== 0 && externPipe.dataModel.communication.getClasses()[1];
-            if(sourceClass){
-              if(applicationHasClass(app, sourceClass)){
+          this.linkRenderer.getAllLinks().forEach((externPipe) => {
+            const sourceClass =
+              externPipe.dataModel.communication.getClasses().length !== 0 &&
+              externPipe.dataModel.communication.getClasses()[0];
+            const targetClass =
+              externPipe.dataModel.communication.getClasses().length !== 0 &&
+              externPipe.dataModel.communication.getClasses()[1];
+            if (sourceClass) {
+              if (applicationHasClass(app, sourceClass)) {
                 externPipe.show();
               }
             }
-            if(targetClass){
-              if(applicationHasClass(app, targetClass)){
+            if (targetClass) {
+              if (applicationHasClass(app, targetClass)) {
                 externPipe.show();
               }
             }
           });
-
-
-
         }
       }
     });
@@ -796,15 +948,12 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     this.trigger('renderSettingChanged', renderMode);
   }
 
-
-
-
   // #region @actions
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
     const commitComparison = this.getCommitComparison(applicationObject3D);
-    if(commitComparison) {
+    if (commitComparison) {
       // may change some inner communication links' texture
       this.appCommRendering.addCommunication(
         applicationObject3D,
@@ -814,10 +963,10 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       );
       return;
     }
-    
+
     this.appCommRendering.addCommunication(
       applicationObject3D,
-      this.userSettings.applicationSettings,
+      this.userSettings.applicationSettings
     );
   }
 
