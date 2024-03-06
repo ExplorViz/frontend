@@ -261,6 +261,7 @@ export default class CommunicationRendering {
     const sourceClass = classCommunication.sourceClass;
     const targetClass = classCommunication.targetClass;
 
+    console.log("commit comparison:", commitComparison);
 
     // modified classes
     for(const fqFileName of commitComparison.modified) {
@@ -269,8 +270,9 @@ export default class CommunicationRendering {
         const start = pipe.layout.startPoint;
         const end = pipe.layout.endPoint;
         const dist = start.distanceTo(end);
-        pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
-        return;
+        console.log("HASHTAG");
+        pipe.changeTexture("../images/hashtag.png", Math.ceil(dist), 3);
+        break;
       }
     }
 
@@ -281,8 +283,9 @@ export default class CommunicationRendering {
         const start = pipe.layout.startPoint;
         const end = pipe.layout.endPoint;
         const dist = start.distanceTo(end);
-        pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
-        return;
+        console.log("MINUS");
+        pipe.changeTexture("../images/minus.png", Math.ceil(dist), 3);
+        break
       }
     }
 
@@ -294,7 +297,7 @@ export default class CommunicationRendering {
         const end = pipe.layout.endPoint;
         const dist = start.distanceTo(end);
         pipe.changeTexture("../images/plus.png", Math.ceil(dist), 3);
-        return;
+        break
       }
     }
   }

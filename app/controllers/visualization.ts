@@ -14,7 +14,7 @@ import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData, Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { Application, Node, Package, StructureLandscapeData, preProcessAndEnhanceStructureLandscape } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -175,7 +175,9 @@ export default class VisualizationController extends Controller {
   @tracked
   markerState: IMarkerStates[] = [{}, {}];
 
+  @tracked
   staticStructureData? : StructureLandscapeData = undefined;
+  @tracked
   dynamicStructureData? : StructureLandscapeData = undefined;
 
   
@@ -620,6 +622,9 @@ export default class VisualizationController extends Controller {
       }
 
 
+
+
+
       this.dynamics= [dynamics[0]?.dynamicLandscapeData, dynamics[1]?.dynamicLandscapeData];
       //console.log("setting this.dynamics => ", this.dynamics);
 
@@ -639,58 +644,6 @@ export default class VisualizationController extends Controller {
         this.dynamicStructureData = undefined;
         newDynamic = [];
       }
-
-
-
-
-
-
-
-
-
-
-
-
-      // Schnittmenge erzeugen und testen. TODO: Delete
-      // const commonStructure : StructureLandscapeData = {
-      //   landscapeToken: this.dynamicStructureData!.landscapeToken,
-      //   nodes: [],
-      // };
-      // const commonNode : Node = {
-      //   id: this.dynamicStructureData!.nodes[0].id,
-      //   ipAddress: this.dynamicStructureData!.nodes[0].ipAddress,
-      //   hostName: this.dynamicStructureData!.nodes[0].hostName,
-      //   applications: []
-      // };
-      // const commonApplication : Application = {
-      //   id: this.dynamicStructureData!.nodes[0].applications[0].id,
-      //   name: this.dynamicStructureData!.nodes[0].applications[0].name,
-      //   language: this.dynamicStructureData!.nodes[0].applications[0].language,
-      //   instanceId: this.dynamicStructureData!.nodes[0].applications[0].instanceId,
-      //   parent: this.dynamicStructureData!.nodes[0].applications[0].parent, // parent: commonNode
-      //   packages: [],
-      // };
-
-      // const commonPackage : Package = {
-      //   id: this.dynamicStructureData!.nodes[0].applications[0].packages[2].id,
-      //   name: this.dynamicStructureData!.nodes[0].applications[0].packages[2].name,
-      //   subPackages: this.dynamicStructureData!.nodes[0].applications[0].packages[2].subPackages,
-      //   classes: this.dynamicStructureData!.nodes[0].applications[0].packages[2].classes,
-      //   parent: this.dynamicStructureData!.nodes[0].applications[0].packages[2].parent
-      // };
-      
-      
-      // commonApplication.packages.push(commonPackage);
-      // commonNode.applications.push(commonApplication);
-      // commonStructure.nodes.push(commonNode);
-
-      // this.staticStructureData = combineStructures(this.staticStructureData, commonStructure);
-      // ---
-
-
-
-
-
 
 
       const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};

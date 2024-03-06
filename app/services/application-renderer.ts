@@ -35,7 +35,7 @@ import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getClassesInPackage, getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import { RenderMode, SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import Evented from '@ember/object/evented';
@@ -444,8 +444,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
         //const firstSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[0] as MethodCall[];
         const secondSelectedCommitMethodCalls = pipe.dataModel.communication.methodCalls[1] as MethodCall[];
 
-        console.log("commitComparison: ", commitComparison);
-
         let name = "";
         for(const methodCall of secondSelectedCommitMethodCalls) {
           if(methodCall.sourceClass.id === id) {
@@ -454,7 +452,7 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
             name = methodCall.operationName;
           }
 
-          if(name !== "") { console.log("NAME => ", name);
+          if(name !== "") {
             for(const metric of commitComparison.metrics) { // check if method is modified
               const methodNameSplit = metric.entityName.split("#");
               const methodName = methodNameSplit[0];
@@ -562,7 +560,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
   public fqFileNameToMeshId(applicationObject3D: ApplicationObject3D, fqFileName: string): string | undefined {
     try {
-      console.log("fqFileName::::::: ", fqFileName);
       // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
       // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
 

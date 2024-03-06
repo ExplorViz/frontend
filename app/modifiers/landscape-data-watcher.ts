@@ -121,7 +121,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   handleUpdatedLandscapeData = task({ restartable: true }, async () => { 
 
     //console.log("handleUpdatedLandscapeData,, dynamics ---->", this.dynamics);
-    console.log("handleUpdatedLandscapeData,, structureLandscapeData ---->", this.structureLandscapeData);
+    //console.log("handleUpdatedLandscapeData,, structureLandscapeData ---->", this.structureLandscapeData);
     //console.log("handleUpdatedLandscapeData,, dynamicLandscapeData ---->", this.dynamicLandscapeData);
 
     await Promise.resolve();
@@ -152,8 +152,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     let { nodes: graphNodes } = this.graph.graphData();
     const { nodes } = this.structureLandscapeData;
-
-    console.log("graphNodes:", graphNodes);
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
