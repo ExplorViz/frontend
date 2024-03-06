@@ -482,9 +482,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
         // console.log("methodCallsBothCommits: ", methodCallsBothCommits);
 
-       
-
-        console.log("pipe datamodel communication methodcalls ", pipe.dataModel.communication.methodCalls);
         return;
       }
     }
@@ -572,7 +569,6 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       const candidates = clazzes.filter(clazz => clazz.name === className);
 
       for(const candidate of candidates) {
-        //console.log("candidate: ", candidate.name);
         const packages = getClassAncestorPackages(candidate);
         let index = prefixAndPackageNames.length - 1;
         for(const pckg of packages.slice().reverse()) {

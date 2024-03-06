@@ -160,15 +160,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       if(!appears){
         // also delete from application renderer so it can be rerendered if it exisitent again
-        // TODO: better layout position computation for applications with NO communication links
-        // This will only affect the static applications. Assumption: the current position computation
-        // assumes that there is at least one communication link per application. With the implementation
-        // of the static analysis this is no longer necessarily the case
+        // TODO: layout positioner for reoccuring application doesn't work as intended (intersection with other application)
+        // had to increase collisionRadius from below to improve positioning 
         this.applicationRenderer.removeApplicationLocallyById(node.id)
       }
       return appears;
     });
-
 
     const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
@@ -205,7 +202,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         }
 
         const { x, z } = app.foundationMesh.scale;
-        const collisionRadius = Math.hypot(x, z) / 2 + 3;
+        //const collisionRadius = Math.hypot(x, z) / 2 + 3; 
+        const collisionRadius = Math.hypot(x, z) / 2 + 10; 
         if (graphNode) {
           graphNode.collisionRadius = collisionRadius;
           graphNode.fx = graphNode.x;
@@ -317,7 +315,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         'city-layouter',
         workerPayload
       );
-
       
       let heatmapMetrics: any[] = [];
 
@@ -352,10 +349,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             commitId: commitIds,
             staticMetrics: staticMetrics
           }
-
-          console.log("workerpayload:", workerPayload);
-
-          //console.log("workerPayload: ", workerPayload);
 
           heatmapMetrics = this.worker.postMessage(
             'metrics-worker',

@@ -49,10 +49,8 @@ export default class ClazzPopup extends Component<Args> {
 
   get getNumOfCurrentSelectedCommits() {
     if(!this.args.selectedApplication) {
-      console.log("return 0");
       return 0;
     }
-    console.log("return", this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0);
     return this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0;
   }
 

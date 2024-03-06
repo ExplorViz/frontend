@@ -3,7 +3,14 @@
     <table class='w-100'>
       <thead>
         <tr>
-          <th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>
+          <th colspan="2">  
+            <h4 class='popover-header'>
+              <div class='text-center text-break font-weight-bold pl-1'>
+                #1 Sel. Commit ({{this.firstSelectedCommitId}})
+              </div>
+            </h4>
+          </th>
+          <!--<th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>-->
           <th class='pl-1 pr-1'>{{!Snapshot}}</th>
           {{!<th class="pl-1 pr-1">Aggregated</th>
           <th>Windowed</th>}}
@@ -45,13 +52,21 @@
     <table class='w-100'>
       <thead>
         <tr>
-          <th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>
+          <th colspan="2">  
+            <h4 class='popover-header'>
+              <div class='text-center text-break font-weight-bold pl-1'>
+                #1 Sel. Commit ({{this.firstSelectedCommitId}})
+              </div>
+            </h4>
+          </th>
+          <!--<th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>-->
           <th class='pl-1 pr-1'>{{!Snapshot}}</th>
           {{!<th class="pl-1 pr-1">Aggregated</th>
           <th>Windowed</th>}}
         </tr>
       </thead>
       <tbody>
+        
         {{#each this.firstSelectedCommitMetrics as |metric|}}
           {{#if (and this.isSelectedMetricFromFirstSelectedCommit (eq this.selectedMetricName metric.metricName))}}
             <tr>
@@ -84,7 +99,14 @@
       </tbody>
       <thead>
         <tr>
-          <th>Metric Name (#2 sel. commit ({{this.secondSelectedCommitId}}))</th>
+          <!--<th>Metric Name (#2 sel. commit ({{this.secondSelectedCommitId}}))</th>-->
+          <th colspan="2">  
+            <h4 class='popover-header'>
+              <div class='text-center text-break font-weight-bold pl-1'>
+                #2 sel. commit ({{this.secondSelectedCommitId}})
+              </div>
+            </h4>
+          </th>
           <th class='pl-1 pr-1'>{{!Snapshot}}</th>
           {{!<th class="pl-1 pr-1">Aggregated</th>
           <th>Windowed</th>}}

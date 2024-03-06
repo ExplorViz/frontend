@@ -354,7 +354,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         return;
       }
 
-      console.log("updatePlotlineForMetric");
       await this.requestData(this.evolutionData, this.selectedApplication);
       this.commitReportRepo.triggerCommitReportUpdate();
     }
@@ -377,17 +376,13 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
       for(let i = 0; i < numOfCircles; i++){ // for each metric we place a circle which size indicates its measurement
         for (const configItem of configItemList){
-          console.log("activeIdList[i] = ", activeIdList[i], " and configItem.id = ", configItem.id);
           if(activeIdList[i] === configItem.id){
 
             const circle = this.plotMetric(configItem.color, configItem.key, configItem.id, i);
             newData.push(circle);
-            console.log("new circle: ", circle);
           }
         }
       }
-
-      console.log("--------------------------------------------------> ", newData);
 
 
       Plotly.newPlot(
@@ -424,7 +419,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
               let numOfChangedFilesList = [];
               for(const commit of branch.commits){
                 const id = this.selectedApplication + commit;
-                console.log(commit);
                 const commitData = this.commitReportRepo.getById(id)!;
                 let changedFiles = 0;
 
@@ -507,10 +501,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
               let numOfMethodsList = [];
               for(const commit of branch.commits){
                 const id = this.selectedApplication + commit;
-                console.log(commit);
-                console.log("REPO ID:", id);
                 const commitData = this.commitReportRepo.getById(id);
-                console.log(commitData);
                 const fileMetrics = commitData?.fileMetric;
                 if(fileMetrics){
                   let numOfMethods = 0;
@@ -665,7 +656,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     }
 
     plotMetric(color: string, metric: string, metricId: string, order: number){
-      console.log("order: ", order);
       if(metric === "number of changed files"){
         return this.plotNumberOfChangedFiles(color, metricId, order);
       }else if(metric === "total number of methods") {
@@ -919,13 +909,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
                 selectedCommitList.push(selectedCommit);
                 selectedCommits.set(selectedApplication, selectedCommitList);
-
-                // const callbackCommitComparison = (commitComparison : CommitComparison) => {
-                //   console.log("Commit Comparison ", commitComparison);
-                //   this.commitComparisonRepo.add(commitComparison);
-                // }
-                // await so we can be sure that the commit repo has persisted the data before we rerender the landscape
-                //await this.codeServiceFetchingService.initCommitComparisonFetchingWithCallback(callbackCommitComparison, this.selectedApplication!, [selectedCommitList[0], selectedCommitList[1]]);
 
                 const callback = (landscapeStructure: StructureLandscapeData) => {
                   this.args.clicked?.(this.selectedCommits!, landscapeStructure);

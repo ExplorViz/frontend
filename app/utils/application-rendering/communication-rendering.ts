@@ -261,8 +261,6 @@ export default class CommunicationRendering {
     const sourceClass = classCommunication.sourceClass;
     const targetClass = classCommunication.targetClass;
 
-    console.log("commit comparison:", commitComparison);
-
     // modified classes
     for(const fqFileName of commitComparison.modified) {
       const id = applicationRenderer.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
@@ -270,7 +268,6 @@ export default class CommunicationRendering {
         const start = pipe.layout.startPoint;
         const end = pipe.layout.endPoint;
         const dist = start.distanceTo(end);
-        console.log("HASHTAG");
         pipe.changeTexture("../images/hashtag.png", Math.ceil(dist), 3);
         break;
       }
@@ -283,7 +280,6 @@ export default class CommunicationRendering {
         const start = pipe.layout.startPoint;
         const end = pipe.layout.endPoint;
         const dist = start.distanceTo(end);
-        console.log("MINUS");
         pipe.changeTexture("../images/minus.png", Math.ceil(dist), 3);
         break
       }

@@ -165,7 +165,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   debug = debugLogger('BrowserRendering');
 
-  constructor(owner: any, args: BrowserRenderingArgs) { console.log("CONSTRUCTOR");
+  constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
     this.debug('Constructor called');
     // Scene
@@ -427,7 +427,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleSingleClickOnMesh(mesh: THREE.Object3D) {
 
     if((isEntityMesh(mesh) || mesh instanceof FoundationMesh) && !mesh.material.visible){
-      console.log("Clicked on invisible");
+      // Clicked on invisible. Important for the feature where we can hide the dynamic or static
+      // landscape
       return;
     }
 
@@ -495,7 +496,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
 
     if((mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) && !mesh.material.visible){
-      console.log("double clicked on invisible");
+      // Double clicked on invisible
       return;
     }
 

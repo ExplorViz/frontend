@@ -27,7 +27,6 @@ export default class CommunicationPopup extends GlimmerComponent<Args> {
   }
 
   get firstSelectedCommitCalculateAggregatedRequestCount() {
-    console.log("firstSelectedCommitCalculateAggregatedRequestCount", this.args.communication.communication.totalRequests[0]);
     return this.args.communication.communication.totalRequests[0];
   }
 

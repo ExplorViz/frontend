@@ -358,7 +358,6 @@ export default class VisualizationController extends Controller {
 
   @action
   onRenderSettingChange(renderMode: RenderMode) {
-    console.log("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
     this.renderMode = renderMode;
     this.landscapeData = this.landscapeData; // trigger render update
   }
@@ -410,8 +409,6 @@ export default class VisualizationController extends Controller {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
     };
-
-    console.log("updateLandscape called", this.landscapeData);
   }
 
   @action
@@ -543,7 +540,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  async timelineClicked(selectedTimeline: number, selectedTimestamps: Timestamp[], markerState: IMarkerStates) { // TODO: timeline of which selected commit?
+  async timelineClicked(selectedTimeline: number, selectedTimestamps: Timestamp[], markerState: IMarkerStates) {
     if (
       this.selectedTimestampRecords.length === 0 ||
       (selectedTimeline !== 0 && selectedTimeline !== 1) ||
@@ -551,6 +548,7 @@ export default class VisualizationController extends Controller {
       this.selectedTimestampRecords[selectedTimeline]!.length === 0 ||
       this.selectedTimestampRecords[selectedTimeline]![0] === selectedTimestamps[0]
     ) {
+      console.log("return");
       return;
     }
 
@@ -559,17 +557,18 @@ export default class VisualizationController extends Controller {
     this.markerState[selectedTimeline] = markerState;
     this.pauseVisualizationUpdating();
     const epochMillis : [number?, number?] = [undefined, undefined];
-    if(selectedTimeline === 0) {
+    if(selectedTimeline === 0) { // timeline of first selected commit
+      console.log("timeline of first selected commit");
       epochMillis[0] = selectedTimestamps[0].epochMilli;
       epochMillis[1] = this.selectedTimestampRecords[1] && this.selectedTimestampRecords[1][0] && this.selectedTimestampRecords[1][0].epochMilli;
       this.updateTimestamp(epochMillis, [selectedTimestamps, this.selectedTimestampRecords[1]]);
-    }else if(selectedTimeline === 1) {
+    }else if(selectedTimeline === 1) { // timeline of second selected commit
+      console.log("timeline of second selected commit");
       epochMillis[1] = selectedTimestamps[0].epochMilli;
       epochMillis[0] = this.selectedTimestampRecords[0] && this.selectedTimestampRecords[0][0] && this.selectedTimestampRecords[0][0].epochMilli;
       this.updateTimestamp(epochMillis, [this.selectedTimestampRecords[0], selectedTimestamps]);
     }
 
-    //console.log("----------- epochMillis timelineClicked ------------> ", epochMillis);
   }
 
   
@@ -577,10 +576,6 @@ export default class VisualizationController extends Controller {
     epochMilli: [number?, number?],
     timestampRecordArray?: [Timestamp[]?, Timestamp[]?] 
   ) { 
-
-    console.log("updateTimestamp", epochMilli);
-
-
     try {
 
       let selectedCommits = undefined;
@@ -619,14 +614,64 @@ export default class VisualizationController extends Controller {
           };
         }
 
+
+
+
+                // DELETE THIS. ONLY FOR TEST PURPOSES
+      const newTrace : Trace = {
+        landscapeToken: "token3",
+        startTime: 1522023023123,
+        traceId: "607257096554b5c9236116464bc4TEST",
+        endTime: 1522023023153,
+        duration: 2,
+        overallRequestCount: 1,
+        traceCount: 1,
+        spanList: [
+            {
+                landscapeToken: "token3",
+                traceId: "607257096554b5c9236116464bc4TEST",
+                spanId: "3fc0b7e5590aTEST",
+                parentSpanId: "783503290017TEST",
+                startTime: 1522023023151,
+                endTime: 1522023023153,
+                //methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+                methodHash: "testCEinsdefaulthashcode"
+            },
+            {
+                landscapeToken: "token3",
+                traceId: "607257096554b5c9236116464bc4TEST",
+                spanId: "783503290017TEST",
+                parentSpanId: "",
+                startTime: 1522023023123,
+                endTime: 1522023023164,
+                //methodHash: "testBEinsdefaulthashcode"
+                methodHash: "13182333817a8d49d13e9cad64c9bf176080b73c0df4042db89c475c366e20b9"
+                //methodHash: "testCEinsdefaulthashcode"
+            }
+        ]
+    };
+    dynamics[0]?.dynamicLandscapeData.push(newTrace);
+    dynamics[1]?.dynamicLandscapeData.push(newTrace);
+
+      // ------
+
+
+
+
+
+
+
+
+
       }
 
 
 
 
 
+
+
       this.dynamics= [dynamics[0]?.dynamicLandscapeData, dynamics[1]?.dynamicLandscapeData];
-      //console.log("setting this.dynamics => ", this.dynamics);
 
       let newDynamic : DynamicLandscapeData;
       if (dynamics[0] && dynamics[1]) {
@@ -648,10 +693,10 @@ export default class VisualizationController extends Controller {
 
       const newStruct = combineStructures(this.staticStructureData, this.dynamicStructureData) || {landscapeToken: this.landscapeTokenService.token!.value, nodes: []};
 
-      console.log("this.dynamicStructureData ==>", this.dynamicStructureData);
-      console.log("this.staticStructureData ==>", this.staticStructureData);
+      //console.log("this.dynamicStructureData ==>", this.dynamicStructureData);
+      //console.log("this.staticStructureData ==>", this.staticStructureData);
 
-      // Refactor this (find a better place for this logic)
+      // Refactor this (find a better place for this logic) --------------
       const renderStaticStructure = this.userSettings.applicationSettings.staticStructure.value;
       const renderDynamicStructure = this.userSettings.applicationSettings.dynamicStructure.value;
 
@@ -664,6 +709,7 @@ export default class VisualizationController extends Controller {
       } else {
         console.debug("Should never happen!");
       }
+      // ---------------------------------------------------------------------
       
       
       this.updateLandscape(newStruct, newDynamic);
@@ -673,8 +719,6 @@ export default class VisualizationController extends Controller {
       }
       this.timestampService.timestamp = epochMilli;
 
-      //console.log("THIS.SELECTEDTIMESTAMPRECORDS ---------------------> ", this.selectedTimestampRecords);
-      //console.log("THIS.TIMESTAMPSERVICE.TIMESTAMP --------------------> " , this.timestampService.timestamp);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
@@ -698,7 +742,6 @@ export default class VisualizationController extends Controller {
   @action
   toggleTimeline() {
     this.isTimelineActive = !this.isTimelineActive;
-    //console.log("CURRENT SELECTED COMMITS XXXXXXX: ", this.currentSelectedCommits);
   }
 
   @action
@@ -737,7 +780,6 @@ export default class VisualizationController extends Controller {
 
   initRendering() {
     this.debug('initRendering');
-    console.log("initRendering");
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
@@ -947,8 +989,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    //console.log("onTimestampUpdate");
-    this.updateTimestamp([timestamp, undefined]); // TODO: properly timestamp handling
+    this.updateTimestamp([timestamp, undefined]); // TODO: proper timestamp handling
   }
 
   async onTimestampUpdateTimer({
@@ -1016,14 +1057,12 @@ export default class VisualizationController extends Controller {
 
   @action
   showRequestsTimeline(){
-    console.log("Requests Timeline");
     this.isCommitsTimeline = false;
     this.isRequestsTimeline = true;
   }
 
   @action
   showCommitsTimeline(){
-    console.log("Commits Timeline");
     this.isRequestsTimeline = false;
     this.isCommitsTimeline = true;
   }
@@ -1086,6 +1125,10 @@ export default class VisualizationController extends Controller {
   @action
   async commitTreeClicked(commits: Map<string,SelectedCommit[]>, staticStructureData?: StructureLandscapeData, timelineOfSelectedCommit?: number) {
 
+    // clear landscape so that we don't get collisions (see landscape data watcher layouter problem)
+    // TODO: delete this line and fix layouter properly
+    //this.updateLandscape({landscapeToken: this.landscapeTokenService.token!.value, nodes: []}, []);
+
     this.timestampPollingService.resetPolling();
 
     // always resume when commit got clicked so the landscape updates
@@ -1106,7 +1149,7 @@ export default class VisualizationController extends Controller {
     const numOfSelectedCommits = selected?.length;
 
     if(numOfSelectedCommits && numOfSelectedCommits > 0){
-      if(this.selectedTimestampRecords[1]) {console.log("UNSELECT");
+      if(this.selectedTimestampRecords[1]) {
         // One of two (if timelineOfSelectedCommit=0 the first selected commit and if timelineOfSelectedCommit=1 the second selected commit) commits got unselected 
         this.selectedTimestampRecords = [undefined, undefined]; // undefined for both so the landscape gets updated within the timestampPollingCallback call-chain
         this.timelineTimestamps = [this.timelineTimestamps[1-timelineOfSelectedCommit!]];

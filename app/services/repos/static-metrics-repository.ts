@@ -53,7 +53,6 @@ export default class StaticMetricsRepository extends Service.extend({
   }
 
   add(id: string, metrics: Metrics) {
-    //console.log("add metrics with id ", id, " ::: ", metrics);
     this.staticMetrics.set(id, metrics);
     this.notifyPropertyChange('staticMetrics');
   }

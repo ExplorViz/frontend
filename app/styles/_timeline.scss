@@ -20,7 +20,8 @@
 #timeline-buttons {
   width: max-content;
   margin-left: 50%;
-  margin-top: 10px;
+  transform: translate(-50%, -50%);
+  margin-top: 23px;
 }
 
 .timeline {
@@ -52,8 +53,10 @@
 }
 
 #application-selection {
+  width: max-content;
   margin-left: 50%;
   margin-top: 10px;
+  transform: translate(-50%, -50%);
 }
 
 

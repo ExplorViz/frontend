@@ -33,7 +33,7 @@ self.addEventListener(
           metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
 
         if(dynamicData[1])
-          metrics = [...metrics, calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
+          metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
 
       }
 

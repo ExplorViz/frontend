@@ -60,7 +60,6 @@ export default class CommitReportRepository extends  Service.extend(Evented) {
 
   add(id: string, commitReport: CommitReport) {
     this.commitReports.set(id, commitReport);
-    console.log("repo adds : ", id, commitReport);
     //this.notifyPropertyChange('commitReports');
   }
 
