@@ -65,7 +65,7 @@ export default class CodeServiceRequestService extends Service {
         return;
       }
 
-      let url = `${codeService}/v2/applications/${this.tokenService.token.value}`;
+      const url = `${codeService}/v2/applications/${this.tokenService.token.value}`;
 
       fetch(url, {
         headers: {
@@ -92,7 +92,7 @@ export default class CodeServiceRequestService extends Service {
         return;
       }
 
-      let url = `${codeService}/metrics/${this.tokenService.token.value}/${applicationName}/${commitId}`;
+      const url = `${codeService}/metrics/${this.tokenService.token.value}/${applicationName}/${commitId}`;
 
       fetch(url, {
         headers: {
@@ -147,7 +147,7 @@ export default class CodeServiceRequestService extends Service {
         return;
       }
 
-      let url = `${codeService}/commit-tree/${this.tokenService.token.value}/${applicationName}`;
+      const url = `${codeService}/commit-tree/${this.tokenService.token.value}/${applicationName}`;
 
       fetch(url, {
         headers: {

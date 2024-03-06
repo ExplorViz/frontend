@@ -49,7 +49,6 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 
 interface BrowserRenderingArgs {
   readonly id: string;

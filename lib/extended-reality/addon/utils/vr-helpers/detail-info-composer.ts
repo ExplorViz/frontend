@@ -156,7 +156,7 @@ function composeAggregatedClassCommunicationContent(
   communicationMesh: ClazzCommunicationMesh
 ) {
   const communicationData = communicationMesh.dataModel;
-  const applicationId = communicationData.application.id;
+  //const applicationId = communicationData.application.id;
 
   const title = 'Communication Information';
 

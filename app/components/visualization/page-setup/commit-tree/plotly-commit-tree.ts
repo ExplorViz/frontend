@@ -1,11 +1,7 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
-import { tracked } from '@glimmer/tracking';
-import {
-  LandscapeData,
-  SelectedCommit,
-} from 'explorviz-frontend/controllers/visualization';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import {
   Branch,
@@ -13,23 +9,10 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
 import { inject as service } from '@ember/service';
-import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
 import ConfigurationRepository from 'explorviz-frontend/services/repos/configuration-repository';
-import {
-  StructureLandscapeData,
-  isLandscape,
-  preProcessAndEnhanceStructureLandscape,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import CommitComparisonRepository, {
-  CommitComparison,
-} from 'explorviz-frontend/services/repos/commit-comparison-repository';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
-import {
-  getApplicationFromPackage,
-  getApplicationInLandscapeById,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import CommitComparisonRepository from 'explorviz-frontend/services/repos/commit-comparison-repository';
 import CodeServiceRequestService from 'explorviz-frontend/services/code-service-fetching';
 import CommitReportRepository from 'explorviz-frontend/services/repos/commit-report-repository';
 
@@ -40,23 +23,6 @@ interface IMarkerStates {
     emberModel: SelectedCommit;
   };
 }
-
-type FileMetric = {
-  // file-wise metric (can be visualized in commit tree)
-  fileName: string;
-  loc: number;
-  cyclomaticComplexity: number | undefined;
-  numberOfMethods: number | undefined;
-};
-type CommitData = {
-  commitId: string;
-  parentCommitId: string;
-  branchName: string;
-  modified: string[] | undefined;
-  deleted: string[] | undefined;
-  added: string[] | undefined;
-  fileMetric: FileMetric[];
-};
 
 const MAX_ACTIVE_ITEMS = 5; // the maximum of active configuration items to be shown
 
@@ -74,8 +40,6 @@ interface IArgs {
   toggleConfigurationOverview(): void;
   applicationNameAndBranchNameToColorMap?: Map<string, string>;
 }
-
-const { codeService } = ENV.backendAddresses;
 
 export default class PlotlyCommitTree extends Component<IArgs> {
   private MAX_SELECTION = 2;
@@ -216,7 +180,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     selectedApplication: string,
     selectedCommits: Map<string, SelectedCommit[]>
   ) {
-    let application = evolutionData.applications.find(
+    const application = evolutionData.applications.find(
       (application) => application.name === selectedApplication
     );
     if (
@@ -228,7 +192,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       }
 
       // create branches
-      let plotlyBranches: any[] = [];
+      const plotlyBranches: any[] = [];
       let branchCounter = 0;
 
       for (const branch of application.branches) {
@@ -391,7 +355,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         }
       }
     }
-    let rgb = [red, green, blue];
+    const rgb = [red, green, blue];
     this.usedColors.add(rgb);
     return 'rgba(' + red + ',' + green + ',' + blue + ',' + '1)';
   }
@@ -420,7 +384,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     const numOfCircles = activeIdList.length;
 
     let newData = [];
-    let nonMetricData = this.commitTreeDiv.data.filter(
+    const nonMetricData = this.commitTreeDiv.data.filter(
       (data: any) => data.mode === 'lines+markers' || data.mode === 'lines'
     ); // consider non-metric data so it won't get deleted when updating the plot
 
@@ -485,7 +449,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     for (const application of this.evolutionData!.applications) {
       if (application.name === this.selectedApplication) {
         for (const branch of application.branches) {
-          let numOfChangedFilesList = [];
+          const numOfChangedFilesList = [];
           for (const commit of branch.commits) {
             const id = this.selectedApplication + commit;
             const commitData = this.commitReportRepo.getById(id)!;
@@ -511,10 +475,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       }
     }
 
-    let oldData = this.commitTreeDiv.data;
+    const oldData = this.commitTreeDiv.data;
     let xValues: number[] = [];
     let yValues: number[] = [];
-    let sizes: number[][] = [];
+    const sizes: number[][] = [];
     let displayedInformation: number[] = [];
 
     let counter = 0;
@@ -530,7 +494,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         //else
         // throw error since every commit should have this information
 
-        let sizeList = branchNameToNumOfChangedFilesList
+        const sizeList = branchNameToNumOfChangedFilesList
           .get(data.name)
           ?.map((num) => 5 + (num / maxOfChangedFiles) * 5);
 
@@ -574,7 +538,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     for (const application of this.evolutionData!.applications) {
       if (application.name === this.selectedApplication) {
         for (const branch of application.branches) {
-          let numOfMethodsList = [];
+          const numOfMethodsList = [];
           for (const commit of branch.commits) {
             const id = this.selectedApplication + commit;
             const commitData = this.commitReportRepo.getById(id);
@@ -597,10 +561,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       }
     }
 
-    let oldData = this.commitTreeDiv.data;
+    const oldData = this.commitTreeDiv.data;
     let xValues: number[] = [];
     let yValues: number[] = [];
-    let sizes: number[][] = [];
+    const sizes: number[][] = [];
     let displayedInformation: number[] = [];
 
     let counter = 0;
@@ -616,7 +580,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         //else
         // throw error since every commit should have this information
 
-        let sizeList = branchNameToNumOfMethodsList
+        const sizeList = branchNameToNumOfMethodsList
           .get(data.name)
           ?.map((num) => 5 + (num / maxNumOfMethods) * 5);
 
@@ -664,7 +628,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     for (const application of this.evolutionData!.applications) {
       if (application.name === this.selectedApplication) {
         for (const branch of application.branches) {
-          let avgCyclomaticComplexityList = [];
+          const avgCyclomaticComplexityList = [];
           for (const commit of branch.commits) {
             const id = this.selectedApplication + commit;
             console.log(commit);
@@ -696,10 +660,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       }
     }
 
-    let oldData = this.commitTreeDiv.data;
+    const oldData = this.commitTreeDiv.data;
     let xValues: number[] = [];
     let yValues: number[] = [];
-    let sizes: number[][] = [];
+    const sizes: number[][] = [];
     let displayedInformation: number[] = [];
 
     let counter = 0;
@@ -715,7 +679,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         //else
         // throw error since every commit should have this information
 
-        let sizeList = branchNameToNumOfMethodsList
+        const sizeList = branchNameToNumOfMethodsList
           .get(data.name)
           ?.map((num) => 5 + (num / maxAvgCyclomaticComplexity) * 5);
 
@@ -926,7 +890,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     selectedApplication: string,
     selectedCommits: Map<string, SelectedCommit[]>
   ) {
-    const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
+    //const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
     const plotlyDiv = this.commitTreeDiv;
 
     if (plotlyDiv && plotlyDiv.layout) {
@@ -942,7 +906,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         }
 
         const pn = data.points[0].pointNumber;
-        const numberOfPoints = data.points[0].fullData.x.length;
+        //const numberOfPoints = data.points[0].fullData.x.length;
 
         let colors = data.points[0].fullData.marker.color;
         let sizes = data.points[0].fullData.marker.size;

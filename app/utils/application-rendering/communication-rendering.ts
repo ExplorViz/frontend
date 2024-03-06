@@ -17,7 +17,6 @@ import { ApplicationSettings } from '../settings/settings-schemas';
 import { CommitComparison } from 'explorviz-frontend/services/repos/commit-comparison-repository';
 import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 export default class CommunicationRendering {
   // Service to access preferences

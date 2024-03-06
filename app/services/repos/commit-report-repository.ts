@@ -1,6 +1,5 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-import { tracked } from '@glimmer/tracking';
 
 type FileMetric = {
   // file-wise metric (can be visualized in commit tree)

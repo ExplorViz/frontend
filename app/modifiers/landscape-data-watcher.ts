@@ -347,7 +347,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
         const commitIds = [firstSelectedCommitId, secondSelectedCommitId];
 
-        let staticMetrics: [Metrics | undefined, Metrics | undefined] = [
+        const staticMetrics: [Metrics | undefined, Metrics | undefined] = [
           undefined,
           undefined,
         ];

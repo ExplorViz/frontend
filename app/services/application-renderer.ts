@@ -341,6 +341,28 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
 
       applicationObject3D.resetRotation();
 
+      // switch (renderMode) {
+      //   case RenderMode.DYNAMIC_ONLY:
+      //     this.hideVisualization(applicationObject3D, staticStructure);
+      //     this.showVisualization(applicationObject3D, dynamicStructure);
+      //     break;
+      //   case RenderMode.STATIC_ONLY:
+      //     this.hideVisualization(applicationObject3D, dynamicStructure);
+      //     this.showVisualization(applicationObject3D, staticStructure);
+      //     break;
+      //   case RenderMode.STATIC_DYNAMIC:
+      //     this.showVisualization(applicationObject3D, dynamicStructure);
+      //     this.showVisualization(applicationObject3D, staticStructure);
+      //     break;
+      // }
+
+      return applicationObject3D;
+    }
+  );
+
+  public dynamicAndStaticLandscapeVisibility(renderMode: RenderMode, staticStructure: StructureLandscapeData | undefined, dynamicStructure: StructureLandscapeData | undefined) {
+
+    this.openApplications.forEach(applicationObject3D => {
       switch (renderMode) {
         case RenderMode.DYNAMIC_ONLY:
           this.hideVisualization(applicationObject3D, staticStructure);
@@ -355,10 +377,8 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
           this.showVisualization(applicationObject3D, staticStructure);
           break;
       }
-
-      return applicationObject3D;
-    }
-  );
+    });
+  }
 
   private visualizeAddedPackagesAndClasses(
     commitComparison: CommitComparison,

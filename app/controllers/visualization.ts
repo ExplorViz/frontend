@@ -21,9 +21,6 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Application,
-  Node,
-  Package,
   StructureLandscapeData,
   preProcessAndEnhanceStructureLandscape,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -241,7 +238,7 @@ export default class VisualizationController extends Controller {
   commitTreeConfiguration: ConfigurationItem[] = [];
 
   @tracked
-  commitTreeMetrics: String[] = [];
+  commitTreeMetrics: string[] = [];
 
   @tracked
   visualizationPaused = false;
@@ -386,7 +383,8 @@ export default class VisualizationController extends Controller {
   @action
   onRenderSettingChange(renderMode: RenderMode) {
     this.renderMode = renderMode;
-    this.landscapeData = this.landscapeData; // trigger render update
+    this.applicationRenderer.dynamicAndStaticLandscapeVisibility(this.renderMode, this.staticStructureData, this.dynamicStructureData);
+    //this.landscapeData = this.landscapeData; // trigger render update. TODO: refactor this
   }
 
   @action
@@ -750,20 +748,20 @@ export default class VisualizationController extends Controller {
       //console.log("this.staticStructureData ==>", this.staticStructureData);
 
       // Refactor this (find a better place for this logic) --------------
-      const renderStaticStructure =
-        this.userSettings.applicationSettings.staticStructure.value;
-      const renderDynamicStructure =
-        this.userSettings.applicationSettings.dynamicStructure.value;
+      // const renderStaticStructure =
+      //   this.userSettings.applicationSettings.staticStructure.value;
+      // const renderDynamicStructure =
+      //   this.userSettings.applicationSettings.dynamicStructure.value;
 
-      if (renderStaticStructure && renderDynamicStructure) {
-        this.renderMode = RenderMode.STATIC_DYNAMIC;
-      } else if (renderStaticStructure && !renderDynamicStructure) {
-        this.renderMode = RenderMode.STATIC_ONLY;
-      } else if (!renderStaticStructure && renderDynamicStructure) {
-        this.renderMode = RenderMode.DYNAMIC_ONLY;
-      } else {
-        console.debug('Should never happen!');
-      }
+      // if (renderStaticStructure && renderDynamicStructure) {
+      //   this.renderMode = RenderMode.STATIC_DYNAMIC;
+      // } else if (renderStaticStructure && !renderDynamicStructure) {
+      //   this.renderMode = RenderMode.STATIC_ONLY;
+      // } else if (!renderStaticStructure && renderDynamicStructure) {
+      //   this.renderMode = RenderMode.DYNAMIC_ONLY;
+      // } else {
+      //   console.debug('Should never happen!');
+      // }
       // ---------------------------------------------------------------------
 
       this.updateLandscape(newStruct, newDynamic);

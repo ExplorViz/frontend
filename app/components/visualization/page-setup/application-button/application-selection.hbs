@@ -7,10 +7,10 @@
       aria-haspopup='true'
       aria-expanded='false'
     >
-      {{#if (not @selectedApplication)}}
-        Applications
-      {{else}}
+      {{#if @selectedApplication}}
         {{@selectedApplication}}
+      {{else}}
+        Applications
       {{/if}}
     </button>
 

@@ -187,7 +187,7 @@
           )
           "timelineextend"
         }}-->
-        {{unless (not this.isCommitsTimeline) "commitline"}}
+        {{if this.isCommitsTimeline "commitline"}}
         {{unless this.isTimelineActive "timelinehide"}}'
     >
 
@@ -224,7 +224,7 @@
               @timelineColors={{this.timelineColors}}
             />
           {{else}}
-            <!--<p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>-->
+            {{!--<p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>--}}
             <Visualization::PageSetup::Timeline::PlotlyTimeline
               @timestamps={{this.timelineTimestamps}}
               @clicked={{this.timelineClicked}}
@@ -236,7 +236,7 @@
             />
           {{/if}}
         {{else}}
-          <!--<p>No application selected</p> -->
+          {{!--<p>No application selected</p> --}}
           <Visualization::PageSetup::Timeline::PlotlyTimeline
             @timestamps={{this.timelineTimestamps}}
             @clicked={{this.timelineClicked}}

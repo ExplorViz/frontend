@@ -1,5 +1,3 @@
-import isObject from '../object-helpers';
-
 export interface EvolutionLandscapeData {
   applications: EvolutedApplication[];
 }

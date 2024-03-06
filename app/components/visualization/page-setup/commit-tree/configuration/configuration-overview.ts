@@ -9,7 +9,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 interface IArgs {
   configurations: ConfigurationItem[];
-  softwaremetrics: String[];
+  softwaremetrics: string[];
   showConfiguration: boolean;
   toggleConfigurationOverview(): void;
 }
