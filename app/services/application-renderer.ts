@@ -223,10 +223,10 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {},
       selectedApplication?: string,
-      selectedCommits?: Map<string, SelectedCommit[]>,
-      staticStructure?: StructureLandscapeData,
+      selectedCommits?: Map<string, SelectedCommit[]>
+      /*staticStructure?: StructureLandscapeData,
       dynamicStructure?: StructureLandscapeData,
-      renderMode?: RenderMode
+      renderMode?: RenderMode*/
     ) => {
       this.selectedCommits = selectedCommits;
       this.selectedApplication = selectedApplication;
@@ -360,9 +360,12 @@ export default class ApplicationRenderer extends Service.extend(Evented) {
     }
   );
 
-  public dynamicAndStaticLandscapeVisibility(renderMode: RenderMode, staticStructure: StructureLandscapeData | undefined, dynamicStructure: StructureLandscapeData | undefined) {
-
-    this.openApplications.forEach(applicationObject3D => {
+  public dynamicAndStaticLandscapeVisibility(
+    renderMode: RenderMode,
+    staticStructure: StructureLandscapeData | undefined,
+    dynamicStructure: StructureLandscapeData | undefined
+  ) {
+    this.openApplications.forEach((applicationObject3D) => {
       switch (renderMode) {
         case RenderMode.DYNAMIC_ONLY:
           this.hideVisualization(applicationObject3D, staticStructure);

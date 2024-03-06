@@ -383,7 +383,11 @@ export default class VisualizationController extends Controller {
   @action
   onRenderSettingChange(renderMode: RenderMode) {
     this.renderMode = renderMode;
-    this.applicationRenderer.dynamicAndStaticLandscapeVisibility(this.renderMode, this.staticStructureData, this.dynamicStructureData);
+    this.applicationRenderer.dynamicAndStaticLandscapeVisibility(
+      this.renderMode,
+      this.staticStructureData,
+      this.dynamicStructureData
+    );
     //this.landscapeData = this.landscapeData; // trigger render update. TODO: refactor this
   }
 

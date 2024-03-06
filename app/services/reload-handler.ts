@@ -7,7 +7,6 @@ import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import LandscapeListener from './landscape-listener';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import LandscapeHttpRequestUtil from './landscape-http-request-util';
 import { getOwner } from '@ember/application';

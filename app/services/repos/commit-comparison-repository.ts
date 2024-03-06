@@ -1,9 +1,6 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
-import { inject as service } from '@ember/service';
-import { ApplicationCommunication } from 'explorviz-frontend/utils/landscape-rendering/application-communication-computer';
-import ApplicationRenderer from '../application-renderer';
 import Evented from '@ember/object/evented';
 
 export interface CommitComparison {
