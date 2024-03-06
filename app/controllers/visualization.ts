@@ -1124,7 +1124,13 @@ export default class VisualizationController extends Controller {
         if(numOfSelectedCommits === 1) {
           // first commit got selected
 
-          console.log("First commit selected!", this.staticStructureData);
+          this.selectedTimestampRecords = [undefined, undefined];
+          this.timelineTimestamps = [];
+          this.markerState = [{}, {}];
+          this.timestampService.timestamp = [undefined, undefined];
+          this.timelineColors = [undefined, undefined];
+          this.plotlyTimelineRef = undefined;
+
 
           const keyForColor = this.currentSelectedApplication + selected[0].branchName;
           this.timelineColors[0] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
@@ -1132,7 +1138,6 @@ export default class VisualizationController extends Controller {
         } else if(numOfSelectedCommits === 2) {
           // second commit got selected
 
-          console.log("Second commit selected!");
           const keyForColor = this.currentSelectedApplication + selected[1].branchName;
           this.timelineColors[1] = this.applicationNameAndBranchNameToColorMap.get(keyForColor);
         }
@@ -1146,9 +1151,7 @@ export default class VisualizationController extends Controller {
     
     } else {
       // no commits selected anymore
-
-      console.log("No commit selected");
-
+      
       this.selectedTimestampRecords = [undefined, undefined];
       this.timelineTimestamps = [];
       this.markerState = [{}, {}];
@@ -1163,9 +1166,6 @@ export default class VisualizationController extends Controller {
         this.timestampPollingCallback.bind(this)
       );
     }
-
-  
-    // TODO: call reload handler and stop it and remove it from init method so the same dynamic data is not loaded every 10s 
     
   }
 

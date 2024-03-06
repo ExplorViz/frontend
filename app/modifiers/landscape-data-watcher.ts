@@ -24,7 +24,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import StaticMetricsRepository from 'explorviz-frontend/services/repos/static-metrics-repository';
+import StaticMetricsRepository, { Metrics } from 'explorviz-frontend/services/repos/static-metrics-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 
@@ -320,18 +320,31 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       
       let heatmapMetrics: any[] = [];
-      if(application.name === this.selectedApplication) {
+
+      let commits = undefined;
+      if(this.selectedApplication && this.selectedCommits) {
+        commits = this.selectedCommits.get(this.selectedApplication);
+      }
+      if(commits && commits.length !== 0) {
         // consider selected commits
 
-        if(this.dynamics) {
-
-          const selectedCommits = this.selectedCommits!.get(this.selectedApplication);
-          const firstSelectedCommitId = selectedCommits && selectedCommits[0]?.commitId;
-          const secondSelectedCommitId = selectedCommits && selectedCommits[1]?.commitId;
+          const firstSelectedCommitId = commits[0].commitId;
+          let secondSelectedCommitId = undefined;
+          if(commits.length === 2) {
+            secondSelectedCommitId = commits[1].commitId;
+          }
 
           const commitIds = [firstSelectedCommitId, secondSelectedCommitId];
-          const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
-          this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
+
+          let staticMetrics: [Metrics|undefined, Metrics|undefined] = [undefined, undefined];
+          if(firstSelectedCommitId) {
+            staticMetrics[0] = this.staticMetricsRepo.getById(application.name + firstSelectedCommitId);
+          }
+          if(secondSelectedCommitId) {
+            staticMetrics[1] = this.staticMetricsRepo.getById(application.name + secondSelectedCommitId);
+          }
+          //const staticMetrics = [this.staticMetricsRepo.getById(this.selectedApplication + commitIds[0]),
+          //this.staticMetricsRepo.getById(this.selectedApplication + commitIds[1])];
 
           const workerPayload = {
             structure: application,
@@ -340,6 +353,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             staticMetrics: staticMetrics
           }
 
+          console.log("workerpayload:", workerPayload);
+
           //console.log("workerPayload: ", workerPayload);
 
           heatmapMetrics = this.worker.postMessage(
@@ -347,9 +362,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             workerPayload 
           );
 
-        }else {
-          console.log("Error: no dynamic data for first selected commit");
-        }
+      
       }else {
         heatmapMetrics = this.worker.postMessage(
           'metrics-worker',

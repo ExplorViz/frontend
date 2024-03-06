@@ -11,7 +11,7 @@ interface Args {
   clazz: Class;
   applicationId: string;
   readonly selectedCommits: Map<string, SelectedCommit[]>;
-  readonly selectedApplication: string;
+  readonly selectedApplication: string | undefined; 
 }
 
 type AllMetricScoresObject = {
@@ -48,15 +48,20 @@ export default class ClazzPopup extends Component<Args> {
   }
 
   get getNumOfCurrentSelectedCommits() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)?.length;
+    if(!this.args.selectedApplication) {
+      console.log("return 0");
+      return 0;
+    }
+    console.log("return", this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0);
+    return this.args.selectedCommits.get(this.args.selectedApplication)?.length || 0;
   }
 
   get firstSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)![0].commitId.slice(0, 5) + "...";
+    return this.args.selectedCommits.get(this.args.selectedApplication!)![0].commitId.slice(0, 5) + "...";
   }
 
   get secondSelectedCommitId() {
-    return this.args.selectedCommits.get(this.args.selectedApplication)![1].commitId.slice(0, 5) + "...";
+    return this.args.selectedCommits.get(this.args.selectedApplication!)![1].commitId.slice(0, 5) + "...";
   }
 
   get isSelectedMetricFromFirstSelectedCommit() {

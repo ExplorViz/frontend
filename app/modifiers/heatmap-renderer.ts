@@ -207,9 +207,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
       if (selectedMode === 'aggregatedHeatmap') {
         simpleHeatMap.add([xPos, zPos, heatmapValues.get(clazz.id)]);
       } else if(selectedMode === 'snapshotHeatmap') {
-        if ((this.heatmapConf.largestValue - this.heatmapConf.smallestValue) > 0) {
-          console.log("this.heatmapConf.largestValue", ":", this.heatmapConf.largestValue);
-          console.log("this.heatmapConf.smallestValue", ":", this.heatmapConf.smallestValue);
+        if ((this.heatmapConf.largestValue - this.heatmapConf.smallestValue) >= 0) {
           if(heatmapValue !== 0 && heatmapValue === this.heatmapConf.smallestValue) {
             simpleHeatMap.add([
               xPos,

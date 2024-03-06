@@ -10,15 +10,34 @@ self.addEventListener(
     let metrics = [];
     let staticMetricsConverted = [];
 
-    if(commitId && staticMetrics) {
-      metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
-      if(dynamicData[1]){
-        metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
-      }//else {
-      //   metrics = calculateMetrics(structureData, dynamicData[0]);
-      // }
-      staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics[0], commitId[0], "(#1 sel. commit)");
-      staticMetricsConverted = [...staticMetricsConverted, ...convertStaticMetrics(structureData, staticMetrics[1], commitId[1], "(#2 sel. commit)")];
+    if(commitId) {
+
+      if(staticMetrics && (staticMetrics[0] || staticMetrics[1])) {
+
+        // selected application
+        if(dynamicData[0])
+          metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
+        
+        if(dynamicData[1])
+          metrics = [...metrics, ...calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
+        
+        if(staticMetrics[0])
+          staticMetricsConverted = convertStaticMetrics(structureData, staticMetrics[0], commitId[0], "(#1 sel. commit)");
+
+        if(staticMetrics[1])
+          staticMetricsConverted = [...staticMetricsConverted, ...convertStaticMetrics(structureData, staticMetrics[1], commitId[1], "(#2 sel. commit)")];
+      } else {
+        // non selected application
+
+        if(dynamicData[0])
+          metrics = calculateMetrics(structureData, dynamicData[0], "(#1 sel. commit)");
+
+        if(dynamicData[1])
+          metrics = [...metrics, calculateMetrics(structureData, dynamicData[1], "(#2 sel. commit)")];
+
+      }
+
+      
     }else {
       metrics = calculateMetrics(structureData, dynamicData);
     }

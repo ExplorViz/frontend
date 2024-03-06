@@ -1,129 +1,128 @@
-{{#if this.isSelectedApplication}}
-  {{#if (eq this.getNumOfCurrentSelectedCommits 1)}}
-    <table class='w-100'>
-      <thead>
-        <tr>
-          <th>Metric Name</th>
-          <th class='pl-1 pr-1'>{{!Snapshot}}</th>
-          {{!<th class="pl-1 pr-1">Aggregated</th>
-          <th>Windowed</th>}}
-        </tr>
-      </thead>
-      <tbody>
-        {{#each this.firstSelectedCommitMetrics as |metric|}}
-          {{#if (eq this.selectedMetricName metric.metricName)}}
-            <tr>
-              <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
-              <td class='text-center font-weight-bold text-primary'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center font-weight-bold text-primary">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center font-weight-bold text-primary">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{else}}
-            <tr>
-              <td>{{metric.metricName}}:</td>
-              <td class='text-center'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{/if}}
-        {{/each}}
-      </tbody>
-    </table>
-  {{else}}
-    <table class='w-100'>
-      <thead>
-        <tr>
-          <th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>
-          <th class='pl-1 pr-1'>{{!Snapshot}}</th>
-          {{!<th class="pl-1 pr-1">Aggregated</th>
-          <th>Windowed</th>}}
-        </tr>
-      </thead>
-      <tbody>
-        {{#each this.firstSelectedCommitMetrics as |metric|}}
-          {{#if (and this.isSelectedMetricFromFirstSelectedCommit (eq this.selectedMetricName metric.metricName))}}
-            <tr>
-              <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
-              <td class='text-center font-weight-bold text-primary'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center font-weight-bold text-primary">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center font-weight-bold text-primary">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{else}}
-            <tr>
-              <td>{{metric.metricName}}:</td>
-              <td class='text-center'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{/if}}
-        {{/each}}
-      </tbody>
-      <thead>
-        <tr>
-          <th>Metric Name (#2 sel. commit ({{this.secondSelectedCommitId}}))</th>
-          <th class='pl-1 pr-1'>{{!Snapshot}}</th>
-          {{!<th class="pl-1 pr-1">Aggregated</th>
-          <th>Windowed</th>}}
-        </tr>
-      </thead>
-      <tbody>
-        {{#each this.secondSelectedCommitMetrics as |metric|}}
-          {{#if (and this.isSelectedMetricFromSecondSelectedCommit (eq this.selectedMetricName metric.metricName))}}
-            <tr>
-              <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
-              <td class='text-center font-weight-bold text-primary'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center font-weight-bold text-primary">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center font-weight-bold text-primary">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{else}}
-            <tr>
-              <td>{{metric.metricName}}:</td>
-              <td class='text-center'>
-                {{metric.snapshotVal}}
-              </td>
-              {{!--<td class="text-center">
-                {{metric.contAggVal}}
-              </td>
-              <td class="text-center">
-                {{metric.winVal}}
-              </td>--}}
-            </tr>
-          {{/if}}
-        {{/each}}
-      </tbody>
-    </table>
-  {{/if}}
-{{else}}
+
+{{#if (eq this.getNumOfCurrentSelectedCommits 1)}}
+  <table class='w-100'>
+    <thead>
+      <tr>
+        <th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>
+        <th class='pl-1 pr-1'>{{!Snapshot}}</th>
+        {{!<th class="pl-1 pr-1">Aggregated</th>
+        <th>Windowed</th>}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each this.firstSelectedCommitMetrics as |metric|}}
+        {{#if (eq this.selectedMetricName metric.metricName)}}
+          <tr>
+            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td class='text-center font-weight-bold text-primary'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center font-weight-bold text-primary">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center font-weight-bold text-primary">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{else}}
+          <tr>
+            <td>{{metric.metricName}}:</td>
+            <td class='text-center'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+{{else if (eq this.getNumOfCurrentSelectedCommits 2)}}
+  <table class='w-100'>
+    <thead>
+      <tr>
+        <th>Metric Name (#1 sel. commit ({{this.firstSelectedCommitId}}))</th>
+        <th class='pl-1 pr-1'>{{!Snapshot}}</th>
+        {{!<th class="pl-1 pr-1">Aggregated</th>
+        <th>Windowed</th>}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each this.firstSelectedCommitMetrics as |metric|}}
+        {{#if (and this.isSelectedMetricFromFirstSelectedCommit (eq this.selectedMetricName metric.metricName))}}
+          <tr>
+            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td class='text-center font-weight-bold text-primary'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center font-weight-bold text-primary">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center font-weight-bold text-primary">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{else}}
+          <tr>
+            <td>{{metric.metricName}}:</td>
+            <td class='text-center'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{/if}}
+      {{/each}}
+    </tbody>
+    <thead>
+      <tr>
+        <th>Metric Name (#2 sel. commit ({{this.secondSelectedCommitId}}))</th>
+        <th class='pl-1 pr-1'>{{!Snapshot}}</th>
+        {{!<th class="pl-1 pr-1">Aggregated</th>
+        <th>Windowed</th>}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each this.secondSelectedCommitMetrics as |metric|}}
+        {{#if (and this.isSelectedMetricFromSecondSelectedCommit (eq this.selectedMetricName metric.metricName))}}
+          <tr>
+            <td class='font-weight-bold text-primary'>{{metric.metricName}}:</td>
+            <td class='text-center font-weight-bold text-primary'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center font-weight-bold text-primary">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center font-weight-bold text-primary">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{else}}
+          <tr>
+            <td>{{metric.metricName}}:</td>
+            <td class='text-center'>
+              {{metric.snapshotVal}}
+            </td>
+            {{!--<td class="text-center">
+              {{metric.contAggVal}}
+            </td>
+            <td class="text-center">
+              {{metric.winVal}}
+            </td>--}}
+          </tr>
+        {{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+{{else if (eq this.getNumOfCurrentSelectedCommits 0)}}
   <table class='w-100'>
     <thead>
       <tr>

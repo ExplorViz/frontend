@@ -240,7 +240,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         }
       }
 
-      const layout = PlotlyCommitTree.getPlotlyLayoutObject(-5,20, -1,8);
+      const layout = PlotlyCommitTree.getPlotlyLayoutObject(-5,20, -5,5);
         this.branchToY.forEach((val, key) => {
             layout.annotations.push({
                 xref: 'paper',

@@ -195,10 +195,28 @@
               @timelineColors={{this.timelineColors}}
             />
           {{else}}
-          <p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>
+          <!--<p>No commit selected for application <i>{{this.currentSelectedApplication}}</i></p>-->
+          <Visualization::PageSetup::Timeline::PlotlyTimeline
+              @timestamps={{this.timelineTimestamps}}
+              @clicked={{this.timelineClicked}}
+              @highlightedMarkerColor={{this.highlightedMarkerColor}}
+              @setChildReference={{this.getTimelineReference}}
+              @markerState={{this.markerState}}
+              @selectedTimestamps={{this.selectedTimestampRecords}}
+              @timelineColors={{this.timelineColors}}
+            />
           {{/if}}
         {{else}}
-        <p>No application selected</p>
+        <!--<p>No application selected</p> -->
+        <Visualization::PageSetup::Timeline::PlotlyTimeline
+              @timestamps={{this.timelineTimestamps}}
+              @clicked={{this.timelineClicked}}
+              @highlightedMarkerColor={{this.highlightedMarkerColor}}
+              @setChildReference={{this.getTimelineReference}}
+              @markerState={{this.markerState}}
+              @selectedTimestamps={{this.selectedTimestampRecords}}
+              @timelineColors={{this.timelineColors}}
+            />
         {{/if}}
       {{/if}}
       {{#if this.isCommitsTimeline}}
