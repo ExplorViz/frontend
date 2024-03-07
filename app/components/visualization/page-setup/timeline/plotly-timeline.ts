@@ -132,9 +132,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
     }
 
     if (this.initDone) {
-      this.extendPlotlyTimelineChart(this.timestamps, numberOfTimelines.length);
+      this.extendPlotlyTimelineChart(
+        this.timestamps,
+        numberOfTimelines?.length
+      );
     } else {
-      this.setupPlotlyTimelineChart(this.timestamps, numberOfTimelines.length);
+      this.setupPlotlyTimelineChart(this.timestamps, numberOfTimelines?.length);
       if (this.initDone) {
         this.setupPlotlyListener();
       }
@@ -314,6 +317,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
     timestamps: Timestamp[][],
     numberOfTimelines: number
   ) {
+    if (!numberOfTimelines) {
+      return;
+    }
+
     const data: any[] = [];
     const shapez: any[] = [];
     let plotlyTimestampsWithoutNullValuesTemp: number = 0;
