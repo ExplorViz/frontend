@@ -508,7 +508,6 @@ export default class VisualizationController extends Controller {
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
-    this.closeDataSelection();
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
@@ -523,6 +522,9 @@ export default class VisualizationController extends Controller {
     this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
+
+    this.closeDataSelection();
+    this.closeToolsSidebar();
 
     this.roomId = null;
 
