@@ -117,7 +117,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   get font() {
-    return this.fontRepo.font;
+    return this.fontRepo.font!;
   }
 
   get openApplications() {

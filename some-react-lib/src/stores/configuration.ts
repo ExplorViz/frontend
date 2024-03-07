@@ -5,7 +5,7 @@ interface ConfigurationState {
   commCurveHeightDependsOnDistance: boolean;
   commCurveHeightMultiplier: number;
   commWidthMultiplier: number;
-  popupPosition?: Position2D;
+  popupPosition: Position2D | undefined;
 }
 
 interface Position2D {

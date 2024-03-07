@@ -1,19 +1,13 @@
 import Service from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import ApplicationData from 'some-react-lib/src/utils/application-data';
-import { ApplicationCommunication } from 'some-react-lib/src/utils/landscape-rendering/application-communication-computer';
+import { useApplicationRepositoryStore } from 'some-react-lib/src/stores/repos/application-repository';
 
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @tracked
-  applications: Map<string, ApplicationData> = new Map<
-    string,
-    ApplicationData
-  >();
-
-  @tracked
-  communications: ApplicationCommunication[] = [];
+  get applications() {
+    return useApplicationRepositoryStore.getState().applications;
+  }
 
   getById(applicationId: string) {
     return this.applications.get(applicationId);
@@ -24,20 +18,15 @@ export default class ApplicationRepository extends Service.extend({
   }
 
   add(applicationData: ApplicationData) {
-    this.applications.set(applicationData.application.id, applicationData);
-    this.notifyPropertyChange('applications');
+    useApplicationRepositoryStore.getState().addApplication(applicationData);
   }
 
   delete(applicationId: string) {
-    this.applications.delete(applicationId);
-    this.notifyPropertyChange('applications');
+    useApplicationRepositoryStore.getState().removeApplication(applicationId);
   }
 
   cleanup() {
-    this.communications = [];
-    this.applications.clear();
-    this.notifyPropertyChange('communications');
-    this.notifyPropertyChange('applications');
+    useApplicationRepositoryStore.getState().clearApplications();
   }
 }
 

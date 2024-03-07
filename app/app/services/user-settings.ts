@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import { tracked } from '@glimmer/tracking';
 import isObject, {
   objectsHaveSameKeys,
 } from 'some-react-lib/src/utils/object-helpers';
@@ -17,7 +16,6 @@ import {
   ApplicationColorSettingId,
   ApplicationColorSettings,
   ApplicationSettingId,
-  ApplicationSettings,
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
@@ -26,22 +24,27 @@ import {
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
+import { useUserSettingsStore } from 'some-react-lib/src/stores/user-settings';
 
 export default class UserSettings extends Service {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
-  @tracked
-  applicationSettings!: ApplicationSettings;
+  get applicationSettings() {
+    return useUserSettingsStore.getState().applicationSettings!;
+  }
 
-  /**
-   * Colors for application visualization
-   *
-   * @property applicationColors
-   * @type ApplicationColors
-   */
-  @tracked
-  applicationColors!: ApplicationColors;
+  set applicationSettings(settings) {
+    useUserSettingsStore.setState({ applicationSettings: settings });
+  }
+
+  get applicationColors() {
+    return useUserSettingsStore.getState().applicationColors!;
+  }
+
+  set applicationColors(colors) {
+    useUserSettingsStore.setState({ applicationColors: colors });
+  }
 
   constructor() {
     super(...arguments);

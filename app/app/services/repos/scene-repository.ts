@@ -1,10 +1,16 @@
 import Service from '@ember/service';
 import { VisualizationMode } from 'collaborative-mode/services/local-user';
 import { createScene } from 'explorviz-frontend/utils/scene';
-import * as THREE from 'three';
+import { useSceneRepositoryStore } from 'some-react-lib/src/stores/repos/scene-repository';
 
-export default class SceneRepository extends Service.extend() {
-  scene: THREE.Scene | undefined;
+export default class SceneRepository extends Service {
+  get scene(): THREE.Scene | undefined {
+    return useSceneRepositoryStore.getState().scene;
+  }
+
+  set scene(scene: THREE.Scene) {
+    useSceneRepositoryStore.setState({ scene });
+  }
 
   getScene(mode: VisualizationMode = 'browser', replaceScene = false) {
     if (!this.scene || replaceScene) {
