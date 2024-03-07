@@ -145,6 +145,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           classCommunications
         );
 
+        console.log(applicationData);
+
         // create or update applicationObject3D
         const app =
           await this.applicationRenderer.addApplicationTask.perform(

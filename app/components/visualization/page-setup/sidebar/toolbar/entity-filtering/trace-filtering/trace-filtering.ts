@@ -1,9 +1,13 @@
 import Component from '@glimmer/component';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import {
+  DynamicLandscapeData,
+  Trace,
+} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { tracked } from '@glimmer/tracking';
+import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -33,7 +37,25 @@ export default class TraceFiltering extends Component<Args> {
   }
 
   get traceCount() {
-    return this.args.landscapeData.dynamicLandscapeData.length;
+    const tracesThatAreRendered: Trace[] = structuredClone(
+      this.args.landscapeData.dynamicLandscapeData
+    );
+
+    const hashCodeClassMap = getHashCodeToClassMap(
+      this.args.landscapeData.structureLandscapeData
+    );
+
+    for (let i = tracesThatAreRendered.length - 1; i >= 0; i--) {
+      for (const span of tracesThatAreRendered[i].spanList) {
+        if (!hashCodeClassMap.get(span.methodHash)) {
+          // single span of trace is missing in structure data, then skip complete trace
+          tracesThatAreRendered.splice(i, 1);
+          break;
+        }
+      }
+    }
+
+    return tracesThatAreRendered.length;
   }
 
   @action

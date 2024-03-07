@@ -1,4 +1,13 @@
 <h6 class='mb-3 mt-3'><strong>Classes (# shown:
-    {{this.traceCount}}
+    {{this.classCount}}
     /
-    {{this.initialLandscapeData.dynamicLandscapeData.length}})</strong></h6>
+    {{this.initialClassCount}})</strong></h6>
+
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::StructureFiltering::ClassMethodFiltering
+  @classes={{this.classes}}
+  @update={{this.updateMinMethodCount}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+  @visualizationPaused={{@visualizationPaused}}
+  @filteredEntityCount={{this.numFilteredMethods}}
+  @initialEntityCount={{this.initialClassCount}}
+/>
