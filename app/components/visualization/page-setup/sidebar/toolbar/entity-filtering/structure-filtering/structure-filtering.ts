@@ -22,16 +22,13 @@ interface Args {
 
 export default class StructureFiltering extends Component<Args> {
   @tracked
-  numFilteredMethods = 0;
-
-  @tracked
-  numFilteredTracesByStarttime = 0;
-
-  @tracked
   classes: Class[] = [];
 
   private initialLandscapeData: LandscapeData;
-  private initialClasses: Class[];
+  private initialClasses: Class[] = [];
+
+  @tracked
+  numRemainingClassesAfterFilteredByMethodCount = this.initialClasses.length;
 
   private selectedMinMethodCount: number = 0;
 
@@ -78,13 +75,13 @@ export default class StructureFiltering extends Component<Args> {
     // hide all classes that have a strict lower method count than selected
     const classesToRemove = this.initialClasses.filter((t) => {
       if (t.methods.length < this.selectedMinMethodCount!) {
-        numFilter++;
         return true;
       }
+      numFilter++;
       return false;
     });
 
-    this.numFilteredMethods = numFilter;
+    this.numRemainingClassesAfterFilteredByMethodCount = numFilter;
     numFilter = 0;
 
     const deepCopyStructure = structuredClone(

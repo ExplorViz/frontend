@@ -1,7 +1,9 @@
 <div class='mb-3'>
   <HelpTooltip @title='bla' />
-  <label class='m-0' for='filtering-class-method'>Min. # methods (# excl.:
-    <b>{{@filteredEntityCount}} / {{@initialEntityCount}}</b>)</label>
+  <label class='m-0' for='filtering-class-method'>Min. # methods (# incl.:
+    <b>{{@remainingEntityCountAfterFiltering}}
+      /
+      {{@initialEntityCount}}</b>)</label>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
       <input

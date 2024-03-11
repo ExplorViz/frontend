@@ -21,10 +21,12 @@ interface Args {
 
 export default class TraceFiltering extends Component<Args> {
   @tracked
-  numFilteredTracesByDuration = 0;
+  numRemainingTracesAfterFilteredByDuration =
+    this.args.landscapeData.dynamicLandscapeData.length;
 
   @tracked
-  numFilteredTracesByStarttime = 0;
+  numRemainingTracesAfterFilteredByStarttime =
+    this.args.landscapeData.dynamicLandscapeData.length;
 
   private initialLandscapeData: LandscapeData;
 
@@ -77,24 +79,26 @@ export default class TraceFiltering extends Component<Args> {
     let newTraces = this.initialLandscapeData.dynamicLandscapeData.filter(
       (t) => {
         if (t.startTime >= this.selectedMinStartTimestamp!) {
+          numFilter++;
           return true;
         }
-        numFilter++;
+
         return false;
       }
     );
-    this.numFilteredTracesByStarttime = numFilter;
+    this.numRemainingTracesAfterFilteredByStarttime = numFilter;
     numFilter = 0;
 
     // hide all traces that have a strict lower duration than selected
     newTraces = newTraces.filter((t) => {
       if (t.duration >= this.selectedMinDuration!) {
+        numFilter++;
         return true;
       }
-      numFilter++;
+
       return false;
     });
-    this.numFilteredTracesByDuration = numFilter;
+    this.numRemainingTracesAfterFilteredByDuration = numFilter;
     numFilter = 0;
 
     this.args.updateLandscape(
