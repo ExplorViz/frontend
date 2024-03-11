@@ -28,17 +28,30 @@ export default class TraceFiltering extends Component<Args> {
   numRemainingTracesAfterFilteredByStarttime =
     this.args.landscapeData.dynamicLandscapeData.length;
 
-  private initialLandscapeData: LandscapeData;
+  @tracked
+  private initialLandscapeData!: LandscapeData;
 
   private selectedMinDuration: number = 0;
   private selectedMinStartTimestamp: number = 0;
 
   constructor(owner: any, args: Args) {
     super(owner, args);
+    this.resetComponentState();
+  }
+
+  private resetComponentState() {
     this.initialLandscapeData = this.args.landscapeData;
+    this.numRemainingTracesAfterFilteredByDuration =
+      this.args.landscapeData.dynamicLandscapeData.length;
+    this.numRemainingTracesAfterFilteredByStarttime =
+      this.args.landscapeData.dynamicLandscapeData.length;
   }
 
   get traceCount() {
+    if (!this.args.visualizationPaused) {
+      this.resetComponentState();
+    }
+
     const tracesThatAreRendered: Trace[] = structuredClone(
       this.args.landscapeData.dynamicLandscapeData
     );

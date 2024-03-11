@@ -24,7 +24,10 @@ export default class StructureFiltering extends Component<Args> {
   @tracked
   classes: Class[] = [];
 
-  private initialLandscapeData: LandscapeData;
+  @tracked
+  private initialLandscapeData!: LandscapeData;
+
+  @tracked
   private initialClasses: Class[] = [];
 
   @tracked
@@ -35,6 +38,10 @@ export default class StructureFiltering extends Component<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
 
+    this.resetComponentState();
+  }
+
+  private resetComponentState() {
     let classes: Class[] = [];
 
     for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
@@ -44,6 +51,7 @@ export default class StructureFiltering extends Component<Args> {
     }
     this.initialClasses = classes;
 
+    this.numRemainingClassesAfterFilteredByMethodCount = classes.length;
     this.initialLandscapeData = this.args.landscapeData;
   }
 
@@ -52,6 +60,10 @@ export default class StructureFiltering extends Component<Args> {
   }
 
   get classCount() {
+    if (!this.args.visualizationPaused) {
+      this.resetComponentState();
+    }
+
     let classes: Class[] = [];
 
     for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
