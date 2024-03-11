@@ -18,6 +18,10 @@ export default class ClassMethodFiltering extends Component<Args> {
   private max: number = -1;
 
   get classes() {
+    if (!this.args.visualizationPaused) {
+      this.selected = null;
+    }
+
     if (!this.selected) {
       const classes = this.args.classes;
 
@@ -31,7 +35,7 @@ export default class ClassMethodFiltering extends Component<Args> {
 
     let selected = this.min;
 
-    if (this.args.visualizationPaused && this.selected) {
+    if (this.selected) {
       selected = this.selected;
     }
 

@@ -18,6 +18,10 @@ export default class TraceStartFiltering extends Component<Args> {
   private max: number = -1;
 
   get timestamps() {
+    if (!this.args.visualizationPaused) {
+      this.selected = null;
+    }
+
     if (!this.selected) {
       const traces = this.args.traces;
 
@@ -29,7 +33,7 @@ export default class TraceStartFiltering extends Component<Args> {
 
     let selected = this.min;
 
-    if (this.args.visualizationPaused && this.selected) {
+    if (this.selected) {
       selected = this.selected;
     }
 

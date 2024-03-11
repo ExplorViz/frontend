@@ -6,9 +6,9 @@
     <div style='width: 100%;'>
       <input
         id='filtering-trace-duration'
-        value={{this.timestamps.selected}}
-        min={{this.timestamps.min}}
-        max={{this.timestamps.max}}
+        value={{this.durations.selected}}
+        min={{this.durations.min}}
+        max={{this.durations.max}}
         type='range'
         step='1'
         class='form-control mr-2'
@@ -16,9 +16,9 @@
         oninput={{fn this.onInput this}}
       />
       <div class='range-slider--values'>
-        <span>{{this.timestamps.min}}</span>
-        <span style='font-weight: bold;'>{{this.timestamps.selected}}</span>
-        <span>{{this.timestamps.max}}</span>
+        <span>{{this.durations.min}}</span>
+        <span style='font-weight: bold;'>{{this.durations.selected}}</span>
+        <span>{{this.durations.max}}</span>
       </div>
     </div>
   </div>
