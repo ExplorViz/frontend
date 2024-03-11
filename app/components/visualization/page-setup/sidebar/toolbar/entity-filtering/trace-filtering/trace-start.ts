@@ -37,7 +37,7 @@ export default class TraceStartFiltering extends Component<Args> {
   }
 
   formatTimestampToDate(timestamp: number) {
-    return new Date(timestamp);
+    return new Date(timestamp).toLocaleTimeString();
   }
 
   @action
