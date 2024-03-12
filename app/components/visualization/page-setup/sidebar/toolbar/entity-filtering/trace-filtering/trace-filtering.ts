@@ -11,7 +11,6 @@ import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-struct
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  readonly visualizationPaused: boolean;
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData

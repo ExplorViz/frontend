@@ -5,7 +5,6 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 
 interface Args {
   readonly traces: DynamicLandscapeData;
-  readonly visualizationPaused: boolean;
   updateStartTimestamp(newMinStartTimestamp: number): void;
   pauseVisualizationUpdating(): void;
 }
@@ -18,9 +17,9 @@ export default class TraceStartFiltering extends Component<Args> {
   private max: number = -1;
 
   get timestamps() {
-    if (!this.args.visualizationPaused) {
-      this.selected = null;
-    }
+    //if (!this.args.visualizationPaused) {
+    //  this.selected = null;
+    //}
 
     if (!this.selected) {
       const traces = this.args.traces;

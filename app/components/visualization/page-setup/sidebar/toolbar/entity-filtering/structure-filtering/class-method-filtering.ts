@@ -9,7 +9,6 @@ import TimestampService, {
 
 interface Args {
   readonly classes: Class[];
-  readonly visualizationPaused: boolean;
   update(newValue: number): void;
   pauseVisualizationUpdating(): void;
 }
