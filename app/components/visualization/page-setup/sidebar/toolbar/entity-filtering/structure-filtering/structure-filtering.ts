@@ -30,54 +30,28 @@ export default class StructureFiltering extends Component<Args> {
   @tracked
   classes: Class[] = [];
 
-  private initialLandscapeData: LandscapeData;
+  @tracked
+  initialClasses: Class[] = [];
 
   @tracked
-  private initialClasses: Class[] = [];
+  numRemainingClassesAfterFilteredByMethodCount = 0;
 
-  @tracked
-  numRemainingClassesAfterFilteredByMethodCount = this.initialClasses.length;
-
+  private initialLandscapeData!: LandscapeData;
   private selectedMinMethodCount: number = 0;
 
   constructor(owner: any, args: Args) {
     super(owner, args);
 
-    let classes: Class[] = [];
-
-    for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
-    }
-    this.initialClasses = classes;
-
-    this.initialLandscapeData = this.args.landscapeData;
+    this.resetState();
 
     this.timestampService.on(
       NEW_SELECTED_TIMESTAMP_EVENT,
       this,
-      this.onTimestampUpdate
+      this.resetState
     );
   }
 
-  private onTimestampUpdate() {
-    console.log('test');
-    // reset state, since new timestamp has been loaded
-    let classes: Class[] = [];
-
-    for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
-    }
-    this.initialClasses = classes;
-
-    this.initialLandscapeData = this.args.landscapeData;
-
-    this.numRemainingClassesAfterFilteredByMethodCount =
-      this.initialClasses.length;
-  }
+  //#region JS getters
 
   get initialClassCount() {
     return this.initialClasses.length;
@@ -95,10 +69,33 @@ export default class StructureFiltering extends Component<Args> {
     return classes.length;
   }
 
+  //#endregion JS getters
+
+  //#region template actions
+
   @action
   updateMinMethodCount(newMinMethodCount: number) {
     this.selectedMinMethodCount = newMinMethodCount;
     this.updateLandscape();
+  }
+
+  //#endregion template actions
+
+  private resetState() {
+    // reset state, since new timestamp has been loaded
+    let classes: Class[] = [];
+
+    for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
+      for (const app of node.applications) {
+        classes = [...classes, ...getAllClassesInApplication(app)];
+      }
+    }
+    this.initialClasses = classes;
+
+    this.initialLandscapeData = this.args.landscapeData;
+
+    this.numRemainingClassesAfterFilteredByMethodCount =
+      this.initialClasses.length;
   }
 
   private updateLandscape() {
@@ -179,7 +176,7 @@ export default class StructureFiltering extends Component<Args> {
     this.timestampService.off(
       NEW_SELECTED_TIMESTAMP_EVENT,
       this,
-      this.onTimestampUpdate
+      this.resetState
     );
   }
 }
