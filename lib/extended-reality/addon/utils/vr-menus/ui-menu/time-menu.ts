@@ -112,7 +112,7 @@ export default class TimeMenu extends UiMenu {
   }
 
   private applySelectedTimestamp() {
-    this.timestampService.updateTimestamp(this.date.getTime());
+    this.timestampService.updateTimestampFromVr(this.date.getTime());
   }
 
   makeThumbpadBinding() {

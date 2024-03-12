@@ -9,10 +9,13 @@ import {
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { tracked } from '@glimmer/tracking';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { inject as service } from '@ember/service';
+import TimestampService, {
+  NEW_SELECTED_TIMESTAMP_EVENT,
+} from 'explorviz-frontend/services/timestamp';
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  readonly visualizationPaused: boolean;
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -21,10 +24,15 @@ interface Args {
 }
 
 export default class StructureFiltering extends Component<Args> {
+  @service('timestamp')
+  timestampService!: TimestampService;
+
   @tracked
   classes: Class[] = [];
 
   private initialLandscapeData: LandscapeData;
+
+  @tracked
   private initialClasses: Class[] = [];
 
   @tracked
@@ -45,6 +53,30 @@ export default class StructureFiltering extends Component<Args> {
     this.initialClasses = classes;
 
     this.initialLandscapeData = this.args.landscapeData;
+
+    this.timestampService.on(
+      NEW_SELECTED_TIMESTAMP_EVENT,
+      this,
+      this.onTimestampUpdate
+    );
+  }
+
+  private onTimestampUpdate() {
+    console.log('test');
+    // reset state, since new timestamp has been loaded
+    let classes: Class[] = [];
+
+    for (const node of this.args.landscapeData.structureLandscapeData.nodes) {
+      for (const app of node.applications) {
+        classes = [...classes, ...getAllClassesInApplication(app)];
+      }
+    }
+    this.initialClasses = classes;
+
+    this.initialLandscapeData = this.args.landscapeData;
+
+    this.numRemainingClassesAfterFilteredByMethodCount =
+      this.initialClasses.length;
   }
 
   get initialClassCount() {
@@ -143,6 +175,11 @@ export default class StructureFiltering extends Component<Args> {
     this.args.updateLandscape(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
+    );
+    this.timestampService.off(
+      NEW_SELECTED_TIMESTAMP_EVENT,
+      this,
+      this.onTimestampUpdate
     );
   }
 }

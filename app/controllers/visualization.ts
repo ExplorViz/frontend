@@ -273,8 +273,9 @@ export default class VisualizationController extends Controller {
 
     this.updateLandscape(structureData, dynamicData);
     if (this.timelineTimestamps.lastObject) {
-      this.timestampService.timestamp =
-        this.timelineTimestamps.lastObject?.epochMilli;
+      this.timestampService.updateSelectedTimestamp(
+        this.timelineTimestamps.lastObject?.epochMilli
+      );
       this.selectedTimestampRecords = [
         this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
       ];
@@ -453,7 +454,7 @@ export default class VisualizationController extends Controller {
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
-      this.timestampService.timestamp = epochMilli;
+      this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
