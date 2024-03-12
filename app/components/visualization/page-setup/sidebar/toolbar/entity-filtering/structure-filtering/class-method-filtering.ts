@@ -9,7 +9,7 @@ import TimestampService, {
 
 interface Args {
   readonly classes: Class[];
-  update(newValue: number): void;
+  updateMinMethodCount(newValue: number): void;
   pauseVisualizationUpdating(): void;
 }
 
@@ -71,9 +71,8 @@ export default class ClassMethodFiltering extends Component<Args> {
 
   @action
   onChange(event: any) {
-    this.args.pauseVisualizationUpdating();
     this.selected = Number(event.target.value);
-    this.args.update(this.selected);
+    this.args.updateMinMethodCount(this.selected);
   }
 
   //#endregion template actions

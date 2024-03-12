@@ -2,6 +2,10 @@ import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { inject as service } from '@ember/service';
+import TimestampService, {
+  NEW_SELECTED_TIMESTAMP_EVENT,
+} from 'explorviz-frontend/services/timestamp';
 
 interface Args {
   readonly traces: DynamicLandscapeData;
@@ -10,17 +14,28 @@ interface Args {
 }
 
 export default class TraceStartFiltering extends Component<Args> {
+  @service('timestamp')
+  timestampService!: TimestampService;
+
   @tracked
   selected: number | null = null;
 
   private min: number = Number.MAX_VALUE;
   private max: number = -1;
 
-  get timestamps() {
-    //if (!this.args.visualizationPaused) {
-    //  this.selected = null;
-    //}
+  constructor(owner: any, args: Args) {
+    super(owner, args);
 
+    this.timestampService.on(
+      NEW_SELECTED_TIMESTAMP_EVENT,
+      this,
+      this.onTimestampUpdate
+    );
+  }
+
+  //#region JS getters
+
+  get timestamps() {
     if (!this.selected) {
       const traces = this.args.traces;
 
@@ -39,6 +54,10 @@ export default class TraceStartFiltering extends Component<Args> {
     return { min: this.min, max: this.max, selected: selected };
   }
 
+  //#endregion JS getters
+
+  //#region template actions
+
   formatTimestampToDate(timestamp: number) {
     return new Date(timestamp).toLocaleTimeString();
   }
@@ -54,8 +73,24 @@ export default class TraceStartFiltering extends Component<Args> {
 
   @action
   onChange(event: any) {
-    this.args.pauseVisualizationUpdating();
     this.selected = Number(event.target.value);
     this.args.updateStartTimestamp(this.selected);
+  }
+
+  //#endregion template
+
+  private onTimestampUpdate() {
+    // reset state, since new timestamp has been loaded
+    this.selected = null;
+    this.min = Number.MAX_VALUE;
+    this.max = -1;
+  }
+
+  willDestroy(): void {
+    this.timestampService.off(
+      NEW_SELECTED_TIMESTAMP_EVENT,
+      this,
+      this.onTimestampUpdate
+    );
   }
 }

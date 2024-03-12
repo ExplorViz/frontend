@@ -8,6 +8,10 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { tracked } from '@glimmer/tracking';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { inject as service } from '@ember/service';
+import TimestampService, {
+  NEW_SELECTED_TIMESTAMP_EVENT,
+} from 'explorviz-frontend/services/timestamp';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -19,23 +23,34 @@ interface Args {
 }
 
 export default class TraceFiltering extends Component<Args> {
-  @tracked
-  numRemainingTracesAfterFilteredByDuration =
-    this.args.landscapeData.dynamicLandscapeData.length;
+  @service('timestamp')
+  timestampService!: TimestampService;
 
   @tracked
-  numRemainingTracesAfterFilteredByStarttime =
-    this.args.landscapeData.dynamicLandscapeData.length;
+  numRemainingTracesAfterFilteredByDuration = 0;
 
-  private initialLandscapeData: LandscapeData;
+  @tracked
+  numRemainingTracesAfterFilteredByStarttime = 0;
+
+  @tracked
+  initialLandscapeData!: LandscapeData;
 
   private selectedMinDuration: number = 0;
   private selectedMinStartTimestamp: number = 0;
 
   constructor(owner: any, args: Args) {
     super(owner, args);
-    this.initialLandscapeData = this.args.landscapeData;
+
+    this.resetState();
+
+    this.timestampService.on(
+      NEW_SELECTED_TIMESTAMP_EVENT,
+      this,
+      this.resetState
+    );
   }
+
+  //#region JS getters
 
   get traceCount() {
     const tracesThatAreRendered: Trace[] = structuredClone(
@@ -59,6 +74,10 @@ export default class TraceFiltering extends Component<Args> {
     return tracesThatAreRendered.length;
   }
 
+  //#endregion JS getters
+
+  //#region template actions
+
   @action
   updateDuration(newMinDuration: number) {
     this.selectedMinDuration = newMinDuration;
@@ -69,6 +88,23 @@ export default class TraceFiltering extends Component<Args> {
   updateStartTimestamp(newMinStartTimestamp: number) {
     this.selectedMinStartTimestamp = newMinStartTimestamp;
     this.updateLandscape();
+  }
+
+  //#endregion template actions
+
+  private resetState() {
+    // reset state, since new timestamp has been loaded
+
+    this.initialLandscapeData = this.args.landscapeData;
+
+    this.numRemainingTracesAfterFilteredByDuration =
+      this.args.landscapeData.dynamicLandscapeData.length;
+
+    this.numRemainingTracesAfterFilteredByStarttime =
+      this.args.landscapeData.dynamicLandscapeData.length;
+
+    this.selectedMinDuration = 0;
+    this.selectedMinStartTimestamp = 0;
   }
 
   private updateLandscape() {
