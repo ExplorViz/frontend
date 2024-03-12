@@ -34,12 +34,7 @@ export default class ClassMethodFiltering extends Component<Args> {
     );
   }
 
-  private onTimestampUpdate() {
-    // reset state, since new timestamp has been loaded
-    this.selected = null;
-    this.min = Number.MAX_VALUE;
-    this.max = -1;
-  }
+  //#region JS getters
 
   get classes() {
     if (!this.selected) {
@@ -62,6 +57,10 @@ export default class ClassMethodFiltering extends Component<Args> {
     return { min: this.min, max: this.max, selected: selected };
   }
 
+  //#endregion JS getters
+
+  //#region template actions
+
   @action
   onInput(_: any, htmlInputElement: any) {
     const newValue = htmlInputElement.target.value;
@@ -76,6 +75,15 @@ export default class ClassMethodFiltering extends Component<Args> {
     this.args.pauseVisualizationUpdating();
     this.selected = Number(event.target.value);
     this.args.update(this.selected);
+  }
+
+  //#endregion template actions
+
+  private onTimestampUpdate() {
+    // reset state, since new timestamp has been loaded
+    this.selected = null;
+    this.min = Number.MAX_VALUE;
+    this.max = -1;
   }
 
   willDestroy(): void {
