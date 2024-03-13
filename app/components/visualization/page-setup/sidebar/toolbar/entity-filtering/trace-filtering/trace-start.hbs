@@ -1,0 +1,27 @@
+<div class='mb-3'>
+  <HelpTooltip @title='bla' />
+  <label class='m-0' for='filtering-trace-start'>Min. start timestamp (# traces:
+    <b>{{@remainingTraceCount}} / {{@initialTraceCount}}</b>)</label>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <input
+        id='filtering-trace-start'
+        value={{this.timestamps.selected}}
+        min={{this.timestamps.min}}
+        max={{this.timestamps.max}}
+        type='range'
+        step='1000'
+        class='form-control mr-2'
+        {{on 'change' this.onChange}}
+        oninput={{fn this.onInput this}}
+      />
+      <div class='range-slider--values'>
+        <span>{{this.formatTimestampToDate this.timestamps.min}}</span>
+        <span style='font-weight: bold;'>{{this.formatTimestampToDate
+            this.timestamps.selected
+          }}</span>
+        <span>{{this.formatTimestampToDate this.timestamps.max}}</span>
+      </div>
+    </div>
+  </div>
+</div>

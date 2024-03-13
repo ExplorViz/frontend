@@ -1,0 +1,20 @@
+<h6 class='mb-3 mt-3'><strong>Traces (# shown:
+    {{this.traceCount}}
+    /
+    {{this.initialLandscapeData.dynamicLandscapeData.length}})</strong></h6>
+
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceFiltering::TraceStart
+  @traces={{@landscapeData.dynamicLandscapeData}}
+  @updateStartTimestamp={{this.updateStartTimestamp}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+  @remainingTraceCount={{this.numRemainingTracesAfterFilteredByStarttime}}
+  @initialTraceCount={{this.initialLandscapeData.dynamicLandscapeData.length}}
+/>
+
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceFiltering::TraceDuration
+  @traces={{@landscapeData.dynamicLandscapeData}}
+  @updateDuration={{this.updateDuration}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+  @remainingTraceCount={{this.numRemainingTracesAfterFilteredByDuration}}
+  @initialTraceCount={{this.initialLandscapeData.dynamicLandscapeData.length}}
+/>

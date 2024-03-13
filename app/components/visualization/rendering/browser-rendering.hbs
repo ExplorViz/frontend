@@ -98,6 +98,9 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
+              <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFilteringOpener
+                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              />
               <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearchOpener
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
@@ -109,6 +112,15 @@
           {{#each @componentsToolsSidebar as |componentId|}}
             <div class='card sidebar-card mt-3'>
               <div class='card-body d-flex flex-column'>
+                {{#if (eq componentId 'entity-filtering')}}
+                  <h5 class='text-center'>Entity Filtering</h5>
+                  <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFiltering
+                    @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
+                    @landscapeData={{@landscapeData}}
+                    @updateLandscape={{@updateLandscape}}
+                    @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+                  />
+                {{/if}}
                 {{#if (eq componentId 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
                   <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch

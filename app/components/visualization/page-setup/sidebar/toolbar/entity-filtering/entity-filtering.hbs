@@ -1,0 +1,21 @@
+<div class='mt-2 mb-2 col text-center'>
+  <BsButton {{on 'click' this.resetToInit}} @type='secondary' @outline={{true}}>
+    Reset Filtering
+  </BsButton>
+</div>
+
+<hr class='dropdown-divider mb-3' />
+
+<h6 class='text-center'><u>Trace Filtering</u></h6>
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::TraceFiltering::TraceFiltering
+  @landscapeData={{@landscapeData}}
+  @updateLandscape={{@updateLandscape}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+/>
+
+<h6 class='text-center'><u>Structure Filtering</u></h6>
+<Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::StructureFiltering::StructureFiltering
+  @landscapeData={{@landscapeData}}
+  @updateLandscape={{@updateLandscape}}
+  @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
+/>

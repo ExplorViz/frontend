@@ -479,8 +479,8 @@ function applyBoxLayout(application, allLandscapeTraces) {
   function layoutGeneric(children) {
     const rootSegment = createRootSegment(children);
 
-    let maxX = 0.0;
-    let maxZ = 0.0;
+    let maxX = 5.0;
+    let maxZ = 10.0;
 
     // Sort by width and by name (for entities with same width)
     children.sort(function (e1, e2) {

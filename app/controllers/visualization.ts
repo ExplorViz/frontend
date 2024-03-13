@@ -273,8 +273,9 @@ export default class VisualizationController extends Controller {
 
     this.updateLandscape(structureData, dynamicData);
     if (this.timelineTimestamps.lastObject) {
-      this.timestampService.timestamp =
-        this.timelineTimestamps.lastObject?.epochMilli;
+      this.timestampService.updateSelectedTimestamp(
+        this.timelineTimestamps.lastObject?.epochMilli
+      );
       this.selectedTimestampRecords = [
         this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
       ];
@@ -290,6 +291,7 @@ export default class VisualizationController extends Controller {
     this.updateLandscape(structureData, dynamicData);
   }
 
+  @action
   updateLandscape(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
@@ -452,7 +454,7 @@ export default class VisualizationController extends Controller {
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
-      this.timestampService.timestamp = epochMilli;
+      this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
@@ -492,6 +494,7 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  @action
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
@@ -506,7 +509,6 @@ export default class VisualizationController extends Controller {
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
-    this.closeDataSelection();
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
@@ -521,6 +523,9 @@ export default class VisualizationController extends Controller {
     this.resetTimestampPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
+
+    this.closeDataSelection();
+    this.closeToolsSidebar();
 
     this.roomId = null;
 
