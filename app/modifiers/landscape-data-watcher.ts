@@ -165,8 +165,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const collisionRadius = Math.hypot(x, z) / 2 + 3;
         if (graphNode) {
           graphNode.collisionRadius = collisionRadius;
-          graphNode.fx = graphNode.x;
-          graphNode.fz = graphNode.z;
+          //graphNode.fx = graphNode.x;
+          //graphNode.fz = graphNode.z;
         } else {
           graphNodes.push({
             id: applicationData.application.id,
