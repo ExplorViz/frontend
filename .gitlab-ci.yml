@@ -1,3 +1,7 @@
+include:
+  - project: 'ExplorViz/code/deployment'
+    file: '.gitlab-ci-docker-manifest.yml'
+
 default:
   tags:
     - exec-docker
@@ -79,72 +83,96 @@ build-prod-noauth:
     - echo "{\"auths\":{\"$CONTAINER_REGISTRY_URL\":{\"auth\":\"$(echo -n ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG
 
-deploy-dockerhub-master:
-  extends:
-    - .deploy-to-dockerhub
-  dependencies:
-    - build-prod
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "master"'
-
-deploy-dockerhub-dev:
+deploy-main-amd64:
   extends:
     - .deploy-to-dockerhub
   dependencies:
     - build-prod
   variables:
-    DOCKERHUB_TAG: 'dev'
+    DOCKERHUB_TAG: 'amd64'
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
 
-deploy-dockerhub-dev-noauth:
+deploy-main-arm64:
+  extends:
+    - .deploy-to-dockerhub
+  dependencies:
+    - build-prod
+  tags:
+    - "arm64"
+  variables:
+    DOCKERHUB_TAG: 'arm64'
+  rules:
+    - if: $MULTI_ARCH_BUILD
+
+deploy-dev-noauth-amd64:
   extends:
     - .deploy-to-dockerhub
   dependencies:
     - build-prod-noauth
   variables:
-    DOCKERHUB_TAG: 'dev-noauth'
+    DOCKERHUB_TAG: 'dev-noauth-amd64'
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
 
-deploy-dockerhub-mr-to-dev:
+deploy-dev-noauth-arm64:
+  extends:
+    - .deploy-to-dockerhub
+  dependencies:
+    - build-prod-noauth
+  tags:
+    - "arm64"
+  variables:
+    DOCKERHUB_TAG: 'dev-noauth-arm64'
+  rules:
+    - if: $MULTI_ARCH_BUILD
+
+deploy-merge-request:
   extends:
     - .deploy-to-dockerhub
   dependencies:
     - build-prod
   variables:
-    DOCKERHUB_TAG: $CI_COMMIT_SHORT_SHA
+    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
-deploy-dockerhub-mr-to-dev-noauth:
+deploy-merge-request-noauth:
   extends:
     - .deploy-to-dockerhub
   dependencies:
     - build-prod-noauth
   variables:
-    DOCKERHUB_TAG: $CI_COMMIT_SHORT_SHA-noauth
+    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID-noauth
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
-retag-dockerhub-image:
-  stage: deploy:retagging
+retag-main-amd64-as-latest:
+  extends: .retag-dockerhub-image
   rules:
-    - if: '$CI_PIPELINE_SOURCE != "schedule" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master") && $CI_PIPELINE_SOURCE == "push"'
-  image:
-    name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: ['']
-  script:
-    - crane auth login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD "index.docker.io"
-    - crane cp $DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG $DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - if: $MULTI_ARCH_BUILD
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline"'
+  variables:
+    SOURCE_TAG: "amd64"
+    TARGET_TAG: "latest"
 
-retag-dockerhub-image-noauth:
-  stage: deploy:retagging
+retag-dev-noauth-amd64:
+  extends: .retag-dockerhub-image
   rules:
-    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE != "schedule"'
-  image:
-    name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: ['']
-  script:
-    - crane auth login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD "index.docker.io"
-    - crane cp $DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:dev-noauth $DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:dev-noauth-$CI_COMMIT_SHORT_SHA
+    - if: $MULTI_ARCH_BUILD
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline"'
+  variables:
+    SOURCE_TAG: "dev-noauth-amd64"
+    TARGET_TAG: "dev-noauth"
+
+publish-multi-arch-latest:
+  extends: .retag-as-multi-arch-dockerhub-image
+
+publish-multi-arch-dev-noauth:
+  variables:
+    TAG_PREFIX: 'dev-noauth-'
+  extends: .retag-as-multi-arch-dockerhub-image
