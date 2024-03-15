@@ -159,6 +159,7 @@ retag-main-amd64-as-latest:
   variables:
     SOURCE_TAG: "amd64"
     TARGET_TAG: "latest"
+  cache:
 
 retag-dev-noauth-amd64:
   extends: .retag-dockerhub-image
@@ -170,11 +171,14 @@ retag-dev-noauth-amd64:
   variables:
     SOURCE_TAG: "dev-noauth-amd64"
     TARGET_TAG: "dev-noauth"
+  cache:
 
 publish-multi-arch-latest:
   extends: .retag-as-multi-arch-dockerhub-image
+  cache:
 
 publish-multi-arch-dev-noauth:
   variables:
     TAG_PREFIX: 'dev-noauth-'
   extends: .retag-as-multi-arch-dockerhub-image
+  cache:
