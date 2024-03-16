@@ -24,6 +24,20 @@ export default class MetricDataComponent extends Component {
     @tracked
     metrics: MetricLandscapeData = [];
 
+    /**
+     * Asynchronously loads metrics data from the metric service.
+     * 
+     * This action triggers a fetch request to the metric service using the current landscape token
+     * and timestamp from the tokenService and timestampService respectively. It then processes the
+     * raw data into a format compatible with the Metric interface.
+     * 
+     * Throws an error if no landscape token is selected or if the fetch request fails.
+     * 
+     * @action
+     * @async
+     * @throws {Error} When no landscape token is selected or the fetch request fails.
+     * @returns {void} Updates the `metrics` property with the fetched and processed data.
+     */
     @action
     async loadMetrics() {
         if (this.tokenService.token === null) {
@@ -36,7 +50,6 @@ export default class MetricDataComponent extends Component {
             }
             const rawData: any[] = await response.json();
 
-            // Umwandlung der Daten in das Format des Metric-Interfaces
             this.metrics = rawData.map(metricArray => ({
                 idk: metricArray[0],
                 table: parseFloat(metricArray[1]),

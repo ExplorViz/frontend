@@ -1,7 +1,7 @@
 import isObject from '../object-helpers';
 
 export interface Metric {
-    idk: string;        //der wert ist in Postman stets leer ist, das ist also quasi ein Lückenfüller
+    idk: string;        //idk means here I don't know, since Influx always transmitts one empty key-value pair that is catched by this dummy variable
     table: number;
     timestamp: Date; 
     value: number;
