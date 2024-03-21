@@ -73,21 +73,9 @@ build-prod-noauth:
   before_script:
     - export AUTH0_ENABLED=false
 
-.deploy-to-dockerhub:
-  stage: deploy:images
-  variables:
-    DOCKERHUB_TAG: 'latest'
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: ['']
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"$CONTAINER_REGISTRY_URL\":{\"auth\":\"$(echo -n ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --destination=$DOCKERHUB_ORGANIZATION/$DOCKERHUB_IMAGE_NAME:$DOCKERHUB_TAG
-
 deploy-main-amd64:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod
   variables:
@@ -97,7 +85,7 @@ deploy-main-amd64:
 
 deploy-main-arm64:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod
   tags:
@@ -105,11 +93,11 @@ deploy-main-arm64:
   variables:
     DOCKERHUB_TAG: 'arm64'
   rules:
-    - if: $MULTI_ARCH_BUILD
+    - if: $MULTI_ARCH_BUILD || $ARM64_BUILD
 
 deploy-dev-noauth-amd64:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod-noauth
   variables:
@@ -119,7 +107,7 @@ deploy-dev-noauth-amd64:
 
 deploy-dev-noauth-arm64:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod-noauth
   tags:
@@ -127,11 +115,11 @@ deploy-dev-noauth-arm64:
   variables:
     DOCKERHUB_TAG: 'dev-noauth-arm64'
   rules:
-    - if: $MULTI_ARCH_BUILD
+    - if: $MULTI_ARCH_BUILD || $ARM64_BUILD
 
 deploy-merge-request:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod
   variables:
@@ -141,7 +129,7 @@ deploy-merge-request:
 
 deploy-merge-request-noauth:
   extends:
-    - .deploy-to-dockerhub
+    - .build-and-deploy
   dependencies:
     - build-prod-noauth
   variables:
@@ -152,7 +140,7 @@ deploy-merge-request-noauth:
 retag-main-amd64-as-latest:
   extends: .retag-dockerhub-image
   rules:
-    - if: $MULTI_ARCH_BUILD
+    - if: $MULTI_ARCH_BUILD || $ARM64_BUILD
       when: never
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
@@ -164,7 +152,7 @@ retag-main-amd64-as-latest:
 retag-dev-noauth-amd64:
   extends: .retag-dockerhub-image
   rules:
-    - if: $MULTI_ARCH_BUILD
+    - if: $MULTI_ARCH_BUILD || $ARM64_BUILD
       when: never
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
