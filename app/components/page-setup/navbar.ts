@@ -38,6 +38,11 @@ export default class Navbar extends Component {
     });
   }
 
+  @action
+  goToSettings() {
+    this.router.transitionTo('settings');
+  }
+
   get isSingleLandscapeMode() {
     return (
       ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'

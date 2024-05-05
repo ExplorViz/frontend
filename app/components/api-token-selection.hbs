@@ -1,0 +1,73 @@
+<div class='pb-5 px-5 w-100'>
+  <h5 class='text-left mb-3'>API-Tokens</h5>
+  <div class='flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th scope='col' {{on 'click' (fn this.sortBy 'name')}}>Name</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortBy 'createdAt')}}
+          >Created</th>
+          <th scope='col' {{on 'click' (fn this.sortBy 'expires')}}>Expires</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortProperty ':' this.sortOrder) 'name' @apiTokens
+          )
+          as |apiToken|
+        }}
+          <tr class='snapshot-selection-row'>
+            <th style='width: 50%' scope='row'>{{apiToken.name}} </th>
+            <th scope='row'>{{timestamp-to-date
+                apiToken.createdAt
+                'localString'
+              }}</th>
+            <th scope='row'>{{timestamp-to-date
+                apiToken.expires
+                'localString'
+              }}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <div id='colorPresets' class='dropdown'>
+                    <a
+                      class='button-svg-with-hover'
+                      type='button'
+                      tabindex='0'
+                      href='#'
+                      {{on 'click' (fn this.deleteApiToken apiToken.apiToken)}}
+                    >
+                      {{svg-jar 'trash-16' class='octicon align-middle'}}
+                      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                        Delete Snapshot
+                      </BsTooltip>
+                    </a>
+                  </div>
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no saved API-Tokens.
+        {{/each}}
+        <tr>
+          <td colspan='4' class='p-1'>
+            <div class='d-flex flex-row justify-content-center'>
+              <BsButton
+                @type='primary'
+                class='align-self-center pt-2 px-3'
+                {{on 'click' this.createApiToken}}
+              >
+                {{svg-jar 'plus-16' class='octicon'}}
+              </BsButton>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

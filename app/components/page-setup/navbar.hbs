@@ -72,6 +72,16 @@
               }}
               {{this.auth.user.sub}}</span>
           </div></li>
+        <li>
+          <button
+            class='dropdown-item'
+            type='button'
+            {{on 'click' this.goToSettings}}
+          >
+            {{svg-jar 'gear-16' class='octicon'}}
+            Settings
+          </button>
+        </li>
         {{#if this.tokenService.token}}
           <li>
             <button
