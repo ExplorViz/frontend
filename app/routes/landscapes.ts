@@ -5,12 +5,19 @@ import LandscapeTokenService, {
 import ENV from 'explorviz-frontend/config/environment';
 import { action } from '@ember/object';
 import BaseRoute from './base-route';
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
+import Ember from 'ember';
 
 const { tokenToShow } = ENV.mode;
 
 export default class Landscapes extends BaseRoute {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
 
   @service('router')
   router!: any;
@@ -25,12 +32,19 @@ export default class Landscapes extends BaseRoute {
       this.router.transitionTo('visualization');
     }
 
-    return this.tokenService.retrieveTokens();
+    //return this.tokenService.retrieveTokens();
+    return Ember.RSVP.hash({
+      landscapeTokens: this.tokenService.retrieveTokens(),
+      snapshotTokens: this.snapshotService.retrieveTokens(),
+    });
   }
 
-  afterModel(landscapeTokens: LandscapeToken[]) {
+  afterModel(tokens: {
+    landscapeTokens: LandscapeToken[];
+    snapshotTokens: SnapshotToken[];
+  }) {
     const currentToken = this.tokenService.token;
-    const tokenCandidates = landscapeTokens.filter(
+    const tokenCandidates = tokens.landscapeTokens.filter(
       (token) => token.value === currentToken?.value
     );
     if (tokenCandidates.length > 0) {

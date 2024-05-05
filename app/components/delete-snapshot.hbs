@@ -1,0 +1,14 @@
+<div id='colorPresets' class='dropdown'>
+  <a
+    class='button-svg-with-hover'
+    type='button'
+    tabindex='0'
+    href='#'
+    {{on 'click' (fn this.deleteSnapshot @token)}}
+  >
+    {{svg-jar 'trash-16' class='octicon align-middle'}}
+    <BsTooltip @placement='bottom' @triggerEvents='hover'>
+      Delete Snapshot
+    </BsTooltip>
+  </a>
+</div>

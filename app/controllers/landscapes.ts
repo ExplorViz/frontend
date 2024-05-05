@@ -8,12 +8,18 @@ import Auth from 'explorviz-frontend/services/auth';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
 
 const { userService } = ENV.backendAddresses;
 
 export default class Landscapes extends Controller {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapShotTokenService!: SnapshotTokenService;
 
   @service('router')
   router!: any;
@@ -47,6 +53,17 @@ export default class Landscapes extends Controller {
     this.tokenService.setToken(token);
     this.router.transitionTo('visualization', {
       queryParams: { landscapeToken: token.value },
+    });
+  }
+
+  /**
+   * TODO: update to load the highlighting as well
+   */
+  @action
+  selectSnapshot(token: SnapshotToken) {
+    this.tokenService.setToken(token.landscapeToken);
+    this.router.transitionTo('visualization', {
+      queryParams: { landscapeToken: token.landscapeToken.value },
     });
   }
 

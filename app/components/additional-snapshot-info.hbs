@@ -1,0 +1,44 @@
+<div id='colorPresets' class='dropdown'>
+  <a
+    class='button-svg-with-hover'
+    type='button'
+    tabindex='0'
+    href='#'
+    {{on 'focusout' this.hidePopover}}
+    {{on 'click' this.onClick}}
+  >
+    {{svg-jar 'info-16' class='octicon align-middle'}}
+    <BsTooltip @placement='bottom' @triggerEvents='hover'>
+      Show additional info
+    </BsTooltip>
+    <BsPopover id={{this.id}} @title={{@token.name}}>
+      <table class='table table-striped' style='width: 100%'>
+        <tbody>
+          <tr>
+            <td>Owner</td>
+            <td style='word-break: break-all'>
+              {{if (eq @token.owner this.auth.user.sub) 'You' @token.owner}}
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>ID</td>
+            <td>{{@token.landscapeToken.value}}</td>
+            <td>
+              <CopyButton
+                class='button-svg-with-hover'
+                @text={{@token.landscapeToken.value}}
+                @onSuccess={{this.onTokenIdCopied}}
+              >
+                {{svg-jar 'copy-16' class='octicon align-middle'}}
+                <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                  Copy id to clipboard
+                </BsTooltip>
+              </CopyButton>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </BsPopover>
+  </a>
+</div>

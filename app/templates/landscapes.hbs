@@ -1,17 +1,24 @@
-<div class='container overflow-hidden mt-5 mb-5 d-flex flex-column flex-1'>
+<div class='container overflow-auto mt-5 mb-5 d-flex flex-column flex-1'>
   <h4 class='text-center mt-4 mb-3'>Select Software Landscape</h4>
-  <div class='d-flex flex-row justify-content-center overflow-auto'>
+  <div class='d-flex flex-row justify-content-center overflow-scroll'>
     <TokenSelection
       @openTokenCreationModal={{this.openTokenCreationModal}}
       @selectToken={{this.selectToken}}
-      @tokens={{@model}}
+      @tokens={{@model.landscapeTokens}}
       @latestToken={{this.tokenService.latestToken}}
       @deleteToken={{this.deleteToken}}
       @reload={{this.reload}}
     />
   </div>
   <h4 class='text-center mt-2 mb-3'>Open Sessions</h4>
-  <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+  <RoomList
+    @tokens={{@model.landscapeTokens}}
+    @selectToken={{this.selectToken}}
+  />
+  <h4 class='text-center mt-5 mb-3'>Snapshots</h4>
+  <div class='px-5'>
+    <SnapshotSelection @snapShotTokens={{@model.snapshotTokens}} @selectToken={{this.selectSnapshot}} />
+  </div>
 </div>
 
 <BsModalSimple
