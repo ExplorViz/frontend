@@ -135,6 +135,7 @@
     "colors": "^1.4.0",
     "crypto-js": "^4.2.0",
     "d3-force-3d": "^3.0.5",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.1",
     "ember-ajax": "^5.1.2",
     "ember-cli": "^5.4.0",
