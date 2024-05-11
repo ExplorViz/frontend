@@ -31,10 +31,22 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
     console.log('save snapshot:' + this.snapshotName);
   }
 
+  exportFile(exportData: any) {
+    const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+      JSON.stringify(exportData)
+    )}`;
+    const link = document.createElement('a');
+    link.href = jsonString;
+    link.download = 'data.sp';
+
+    link.click();
+  }
+
   @action
   exportSnapshot() {
     // hier noch toasthandler für success und so
     this.saveSnapShot();
+    this.exportFile({ name: this.snapshotName });
     console.log('export snapshot:' + this.snapshotName);
   }
 }
