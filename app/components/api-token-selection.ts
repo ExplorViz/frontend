@@ -80,6 +80,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
 
   @action
   closeMenu() {
+    this.reset();
     this.createToken = false;
   }
 

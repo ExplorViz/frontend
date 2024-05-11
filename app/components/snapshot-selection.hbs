@@ -58,7 +58,7 @@
               <BsButton
                 @type='primary'
                 class='align-self-center pt-2 px-3'
-                {{on 'click' this.uploadSnapshot}}
+                {{on 'click' this.openMenu}}
               >
                 {{svg-jar 'file-added-16' class='octicon'}}
               </BsButton>
@@ -68,6 +68,44 @@
       </tbody>
     </table>
   </div>
+  <BsModal
+    @open={{this.uploadSnapshotMenu}}
+    @onHidden={{this.closeMenu}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Upload Snapshot</h4>
+    </modal.header>
+    <modal.body>
+      <label for='token'>Snapshot Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.name}}
+        />
+      </div>
+      <div class='d-flex justify-content-between mt-4'>
+        <input id='fileUpload' type='file' name='file' accept='.sp' oninput={{this.updateFile}}/>
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.reset}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Upload'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.uploadSnapshot}}
+        disabled={{this.uploadSnapshotBtnDisabled}}
+      >Upload</BsButton>
+    </modal.footer>
+
+  </BsModal>
 </div>
 
 <div class='pb-3'>
