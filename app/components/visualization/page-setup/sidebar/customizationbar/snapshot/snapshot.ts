@@ -20,18 +20,20 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @action
   updateName(event: InputEvent) {
-    const target = event.target as HTMLInputElement;
+    const target: HTMLInputElement = event.target as HTMLInputElement;
     this.snapshotName = target.value;
     this.canSaveSnapShot();
   }
 
   @action
   saveSnapShot() {
+    // hier noch toasthandler für success und so
     console.log('save snapshot:' + this.snapshotName);
   }
 
   @action
   exportSnapshot() {
+    // hier noch toasthandler für success und so
     this.saveSnapShot();
     console.log('export snapshot:' + this.snapshotName);
   }

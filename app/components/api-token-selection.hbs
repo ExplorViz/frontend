@@ -60,7 +60,7 @@
               <BsButton
                 @type='primary'
                 class='align-self-center pt-2 px-3'
-                {{on 'click' this.createApiToken}}
+                {{on 'click' this.openMenu}}
               >
                 {{svg-jar 'plus-16' class='octicon'}}
               </BsButton>
@@ -70,4 +70,57 @@
       </tbody>
     </table>
   </div>
+</div>
+<div>
+  <BsModal @open={{this.createToken}} @onHidden={{this.closeMenu}} as |modal|>
+    <modal.header>
+      <h4 class='modal-title'>Create API Token</h4>
+    </modal.header>
+    <modal.body>
+      <label for='token'>API Token:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='token'
+          class='form-control mr-2'
+          oninput={{this.updateToken}}
+          value={{this.token}}
+        />
+      </div>
+      <label class='mt-2' for='token'>Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.name}}
+        />
+      </div>
+      <label class='mt-2' for='token'>Expires <i>- Optional:</i> </label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='date'
+          class='form-control mr-2'
+          type='date'
+          min={{this.today}}
+          oninput={{this.updateExpDate}}
+          {{!-- value={{this.expDate}} --}}
+        />
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.reset}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Save'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.createApiToken}}
+        disabled={{this.saveBtnDisabled}}
+      >Save</BsButton>
+    </modal.footer>
+
+  </BsModal>
 </div>
