@@ -194,6 +194,9 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
+              {{#if (eq componentId 'Persist-Landscape')}}
+              <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot />
+              {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
                   @enterFullscreen={{this.enterFullscreen}}

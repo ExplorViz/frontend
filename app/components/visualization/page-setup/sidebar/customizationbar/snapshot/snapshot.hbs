@@ -1,0 +1,30 @@
+<div class='flex justify-content-between mt-3'>
+  <h6 class='bold'>Snapshot Name:</h6>
+  <input
+    id='name'
+    class='form-control mr-2'
+    oninput={{this.updateName}}
+    value={{this.snapshotName}}
+  />
+</div>
+<div class='flex mt-3'>
+  <BsButton
+    class='mr-2'
+    title='Save Snapshot'
+    {{on 'click' this.saveSnapShot}}
+    @type='secondary'
+    @outline={{true}}
+    disabled={{this.saveSnaphotBtnDisabled}}
+  >
+    Create Snapshot
+  </BsButton>
+  <BsButton
+    title='Export Snapshot'
+    {{on 'click' this.exportSnapshot}}
+    @type='secondary'
+    @outline={{true}}
+    disabled={{this.saveSnaphotBtnDisabled}}
+  >
+    Export Snapshot
+  </BsButton>
+</div>
