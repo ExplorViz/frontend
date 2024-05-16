@@ -4,19 +4,14 @@ import ToastHandlerService from './toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 // import { action } from '@ember/object';
 
-export type User = {
-  uId: string;
-  name: string;
-  token: [
-    { name: string; apiToken: string; createdAt: number; expires: number },
-  ];
-};
+const { userServiceApi } = ENV.backendAddresses;
 
 export type ApiToken = {
+  uid: string;
   name: string;
-  apiToken: string;
+  token: string;
   createdAt: number;
-  expires: number;
+  expires?: number;
 };
 
 export default class UserApiTokenService extends Service {
@@ -30,34 +25,62 @@ export default class UserApiTokenService extends Service {
    * TODO: actual DB call
    * @returns
    */
-  retrieveApiTokens(): ApiToken[] {
-    if (ENV.auth0.enabled === 'false') {
-      // make api call to DB, but not authorished, give a standard uId to Johnny?
-      return [
-        {
-          name: 'GitLab Api Token',
-          apiToken: 'apiToken123',
-          createdAt: 1714940718,
-          expires: 1770323118,
+  retrieveApiTokens() {
+    return new Promise<ApiToken[]>((resolve, reject) => {
+      const userId = encodeURI(this.auth.user?.sub || '');
+      if (!userId) {
+        resolve([]);
+      }
+
+      fetch(`${userServiceApi}/userapi`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
         },
-        {
-          name: 'GitHub Api Token',
-          apiToken: 'apiToken1234',
-          createdAt: 19071647189,
-          expires: 1938787198,
-        },
-      ];
-    } else {
-      // make api call to DB but authorized
-      return [
-        {
-          name: 'GitLab Api Token',
-          apiToken: 'apiToken123',
-          createdAt: 1234,
-          expires: 123456,
-        },
-      ];
-    }
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as ApiToken[];
+            resolve(tokens);
+          } else {
+            reject();
+          }
+        })
+        .catch(async (e) => {
+          reject(e);
+        });
+    });
+
+    // if (ENV.auth0.enabled === 'false') {
+    //   // make api call to DB, but not authorished, give a standard uId to Johnny?
+
+    //   return [
+    //     {
+    //       uId: 'Testname',
+    //       name: 'GitLab Api Token',
+    //       token: 'apiToken123',
+    //       createdAt: 1714940718,
+    //       expires: 1770323118,
+    //     },
+    //     {
+    //       uId: 'Testname 2',
+    //       name: 'GitHub Api Token',
+    //       token: 'apiToken1234',
+    //       createdAt: 19071647189,
+    //       expires: 1938787198,
+    //     },
+    //   ];
+    // } else {
+    //   // make api call to DB but authorized
+    //   return [
+    //     {
+    //       uId: 'testname 3',
+    //       name: 'GitLab Api Token',
+    //       token: 'apiToken123',
+    //       createdAt: 1234,
+    //       expires: 123456,
+    //     },
+    //   ];
+    // }
   }
 }
 

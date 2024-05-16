@@ -5,18 +5,28 @@ import Auth from 'explorviz-frontend/services/auth';
 import { tracked } from '@glimmer/tracking';
 import { ApiToken } from 'explorviz-frontend/services/user-api-token';
 import { format } from 'date-fns';
+import ENV from 'explorviz-frontend/config/environment';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+
+const { userServiceApi } = ENV.backendAddresses;
 
 export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
 
-  @service
+  @service('auth')
   auth!: Auth;
 
-  @tracked
-  sortProperty: keyof ApiToken = 'name';
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
+
+  @service('router')
+  router!: any;
 
   @tracked
-  sortOrder: 'asc' | 'desc' = 'asc';
+  sortProperty: keyof ApiToken = 'createdAt';
+
+  @tracked
+  sortOrder: 'asc' | 'desc' = 'desc';
 
   @tracked
   createToken: boolean = false;
@@ -63,14 +73,23 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
     }
   }
 
-  /*
-   * TODO: deleteApiTOken from DB
-   * @param apiToken
-   */
   @action
-  deleteApiToken(apiToken: string) {
-    // give db uID wiht auth.user.user_id or if not auth ("johnny", than the hardcoded uId)
-    console.log(apiToken);
+  async deleteApiToken(apiToken: string, uId: string) {
+    const url = `${userServiceApi}/userapi/delete?uId=${uId}&token=${apiToken}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      this.toastHandler.showSuccessToastMessage(
+        'API-Token successfully deleted.'
+      );
+    } else {
+      this.toastHandler.showErrorToastMessage(
+        'Something went wrong. API-Token could not be deleted.'
+      );
+    }
+
+    this.router.refresh('settings');
   }
 
   @action
@@ -83,22 +102,34 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
     this.reset();
     this.createToken = false;
   }
-
+  /**
+   * TODO: Toasthandler hinzufügen mit success, failed etc.
+   * TODO: Verschiedene Stati beachten
+   */
   @action
-  createApiToken() {
-    // hier noch Toasthandler für success und so
+  async createApiToken() {
     const createdAt: number = new Date().getTime();
-    console.log(
-      'Create API-Token with:' +
-        this.name +
-        ', ' +
-        this.token +
-        ', ' +
-        createdAt +
-        ', ' +
-        this.expDate
-    );
+
+    const url =
+      this.expDate !== null
+        ? `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${this.name}&token=${this.token}&createdAt=${createdAt}&expires=${this.expDate}`
+        : `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${this.name}&token=${this.token}&createdAt=${createdAt}`;
+    const response = await fetch(url, {
+      method: 'POST',
+    });
+    if (response.ok) {
+      this.toastHandler.showSuccessToastMessage(
+        'API-Token successfully saved.'
+      );
+    } else if (response.status === 422) {
+      this.toastHandler.showErrorToastMessage('Token is already being used.');
+    } else {
+      this.toastHandler.showErrorToastMessage(
+        'Something went wrong. API-Token could not be saved.'
+      );
+    }
     this.reset();
+    this.router.refresh('settings');
   }
 
   @action
@@ -137,5 +168,13 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
     } else {
       this.saveBtnDisabled = true;
     }
+  }
+
+  formatDate(date: number, showMin: boolean): string {
+    if (date === 0) {
+      return '-';
+    } else if (showMin) {
+      return format(new Date(date), 'dd/MM/yyyy, HH:mm');
+    } else return format(new Date(date), 'dd/MM/yyyy');
   }
 }

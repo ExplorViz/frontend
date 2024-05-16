@@ -27,6 +27,7 @@ declare const config: {
   backendAddresses: {
     spanService: string;
     userService: string;
+    userServiceApi: string;
     vsCodeService: string;
     collaborationService: string;
   };

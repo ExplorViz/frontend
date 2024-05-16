@@ -5,6 +5,7 @@
       <thead>
         <tr>
           <th scope='col' {{on 'click' (fn this.sortBy 'name')}}>Name</th>
+          <th scope='col'>API Token</th>
           <th
             scope='col'
             {{on 'click' (fn this.sortBy 'createdAt')}}
@@ -16,20 +17,15 @@
       <tbody>
         {{#each
           (sort-by
-            (concat this.sortProperty ':' this.sortOrder) 'name' @apiTokens
+            (concat this.sortProperty ':' this.sortOrder) 'createdAt' @apiTokens
           )
           as |apiToken|
         }}
           <tr class='snapshot-selection-row'>
-            <th style='width: 50%' scope='row'>{{apiToken.name}} </th>
-            <th scope='row'>{{timestamp-to-date
-                apiToken.createdAt
-                'localString'
-              }}</th>
-            <th scope='row'>{{timestamp-to-date
-                apiToken.expires
-                'localString'
-              }}</th>
+            <th style='width: 40%' scope='row'>{{apiToken.name}} </th>
+            <th style='width: 25%' scope='row'>{{apiToken.token}} </th>
+            <th scope='row'>{{this.formatDate apiToken.createdAt true}}</th>
+            <th scope='row'>{{this.formatDate apiToken.expires}}</th>
             <th scope='row'>
               <ul class='token-selection-icons'>
                 <li>
@@ -39,7 +35,10 @@
                       type='button'
                       tabindex='0'
                       href='#'
-                      {{on 'click' (fn this.deleteApiToken apiToken.apiToken)}}
+                      {{on
+                        'click'
+                        (fn this.deleteApiToken apiToken.token apiToken.uid)
+                      }}
                     >
                       {{svg-jar 'trash-16' class='octicon align-middle'}}
                       <BsTooltip @placement='bottom' @triggerEvents='hover'>
@@ -55,7 +54,7 @@
           There are no saved API-Tokens.
         {{/each}}
         <tr>
-          <td colspan='4' class='p-1'>
+          <td colspan='5' class='p-1'>
             <div class='d-flex flex-row justify-content-center'>
               <BsButton
                 @type='primary'
@@ -117,7 +116,7 @@
         title='Save'
         @type='secondary'
         @outline={{true}}
-        @onClick={{this.createApiToken}}
+        @onClick={{(fn this.createApiToken @refreshRoute)}}
         disabled={{this.saveBtnDisabled}}
       >Save</BsButton>
     </modal.footer>
