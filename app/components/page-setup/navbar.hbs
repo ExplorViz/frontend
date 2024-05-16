@@ -2,12 +2,17 @@
   class='p-3 disable-select pointer-events-none'
   style='position: absolute; width: 100vw; z-index: 1000;'
 >
-  <img
-    style='height: 30px; float: left'
-    src='images/explorviz-30px.png'
-    alt='ExplorViz'
-    draggable='false'
-  />
+  <div
+    class='btn-group pointer-events-all'
+    {{on 'click' this.goToLandscapeSelection}}
+  >
+    <img
+      style='height: 30px; float: left'
+      src='images/explorviz-30px.png'
+      alt='ExplorViz'
+      draggable='false'
+    />
+  </div>
   {{#unless this.isSingleLandscapeMode}}
     {{#if this.tokenService.token}}
       <div class='navbar-token-link pointer-events-all d-none d-md-block'>
