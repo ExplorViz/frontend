@@ -262,7 +262,7 @@ export default class PopupHandler {
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
-    popup.isPinned = popup.wasMoved || newPopup.isPinned;
+    popup.isPinned = popup.isPinned || newPopup.isPinned;
     popup.sharedBy = newPopup.sharedBy;
     this.updateMeshReference(popup);
   }
