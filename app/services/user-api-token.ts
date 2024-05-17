@@ -26,7 +26,7 @@ export default class UserApiTokenService extends Service {
    * @returns
    */
   retrieveApiTokens() {
-    return new Promise<ApiToken[]>((resolve, reject) => {
+    return new Promise<ApiToken[]>((resolve) => {
       const userId = encodeURI(this.auth.user?.sub || '');
       if (!userId) {
         resolve([]);
@@ -42,11 +42,15 @@ export default class UserApiTokenService extends Service {
             const tokens = (await response.json()) as ApiToken[];
             resolve(tokens);
           } else {
-            reject();
+            resolve([]);
+            this.toastHandler.showErrorToastMessage(
+              'API-Tokens could not be laoded.'
+            );
           }
         })
-        .catch(async (e) => {
-          reject(e);
+        .catch(async () => {
+          resolve([]);
+          this.toastHandler.showErrorToastMessage('Server not available.');
         });
     });
 
