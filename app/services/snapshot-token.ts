@@ -1,24 +1,30 @@
 import Service, { inject as service } from '@ember/service';
 // import { tracked } from '@glimmer/tracking';
-// import ENV from 'explorviz-frontend/config/environment';
+import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
+import { tracked } from '@glimmer/tracking';
+//import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
+/**
+ *  Change julius!
+ */
 export type SnapshotToken = {
-  id: number;
-  name: string;
-  landscapeToken: LandscapeToken;
   owner: string;
   createdAt: number;
+  name: string;
+  landscapeToken: LandscapeToken;
+  structureData: any;
   configuration: any;
   camera: any;
-  annotation: any;
+  annotations: any;
   isShared: boolean;
-  deleteAt?: number;
+  deleteAt: number;
+  julius: any;
 };
 
-//const { userService } = ENV.backendAddresses;
+const { userServiceApi } = ENV.backendAddresses;
 
 export default class SnapshotTokenService extends Service {
   @service('auth')
@@ -27,103 +33,41 @@ export default class SnapshotTokenService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  retrieveTokens(): SnapshotToken[] {
-    //uncomment when backend is implemented
+  @tracked
+  snapshotToken: SnapshotToken | null = null;
 
-    // return new Promise<SnapShotToken[]>((resolve, reject) => {
-    //   const userId = encodeURI(this.auth.user?.sub || '');
-    //   if (!userId) {
-    //     resolve([]);
-    //   }
+  retrieveTokens() {
+    return new Promise<SnapshotToken[]>((resolve) => {
+      const userId = encodeURI(this.auth.user?.sub || '');
+      if (!userId) {
+        resolve([]);
+      }
 
-    //   fetch(`${userService}/user/${userId}/snapshottoken`, {
-    //     headers: {
-    //       Authorization: `Bearer ${this.auth.accessToken}`,
-    //     },
-    //   })
-    //     .then(async (response: Response) => {
-    //       if (response.ok) {
-    //         const tokens = (await response.json()) as SnapShotToken[];
-    //         resolve(tokens);
-    //       } else {
-    //         reject();
-    //       }
-    //     })
-    //     .catch(async (e) => {
-    //       reject(e);
-    //     });
-    // });
+      fetch(`${userServiceApi}/snapshot?owner=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+        },
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as SnapshotToken[];
+            resolve(tokens);
+          } else {
+            resolve([]);
+            this.toastHandler.showErrorToastMessage(
+              'Snapshots could not be loaded.'
+            );
+          }
+        })
+        .catch(async () => {
+          resolve([]);
+          this.toastHandler.showErrorToastMessage('Server not available.');
+        });
+    });
+  }
 
-    return [
-      {
-        id: 1,
-        name: 'firstSnapshotToken',
-        landscapeToken: {
-          alias: 'egal',
-          created: 123456,
-          ownerId: 'egal',
-          sharedUsersIds: [],
-          value: '12444195-6144-4254-a17b-asdgfewefg',
-        },
-        owner: 'User',
-        createdAt: 1714833928,
-        configuration: null,
-        camera: null,
-        annotation: null,
-        isShared: false,
-      },
-      {
-        id: 1,
-        name: 'secondSnapshotToken',
-        landscapeToken: {
-          alias: 'egal',
-          created: 123456,
-          ownerId: 'egal',
-          sharedUsersIds: [],
-          value: '12444195-6144-4254-a17b-asdgfewefg',
-        },
-        owner: 'User',
-        createdAt: 1715833928,
-        configuration: null,
-        camera: null,
-        annotation: null,
-        isShared: false,
-      },
-      {
-        id: 1,
-        name: 'firstSharedSnapshotToken',
-        landscapeToken: {
-          alias: 'egal',
-          created: 123456,
-          ownerId: 'egal',
-          sharedUsersIds: [],
-          value: '12444195-6144-4254-a17b-asdgfewefg',
-        },
-        owner: 'User',
-        createdAt: 1716833928,
-        configuration: null,
-        camera: null,
-        annotation: null,
-        isShared: true,
-      },
-      {
-        id: 1,
-        name: 'secondSharedSnapshotToken',
-        landscapeToken: {
-          alias: 'egal',
-          created: 123456,
-          ownerId: 'egal',
-          sharedUsersIds: [],
-          value: '12444195-6144-4254-a17b-asdgfewefg',
-        },
-        owner: 'User',
-        createdAt: 1917833928,
-        configuration: null,
-        camera: null,
-        annotation: null,
-        isShared: true,
-      },
-    ];
+  setToken(token: SnapshotToken) {
+    this.snapshotToken = token;
   }
 }
 

@@ -47,6 +47,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
@@ -91,6 +92,8 @@ export default class VisualizationController extends Controller {
 
   @service('landscape-token') landscapeTokenService!: LandscapeTokenService;
 
+  @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
+
   @service('reload-handler') reloadHandler!: ReloadHandler;
 
   @service('repos/application-repository')
@@ -134,12 +137,19 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
-  queryParams = ['roomId'];
+  /**
+   * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
+   * mit roomId: string | undefined | null;
+   */
+  queryParams = ['roomId', 'snapshot'];
 
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
   roomId?: string | undefined | null;
+
+  @tracked
+  snapshot?: boolean | undefined | null;
 
   @tracked
   showSettingsSidebar = false;
@@ -509,11 +519,15 @@ export default class VisualizationController extends Controller {
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
+    // meine Funktion zum laden der snapshots und dann kein timestampPollingService?
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
     this.updateTimestampList();
     this.initWebSocket();
+    if (this.snapshot) {
+      //this.loadSnapshot();
+    }
     this.debug('initRendering done');
   }
 
@@ -630,6 +644,12 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
+  /**
+   *
+   * Use this to load snapshot??
+   *
+   * @param event
+   */
   async onSyncRoomState(event: {
     userId: string;
     originalMessage: SyncRoomStateMessage;
@@ -660,6 +680,20 @@ export default class VisualizationController extends Controller {
     this.toastHandlerService.showInfoToastMessage(
       'Room state synchronizing ...'
     );
+  }
+
+  /**
+   * TODO: Change julius!
+   */
+  loadSnapshot() {
+    this.applicationRenderer.restoreFromSerialization(
+      this.snapshotTokenService.snapshotToken!.julius
+    );
+    this.detachedMenuRenderer.restore(
+      this.snapshotTokenService.snapshotToken!.julius.popups,
+      this.snapshotTokenService.snapshotToken!.julius.detachedMenus
+    );
+    this.highlightingService.updateHighlighting();
   }
 
   /**

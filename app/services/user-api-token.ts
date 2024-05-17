@@ -44,7 +44,7 @@ export default class UserApiTokenService extends Service {
           } else {
             resolve([]);
             this.toastHandler.showErrorToastMessage(
-              'API-Tokens could not be laoded.'
+              'API-Tokens could not be loaded.'
             );
           }
         })

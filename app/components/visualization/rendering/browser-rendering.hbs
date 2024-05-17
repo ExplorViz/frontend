@@ -195,7 +195,11 @@
                 />
               {{/if}}
               {{#if (eq componentId 'Persist-Landscape')}}
-              <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot />
+                <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot
+                  @landscapeData={{@landscapeData}}
+                  @popUpData={{this.popupHandler.popupData}}
+                  @landscapeToken={{@landscapeToken}}
+                />
               {{/if}}
               {{#if (eq componentId 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
