@@ -30,6 +30,9 @@ export default class SnapshotTokenService extends Service {
   @service('auth')
   private auth!: Auth;
 
+  @service('router')
+  router!: any;
+
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
@@ -66,8 +69,87 @@ export default class SnapshotTokenService extends Service {
     });
   }
 
+  async saveSnapshot(content: SnapshotToken, name?: string) {
+    const snapshotToken: SnapshotToken =
+      name !== undefined ? { ...content, name: name } : content;
+
+    const url = `${userServiceApi}/snapshot/create`;
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(snapshotToken),
+      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          this.toastHandler.showSuccessToastMessage(
+            'Successfully saved snapshot.'
+          );
+        } else if (response.status === 422) {
+          this.toastHandler.showErrorToastMessage('Snapshot already exists.');
+        } else {
+          this.toastHandler.showErrorToastMessage(
+            'Something went wrong. Snapshot could not be saved.'
+          );
+        }
+      })
+      .catch(async () => {
+        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+      });
+
+    if (name !== undefined) {
+      this.router.refresh('landscapes');
+    }
+  }
+
+  async exportFile(exportData: SnapshotToken) {
+    const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+      JSON.stringify(exportData)
+    )}`;
+    const link = document.createElement('a');
+    link.href = jsonString;
+    link.download = 'data.viz';
+
+    link.click();
+  }
+
+  async deleteSnapshot(snapShot: SnapshotToken) {
+    const url = `${userServiceApi}/snapshot/delete?owner=${snapShot.owner}&createdAt=${snapShot.createdAt}`;
+
+    await fetch(url, {
+      method: 'DELETE',
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          this.toastHandler.showSuccessToastMessage(
+            'Successfully deleted snapshot.'
+          );
+        } else {
+          this.toastHandler.showErrorToastMessage(
+            'Something went wrong. Snapshot could not be deleted.'
+          );
+        }
+      })
+      .catch(async () => {
+        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+      });
+
+    this.router.refresh('landscapes');
+  }
+
   setToken(token: SnapshotToken) {
     this.snapshotToken = token;
+  }
+
+  async uploadSnapshot(file: File, name: string) {
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      const fileContent = fileReader.result as string;
+      const jsonData = JSON.parse(fileContent);
+      const snapshotData: any = jsonData;
+      this.saveSnapshot(snapshotData, name);
+    };
+
+    fileReader.readAsText(file);
   }
 }
 

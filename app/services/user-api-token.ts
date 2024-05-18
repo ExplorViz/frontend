@@ -18,6 +18,9 @@ export default class UserApiTokenService extends Service {
   @service('auth')
   private auth!: Auth;
 
+  @service('router')
+  router!: any;
+
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
@@ -53,38 +56,48 @@ export default class UserApiTokenService extends Service {
           this.toastHandler.showErrorToastMessage('Server not available.');
         });
     });
+  }
 
-    // if (ENV.auth0.enabled === 'false') {
-    //   // make api call to DB, but not authorished, give a standard uId to Johnny?
+  async deleteApiToken(apiToken: string, uId: string) {
+    const url = `${userServiceApi}/userapi/delete?uId=${uId}&token=${apiToken}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      this.toastHandler.showSuccessToastMessage(
+        'API-Token successfully deleted.'
+      );
+    } else {
+      this.toastHandler.showErrorToastMessage(
+        'Something went wrong. API-Token could not be deleted.'
+      );
+    }
 
-    //   return [
-    //     {
-    //       uId: 'Testname',
-    //       name: 'GitLab Api Token',
-    //       token: 'apiToken123',
-    //       createdAt: 1714940718,
-    //       expires: 1770323118,
-    //     },
-    //     {
-    //       uId: 'Testname 2',
-    //       name: 'GitHub Api Token',
-    //       token: 'apiToken1234',
-    //       createdAt: 19071647189,
-    //       expires: 1938787198,
-    //     },
-    //   ];
-    // } else {
-    //   // make api call to DB but authorized
-    //   return [
-    //     {
-    //       uId: 'testname 3',
-    //       name: 'GitLab Api Token',
-    //       token: 'apiToken123',
-    //       createdAt: 1234,
-    //       expires: 123456,
-    //     },
-    //   ];
-    // }
+    this.router.refresh('settings');
+  }
+
+  async createApiToken(name: string, token: string, expDate: number | null) {
+    const createdAt: number = new Date().getTime();
+
+    const url =
+      expDate !== null
+        ? `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&expires=${expDate}`
+        : `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}`;
+    const response = await fetch(url, {
+      method: 'POST',
+    });
+    if (response.ok) {
+      this.toastHandler.showSuccessToastMessage(
+        'API-Token successfully saved.'
+      );
+    } else if (response.status === 422) {
+      this.toastHandler.showErrorToastMessage('Token is already being used.');
+    } else {
+      this.toastHandler.showErrorToastMessage(
+        'Something went wrong. API-Token could not be saved.'
+      );
+    }
+    this.router.refresh('settings');
   }
 }
 

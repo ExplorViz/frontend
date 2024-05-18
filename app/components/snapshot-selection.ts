@@ -2,8 +2,9 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import Auth from 'explorviz-frontend/services/auth';
-import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
 
 interface Args {
   tokens: SnapshotToken[];
@@ -11,10 +12,8 @@ interface Args {
 }
 
 export default class SnapshotSelection extends Component<Args> {
-  snapshotData: any = null;
-
-  @service('auth')
-  auth!: Auth;
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
 
   @tracked
   sortPropertyPersonal: keyof SnapshotToken = 'createdAt';
@@ -115,27 +114,9 @@ export default class SnapshotSelection extends Component<Args> {
     }
   }
 
-  /**
-   * TODO: reicht das so?
-   * @param file
-   */
   @action
-  readFile(file: File) {
-    const fileReader = new FileReader();
-    fileReader.onload = () => {
-      const fileContent = fileReader.result as string;
-      const jsonData = JSON.parse(fileContent);
-      this.snapshotData = jsonData;
-      console.log(this.snapshotData);
-    };
-
-    fileReader.readAsText(file);
-  }
-
-  @action
-  uploadSnapshot() {
-    console.log('snapshot upload!');
-    this.readFile(this.file!);
+  async uploadSnapshot() {
+    this.snapshotService.uploadSnapshot(this.file!, this.name);
     this.reset();
   }
 }
