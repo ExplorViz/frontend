@@ -85,6 +85,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
     };
 
     this.snapshotService.saveSnapshot(content);
+    this.reset();
   }
 
   @action
@@ -120,5 +121,11 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
     // überhaupt speichern? Nicht doppelt gemoppelt?
     //this.snapshotService.saveSnapshot(content);
     this.snapshotService.exportFile(content);
+    this.reset();
+  }
+
+  reset() {
+    this.snapshotName = '';
+    this.saveSnaphotBtnDisabled = true;
   }
 }
