@@ -51,6 +51,9 @@ import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserApiTokenService, {
+  ApiToken,
+} from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
@@ -132,6 +135,9 @@ export default class VisualizationController extends Controller {
   @service('spectate-user')
   spectateUser!: SpectateUser;
 
+  @service('user-api-token')
+  userApiTokenService!: UserApiTokenService;
+
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
@@ -150,6 +156,9 @@ export default class VisualizationController extends Controller {
 
   @tracked
   snapshot?: boolean | undefined | null;
+
+  @tracked
+  userApiTokens: ApiToken[] = [];
 
   @tracked
   showSettingsSidebar = false;
@@ -514,8 +523,9 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  initRendering() {
+  async initRendering() {
     this.debug('initRendering');
+    this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;

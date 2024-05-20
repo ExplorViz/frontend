@@ -21,15 +21,29 @@
   {{#if this.landscapeRestructure.restructureMode}}
     <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
-      <label for='token'>API Token:</label>
+      <label for='token-select'>API Token:</label>
       <div class='d-flex justify-content-between'>
+        <select
+          name='api-tokens'
+          id='token-select'
+          {{on "change" this.updateToken}}
+        >
+          <option value=''>Please select one API Token</option>
+          {{#each @userApiTokens as |token|}}
+            <option
+              value={{token.token}}
+            >{{token.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+      {{!-- <div class='d-flex justify-content-between'>
         <input
           id='token'
           class='form-control mr-2'
           oninput={{this.updateToken}}
           value={{this.token}}
         />
-      </div>
+      </div> --}}
       <ul></ul>
       <label for='issueURL'>Gitlab Issue Link:</label>
       <div class='d-flex justify-content-between'>

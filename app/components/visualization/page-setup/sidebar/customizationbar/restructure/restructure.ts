@@ -38,8 +38,11 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
 
+  // @tracked
+  // token: string = localStorage.getItem('gitAPIToken') || '';
+
   @tracked
-  token: string = localStorage.getItem('gitAPIToken') || '';
+  token: string = '';
 
   @tracked
   issueURL: string = localStorage.getItem('gitIssue') || '';
@@ -226,9 +229,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  updateToken(event: InputEvent) {
-    const target = event.target as HTMLInputElement;
-    this.token = target.value;
+  updateToken(event: any) {
+    // console.log(event.target.value);
+    // const target = event.target as HTMLInputElement;
+    this.token = event.target.value;
     this.canSaveCredentials();
   }
 
