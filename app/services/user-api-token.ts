@@ -24,10 +24,6 @@ export default class UserApiTokenService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  /**
-   * TODO: actual DB call
-   * @returns
-   */
   retrieveApiTokens() {
     return new Promise<ApiToken[]>((resolve) => {
       const userId = encodeURI(this.auth.user?.sub || '');
@@ -35,7 +31,7 @@ export default class UserApiTokenService extends Service {
         resolve([]);
       }
 
-      fetch(`${userServiceApi}/userapi`, {
+      fetch(`${userServiceApi}/userapi?uId=${this.auth.user!.sub}`, {
         headers: {
           Authorization: `Bearer ${this.auth.accessToken}`,
         },
@@ -58,6 +54,11 @@ export default class UserApiTokenService extends Service {
     });
   }
 
+  /**
+   * TODO: mit fetch und dann try catch, wie retrieveTokens
+   * @param apiToken
+   * @param uId
+   */
   async deleteApiToken(apiToken: string, uId: string) {
     const url = `${userServiceApi}/userapi/delete?uId=${uId}&token=${apiToken}`;
     const response = await fetch(url, {
@@ -76,6 +77,12 @@ export default class UserApiTokenService extends Service {
     this.router.refresh('settings');
   }
 
+  /**
+   * TODO: mit fetch und dann try catch, wie retrieveTokens
+   * @param name
+   * @param token
+   * @param expDate
+   */
   async createApiToken(name: string, token: string, expDate: number | null) {
     const createdAt: number = new Date().getTime();
 
