@@ -26,6 +26,7 @@ export default class ApplicationSearchLogic {
     for (const application of applications) {
       allEntities = new Map([
         ...allEntities,
+        ...application.flatData.packageNameModelMap,
         ...application.flatData.hashCodeClassMap,
       ]);
     }
