@@ -5,9 +5,14 @@ self.addEventListener(
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
 
-    const flatData = calculateFlatData(structureData, dynamicData);
+    const flatDataObject = { hashCodeClassMap: {}, packageNameModelMap: {} };
 
-    postMessage(flatData);
+    flatDataObject.hashCodeClassMap = calculateFlatData(
+      structureData,
+      dynamicData
+    );
+
+    postMessage(flatDataObject);
   },
   false
 );
