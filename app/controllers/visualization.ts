@@ -154,6 +154,7 @@ export default class VisualizationController extends Controller {
   @tracked
   roomId?: string | undefined | null;
 
+  // so nutzen oder id mitgeben von snaphsot und dann dadrüber async call machen, bei room so?
   @tracked
   snapshot?: boolean | undefined | null;
 
@@ -535,9 +536,6 @@ export default class VisualizationController extends Controller {
     );
     this.updateTimestampList();
     this.initWebSocket();
-    if (this.snapshot) {
-      //this.loadSnapshot();
-    }
     this.debug('initRendering done');
   }
 

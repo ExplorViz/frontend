@@ -66,7 +66,7 @@ export default class Landscapes extends Controller {
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
-        snapshot: true,
+        //snapshot: true,
       },
     });
   }
