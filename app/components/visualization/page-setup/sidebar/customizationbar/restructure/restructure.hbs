@@ -24,15 +24,14 @@
       <label for='token-select'>API Token:</label>
       <div class='d-flex justify-content-between'>
         <select
+          class='form-control mr-2'
           name='api-tokens'
           id='token-select'
-          {{on "change" this.updateToken}}
+          {{on 'change' this.updateToken}}
         >
           <option value=''>Please select one API Token</option>
           {{#each @userApiTokens as |token|}}
-            <option
-              value={{token.token}}
-            >{{token.name}}</option>
+            <option value={{token.token}}>{{token.name}}</option>
           {{/each}}
         </select>
       </div>
