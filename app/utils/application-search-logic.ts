@@ -24,7 +24,11 @@ export default class ApplicationSearchLogic {
     const applications = this.applicationRepo.getAll();
 
     for (const application of applications) {
-      allEntities = new Map([...allEntities, ...application.flatData]);
+      allEntities = new Map([
+        ...allEntities,
+        ...application.flatData.packageNameModelMap,
+        ...application.flatData.hashCodeClassMap,
+      ]);
     }
 
     const returnValue: any[] = [];
