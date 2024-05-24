@@ -15,7 +15,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 interface Args {
   landscapeData: LandscapeData;
   // unnötig da in serializedRoom
-  popUpData: PopupData;
+  popUpData: PopupData[];
   // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
 }
@@ -58,7 +58,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
   @action
   async saveSnapshot() {
     const createdAt: number = new Date().getTime();
-    const saveRoom = this.roomSerializer.serializeRoom();
+    const saveRoom = this.roomSerializer.serializeRoom(this.args.popUpData);
     // console.log(this.args.landscapeToken);
     console.log(this.args.landscapeData);
     // console.log(this.args.popUpData);
