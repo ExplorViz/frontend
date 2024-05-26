@@ -5,6 +5,7 @@ import Auth from './auth';
 import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
 import { tracked } from '@glimmer/tracking';
+import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
 //import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
 /**
@@ -69,6 +70,37 @@ export default class SnapshotTokenService extends Service {
     });
   }
 
+  /**
+   * Not used right now, but could be use to have better performance
+   * @param owner
+   * @param createdAt
+   * @returns
+   */
+  retrieveToken(owner: string, createdAt: string) {
+    return new Promise<SnapshotToken | null>((resolve) => {
+      fetch(`${userServiceApi}/snapshot/${owner}/${createdAt}`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+        },
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as SnapshotToken | null;
+            resolve(tokens);
+          } else {
+            resolve(null);
+            this.toastHandler.showErrorToastMessage(
+              'Snapshot could not be loaded.'
+            );
+          }
+        })
+        .catch(async () => {
+          resolve(null);
+          this.toastHandler.showErrorToastMessage('Server not available.');
+        });
+    });
+  }
+
   async saveSnapshot(content: SnapshotToken, name?: string) {
     const snapshotToken: SnapshotToken =
       name !== undefined ? { ...content, name: name } : content;
@@ -76,7 +108,7 @@ export default class SnapshotTokenService extends Service {
     const url = `${userServiceApi}/snapshot/create`;
     await fetch(url, {
       method: 'POST',
-      body: JSON.stringify(snapshotToken),
+      body: JSON.stringify(snapshotToken, getCircularReplacer()),
       headers: { 'Content-Type': 'application/json; charset=UTF-8' },
     })
       .then(async (response: Response) => {
@@ -103,7 +135,7 @@ export default class SnapshotTokenService extends Service {
 
   async exportFile(exportData: SnapshotToken) {
     const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-      JSON.stringify(exportData)
+      JSON.stringify(exportData, getCircularReplacer())
     )}`;
     const link = document.createElement('a');
     link.href = jsonString;

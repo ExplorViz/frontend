@@ -60,13 +60,13 @@ export default class Landscapes extends Controller {
    * TODO: update to load the highlighting as well
    */
   @action
-  selectSnapshot(token: SnapshotToken) {
+  async selectSnapshot(token: SnapshotToken) {
     this.tokenService.setToken(token.landscapeToken);
     this.snapShotTokenService.setToken(token);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
-        //snapshot: true,
+        snapshot: true,
       },
     });
   }
