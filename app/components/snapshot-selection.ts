@@ -22,10 +22,10 @@ export default class SnapshotSelection extends Component<Args> {
   sortPropertyShared: keyof SnapshotToken = 'createdAt';
 
   @tracked
-  sortOrderPersonal: 'asc' | 'desc' = 'asc';
+  sortOrderPersonal: 'asc' | 'desc' = 'desc';
 
   @tracked
-  sortOrderShared: 'asc' | 'desc' = 'asc';
+  sortOrderShared: 'asc' | 'desc' = 'desc';
 
   @tracked
   uploadSnapshotMenu: boolean = false;
