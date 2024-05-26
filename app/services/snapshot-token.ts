@@ -171,18 +171,6 @@ export default class SnapshotTokenService extends Service {
   setToken(token: SnapshotToken) {
     this.snapshotToken = token;
   }
-
-  async uploadSnapshot(file: File, name: string) {
-    const fileReader = new FileReader();
-    fileReader.onload = () => {
-      const fileContent = fileReader.result as string;
-      const jsonData = JSON.parse(fileContent);
-      const snapshotData: any = jsonData;
-      this.saveSnapshot(snapshotData, name);
-    };
-
-    fileReader.readAsText(file);
-  }
 }
 
 // Don't remove this declaration: this is what enables TypeScript to resolve

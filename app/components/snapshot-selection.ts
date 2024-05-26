@@ -34,10 +34,13 @@ export default class SnapshotSelection extends Component<Args> {
   uploadSnapshotBtnDisabled: boolean = true;
 
   @tracked
-  name: string = '';
+  displayName: boolean = false;
 
   @tracked
-  file: File | null = null;
+  snapshotData: SnapshotToken | null = null;
+
+  @tracked
+  name: string = '';
 
   @action
   sortByPersonal(property: keyof SnapshotToken) {
@@ -86,7 +89,8 @@ export default class SnapshotSelection extends Component<Args> {
   reset() {
     this.uploadSnapshotMenu = false;
     this.name = '';
-    this.file = null;
+    this.snapshotData = null;
+    this.displayName = false;
   }
 
   @action
@@ -100,14 +104,24 @@ export default class SnapshotSelection extends Component<Args> {
   updateFile(event: InputEvent) {
     const target = event.target as HTMLInputElement;
     if (target.files !== null) {
-      this.file = target.files[0];
-      this.canSaveSnapshot();
+      const fileReader = new FileReader();
+
+      fileReader.onload = () => {
+        const fileContent = fileReader.result as string;
+        const jsonData = JSON.parse(fileContent);
+        this.snapshotData = jsonData as SnapshotToken;
+        this.name = this.snapshotData.name;
+        this.displayName = true;
+        this.canSaveSnapshot();
+      };
+
+      fileReader.readAsText(target.files[0]);
     }
   }
 
   @action
   canSaveSnapshot() {
-    if (this.name !== '' && this.file !== null) {
+    if (this.name !== '' && this.snapshotData !== null) {
       this.uploadSnapshotBtnDisabled = false;
     } else {
       this.uploadSnapshotBtnDisabled = true;
@@ -116,7 +130,7 @@ export default class SnapshotSelection extends Component<Args> {
 
   @action
   async uploadSnapshot() {
-    this.snapshotService.uploadSnapshot(this.file!, this.name);
+    this.snapshotService.saveSnapshot(this.snapshotData!, this.name);
     this.reset();
   }
 }
