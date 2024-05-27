@@ -68,20 +68,16 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,
-      structureData: {},
+      structureData: {
+        structureLandscapeData: this.args.landscapeData.structureLandscapeData,
+        dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
+      },
+      serializedRoom: saveRoom,
       configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
-      julius: {
-        room: saveRoom,
-        data: {
-          dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
-          structureLandscapeData:
-            this.args.landscapeData.structureLandscapeData,
-        },
-      },
     };
 
     this.snapshotService.saveSnapshot(content);
@@ -90,36 +86,25 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @action
   exportSnapshot() {
-    // hier noch toasthandler für success und so
-
     const createdAt: number = new Date().getTime();
     const saveRoom = this.roomSerializer.serializeRoom();
-    // console.log(this.args.landscapeToken);
-    console.log(this.args.landscapeData);
-    // console.log(this.args.popUpData);
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,
-      structureData: {},
+      structureData: {
+        structureLandscapeData: this.args.landscapeData.structureLandscapeData,
+        dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
+      },
+      serializedRoom: saveRoom,
       configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
-      julius: {
-        room: saveRoom,
-        data: {
-          dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
-          structureLandscapeData:
-            this.args.landscapeData.structureLandscapeData,
-        },
-      },
     };
-    // überhaupt speichern? Nicht doppelt gemoppelt?
-    //this.snapshotService.saveSnapshot(content);
     this.snapshotService.exportFile(content);
     this.reset();
   }

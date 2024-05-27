@@ -6,6 +6,9 @@ import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
 import { tracked } from '@glimmer/tracking';
 import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 //import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
 /**
@@ -16,13 +19,16 @@ export type SnapshotToken = {
   createdAt: number;
   name: string;
   landscapeToken: LandscapeToken;
-  structureData: any;
+  structureData: {
+    structureLandscapeData: StructureLandscapeData;
+    dynamicLandscapeData: DynamicLandscapeData;
+  };
+  serializedRoom: SerializedRoom;
   configuration: any;
   camera: any;
   annotations: any;
   isShared: boolean;
   deleteAt: number;
-  julius: any;
 };
 
 const { userServiceApi } = ENV.backendAddresses;

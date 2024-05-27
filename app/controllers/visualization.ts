@@ -475,9 +475,9 @@ export default class VisualizationController extends Controller {
       } else {
         const [structureData, dynamicData] =
           await this.reloadHandler.loadLandscapeByTimestampSnapshot(
-            this.snapshotTokenService.snapshotToken!.julius.data
+            this.snapshotTokenService.snapshotToken!.structureData
               .structureLandscapeData,
-            this.snapshotTokenService.snapshotToken!.julius.data
+            this.snapshotTokenService.snapshotToken!.structureData
               .dynamicLandscapeData
           );
         this.updateLandscape(structureData, dynamicData);
@@ -716,12 +716,14 @@ export default class VisualizationController extends Controller {
     // console.log('Saved PopUps: ');
     // console.log(snapshotToken.julius.room.popups);
 
-    this.roomSerializer.serializedRoom = snapshotToken.julius.room;
+    this.roomSerializer.serializedRoom = snapshotToken.serializedRoom;
 
     this.highlightingService.updateHighlighting();
-    await this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
+    await this.updateTimestamp(
+      snapshotToken.serializedRoom.landscape.timestamp
+    );
 
-    this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
+    // this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
 
     // this.updateLandscape(
     //   snapshotToken.julius.data.structureLandscapeData,
@@ -730,11 +732,11 @@ export default class VisualizationController extends Controller {
     //await this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
 
     this.applicationRenderer.restoreFromSerialization(
-      this.snapshotTokenService.snapshotToken!.julius.room
+      this.snapshotTokenService.snapshotToken!.serializedRoom
     );
     this.detachedMenuRenderer.restore(
-      this.snapshotTokenService.snapshotToken!.julius.room.popups,
-      this.snapshotTokenService.snapshotToken!.julius.room.detachedMenus
+      this.snapshotTokenService.snapshotToken!.serializedRoom.popups,
+      this.snapshotTokenService.snapshotToken!.serializedRoom.detachedMenus
     );
     this.highlightingService.updateHighlighting();
 
