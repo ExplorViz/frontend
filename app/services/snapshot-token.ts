@@ -32,6 +32,7 @@ export type SnapshotToken = {
 };
 
 const { userServiceApi } = ENV.backendAddresses;
+const shareSnapshotURL = ENV.shareSnapshotURL;
 
 export default class SnapshotTokenService extends Service {
   @service('auth')
@@ -150,8 +151,46 @@ export default class SnapshotTokenService extends Service {
     link.click();
   }
 
-  async deleteSnapshot(snapShot: SnapshotToken) {
-    const url = `${userServiceApi}/snapshot/delete?owner=${snapShot.owner}&createdAt=${snapShot.createdAt}`;
+  async shareSnapshot(snapshot: SnapshotToken) {
+    const snapshotToken = {
+      ...snapshot,
+      name: snapshot.name + ' (shared)',
+      isShared: true,
+    };
+
+    const url = `${userServiceApi}/snapshot/create`;
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(snapshotToken, getCircularReplacer()),
+      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          await navigator.clipboard.writeText(
+            `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}`
+          );
+          this.toastHandler.showSuccessToastMessage(
+            'Successfully shared snapshot. Snaphsot URL copied to clipboard'
+          );
+        } else if (response.status === 422) {
+          this.toastHandler.showErrorToastMessage(
+            'Snapshot could not be shared.'
+          );
+        } else {
+          this.toastHandler.showErrorToastMessage(
+            'Something went wrong. Snapshot could not be shared.'
+          );
+        }
+      })
+      .catch(async () => {
+        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+      });
+
+    this.router.refresh('landscapes');
+  }
+
+  async deleteSnapshot(snapshot: SnapshotToken) {
+    const url = `${userServiceApi}/snapshot/delete?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&isShared=${snapshot.isShared}`;
 
     await fetch(url, {
       method: 'DELETE',
