@@ -13,6 +13,7 @@ declare const config: {
   podModulePrefix: string;
   locationType: string;
   rootURL: string;
+  shareSnapshotURL: string;
   auth0: {
     enabled: string;
     clientId: string;
