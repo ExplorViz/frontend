@@ -88,6 +88,19 @@
         />
       {{/each}}
 
+      {{! annotation(s) }}
+      {{!-- template-lint-disable no-unused-block-params --}}
+      {{#each this.annotationHandler.annotationData as |data|}}
+        <Visualization::Rendering::Annotations::AnnotationCoordinator
+          @isMovable={{this.appSettings.enableCustomAnnotationPosition.value}}
+          @annotationData={{data}}
+          @updateMeshReference={{this.annotationHandler.updateMeshReference}}
+          @removeAnnotation={{this.removeAnnotation}}
+          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
+          @openParents={{this.applicationRenderer.openParents}}
+        />
+      {{/each}}
+
     </div>
   </div>
   {{#if @showToolsSidebar}}

@@ -183,6 +183,16 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If enabled, popups can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
+  // Annotation Settings
+  enableCustomAnnotationPosition: {
+    value: true,
+    orderNumber: 1,
+    group: 'Annotations',
+    displayName: 'Enable Custom Annotation Positioning',
+    description:
+      'If enabled, annotations can be dragged to a prefered, fixed position',
+    isFlagSetting: true,
+  },
   // Camera Settings
   useOrthographicCamera: {
     value: false,

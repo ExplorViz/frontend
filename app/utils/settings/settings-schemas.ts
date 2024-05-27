@@ -5,6 +5,7 @@ export type SettingGroup =
   | 'Highlighting'
   | 'Hover Effect'
   | 'Popups'
+  | 'Annotations'
   | 'Virtual Reality'
   | 'Debugging';
 
@@ -48,6 +49,8 @@ export type ApplicationDebugSettingId =
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
+export type ApplicationAnnotationSettingId = 'enableCustomAnnotationPosition';
+
 export type ApplicationSettingId =
   | ApplicationColorSettingId
   | ApplicationHighlightingSettingId
@@ -56,7 +59,8 @@ export type ApplicationSettingId =
   | ApplicationDebugSettingId
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
-  | ApplicationPopupSettingId;
+  | ApplicationPopupSettingId
+  | ApplicationAnnotationSettingId;
 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
@@ -95,6 +99,11 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
+export type ApplicationAnnotationSettings = Record<
+  ApplicationAnnotationSettingId,
+  FlagSetting
+>;
+
 export type ApplicationCameraSettings = {
   useOrthographicCamera: FlagSetting;
   cameraFov: RangeSetting;
@@ -107,6 +116,7 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
   ApplicationPopupSettings &
+  ApplicationAnnotationSettings &
   ApplicationCameraSettings &
   ApplicationXRSettings &
   ApplicationCommunicationSettings;

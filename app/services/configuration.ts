@@ -24,6 +24,9 @@ export default class Configuration extends Service {
   @tracked
   popupPosition: Position2D | undefined = undefined;
 
+  @tracked
+  annotationPosition: Position2D | undefined = undefined;
+
   // #endregion APPLICATION LAYOUT
 }
 

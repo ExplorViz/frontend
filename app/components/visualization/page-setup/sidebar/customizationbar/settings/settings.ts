@@ -67,6 +67,7 @@ export default class Settings extends Component<Args> {
       Highlighting: [],
       'Hover Effect': [],
       Popups: [],
+      Annotations: [],
       'Virtual Reality': [],
       Debugging: [],
     };
