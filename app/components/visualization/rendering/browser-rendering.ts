@@ -303,12 +303,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.resize(outerDiv);
 
     // Gamepad controls
-    new GamepadControls(this.camera, this.scene, {
-      lookAt: this.handleMouseMove,
-      select: this.handleSingleClick,
-      interact: this.handleDoubleClick,
-      inspect: this.handleMouseStop,
-    });
+    new GamepadControls(
+      this.camera,
+      this.scene,
+      this.cameraControls.perspectiveCameraControls,
+      {
+        lookAt: this.handleMouseMove,
+        select: this.handleSingleClick,
+        interact: this.handleDoubleClick,
+        inspect: this.handleMouseStop,
+      }
+    );
   }
 
   private initCameras() {

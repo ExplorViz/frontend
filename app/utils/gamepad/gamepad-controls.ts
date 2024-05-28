@@ -81,13 +81,17 @@ export default class GamepadControls {
   private buttonJustPressed: ButtonState = {} as ButtonState;
   private callbacks: GamepadInteractionCallbacks;
 
+  private orbitControls: any;
+
   constructor(
     camera: THREE.Camera,
     scene: THREE.Scene,
+    orbitControls: any,
     callbacks: GamepadInteractionCallbacks
   ) {
     this.camera = camera;
     this.scene = scene;
+    this.orbitControls = orbitControls;
     this.callbacks = callbacks;
 
     if (typeof navigator.getGamepads !== 'function') {
@@ -252,7 +256,9 @@ export default class GamepadControls {
     // If both buttons are pressed, they cancel out
     this.moveDirection.setY((BUTTON_UP - BUTTON_DOWN) * SPEED_VERTICAL);
 
+    // Move both camera and target to achieve panning effect with orbit controls
     this.camera.position.add(this.moveDirection);
+    this.orbitControls.target.add(this.moveDirection);
 
     ////////////////////////
     // Object Interaction //
