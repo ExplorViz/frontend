@@ -60,7 +60,7 @@ const ROTATION_VMAX: number = degreesToRadians(80);
 const POPUP_POSITION: Position2D = { x: 100, y: 100 };
 
 export type GamepadInteractionCallbacks = {
-  lookAt?(intersection: THREE.Intersection | null): void;
+  lookAt?(intersection: THREE.Intersection | null, event: MouseEvent): void;
   select?(intersection: THREE.Intersection): void;
   interact?(intersection: THREE.Intersection): void;
   inspect?(intersection: THREE.Intersection, canvasPos: Position2D): void;
@@ -137,17 +137,18 @@ export default class GamepadControls {
 
   private pollGamepads() {
     if (typeof navigator.getGamepads !== 'function') {
-      console.log('Error: Could not call navigator.getGamepads()');
+      console.error('Could not call navigator.getGamepads()');
       return;
     }
 
     const gamepads = navigator.getGamepads();
 
     if (!gamepads || !gamepads[0]) {
-      console.log('Error: No connected gamepad could be found');
+      console.error('No connected gamepad could be found');
       return;
     }
 
+    // Todo: Add support for multiple gamepads
     const gp = gamepads[0];
 
     const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
@@ -278,9 +279,9 @@ export default class GamepadControls {
     }
 
     // Highlight looked-at object. If objClosest is null, we unhighlight all
-    if (this.callbacks.lookAt) {
-      this.callbacks.lookAt(objClosest);
-    }
+    // if (this.callbacks.lookAt) {
+    //   this.callbacks.lookAt(objClosest, new MouseEvent(''));
+    // }
 
     if (objClosest) {
       if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {

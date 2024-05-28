@@ -46,6 +46,7 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import GamepadControls from 'explorviz-frontend/utils/gamepad/gamepad-controls';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -300,6 +301,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.initCameras();
     this.initRenderer();
     this.resize(outerDiv);
+
+    // Gamepad controls
+    new GamepadControls(this.camera, this.scene, {
+      lookAt: this.handleMouseMove,
+      select: this.handleSingleClick,
+      interact: this.handleDoubleClick,
+      inspect: this.handleMouseStop,
+    });
   }
 
   private initCameras() {
@@ -503,7 +512,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
-    // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
