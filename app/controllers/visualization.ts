@@ -84,6 +84,9 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
+  @service('router')
+  router!: any;
+
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -149,7 +152,7 @@ export default class VisualizationController extends Controller {
    * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
    * mit roomId: string | undefined | null;
    */
-  queryParams = ['roomId', 'snapshot'];
+  queryParams = ['roomId', 'snapshot', 'owner', 'createdAt'];
 
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -158,6 +161,12 @@ export default class VisualizationController extends Controller {
 
   @tracked
   snapshot?: boolean | undefined | null;
+
+  @tracked
+  owner?: string | undefined | null;
+
+  @tracked
+  createdAt: number | undefined | null;
 
   @tracked
   userApiTokens: ApiToken[] = [];
@@ -537,6 +546,9 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
+    console.log(this.owner);
+    console.log(this.createdAt);
+
     this.debug('initRendering');
     this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
     this.landscapeData = null;
@@ -549,6 +561,18 @@ export default class VisualizationController extends Controller {
 
     if (this.snapshot) {
       this.loadSnapshot();
+    } else if (this.owner && this.createdAt) {
+      const snapshotToken: SnapshotToken | null =
+        await this.snapshotTokenService.retrieveToken(
+          this.owner,
+          this.createdAt,
+          true
+        );
+      if (snapshotToken === null) {
+        this.router.transitionTo('landscapes');
+      } else {
+        this.loadSnapshot(snapshotToken);
+      }
     }
     this.updateTimestampList();
     this.initWebSocket();
@@ -567,6 +591,8 @@ export default class VisualizationController extends Controller {
 
     this.roomId = null;
     this.snapshot = null;
+    this.owner = null;
+    this.createdAt = null;
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -710,9 +736,15 @@ export default class VisualizationController extends Controller {
   /**
    * TODO: Change julius!
    */
-  async loadSnapshot() {
-    const snapshotToken: SnapshotToken =
-      this.snapshotTokenService.snapshotToken!;
+  async loadSnapshot(token?: SnapshotToken) {
+    let snapshotToken: SnapshotToken;
+
+    if (token !== undefined) {
+      snapshotToken = token;
+    } else {
+      snapshotToken = this.snapshotTokenService.snapshotToken!;
+    }
+
     // console.log('Saved PopUps: ');
     // console.log(snapshotToken.julius.room.popups);
 

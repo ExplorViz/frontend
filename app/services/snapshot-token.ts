@@ -78,14 +78,14 @@ export default class SnapshotTokenService extends Service {
   }
 
   /**
-   * Not used right now, but could be use to have better performance
+   * Used to load shared snapshots. Will be used to load personal snapshots too . Update Toasthandler later
    * @param owner
    * @param createdAt
    * @returns
    */
-  retrieveToken(owner: string, createdAt: string) {
+  retrieveToken(owner: string, createdAt: number, isShared: boolean) {
     return new Promise<SnapshotToken | null>((resolve) => {
-      fetch(`${userServiceApi}/snapshot/${owner}/${createdAt}`, {
+      fetch(`${userServiceApi}/snapshot/${owner}/${createdAt}/${isShared}`, {
         headers: {
           Authorization: `Bearer ${this.auth.accessToken}`,
         },
@@ -103,7 +103,9 @@ export default class SnapshotTokenService extends Service {
         })
         .catch(async () => {
           resolve(null);
-          this.toastHandler.showErrorToastMessage('Server not available.');
+          this.toastHandler.showErrorToastMessage(
+            'Shared snapshot does not exist or is expired.'
+          );
         });
     });
   }
@@ -174,7 +176,7 @@ export default class SnapshotTokenService extends Service {
           );
         } else if (response.status === 422) {
           this.toastHandler.showErrorToastMessage(
-            'Snapshot could not be shared.'
+            'Snapshot could not be shared. A shared version already exists.'
           );
         } else {
           this.toastHandler.showErrorToastMessage(
