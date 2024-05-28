@@ -5,15 +5,22 @@ import { action } from '@ember/object';
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import ENV from 'explorviz-frontend/config/environment';
 
 interface Args {
   tokens: SnapshotToken[];
   selectToken(token: SnapshotToken): void;
 }
 
+const shareSnapshotURL = ENV.shareSnapshotURL;
+
 export default class SnapshotSelection extends Component<Args> {
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
 
   @tracked
   sortPropertyPersonal: keyof SnapshotToken = 'createdAt';
@@ -132,5 +139,21 @@ export default class SnapshotSelection extends Component<Args> {
   async uploadSnapshot() {
     this.snapshotService.saveSnapshot(this.snapshotData!, this.name);
     this.reset();
+  }
+
+  @action
+  async createLink(snapshot: SnapshotToken) {
+    try {
+      await navigator.clipboard.writeText(
+        `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}`
+      );
+      this.toastHandler.showSuccessToastMessage(
+        'Snapshot URL copied to clipboard.'
+      );
+    } catch (e) {
+      this.toastHandler.showErrorToastMessage(
+        'Failed to generate URL for snapshot.'
+      );
+    }
   }
 }

@@ -158,7 +158,24 @@
                   <AdditionalSnapshotInfo @token={{sharedToken}} />
                 </li>
                 <li>
-                  <ShareSnapshot @token={{sharedToken}} />
+                  {{!-- <ShareSnapshot @token={{sharedToken}} /> --}}
+                  <div id='colorPresets' class='dropdown'>
+                    <a
+                      class='button-svg-with-hover'
+                      type='button'
+                      tabindex='0'
+                      href='#'
+                      {{on 'click' (fn this.createLink sharedToken)}}
+                    >
+                      {{svg-jar
+                        'share-android-16'
+                        class='octicon align-middle'
+                      }}
+                      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                        Share Snapshot
+                      </BsTooltip>
+                    </a>
+                  </div>
                 </li>
                 <li>
                   <DeleteSnapshot @token={{sharedToken}} />
