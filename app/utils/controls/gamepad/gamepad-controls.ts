@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { AxisMapping, ButtonMapping } from './gamepad-mappings';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import { defaultRaycastFilter } from '../raycaster';
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
+import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 
 /**
  * Convert an angle given in degrees to radians
@@ -168,8 +168,8 @@ export default class GamepadControls {
     // Todo: Add support for multiple gamepads
     const gp = gamepads[0];
 
-    // const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
-    // const STICK_RIGHT_V = dead_zone_clamp(gp.axes[AxisMapping.StickRightV]);
+    const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
+    const STICK_RIGHT_V = dead_zone_clamp(gp.axes[AxisMapping.StickRightV]);
     const STICK_LEFT_H = dead_zone_clamp(gp.axes[AxisMapping.StickLeftH]);
     const STICK_LEFT_V = dead_zone_clamp(gp.axes[AxisMapping.StickLeftV]);
 
@@ -192,6 +192,10 @@ export default class GamepadControls {
 
     // Apply lateral movement according to left stick in camera space.
     // Create a basis vector to transform using camera's rotation
+
+    // Rotate the camera according to the right stick
+    this.orbitControls.rotateLeft(-STICK_RIGHT_H * 0.05);
+    this.orbitControls.rotateUp(-STICK_RIGHT_V * 0.05);
 
     this.moveDirection.set(STICK_LEFT_H, 0, STICK_LEFT_V);
 
@@ -258,6 +262,8 @@ export default class GamepadControls {
 
       if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {
         if (this.callbacks.select) {
+          console.log(gamepads[0].axes);
+
           this.callbacks.select(objClosest);
         }
       }

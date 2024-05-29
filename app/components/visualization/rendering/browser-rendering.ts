@@ -45,7 +45,7 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import GamepadControls from 'explorviz-frontend/utils/gamepad/gamepad-controls';
+import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 
 interface BrowserRenderingArgs {
   readonly id: string;

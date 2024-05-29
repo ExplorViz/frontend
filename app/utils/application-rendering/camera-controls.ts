@@ -6,10 +6,10 @@ import {
   PerspectiveCamera,
   Vector3,
 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
+import { MapControls } from '../controls/MapControls';
 
 export default class CameraControls {
   @service('user-settings')
@@ -41,7 +41,6 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-    this.perspectiveCameraControls.mouseButtons.MIDDLE = undefined;
 
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
@@ -54,7 +53,6 @@ export default class CameraControls {
       this.orthographicCameraControls.minDistance = 0.1;
       this.orthographicCameraControls.maxDistance = 1000;
       this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
-      this.orthographicCameraControls.mouseButtons.MIDDLE = undefined;
     }
   }
 
