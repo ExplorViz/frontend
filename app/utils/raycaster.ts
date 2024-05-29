@@ -1,4 +1,5 @@
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
@@ -13,6 +14,7 @@ export function defaultRaycastFilter(
     intersection.object instanceof LogoMesh ||
     intersection.object.parent instanceof CommunicationArrowMesh ||
     intersection.object instanceof PingMesh ||
+    intersection.object instanceof CrosshairMesh ||
     isChildOfText(intersection)
   );
 }

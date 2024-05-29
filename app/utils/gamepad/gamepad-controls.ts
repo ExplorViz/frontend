@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { AxisMapping, ButtonMapping } from './gamepad-mappings';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import { defaultRaycastFilter } from '../raycaster';
+import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 
 /**
  * Convert an angle given in degrees to radians
@@ -73,6 +74,7 @@ export default class GamepadControls {
 
   private camera: THREE.Camera;
   private scene: THREE.Scene;
+  private crosshair: CrosshairMesh;
   private angleH: number = 0;
   private angleV: number = 0;
   private rotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
@@ -94,6 +96,10 @@ export default class GamepadControls {
     this.scene = scene;
     this.orbitControls = orbitControls;
     this.callbacks = callbacks;
+
+    this.crosshair = new CrosshairMesh({
+      color: new THREE.Color('blue'),
+    });
 
     if (typeof navigator.getGamepads !== 'function') {
       console.error('Gamepad API might not be supported on this browser.');
@@ -126,10 +132,13 @@ export default class GamepadControls {
       this.active = true;
       this.update();
     }
+
+    this.scene.add(this.crosshair);
   }
 
   private deactivate() {
     this.active = false;
+    this.scene.remove(this.crosshair);
   }
 
   private update() {
@@ -292,6 +301,8 @@ export default class GamepadControls {
     // }
 
     if (objClosest) {
+      this.crosshair.updatePosition(objClosest.point);
+
       if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {
         if (this.callbacks.select) {
           this.callbacks.select(objClosest);
@@ -309,6 +320,8 @@ export default class GamepadControls {
           this.callbacks.inspect(objClosest, POPUP_POSITION);
         }
       }
+    } else {
+      this.crosshair.updatePosition(undefined);
     }
   }
 
