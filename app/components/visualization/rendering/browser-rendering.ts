@@ -591,6 +591,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  hideAnnotation(annotationId: number) {
+    this.annotationHandler.hideAnnotation(annotationId);
+  }
+
+  @action
   removeAnnotation(annotationId: number) {
     if (!this.appSettings.enableCustomAnnotationPosition.value) {
       this.annotationHandler.clearAnnotations();

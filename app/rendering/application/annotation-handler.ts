@@ -36,6 +36,22 @@ export default class AnnotationHandler {
   }
 
   @action
+  hideAnnotation(annotationId: number) {
+    const annotation = this.annotationData.find(
+      (an) => an.annotationId === annotationId
+    );
+
+    if (annotation) {
+      console.log('clicked ' + annotation.hidden);
+      if (annotation.hidden) {
+        annotation.hidden = false;
+      } else {
+        annotation.hidden = true;
+      }
+    }
+  }
+
+  @action
   removeAnnotation(annotationId: number) {
     const annotation = this.annotationData.find(
       (an) => an.annotationId === annotationId
@@ -102,6 +118,7 @@ export default class AnnotationHandler {
         hovered: hovered || false,
         annotationText: '',
         annotationTitle: '',
+        hidden: false,
       });
     } else {
       newAnnotation = new AnnotationData({
@@ -118,6 +135,7 @@ export default class AnnotationHandler {
         hovered: hovered || false,
         annotationText: '',
         annotationTitle: '',
+        hidden: false,
       });
     }
 

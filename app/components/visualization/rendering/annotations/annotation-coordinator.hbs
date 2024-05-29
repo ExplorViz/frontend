@@ -29,7 +29,15 @@
             </BsTooltip>
           </BsButton>
           <BsButton
-            class='popup-close-button'
+            class='annotation-minimize-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @hideAnnotation @annotationData.annotationId}}
+          >
+            _
+          </BsButton>
+          <BsButton
+            class='annotation-close-button'
             @type='secondary'
             @outline='true'
             @onClick={{fn @removeAnnotation @annotationData.annotationId}}
@@ -37,15 +45,17 @@
             X
           </BsButton>
         </div>
-        <div style="margin-top: 5px;">
-          <Textarea
-            id="annotationtext"
-            @value={{@annotationData.annotationText}}
-            rows="4"
-            cols="40"
-            style="resize: none;"
-          />
-        </div>
+        {{#unless @annotationData.hidden}}
+          <div class="annotation-text" style="margin-top: 5px;">
+            <Textarea
+              id="annotationtext"
+              @value={{@annotationData.annotationText}}
+              rows="4"
+              cols="40"
+              style="resize: none;"
+            />
+          </div>
+        {{/unless}}
       {{else}}
         <div class="d-flex justify-content-between">
           <label style="font-weight: bold; margin-left: 3px;">Associated to '{{@annotationData.entity.name}}'</label>
@@ -64,29 +74,40 @@
       <div class="d-flex justify-content-between">
         <Input
           id='annotationTitle'
+          style="font-weight: bold;"
           class='form-control mr-2'
           placeholder="Annotation Title"
           @type="text"
           @value={{@annotationData.annotationTitle}}
         />
         <BsButton
-          class='popup-close-button'
-          @type='secondary'
-          @outline='true'
-          @onClick={{fn @removeAnnotation @annotationData.annotationId}}
-        >
-          X
-        </BsButton>
+            class='annotation-minimize-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @hideAnnotation @annotationData.annotationId}}
+          >
+            _
+          </BsButton>
+          <BsButton
+            class='annotation-close-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @removeAnnotation @annotationData.annotationId}}
+          >
+            X
+          </BsButton>
       </div>
-      <div style="margin-top: 5px;">
-        <Textarea
-          id="annotationtext"
-          @value={{@annotationData.annotationText}}
-          rows="4"
-          cols="40"
-          style="resize: none;"
-        />
-      </div>
+      {{#unless @annotationData.hidden}}
+        <div class="annotation-text" style="margin-top: 5px;">
+          <Textarea
+            id="annotationtext"
+            @value={{@annotationData.annotationText}}
+            rows="4"
+            cols="40"
+            style="resize: none;"
+          />
+        </div>
+      {{/unless}}
     {{/if}}
   {{/if}}
 </div>

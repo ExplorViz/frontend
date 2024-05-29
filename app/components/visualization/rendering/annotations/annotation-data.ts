@@ -20,6 +20,7 @@ export interface AnnotationDataArgs {
   hovered: boolean;
   annotationText: string;
   annotationTitle: string;
+  hidden: boolean;
 }
 
 export default class AnnotationData {
@@ -53,6 +54,9 @@ export default class AnnotationData {
 
   annotationTitle: string;
 
+  @tracked
+  hidden: boolean;
+
   constructor({
     mouseX,
     mouseY,
@@ -65,6 +69,7 @@ export default class AnnotationData {
     hovered,
     annotationText,
     annotationTitle,
+    hidden,
   }: AnnotationDataArgs) {
     this.annotationId = AnnotationData.incrementer;
     AnnotationData.incrementer++;
@@ -79,5 +84,6 @@ export default class AnnotationData {
     this.hovered = hovered;
     this.annotationText = annotationText;
     this.annotationTitle = annotationTitle;
+    this.hidden = hidden;
   }
 }
