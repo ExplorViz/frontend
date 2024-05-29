@@ -390,16 +390,6 @@ class OrbitControls extends EventDispatcher {
       };
     })();
 
-    this.rotateLeft = (degrees) => {
-      rotateLeft(degrees);
-      this.update();
-    };
-
-    this.rotateUp = (degrees) => {
-      rotateUp(degrees);
-      this.update();
-    };
-
     this.dispose = () => {
       scope.domElement.removeEventListener('contextmenu', onContextMenu);
 
@@ -1317,6 +1307,12 @@ class OrbitControls extends EventDispatcher {
     // force an update at start
 
     this.update();
+
+    this.pan = pan;
+    this.rotateLeft = rotateLeft;
+    this.rotateUp = rotateUp;
+    this.dollyIn = dollyIn;
+    this.dollyOut = dollyOut;
   }
 }
 

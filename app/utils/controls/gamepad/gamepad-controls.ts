@@ -253,17 +253,15 @@ export default class GamepadControls {
     }
 
     // Highlight looked-at object. If objClosest is null, we unhighlight all
-    // if (this.callbacks.lookAt) {
-    //   this.callbacks.lookAt(objClosest, new MouseEvent(''));
-    // }
+    if (this.callbacks.lookAt) {
+      this.callbacks.lookAt(objClosest, new MouseEvent(''));
+    }
 
     if (objClosest) {
       this.crosshair.updatePosition(objClosest.point);
 
       if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {
         if (this.callbacks.select) {
-          console.log(gamepads[0].axes);
-
           this.callbacks.select(objClosest);
         }
       }
