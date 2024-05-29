@@ -34,7 +34,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
@@ -120,8 +119,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   renderingLoop!: RenderingLoop;
 
   hoveredObject: EntityMesh | null = null;
-
-  controls!: MapControls;
 
   private frustumSize = 5;
 
