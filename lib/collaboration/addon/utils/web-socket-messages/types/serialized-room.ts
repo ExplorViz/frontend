@@ -50,6 +50,13 @@ export type SerializedPopup = {
   menuId: string | null | undefined;
 };
 
+export type SerializedAnnotation = {
+  entityId: string | undefined;
+  menuId: string | null | undefined;
+  annotationText: string;
+  annotationTitle: string;
+};
+
 export type SerializedDetachedMenu = {
   objectId: string | null;
   userId: string | null;

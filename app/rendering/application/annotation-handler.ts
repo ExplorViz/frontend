@@ -10,19 +10,48 @@ import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-comp
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
+import { SerializedAnnotation } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import WebSocketService from 'collaboration/services/web-socket';
+import {
+  DETACHED_MENU_CLOSED_EVENT,
+  DetachedMenuClosedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import {
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+import {
+  MenuDetachedResponse,
+  isMenuDetachedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+import { COMPONENT_ENTITY_TYPE } from 'collaboration/utils/web-socket-messages/types/entity-type';
 
 export default class AnnotationHandler {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
+  @service('detached-menu-renderer')
+  detachedMenuRenderer!: DetachedMenuRenderer;
+
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  @service('web-socket')
+  private webSocket!: WebSocketService;
 
   @tracked
   annotationData: AnnotationData[] = [];
 
   constructor(owner: any) {
     setOwner(this, owner);
+    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.detachedMenuRenderer.on(
+      'restore_annotations',
+      this,
+      this.onRestoreAnnotations
+    );
   }
 
   @action
@@ -42,7 +71,6 @@ export default class AnnotationHandler {
     );
 
     if (annotation) {
-      console.log('clicked ' + annotation.hidden);
       if (annotation.hidden) {
         annotation.hidden = false;
       } else {
@@ -62,6 +90,41 @@ export default class AnnotationHandler {
 
     this.annotationData = this.annotationData.filter(
       (an) => an.annotationId !== annotationId
+    );
+  }
+
+  @action
+  shareAnnotation(annotation: AnnotationData) {
+    this.updateMeshReference(annotation);
+
+    const applicationId = annotation.annotationId;
+    const worldPosition = new THREE.Vector3(0, 0, 0);
+    this.applicationRenderer.forceGraph.worldToLocal(worldPosition);
+
+    this.webSocket.sendRespondableMessage<
+      MenuDetachedMessage,
+      MenuDetachedResponse
+    >(
+      MENU_DETACHED_EVENT,
+      {
+        event: MENU_DETACHED_EVENT,
+        detachId: applicationId.toString(),
+        entityType: COMPONENT_ENTITY_TYPE, // vorläufig zum testen -> schwierig da Mesh auch undefined sein könnte
+        position: worldPosition.toArray(),
+        quaternion: [0, 0, 0, 0],
+        scale: [1, 1, 1],
+        nonce: 0,
+      },
+      {
+        responseType: isMenuDetachedResponse,
+        onResponse: (response: MenuDetachedResponse) => {
+          annotation.menuId = response.objectId;
+          return true;
+        },
+        onOffline: () => {
+          // Not used at the moment
+        },
+      }
     );
   }
 
@@ -87,12 +150,16 @@ export default class AnnotationHandler {
     wasMoved,
     menuId,
     hovered,
+    annotationTitle,
+    annotationText,
   }: {
     mesh?: THREE.Object3D;
     position: Position2D | undefined;
     wasMoved?: boolean;
     menuId?: string | null;
     hovered?: boolean;
+    annotationTitle: string;
+    annotationText: string;
   }) {
     let annotationPosition = position;
 
@@ -116,8 +183,8 @@ export default class AnnotationHandler {
         applicationId: undefined,
         menuId: menuId || null,
         hovered: hovered || false,
-        annotationText: '',
-        annotationTitle: '',
+        annotationText: annotationText,
+        annotationTitle: annotationTitle,
         hidden: false,
       });
     } else {
@@ -133,8 +200,8 @@ export default class AnnotationHandler {
         ).getModelId(),
         menuId: menuId || null,
         hovered: hovered || false,
-        annotationText: '',
-        annotationTitle: '',
+        annotationText: annotationText,
+        annotationTitle: annotationTitle,
         hidden: false,
       });
     }
@@ -163,8 +230,33 @@ export default class AnnotationHandler {
     this.updateMeshReference(annotation);
   }
 
+  onRestoreAnnotations(annotations: SerializedAnnotation[]) {
+    this.annotationData = [];
+
+    for (const annotation of annotations) {
+      let mesh;
+      if (annotation.entityId) {
+        mesh = this.applicationRenderer.getMeshById(annotation.entityId);
+      } else {
+        mesh = undefined;
+      }
+
+      this.addAnnotation({
+        mesh: mesh,
+        position: undefined,
+        wasMoved: true,
+        menuId: annotation.menuId,
+        hovered: false,
+        annotationTitle: annotation.annotationTitle,
+        annotationText: annotation.annotationText,
+      });
+    }
+  }
+
   @action
-  onMenuClosed(menuId: string) {
+  onMenuClosed({
+    originalMessage: { menuId },
+  }: ForwardedMessage<DetachedMenuClosedMessage>): void {
     this.annotationData = this.annotationData.filter(
       (an) => an.menuId !== menuId
     );
@@ -178,5 +270,14 @@ export default class AnnotationHandler {
         annotation.mesh = mesh;
       }
     }
+  }
+
+  willDestroy() {
+    this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    this.detachedMenuRenderer.off(
+      'restore_annotations',
+      this,
+      this.onRestoreAnnotations
+    );
   }
 }

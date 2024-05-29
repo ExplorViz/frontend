@@ -237,6 +237,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             mesh: undefined,
             position: mouseOnCanvas,
             hovered: false,
+            annotationTitle: '',
+            annotationText: '',
           });
         },
       },
@@ -632,6 +634,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         mesh: intersection.object,
         position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
         hovered: true,
+        annotationTitle: '',
+        annotationText: '',
       });
     }
   }
