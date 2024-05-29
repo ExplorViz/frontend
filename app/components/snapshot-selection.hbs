@@ -77,17 +77,25 @@
       <h4 class='modal-title'>Upload Snapshot</h4>
     </modal.header>
     <modal.body>
-      <label for='token'>Snapshot Name:</label>
+      {{#if this.displayName}}
+        <label for='token'>Snapshot Name:</label>
+        <div class='d-flex justify-content-between mb-4'>
+          <input
+            id='name'
+            class='form-control mr-2'
+            oninput={{this.updateName}}
+            value={{this.name}}
+          />
+        </div>
+      {{/if}}
       <div class='d-flex justify-content-between'>
         <input
-          id='name'
-          class='form-control mr-2'
-          oninput={{this.updateName}}
-          value={{this.name}}
+          id='fileUpload'
+          type='file'
+          name='file'
+          accept='.viz'
+          oninput={{this.updateFile}}
         />
-      </div>
-      <div class='d-flex justify-content-between mt-4'>
-        <input id='fileUpload' type='file' name='file' accept='.viz' oninput={{this.updateFile}}/>
       </div>
     </modal.body>
     <modal.footer>
@@ -150,7 +158,24 @@
                   <AdditionalSnapshotInfo @token={{sharedToken}} />
                 </li>
                 <li>
-                  <ShareSnapshot @token={{sharedToken}} />
+                  {{!-- <ShareSnapshot @token={{sharedToken}} /> --}}
+                  <div id='colorPresets' class='dropdown'>
+                    <a
+                      class='button-svg-with-hover'
+                      type='button'
+                      tabindex='0'
+                      href='#'
+                      {{on 'click' (fn this.createLink sharedToken)}}
+                    >
+                      {{svg-jar
+                        'share-android-16'
+                        class='octicon align-middle'
+                      }}
+                      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                        Share Snapshot
+                      </BsTooltip>
+                    </a>
+                  </div>
                 </li>
                 <li>
                   <DeleteSnapshot @token={{sharedToken}} />

@@ -3,28 +3,55 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import Auth from 'explorviz-frontend/services/auth';
-import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
-
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
+import { tracked } from '@glimmer/tracking';
+import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
+// import ENV from 'explorviz-frontend/config/environment';
 /**
  * TODO: website must reload to show snapshot in right table
  * TODO: Button not only share, also revoke access or something like that
  */
+
+// const url = ENV.shareSnapshotURL;
+
 export default class ShareSnapshotComponent extends Component<SnapshotToken> {
   @service('auth')
   auth!: Auth;
 
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
+
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  // this needs to be async to make DB call
-  /**
-   * TODO: create URL and edit DB entry
-   */
+  @tracked
+  setExpireDateMenu: boolean = false;
+
+  @tracked
+  expDate: number | null = null;
+
   @action
-  async shareSnapshot(snapShot: SnapshotToken) {
-    await navigator.clipboard.writeText(snapShot.landscapeToken.value);
-    this.toastHandlerService.showSuccessToastMessage(
-      'URL to share snapshot copied to clipboard'
-    );
+  openMenu() {
+    this.setExpireDateMenu = true;
+  }
+
+  @action
+  closeMenu() {
+    this.setExpireDateMenu = false;
+    this.expDate = null;
+  }
+
+  @action
+  updateExpDate(event: InputEvent) {
+    const target: HTMLInputElement = event.target as HTMLInputElement;
+    const date = convertDate(target.value);
+    this.expDate = date;
+  }
+
+  @action
+  async shareSnapshot(snapshot: SnapshotToken) {
+    this.snapshotService.shareSnapshot(snapshot);
   }
 }

@@ -52,14 +52,15 @@ export default class RoomSerializer extends Service {
    */
   serializeRoom(
     popupData: PopupData[] = [],
-    annotationData: AnnotationData[] = []
+    annotationData: AnnotationData[] = [],
+    snapshot: boolean = false
   ): SerializedRoom {
     const serializedRoom = {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       highlightedExternCommunicationLinks:
         this.serializehighlightedExternCommunicationLinks(),
-      popups: this.serializeOpenPopups(popupData),
+      popups: this.serializeOpenPopups(popupData, snapshot),
       annotations: this.serializeOpenAnnotations(annotationData),
       detachedMenus: this.serializeDetachedMenus(),
     };
@@ -175,10 +176,21 @@ export default class RoomSerializer extends Service {
     return [];
   }
 
-  private serializeOpenPopups(popupData: PopupData[]): SerializedPopup[] {
+  /**
+   * Change that if snapshot is created, that the pop up does not need to be shared
+   * We always want to save a popup if pinned
+   * @param popupData
+   * @returns
+   */
+  private serializeOpenPopups(
+    popupData: PopupData[],
+    snapshot: boolean
+  ): SerializedPopup[] {
     return popupData
       .filter((popup) => {
-        return popup.isPinned && popup.sharedBy;
+        return (
+          (popup.isPinned && popup.sharedBy) || (popup.isPinned && snapshot)
+        );
       })
       .map((popup) => {
         return {

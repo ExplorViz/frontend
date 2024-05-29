@@ -15,7 +15,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 interface Args {
   landscapeData: LandscapeData;
   // unnötig da in serializedRoom
-  popUpData: PopupData;
+  popUpData: PopupData[];
   // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
 }
@@ -58,30 +58,26 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
   @action
   async saveSnapshot() {
     const createdAt: number = new Date().getTime();
-    const saveRoom = this.roomSerializer.serializeRoom();
-    // console.log(this.args.landscapeToken);
-    console.log(this.args.landscapeData);
-    // console.log(this.args.popUpData);
+    const saveRoom = this.roomSerializer.serializeRoom(
+      this.args.popUpData,
+      true
+    );
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
       name: this.snapshotName,
-      landscapeToken: {
-        alias: 'string',
-        created: 2,
-        ownerId: 'string',
-
-        sharedUsersIds: [],
-        value: 'string',
+      landscapeToken: this.args.landscapeToken,
+      structureData: {
+        structureLandscapeData: this.args.landscapeData.structureLandscapeData,
+        dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
-      structureData: {},
+      serializedRoom: saveRoom,
       configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
-      julius: saveRoom,
     };
 
     this.snapshotService.saveSnapshot(content);
@@ -90,36 +86,25 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @action
   exportSnapshot() {
-    // hier noch toasthandler für success und so
-
     const createdAt: number = new Date().getTime();
     const saveRoom = this.roomSerializer.serializeRoom();
-    // console.log(this.args.landscapeToken);
-    console.log(this.args.landscapeData);
-    // console.log(this.args.popUpData);
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
       name: this.snapshotName,
-      landscapeToken: {
-        alias: 'string',
-        created: 2,
-        ownerId: 'string',
-
-        sharedUsersIds: [],
-        value: 'string',
+      landscapeToken: this.args.landscapeToken,
+      structureData: {
+        structureLandscapeData: this.args.landscapeData.structureLandscapeData,
+        dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
-      structureData: {},
+      serializedRoom: saveRoom,
       configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
-      julius: saveRoom,
     };
-    // überhaupt speichern? Nicht doppelt gemoppelt?
-    //this.snapshotService.saveSnapshot(content);
     this.snapshotService.exportFile(content);
     this.reset();
   }

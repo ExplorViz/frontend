@@ -47,7 +47,9 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
@@ -82,6 +84,9 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
+  @service('router')
+  router!: any;
+
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -147,16 +152,21 @@ export default class VisualizationController extends Controller {
    * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
    * mit roomId: string | undefined | null;
    */
-  queryParams = ['roomId', 'snapshot'];
+  queryParams = ['roomId', 'snapshot', 'owner', 'createdAt'];
 
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
   roomId?: string | undefined | null;
 
-  // so nutzen oder id mitgeben von snaphsot und dann dadrüber async call machen, bei room so?
   @tracked
   snapshot?: boolean | undefined | null;
+
+  @tracked
+  owner?: string | undefined | null;
+
+  @tracked
+  createdAt: number | undefined | null;
 
   @tracked
   userApiTokens: ApiToken[] = [];
@@ -467,10 +477,21 @@ export default class VisualizationController extends Controller {
     timestampRecordArray?: Timestamp[]
   ) {
     try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
+      if (!this.snapshot) {
+        const [structureData, dynamicData] =
+          await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
+        this.updateLandscape(structureData, dynamicData);
+      } else {
+        const [structureData, dynamicData] =
+          await this.reloadHandler.loadLandscapeByTimestampSnapshot(
+            this.snapshotTokenService.snapshotToken!.structureData
+              .structureLandscapeData,
+            this.snapshotTokenService.snapshotToken!.structureData
+              .dynamicLandscapeData
+          );
+        this.updateLandscape(structureData, dynamicData);
+      }
 
-      this.updateLandscape(structureData, dynamicData);
       if (timestampRecordArray) {
         this.selectedTimestampRecords = timestampRecordArray;
       }
@@ -525,15 +546,34 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
+    console.log(this.owner);
+    console.log(this.createdAt);
+
     this.debug('initRendering');
     this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
     this.landscapeData = null;
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
-    // meine Funktion zum laden der snapshots und dann kein timestampPollingService?
+
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
+
+    if (this.snapshot) {
+      this.loadSnapshot();
+    } else if (this.owner && this.createdAt) {
+      const snapshotToken: SnapshotToken | null =
+        await this.snapshotTokenService.retrieveToken(
+          this.owner,
+          this.createdAt,
+          true
+        );
+      if (snapshotToken === null) {
+        this.router.transitionTo('landscapes');
+      } else {
+        this.loadSnapshot(snapshotToken);
+      }
+    }
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -550,6 +590,9 @@ export default class VisualizationController extends Controller {
     this.closeToolsSidebar();
 
     this.roomId = null;
+    this.snapshot = null;
+    this.owner = null;
+    this.createdAt = null;
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -693,15 +736,45 @@ export default class VisualizationController extends Controller {
   /**
    * TODO: Change julius!
    */
-  loadSnapshot() {
+  async loadSnapshot(token?: SnapshotToken) {
+    let snapshotToken: SnapshotToken;
+
+    if (token !== undefined) {
+      snapshotToken = token;
+    } else {
+      snapshotToken = this.snapshotTokenService.snapshotToken!;
+    }
+
+    // console.log('Saved PopUps: ');
+    // console.log(snapshotToken.julius.room.popups);
+
+    this.roomSerializer.serializedRoom = snapshotToken.serializedRoom;
+
+    this.highlightingService.updateHighlighting();
+    await this.updateTimestamp(
+      snapshotToken.serializedRoom.landscape.timestamp
+    );
+
+    // this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
+
+    // this.updateLandscape(
+    //   snapshotToken.julius.data.structureLandscapeData,
+    //   snapshotToken.julius.data.dynamicLandscapeData
+    // );
+    //await this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
+
     this.applicationRenderer.restoreFromSerialization(
-      this.snapshotTokenService.snapshotToken!.julius
+      this.snapshotTokenService.snapshotToken!.serializedRoom
     );
     this.detachedMenuRenderer.restore(
-      this.snapshotTokenService.snapshotToken!.julius.popups,
-      this.snapshotTokenService.snapshotToken!.julius.detachedMenus
+      this.snapshotTokenService.snapshotToken!.serializedRoom.popups,
+      this.snapshotTokenService.snapshotToken!.serializedRoom.detachedMenus
     );
     this.highlightingService.updateHighlighting();
+
+    // await this.reloadHandler.loadLandscapeByTimestamp(
+    //   snapshotToken.julius.room.landscape.timestamp
+    // );
   }
 
   /**

@@ -6,6 +6,7 @@ import UserApiTokenService, {
   ApiToken,
 } from 'explorviz-frontend/services/user-api-token';
 import { format } from 'date-fns';
+import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
 
 export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
@@ -33,22 +34,6 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
 
   @tracked
   saveBtnDisabled: boolean = true;
-
-  /**
-   * Converts a string to a number as date
-   * @param date has format `yyyy-MM-dd`
-   * @returns
-   */
-  @action
-  convertDate(date: string) {
-    const day = date.slice(8, date.length);
-    const month = date.slice(5, 7);
-    const year = date.slice(0, 4);
-
-    return new Date(
-      Date.UTC(Number(year), Number(month), Number(day))
-    ).valueOf();
-  }
 
   @action
   sortBy(property: keyof ApiToken) {
@@ -115,7 +100,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   @action
   updateExpDate(event: InputEvent) {
     const target: HTMLInputElement = event.target as HTMLInputElement;
-    const date = this.convertDate(target.value);
+    const date = convertDate(target.value);
     this.expDate = date;
   }
 

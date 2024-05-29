@@ -56,6 +56,27 @@ export default class ReloadHandler extends Service.extend(Evented) {
       throw Error(e);
     }
   }
+
+  async loadLandscapeByTimestampSnapshot(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    const structure = preProcessAndEnhanceStructureLandscape(structureData);
+    const dynamic = dynamicData;
+
+    for (const t of dynamic) {
+      const traceId = t.traceId;
+
+      for (const s of t.spanList) {
+        s.traceId = traceId;
+      }
+    }
+
+    return [structure, dynamic] as [
+      StructureLandscapeData,
+      DynamicLandscapeData,
+    ];
+  }
 }
 
 declare module '@ember/service' {

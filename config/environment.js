@@ -30,6 +30,7 @@ module.exports = (environment) => {
     modulePrefix: 'explorviz-frontend',
     environment,
     rootURL: '/',
+    shareSnapshotURL: P_ENV.SHARE_SNAPSHOT_URL,
     locationType: 'history',
     EmberENV: {
       EXTEND_PROTOTYPES: true,

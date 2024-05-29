@@ -5,6 +5,10 @@ import Auth from './auth';
 import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
 import { tracked } from '@glimmer/tracking';
+import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 //import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
 /**
@@ -15,16 +19,20 @@ export type SnapshotToken = {
   createdAt: number;
   name: string;
   landscapeToken: LandscapeToken;
-  structureData: any;
+  structureData: {
+    structureLandscapeData: StructureLandscapeData;
+    dynamicLandscapeData: DynamicLandscapeData;
+  };
+  serializedRoom: SerializedRoom;
   configuration: any;
   camera: any;
   annotations: any;
   isShared: boolean;
   deleteAt: number;
-  julius: any;
 };
 
 const { userServiceApi } = ENV.backendAddresses;
+const shareSnapshotURL = ENV.shareSnapshotURL;
 
 export default class SnapshotTokenService extends Service {
   @service('auth')
@@ -69,6 +77,39 @@ export default class SnapshotTokenService extends Service {
     });
   }
 
+  /**
+   * Used to load shared snapshots. Will be used to load personal snapshots too . Update Toasthandler later
+   * @param owner
+   * @param createdAt
+   * @returns
+   */
+  retrieveToken(owner: string, createdAt: number, isShared: boolean) {
+    return new Promise<SnapshotToken | null>((resolve) => {
+      fetch(`${userServiceApi}/snapshot/${owner}/${createdAt}/${isShared}`, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+        },
+      })
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const tokens = (await response.json()) as SnapshotToken | null;
+            resolve(tokens);
+          } else {
+            resolve(null);
+            this.toastHandler.showErrorToastMessage(
+              'Snapshot could not be loaded.'
+            );
+          }
+        })
+        .catch(async () => {
+          resolve(null);
+          this.toastHandler.showErrorToastMessage(
+            'Shared snapshot does not exist or is expired.'
+          );
+        });
+    });
+  }
+
   async saveSnapshot(content: SnapshotToken, name?: string) {
     const snapshotToken: SnapshotToken =
       name !== undefined ? { ...content, name: name } : content;
@@ -76,7 +117,7 @@ export default class SnapshotTokenService extends Service {
     const url = `${userServiceApi}/snapshot/create`;
     await fetch(url, {
       method: 'POST',
-      body: JSON.stringify(snapshotToken),
+      body: JSON.stringify(snapshotToken, getCircularReplacer()),
       headers: { 'Content-Type': 'application/json; charset=UTF-8' },
     })
       .then(async (response: Response) => {
@@ -103,7 +144,7 @@ export default class SnapshotTokenService extends Service {
 
   async exportFile(exportData: SnapshotToken) {
     const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-      JSON.stringify(exportData)
+      JSON.stringify(exportData, getCircularReplacer())
     )}`;
     const link = document.createElement('a');
     link.href = jsonString;
@@ -112,8 +153,46 @@ export default class SnapshotTokenService extends Service {
     link.click();
   }
 
-  async deleteSnapshot(snapShot: SnapshotToken) {
-    const url = `${userServiceApi}/snapshot/delete?owner=${snapShot.owner}&createdAt=${snapShot.createdAt}`;
+  async shareSnapshot(snapshot: SnapshotToken) {
+    const snapshotToken = {
+      ...snapshot,
+      name: snapshot.name + ' (shared)',
+      isShared: true,
+    };
+
+    const url = `${userServiceApi}/snapshot/create`;
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(snapshotToken, getCircularReplacer()),
+      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          await navigator.clipboard.writeText(
+            `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}`
+          );
+          this.toastHandler.showSuccessToastMessage(
+            'Successfully shared snapshot. Snaphsot URL copied to clipboard'
+          );
+        } else if (response.status === 422) {
+          this.toastHandler.showErrorToastMessage(
+            'Snapshot could not be shared. A shared version already exists.'
+          );
+        } else {
+          this.toastHandler.showErrorToastMessage(
+            'Something went wrong. Snapshot could not be shared.'
+          );
+        }
+      })
+      .catch(async () => {
+        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+      });
+
+    this.router.refresh('landscapes');
+  }
+
+  async deleteSnapshot(snapshot: SnapshotToken) {
+    const url = `${userServiceApi}/snapshot/delete?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&isShared=${snapshot.isShared}`;
 
     await fetch(url, {
       method: 'DELETE',
@@ -138,18 +217,6 @@ export default class SnapshotTokenService extends Service {
 
   setToken(token: SnapshotToken) {
     this.snapshotToken = token;
-  }
-
-  async uploadSnapshot(file: File, name: string) {
-    const fileReader = new FileReader();
-    fileReader.onload = () => {
-      const fileContent = fileReader.result as string;
-      const jsonData = JSON.parse(fileContent);
-      const snapshotData: any = jsonData;
-      this.saveSnapshot(snapshotData, name);
-    };
-
-    fileReader.readAsText(file);
   }
 }
 
