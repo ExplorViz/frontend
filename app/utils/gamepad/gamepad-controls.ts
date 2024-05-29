@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AxisMapping, ButtonMapping } from './gamepad-mappings';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import { defaultRaycastFilter } from '../raycaster';
 
 /**
  * Convert an angle given in degrees to radians
@@ -268,7 +269,8 @@ export default class GamepadControls {
 
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-    const intersections = raycaster.intersectObjects(this.scene.children, true);
+    let intersections = raycaster.intersectObjects(this.scene.children, true);
+    intersections = intersections.filter(defaultRaycastFilter);
 
     // Find the closest object which is visible. Raycaster.intersectObjects()
     // sorts objects by distance, but some intersected objects may be invisible
