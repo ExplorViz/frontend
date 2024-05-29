@@ -65,6 +65,11 @@ export type GamepadInteractionCallbacks = {
   select?(intersection: THREE.Intersection): void;
   interact?(intersection: THREE.Intersection): void;
   inspect?(intersection: THREE.Intersection, canvasPos: Position2D): void;
+  ping?(
+    obj: THREE.Object3D | null,
+    pingPosition: THREE.Vector3,
+    durationInMs?: number
+  ): void;
 };
 
 export default class GamepadControls {
@@ -266,6 +271,12 @@ export default class GamepadControls {
       if (this.buttonJustPressed[ButtonMapping.TriggerLeft]) {
         if (this.callbacks.inspect) {
           this.callbacks.inspect(objClosest, POPUP_POSITION);
+        }
+      }
+
+      if (this.buttonJustPressed[ButtonMapping.TriggerRight]) {
+        if (this.callbacks.ping) {
+          this.callbacks.ping(objClosest.object, objClosest.point);
         }
       }
     } else {

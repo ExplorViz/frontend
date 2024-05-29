@@ -312,6 +312,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         select: this.handleSingleClick,
         interact: this.handleDoubleClick,
         inspect: this.handleMouseStop,
+        ping: this.localUser.ping.bind(this.localUser),
       }
     );
   }
