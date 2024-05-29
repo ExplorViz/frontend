@@ -36,14 +36,13 @@ const DEAD_ZONE_THRESHOLD: number = 0.1;
  * Speed multiplier for how many units the camera should move in the lateral
  * directions per animation frame
  */
-const SPEED_HORIZONTAL: number = 0.03;
+const SPEED_HORIZONTAL: number = 0.04;
 
 /**
  * Speed multiplier for how many units the camera should move up or down
  * per animation frame
  */
-const SPEED_VERTICAL: number = 0.03;
-
+const SPEED_VERTICAL: number = SPEED_HORIZONTAL;
 /**
  * How many degrees the camera should rotate per frame if direction is held
  */
@@ -246,7 +245,10 @@ export default class GamepadControls {
     this.moveDirection.applyMatrix4(this.rotationMatrix);
 
     // The more the stick is pressed, the faster the camera should move
-    const AXIS_SCALE = Math.sqrt(STICK_LEFT_H ** 2 + STICK_LEFT_V ** 2);
+    const EXPONENT = 6;
+    const AXIS_SCALE = Math.sqrt(
+      STICK_LEFT_H ** EXPONENT + STICK_LEFT_V ** EXPONENT
+    );
 
     // Scale directional vector with speed constant. Note we do not want to
     // apply vertical movement if camera faces downward
