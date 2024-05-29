@@ -9,9 +9,9 @@ import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
  * @param degrees An angle measured in degrees
  * @returns The same angle, but measured in radians
  */
-const degreesToRadians = (degrees: number): number => {
-  return degrees * (Math.PI / 180);
-};
+// const degreesToRadians = (degrees: number): number => {
+//   return degrees * (Math.PI / 180);
+// };
 
 /**
  * Checks an axis position against a fixed threshold to filter out small disturbances
@@ -46,13 +46,13 @@ const SPEED_VERTICAL: number = SPEED_HORIZONTAL;
 /**
  * How many degrees the camera should rotate per frame if direction is held
  */
-const ROTATION_ANGLE: number = degreesToRadians(2);
+// const ROTATION_ANGLE: number = degreesToRadians(2);
 
 /**
  * This caps the rotation in the up / down direction to avoid the possibility
  * of the camera turning upside-down
  */
-const ROTATION_VMAX: number = degreesToRadians(80);
+// const ROTATION_VMAX: number = degreesToRadians(80);
 
 /**
  * Use a fixed popup position for now. One could perhaps imagine moving popups
@@ -74,9 +74,8 @@ export default class GamepadControls {
   private camera: THREE.Camera;
   private scene: THREE.Scene;
   private crosshair: CrosshairMesh;
-  private angleH: number = 0;
-  private angleV: number = 0;
-  private rotationMatrix: THREE.Matrix4 = new THREE.Matrix4();
+  // private angleH: number = 0;
+  // private angleV: number = 0;
   private moveDirection: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   private buttonPressed: ButtonState = {} as ButtonState;
@@ -164,8 +163,8 @@ export default class GamepadControls {
     // Todo: Add support for multiple gamepads
     const gp = gamepads[0];
 
-    const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
-    const STICK_RIGHT_V = dead_zone_clamp(gp.axes[AxisMapping.StickRightV]);
+    // const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
+    // const STICK_RIGHT_V = dead_zone_clamp(gp.axes[AxisMapping.StickRightV]);
     const STICK_LEFT_H = dead_zone_clamp(gp.axes[AxisMapping.StickLeftH]);
     const STICK_LEFT_V = dead_zone_clamp(gp.axes[AxisMapping.StickLeftV]);
 
@@ -186,63 +185,10 @@ export default class GamepadControls {
     // Movement //
     //////////////
 
-    // Rotate according to right stick movement
-
-    this.angleH += ROTATION_ANGLE * STICK_RIGHT_H;
-    this.angleV -= ROTATION_ANGLE * STICK_RIGHT_V;
-
-    // Clamp Y rotation to prevent turning upside-down
-    this.angleV = Math.max(
-      Math.min(this.angleV, ROTATION_VMAX),
-      -ROTATION_VMAX
-    );
-
-    this.rotationMatrix = new THREE.Matrix4(
-      Math.cos(this.angleH),
-      0,
-      -Math.sin(this.angleH),
-      0,
-      0,
-      1,
-      0,
-      0,
-      Math.sin(this.angleH),
-      0,
-      Math.cos(this.angleH),
-      0,
-      0,
-      0,
-      0,
-      1
-    ).multiply(
-      new THREE.Matrix4(
-        1,
-        0,
-        0,
-        0,
-        0,
-        Math.cos(this.angleV),
-        -Math.sin(this.angleV),
-        0,
-        0,
-        Math.sin(this.angleV),
-        Math.cos(this.angleV),
-        0,
-        0,
-        0,
-        0,
-        1
-      )
-    );
-
-    this.camera.setRotationFromMatrix(this.rotationMatrix);
-
     // Apply lateral movement according to left stick in camera space.
     // Create a basis vector to transform using camera's rotation
 
     this.moveDirection.set(STICK_LEFT_H, 0, STICK_LEFT_V);
-
-    this.moveDirection.applyMatrix4(this.rotationMatrix);
 
     // The more the stick is pressed, the faster the camera should move
     const EXPONENT = 6;
@@ -339,8 +285,8 @@ export default class GamepadControls {
     if (Object.keys(this.connectedGamepads).length == 0) this.deactivate();
   }
 
-  public setRotation(newAngleH: number, newAngleV: number) {
-    this.angleH = newAngleH;
-    this.angleV = newAngleV;
-  }
+  // public setRotation(newAngleH: number, newAngleV: number) {
+  //   this.angleH = newAngleH;
+  //   this.angleV = newAngleV;
+  // }
 }
