@@ -207,10 +207,9 @@ export default class RoomSerializer extends Service {
     return annotationData.map((annotation) => {
       let entityId = undefined;
 
-      if (annotation.entity) {
+      if (annotation.entity !== undefined) {
         entityId = annotation.entity.id;
       }
-
       return {
         entityId: entityId,
         menuId: annotation.menuId,

@@ -11,7 +11,7 @@
     {{#if @annotationData.isAssociated}}
       {{#if @annotationData.wasMoved}}
         <div class="d-flex justify-content-between">
-          <label style="font-weight: bold; margin-left: 3px;">Associated to '{{@annotationData.entity.name}}'</label>
+          <label style="font-weight: bold; margin-left: 3px;">Associated with '{{@annotationData.entity.name}}'</label>
         </div>
         <div class="d-flex justify-content-between">
           <Input
@@ -22,17 +22,17 @@
             @type="text"
             @value={{@annotationData.annotationTitle}}
           />
-          <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
-            {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
+          <BsButton @type={{'primary'}} @onClick={{this.ping}}>
+            {{svg-jar 'location-16' class='octicon align-middle'}}
             <BsTooltip @placement='top' @triggerEvents='hover'>
-              Highlight
+              Ping
             </BsTooltip>
           </BsButton>
           <BsButton
             class='annotation-minimize-button'
             @type='secondary'
             @outline='true'
-            @onClick={{fn @hideAnnotation @annotationData.annotationId}}
+            @onClick={{fn @minimizeAnnotation @annotationData.annotationId}}
           >
             _
           </BsButton>
@@ -42,7 +42,7 @@
             @outline='true'
             @onClick={{fn @removeAnnotation @annotationData.annotationId}}
           >
-            X
+            {{svg-jar 'trash-16' class='octicon align-right'}}
           </BsButton>
         </div>
         {{#unless @annotationData.hidden}}
@@ -94,7 +94,7 @@
             @outline='true'
             @onClick={{fn @removeAnnotation @annotationData.annotationId}}
           >
-            X
+            {{svg-jar 'trash-16' class='octicon align-right'}}
           </BsButton>
       </div>
       {{#unless @annotationData.hidden}}

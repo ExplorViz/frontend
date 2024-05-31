@@ -1,4 +1,5 @@
-import { setOwner } from '@ember/application';
+import Service from '@ember/service';
+// import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
@@ -13,10 +14,7 @@ import * as THREE from 'three';
 import { SerializedAnnotation } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import WebSocketService from 'collaboration/services/web-socket';
-import {
-  DETACHED_MENU_CLOSED_EVENT,
-  DetachedMenuClosedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import { DetachedMenuClosedMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import {
   MENU_DETACHED_EVENT,
@@ -28,7 +26,7 @@ import {
 } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
 import { COMPONENT_ENTITY_TYPE } from 'collaboration/utils/web-socket-messages/types/entity-type';
 
-export default class AnnotationHandler {
+export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -44,24 +42,41 @@ export default class AnnotationHandler {
   @tracked
   annotationData: AnnotationData[] = [];
 
-  constructor(owner: any) {
-    setOwner(this, owner);
-    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-    this.detachedMenuRenderer.on(
-      'restore_annotations',
-      this,
-      this.onRestoreAnnotations
-    );
-  }
+  minimizedAnnotations: AnnotationData[] = [];
+
+  // constructor(owner: any) {
+  //   setOwner(this, owner);
+  //   this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+  //   this.detachedMenuRenderer.on(
+  //     'restore_annotations',
+  //     this,
+  //     this.onRestoreAnnotations
+  //   );
+  // }
 
   @action
   clearAnnotations() {
+    this.annotationData.forEach((an) => {
+      if (an.entity) {
+        this.applicationRenderer.updateLabel(an.entity.id, '');
+      }
+    });
+
     this.annotationData = [];
   }
 
   @action
   removeUnmovedAnnotations() {
+    const unmovedAnnotations = this.annotationData.filter(
+      (data) => !data.wasMoved
+    );
     this.annotationData = this.annotationData.filter((data) => data.wasMoved);
+
+    unmovedAnnotations.forEach((an) => {
+      if (an.entity) {
+        this.applicationRenderer.updateLabel(an.entity.id, '');
+      }
+    });
   }
 
   @action
@@ -80,12 +95,44 @@ export default class AnnotationHandler {
   }
 
   @action
+  minimizeAnnotation(annotationId: number) {
+    const annotation = this.annotationData.find(
+      (an) => an.annotationId === annotationId
+    );
+
+    if (annotation) {
+      // remove potential toggle effects
+      if (annotation.entity) {
+        const mesh = this.applicationRenderer.getMeshById(annotation.entity.id);
+        if (mesh?.isHovered) {
+          mesh.resetHoverEffect();
+        }
+      }
+
+      this.minimizedAnnotations = [...this.minimizedAnnotations, annotation];
+      this.annotationData = this.annotationData.filter(
+        (an) => an.annotationId !== annotationId
+      );
+    }
+  }
+
+  @action
   removeAnnotation(annotationId: number) {
     const annotation = this.annotationData.find(
       (an) => an.annotationId === annotationId
     );
     if (!annotation) {
       return;
+    }
+
+    // remove potential toggle effects
+    if (annotation.entity) {
+      const mesh = this.applicationRenderer.getMeshById(annotation.entity.id);
+      if (mesh?.isHovered) {
+        mesh.resetHoverEffect();
+      }
+
+      this.applicationRenderer.updateLabel(annotation.entity.id, '');
     }
 
     this.annotationData = this.annotationData.filter(
@@ -161,64 +208,86 @@ export default class AnnotationHandler {
     annotationTitle: string;
     annotationText: string;
   }) {
-    let annotationPosition = position;
+    let minimized = false;
 
-    if (!annotationPosition) {
-      annotationPosition = {
-        x: 100,
-        y: 200 + this.annotationData.length * 50,
-      };
-    }
-
-    let newAnnotation;
-
-    if (!isEntityMesh(mesh)) {
-      newAnnotation = new AnnotationData({
-        mouseX: annotationPosition.x,
-        mouseY: annotationPosition.y,
-        wasMoved: true,
-        isAssociated: false,
-        entity: undefined,
-        mesh: undefined,
-        applicationId: undefined,
-        menuId: menuId || null,
-        hovered: hovered || false,
-        annotationText: annotationText,
-        annotationTitle: annotationTitle,
-        hidden: false,
-      });
-    } else {
-      newAnnotation = new AnnotationData({
-        mouseX: annotationPosition.x,
-        mouseY: annotationPosition.y,
-        wasMoved: wasMoved || false,
-        isAssociated: true,
-        entity: mesh.dataModel,
-        mesh,
-        applicationId: (
-          mesh.parent as ApplicationObject3D | GrabbableForceGraph
-        ).getModelId(),
-        menuId: menuId || null,
-        hovered: hovered || false,
-        annotationText: annotationText,
-        annotationTitle: annotationTitle,
-        hidden: false,
-      });
-    }
-
-    // Check if annotation for entitiy already exists and update it if so
-    if (newAnnotation.entity !== undefined) {
-      const maybeAnnotation = this.annotationData.find(
-        (an) =>
-          an.entity !== undefined && an.entity.id === newAnnotation.entity?.id
+    if (isEntityMesh(mesh)) {
+      const annotation = this.minimizedAnnotations.filter(
+        (an) => an.entity?.id === mesh.dataModel.id
       );
-      if (maybeAnnotation) {
-        this.updateExistingAnnotation(maybeAnnotation, newAnnotation);
-        return;
+      if (annotation.length === 1) {
+        this.annotationData = [...this.annotationData, annotation[0]];
+        this.minimizedAnnotations = this.minimizedAnnotations.filter(
+          (an) => an.annotationId !== annotation[0].annotationId
+        );
+        minimized = true;
       }
     }
 
-    this.annotationData = [...this.annotationData, newAnnotation];
+    if (!minimized) {
+      let annotationPosition = position;
+
+      if (!annotationPosition) {
+        annotationPosition = {
+          x: 100,
+          y: 200 + this.annotationData.length * 50,
+        };
+      }
+
+      let newAnnotation;
+
+      if (!isEntityMesh(mesh)) {
+        newAnnotation = new AnnotationData({
+          mouseX: annotationPosition.x,
+          mouseY: annotationPosition.y,
+          wasMoved: true,
+          isAssociated: false,
+          entity: undefined,
+          mesh: undefined,
+          applicationId: undefined,
+          menuId: menuId || null,
+          hovered: hovered || false,
+          annotationText: annotationText,
+          annotationTitle: annotationTitle,
+          hidden: false,
+        });
+      } else {
+        newAnnotation = new AnnotationData({
+          mouseX: annotationPosition.x,
+          mouseY: annotationPosition.y,
+          wasMoved: wasMoved || false,
+          isAssociated: true,
+          entity: mesh.dataModel,
+          mesh,
+          applicationId: (
+            mesh.parent as ApplicationObject3D | GrabbableForceGraph
+          ).getModelId(),
+          menuId: menuId || null,
+          hovered: hovered || false,
+          annotationText: annotationText,
+          annotationTitle: annotationTitle,
+          hidden: false,
+        });
+
+        this.applicationRenderer.updateLabel(
+          newAnnotation.entity!.id,
+          ' [annotated]'
+        );
+      }
+
+      // Check if annotation for entitiy already exists and update it if so
+      if (newAnnotation.entity !== undefined) {
+        const maybeAnnotation = this.annotationData.find(
+          (an) =>
+            an.entity !== undefined && an.entity.id === newAnnotation.entity?.id
+        );
+        if (maybeAnnotation) {
+          this.updateExistingAnnotation(maybeAnnotation, newAnnotation);
+          return;
+        }
+      }
+
+      this.annotationData = [...this.annotationData, newAnnotation];
+    }
   }
 
   private updateExistingAnnotation(
@@ -235,7 +304,7 @@ export default class AnnotationHandler {
 
     for (const annotation of annotations) {
       let mesh;
-      if (annotation.entityId) {
+      if (annotation.entityId !== undefined) {
         mesh = this.applicationRenderer.getMeshById(annotation.entityId);
       } else {
         mesh = undefined;
@@ -273,11 +342,22 @@ export default class AnnotationHandler {
   }
 
   willDestroy() {
-    this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
-    this.detachedMenuRenderer.off(
-      'restore_annotations',
-      this,
-      this.onRestoreAnnotations
-    );
+    this.annotationData = [];
+    // this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    // this.detachedMenuRenderer.off(
+    //   'restore_annotations',
+    //   this,
+    //   this.onRestoreAnnotations
+    // );
+  }
+}
+
+// Don't remove this declaration: this is what enables TypeScript to resolve
+// this service using `Owner.lookup('service:annotation-handler')`, as well
+// as to check when you pass the service name as an argument to the decorator,
+// like `@service('annotation-handler') declare altName: AnnotationHandlerService;`.
+declare module '@ember/service' {
+  interface Registry {
+    'annotation-handler': AnnotationHandlerService;
   }
 }

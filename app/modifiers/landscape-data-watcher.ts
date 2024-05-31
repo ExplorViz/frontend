@@ -225,6 +225,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         serializedRoom.popups,
         serializedRoom.detachedMenus
       );
+      this.detachedMenuRenderer.restoreAnnotations(serializedRoom.annotations!);
       this.roomSerializer.serializedRoom = undefined;
     } else {
       // Remove possibly oudated applications

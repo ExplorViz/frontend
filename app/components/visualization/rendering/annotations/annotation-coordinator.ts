@@ -6,15 +6,14 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import LocalUser from 'collaboration/services/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import AnnotationData from './annotation-data';
-import AnnotationHandler from 'explorviz-frontend/rendering/application/annotation-handler';
 import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import * as THREE from 'three';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 
 interface IArgs {
   isMovable: boolean;
   annotationData: AnnotationData;
-  annotationHandler: AnnotationHandler;
   removeAnnotation(annotationId: number): void;
   updateMeshReference(annotation: AnnotationData): void;
 }
@@ -31,6 +30,9 @@ export default class AnnotationCoordinatorComponent extends Component<IArgs> {
 
   @service('local-user')
   localUser!: LocalUser;
+
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
 
   element!: HTMLDivElement;
 
@@ -63,6 +65,19 @@ export default class AnnotationCoordinatorComponent extends Component<IArgs> {
         sendMessage: true,
         remoteColor: new THREE.Color(0xffb739),
       });
+    }
+  }
+
+  @action
+  ping() {
+    if (
+      this.args.annotationData.entity &&
+      this.args.annotationData.applicationId
+    ) {
+      this.localUser.pingByModelId(
+        this.args.annotationData.entity?.id,
+        this.args.annotationData.applicationId
+      );
     }
   }
 

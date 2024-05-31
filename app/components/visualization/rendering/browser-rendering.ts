@@ -42,11 +42,11 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import AnnotationHandler from 'explorviz-frontend/rendering/application/annotation-handler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap-configuration';
 import ThreeForceGraph from 'three-forcegraph';
 import { Vector3 } from 'three/src/math/Vector3';
 import * as THREE from 'three';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -98,6 +98,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
+
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
@@ -112,8 +115,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   canvas!: HTMLCanvasElement;
 
   popupHandler: PopupHandler;
-
-  annotationHandler: AnnotationHandler;
 
   renderer!: THREE.WebGLRenderer;
 
@@ -177,7 +178,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.annotationHandler = new AnnotationHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph;
 
     // IDE Websocket
@@ -598,6 +598,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  minimizeAnnotation(annotationId: number) {
+    this.annotationHandler.minimizeAnnotation(annotationId);
+  }
+
+  @action
   removeAnnotation(annotationId: number) {
     if (!this.appSettings.enableCustomAnnotationPosition.value) {
       this.annotationHandler.clearAnnotations();
@@ -630,6 +635,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
       });
+
       this.annotationHandler.addAnnotation({
         mesh: intersection.object,
         position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
@@ -693,6 +699,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop.stop();
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
+    this.annotationHandler.willDestroy();
     // this.graph.graphData([]);
 
     this.debug('Cleaned up application rendering');

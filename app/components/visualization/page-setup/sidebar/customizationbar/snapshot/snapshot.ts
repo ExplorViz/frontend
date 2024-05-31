@@ -11,6 +11,7 @@ import SnapshotTokenService, {
 } from 'explorviz-frontend/services/snapshot-token';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -18,6 +19,7 @@ interface Args {
   popUpData: PopupData[];
   // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
+  annotationData: AnnotationData[];
 }
 
 export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapshotComponent extends Component<Args> {
@@ -60,6 +62,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
     const createdAt: number = new Date().getTime();
     const saveRoom = this.roomSerializer.serializeRoom(
       this.args.popUpData,
+      this.args.annotationData,
       true
     );
 

@@ -97,6 +97,7 @@
           @updateMeshReference={{this.annotationHandler.updateMeshReference}}
           @removeAnnotation={{this.removeAnnotation}}
           @hideAnnotation={{this.hideAnnotation}}
+          @minimizeAnnotation={{this.minimizeAnnotation}}
           @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
           @openParents={{this.applicationRenderer.openParents}}
         />
@@ -213,6 +214,7 @@
                 <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot
                   @landscapeData={{@landscapeData}}
                   @popUpData={{this.popupHandler.popupData}}
+                  @annotationData={{this.annotationHandler.annotationData}}
                   @landscapeToken={{@landscapeToken}}
                 />
               {{/if}}

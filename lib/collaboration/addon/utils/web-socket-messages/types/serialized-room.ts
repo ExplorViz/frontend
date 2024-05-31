@@ -8,6 +8,7 @@ export type SerializedRoom = {
   openApps: SerializedApp[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
   popups: SerializedPopup[];
+  annotations?: SerializedAnnotation[];
   detachedMenus: SerializedDetachedMenu[];
 };
 
