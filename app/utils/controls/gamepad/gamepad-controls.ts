@@ -5,15 +5,6 @@ import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 
 /**
- * Convert an angle given in degrees to radians
- * @param degrees An angle measured in degrees
- * @returns The same angle, but measured in radians
- */
-// const degreesToRadians = (degrees: number): number => {
-//   return degrees * (Math.PI / 180);
-// };
-
-/**
  * Checks an axis position against a fixed threshold to filter out small disturbances
  * @param axis_value The gamepad axis position to be checked against dead zone
  * @returns `axis_value` if outside the dead zone threshold, otherwise 0
@@ -43,16 +34,6 @@ const SPEED_HORIZONTAL: number = 20;
  * per animation frame
  */
 const ZOOM_SPEED: number = 40;
-/**
- * How many degrees the camera should rotate per frame if direction is held
- */
-// const ROTATION_ANGLE: number = degreesToRadians(2);
-
-/**
- * This caps the rotation in the up / down direction to avoid the possibility
- * of the camera turning upside-down
- */
-// const ROTATION_VMAX: number = degreesToRadians(80);
 
 /**
  * Use a fixed popup position for now. One could perhaps imagine moving popups
@@ -79,25 +60,24 @@ export default class GamepadControls {
   private camera: THREE.Camera;
   private scene: THREE.Scene;
   private crosshair: CrosshairMesh;
-  // private angleH: number = 0;
-  // private angleV: number = 0;
   private moveDirection: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   private buttonPressed: ButtonState = {} as ButtonState;
   private buttonJustPressed: ButtonState = {} as ButtonState;
   private callbacks: GamepadInteractionCallbacks;
 
-  private orbitControls: any;
+  // By default, these are OrbitControls by three.js
+  private controls: any;
 
   constructor(
     camera: THREE.Camera,
     scene: THREE.Scene,
-    orbitControls: any,
+    controls: any,
     callbacks: GamepadInteractionCallbacks
   ) {
     this.camera = camera;
     this.scene = scene;
-    this.orbitControls = orbitControls;
+    this.controls = controls;
     this.callbacks = callbacks;
 
     this.crosshair = new CrosshairMesh({
@@ -192,11 +172,6 @@ export default class GamepadControls {
 
     // Apply lateral movement according to left stick in camera space.
     // Create a basis vector to transform using camera's rotation
-
-    // Rotate the camera according to the right stick
-    this.orbitControls.rotateLeft(STICK_RIGHT_H * 0.05);
-    this.orbitControls.rotateUp(STICK_RIGHT_V * 0.05);
-
     this.moveDirection.set(STICK_LEFT_H, 0, STICK_LEFT_V);
 
     // The more the stick is pressed, the faster the camera should move
@@ -213,55 +188,40 @@ export default class GamepadControls {
       .multiplyScalar(AXIS_SCALE)
       .multiplyScalar(SPEED_HORIZONTAL);
 
+    this.controls.pan(-this.moveDirection.x, -this.moveDirection.z);
+
+    // Rotate the camera according to the right stick
+    this.controls.rotate(STICK_RIGHT_H * 0.05, STICK_RIGHT_V * 0.05);
+
     // Apply vertical movement if face buttons are pressed
-    this.orbitControls.dollyIn(
-      gp.buttons[ButtonMapping.FaceDown].value * ZOOM_SPEED
-    );
-    this.orbitControls.dollyOut(
+    this.controls.zoomIn(gp.buttons[ButtonMapping.FaceDown].value * ZOOM_SPEED);
+    this.controls.zoomOut(
       gp.buttons[ButtonMapping.FaceRight].value * ZOOM_SPEED
     );
-
-    // One button counts positive, one negative.
-    // If both buttons are pressed, they cancel out
-    // this.moveDirection.setY((BUTTON_UP - BUTTON_DOWN) * SPEED_VERTICAL);
-
-    // Move both camera and target to achieve panning effect with orbit controls
-    // this.camera.position.add(this.moveDirection);
-    this.orbitControls.pan(-this.moveDirection.x, -this.moveDirection.z);
 
     ////////////////////////
     // Object Interaction //
     ////////////////////////
 
-    // Raycast to find which mesh we are looking at
-
+    // Raycast to find retrieve 3D object we are looking at
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+
+    // Calculate intersections and filter out non-interactive objects like a ping
     let intersections = raycaster.intersectObjects(this.scene.children, true);
     intersections = intersections.filter(defaultRaycastFilter);
 
-    // Find the closest object which is visible. Raycaster.intersectObjects()
-    // sorts objects by distance, but some intersected objects may be invisible
+    const objClosest = intersections.length > 0 ? intersections[0] : null;
 
-    let objClosest = null;
-
-    if (intersections) {
-      for (const intersection of intersections) {
-        if (intersection.object.visible) {
-          objClosest = intersection;
-          break;
-        }
-      }
-    }
-
-    // Highlight looked-at object. If objClosest is null, we unhighlight all
+    // The lookAt callback is mainly used for (un)highlighting objects
     if (this.callbacks.lookAt) {
       this.callbacks.lookAt(objClosest, new MouseEvent(''));
     }
 
-    if (objClosest) {
-      this.crosshair.updatePosition(objClosest.point);
+    const intersectionPoint = objClosest ? objClosest.point : undefined;
+    this.crosshair.updatePosition(intersectionPoint);
 
+    if (objClosest) {
       if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {
         if (this.callbacks.select) {
           this.callbacks.select(objClosest);
@@ -285,8 +245,6 @@ export default class GamepadControls {
           this.callbacks.ping(objClosest.object, objClosest.point);
         }
       }
-    } else {
-      this.crosshair.updatePosition(undefined);
     }
   }
 
@@ -301,9 +259,4 @@ export default class GamepadControls {
     delete this.connectedGamepads[event.gamepad.id];
     if (Object.keys(this.connectedGamepads).length == 0) this.deactivate();
   }
-
-  // public setRotation(newAngleH: number, newAngleV: number) {
-  //   this.angleH = newAngleH;
-  //   this.angleV = newAngleV;
-  // }
 }

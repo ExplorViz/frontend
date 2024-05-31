@@ -10,6 +10,7 @@ export function defaultRaycastFilter(
   intersection: THREE.Intersection
 ): boolean {
   return !(
+    !intersection.object.visible ||
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
     intersection.object.parent instanceof CommunicationArrowMesh ||

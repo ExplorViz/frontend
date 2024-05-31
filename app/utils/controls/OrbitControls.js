@@ -1309,10 +1309,12 @@ class OrbitControls extends EventDispatcher {
     this.update();
 
     this.pan = pan;
-    this.rotateLeft = rotateLeft;
-    this.rotateUp = rotateUp;
-    this.dollyIn = (delta) => dollyIn(getZoomScale(delta));
-    this.dollyOut = (delta) => dollyOut(getZoomScale(delta));
+    this.rotate = (deltaX, deltaY) => {
+      rotateLeft(deltaX);
+      rotateUp(deltaY);
+    };
+    this.zoomIn = (delta) => dollyIn(getZoomScale(delta));
+    this.zoomOut = (delta) => dollyOut(getZoomScale(delta));
   }
 }
 
