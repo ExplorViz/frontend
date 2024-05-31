@@ -34,6 +34,8 @@ export default class RenderingLoop {
 
   orthographicCamera: THREE.OrthographicCamera | undefined;
 
+  minimapCamera: THREE.OrthographicCamera;
+
   scene: THREE.Scene;
 
   renderer: THREE.WebGLRenderer;
@@ -92,6 +94,7 @@ export default class RenderingLoop {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
+
     });
   }
 

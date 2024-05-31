@@ -331,6 +331,23 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       Math.PI / 4
     );
     this.localUser.ortographicCamera.lookAt(this.scene.position);
+
+    // minimap camera
+    // this.localUser.minimapCamera = new THREE.OrthographicCamera(
+    //   -aspectRatio * this.frustumSize,
+    //   aspectRatio * this.frustumSize,
+    //   this.frustumSize,
+    //   -this.frustumSize,
+    //   0.1,
+    //   100
+    // );
+    // this.localUser.minimapCamera.position.setFromSphericalCoords(
+    //   Math.PI / 2,
+    //   0,
+    //   0
+    // );
+    // this.localUser.minimapCamera.lookAt();
+    
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
