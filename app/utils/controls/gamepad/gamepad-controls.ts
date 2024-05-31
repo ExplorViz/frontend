@@ -214,7 +214,7 @@ export default class GamepadControls {
     const objClosest = intersections.length > 0 ? intersections[0] : null;
 
     // The lookAt callback is mainly used for (un)highlighting objects
-    if (this.callbacks.lookAt) {
+    if (this.moveDirection.length() > 0 && this.callbacks.lookAt) {
       this.callbacks.lookAt(objClosest, new MouseEvent(''));
     }
 
