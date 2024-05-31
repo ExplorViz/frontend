@@ -60,7 +60,7 @@ export default class GamepadControls {
   private camera: THREE.Camera;
   private scene: THREE.Scene;
   private crosshair: CrosshairMesh;
-  private moveDirection: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  private moveDirection: THREE.Vector2 = new THREE.Vector2(0, 0);
 
   private buttonPressed: ButtonState = {} as ButtonState;
   private buttonJustPressed: ButtonState = {} as ButtonState;
@@ -133,28 +133,14 @@ export default class GamepadControls {
   }
 
   private pollGamepads() {
-    if (typeof navigator.getGamepads !== 'function') {
-      console.error('Could not call navigator.getGamepads()');
-      return;
-    }
+    if (!this.getGamepad()) return;
 
-    const gamepads = navigator.getGamepads();
-
-    if (!gamepads || !gamepads[0]) {
-      console.error('No connected gamepad could be found');
-      return;
-    }
-
-    // Todo: Add support for multiple gamepads
-    const gp = gamepads[0];
-
-    const STICK_RIGHT_H = dead_zone_clamp(gp.axes[AxisMapping.StickRightH]);
-    const STICK_RIGHT_V = dead_zone_clamp(gp.axes[AxisMapping.StickRightV]);
-    const STICK_LEFT_H = dead_zone_clamp(gp.axes[AxisMapping.StickLeftH]);
-    const STICK_LEFT_V = dead_zone_clamp(gp.axes[AxisMapping.StickLeftV]);
+    const STICK_RIGHT_H = this.getAxisValue(AxisMapping.StickRightH);
+    const STICK_RIGHT_V = this.getAxisValue(AxisMapping.StickRightV);
+    const STICK_LEFT_H = this.getAxisValue(AxisMapping.StickLeftH);
+    const STICK_LEFT_V = this.getAxisValue(AxisMapping.StickLeftV);
 
     // Update button presses
-
     for (const button in ButtonMapping) {
       if (isNaN(Number(button))) {
         // Enum contains both the names and values
@@ -162,8 +148,8 @@ export default class GamepadControls {
       }
 
       this.buttonJustPressed[button] =
-        !this.buttonPressed[button] && gp.buttons[button].value > 0;
-      this.buttonPressed[button] = gp.buttons[button].value > 0;
+        !this.buttonPressed[button] && this.isButtonPressed(Number(button));
+      this.buttonPressed[button] = this.isButtonPressed(Number(button));
     }
 
     //////////////
@@ -172,7 +158,7 @@ export default class GamepadControls {
 
     // Apply lateral movement according to left stick in camera space.
     // Create a basis vector to transform using camera's rotation
-    this.moveDirection.set(STICK_LEFT_H, 0, STICK_LEFT_V);
+    this.moveDirection.set(STICK_LEFT_H, STICK_LEFT_V);
 
     // The more the stick is pressed, the faster the camera should move
     const EXPONENT = 6;
@@ -183,21 +169,23 @@ export default class GamepadControls {
     // Scale directional vector with speed constant. Note we do not want to
     // apply vertical movement if camera faces downward
     this.moveDirection
-      .setY(0)
       .normalize()
       .multiplyScalar(AXIS_SCALE)
       .multiplyScalar(SPEED_HORIZONTAL);
 
-    this.controls.pan(-this.moveDirection.x, -this.moveDirection.z);
+    this.controls.pan(-this.moveDirection.x, -this.moveDirection.y);
 
     // Rotate the camera according to the right stick
     this.controls.rotate(STICK_RIGHT_H * 0.05, STICK_RIGHT_V * 0.05);
 
-    // Apply vertical movement if face buttons are pressed
-    this.controls.zoomIn(gp.buttons[ButtonMapping.FaceDown].value * ZOOM_SPEED);
-    this.controls.zoomOut(
-      gp.buttons[ButtonMapping.FaceRight].value * ZOOM_SPEED
-    );
+    // Handle zooming in and out
+    if (this.isButtonPressed(ButtonMapping.FaceDown)) {
+      this.controls.zoomOut(ZOOM_SPEED);
+    }
+
+    if (this.isButtonPressed(ButtonMapping.FaceRight)) {
+      this.controls.zoomIn(ZOOM_SPEED);
+    }
 
     ////////////////////////
     // Object Interaction //
@@ -246,6 +234,36 @@ export default class GamepadControls {
         }
       }
     }
+  }
+
+  private getGamepad(): Gamepad | null {
+    const gamepads = navigator.getGamepads();
+
+    // Todo: Add support for multiple gamepads
+    if (!gamepads || !gamepads[0]) {
+      console.error('No connected gamepad could be found');
+      return null;
+    }
+
+    return gamepads[0];
+  }
+
+  private getAxisValue(axisId: number): number {
+    const gamepad = this.getGamepad();
+    if (!gamepad) return 0;
+
+    if (gamepad.axes.length <= axisId) return 0;
+
+    return dead_zone_clamp(gamepad.axes[axisId]);
+  }
+
+  private isButtonPressed(buttonId: number): boolean {
+    const gamepad = this.getGamepad();
+    if (!gamepad) return false;
+
+    if (gamepad.buttons.length <= buttonId) return false;
+
+    return gamepad.buttons[buttonId].value > 0;
   }
 
   private onGamepadConnected(event: GamepadEvent) {
