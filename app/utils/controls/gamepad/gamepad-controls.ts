@@ -36,13 +36,13 @@ const DEAD_ZONE_THRESHOLD: number = 0.1;
  * Speed multiplier for how many units the camera should move in the lateral
  * directions per animation frame
  */
-const SPEED_HORIZONTAL: number = 0.04;
+const SPEED_HORIZONTAL: number = 20;
 
 /**
  * Speed multiplier for how many units the camera should move up or down
  * per animation frame
  */
-const SPEED_VERTICAL: number = SPEED_HORIZONTAL;
+const ZOOM_SPEED: number = 40;
 /**
  * How many degrees the camera should rotate per frame if direction is held
  */
@@ -194,8 +194,8 @@ export default class GamepadControls {
     // Create a basis vector to transform using camera's rotation
 
     // Rotate the camera according to the right stick
-    this.orbitControls.rotateLeft(-STICK_RIGHT_H * 0.05);
-    this.orbitControls.rotateUp(-STICK_RIGHT_V * 0.05);
+    this.orbitControls.rotateLeft(STICK_RIGHT_H * 0.05);
+    this.orbitControls.rotateUp(STICK_RIGHT_V * 0.05);
 
     this.moveDirection.set(STICK_LEFT_H, 0, STICK_LEFT_V);
 
@@ -214,18 +214,20 @@ export default class GamepadControls {
       .multiplyScalar(SPEED_HORIZONTAL);
 
     // Apply vertical movement if face buttons are pressed
-    const BUTTON_UP: number =
-      gp.buttons[ButtonMapping.FaceDown].value > 0 ? 1 : 0;
-    const BUTTON_DOWN: number =
-      gp.buttons[ButtonMapping.FaceRight].value > 0 ? 1 : 0;
+    this.orbitControls.dollyIn(
+      gp.buttons[ButtonMapping.FaceDown].value * ZOOM_SPEED
+    );
+    this.orbitControls.dollyOut(
+      gp.buttons[ButtonMapping.FaceRight].value * ZOOM_SPEED
+    );
 
     // One button counts positive, one negative.
     // If both buttons are pressed, they cancel out
-    this.moveDirection.setY((BUTTON_UP - BUTTON_DOWN) * SPEED_VERTICAL);
+    // this.moveDirection.setY((BUTTON_UP - BUTTON_DOWN) * SPEED_VERTICAL);
 
     // Move both camera and target to achieve panning effect with orbit controls
-    this.camera.position.add(this.moveDirection);
-    this.orbitControls.target.add(this.moveDirection);
+    // this.camera.position.add(this.moveDirection);
+    this.orbitControls.pan(-this.moveDirection.x, -this.moveDirection.z);
 
     ////////////////////////
     // Object Interaction //
