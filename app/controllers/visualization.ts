@@ -562,10 +562,6 @@ export default class VisualizationController extends Controller {
         this.snapshotTokenService.setToken(snapshotToken);
         // if user reloads site and does not come from the homsescreen
         this.landscapeTokenService.setToken(snapshotToken.landscapeToken);
-        // this.updateLandscape(
-        //   snapshotToken.structureData.structureLandscapeData,
-        //   snapshotToken.structureData.dynamicLandscapeData
-        // );
       }
     }
 
@@ -575,12 +571,12 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
 
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
+
     if (this.snapshotTokenService.snapshotToken !== null) {
-      await this.loadSnapshot();
-    } else {
-      this.timestampPollingService.initTimestampPollingWithCallback(
-        this.timestampPollingCallback.bind(this)
-      );
+      this.loadSnapshot();
     }
 
     this.updateTimestampList();
@@ -745,10 +741,6 @@ export default class VisualizationController extends Controller {
       return;
     }
 
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
-
     // make sure our linkRenderer has all extern links
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
@@ -759,8 +751,16 @@ export default class VisualizationController extends Controller {
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
      */
-    this.roomSerializer.serializedRoom =
-      this.snapshotTokenService.snapshotToken.serializedRoom;
+    // this.roomSerializer.serializedRoom =
+    //   this.snapshotTokenService.snapshotToken.serializedRoom;
+
+    this.applicationRenderer.restoreFromSerialization(
+      this.snapshotTokenService.snapshotToken.serializedRoom
+    );
+    this.detachedMenuRenderer.restore(
+      this.snapshotTokenService.snapshotToken.serializedRoom.popups,
+      this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
+    );
 
     this.highlightingService.updateHighlighting();
 
@@ -769,10 +769,9 @@ export default class VisualizationController extends Controller {
     );
 
     this.reloadHandler.loadLandscapeByTimestampSnapshot(
-      this.snapshotTokenService.snapshotToken!.structureData
+      this.snapshotTokenService.snapshotToken.structureData
         .structureLandscapeData,
-      this.snapshotTokenService.snapshotToken!.structureData
-        .dynamicLandscapeData
+      this.snapshotTokenService.snapshotToken.structureData.dynamicLandscapeData
     );
 
     this.updateTimestamp(
