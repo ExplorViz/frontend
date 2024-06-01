@@ -561,7 +561,11 @@ export default class VisualizationController extends Controller {
       } else {
         this.snapshotTokenService.setToken(snapshotToken);
         // if user reloads site and does not come from the homsescreen
-        // this.landscapeTokenService.setToken(snapshotToken.landscapeToken);
+        this.landscapeTokenService.setToken(snapshotToken.landscapeToken);
+        // this.updateLandscape(
+        //   snapshotToken.structureData.structureLandscapeData,
+        //   snapshotToken.structureData.dynamicLandscapeData
+        // );
       }
     }
 
@@ -572,12 +576,12 @@ export default class VisualizationController extends Controller {
     this.visualizationPaused = false;
 
     if (this.snapshotTokenService.snapshotToken !== null) {
-      this.loadSnapshot();
+      await this.loadSnapshot();
+    } else {
+      this.timestampPollingService.initTimestampPollingWithCallback(
+        this.timestampPollingCallback.bind(this)
+      );
     }
-
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
 
     this.updateTimestampList();
     this.initWebSocket();
@@ -741,6 +745,10 @@ export default class VisualizationController extends Controller {
       return;
     }
 
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
+
     // make sure our linkRenderer has all extern links
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
@@ -754,16 +762,21 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializedRoom =
       this.snapshotTokenService.snapshotToken.serializedRoom;
 
+    this.highlightingService.updateHighlighting();
+
     await this.updateTimestamp(
       this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
     );
 
-    this.applicationRenderer.restoreFromSerialization(
-      this.snapshotTokenService.snapshotToken!.serializedRoom
+    this.reloadHandler.loadLandscapeByTimestampSnapshot(
+      this.snapshotTokenService.snapshotToken!.structureData
+        .structureLandscapeData,
+      this.snapshotTokenService.snapshotToken!.structureData
+        .dynamicLandscapeData
     );
-    this.detachedMenuRenderer.restore(
-      this.snapshotTokenService.snapshotToken!.serializedRoom.popups,
-      this.snapshotTokenService.snapshotToken!.serializedRoom.detachedMenus
+
+    this.updateTimestamp(
+      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
     );
 
     this.highlightingService.updateHighlighting();
