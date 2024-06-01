@@ -5,12 +5,16 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
+import SnapshotTokenService from './snapshot-token';
 
 const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
 
   @service('auth')
   auth!: Auth;
@@ -48,24 +52,29 @@ export default class TimestampPollingService extends Service {
   }
 
   private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
-    // check if we already have a timestamp that acts as base point
-    const landscapeToken = this.tokenService.token?.value;
+    if (this.snapshotService.snapshotToken) {
+      const timestamps = this.snapshotService.snapshotToken.julius.timestamps;
+      callback(timestamps);
+    } else {
+      // check if we already have a timestamp that acts as base point
+      const landscapeToken = this.tokenService.token?.value;
 
-    if (!landscapeToken) {
-      console.log('No landscape token.');
-      return;
+      if (!landscapeToken) {
+        console.log('No landscape token.');
+        return;
+      }
+
+      const newestLocalTimestamp =
+        this.timestampRepo.getLatestTimestamp(landscapeToken);
+
+      const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
+
+      timestampPromise
+        .then((timestamps: Timestamp[]) => callback(timestamps))
+        .catch((error: Error) => {
+          console.log(error);
+        });
     }
-
-    const newestLocalTimestamp =
-      this.timestampRepo.getLatestTimestamp(landscapeToken);
-
-    const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
-
-    timestampPromise
-      .then((timestamps: Timestamp[]) => callback(timestamps))
-      .catch((error: Error) => {
-        console.log(error);
-      });
   }
 
   private httpFetchTimestamps(newestLocalTimestamp?: Timestamp | undefined) {

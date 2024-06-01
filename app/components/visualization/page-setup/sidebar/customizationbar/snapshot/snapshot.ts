@@ -12,6 +12,7 @@ import SnapshotTokenService, {
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import LocalUser from 'collaboration/services/local-user';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -36,6 +37,9 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @service('local-user')
   localUser!: LocalUser;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
 
   @tracked
   saveSnaphotBtnDisabled: boolean = true;
@@ -67,6 +71,10 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       true
     );
 
+    const timestamps = this.timestampRepo.getTimestamps(
+      this.args.landscapeToken.value
+    );
+
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
@@ -77,11 +85,11 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
-      configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
+      julius: { timestamps: timestamps },
     };
 
     this.snapshotService.saveSnapshot(content);
@@ -96,6 +104,10 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       true
     );
 
+    const timestamps = this.timestampRepo.getTimestamps(
+      this.args.landscapeToken.value
+    );
+
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
@@ -106,11 +118,11 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
-      configuration: {},
       camera: {},
       annotations: {},
       isShared: false,
       deleteAt: 0,
+      julius: { timestamps: timestamps },
     };
     this.snapshotService.exportFile(content);
     this.reset();

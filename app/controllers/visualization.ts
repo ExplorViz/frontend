@@ -271,14 +271,25 @@ export default class VisualizationController extends Controller {
 
   @action
   updateTimestampList() {
-    if (!this.landscapeTokenService.token) {
+    if (
+      !this.landscapeTokenService.token &&
+      !this.snapshotTokenService.snapshotToken
+    ) {
       this.debug('No token available to update timestamp list');
       return;
     }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token.value;
-    this.timelineTimestamps =
-      this.timestampRepo.getTimestamps(currentToken) ?? [];
+    if (this.landscapeTokenService.token) {
+      const currentToken = this.landscapeTokenService.token.value;
+      this.timelineTimestamps =
+        this.timestampRepo.getTimestamps(currentToken) ?? [];
+    } else if (this.snapshotTokenService.snapshotToken) {
+      const currentToken =
+        String(this.snapshotTokenService.snapshotToken.createdAt) +
+        this.snapshotTokenService.snapshotToken.owner;
+      this.timelineTimestamps =
+        this.timestampRepo.getTimestamps(currentToken) ?? [];
+    }
   }
 
   @action
@@ -546,7 +557,11 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
-    if (this.owner && this.createdAt) {
+    if (
+      this.owner &&
+      this.createdAt &&
+      this.snapshotTokenService.snapshotToken === null
+    ) {
       const snapshotToken: SnapshotToken | null =
         await this.snapshotTokenService.retrieveToken(
           this.owner,
@@ -560,8 +575,6 @@ export default class VisualizationController extends Controller {
         this.router.transitionTo('landscapes');
       } else {
         this.snapshotTokenService.setToken(snapshotToken);
-        // if user reloads site and does not come from the homsescreen
-        this.landscapeTokenService.setToken(snapshotToken.landscapeToken);
       }
     }
 
@@ -628,8 +641,19 @@ export default class VisualizationController extends Controller {
   }
 
   timestampPollingCallback(timestamps: Timestamp[]) {
+    let uniqueKey: string | null = null;
+    if (this.snapshotTokenService.snapshotToken) {
+      // the value can not be the landscapeTokenValue because the landscape could be updated and the
+      // snapshot is persisted at a certain time
+
+      // generate from createdAtTimestamp plus owner
+      uniqueKey =
+        String(this.snapshotTokenService.snapshotToken.createdAt) +
+        this.snapshotTokenService.snapshotToken.owner;
+    }
+
     this.timestampRepo.addTimestamps(
-      this.landscapeTokenService.token!.value,
+      uniqueKey !== null ? uniqueKey : this.landscapeTokenService.token!.value,
       timestamps
     );
 
@@ -644,7 +668,7 @@ export default class VisualizationController extends Controller {
     }
 
     const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
-      this.landscapeTokenService.token!.value,
+      uniqueKey !== null ? uniqueKey : this.landscapeTokenService.token!.value,
       lastSelectTimestamp
     );
 
@@ -754,6 +778,13 @@ export default class VisualizationController extends Controller {
     // this.roomSerializer.serializedRoom =
     //   this.snapshotTokenService.snapshotToken.serializedRoom;
 
+    // hier in ordnung, da der Timestamp gespeichert ist und nicht irgendwo aufgerufen wird
+    this.updateTimestamp(
+      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
+    );
+
+    // this.highlightingService.updateHighlighting();
+
     this.applicationRenderer.restoreFromSerialization(
       this.snapshotTokenService.snapshotToken.serializedRoom
     );
@@ -762,23 +793,21 @@ export default class VisualizationController extends Controller {
       this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
     );
 
-    this.highlightingService.updateHighlighting();
+    // this.highlightingService.updateHighlighting();
 
-    await this.updateTimestamp(
-      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
-    );
+    // await this.updateTimestamp(
+    //   this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
+    // );
 
-    this.reloadHandler.loadLandscapeByTimestampSnapshot(
-      this.snapshotTokenService.snapshotToken.structureData
-        .structureLandscapeData,
-      this.snapshotTokenService.snapshotToken.structureData.dynamicLandscapeData
-    );
+    // this.reloadHandler.loadLandscapeByTimestampSnapshot(
+    //   this.snapshotTokenService.snapshotToken.structureData
+    //     .structureLandscapeData,
+    //   this.snapshotTokenService.snapshotToken.structureData.dynamicLandscapeData
+    // );
 
-    this.updateTimestamp(
-      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
-    );
-
-    this.highlightingService.updateHighlighting();
+    // this.updateTimestamp(
+    //   this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
+    // );
   }
 
   /**
