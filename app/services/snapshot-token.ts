@@ -42,6 +42,10 @@ export default class SnapshotTokenService extends Service {
   @tracked
   snapshotToken: SnapshotToken | null = null;
 
+  // Used in landscape selection to go back to last selected snapshot
+  @tracked
+  latestSnapshotToken: SnapshotToken | null = null;
+
   retrieveTokens() {
     return new Promise<SnapshotToken[]>((resolve) => {
       const userId = encodeURI(this.auth.user?.sub || '');
@@ -210,7 +214,11 @@ export default class SnapshotTokenService extends Service {
     this.router.refresh('landscapes');
   }
 
-  setToken(token: SnapshotToken) {
+  setToken(token: SnapshotToken | null) {
+    if (token) {
+      this.latestSnapshotToken = token;
+    }
+
     this.snapshotToken = token;
   }
 }
