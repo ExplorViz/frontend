@@ -19,11 +19,11 @@ export type SnapshotToken = {
     dynamicLandscapeData: DynamicLandscapeData;
   };
   serializedRoom: SerializedRoom;
-  configuration: any;
   camera: any;
   annotations: any;
   isShared: boolean;
   deleteAt: number;
+  julius: any;
 };
 
 const { userServiceApi } = ENV.backendAddresses;
@@ -215,11 +215,17 @@ export default class SnapshotTokenService extends Service {
   }
 
   setToken(token: SnapshotToken | null) {
-    if (token) {
-      this.latestSnapshotToken = token;
+    if (this.snapshotToken) {
+      this.latestSnapshotToken = this.snapshotToken;
     }
 
     this.snapshotToken = token;
+
+    if (token) {
+      this.toastHandler.showInfoToastMessage(
+        `Set snapshot token to " ${token.name}"`
+      );
+    }
   }
 }
 

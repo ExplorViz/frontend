@@ -36,9 +36,6 @@ export default class Navbar extends Component {
   @action
   goToVisualization() {
     if (this.snapshotService.latestSnapshotToken !== null) {
-      this.tokenService.setToken(
-        this.snapshotService.latestSnapshotToken.landscapeToken
-      );
       this.snapshotService.setToken(this.snapshotService.latestSnapshotToken);
       this.router.transitionTo('visualization', {
         queryParams: {
