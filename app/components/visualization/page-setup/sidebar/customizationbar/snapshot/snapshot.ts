@@ -11,6 +11,7 @@ import SnapshotTokenService, {
 } from 'explorviz-frontend/services/snapshot-token';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import LocalUser from 'collaboration/services/local-user';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -32,6 +33,9 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   @tracked
   saveSnaphotBtnDisabled: boolean = true;
@@ -63,6 +67,30 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       true
     );
 
+    const fov = this.localUser.defaultCamera.fov;
+    const apsect = this.localUser.defaultCamera.aspect;
+    const near = this.localUser.defaultCamera.near;
+    const far = this.localUser.defaultCamera.far;
+
+    const left = this.localUser.orthographicCamera.left;
+    const right = this.localUser.orthographicCamera.right;
+    const top = this.localUser.orthographicCamera.top;
+    const bottom = this.localUser.orthographicCamera.bottom;
+    const orthoFar = this.localUser.orthographicCamera.far;
+    const orthoNear = this.localUser.orthographicCamera.near;
+
+    const camera = {
+      defaultCamera: { fov: fov, aspect: apsect, near: near, far: far },
+      orthographicCamera: {
+        left: left,
+        right: right,
+        top: top,
+        bottom: bottom,
+        far: orthoFar,
+        near: orthoNear,
+      },
+    };
+
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
       createdAt: createdAt,
@@ -74,7 +102,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       },
       serializedRoom: saveRoom,
       configuration: {},
-      camera: {},
+      camera: camera,
       annotations: {},
       isShared: false,
       deleteAt: 0,
@@ -87,7 +115,34 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
   @action
   exportSnapshot() {
     const createdAt: number = new Date().getTime();
-    const saveRoom = this.roomSerializer.serializeRoom();
+    const saveRoom = this.roomSerializer.serializeRoom(
+      this.args.popUpData,
+      true
+    );
+
+    const fov = this.localUser.defaultCamera.fov;
+    const apsect = this.localUser.defaultCamera.aspect;
+    const near = this.localUser.defaultCamera.near;
+    const far = this.localUser.defaultCamera.far;
+
+    const left = this.localUser.orthographicCamera.left;
+    const right = this.localUser.orthographicCamera.right;
+    const top = this.localUser.orthographicCamera.top;
+    const bottom = this.localUser.orthographicCamera.bottom;
+    const orthoFar = this.localUser.orthographicCamera.far;
+    const orthoNear = this.localUser.orthographicCamera.near;
+
+    const camera = {
+      defaultCamera: { fov: fov, aspect: apsect, near: near, far: far },
+      orthographicCamera: {
+        left: left,
+        right: right,
+        top: top,
+        bottom: bottom,
+        far: orthoFar,
+        near: orthoNear,
+      },
+    };
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
@@ -100,7 +155,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       },
       serializedRoom: saveRoom,
       configuration: {},
-      camera: {},
+      camera: camera,
       annotations: {},
       isShared: false,
       deleteAt: 0,

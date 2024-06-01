@@ -152,7 +152,7 @@ export default class VisualizationController extends Controller {
    * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
    * mit roomId: string | undefined | null;
    */
-  queryParams = ['roomId', 'snapshot', 'owner', 'createdAt'];
+  queryParams = ['roomId', 'sharedSnapshot', 'owner', 'createdAt'];
 
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -160,7 +160,7 @@ export default class VisualizationController extends Controller {
   roomId?: string | undefined | null;
 
   @tracked
-  snapshot?: boolean | undefined | null;
+  sharedSnapshot?: boolean | undefined | null;
 
   @tracked
   owner?: string | undefined | null;
@@ -477,7 +477,7 @@ export default class VisualizationController extends Controller {
     timestampRecordArray?: Timestamp[]
   ) {
     try {
-      if (!this.snapshot) {
+      if (!this.snapshotTokenService.snapshotToken) {
         const [structureData, dynamicData] =
           await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
         this.updateLandscape(structureData, dynamicData);
@@ -546,8 +546,24 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
-    console.log(this.owner);
-    console.log(this.createdAt);
+    if (this.owner && this.createdAt) {
+      const snapshotToken: SnapshotToken | null =
+        await this.snapshotTokenService.retrieveToken(
+          this.owner,
+          this.createdAt,
+          this.sharedSnapshot!
+        );
+      if (snapshotToken === null) {
+        this.toastHandlerService.showErrorToastMessage(
+          'Snapshot could not be loaded.'
+        );
+        this.router.transitionTo('landscapes');
+      } else {
+        this.snapshotTokenService.setToken(snapshotToken);
+        // if user reloads site and does not come from the homsescreen
+        // this.landscapeTokenService.setToken(snapshotToken.landscapeToken);
+      }
+    }
 
     this.debug('initRendering');
     this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
@@ -555,25 +571,14 @@ export default class VisualizationController extends Controller {
     this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
 
+    if (this.snapshotTokenService.snapshotToken !== null) {
+      this.loadSnapshot();
+    }
+
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
 
-    if (this.snapshot) {
-      this.loadSnapshot();
-    } else if (this.owner && this.createdAt) {
-      const snapshotToken: SnapshotToken | null =
-        await this.snapshotTokenService.retrieveToken(
-          this.owner,
-          this.createdAt,
-          true
-        );
-      if (snapshotToken === null) {
-        this.router.transitionTo('landscapes');
-      } else {
-        this.loadSnapshot(snapshotToken);
-      }
-    }
     this.updateTimestampList();
     this.initWebSocket();
     this.debug('initRendering done');
@@ -586,13 +591,17 @@ export default class VisualizationController extends Controller {
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
 
+    // added for snapshot, highlights need to be removed
+    this.highlightingService.removeHighlightingForAllApplications(false);
+
     this.closeDataSelection();
     this.closeToolsSidebar();
 
     this.roomId = null;
-    this.snapshot = null;
+    this.sharedSnapshot = null;
     this.owner = null;
     this.createdAt = null;
+    this.snapshotTokenService.snapshotToken = null;
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
@@ -695,12 +704,6 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-  /**
-   *
-   * Use this to load snapshot??
-   *
-   * @param event
-   */
   async onSyncRoomState(event: {
     userId: string;
     originalMessage: SyncRoomStateMessage;
@@ -733,35 +736,27 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  /**
-   * TODO: Change julius!
-   */
-  async loadSnapshot(token?: SnapshotToken) {
-    let snapshotToken: SnapshotToken;
-
-    if (token !== undefined) {
-      snapshotToken = token;
-    } else {
-      snapshotToken = this.snapshotTokenService.snapshotToken!;
+  async loadSnapshot() {
+    if (this.snapshotTokenService.snapshotToken === null) {
+      return;
     }
 
-    // console.log('Saved PopUps: ');
-    // console.log(snapshotToken.julius.room.popups);
+    // make sure our linkRenderer has all extern links
+    this.linkRenderer.flag = true;
+    while (this.linkRenderer.flag) {
+      await timeout(50);
+    }
 
-    this.roomSerializer.serializedRoom = snapshotToken.serializedRoom;
+    /**
+     * Serialized room is used in landscape-data-watcher to load the landscape with
+     * all highlights and popUps.
+     */
+    this.roomSerializer.serializedRoom =
+      this.snapshotTokenService.snapshotToken.serializedRoom;
 
-    this.highlightingService.updateHighlighting();
     await this.updateTimestamp(
-      snapshotToken.serializedRoom.landscape.timestamp
+      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
     );
-
-    // this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
-
-    // this.updateLandscape(
-    //   snapshotToken.julius.data.structureLandscapeData,
-    //   snapshotToken.julius.data.dynamicLandscapeData
-    // );
-    //await this.updateTimestamp(snapshotToken.julius.room.landscape.timestamp);
 
     this.applicationRenderer.restoreFromSerialization(
       this.snapshotTokenService.snapshotToken!.serializedRoom
@@ -770,11 +765,8 @@ export default class VisualizationController extends Controller {
       this.snapshotTokenService.snapshotToken!.serializedRoom.popups,
       this.snapshotTokenService.snapshotToken!.serializedRoom.detachedMenus
     );
-    this.highlightingService.updateHighlighting();
 
-    // await this.reloadHandler.loadLandscapeByTimestamp(
-    //   snapshotToken.julius.room.landscape.timestamp
-    // );
+    this.highlightingService.updateHighlighting();
   }
 
   /**

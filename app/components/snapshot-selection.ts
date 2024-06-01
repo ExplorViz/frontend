@@ -145,7 +145,7 @@ export default class SnapshotSelection extends Component<Args> {
   async createLink(snapshot: SnapshotToken) {
     try {
       await navigator.clipboard.writeText(
-        `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}`
+        `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
       );
       this.toastHandler.showSuccessToastMessage(
         'Snapshot URL copied to clipboard.'

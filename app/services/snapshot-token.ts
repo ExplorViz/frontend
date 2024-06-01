@@ -1,5 +1,4 @@
 import Service, { inject as service } from '@ember/service';
-// import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import ToastHandlerService from './toast-handler';
@@ -9,11 +8,7 @@ import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
-//import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 
-/**
- *  Change julius!
- */
 export type SnapshotToken = {
   owner: string;
   createdAt: number;
@@ -169,7 +164,7 @@ export default class SnapshotTokenService extends Service {
       .then(async (response: Response) => {
         if (response.ok) {
           await navigator.clipboard.writeText(
-            `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}`
+            `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
           );
           this.toastHandler.showSuccessToastMessage(
             'Successfully shared snapshot. Snaphsot URL copied to clipboard'

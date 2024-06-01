@@ -62,11 +62,12 @@ export default class Landscapes extends Controller {
   @action
   async selectSnapshot(token: SnapshotToken) {
     this.tokenService.setToken(token.landscapeToken);
-    this.snapShotTokenService.setToken(token);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
-        snapshot: true,
+        sharedSnapshot: token.isShared,
+        owner: token.owner,
+        createdAt: token.createdAt,
       },
     });
   }
