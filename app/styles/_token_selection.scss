@@ -3,6 +3,16 @@
   width: auto;
 }
 
+#personal-token-selection-table > tbody > tr:hover {
+  background-color: #bfbfbf;
+  transition: all 0.1s ease-in-out;
+}
+
+#shared-token-selection-table > tbody > tr:hover {
+  background-color: #bfbfbf;
+  transition: all 0.1s ease-in-out;
+}
+
 #token-selection-table > tbody > tr:hover {
   background-color: #bfbfbf;
   transition: all 0.1s ease-in-out;
