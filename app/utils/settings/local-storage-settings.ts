@@ -2,7 +2,7 @@ import isObject, { objectsHaveSameKeys } from '../object-helpers';
 import { defaultApplicationSettings } from './default-settings';
 import { ApplicationSettings, RangeSetting } from './settings-schemas';
 
-export function getStoredSettings() {
+export function getStoredSettings(): ApplicationSettings {
   const userApplicationSettingsJSON = localStorage.getItem(
     'userApplicationSettings'
   );
