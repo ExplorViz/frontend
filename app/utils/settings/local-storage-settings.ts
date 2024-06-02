@@ -8,7 +8,7 @@ export function getStoredSettings(): ApplicationSettings {
   );
 
   if (userApplicationSettingsJSON === null) {
-    throw new Error('There are no application settings to restore');
+    return defaultApplicationSettings;
   }
 
   const parsedApplicationSettings = JSON.parse(userApplicationSettingsJSON);
