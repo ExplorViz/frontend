@@ -5,6 +5,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
@@ -18,6 +19,9 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  private snapshotService!: SnapshotTokenService;
 
   @service('auth')
   auth!: Auth;
@@ -38,29 +42,42 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
 
   // Create task to handle async calls on room handling
   async autoSelectLandscape() {
-    if (
-      !this.args.landscapeToken ||
-      this.tokenService.token?.value === this.args.landscapeToken
-    ) {
-      return;
-    }
-    try {
-      const tokens = await this.getLandscapeTokens();
-      const selectedToken = tokens.find(
-        (token) => token.value === this.args.landscapeToken
+    const queryParams = this.router.currentRoute.queryParams;
+
+    if (queryParams.owner && queryParams.createdAt) {
+      const token = await this.snapshotService.retrieveToken(
+        queryParams.owner,
+        queryParams.createdAt,
+        queryParams.isShared
       );
 
-      if (selectedToken) {
-        this.tokenService.setToken(selectedToken);
-        this.router.transitionTo('visualization');
-      } else {
-        // Token not found => remove faulty query param
-        this.router.transitionTo({
-          queryParams: { landscapeToken: undefined },
-        });
+      this.snapshotService.setToken(token);
+      this.router.transitionTo('visualization');
+    } else {
+      if (
+        !this.args.landscapeToken ||
+        this.tokenService.token?.value === this.args.landscapeToken
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error('Error in setUpLandscapeSelection:', error);
+      try {
+        const tokens = await this.getLandscapeTokens();
+        const selectedToken = tokens.find(
+          (token) => token.value === this.args.landscapeToken
+        );
+
+        if (selectedToken) {
+          this.tokenService.setToken(selectedToken);
+          this.router.transitionTo('visualization');
+        } else {
+          // Token not found => remove faulty query param
+          this.router.transitionTo({
+            queryParams: { landscapeToken: undefined },
+          });
+        }
+      } catch (error) {
+        console.error('Error in setUpLandscapeSelection:', error);
+      }
     }
   }
 

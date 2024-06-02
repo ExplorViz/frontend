@@ -557,6 +557,11 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
+    /**
+     * this will be used when the backend only gives the frontend the info to display and on rendering the snapshot will be loaded
+     * muss man sih nochmal genau überlegen, da in der route geprüft wird ob ein token existiert.... sonst muss man im service noch ein boolean
+     * setzten oder ähnliches -> oder doch einfach alles übergeben und fertig, weil sonst die ganze struktur hinüber geht (vllt mit boolean gute idee)
+     */
     if (
       this.owner &&
       this.createdAt &&

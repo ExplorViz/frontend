@@ -2,6 +2,7 @@ import Route from '@ember/routing/route';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 
 /**
  * TODO
@@ -15,4 +16,7 @@ export default class ApplicationRoute extends Route {
 
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapshotToken!: SnapshotTokenService;
 }
