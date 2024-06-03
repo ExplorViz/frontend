@@ -58,7 +58,11 @@ export default class Navbar extends Component {
 
   @action
   goToSettings() {
-    this.router.transitionTo('settings');
+    this.tokenService.setToken(null);
+    this.snapshotService.setToken(null);
+    this.router.transitionTo('settings', {
+      queryParams: { landscapeToken: undefined },
+    });
   }
 
   get isSingleLandscapeMode() {

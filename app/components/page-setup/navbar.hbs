@@ -114,7 +114,18 @@
             Settings
           </button>
         </li>
-        {{#if this.tokenService.token}}
+        {{#if this.snapshotService.snapshotToken}}
+        <li>
+            <button
+              class='dropdown-item'
+              type='button'
+              {{on 'click' this.goToLandscapeSelection}}
+            >
+              {{svg-jar 'key-16' class='octicon'}}
+              {{this.snapshotService.snapshotToken.name}}
+            </button>
+          </li>
+        {{else if this.tokenService.token}}
           <li>
             <button
               class='dropdown-item'
