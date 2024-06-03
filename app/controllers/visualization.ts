@@ -153,16 +153,7 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
-  /**
-   * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
-   * mit roomId: string | undefined | null;
-   */
-  queryParams = [
-    'roomId',
-    'sharedSnapshot',
-    'owner: {as ownerViz}',
-    'createdAt: {as createdAtViz}',
-  ];
+  queryParams = ['roomId', 'sharedSnapshot', 'owner', 'createdAt'];
 
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -173,10 +164,10 @@ export default class VisualizationController extends Controller {
   sharedSnapshot?: boolean | undefined | null;
 
   @tracked
-  ownerViz?: string | undefined | null;
+  owner?: string | undefined | null;
 
   @tracked
-  createdAtViz: number | undefined | null;
+  createdAt: number | undefined | null;
 
   @tracked
   userApiTokens: ApiToken[] = [];
@@ -289,14 +280,14 @@ export default class VisualizationController extends Controller {
       return;
     }
     this.debug('updateTimestampList');
-    if (this.landscapeTokenService.token) {
-      const currentToken = this.landscapeTokenService.token.value;
-      this.timelineTimestamps =
-        this.timestampRepo.getTimestamps(currentToken) ?? [];
-    } else if (this.snapshotTokenService.snapshotToken) {
+    if (this.snapshotTokenService.snapshotToken) {
       const currentToken =
         String(this.snapshotTokenService.snapshotToken.createdAt) +
         this.snapshotTokenService.snapshotToken.owner;
+      this.timelineTimestamps =
+        this.timestampRepo.getTimestamps(currentToken) ?? [];
+    } else if (this.landscapeTokenService.token) {
+      const currentToken = this.landscapeTokenService.token.value;
       this.timelineTimestamps =
         this.timestampRepo.getTimestamps(currentToken) ?? [];
     }
@@ -573,14 +564,14 @@ export default class VisualizationController extends Controller {
      * setzten oder ähnliches -> oder doch einfach alles übergeben und fertig, weil sonst die ganze struktur hinüber geht (vllt mit boolean gute idee)
      */
     if (
-      this.ownerViz &&
-      this.createdAtViz &&
+      this.owner &&
+      this.createdAt &&
       this.snapshotTokenService.snapshotToken === null
     ) {
       const snapshotToken: SnapshotToken | null =
         await this.snapshotTokenService.retrieveToken(
-          this.ownerViz,
-          this.createdAtViz,
+          this.owner,
+          this.createdAt,
           this.sharedSnapshot!
         );
       if (snapshotToken === null) {
@@ -604,6 +595,9 @@ export default class VisualizationController extends Controller {
     );
 
     if (this.snapshotTokenService.snapshotToken !== null) {
+      // set the landscapeToken to use e.g. collaboration service, snapshot,...
+      this.landscapeTokenService.token =
+        this.snapshotTokenService.snapshotToken.landscapeToken;
       this.loadSnapshot();
     }
 
@@ -627,8 +621,8 @@ export default class VisualizationController extends Controller {
 
     this.roomId = null;
     this.sharedSnapshot = null;
-    this.ownerViz = null;
-    this.createdAtViz = null;
+    this.owner = null;
+    this.createdAt = null;
     this.snapshotTokenService.snapshotToken = null;
 
     if (this.webSocket.isWebSocketOpen()) {
@@ -723,7 +717,7 @@ export default class VisualizationController extends Controller {
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
       popups: [], // ToDo
-      // annotations: [],
+      annotations: [],
     };
 
     this.highlightingService.updateHighlighting();
@@ -767,7 +761,7 @@ export default class VisualizationController extends Controller {
       openApps: openApps as SerializedApp[],
       highlightedExternCommunicationLinks,
       popups: popups as SerializedPopup[],
-      // annotations: [], //annotations as SerializedAnnotation[],
+      annotations: [], //annotations as SerializedAnnotation[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
 

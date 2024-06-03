@@ -9,8 +9,6 @@ import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
-  owner: string | undefined;
-  createdAt: number | undefined;
 }
 
 const { userService } = ENV.backendAddresses;
@@ -45,18 +43,20 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   // Create task to handle async calls on room handling
   async autoSelectLandscape() {
     /** For some reason the queryparameter sharedSnapshot is always undefined in the application controller. This works fine
-     * in the visualization controller.
+     * in the visualization controller. Also it is not possible to have the same queryParameters in two controllers. This can be
+     * handles with "owner: {as other-owner}". But if I want to set other-owner = null, the queryParameter is not set to null and
+     * if the route changes, the url does not change. Therefore, queryParams is used here
      */
     const queryParams = this.router.currentRoute.queryParams;
 
     if (
-      this.args.owner &&
-      this.args.createdAt &&
+      queryParams.owner &&
+      queryParams.createdAt &&
       queryParams.sharedSnapshot !== undefined
     ) {
       const token = await this.snapshotService.retrieveToken(
-        this.args.owner,
-        this.args.createdAt,
+        queryParams.owner,
+        queryParams.createdAt,
         queryParams.sharedSnapshot
       );
 
