@@ -52,6 +52,10 @@ export default class ShareSnapshotComponent extends Component<SnapshotToken> {
 
   @action
   async shareSnapshot(snapshot: SnapshotToken) {
-    this.snapshotService.shareSnapshot(snapshot);
+    const snapshotWithExpDate = {
+      ...snapshot,
+      deleteAt: this.expDate !== null ? this.expDate : 0,
+    };
+    this.snapshotService.shareSnapshot(snapshotWithExpDate);
   }
 }
