@@ -65,7 +65,7 @@ export default class Settings extends Component<Args> {
       Colors: [],
       Communication: [],
       Highlighting: [],
-      'Hover Effect': [],
+      Effects: [],
       Popups: [],
       'Virtual Reality': [],
       Debugging: [],

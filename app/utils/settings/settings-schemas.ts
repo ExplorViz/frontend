@@ -3,7 +3,7 @@ export type SettingGroup =
   | 'Colors'
   | 'Communication'
   | 'Highlighting'
-  | 'Hover Effect'
+  | 'Effects'
   | 'Popups'
   | 'Virtual Reality'
   | 'Debugging';
@@ -27,7 +27,9 @@ export type ApplicationHighlightingSettingId =
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
 
-export type ApplicationHoveringSettingId = 'enableHoverEffects';
+export type ApplicationHoveringSettingId =
+  | 'enableHoverEffects'
+  | 'enableAnimations';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'
