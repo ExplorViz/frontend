@@ -149,3 +149,30 @@ export function addClazzTextLabel(
 
   clazzMesh.add(labelMesh);
 }
+
+export function updateBoxTextLabel(
+  boxMesh: ComponentMesh | FoundationMesh,
+  font: Font,
+  color: THREE.Color,
+  label: string,
+  minHeight = 1.5,
+  minLength = 4,
+  scalar = 1
+) {
+  const labelMesh = new ComponentLabelMesh(
+    boxMesh,
+    font,
+    color,
+    minHeight,
+    minLength
+  );
+
+  boxMesh.remove(boxMesh.labelMesh!);
+
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label, scalar);
+
+  boxMesh.labelMesh = labelMesh;
+  boxMesh.add(labelMesh);
+
+  positionBoxLabel(boxMesh);
+}

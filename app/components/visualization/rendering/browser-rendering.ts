@@ -30,10 +30,6 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import { Vector3 } from 'three';
-import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
@@ -46,6 +42,11 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap-configuration';
+import ThreeForceGraph from 'three-forcegraph';
+import { Vector3 } from 'three/src/math/Vector3';
+import * as THREE from 'three';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -96,6 +97,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -226,6 +230,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
+      {
+        title: 'Create Annotation',
+        action: (mouseOnCanvas: Position2D) => {
+          this.annotationHandler.addAnnotation({
+            mesh: undefined,
+            position: mouseOnCanvas,
+            hovered: false,
+            annotationTitle: '',
+            annotationText: '',
+          });
+        },
+      },
     ];
   }
 
@@ -434,7 +450,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    // nothing to do atm
+    // nothin to do atm
   }
 
   @action
@@ -512,6 +528,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = null;
     }
     this.popupHandler.handleHoverOnMesh(intersection?.object);
+    this.annotationHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
@@ -552,6 +569,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
       this.popupHandler.removeUnmovedPopups();
     }
+    if (
+      !this.appSettings.enableCustomAnnotationPosition.value ||
+      !event.ctrlKey
+    ) {
+      this.annotationHandler.removeUnmovedAnnotations();
+    }
   }
 
   @action
@@ -570,10 +593,36 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  hideAnnotation(annotationId: number) {
+    this.annotationHandler.hideAnnotation(annotationId);
+  }
+
+  @action
+  minimizeAnnotation(annotationId: number) {
+    this.annotationHandler.minimizeAnnotation(annotationId);
+  }
+
+  @action
+  removeAnnotation(annotationId: number) {
+    if (!this.appSettings.enableCustomAnnotationPosition.value) {
+      this.annotationHandler.clearAnnotations();
+    } else {
+      this.annotationHandler.removeAnnotation(annotationId);
+    }
+  }
+
+  @action
   handleMouseOut(event: PointerEvent) {
     this.popupHandler.handleHoverOnMesh();
+    this.annotationHandler.handleHoverOnMesh();
     if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
       this.popupHandler.removeUnmovedPopups();
+    }
+    if (
+      !this.appSettings.enableCustomAnnotationPosition.value &&
+      !event.shiftKey
+    ) {
+      this.annotationHandler.removeUnmovedAnnotations();
     }
   }
 
@@ -585,6 +634,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         position: mouseOnCanvas,
         replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
+      });
+
+      this.annotationHandler.addAnnotation({
+        mesh: intersection.object,
+        position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
+        hovered: true,
+        annotationTitle: '',
+        annotationText: '',
       });
     }
   }
@@ -642,6 +699,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop.stop();
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
+    this.annotationHandler.willDestroy();
     // this.graph.graphData([]);
 
     this.debug('Cleaned up application rendering');

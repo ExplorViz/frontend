@@ -1,0 +1,68 @@
+@media (min-width: 576px) {
+  .annotation {
+    cursor: move;
+    max-width: 550px !important;
+    padding: 0.3rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .annotation > .annotation-body {
+    overflow-x: auto;
+
+    > table {
+      display: inline-table;
+    }
+  }
+}
+
+.annotation {
+  position: absolute;
+  min-width: 250px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.annotation > .annotation-header {
+  margin: 0.3rem 0;
+}
+
+.annotation > .annotation-body {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.annotation[hover] {
+  background-color: #bbbbbb !important;
+  border-color: #eeeeee !important;
+}
+
+.annotation[hover] > .annotation-header {
+  background-color: #999999 !important;
+  border-color: #aaaaaa !important;
+}
+
+.annotation > button {
+  margin: 0.2rem;
+}
+
+.annotation > button[disabled] {
+  /* Ensure correct hover effect on popup even though button is disabled */
+  pointer-events: none;
+}
+
+.no-user-select {
+  user-select: none;
+}
+
+.annotation-minimize-button {
+  margin-left: 0.5rem;
+  float: right;
+}
+
+.annotation-close-button {
+  margin-left: 0.5rem;
+  float: right;
+}

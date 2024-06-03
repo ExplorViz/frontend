@@ -8,6 +8,7 @@ export type SerializedRoom = {
   openApps: SerializedApp[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
   popups: SerializedPopup[];
+  annotations?: SerializedAnnotation[];
   detachedMenus: SerializedDetachedMenu[];
 };
 
@@ -48,6 +49,13 @@ export type SerializedPopup = {
   userId: string | null;
   entityId: string;
   menuId: string | null | undefined;
+};
+
+export type SerializedAnnotation = {
+  entityId: string | undefined;
+  menuId: string | null | undefined;
+  annotationText: string;
+  annotationTitle: string;
 };
 
 export type SerializedDetachedMenu = {

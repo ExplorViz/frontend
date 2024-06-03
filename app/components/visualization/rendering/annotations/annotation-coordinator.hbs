@@ -1,0 +1,113 @@
+{{! template-lint-disable no-pointer-down-event-binding }}
+<div
+  class='annotation'
+  {{on 'pointerdown' this.dragMouseDown}}
+  {{on 'pointerover' this.onPointerOver}}
+  {{on 'pointerout' this.onPointerOut}}
+  {{did-insert this.setAnnotationPosition}}
+  hover={{@annotationData.hovered}}
+>
+  {{#if @isMovable}}
+    {{#if @annotationData.isAssociated}}
+      {{#if @annotationData.wasMoved}}
+        <div class="d-flex justify-content-between">
+          <label style="font-weight: bold; margin-left: 3px;">Associated with '{{@annotationData.entity.name}}'</label>
+        </div>
+        <div class="d-flex justify-content-between">
+          <Input
+            id='annotationTitle'
+            style="font-weight: bold;"
+            class='form-control mr-2'
+            placeholder="Annotation Title"
+            @type="text"
+            @value={{@annotationData.annotationTitle}}
+          />
+          <BsButton @type={{'primary'}} @onClick={{this.ping}}>
+            {{svg-jar 'location-16' class='octicon align-middle'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Ping
+            </BsTooltip>
+          </BsButton>
+          <BsButton
+            class='annotation-minimize-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @minimizeAnnotation @annotationData.annotationId}}
+          >
+            _
+          </BsButton>
+          <BsButton
+            class='annotation-close-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @removeAnnotation @annotationData.annotationId}}
+          >
+            {{svg-jar 'trash-16' class='octicon align-right'}}
+          </BsButton>
+        </div>
+        {{#unless @annotationData.hidden}}
+          <div class="annotation-text" style="margin-top: 5px;">
+            <Textarea
+              id="annotationtext"
+              @value={{@annotationData.annotationText}}
+              rows="4"
+              cols="40"
+              style="resize: none;"
+            />
+          </div>
+        {{/unless}}
+      {{else}}
+        <div class="d-flex justify-content-between">
+          <label style="font-weight: bold; margin-left: 3px;">Associated to '{{@annotationData.entity.name}}'</label>
+        </div>
+        <label style="background-color:lightgray; font-weight: bold;" class="form-control mr-2">Annotation</label>
+        <BsButton
+          @type='secondary'
+          size='extra-small'
+          @outline='true'
+          disabled='true'
+        >
+          CTRL + Mouse to Drag
+        </BsButton>
+      {{/if}}
+    {{else}}
+      <div class="d-flex justify-content-between">
+        <Input
+          id='annotationTitle'
+          style="font-weight: bold;"
+          class='form-control mr-2'
+          placeholder="Annotation Title"
+          @type="text"
+          @value={{@annotationData.annotationTitle}}
+        />
+        <BsButton
+            class='annotation-minimize-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @hideAnnotation @annotationData.annotationId}}
+          >
+            _
+          </BsButton>
+          <BsButton
+            class='annotation-close-button'
+            @type='secondary'
+            @outline='true'
+            @onClick={{fn @removeAnnotation @annotationData.annotationId}}
+          >
+            {{svg-jar 'trash-16' class='octicon align-right'}}
+          </BsButton>
+      </div>
+      {{#unless @annotationData.hidden}}
+        <div class="annotation-text" style="margin-top: 5px;">
+          <Textarea
+            id="annotationtext"
+            @value={{@annotationData.annotationText}}
+            rows="4"
+            cols="40"
+            style="resize: none;"
+          />
+        </div>
+      {{/unless}}
+    {{/if}}
+  {{/if}}
+</div>

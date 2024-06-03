@@ -18,6 +18,7 @@ import {
   isDetachableMenu,
 } from 'extended-reality/utils/vr-menus/detachable-menu';
 import {
+  SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedHighlightedComponent,
@@ -26,6 +27,7 @@ import {
   SerializedRoom,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 
 export default class RoomSerializer extends Service {
   @service('application-renderer')
@@ -50,6 +52,7 @@ export default class RoomSerializer extends Service {
    */
   serializeRoom(
     popupData: PopupData[] = [],
+    annotationData: AnnotationData[] = [],
     snapshot: boolean = false
   ): SerializedRoom {
     const serializedRoom = {
@@ -58,6 +61,7 @@ export default class RoomSerializer extends Service {
       highlightedExternCommunicationLinks:
         this.serializehighlightedExternCommunicationLinks(),
       popups: this.serializeOpenPopups(popupData, snapshot),
+      annotations: this.serializeOpenAnnotations(annotationData),
       detachedMenus: this.serializeDetachedMenus(),
     };
     return serializedRoom;
@@ -195,6 +199,24 @@ export default class RoomSerializer extends Service {
           menuId: popup.menuId,
         };
       });
+  }
+
+  private serializeOpenAnnotations(
+    annotationData: AnnotationData[]
+  ): SerializedAnnotation[] {
+    return annotationData.map((annotation) => {
+      let entityId = undefined;
+
+      if (annotation.entity !== undefined) {
+        entityId = annotation.entity.id;
+      }
+      return {
+        entityId: entityId,
+        menuId: annotation.menuId,
+        annotationText: annotation.annotationText,
+        annotationTitle: annotation.annotationTitle,
+      };
+    });
   }
 
   private serializeDetachedMenus(): SerializedDetachedMenu[] {

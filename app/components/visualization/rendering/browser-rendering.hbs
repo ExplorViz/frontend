@@ -88,6 +88,21 @@
         />
       {{/each}}
 
+      {{! annotation(s) }}
+      {{!-- template-lint-disable no-unused-block-params --}}
+      {{#each this.annotationHandler.annotationData as |data|}}
+        <Visualization::Rendering::Annotations::AnnotationCoordinator
+          @isMovable={{this.appSettings.enableCustomAnnotationPosition.value}}
+          @annotationData={{data}}
+          @updateMeshReference={{this.annotationHandler.updateMeshReference}}
+          @removeAnnotation={{this.removeAnnotation}}
+          @hideAnnotation={{this.hideAnnotation}}
+          @minimizeAnnotation={{this.minimizeAnnotation}}
+          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
+          @openParents={{this.applicationRenderer.openParents}}
+        />
+      {{/each}}
+
     </div>
   </div>
   {{#if @showToolsSidebar}}
@@ -199,6 +214,8 @@
                 <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot
                   @landscapeData={{@landscapeData}}
                   @popUpData={{this.popupHandler.popupData}}
+                  @annotationData={{this.annotationHandler.annotationData}}
+                  @minimizedAnnotations={{this.annotationHandler.minimizedAnnotations}}
                   @landscapeToken={{@landscapeToken}}
                 />
               {{/if}}

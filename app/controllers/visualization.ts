@@ -31,6 +31,7 @@ import {
   VisualizationModeUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
 import {
+  // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
@@ -39,6 +40,7 @@ import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import ENV from 'explorviz-frontend/config/environment';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
@@ -145,6 +147,9 @@ export default class VisualizationController extends Controller {
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
 
   plotlyTimelineRef!: PlotlyTimeline;
 
@@ -713,6 +718,7 @@ export default class VisualizationController extends Controller {
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
       popups: [], // ToDo
+      // annotations: [],
     };
 
     this.highlightingService.updateHighlighting();
@@ -733,6 +739,13 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
+  /**
+   *
+   * Update um Annotations mitgeben, um RoomState zu aktualisieren
+   * für Collab-Service
+   *
+   * @param event
+   */
   async onSyncRoomState(event: {
     userId: string;
     originalMessage: SyncRoomStateMessage;
@@ -749,6 +762,7 @@ export default class VisualizationController extends Controller {
       openApps: openApps as SerializedApp[],
       highlightedExternCommunicationLinks,
       popups: popups as SerializedPopup[],
+      // annotations: [], //annotations as SerializedAnnotation[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
 
@@ -796,6 +810,13 @@ export default class VisualizationController extends Controller {
     this.detachedMenuRenderer.restore(
       this.snapshotTokenService.snapshotToken.serializedRoom.popups,
       this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
+    );
+
+    // to declare the caller for the restore function of annotations
+    this.annotationHandler.detachedMenuRenderer.on(
+      'restore_annotations',
+      this.annotationHandler,
+      this.annotationHandler.onRestoreAnnotations
     );
 
     // this.highlightingService.updateHighlighting();
