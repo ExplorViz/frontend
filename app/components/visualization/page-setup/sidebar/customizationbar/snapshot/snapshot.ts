@@ -20,6 +20,7 @@ interface Args {
   // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
+  minimizedAnnotations: AnnotationData[];
 }
 
 export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapshotComponent extends Component<Args> {
@@ -59,10 +60,14 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @action
   async saveSnapshot() {
+    const allAnnotations = this.args.annotationData.concat(
+      this.args.minimizedAnnotations
+    );
+
     const createdAt: number = new Date().getTime();
     const saveRoom = this.roomSerializer.serializeRoom(
       this.args.popUpData,
-      this.args.annotationData,
+      allAnnotations,
       true
     );
 
