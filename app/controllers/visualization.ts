@@ -794,8 +794,8 @@ export default class VisualizationController extends Controller {
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
      */
-    // this.roomSerializer.serializedRoom =
-    //   this.snapshotTokenService.snapshotToken.serializedRoom;
+    this.roomSerializer.serializedRoom =
+      this.snapshotTokenService.snapshotToken.serializedRoom;
 
     // hier in ordnung, da der Timestamp gespeichert ist und nicht irgendwo aufgerufen wird
     this.updateTimestamp(
@@ -804,13 +804,13 @@ export default class VisualizationController extends Controller {
 
     // this.highlightingService.updateHighlighting();
 
-    this.applicationRenderer.restoreFromSerialization(
-      this.snapshotTokenService.snapshotToken.serializedRoom
-    );
-    this.detachedMenuRenderer.restore(
-      this.snapshotTokenService.snapshotToken.serializedRoom.popups,
-      this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
-    );
+    // this.applicationRenderer.restoreFromSerialization(
+    //   this.snapshotTokenService.snapshotToken.serializedRoom
+    // );
+    // this.detachedMenuRenderer.restore(
+    //   this.snapshotTokenService.snapshotToken.serializedRoom.popups,
+    //   this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
+    // );
 
     // to declare the caller for the restore function of annotations
     this.annotationHandler.detachedMenuRenderer.on(

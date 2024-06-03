@@ -106,9 +106,14 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @action
   exportSnapshot() {
+    const allAnnotations = this.args.annotationData.concat(
+      this.args.minimizedAnnotations
+    );
+
     const createdAt: number = new Date().getTime();
     const saveRoom = this.roomSerializer.serializeRoom(
       this.args.popUpData,
+      allAnnotations,
       true
     );
 
