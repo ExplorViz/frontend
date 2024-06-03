@@ -9,6 +9,8 @@ import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
+  owner: string | undefined;
+  createdAt: number | undefined;
 }
 
 const { userService } = ENV.backendAddresses;
@@ -42,13 +44,20 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
 
   // Create task to handle async calls on room handling
   async autoSelectLandscape() {
+    /** For some reason the queryparameter sharedSnapshot is always undefined in the application controller. This works fine
+     * in the visualization controller.
+     */
     const queryParams = this.router.currentRoute.queryParams;
 
-    if (queryParams.owner && queryParams.createdAt) {
+    if (
+      this.args.owner &&
+      this.args.createdAt &&
+      queryParams.sharedSnapshot !== undefined
+    ) {
       const token = await this.snapshotService.retrieveToken(
-        queryParams.owner,
-        queryParams.createdAt,
-        queryParams.isShared
+        this.args.owner,
+        this.args.createdAt,
+        queryParams.sharedSnapshot
       );
 
       this.snapshotService.setToken(token);

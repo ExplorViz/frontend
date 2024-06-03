@@ -16,10 +16,16 @@ export default class ApplicationController extends Controller {
 
   @tracked
   tokenId = '';
-  queryParams = ['landscapeToken'];
+  queryParams = ['landscapeToken', 'createdAt', 'owner'];
 
   @tracked
   landscapeToken?: string;
+
+  @tracked
+  createdAt?: number | null;
+
+  @tracked
+  owner?: string | null;
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

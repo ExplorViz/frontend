@@ -157,7 +157,12 @@ export default class VisualizationController extends Controller {
    * Hier werden die query parameter festgehalten und dann können die einfach abgerufen werden
    * mit roomId: string | undefined | null;
    */
-  queryParams = ['roomId', 'sharedSnapshot', 'owner', 'createdAt'];
+  queryParams = [
+    'roomId',
+    'sharedSnapshot',
+    'owner: {as ownerViz}',
+    'createdAt: {as createdAtViz}',
+  ];
 
   selectedTimestampRecords: Timestamp[] = [];
 
@@ -168,10 +173,10 @@ export default class VisualizationController extends Controller {
   sharedSnapshot?: boolean | undefined | null;
 
   @tracked
-  owner?: string | undefined | null;
+  ownerViz?: string | undefined | null;
 
   @tracked
-  createdAt: number | undefined | null;
+  createdAtViz: number | undefined | null;
 
   @tracked
   userApiTokens: ApiToken[] = [];
@@ -568,14 +573,14 @@ export default class VisualizationController extends Controller {
      * setzten oder ähnliches -> oder doch einfach alles übergeben und fertig, weil sonst die ganze struktur hinüber geht (vllt mit boolean gute idee)
      */
     if (
-      this.owner &&
-      this.createdAt &&
+      this.ownerViz &&
+      this.createdAtViz &&
       this.snapshotTokenService.snapshotToken === null
     ) {
       const snapshotToken: SnapshotToken | null =
         await this.snapshotTokenService.retrieveToken(
-          this.owner,
-          this.createdAt,
+          this.ownerViz,
+          this.createdAtViz,
           this.sharedSnapshot!
         );
       if (snapshotToken === null) {
@@ -622,8 +627,8 @@ export default class VisualizationController extends Controller {
 
     this.roomId = null;
     this.sharedSnapshot = null;
-    this.owner = null;
-    this.createdAt = null;
+    this.ownerViz = null;
+    this.createdAtViz = null;
     this.snapshotTokenService.snapshotToken = null;
 
     if (this.webSocket.isWebSocketOpen()) {
