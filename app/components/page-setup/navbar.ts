@@ -61,7 +61,9 @@ export default class Navbar extends Component {
     this.tokenService.setToken(null);
     this.snapshotService.setToken(null);
     this.router.transitionTo('settings', {
-      queryParams: { landscapeToken: undefined },
+      queryParams: {
+        landscapeToken: undefined,
+      },
     });
   }
 

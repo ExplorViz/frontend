@@ -93,9 +93,11 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
+      timestamps: { timestamps: timestamps },
       camera: {},
       annotations: {},
       isShared: false,
+      subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
       julius: { timestamps: timestamps },
     };
@@ -131,9 +133,11 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
+      timestamps: { timestamps: timestamps },
       camera: {},
       annotations: {},
       isShared: false,
+      subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
       julius: { timestamps: timestamps },
     };

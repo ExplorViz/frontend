@@ -2,15 +2,19 @@ import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import SnapshotTokenService, {
-  SnapshotToken,
+  TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
 
-export default class DeleteSnapshotComponent extends Component<SnapshotToken> {
+export default class DeleteSnapshotComponent extends Component<TinySnapshot> {
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
 
   @action
-  async deleteSnapshot(snapShot: SnapshotToken) {
-    this.snapshotService.deleteSnapshot(snapShot);
+  async deleteSnapshot(
+    snapShot: TinySnapshot,
+    isShared: boolean,
+    subscribed: boolean
+  ) {
+    this.snapshotService.deleteSnapshot(snapShot, isShared, subscribed);
   }
 }

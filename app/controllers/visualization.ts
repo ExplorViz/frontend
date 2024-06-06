@@ -42,6 +42,7 @@ import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-set
 import ENV from 'explorviz-frontend/config/environment';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Auth from 'explorviz-frontend/services/auth';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
@@ -88,6 +89,9 @@ export const earthTexture = new THREE.TextureLoader().load(
 export default class VisualizationController extends Controller {
   @service('router')
   router!: any;
+
+  @service('auth')
+  auth!: Auth;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -558,11 +562,6 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
-    /**
-     * this will be used when the backend only gives the frontend the info to display and on rendering the snapshot will be loaded
-     * muss man sih nochmal genau überlegen, da in der route geprüft wird ob ein token existiert.... sonst muss man im service noch ein boolean
-     * setzten oder ähnliches -> oder doch einfach alles übergeben und fertig, weil sonst die ganze struktur hinüber geht (vllt mit boolean gute idee)
-     */
     if (
       this.owner &&
       this.createdAt &&
@@ -582,6 +581,18 @@ export default class VisualizationController extends Controller {
       } else {
         this.snapshotTokenService.setToken(snapshotToken);
       }
+    }
+
+    // if a user uses a shared link, the user will be saved as a subscriber
+    // and on the homepage the snapshot will be shown
+
+    // -> das subscribe in retrieve reinpacken (vllt sogar nur in backend machen)
+    if (this.snapshotTokenService.snapshotToken !== null) {
+      await this.snapshotTokenService.subsribe(
+        this.snapshotTokenService.snapshotToken.owner,
+        this.snapshotTokenService.snapshotToken.createdAt,
+        this.auth.user!.sub
+      );
     }
 
     this.debug('initRendering');

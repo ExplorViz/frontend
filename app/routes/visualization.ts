@@ -36,7 +36,8 @@ export default class VisualizationRoute extends BaseRoute {
   async beforeModel() {
     if (
       this.landscapeToken.token === null &&
-      this.snapshotService.snapshotToken === null
+      this.snapshotService.snapshotToken === null &&
+      !this.snapshotService.snapshotSelected
     ) {
       this.router.transitionTo('landscapes');
       return Promise.resolve();
