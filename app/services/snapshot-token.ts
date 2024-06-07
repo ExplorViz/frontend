@@ -26,7 +26,6 @@ export type SnapshotToken = {
   isShared: boolean;
   subscribedUsers: { subscriberList: string[] };
   deleteAt: number;
-  julius: any;
 };
 
 export type TinySnapshot = {

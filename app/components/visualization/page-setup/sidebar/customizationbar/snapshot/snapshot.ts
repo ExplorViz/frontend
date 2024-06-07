@@ -99,7 +99,6 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       isShared: false,
       subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
-      julius: { timestamps: timestamps },
     };
 
     this.snapshotService.saveSnapshot(content);
@@ -139,7 +138,6 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       isShared: false,
       subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
-      julius: { timestamps: timestamps },
     };
     this.snapshotService.exportFile(content);
     this.reset();
