@@ -9,6 +9,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { reject } from 'rsvp';
 
 export type SnapshotToken = {
   owner: string;
@@ -114,24 +115,38 @@ export default class SnapshotTokenService extends Service {
    */
   retrieveToken(owner: string, createdAt: number, isShared: boolean) {
     return new Promise<SnapshotToken | null>((resolve) => {
-      fetch(`${userServiceApi}/snapshot/${owner}/${createdAt}/${isShared}`, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-        },
-      })
+      fetch(
+        `${userServiceApi}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${this.auth.user!.sub}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+          },
+        }
+      )
         .then(async (response: Response) => {
           if (response.ok) {
             const tokens = (await response.json()) as SnapshotToken | null;
             resolve(tokens);
           } else {
-            resolve(null);
+            console.log(response);
+            this.snapshotSelected = false;
+            this.snapshotToken = null;
+            this.router.transitionTo('landscapes', {
+              queryParams: { landscapeToken: undefined },
+            });
+            reject();
             this.toastHandler.showErrorToastMessage(
               'Snapshot could not be loaded.'
             );
           }
         })
         .catch(async () => {
-          resolve(null);
+          this.snapshotSelected = false;
+          this.snapshotToken = null;
+          this.router.transitionTo('landscapes', {
+            queryParams: { landscapeToken: undefined },
+          });
+          reject();
           this.toastHandler.showErrorToastMessage(
             'Shared snapshot does not exist or is expired.'
           );

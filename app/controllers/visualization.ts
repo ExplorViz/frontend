@@ -583,18 +583,6 @@ export default class VisualizationController extends Controller {
       }
     }
 
-    // if a user uses a shared link, the user will be saved as a subscriber
-    // and on the homepage the snapshot will be shown
-
-    // -> das subscribe in retrieve reinpacken (vllt sogar nur in backend machen)
-    if (this.snapshotTokenService.snapshotToken !== null) {
-      await this.snapshotTokenService.subsribe(
-        this.snapshotTokenService.snapshotToken.owner,
-        this.snapshotTokenService.snapshotToken.createdAt,
-        this.auth.user!.sub
-      );
-    }
-
     this.debug('initRendering');
     this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
     this.landscapeData = null;
