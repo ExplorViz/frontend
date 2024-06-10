@@ -89,7 +89,7 @@
       {{/each}}
 
       {{! annotation(s) }}
-      {{!-- template-lint-disable no-unused-block-params --}}
+      {{! template-lint-disable no-unused-block-params }}
       {{#each this.annotationHandler.annotationData as |data|}}
         <Visualization::Rendering::Annotations::AnnotationCoordinator
           @isMovable={{this.appSettings.enableCustomAnnotationPosition.value}}
@@ -208,6 +208,10 @@
                   @toggleVisualizationUpdating={{@toggleVisualizationUpdating}}
                   @removeTimestampListener={{@removeTimestampListener}}
                   @userApiTokens={{@userApiTokens}}
+                  @popUpData={{this.popupHandler.popupData}}
+                  @annotationData={{this.annotationHandler.annotationData}}
+                  @minimizedAnnotations={{this.annotationHandler.minimizedAnnotations}}
+                  @landscapeToken={{@landscapeToken}}
                 />
               {{/if}}
               {{#if (eq componentId 'Persist-Landscape')}}

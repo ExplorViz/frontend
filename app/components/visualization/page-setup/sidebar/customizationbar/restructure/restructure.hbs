@@ -297,6 +297,12 @@
             title='Take a Screenshot'
             onclick={{fn this.screenshotCanvas index}}
           >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
+          <button
+            type='button'
+            class='btn btn-light'
+            title='Create Snapshot'
+            onclick={{fn this.openSnapshotModal index}}
+          >{{svg-jar 'image-16' class='octicon align-right'}}</button>
         </div>
         <ul></ul>
         <ul
@@ -347,5 +353,52 @@
 
     </div>
   {{/if}}
+</div>
+<div>
+  <BsModal
+    @open={{this.snapshotModal}}
+    @onHidden={{this.closeSnapshotMenu}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Create Snapshot</h4>
+    </modal.header>
+    <modal.body>
+      <label for='token'>Snapshot Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.snapshotName}}
+        />
+      </div>
+      <label class='mt-2' for='token'>Expires <i>- Optional:</i> </label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='date'
+          class='form-control mr-2'
+          type='date'
+          min={{this.today}}
+          oninput={{this.updateExpDate}}
+          {{!-- value={{this.expDate}} --}}
+        />
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeSnaphshotModal}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Save'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.createSnapshot}}
+        disabled={{this.saveSnaphotBtnDisabled}}
+      >Save</BsButton>
+    </modal.footer>
 
+  </BsModal>
 </div>

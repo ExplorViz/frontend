@@ -10,6 +10,19 @@ import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
+import { format } from 'date-fns';
+import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
+import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
+import SnapshotTokenService, {
+  SnapshotToken,
+} from 'explorviz-frontend/services/snapshot-token';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import LocalUser from 'collaboration/services/local-user';
+import Auth from 'explorviz-frontend/services/auth';
+import ENV from 'explorviz-frontend/config/environment';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -18,11 +31,22 @@ interface VisualizationPageSetupSidebarRestructureArgs {
     dynamicData: DynamicLandscapeData
   ) => void;
   visualizationPaused: boolean;
+  popUpData: PopupData[];
+  landscapeToken: LandscapeToken;
+  annotationData: AnnotationData[];
+  minimizedAnnotations: AnnotationData[];
   toggleVisualizationUpdating: () => void;
   removeTimestampListener: () => void;
 }
 
+const shareSnapshotURL = ENV.shareSnapshotURL;
+
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
+  today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
+
+  @service('auth')
+  auth!: Auth;
+
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
@@ -34,6 +58,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @service('changelog')
   changeLog!: Changelog;
+
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
+
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -79,6 +115,24 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @tracked
   uploadIssueBtnDisabled: boolean = false;
+
+  @tracked
+  snapshotModal: boolean = false;
+
+  @tracked
+  index: number | null = null;
+
+  @tracked
+  snapshotName: string | null = null;
+
+  @tracked
+  saveSnaphotBtnDisabled: boolean = true;
+
+  @tracked
+  expDate: number | null = null;
+
+  @tracked
+  createPersonalSnapshot = false;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
@@ -310,6 +364,25 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
+  addSnapshotLink(index: number, url: string, name: string) {
+    const updatedIssue = {
+      ...this.issues[index],
+      content: this.issues[index].content + '\n' + name + ': ' + url,
+    };
+
+    const updatedIssues = [];
+    for (const [issueIndex, issue] of this.issues.entries()) {
+      if (index === issueIndex) {
+        updatedIssues.push(updatedIssue);
+      } else {
+        updatedIssues.push(issue);
+      }
+    }
+
+    this.issues = updatedIssues;
+  }
+
+  @action
   deleteIssue(index: number) {
     this.issues.removeAt(index);
   }
@@ -326,6 +399,127 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const screenshotDataURL = canvas.toDataURL('image/png');
     this.issues[index].screenshots.pushObject(screenshotDataURL);
     this.canUpload();
+  }
+
+  @action
+  openSnapshotModal(index: number) {
+    this.snapshotModal = true;
+    this.index = index;
+  }
+
+  @action
+  closeSnaphshotModal() {
+    this.snapshotModal = false;
+    this.index = null;
+    this.snapshotName = null;
+    this.expDate = null;
+    this.saveSnaphotBtnDisabled = true;
+  }
+
+  @action
+  updateName(event: InputEvent) {
+    const target: HTMLInputElement = event.target as HTMLInputElement;
+    this.snapshotName = target.value;
+    this.canSaveSnapShot();
+  }
+
+  @action
+  canSaveSnapShot() {
+    if (this.snapshotName !== '') {
+      this.saveSnaphotBtnDisabled = false;
+    } else {
+      this.saveSnaphotBtnDisabled = true;
+    }
+  }
+
+  @action
+  updateExpDate(event: InputEvent) {
+    const target: HTMLInputElement = event.target as HTMLInputElement;
+    const date = convertDate(target.value);
+    this.expDate = date;
+  }
+
+  @action
+  createSnapshot() {
+    const allAnnotations = this.args.annotationData.concat(
+      this.args.minimizedAnnotations
+    );
+
+    const createdAt: number = new Date().getTime();
+    const saveRoom = this.roomSerializer.serializeRoom(
+      this.args.popUpData,
+      allAnnotations,
+      true
+    );
+
+    const timestamps = this.timestampRepo.getTimestamps(
+      this.args.landscapeToken.value
+    );
+
+    const sharedToken: SnapshotToken = {
+      owner: this.auth.user!.sub,
+      createdAt: createdAt,
+      name: this.snapshotName!,
+      landscapeToken: this.args.landscapeToken,
+      structureData: {
+        structureLandscapeData: this.args.landscapeData.structureLandscapeData,
+        dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
+      },
+      serializedRoom: saveRoom,
+      timestamps: { timestamps: timestamps },
+      camera: {
+        x: this.localUser.camera.position.x,
+        y: this.localUser.camera.position.y,
+        z: this.localUser.camera.position.z,
+      },
+      annotations: {},
+      isShared: true,
+      subscribedUsers: { subscriberList: [] },
+      deleteAt: this.expDate !== null ? this.expDate : 0,
+    };
+
+    if (this.createPersonalSnapshot) {
+      const personalToken: SnapshotToken = {
+        owner: this.auth.user!.sub,
+        createdAt: createdAt,
+        name: this.snapshotName!,
+        landscapeToken: this.args.landscapeToken,
+        structureData: {
+          structureLandscapeData:
+            this.args.landscapeData.structureLandscapeData,
+          dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
+        },
+        serializedRoom: saveRoom,
+        timestamps: { timestamps: timestamps },
+        camera: {
+          x: this.localUser.camera.position.x,
+          y: this.localUser.camera.position.y,
+          z: this.localUser.camera.position.z,
+        },
+        annotations: {},
+        isShared: true,
+        subscribedUsers: { subscriberList: [] },
+        deleteAt: this.expDate !== null ? this.expDate : 0,
+      };
+      this.snapshotService.saveSnapshot(personalToken);
+    }
+
+    this.snapshotService.saveSnapshot(sharedToken);
+
+    const snapshotURL = `${shareSnapshotURL}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
+
+    this.addSnapshotLink(this.index!, snapshotURL, sharedToken.name);
+
+    // this.issues[this.index!].content =
+    //   this.issues[this.index!].content +
+    //   '\n' +
+    //   sharedToken.name +
+    //   ': ' +
+    //   snapshotURL;
+
+    // console.log(this.issues[this.index!]);
+
+    this.closeSnaphshotModal();
   }
 
   @action
