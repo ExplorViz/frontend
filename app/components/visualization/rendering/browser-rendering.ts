@@ -56,6 +56,7 @@ interface BrowserRenderingArgs {
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
+  camera: { x: number; y: number; z: number } | null | undefined;
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
@@ -399,6 +400,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
+
+    // if (this.args.camera) {
+    //   this.localUser.defaultCamera.position.set(
+    //     this.args.camera!.x,
+    //     this.args.camera!.y,
+    //     this.args.camera!.z
+    //   );
+    // }
   }
 
   @action
