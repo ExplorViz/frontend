@@ -17,9 +17,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 
 interface Args {
   landscapeData: LandscapeData;
-  // unnötig da in serializedRoom
   popUpData: PopupData[];
-  // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
