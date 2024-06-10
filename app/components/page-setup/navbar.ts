@@ -26,7 +26,6 @@ export default class Navbar extends Component {
 
   @action
   goToLandscapeSelection() {
-    console.log(this.snapshotService.snapshotToken);
     this.snapshotService.snapshotSelected = false;
     this.tokenService.setToken(null);
     this.snapshotService.setToken(null);
