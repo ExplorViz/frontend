@@ -180,7 +180,10 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
     // this.tokenService.setToken(event.target.value);
     this.router.transitionTo('visualization', {
-      queryParams: { landscapeToken: event.target.value },
+      queryParams: {
+        landscapeToken: event.target.value,
+        deviceId: this.deviceId,
+      },
     });
     this.sender.sendChangeLandscape(event.target.value);
   }

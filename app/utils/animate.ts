@@ -8,6 +8,7 @@ export function animatePlayPauseButton(isPaused: boolean) {
     duration: 1,
     css: { className: afterClass },
   });
+
   gsap.fromTo(
     '#play-pause-button-container',
     { opacity: 1, scale: 0.9 },
