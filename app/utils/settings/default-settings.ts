@@ -135,7 +135,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 2,
     group: 'Effects',
-    displayName: 'Enable Animations',
+    displayName: 'Enable Package Animations',
     description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
