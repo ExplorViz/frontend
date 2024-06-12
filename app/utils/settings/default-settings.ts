@@ -80,6 +80,28 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Background',
     isColorSetting: true,
   },
+  // Control Settings
+  enableGamepadControls: {
+    value: true,
+    orderNumber: 1,
+    group: 'Controls',
+    displayName: 'Enable Gamepad Controls',
+    description: 'Toggle gamepad controls for navigation',
+    isFlagSetting: true,
+  },
+  selectedGamepadIndex: {
+    value: 0,
+    range: {
+      min: 0,
+      max: 10,
+      step: 1,
+    },
+    orderNumber: 2,
+    group: 'Controls',
+    displayName: 'Selected Gamepad Index',
+    description: 'Index of the gamepad to be used for navigation',
+    isRangeSetting: true,
+  },
   // Highlighting Settings
   applyHighlightingOnHover: {
     value: true,

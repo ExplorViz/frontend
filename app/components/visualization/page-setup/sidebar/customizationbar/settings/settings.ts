@@ -63,6 +63,7 @@ export default class Settings extends Component<Args> {
     > = {
       Camera: [],
       Colors: [],
+      Controls: [],
       Communication: [],
       Highlighting: [],
       Effects: [],
