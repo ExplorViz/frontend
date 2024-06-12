@@ -44,7 +44,6 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import RoomSerializer from 'collaboration/services/room-serializer';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 
 interface BrowserRenderingArgs {
@@ -91,9 +90,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('room-serializer')
-  roomSerializer!: RoomSerializer;
-
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
@@ -123,6 +119,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private frustumSize = 5;
 
   cameraControls!: CameraControls;
+
+  gamepadControls: GamepadControls | null = null;
 
   initDone: boolean = false;
 
@@ -300,7 +298,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.resize(outerDiv);
 
     // Gamepad controls
-    new GamepadControls(
+    this.gamepadControls = new GamepadControls(
       this.camera,
       this.scene,
       this.cameraControls.perspectiveCameraControls,
