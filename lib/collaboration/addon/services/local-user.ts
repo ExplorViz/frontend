@@ -43,8 +43,8 @@ export default class LocalUser extends Service.extend({
   @tracked
   orthographicCamera!: THREE.OrthographicCamera;
 
-  //@tracked
-  //minimapCamera!: THREE.OrthographicCamera;
+  @tracked
+  minimapCamera!: THREE.OrthographicCamera;
 
   @tracked
   visualizationMode: VisualizationMode = 'browser';
@@ -77,7 +77,7 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera();
     this.orthographicCamera = new THREE.OrthographicCamera();
     
-    //this.minimapCamera = new THREE.OrthographicCamera();
+    this.minimapCamera = new THREE.OrthographicCamera();
    
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {

@@ -333,20 +333,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.ortographicCamera.lookAt(this.scene.position);
 
     // minimap camera
-    // this.localUser.minimapCamera = new THREE.OrthographicCamera(
-    //   -aspectRatio * this.frustumSize,
-    //   aspectRatio * this.frustumSize,
-    //   this.frustumSize,
-    //   -this.frustumSize,
-    //   0.1,
-    //   100
-    // );
-    // this.localUser.minimapCamera.position.setFromSphericalCoords(
-    //   Math.PI / 2,
-    //   0,
-    //   0
-    // );
-    // this.localUser.minimapCamera.lookAt();
+    this.localUser.minimapCamera = new THREE.OrthographicCamera(
+      -aspectRatio * this.frustumSize/3.4,
+      aspectRatio * this.frustumSize/3.4,
+      this.frustumSize/1.7,
+      -this.frustumSize/1.7,
+      0.1,
+      1000
+    );
+    this.localUser.minimapCamera.position.set(
+      0,
+      1,
+      0
+    );
+    this.localUser.minimapCamera.lookAt(new Vector3(0,-1,0));
     
     // controls
     this.cameraControls = new CameraControls(
@@ -382,6 +382,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
       orthographicCamera: this.localUser.ortographicCamera,
+      minimapCamera: this.localUser.minimapCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,

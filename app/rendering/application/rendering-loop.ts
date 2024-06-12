@@ -12,6 +12,7 @@ const clock = new Clock();
 interface Args {
   camera: THREE.Camera;
   orthographicCamera: THREE.OrthographicCamera | undefined;
+  minimapCamera: THREE.OrthographicCamera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -48,6 +49,7 @@ export default class RenderingLoop {
     setOwner(this, owner);
     this.camera = args.camera;
     this.orthographicCamera = args.orthographicCamera;
+    this.minimapCamera = args.minimapCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
@@ -77,6 +79,7 @@ export default class RenderingLoop {
       // tell every animated object to tick forward one frame
       this.tick(frame);
 
+      
       // render a frame
       if (
         this.orthographicCamera &&
@@ -86,6 +89,8 @@ export default class RenderingLoop {
       } else {
         this.renderer.render(this.scene, this.camera);
       }
+      
+      this.renderMinimap();
 
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render
@@ -96,6 +101,28 @@ export default class RenderingLoop {
       }
 
     });
+  }
+
+  renderMinimap() {
+    // Set the size and position for the minimap
+    const minimapWidth = 400;
+    const minimapHeight = 400;
+    const minimapX = this.renderer.domElement.clientWidth - minimapWidth - 10;
+    const minimapY = this.renderer.domElement.clientHeight - minimapHeight -10; 
+
+    const currentViewport = this.renderer.getContext().getParameter(this.renderer.getContext().VIEWPORT);
+  
+    // Enable scissor test and set the scissor area
+    this.renderer.setScissorTest(true);
+    this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
+    this.renderer.setViewport(minimapX, minimapY, minimapWidth, minimapHeight);
+  
+    // Render the minimap scene
+    this.renderer.render(this.scene, this.minimapCamera);
+  
+    // Disable scissor test
+    this.renderer.setScissorTest(false);
+    this.renderer.setViewport(...currentViewport);
   }
 
   stop() {
