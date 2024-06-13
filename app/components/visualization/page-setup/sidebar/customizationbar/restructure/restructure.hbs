@@ -364,7 +364,7 @@
       <h4 class='modal-title'>Create Snapshot</h4>
     </modal.header>
     <modal.body>
-      <label for='token'>Snapshot Name:</label>
+      <label for='name'>Snapshot Name:</label>
       <div class='d-flex justify-content-between'>
         <input
           id='name'
@@ -373,7 +373,7 @@
           value={{this.snapshotName}}
         />
       </div>
-      <label class='mt-2' for='token'>Expires <i>- Optional:</i> </label>
+      <label class='mt-2' for='date'>Expires <i>- Optional:</i> </label>
       <div class='d-flex justify-content-between'>
         <input
           id='date'
@@ -383,6 +383,18 @@
           oninput={{this.updateExpDate}}
           {{!-- value={{this.expDate}} --}}
         />
+      </div>
+      <div class='mt-2 d-flex'>
+        <div>
+          <label class='mr-3' for='personalSnapshot'>Create Personal Snapshot:</label>
+        </div>
+        <div>
+          <input
+            id='personalSnapshot'
+            type='checkbox'
+            oninput={{this.updatePersonalSnapshot}}
+          />
+        </div>
       </div>
     </modal.body>
     <modal.footer>

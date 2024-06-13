@@ -414,6 +414,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     this.snapshotName = null;
     this.expDate = null;
     this.saveSnaphotBtnDisabled = true;
+    this.createPersonalSnapshot = false;
   }
 
   @action
@@ -437,6 +438,11 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const target: HTMLInputElement = event.target as HTMLInputElement;
     const date = convertDate(target.value);
     this.expDate = date;
+  }
+
+  @action
+  updatePersonalSnapshot() {
+    this.createPersonalSnapshot = !this.createPersonalSnapshot;
   }
 
   @action
@@ -480,26 +486,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
     if (this.createPersonalSnapshot) {
       const personalToken: SnapshotToken = {
-        owner: this.auth.user!.sub,
-        createdAt: createdAt,
-        name: this.snapshotName!,
-        landscapeToken: this.args.landscapeToken,
-        structureData: {
-          structureLandscapeData:
-            this.args.landscapeData.structureLandscapeData,
-          dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
-        },
-        serializedRoom: saveRoom,
-        timestamps: { timestamps: timestamps },
-        camera: {
-          x: this.localUser.camera.position.x,
-          y: this.localUser.camera.position.y,
-          z: this.localUser.camera.position.z,
-        },
-        annotations: {},
-        isShared: true,
-        subscribedUsers: { subscriberList: [] },
-        deleteAt: this.expDate !== null ? this.expDate : 0,
+        ...sharedToken,
+        isShared: false,
       };
       this.snapshotService.saveSnapshot(personalToken);
     }
@@ -509,15 +497,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     const snapshotURL = `${shareSnapshotURL}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
 
     this.addSnapshotLink(this.index!, snapshotURL, sharedToken.name);
-
-    // this.issues[this.index!].content =
-    //   this.issues[this.index!].content +
-    //   '\n' +
-    //   sharedToken.name +
-    //   ': ' +
-    //   snapshotURL;
-
-    // console.log(this.issues[this.index!]);
 
     this.closeSnaphshotModal();
   }
