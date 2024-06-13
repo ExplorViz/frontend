@@ -789,6 +789,13 @@ export default class VisualizationController extends Controller {
       await timeout(50);
     }
 
+    // to declare the caller for the restore function of annotations
+    this.annotationHandler.detachedMenuRenderer.on(
+      'restore_annotations',
+      this.annotationHandler,
+      this.annotationHandler.onRestoreAnnotations
+    );
+
     /**
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
@@ -810,13 +817,6 @@ export default class VisualizationController extends Controller {
     //   this.snapshotTokenService.snapshotToken.serializedRoom.popups,
     //   this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
     // );
-
-    // to declare the caller for the restore function of annotations
-    this.annotationHandler.detachedMenuRenderer.on(
-      'restore_annotations',
-      this.annotationHandler,
-      this.annotationHandler.onRestoreAnnotations
-    );
 
     // this.highlightingService.updateHighlighting();
 

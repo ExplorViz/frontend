@@ -94,6 +94,7 @@
         <Visualization::Rendering::Annotations::AnnotationCoordinator
           @isMovable={{this.appSettings.enableCustomAnnotationPosition.value}}
           @annotationData={{data}}
+          @shareAnnotation={{this.annotationHandler.shareAnnotation}}
           @updateMeshReference={{this.annotationHandler.updateMeshReference}}
           @removeAnnotation={{this.removeAnnotation}}
           @hideAnnotation={{this.hideAnnotation}}

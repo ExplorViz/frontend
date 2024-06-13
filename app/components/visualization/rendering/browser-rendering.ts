@@ -519,10 +519,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
+    // Hide unmoved popups and annotations when mouse moves
+    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
+      this.popupHandler.removeUnmovedPopups();
+    }
+    if (
+      !this.appSettings.enableCustomAnnotationPosition.value ||
+      !event.shiftKey
+    ) {
+      this.annotationHandler.removeUnmovedAnnotations();
+    }
+
     // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object, event);
+      this.handleMouseMoveOnMesh(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
@@ -547,7 +558,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined, event: MouseEvent) {
+  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
@@ -563,17 +574,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
-    }
-
-    // Hide popups when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
-    if (
-      !this.appSettings.enableCustomAnnotationPosition.value ||
-      !event.ctrlKey
-    ) {
-      this.annotationHandler.removeUnmovedAnnotations();
     }
   }
 

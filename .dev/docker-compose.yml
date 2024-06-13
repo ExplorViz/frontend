@@ -1,17 +1,17 @@
 version: '3.5'
 services:
-  collaboration-service-js:
-    image: explorviz/collaboration-service-js:latest
-    ports:
-      - ${COLLABORATION_PORT}:4444
-    environment:
-      - REDIS_HOST=redis-collab
-      - REDIS_PORT=6379
+  # collaboration-service-js:
+  #   image: explorviz/collaboration-service-js:latest
+  #   ports:
+  #     - ${COLLABORATION_PORT}:4444
+  #   environment:
+  #     - REDIS_HOST=redis-collab
+  #     - REDIS_PORT=6379
 
-  redis-collab:
-    image: redis:7.2.2
-    ports:
-      - '6379:6379'
+  # redis-collab:
+  #   image: redis:7.2.2
+  #   ports:
+  #     - '6379:6379'
 
   demo-supplier:
     container_name: explorviz-demo-supplier
@@ -23,31 +23,31 @@ services:
   mongoDB:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - '27017:27017'
 
   zookeeper:
     image: strimzi/kafka:0.20.1-kafka-2.6.0
-    command: [
-      "sh", "-c",
-      "bin/zookeeper-server-start.sh config/zookeeper.properties"
-    ]
+    command:
+      ['sh', '-c', 'bin/zookeeper-server-start.sh config/zookeeper.properties']
     ports:
-      - "2181:2181"
+      - '2181:2181'
     environment:
       LOG_DIR: /tmp/logs
 
   kafka:
     image: strimzi/kafka:0.20.1-kafka-2.6.0
-    command: [
-      "sh", "-c",
-      "bin/kafka-server-start.sh config/server.properties --override listeners=$${KAFKA_LISTENERS} --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT}"
-    ]
+    command:
+      [
+        'sh',
+        '-c',
+        'bin/kafka-server-start.sh config/server.properties --override listeners=$${KAFKA_LISTENERS} --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT}',
+      ]
     depends_on:
       - zookeeper
     ports:
-      - "9091:9091"
+      - '9091:9091'
     environment:
-      LOG_DIR: "/tmp/logs"
+      LOG_DIR: '/tmp/logs'
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9091
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9091
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

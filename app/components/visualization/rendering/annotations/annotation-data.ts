@@ -21,6 +21,7 @@ export interface AnnotationDataArgs {
   annotationText: string;
   annotationTitle: string;
   hidden: boolean;
+  sharedBy: string;
 }
 
 export default class AnnotationData {
@@ -57,6 +58,9 @@ export default class AnnotationData {
   @tracked
   hidden: boolean;
 
+  @tracked
+  sharedBy: string | null;
+
   constructor({
     mouseX,
     mouseY,
@@ -70,6 +74,7 @@ export default class AnnotationData {
     annotationText,
     annotationTitle,
     hidden,
+    sharedBy,
   }: AnnotationDataArgs) {
     this.annotationId = AnnotationData.incrementer;
     AnnotationData.incrementer++;
@@ -85,5 +90,6 @@ export default class AnnotationData {
     this.annotationText = annotationText;
     this.annotationTitle = annotationTitle;
     this.hidden = hidden;
+    this.sharedBy = sharedBy;
   }
 }

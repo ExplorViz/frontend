@@ -22,12 +22,37 @@
             @type="text"
             @value={{@annotationData.annotationTitle}}
           />
+
           <BsButton @type={{'primary'}} @onClick={{this.ping}}>
             {{svg-jar 'location-16' class='octicon align-middle'}}
             <BsTooltip @placement='top' @triggerEvents='hover'>
               Ping
             </BsTooltip>
           </BsButton>
+
+          {{#if (not this.collaborationSession.isOnline)}}
+            <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
+              {{svg-jar 'share-android-16' class='octicon align-right'}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                This is not an online session.
+              </BsTooltip>
+            </BsButton>
+          {{else if @annotationData.sharedBy}}
+            <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
+              {{svg-jar 'share-android-16' class='octicon align-right'}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Annotation is shared
+              </BsTooltip>
+            </BsButton>
+          {{else if (and this.collaborationSession.isOnline)}}
+            <BsButton class="annotation-share-button" @type='primary' @onClick={{fn @shareAnnotation @annotationData}}>
+              {{svg-jar 'share-android-16' class='octicon align-middle'}}
+              <BsTooltip @placement='top' @triggerEvents='hover'>
+                Share annotation with other users.
+              </BsTooltip>
+            </BsButton>
+          {{/if}}
+
           <BsButton
             class='annotation-minimize-button'
             @type='secondary'
@@ -36,6 +61,7 @@
           >
             _
           </BsButton>
+
           <BsButton
             class='annotation-close-button'
             @type='secondary'
@@ -51,7 +77,7 @@
               id="annotationtext"
               @value={{@annotationData.annotationText}}
               rows="4"
-              cols="40"
+              cols="50"
               style="resize: none;"
             />
           </div>
@@ -67,7 +93,7 @@
           @outline='true'
           disabled='true'
         >
-          CTRL + Mouse to Drag
+          SHIFT + Mouse to Drag
         </BsButton>
       {{/if}}
     {{else}}
@@ -80,6 +106,28 @@
           @type="text"
           @value={{@annotationData.annotationTitle}}
         />
+        {{#if (not this.collaborationSession.isOnline)}}
+          <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
+            {{svg-jar 'share-android-16' class='octicon align-right'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              This is not an online session.
+            </BsTooltip>
+          </BsButton>
+        {{else if @annotationData.sharedBy}}
+          <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
+            {{svg-jar 'share-android-16' class='octicon align-right'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Annotation is shared
+            </BsTooltip>
+          </BsButton>
+        {{else if (and this.collaborationSession.isOnline)}}
+          <BsButton class="annotation-share-button" @type='primary' @onClick={{fn @shareAnnotation @annotationData}}>
+            {{svg-jar 'share-android-16' class='octicon align-middle'}}
+            <BsTooltip @placement='top' @triggerEvents='hover'>
+              Share annotation with other users.
+            </BsTooltip>
+          </BsButton>
+        {{/if}}
         <BsButton
             class='annotation-minimize-button'
             @type='secondary'
@@ -103,7 +151,7 @@
             id="annotationtext"
             @value={{@annotationData.annotationText}}
             rows="4"
-            cols="40"
+            cols="45"
             style="resize: none;"
           />
         </div>

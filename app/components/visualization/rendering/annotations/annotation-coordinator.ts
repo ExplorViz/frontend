@@ -10,15 +10,20 @@ import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-comp
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 
 interface IArgs {
   isMovable: boolean;
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
   updateMeshReference(annotation: AnnotationData): void;
+  shareAnnotation(annotation: AnnotationData): void;
 }
 
 export default class AnnotationCoordinatorComponent extends Component<IArgs> {
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
   @service('configuration')
   configuration!: Configuration;
 
@@ -55,6 +60,14 @@ export default class AnnotationCoordinatorComponent extends Component<IArgs> {
       this.args.annotationData.mesh.resetHoverEffect();
     }
     this.args.annotationData.hovered = false;
+  }
+
+  get sharedByColor() {
+    const userId = this.args.annotationData.sharedBy;
+    if (!userId) {
+      return '';
+    }
+    return this.collaborationSession.getColor(userId);
   }
 
   @action
