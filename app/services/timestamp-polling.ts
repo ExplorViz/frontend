@@ -53,7 +53,8 @@ export default class TimestampPollingService extends Service {
 
   private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
     if (this.snapshotService.snapshotToken) {
-      const timestamps = this.snapshotService.snapshotToken.julius.timestamps;
+      const timestamps =
+        this.snapshotService.snapshotToken.timestamps.timestamps;
       callback(timestamps);
     } else {
       // check if we already have a timestamp that acts as base point

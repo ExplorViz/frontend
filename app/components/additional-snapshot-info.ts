@@ -3,9 +3,9 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import Auth from 'explorviz-frontend/services/auth';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
+import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
 
-export default class AdditionalSnapshotInfoComponent extends Component<SnapshotToken> {
+export default class AdditionalSnapshotInfoComponent extends Component<TinySnapshot> {
   @service('auth')
   auth!: Auth;
 

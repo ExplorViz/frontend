@@ -26,6 +26,7 @@ export default class Navbar extends Component {
 
   @action
   goToLandscapeSelection() {
+    this.snapshotService.snapshotSelected = false;
     this.tokenService.setToken(null);
     this.snapshotService.setToken(null);
     this.router.transitionTo('landscapes', {
@@ -59,9 +60,12 @@ export default class Navbar extends Component {
   @action
   goToSettings() {
     this.tokenService.setToken(null);
+    this.snapshotService.snapshotSelected = false;
     this.snapshotService.setToken(null);
     this.router.transitionTo('settings', {
-      queryParams: { landscapeToken: undefined },
+      queryParams: {
+        landscapeToken: undefined,
+      },
     });
   }
 

@@ -47,12 +47,15 @@ import ThreeForceGraph from 'three-forcegraph';
 import { Vector3 } from 'three/src/math/Vector3';
 import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
+import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
   readonly visualizationPaused: boolean;
   readonly isDisplayed: boolean;
+  readonly snapshot: boolean | undefined | null;
+  readonly snapshotReload: SnapshotToken | undefined | null;
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
@@ -387,18 +390,25 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     });
     this.renderingLoop.start();
 
-    this.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graphData().nodes.length > 0) {
-        this.debug('initdone!');
-        setTimeout(() => {
-          this.cameraControls.resetCameraFocusOn(
-            1.2,
-            ...this.applicationRenderer.getOpenApplications()
-          );
-        }, 200);
-        this.initDone = true;
-      }
-    });
+    // if camera is true, a snapshot is loaded and the camera is set when loading a snaphsot in the
+    // vizualization controller
+    if (this.args.snapshot || this.args.snapshotReload) {
+      this.applicationRenderer.getOpenApplications();
+      this.initDone = true;
+    } else {
+      this.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.cameraControls.resetCameraFocusOn(
+              1.2,
+              ...this.applicationRenderer.getOpenApplications()
+            );
+          }, 200);
+          this.initDone = true;
+        }
+      });
+    }
   }
 
   @action

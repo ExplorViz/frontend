@@ -4,7 +4,7 @@
     type='button'
     tabindex='0'
     href='#'
-    {{on 'click' (fn this.deleteSnapshot @token)}}
+    {{on 'click' (fn this.deleteSnapshot @token @isShared @subscribed)}}
   >
     {{svg-jar 'trash-16' class='octicon align-middle'}}
     <BsTooltip @placement='bottom' @triggerEvents='hover'>

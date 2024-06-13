@@ -17,9 +17,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 
 interface Args {
   landscapeData: LandscapeData;
-  // unnötig da in serializedRoom
   popUpData: PopupData[];
-  // unnötig da in serializedRoom
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
@@ -93,11 +91,16 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
-      camera: {},
+      timestamps: { timestamps: timestamps },
+      camera: {
+        x: this.localUser.camera.position.x,
+        y: this.localUser.camera.position.y,
+        z: this.localUser.camera.position.z,
+      },
       annotations: {},
       isShared: false,
+      subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
-      julius: { timestamps: timestamps },
     };
 
     this.snapshotService.saveSnapshot(content);
@@ -131,11 +134,16 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
         dynamicLandscapeData: this.args.landscapeData.dynamicLandscapeData,
       },
       serializedRoom: saveRoom,
-      camera: {},
+      timestamps: { timestamps: timestamps },
+      camera: {
+        x: this.localUser.camera.position.x,
+        y: this.localUser.camera.position.y,
+        z: this.localUser.camera.position.z,
+      },
       annotations: {},
       isShared: false,
+      subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
-      julius: { timestamps: timestamps },
     };
     this.snapshotService.exportFile(content);
     this.reset();

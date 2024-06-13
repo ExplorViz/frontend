@@ -4,7 +4,7 @@ import { action } from '@ember/object';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
-  SnapshotToken,
+  TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
 import { tracked } from '@glimmer/tracking';
 import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
@@ -16,7 +16,7 @@ import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
 
 // const url = ENV.shareSnapshotURL;
 
-export default class ShareSnapshotComponent extends Component<SnapshotToken> {
+export default class ShareSnapshotComponent extends Component<TinySnapshot> {
   @service('auth')
   auth!: Auth;
 
@@ -51,11 +51,9 @@ export default class ShareSnapshotComponent extends Component<SnapshotToken> {
   }
 
   @action
-  async shareSnapshot(snapshot: SnapshotToken) {
-    const snapshotWithExpDate = {
-      ...snapshot,
-      deleteAt: this.expDate !== null ? this.expDate : 0,
-    };
-    this.snapshotService.shareSnapshot(snapshotWithExpDate);
+  async shareSnapshot(snapshot: TinySnapshot) {
+    const expDate = this.expDate !== null ? this.expDate : 0;
+
+    this.snapshotService.shareSnapshot(snapshot, expDate);
   }
 }

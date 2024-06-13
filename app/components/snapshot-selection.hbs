@@ -21,18 +21,18 @@
           (sort-by
             (concat this.sortPropertyPersonal ':' this.sortOrderPersonal)
             'createdAt'
-            (this.filter @snapShotTokens false)
+            @snapshotInfo.personalSnapshots
           )
           as |personalToken|
         }}
           <tr class='token-selection-row'>
             <th
               scope='row'
-              {{on 'click' (fn @selectToken personalToken)}}
+              {{on 'click' (fn @selectPersonalToken personalToken)}}
             >{{personalToken.name}} </th>
             <th
               scope='row'
-              {{on 'click' (fn @selectToken personalToken)}}
+              {{on 'click' (fn @selectPersonalToken personalToken)}}
             >{{timestamp-to-date personalToken.createdAt 'localString'}}</th>
             <th scope='row'>
               <ul class='token-selection-icons'>
@@ -44,7 +44,11 @@
                   <ShareSnapshot @token={{personalToken}} />
                 </li>
                 <li>
-                  <DeleteSnapshot @token={{personalToken}} />
+                  <DeleteSnapshot
+                    @token={{personalToken}}
+                    @isShared={{false}}
+                    @subscribed={{false}}
+                  />
                 </li>
               </ul>
             </th>
@@ -116,7 +120,7 @@
   </BsModal>
 </div>
 
-<div class='pb-3'>
+<div class='pb-5'>
   <h5 class='text-left'>Shared Snapshots</h5>
   <div class='d-flex flex-row justify-content-center overflow-scroll'>
     <table class='table table-striped' id='shared-token-selection-table'>
@@ -139,18 +143,18 @@
           (sort-by
             (concat this.sortPropertyShared ':' this.sortOrderShared)
             'createdAt'
-            (this.filter @snapShotTokens true)
+            @snapshotInfo.sharedSnapshots
           )
           as |sharedToken|
         }}
           <tr class='token-selection-row'>
             <th
               scope='row'
-              {{on 'click' (fn @selectToken sharedToken)}}
+              {{on 'click' (fn @selectSharedToken sharedToken)}}
             >{{sharedToken.name}}</th>
             <th
               scope='row'
-              {{on 'click' (fn @selectToken sharedToken)}}
+              {{on 'click' (fn @selectSharedToken sharedToken)}}
             >{{timestamp-to-date sharedToken.createdAt 'localString'}}</th>
             <th scope='row'>
               <ul class='token-selection-icons'>
@@ -178,13 +182,75 @@
                   </div>
                 </li>
                 <li>
-                  <DeleteSnapshot @token={{sharedToken}} />
+                  <DeleteSnapshot
+                    @token={{sharedToken}}
+                    @isShared={{true}}
+                    @subscribed={{false}}
+                  />
                 </li>
               </ul>
             </th>
           </tr>
         {{else}}
           There are no shared snapshots.
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class='pb-3'>
+  <h5 class='text-left'>Subscribed Snapshots</h5>
+  <div class='d-flex flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped' id='subscribed-token-selection-table'>
+      <thead>
+        <tr>
+          <th
+            style='width:70%'
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'name')}}
+          >Alias</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'createdAt')}}
+          >Created</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortPropertyShared ':' this.sortOrderShared)
+            'createdAt'
+            @snapshotInfo.subscribedSnapshots
+          )
+          as |subscribedToken|
+        }}
+          <tr class='token-selection-row'>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken subscribedToken)}}
+            >{{subscribedToken.name}}</th>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken subscribedToken)}}
+            >{{timestamp-to-date subscribedToken.createdAt 'localString'}}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <AdditionalSnapshotInfo @token={{subscribedToken}} />
+                </li>
+                <li>
+                  <DeleteSnapshot
+                    @token={{subscribedToken}}
+                    @isShared={{false}}
+                    @subscribed={{true}}
+                  />
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no subsrcibed snapshots.
         {{/each}}
       </tbody>
     </table>

@@ -9,7 +9,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 import SnapshotTokenService, {
-  SnapshotToken,
+  TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
 
 const { userService } = ENV.backendAddresses;
@@ -58,13 +58,29 @@ export default class Landscapes extends Controller {
   }
 
   @action
-  async selectSnapshot(token: SnapshotToken) {
-    this.snapShotTokenService.setToken(token);
+  selectPersonalSnapshot(token: TinySnapshot) {
+    this.snapShotTokenService.setToken(null);
+    this.snapShotTokenService.snapshotSelected = true;
     this.tokenService.setToken(null);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
-        sharedSnapshot: token.isShared,
+        sharedSnapshot: false,
+        owner: token.owner,
+        createdAt: token.createdAt,
+      },
+    });
+  }
+
+  @action
+  selectSharedSnapshot(token: TinySnapshot) {
+    // this.snapShotTokenService.setToken(null);
+    this.snapShotTokenService.snapshotSelected = true;
+    this.tokenService.setToken(null);
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: token.landscapeToken.value,
+        sharedSnapshot: true,
         owner: token.owner,
         createdAt: token.createdAt,
       },
