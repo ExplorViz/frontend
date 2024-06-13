@@ -808,6 +808,12 @@ export default class VisualizationController extends Controller {
       this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
     );
 
+    this.localUser.defaultCamera.position.set(
+      this.snapshotTokenService.snapshotToken.camera!.x,
+      this.snapshotTokenService.snapshotToken.camera!.y,
+      this.snapshotTokenService.snapshotToken.camera!.z
+    );
+
     // this.highlightingService.updateHighlighting();
 
     // this.applicationRenderer.restoreFromSerialization(
