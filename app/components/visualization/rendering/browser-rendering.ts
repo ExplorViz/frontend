@@ -332,27 +332,31 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.localUser.ortographicCamera.lookAt(this.scene.position);
 
+    //enable layers for cameras
+    this.localUser.camera.layers.enableAll();
+    this.localUser.orthographicCamera.layers.enableAll();
+
     // minimap camera
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize/3.4,
-      aspectRatio * this.frustumSize/3.4,
-      this.frustumSize/1.7,
-      -this.frustumSize/1.7,
+      (-aspectRatio * this.frustumSize) / 8,
+      (aspectRatio * this.frustumSize) / 8,
+      this.frustumSize / 4,
+      -this.frustumSize / 4,
       0.1,
-      1000
+      100
     );
-    this.localUser.minimapCamera.position.set(
-      0,
-      1,
-      0
-    );
-    this.localUser.minimapCamera.lookAt(new Vector3(0,-1,0));
-    
+    this.localUser.minimapCamera.position.set(0, 1, 0);
+    this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
+    this.localUser.minimapCamera.layers.disable(0);
+    this.localUser.minimapCamera.layers.enable(1);
+    this.localUser.minimapCamera.layers.enable(2);
+
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
       this.localUser.ortographicCamera,
+      // this.localUser.minimapCamera,
       this.canvas
     );
 
@@ -634,6 +638,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   enterFullscreen() {
     this.canvas.requestFullscreen();
   }
+
+  // initLayers(){
+  //   // Second Layer for only specific objects to be rendered (layer 0 is default)
+  
+    
+  // }
 
   /**
    * This overridden Ember Component lifecycle hook enables calling

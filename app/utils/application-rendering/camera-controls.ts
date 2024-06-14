@@ -17,20 +17,24 @@ export default class CameraControls {
 
   private perspectiveCamera: PerspectiveCamera;
   private orthographicCamera: OrthographicCamera | undefined;
+  // private minimapCamera: OrthographicCamera;
 
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
+  // minimapCameraControls: MapControls;
   enabled: boolean = true;
 
   constructor(
     owner: any,
     perspectiveCamera: PerspectiveCamera,
     orthographicCamera: OrthographicCamera | undefined,
+    // minimapCamera: OrthographicCamera,
     canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
     this.orthographicCamera = orthographicCamera;
+    // this.minimapCamera = minimapCamera;
 
     this.perspectiveCameraControls = new MapControls(
       this.perspectiveCamera,
@@ -56,6 +60,18 @@ export default class CameraControls {
       this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
       this.orthographicCameraControls.mouseButtons.MIDDLE = undefined;
     }
+
+    // this.minimapCameraControls = new MapControls(
+    //   this.orthographicCamera,
+    //   canvas
+    // );
+
+    // this.minimapCameraControls.enableDamping = true;
+    // this.minimapCameraControls.dampingFactor = 0.3;
+    // this.minimapCameraControls.minDistance = 0.1;
+    // this.minimapCameraControls.maxDistance = 1000;
+    // this.minimapCameraControls.maxPolarAngle = Math.PI / 2;
+    // this.minimapCameraControls.mouseButtons.MIDDLE = undefined;
   }
 
   private fitCamerasToBox(
@@ -197,6 +213,7 @@ export default class CameraControls {
   tick() {
     if (this.enabled) {
       this.perspectiveCameraControls.update();
+      // this.minimapCameraControls.update();
       if (this.orthographicCameraControls) {
         this.orthographicCameraControls.update();
       }

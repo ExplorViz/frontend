@@ -79,7 +79,6 @@ export default class RenderingLoop {
       // tell every animated object to tick forward one frame
       this.tick(frame);
 
-      
       // render a frame
       if (
         this.orthographicCamera &&
@@ -99,30 +98,7 @@ export default class RenderingLoop {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
-
     });
-  }
-
-  renderMinimap() {
-    // Set the size and position for the minimap
-    const minimapWidth = 400;
-    const minimapHeight = 400;
-    const minimapX = this.renderer.domElement.clientWidth - minimapWidth - 10;
-    const minimapY = this.renderer.domElement.clientHeight - minimapHeight -10; 
-
-    const currentViewport = this.renderer.getContext().getParameter(this.renderer.getContext().VIEWPORT);
-  
-    // Enable scissor test and set the scissor area
-    this.renderer.setScissorTest(true);
-    this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
-    this.renderer.setViewport(minimapX, minimapY, minimapWidth, minimapHeight);
-  
-    // Render the minimap scene
-    this.renderer.render(this.scene, this.minimapCamera);
-  
-    // Disable scissor test
-    this.renderer.setScissorTest(false);
-    this.renderer.setViewport(...currentViewport);
   }
 
   stop() {
@@ -174,5 +150,24 @@ export default class RenderingLoop {
       this.scene.remove(this.axesHelper);
       this.axesHelper = undefined;
     }
+  }
+
+  renderMinimap() {
+    // Set the size and position for the minimap
+    const minimapWidth = 300;
+    const minimapHeight = 300;
+    const minimapX = this.renderer.domElement.clientWidth - minimapWidth -10 -52;
+    const minimapY = this.renderer.domElement.clientHeight - minimapHeight -10; 
+
+    const currentViewport = this.renderer.getContext().getParameter(this.renderer.getContext().VIEWPORT);
+    // Enable scissor test and set the scissor area
+    this.renderer.setScissorTest(true);
+    this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
+    this.renderer.setViewport(minimapX, minimapY, minimapWidth, minimapHeight);
+    // Render the minimap scene
+    this.renderer.render(this.scene, this.minimapCamera);
+    // Disable scissor test
+    this.renderer.setScissorTest(false);
+    this.renderer.setViewport(...currentViewport);
   }
 }

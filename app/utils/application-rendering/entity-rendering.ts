@@ -93,7 +93,7 @@ export function addComponentAndChildrenToScene(
     color,
     highlightedEntityColor
   );
-
+  addLayerToMesh(mesh);
   addMeshToApplication(mesh, applicationObject3D);
   updateMeshVisiblity(mesh, applicationObject3D);
 
@@ -114,6 +114,7 @@ export function addComponentAndChildrenToScene(
       clazzColor,
       highlightedEntityColor
     );
+    addLayerToMesh(clazzMesh);
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
   });
@@ -156,7 +157,7 @@ export function addFoundationAndChildrenToApplication(
     foundationColor,
     highlightedEntityColor
   );
-
+  addLayerToMesh(mesh);
   addMeshToApplication(mesh, applicationObject3D);
 
   const children = application.packages;
@@ -209,3 +210,16 @@ export function repositionGlobeToApplication(
 
   globe.position.copy(centerPoint);
 }
+
+function addLayerToMesh(mesh: FoundationMesh | ComponentMesh | ClazzMesh) {
+  if (mesh instanceof FoundationMesh){
+    mesh.layers.set(1);
+  }
+  else if (mesh instanceof ComponentMesh){
+    mesh.layers.set(2);
+  }
+  else if (mesh instanceof ClazzMesh){
+    mesh.layers.set(3);
+  }
+}
+

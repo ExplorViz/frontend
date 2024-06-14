@@ -46,7 +46,9 @@ export function createScene(visualizationMode: VisualizationMode) {
 
 export function defaultScene() {
   const scene = new THREE.Scene();
-  scene.add(light());
+  const defLight = light();
+  scene.add(defLight);
+  defLight.layers.enableAll();
   //scene.add(spotlight());
   scene.add(directionalLight());
   return scene;
