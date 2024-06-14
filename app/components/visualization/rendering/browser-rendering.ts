@@ -237,11 +237,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: 'Create Annotation',
         action: (mouseOnCanvas: Position2D) => {
           this.annotationHandler.addAnnotation({
+            annotationId: undefined,
             mesh: undefined,
             position: mouseOnCanvas,
             hovered: false,
             annotationTitle: '',
             annotationText: '',
+            sharedBy: '',
           });
         },
       },
@@ -647,11 +649,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       });
 
       this.annotationHandler.addAnnotation({
+        annotationId: undefined,
         mesh: intersection.object,
         position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
         hovered: true,
         annotationTitle: '',
         annotationText: '',
+        sharedBy: '',
       });
     }
   }

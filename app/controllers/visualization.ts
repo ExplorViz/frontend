@@ -31,6 +31,7 @@ import {
   VisualizationModeUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
 import {
+  SerializedAnnotation,
   // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
@@ -562,6 +563,7 @@ export default class VisualizationController extends Controller {
   }
 
   async initRendering() {
+    this.annotationHandler.init();
     if (
       this.owner &&
       this.createdAt &&
@@ -702,6 +704,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
+    annotations,
   }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
@@ -716,7 +719,7 @@ export default class VisualizationController extends Controller {
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
       popups: [], // ToDo
-      annotations: [],
+      annotations: annotations as SerializedAnnotation[],
     };
 
     this.highlightingService.updateHighlighting();
@@ -737,13 +740,6 @@ export default class VisualizationController extends Controller {
     this.updateTimestamp(timestamp);
   }
 
-  /**
-   *
-   * Update um Annotations mitgeben, um RoomState zu aktualisieren
-   * für Collab-Service
-   *
-   * @param event
-   */
   async onSyncRoomState(event: {
     userId: string;
     originalMessage: SyncRoomStateMessage;
@@ -753,6 +749,7 @@ export default class VisualizationController extends Controller {
       openApps,
       highlightedExternCommunicationLinks,
       popups,
+      annotations,
       detachedMenus,
     } = event.originalMessage;
     const serializedRoom = {
@@ -760,15 +757,16 @@ export default class VisualizationController extends Controller {
       openApps: openApps as SerializedApp[],
       highlightedExternCommunicationLinks,
       popups: popups as SerializedPopup[],
-      annotations: [], //annotations as SerializedAnnotation[],
+      annotations: annotations as SerializedAnnotation[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
-
+    console.log('onSyncRoomState');
     this.applicationRenderer.restoreFromSerialization(serializedRoom);
     this.detachedMenuRenderer.restore(
       serializedRoom.popups,
       serializedRoom.detachedMenus
     );
+    this.detachedMenuRenderer.restoreAnnotations(serializedRoom.annotations);
 
     this.highlightingService.updateHighlighting();
 
@@ -789,13 +787,6 @@ export default class VisualizationController extends Controller {
       await timeout(50);
     }
 
-    // to declare the caller for the restore function of annotations
-    this.annotationHandler.detachedMenuRenderer.on(
-      'restore_annotations',
-      this.annotationHandler,
-      this.annotationHandler.onRestoreAnnotations
-    );
-
     /**
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
@@ -803,7 +794,6 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializedRoom =
       this.snapshotTokenService.snapshotToken.serializedRoom;
 
-    // hier in ordnung, da der Timestamp gespeichert ist und nicht irgendwo aufgerufen wird
     this.updateTimestamp(
       this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
     );
@@ -813,32 +803,6 @@ export default class VisualizationController extends Controller {
       this.snapshotTokenService.snapshotToken.camera!.y,
       this.snapshotTokenService.snapshotToken.camera!.z
     );
-
-    // this.highlightingService.updateHighlighting();
-
-    // this.applicationRenderer.restoreFromSerialization(
-    //   this.snapshotTokenService.snapshotToken.serializedRoom
-    // );
-    // this.detachedMenuRenderer.restore(
-    //   this.snapshotTokenService.snapshotToken.serializedRoom.popups,
-    //   this.snapshotTokenService.snapshotToken.serializedRoom.detachedMenus
-    // );
-
-    // this.highlightingService.updateHighlighting();
-
-    // await this.updateTimestamp(
-    //   this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
-    // );
-
-    // this.reloadHandler.loadLandscapeByTimestampSnapshot(
-    //   this.snapshotTokenService.snapshotToken.structureData
-    //     .structureLandscapeData,
-    //   this.snapshotTokenService.snapshotToken.structureData.dynamicLandscapeData
-    // );
-
-    // this.updateTimestamp(
-    //   this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
-    // );
   }
 
   /**

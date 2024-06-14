@@ -487,6 +487,7 @@ export default class MessageSender extends Service {
       highlightedExternCommunicationLinks:
         room.highlightedExternCommunicationLinks,
       popups: room.popups.map(({ ...popup }) => popup),
+      annotations: room.annotations!.map(({ ...annotation }) => annotation),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
     });
   }

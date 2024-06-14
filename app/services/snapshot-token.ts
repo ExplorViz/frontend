@@ -128,7 +128,6 @@ export default class SnapshotTokenService extends Service {
             const tokens = (await response.json()) as SnapshotToken | null;
             resolve(tokens);
           } else {
-            console.log(response);
             this.snapshotSelected = false;
             this.snapshotToken = null;
             this.router.transitionTo('landscapes', {

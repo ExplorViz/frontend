@@ -61,7 +61,7 @@ export default class RoomSerializer extends Service {
       highlightedExternCommunicationLinks:
         this.serializehighlightedExternCommunicationLinks(),
       popups: this.serializeOpenPopups(popupData, snapshot),
-      annotations: this.serializeOpenAnnotations(annotationData),
+      annotations: this.serializeOpenAnnotations(annotationData, snapshot),
       detachedMenus: this.serializeDetachedMenus(),
     };
     return serializedRoom;
@@ -202,21 +202,29 @@ export default class RoomSerializer extends Service {
   }
 
   private serializeOpenAnnotations(
-    annotationData: AnnotationData[]
+    annotationData: AnnotationData[],
+    snapshot: boolean
   ): SerializedAnnotation[] {
-    return annotationData.map((annotation) => {
-      let entityId = undefined;
+    return annotationData
+      .filter((annotation) => {
+        return annotation.sharedBy || snapshot;
+      })
+      .map((annotation) => {
+        let entityId = undefined;
 
-      if (annotation.entity !== undefined) {
-        entityId = annotation.entity.id;
-      }
-      return {
-        entityId: entityId,
-        menuId: annotation.menuId,
-        annotationText: annotation.annotationText,
-        annotationTitle: annotation.annotationTitle,
-      };
-    });
+        if (annotation.entity !== undefined) {
+          entityId = annotation.entity.id;
+        }
+        return {
+          objectId: null,
+          annotationId: annotation.annotationId,
+          userId: annotation.sharedBy,
+          entityId: entityId,
+          menuId: annotation.menuId,
+          annotationText: annotation.annotationText,
+          annotationTitle: annotation.annotationTitle,
+        };
+      });
   }
 
   private serializeDetachedMenus(): SerializedDetachedMenu[] {

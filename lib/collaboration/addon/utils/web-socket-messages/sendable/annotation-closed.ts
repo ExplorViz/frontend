@@ -1,8 +1,11 @@
+import { Nonce, isNonce } from '../types/nonce';
+
 export const ANNOTATION_CLOSED_EVENT = 'annotation_closed';
 
 export type AnnotationClosedMessage = {
   event: typeof ANNOTATION_CLOSED_EVENT;
-  annotationId: number;
+  menuId: string;
+  nonce: Nonce;
 };
 
 export function isAnnotationClosedMessage(
@@ -12,6 +15,7 @@ export function isAnnotationClosedMessage(
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === ANNOTATION_CLOSED_EVENT &&
-    typeof msg.annotationId === 'number'
+    isNonce(msg.nonce) &&
+    typeof msg.menuId === 'string'
   );
 }

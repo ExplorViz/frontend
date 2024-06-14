@@ -44,7 +44,7 @@
                 Annotation is shared
               </BsTooltip>
             </BsButton>
-          {{else if (and this.collaborationSession.isOnline)}}
+          {{else if this.collaborationSession.isOnline}}
             <BsButton class="annotation-share-button" @type='primary' @onClick={{fn @shareAnnotation @annotationData}}>
               {{svg-jar 'share-android-16' class='octicon align-middle'}}
               <BsTooltip @placement='top' @triggerEvents='hover'>

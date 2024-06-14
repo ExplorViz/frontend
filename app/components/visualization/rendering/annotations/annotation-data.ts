@@ -9,6 +9,7 @@ import {
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 export interface AnnotationDataArgs {
+  annotationId: number | undefined;
   mouseX: number;
   mouseY: number;
   wasMoved: boolean;
@@ -59,9 +60,10 @@ export default class AnnotationData {
   hidden: boolean;
 
   @tracked
-  sharedBy: string | null;
+  sharedBy: string;
 
   constructor({
+    annotationId,
     mouseX,
     mouseY,
     wasMoved,
@@ -76,8 +78,13 @@ export default class AnnotationData {
     hidden,
     sharedBy,
   }: AnnotationDataArgs) {
-    this.annotationId = AnnotationData.incrementer;
-    AnnotationData.incrementer++;
+    if (annotationId) {
+      this.annotationId = annotationId;
+      AnnotationData.incrementer = annotationId + 1;
+    } else {
+      this.annotationId = AnnotationData.incrementer;
+      AnnotationData.incrementer++;
+    }
     this.mouseX = mouseX;
     this.mouseY = mouseY;
     this.wasMoved = wasMoved;

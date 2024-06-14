@@ -52,6 +52,9 @@ export type SerializedPopup = {
 };
 
 export type SerializedAnnotation = {
+  objectId: string | null;
+  annotationId: number;
+  userId: string;
   entityId: string | undefined;
   menuId: string | null | undefined;
   annotationText: string;

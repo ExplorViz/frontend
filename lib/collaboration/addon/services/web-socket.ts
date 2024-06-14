@@ -2,11 +2,14 @@ import Evented from '@ember/object/evented';
 import Service from '@ember/service';
 import { VisualizationMode } from 'collaboration/services/local-user';
 import { INITIAL_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/landscape';
+import { ANNOTATION_RESPONSE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-response';
 import { SELF_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/self-connected';
 import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
 import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-connected';
 import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
+import { ANNOTATION_CLOSED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
+import { ANNOTATION_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-opened';
 import { APP_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/app-opened';
 import { CHANGE_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
 import { COMPONENT_UPDATE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/component-update';
@@ -47,12 +50,14 @@ const RECEIVABLE_EVENTS = [
   CHANGE_LANDSCAPE_EVENT,
   COMPONENT_UPDATE_EVENT,
   DETACHED_MENU_CLOSED_EVENT,
+  ANNOTATION_CLOSED_EVENT,
   HEATMAP_UPDATE_EVENT,
   HIGHLIGHTING_UPDATE_EVENT,
   INITIAL_LANDSCAPE_EVENT,
   JOIN_VR_EVENT,
   MENU_DETACHED_EVENT,
   MENU_DETACHED_EVENT,
+  ANNOTATION_OPENED_EVENT,
   MOUSE_PING_UPDATE_EVENT,
   OBJECT_MOVED_EVENT,
   PING_UPDATE_EVENT,
@@ -71,6 +76,7 @@ const RECEIVABLE_EVENTS = [
 
 const RESPONSE_EVENTS = [
   MENU_DETACHED_RESPONSE_EVENT,
+  ANNOTATION_RESPONSE_EVENT,
   OBJECT_CLOSED_RESPONSE_EVENT,
   OBJECT_GRABBED_RESPONSE_EVENT,
 ];
@@ -251,6 +257,7 @@ export default class WebSocketService extends Service.extend(Evented) {
       ...message,
       nonce,
     });
+
     // handle response
     return new Promise<boolean>((resolve) => {
       this.awaitResponse({

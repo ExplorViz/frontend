@@ -53,6 +53,9 @@ export default class DetachedMenuRenderer extends Service.extend(Evented) {
   }
 
   restoreAnnotations(annotations: SerializedAnnotation[]) {
+    for (const an of annotations) {
+      an.menuId = an.objectId;
+    }
     this.trigger('restore_annotations', annotations);
   }
 

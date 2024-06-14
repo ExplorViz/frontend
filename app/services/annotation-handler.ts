@@ -6,10 +6,7 @@ import AnnotationData from 'explorviz-frontend/components/visualization/renderin
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import {
-  getTypeOfEntity,
-  isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
@@ -22,12 +19,20 @@ import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/annotation-opened';
-import { ANNOTATION_CLOSED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
+import {
+  ANNOTATION_CLOSED_EVENT,
+  AnnotationClosedMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
 import { AnnotationForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
   isAnnotationResponse,
 } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-response';
+import {
+  ObjectClosedResponse,
+  isObjectClosedResponse,
+} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -51,6 +56,7 @@ export default class AnnotationHandlerService extends Service {
   minimizedAnnotations: AnnotationData[] = [];
 
   init() {
+    super.init();
     this.webSocket.on(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
     this.webSocket.on(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
     this.detachedMenuRenderer.on(
@@ -80,7 +86,9 @@ export default class AnnotationHandlerService extends Service {
 
     unmovedAnnotations.forEach((an) => {
       if (an.entity) {
-        this.applicationRenderer.updateLabel(an.entity.id, '');
+        if (!(an.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+          this.applicationRenderer.updateLabel(an.entity.id, '');
+        }
       }
     });
   }
@@ -125,7 +133,7 @@ export default class AnnotationHandlerService extends Service {
   }
 
   @action
-  removeAnnotation(annotationId: number) {
+  async removeAnnotation(annotationId: number) {
     const annotation = this.annotationData.find(
       (an) => an.annotationId === annotationId
     );
@@ -133,18 +141,53 @@ export default class AnnotationHandlerService extends Service {
       return;
     }
 
-    // remove potential toggle effects
-    if (annotation.entity) {
-      const mesh = this.applicationRenderer.getMeshById(annotation.entity.id);
-      if (mesh?.isHovered) {
-        mesh.resetHoverEffect();
+    if (await this.canRemoveAnnotation(annotation)) {
+      // remove potential toggle effects
+      if (annotation.entity) {
+        const mesh = this.applicationRenderer.getMeshById(annotation.entity.id);
+        if (mesh?.isHovered) {
+          mesh.resetHoverEffect();
+        }
+
+        if (!(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+          this.applicationRenderer.updateLabel(annotation.entity.id, '');
+        }
       }
 
-      this.applicationRenderer.updateLabel(annotation.entity.id, '');
+      this.annotationData = this.annotationData.filter(
+        (an) => an.annotationId !== annotationId
+      );
+    } else {
+      this.toastHandlerService.showErrorToastMessage(
+        'Could not remove popup since it is currently in use by another user.'
+      );
+    }
+  }
+
+  private async canRemoveAnnotation(annotation: AnnotationData) {
+    if (!annotation.menuId) {
+      return true;
     }
 
-    this.annotationData = this.annotationData.filter(
-      (an) => an.annotationId !== annotationId
+    return this.webSocket.sendRespondableMessage<
+      AnnotationClosedMessage,
+      ObjectClosedResponse
+    >(
+      ANNOTATION_CLOSED_EVENT,
+      {
+        event: 'annotation_closed',
+        menuId: annotation.menuId,
+        nonce: 0,
+      },
+      {
+        responseType: isObjectClosedResponse,
+        onResponse: (response: ObjectClosedResponse) => {
+          return response.isSuccess;
+        },
+        onOffline: () => {
+          return true;
+        },
+      }
     );
   }
 
@@ -154,21 +197,11 @@ export default class AnnotationHandlerService extends Service {
 
     let mesh = undefined;
     let entityId = undefined;
-    let entityType = undefined;
-    let worldPosition;
 
     if (annotation.mesh) {
       mesh = annotation.mesh;
       entityId = mesh.getModelId();
-      entityType = getTypeOfEntity(mesh);
-      worldPosition = this.applicationRenderer.getGraphPosition(mesh);
-      worldPosition.y += 0.3;
-    } else {
-      worldPosition = new THREE.Vector3(0, 0, 0);
     }
-
-    const applicationId = annotation.annotationId;
-    this.applicationRenderer.forceGraph.worldToLocal(worldPosition);
 
     this.webSocket.sendRespondableMessage<
       AnnotationOpenedMessage,
@@ -177,12 +210,8 @@ export default class AnnotationHandlerService extends Service {
       ANNOTATION_OPENED_EVENT,
       {
         event: ANNOTATION_OPENED_EVENT,
-        annotationId: applicationId,
+        annotationId: annotation.annotationId,
         entityId: entityId,
-        entityType: entityType,
-        position: worldPosition.toArray(),
-        quaternion: [0, 0, 0, 0],
-        scale: [1, 1, 1],
         menuId: annotation.menuId,
         annotationTitle: annotation.annotationTitle,
         annotationText: annotation.annotationText,
@@ -219,6 +248,7 @@ export default class AnnotationHandlerService extends Service {
 
   @action
   addAnnotation({
+    annotationId,
     mesh,
     position,
     wasMoved,
@@ -228,6 +258,7 @@ export default class AnnotationHandlerService extends Service {
     annotationText,
     sharedBy,
   }: {
+    annotationId: number | undefined;
     mesh?: THREE.Object3D;
     position: Position2D | undefined;
     wasMoved?: boolean;
@@ -235,9 +266,11 @@ export default class AnnotationHandlerService extends Service {
     hovered?: boolean;
     annotationTitle: string;
     annotationText: string;
-    sharedBy?: string;
+    sharedBy: string;
   }) {
     let minimized = false;
+
+    console.log(mesh);
 
     if (isEntityMesh(mesh)) {
       const annotation = this.minimizedAnnotations.filter(
@@ -266,6 +299,7 @@ export default class AnnotationHandlerService extends Service {
 
       if (!isEntityMesh(mesh)) {
         newAnnotation = new AnnotationData({
+          annotationId: annotationId,
           mouseX: annotationPosition.x,
           mouseY: annotationPosition.y,
           wasMoved: true,
@@ -282,6 +316,7 @@ export default class AnnotationHandlerService extends Service {
         });
       } else {
         newAnnotation = new AnnotationData({
+          annotationId: annotationId,
           mouseX: annotationPosition.x,
           mouseY: annotationPosition.y,
           wasMoved: wasMoved || false,
@@ -299,13 +334,18 @@ export default class AnnotationHandlerService extends Service {
           sharedBy: sharedBy || '',
         });
 
-        this.applicationRenderer.updateLabel(
-          newAnnotation.entity!.id,
-          ' [annotated]'
-        );
+        console.log('dsfkjhsdfjksdfjkfsdjhkdjfhks');
+        console.log(mesh.dataModel instanceof ClazzCommuMeshDataModel);
+
+        if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {
+          this.applicationRenderer.updateLabel(
+            newAnnotation.entity!.id,
+            ' [annotated]'
+          );
+        }
       }
 
-      // Check if annotation for entitiy already exists and update it if so
+      // Check if annotation for entity already exists and update it if so
       if (newAnnotation.entity !== undefined) {
         const maybeAnnotation = this.annotationData.find(
           (an) =>
@@ -331,6 +371,7 @@ export default class AnnotationHandlerService extends Service {
   }
 
   onAnnotation({
+    annotationId,
     objectId,
     userId,
     entityId,
@@ -343,6 +384,7 @@ export default class AnnotationHandlerService extends Service {
     }
 
     this.addAnnotation({
+      annotationId: annotationId,
       mesh: mesh,
       position: undefined,
       wasMoved: true,
@@ -366,6 +408,8 @@ export default class AnnotationHandlerService extends Service {
       }
 
       this.addAnnotation({
+        annotationId: annotation.annotationId,
+        sharedBy: annotation.userId,
         mesh: mesh,
         position: undefined,
         wasMoved: true,
@@ -381,7 +425,7 @@ export default class AnnotationHandlerService extends Service {
   onMenuClosed({
     originalMessage: { menuId },
   }: ForwardedMessage<AnnotationForwardMessage>): void {
-    if (menuId !== undefined) {
+    if (menuId) {
       this.annotationData = this.annotationData.filter(
         (an) => an.menuId !== menuId
       );
