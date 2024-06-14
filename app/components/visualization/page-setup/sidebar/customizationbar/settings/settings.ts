@@ -21,6 +21,7 @@ interface Args {
   popups: PopupData[];
   redrawCommunication?(): void;
   resetSettings?(): void;
+  setGamepadSupport(support: boolean): void;
   updateColors?(): void;
   updateHighlighting?(): void;
 }
@@ -172,8 +173,10 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
-      default:
+      case 'enableGamepadControls':
+        this.args.setGamepadSupport(value);
         break;
+      default:
     }
   }
 

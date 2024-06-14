@@ -56,7 +56,9 @@ export type GamepadInteractionCallbacks = {
 
 export default class GamepadControls {
   private connectedGamepads: any = {};
-  private active: boolean = false;
+  private gamepadAvailable: boolean = false;
+  private gamepadEnabled: boolean =
+    getStoredSettings().enableGamepadControls.value;
 
   private camera: THREE.Camera;
   private scene: THREE.Scene;
@@ -112,8 +114,8 @@ export default class GamepadControls {
   }
 
   public activate() {
-    if (!this.active) {
-      this.active = true;
+    if (!this.gamepadAvailable) {
+      this.gamepadAvailable = true;
       this.update();
     }
 
@@ -121,12 +123,12 @@ export default class GamepadControls {
   }
 
   private deactivate() {
-    this.active = false;
+    this.gamepadAvailable = false;
     this.scene.remove(this.crosshair);
   }
 
   private update() {
-    if (this.active && getStoredSettings().enableGamepadControls.value) {
+    if (this.gamepadAvailable && this.gamepadEnabled) {
       this.pollGamepads();
     }
 
@@ -234,6 +236,16 @@ export default class GamepadControls {
           this.callbacks.ping(objClosest.object, objClosest.point);
         }
       }
+    }
+  }
+
+  setGamepadSupport(enabled: boolean) {
+    this.gamepadEnabled = enabled;
+
+    if (!enabled) {
+      this.scene.remove(this.crosshair);
+    } else {
+      this.scene.add(this.crosshair);
     }
   }
 

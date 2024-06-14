@@ -622,6 +622,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  setGamepadSupport(enabled: boolean) {
+    if (this.gamepadControls) {
+      this.gamepadControls.setGamepadSupport(enabled);
+    }
+  }
+
+  @action
   enterFullscreen() {
     this.canvas.requestFullscreen();
   }
