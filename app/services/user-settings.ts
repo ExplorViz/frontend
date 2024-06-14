@@ -63,9 +63,7 @@ export default class UserSettings extends Service {
   constructor() {
     super(...arguments);
 
-    this.applicationSettings = getStoredSettings();
-    this.setColorsFromSettings();
-    this.updateColors();
+    this.restoreApplicationSettings();
   }
 
   @action
@@ -116,6 +114,12 @@ export default class UserSettings extends Service {
     }
 
     saveSettings(this.applicationSettings);
+  }
+
+  restoreApplicationSettings() {
+    this.applicationSettings = getStoredSettings();
+    this.setColorsFromSettings();
+    this.updateColors();
   }
 
   setColorScheme(schemeId: ColorSchemeId, saveToLocalStorage = true) {
