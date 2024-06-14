@@ -392,11 +392,17 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     });
     this.renderingLoop.start();
 
-    // if camera is true, a snapshot is loaded and the camera is set when loading a snaphsot in the
-    // vizualization controller
+    // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
     if (this.args.snapshot || this.args.snapshotReload) {
-      this.applicationRenderer.getOpenApplications();
-      this.initDone = true;
+      this.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.applicationRenderer.getOpenApplications();
+          }, 200);
+          this.initDone = true;
+        }
+      });
     } else {
       this.graph.onFinishUpdate(() => {
         if (!this.initDone && this.graph.graphData().nodes.length > 0) {

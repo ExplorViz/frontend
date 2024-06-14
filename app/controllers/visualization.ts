@@ -158,7 +158,7 @@ export default class VisualizationController extends Controller {
 
   plotlyTimelineRef!: PlotlyTimeline;
 
-  queryParams = ['roomId', 'sharedSnapshot', 'owner', 'createdAt'];
+  queryParams = ['roomId', 'deviceId', 'sharedSnapshot', 'owner', 'createdAt'];
 
   selectedTimestampRecords: Timestamp[] = [];
 

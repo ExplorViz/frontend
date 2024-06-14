@@ -122,13 +122,21 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'Toggle if highlighting should be kept on highlighting an unhighlighted component within the same application',
     isFlagSetting: true,
   },
-  // Hover Effect Settings
+  // Effect Settings
   enableHoverEffects: {
     value: true,
     orderNumber: 1,
-    group: 'Hover Effect',
+    group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
+    isFlagSetting: true,
+  },
+  enableAnimations: {
+    value: true,
+    orderNumber: 2,
+    group: 'Effects',
+    displayName: 'Enable Animations',
+    description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
   // Communication Settings
