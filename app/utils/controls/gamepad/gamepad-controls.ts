@@ -3,6 +3,7 @@ import { AxisMapping, ButtonMapping } from './gamepad-mappings';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
+import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 /**
  * Checks an axis position against a fixed threshold to filter out small disturbances
@@ -125,11 +126,11 @@ export default class GamepadControls {
   }
 
   private update() {
-    this.pollGamepads();
-
-    if (this.active) {
-      requestAnimationFrame(this.update.bind(this));
+    if (this.active && getStoredSettings().enableGamepadControls.value) {
+      this.pollGamepads();
     }
+
+    requestAnimationFrame(this.update.bind(this));
   }
 
   private pollGamepads() {
@@ -238,14 +239,15 @@ export default class GamepadControls {
 
   private getGamepad(): Gamepad | null {
     const gamepads = navigator.getGamepads();
+    const selectedGamepadIndex = getStoredSettings().selectedGamepadIndex.value;
 
     // Todo: Add support for multiple gamepads
-    if (!gamepads || !gamepads[0]) {
+    if (!gamepads || !gamepads[selectedGamepadIndex]) {
       console.error('No connected gamepad could be found');
       return null;
     }
 
-    return gamepads[0];
+    return gamepads[selectedGamepadIndex];
   }
 
   private getAxisValue(axisId: number): number {
