@@ -208,7 +208,7 @@ export default class SnapshotTokenService extends Service {
     )}`;
     const link = document.createElement('a');
     link.href = jsonString;
-    link.download = 'data.explorviz';
+    link.download = `snapshot-${exportData.name}.explorviz`;
 
     link.click();
   }

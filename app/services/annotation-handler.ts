@@ -14,7 +14,6 @@ import { SerializedAnnotation } from 'collaboration/utils/web-socket-messages/ty
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import WebSocketService from 'collaboration/services/web-socket';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
-import LocalUser from 'collaboration/services/local-user';
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
@@ -33,6 +32,16 @@ import {
   isObjectClosedResponse,
 } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import Auth from './auth';
+import {
+  ANNOTATION_UPDATED_EVENT,
+  AnnotationUpdatedMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-updated';
+import {
+  AnnotationUpdatedResponse,
+  isAnnotationUpdatedResponse,
+} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-updated-response';
+import { AnnotationUpdatedForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-updated-forward';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -41,14 +50,14 @@ export default class AnnotationHandlerService extends Service {
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('local-user')
-  private localUser!: LocalUser;
-
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('auth')
+  private auth!: Auth;
 
   @tracked
   annotationData: AnnotationData[] = [];
@@ -59,6 +68,7 @@ export default class AnnotationHandlerService extends Service {
     super.init();
     this.webSocket.on(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
     this.webSocket.on(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
+    this.webSocket.on(ANNOTATION_UPDATED_EVENT, this, this.onUpdatedAnnotation);
     this.detachedMenuRenderer.on(
       'restore_annotations',
       this,
@@ -130,6 +140,45 @@ export default class AnnotationHandlerService extends Service {
         (an) => an.annotationId !== annotationId
       );
     }
+  }
+
+  @action
+  updateAnnotation(annotationId: number) {
+    const annotation = this.annotationData.find(
+      (an) => an.annotationId === annotationId
+    );
+
+    if (!annotation || !annotation.shared) {
+      return;
+    }
+
+    this.webSocket.sendRespondableMessage<
+      AnnotationUpdatedMessage,
+      AnnotationUpdatedResponse
+    >(
+      ANNOTATION_UPDATED_EVENT,
+      {
+        event: ANNOTATION_UPDATED_EVENT,
+        objectId: annotation.menuId!,
+        annotationId: annotation.annotationId,
+        annotationTitle: annotation.annotationTitle,
+        annotationText: annotation.annotationText,
+        nonce: 0,
+      },
+      {
+        responseType: isAnnotationUpdatedResponse,
+        onResponse: (response: AnnotationUpdatedResponse) => {
+          if (response.updated) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+        onOffline: () => {
+          // Not used at the moment
+        },
+      }
+    );
   }
 
   @action
@@ -215,13 +264,15 @@ export default class AnnotationHandlerService extends Service {
         menuId: annotation.menuId,
         annotationTitle: annotation.annotationTitle,
         annotationText: annotation.annotationText,
+        owner: annotation.owner,
         nonce: 0,
       },
       {
         responseType: isAnnotationResponse,
         onResponse: (response: AnnotationResponse) => {
-          annotation.sharedBy = this.localUser.userId;
+          annotation.sharedBy = this.auth.user!.sub; // for production: user_id makes more sense
           annotation.menuId = response.objectId;
+          annotation.shared = true;
           return true;
         },
         onOffline: () => {
@@ -257,6 +308,8 @@ export default class AnnotationHandlerService extends Service {
     annotationTitle,
     annotationText,
     sharedBy,
+    owner,
+    shared,
   }: {
     annotationId: number | undefined;
     mesh?: THREE.Object3D;
@@ -267,10 +320,10 @@ export default class AnnotationHandlerService extends Service {
     annotationTitle: string;
     annotationText: string;
     sharedBy: string;
+    owner: string | undefined;
+    shared: boolean;
   }) {
     let minimized = false;
-
-    console.log(mesh);
 
     if (isEntityMesh(mesh)) {
       const annotation = this.minimizedAnnotations.filter(
@@ -312,7 +365,9 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || '',
+          sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
+          owner: owner || this.auth.user!.name,
+          shared: shared,
         });
       } else {
         newAnnotation = new AnnotationData({
@@ -331,11 +386,10 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || '',
+          sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
+          owner: owner || this.auth.user!.name,
+          shared: shared,
         });
-
-        console.log('dsfkjhsdfjksdfjkfsdjhkdjfhks');
-        console.log(mesh.dataModel instanceof ClazzCommuMeshDataModel);
 
         if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {
           this.applicationRenderer.updateLabel(
@@ -377,6 +431,7 @@ export default class AnnotationHandlerService extends Service {
     entityId,
     annotationTitle,
     annotationText,
+    owner,
   }: AnnotationForwardMessage) {
     let mesh = undefined;
     if (entityId) {
@@ -393,6 +448,52 @@ export default class AnnotationHandlerService extends Service {
       annotationTitle: annotationTitle,
       annotationText: annotationText,
       sharedBy: userId,
+      owner: owner,
+      shared: true,
+    });
+  }
+
+  onUpdatedAnnotation({
+    objectId,
+    annotationId,
+    annotationTitle,
+    annotationText,
+  }: AnnotationUpdatedForwardMessage) {
+    const annotation = this.annotationData.find(
+      (an) => an.annotationId === annotationId
+    );
+
+    if (!annotation) {
+      return;
+    }
+
+    if (annotation.menuId !== objectId) {
+      return;
+    }
+
+    // to update the text we remove the annotation from the data
+    // and add the updated one to it
+    // => because no way to update the HTML element from here
+
+    this.annotationData = this.annotationData.filter(
+      (an) => an.annotationId !== annotationId
+    );
+
+    annotation.annotationTitle = annotationTitle;
+    annotation.annotationText = annotationText;
+
+    this.addAnnotation({
+      annotationId: annotation.annotationId,
+      sharedBy: annotation.sharedBy,
+      shared: annotation.shared,
+      mesh: annotation.mesh,
+      position: { x: annotation.mouseX, y: annotation.mouseY },
+      wasMoved: true,
+      menuId: annotation.menuId,
+      hovered: annotation.hovered,
+      annotationText: annotation.annotationText,
+      annotationTitle: annotation.annotationTitle,
+      owner: annotation.owner,
     });
   }
 
@@ -417,6 +518,8 @@ export default class AnnotationHandlerService extends Service {
         hovered: false,
         annotationTitle: annotation.annotationTitle,
         annotationText: annotation.annotationText,
+        owner: annotation.owner,
+        shared: annotation.shared !== undefined ? false : true,
       });
     }
   }
@@ -446,6 +549,11 @@ export default class AnnotationHandlerService extends Service {
     this.annotationData = [];
     this.webSocket.off(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
     this.webSocket.off(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
+    this.webSocket.off(
+      ANNOTATION_UPDATED_EVENT,
+      this,
+      this.onUpdatedAnnotation
+    );
     this.detachedMenuRenderer.off(
       'restore_annotations',
       this,

@@ -1,7 +1,4 @@
-// import { Scale, isScale } from '../types/Scale';
 import { Nonce, isNonce } from '../types/nonce';
-// import { Position, isPosition } from '../types/position';
-// import { Quaternion, isQuaternion } from '../types/quaternion';
 
 export const ANNOTATION_OPENED_EVENT = 'annotation';
 
@@ -13,6 +10,7 @@ export type AnnotationOpenedMessage = {
   menuId: string | null;
   annotationTitle: string;
   annotationText: string;
+  owner: string;
 };
 
 export function isAnnotationOpenedMessage(
@@ -27,6 +25,7 @@ export function isAnnotationOpenedMessage(
     isNonce(msg.nonce) &&
     (typeof msg.menuId === 'string' || msg.menuId === null) &&
     typeof msg.annotationTitle === 'string' &&
-    typeof msg.annotationText === 'string'
+    typeof msg.annotationText === 'string' &&
+    typeof msg.owner === 'string'
   );
 }

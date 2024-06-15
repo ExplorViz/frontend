@@ -1,8 +1,3 @@
-// import { Scale, isScale } from '../types/Scale';
-// import { isEntityType } from '../types/entity-type';
-// import { Position, isPosition } from '../types/position';
-// import { Quaternion, isQuaternion } from '../types/quaternion';
-
 export const ANNOTATION_FORWARD_EVENT = 'annotation';
 
 export type AnnotationForwardMessage = {
@@ -14,6 +9,7 @@ export type AnnotationForwardMessage = {
   menuId: string | undefined;
   annotationTitle: string;
   annotationText: string;
+  owner: string;
 };
 
 export function isAnnotationForwardMessage(
@@ -29,6 +25,7 @@ export function isAnnotationForwardMessage(
     (typeof msg.entityId === 'string' || msg.entityId === undefined) &&
     (typeof msg.menuId === 'string' || msg.menuId === undefined) &&
     typeof msg.annotationTitle === 'string' &&
-    typeof msg.annotationText === 'string'
+    typeof msg.annotationText === 'string' &&
+    typeof msg.owner === 'string'
   );
 }

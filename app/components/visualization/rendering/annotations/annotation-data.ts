@@ -23,6 +23,8 @@ export interface AnnotationDataArgs {
   annotationTitle: string;
   hidden: boolean;
   sharedBy: string;
+  owner: string;
+  shared: boolean;
 }
 
 export default class AnnotationData {
@@ -62,6 +64,12 @@ export default class AnnotationData {
   @tracked
   sharedBy: string;
 
+  @tracked
+  shared: boolean;
+
+  @tracked
+  owner: string;
+
   constructor({
     annotationId,
     mouseX,
@@ -77,6 +85,8 @@ export default class AnnotationData {
     annotationTitle,
     hidden,
     sharedBy,
+    shared,
+    owner,
   }: AnnotationDataArgs) {
     if (annotationId) {
       this.annotationId = annotationId;
@@ -98,5 +108,7 @@ export default class AnnotationData {
     this.annotationTitle = annotationTitle;
     this.hidden = hidden;
     this.sharedBy = sharedBy;
+    this.owner = owner;
+    this.shared = shared;
   }
 }

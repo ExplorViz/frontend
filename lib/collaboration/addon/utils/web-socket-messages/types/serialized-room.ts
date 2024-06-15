@@ -59,6 +59,8 @@ export type SerializedAnnotation = {
   menuId: string | null | undefined;
   annotationText: string;
   annotationTitle: string;
+  owner: string;
+  shared: boolean;
 };
 
 export type SerializedDetachedMenu = {

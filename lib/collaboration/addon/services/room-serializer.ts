@@ -207,7 +207,7 @@ export default class RoomSerializer extends Service {
   ): SerializedAnnotation[] {
     return annotationData
       .filter((annotation) => {
-        return annotation.sharedBy || snapshot;
+        return annotation.shared || snapshot;
       })
       .map((annotation) => {
         let entityId = undefined;
@@ -223,6 +223,8 @@ export default class RoomSerializer extends Service {
           menuId: annotation.menuId,
           annotationText: annotation.annotationText,
           annotationTitle: annotation.annotationTitle,
+          owner: annotation.owner,
+          shared: snapshot ? false : true,
         };
       });
   }

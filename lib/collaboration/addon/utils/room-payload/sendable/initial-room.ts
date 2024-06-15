@@ -16,6 +16,7 @@ export type InitialAnnotations = {
   menuId: string | null | undefined;
   annotationText: string;
   annotationTitle: string;
+  owner: string;
 };
 
 export type InitialRoomApp = {

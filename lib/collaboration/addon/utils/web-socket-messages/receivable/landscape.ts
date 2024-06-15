@@ -32,6 +32,8 @@ type Annotation = {
   menuId: string | null | undefined;
   annotationText: string;
   annotationTitle: string;
+  owner: string;
+  shared: boolean;
 };
 
 type App = {

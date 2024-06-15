@@ -12,6 +12,7 @@
       {{#if @annotationData.wasMoved}}
         <div class="d-flex justify-content-between">
           <label style="font-weight: bold; margin-left: 3px;">Associated with '{{@annotationData.entity.name}}'</label>
+          <label style="font-weight: bold; margin-right: 3px; align:right;">Creator: {{@annotationData.owner}}</label>
         </div>
         <div class="d-flex justify-content-between">
           <Input
@@ -37,7 +38,7 @@
                 This is not an online session.
               </BsTooltip>
             </BsButton>
-          {{else if @annotationData.sharedBy}}
+          {{else if @annotationData.shared}}
             <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
               {{svg-jar 'share-android-16' class='octicon align-right'}}
               <BsTooltip @placement='top' @triggerEvents='hover'>
@@ -81,6 +82,15 @@
               style="resize: none;"
             />
           </div>
+          <BsButton
+            title='Update'
+            style="width: 98.8%; background-color: #86d993; color: white; font-weight: bold; font-size: large; border: none;"
+            @type='secondary'
+            @outline={{true}}
+            @onClick={{fn @updateAnnotation @annotationData.annotationId}}
+          >
+            Update Annotation
+          </BsButton>
         {{/unless}}
       {{else}}
         <div class="d-flex justify-content-between">
@@ -98,6 +108,9 @@
       {{/if}}
     {{else}}
       <div class="d-flex justify-content-between">
+          <label style="font-weight: bold; margin-left: 3px;">Creator: {{@annotationData.owner}}</label>
+      </div>
+      <div class="d-flex justify-content-between">
         <Input
           id='annotationTitle'
           style="font-weight: bold;"
@@ -113,7 +126,7 @@
               This is not an online session.
             </BsTooltip>
           </BsButton>
-        {{else if @annotationData.sharedBy}}
+        {{else if @annotationData.shared}}
           <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
             {{svg-jar 'share-android-16' class='octicon align-right'}}
             <BsTooltip @placement='top' @triggerEvents='hover'>
@@ -155,6 +168,15 @@
             style="resize: none;"
           />
         </div>
+        <BsButton
+            title='Update'
+            style="width: 98.5%; background-color: #86d993; color: white; font-weight: bold; font-size: large; border: none;"
+            @type='secondary'
+            @outline={{true}}
+            @onClick={{fn @updateAnnotation @annotationData.annotationId}}
+          >
+            Update Annotation
+          </BsButton>
       {{/unless}}
     {{/if}}
   {{/if}}

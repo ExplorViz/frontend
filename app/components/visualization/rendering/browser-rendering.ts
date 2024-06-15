@@ -48,6 +48,7 @@ import { Vector3 } from 'three/src/math/Vector3';
 import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
+import Auth from 'explorviz-frontend/services/auth';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -103,6 +104,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
+
+  @service('auth')
+  private auth!: Auth;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -244,6 +248,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             annotationTitle: '',
             annotationText: '',
             sharedBy: '',
+            owner: this.auth.user!.name,
+            shared: false,
           });
         },
       },
@@ -621,6 +627,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  updateAnnotation(annotationId: number) {
+    this.annotationHandler.updateAnnotation(annotationId);
+  }
+
+  @action
   removeAnnotation(annotationId: number) {
     if (!this.appSettings.enableCustomAnnotationPosition.value) {
       this.annotationHandler.clearAnnotations();
@@ -662,6 +673,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         annotationTitle: '',
         annotationText: '',
         sharedBy: '',
+        owner: this.auth.user!.name,
+        shared: false,
       });
     }
   }
