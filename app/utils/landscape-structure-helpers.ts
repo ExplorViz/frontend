@@ -98,6 +98,22 @@ export function getHashCodeToApplicationMap(
   return hashCodeToApplicationMap;
 }
 
+export function getAllMethodHashesOfLandscapeStructureData(
+  landscapeStructure: StructureLandscapeData
+): string[] {
+  const methodHashes: string[] = [];
+
+  landscapeStructure.nodes.forEach((node) =>
+    node.applications.forEach((application) =>
+      getAllMethodHashCodesInApplication(application).forEach((hashCode) =>
+        methodHashes.push(hashCode)
+      )
+    )
+  );
+
+  return methodHashes;
+}
+
 export function getHashCodeToClassMap(
   structureData: StructureLandscapeData | Application
 ) {

@@ -55,6 +55,7 @@ import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
@@ -87,11 +88,14 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
 
-  @service('landscape-token') landscapeTokenService!: LandscapeTokenService;
+  @service('landscape-token')
+  landscapeTokenService!: LandscapeTokenService;
 
-  @service('reload-handler') reloadHandler!: ReloadHandler;
+  @service('reload-handler')
+  reloadHandler!: ReloadHandler;
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
@@ -179,6 +183,9 @@ export default class VisualizationController extends Controller {
 
   private readonly debug = debugLogger();
 
+  private previousMethodHashes: string[] = [];
+  private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+
   get isLandscapeExistentAndEmpty() {
     return (
       this.landscapeData !== null &&
@@ -249,38 +256,6 @@ export default class VisualizationController extends Controller {
     const currentToken = this.landscapeTokenService.token.value;
     this.timelineTimestamps =
       this.timestampRepo.getTimestamps(currentToken) ?? [];
-  }
-
-  @action
-  receiveNewLandscapeData(
-    structureData: StructureLandscapeData | null,
-    dynamicData: DynamicLandscapeData
-  ) {
-    if (
-      !structureData ||
-      this.landscapeTokenService.token?.value !==
-        this.landscapeData?.structureLandscapeData.landscapeToken
-    ) {
-      this.landscapeData = null;
-      this.updateTimestampList();
-      return;
-    }
-
-    this.debug('receiveNewLandscapeData');
-    if (this.visualizationPaused) {
-      return;
-    }
-
-    this.updateLandscape(structureData, dynamicData);
-    if (this.timelineTimestamps.lastObject) {
-      this.timestampService.updateSelectedTimestamp(
-        this.timelineTimestamps.lastObject?.epochMilli
-      );
-      this.selectedTimestampRecords = [
-        this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
-      ];
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-    }
   }
 
   @action
@@ -450,11 +425,33 @@ export default class VisualizationController extends Controller {
       const [structureData, dynamicData] =
         await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
 
-      this.updateLandscape(structureData, dynamicData);
-      if (timestampRecordArray) {
-        this.selectedTimestampRecords = timestampRecordArray;
+      // Check if we need to retrigger the layout and rendering pipelines
+      let requiresRerendering = this.landscapeData === null;
+      const latestMethodHashes =
+        getAllMethodHashesOfLandscapeStructureData(structureData).sort();
+      if (latestMethodHashes.length == this.previousMethodHashes.length) {
+        for (let i = 0; i <= latestMethodHashes.length; i++) {
+          if (latestMethodHashes[i] !== this.previousMethodHashes[i]) {
+            requiresRerendering = true;
+          }
+        }
       }
-      this.timestampService.updateSelectedTimestamp(epochMilli);
+
+      requiresRerendering =
+        requiresRerendering ??
+        JSON.stringify(dynamicData) ===
+          JSON.stringify(this.previousLandscapeDynamicData);
+
+      this.previousMethodHashes = latestMethodHashes;
+      this.previousLandscapeDynamicData = dynamicData;
+
+      if (requiresRerendering) {
+        this.updateLandscape(structureData, dynamicData);
+        if (timestampRecordArray) {
+          this.selectedTimestampRecords = timestampRecordArray;
+        }
+        this.timestampService.updateSelectedTimestamp(epochMilli);
+      }
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
