@@ -34,7 +34,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
@@ -45,7 +44,7 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -91,9 +90,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('room-serializer')
-  roomSerializer!: RoomSerializer;
-
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
@@ -120,11 +116,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   hoveredObject: EntityMesh | null = null;
 
-  controls!: MapControls;
-
   private frustumSize = 5;
 
   cameraControls!: CameraControls;
+
+  gamepadControls: GamepadControls | null = null;
 
   initDone: boolean = false;
 
@@ -300,6 +296,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.initCameras();
     this.initRenderer();
     this.resize(outerDiv);
+
+    // Gamepad controls
+    this.gamepadControls = new GamepadControls(
+      this.camera,
+      this.scene,
+      this.cameraControls.perspectiveCameraControls,
+      {
+        lookAt: this.handleMouseMove,
+        select: this.handleSingleClick,
+        interact: this.handleDoubleClick,
+        inspect: this.handleMouseStop,
+        ping: this.localUser.ping.bind(this.localUser),
+      }
+    );
   }
 
   private initCameras() {
@@ -503,7 +513,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
-    // this.runOrRestartMouseMovementTimer();
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
@@ -610,6 +619,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   updateColors() {
     updateColors(this.scene, this.userSettings.applicationColors);
+  }
+
+  @action
+  setGamepadSupport(enabled: boolean) {
+    if (this.gamepadControls) {
+      this.gamepadControls.setGamepadSupport(enabled);
+    }
   }
 
   @action
