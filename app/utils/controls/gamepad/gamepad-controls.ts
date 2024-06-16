@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { AxisMapping, ButtonMapping } from './gamepad-mappings';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { gamepadMappings } from './gamepad-mappings';
 
 /**
  * Checks an axis position against a fixed threshold to filter out small disturbances
@@ -17,6 +17,8 @@ const dead_zone_clamp = (axis_value: number): number => {
 interface ButtonState {
   [button: number]: boolean;
 }
+
+const NUMBER_OF_BUTTONS = 13;
 
 /**
  * How far a joystick / analog trigger has to be moved in any given direction
@@ -56,9 +58,9 @@ export type GamepadInteractionCallbacks = {
 
 export default class GamepadControls {
   private connectedGamepads: any = {};
-  private gamepadAvailable: boolean = false;
-  private gamepadEnabled: boolean =
-    getStoredSettings().enableGamepadControls.value;
+  private gamepadAvailable = false;
+  private gamepadEnabled = getStoredSettings().enableGamepadControls.value;
+  private mapping = gamepadMappings[0];
 
   private camera: THREE.Camera;
   private scene: THREE.Scene;
@@ -100,16 +102,11 @@ export default class GamepadControls {
         this.onGamepadDisconnected.bind(this),
         false
       );
+    }
 
-      for (const button in ButtonMapping) {
-        if (isNaN(Number(button))) {
-          // Enum contains both the names and values
-          continue;
-        }
-
-        this.buttonPressed[button] = false;
-        this.buttonJustPressed[button] = false;
-      }
+    for (let button = 0; button < NUMBER_OF_BUTTONS; button++) {
+      this.buttonPressed[button] = false;
+      this.buttonJustPressed[button] = false;
     }
   }
 
@@ -138,18 +135,13 @@ export default class GamepadControls {
   private pollGamepads() {
     if (!this.getGamepad()) return;
 
-    const STICK_RIGHT_H = this.getAxisValue(AxisMapping.StickRightH);
-    const STICK_RIGHT_V = this.getAxisValue(AxisMapping.StickRightV);
-    const STICK_LEFT_H = this.getAxisValue(AxisMapping.StickLeftH);
-    const STICK_LEFT_V = this.getAxisValue(AxisMapping.StickLeftV);
+    const STICK_RIGHT_H = this.getAxisValue(this.mapping.axis.StickRightH);
+    const STICK_RIGHT_V = this.getAxisValue(this.mapping.axis.StickRightV);
+    const STICK_LEFT_H = this.getAxisValue(this.mapping.axis.StickLeftH);
+    const STICK_LEFT_V = this.getAxisValue(this.mapping.axis.StickLeftV);
 
     // Update button presses
-    for (const button in ButtonMapping) {
-      if (isNaN(Number(button))) {
-        // Enum contains both the names and values
-        continue;
-      }
-
+    for (let button = 0; button < NUMBER_OF_BUTTONS; button++) {
       this.buttonJustPressed[button] =
         !this.buttonPressed[button] && this.isButtonPressed(Number(button));
       this.buttonPressed[button] = this.isButtonPressed(Number(button));
@@ -182,11 +174,11 @@ export default class GamepadControls {
     this.controls.rotate(STICK_RIGHT_H * 0.05, STICK_RIGHT_V * 0.05);
 
     // Handle zooming in and out
-    if (this.isButtonPressed(ButtonMapping.FaceDown)) {
+    if (this.isButtonPressed(this.mapping.buttons.TriggerLeft)) {
       this.controls.zoomOut(ZOOM_SPEED);
     }
 
-    if (this.isButtonPressed(ButtonMapping.FaceRight)) {
+    if (this.isButtonPressed(this.mapping.buttons.TriggerRight)) {
       this.controls.zoomIn(ZOOM_SPEED);
     }
 
@@ -213,25 +205,25 @@ export default class GamepadControls {
     this.crosshair.updatePosition(intersectionPoint);
 
     if (objClosest) {
-      if (this.buttonJustPressed[ButtonMapping.ShoulderLeft]) {
+      if (this.buttonJustPressed[this.mapping.buttons.ShoulderLeft]) {
         if (this.callbacks.select) {
           this.callbacks.select(objClosest);
         }
       }
 
-      if (this.buttonJustPressed[ButtonMapping.ShoulderRight]) {
+      if (this.buttonJustPressed[this.mapping.buttons.ShoulderRight]) {
         if (this.callbacks.interact) {
           this.callbacks.interact(objClosest);
         }
       }
 
-      if (this.buttonJustPressed[ButtonMapping.TriggerLeft]) {
+      if (this.buttonJustPressed[this.mapping.buttons.FaceDown]) {
         if (this.callbacks.inspect) {
           this.callbacks.inspect(objClosest, POPUP_POSITION);
         }
       }
 
-      if (this.buttonJustPressed[ButtonMapping.TriggerRight]) {
+      if (this.buttonJustPressed[this.mapping.buttons.FaceRight]) {
         if (this.callbacks.ping) {
           this.callbacks.ping(objClosest.object, objClosest.point);
         }
@@ -253,13 +245,25 @@ export default class GamepadControls {
     const gamepads = navigator.getGamepads();
     const selectedGamepadIndex = getStoredSettings().selectedGamepadIndex.value;
 
-    // Todo: Add support for multiple gamepads
     if (!gamepads || !gamepads[selectedGamepadIndex]) {
       console.error('No connected gamepad could be found');
       return null;
     }
 
-    return gamepads[selectedGamepadIndex];
+    const gamepad = gamepads[selectedGamepadIndex];
+
+    const mapping = gamepadMappings.find((mapping) => {
+      return gamepad?.id.includes(mapping.gamepadId);
+    });
+
+    if (mapping) {
+      this.mapping = mapping;
+    } else {
+      // Apply default mapping if no specific mapping is found
+      this.mapping = gamepadMappings[0];
+    }
+
+    return gamepad;
   }
 
   private getAxisValue(axisId: number): number {
