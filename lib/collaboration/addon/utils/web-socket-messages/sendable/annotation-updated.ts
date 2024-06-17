@@ -9,6 +9,7 @@ export type AnnotationUpdatedMessage = {
   annotationId: number;
   annotationTitle: string;
   annotationText: string;
+  lastEditor: string;
 };
 
 export function isAnnotationUpdatedMessage(
@@ -22,6 +23,7 @@ export function isAnnotationUpdatedMessage(
     typeof msg.annotationId === 'number' &&
     typeof msg.annotationTitle === 'string' &&
     typeof msg.annotationText === 'string' &&
+    typeof msg.lastEditor === 'string' &&
     isNonce(msg.nonce)
   );
 }

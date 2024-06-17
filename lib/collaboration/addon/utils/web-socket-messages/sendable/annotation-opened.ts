@@ -11,6 +11,8 @@ export type AnnotationOpenedMessage = {
   annotationTitle: string;
   annotationText: string;
   owner: string;
+  inEdit: boolean;
+  lastEditor: string;
 };
 
 export function isAnnotationOpenedMessage(
@@ -26,6 +28,8 @@ export function isAnnotationOpenedMessage(
     (typeof msg.menuId === 'string' || msg.menuId === null) &&
     typeof msg.annotationTitle === 'string' &&
     typeof msg.annotationText === 'string' &&
-    typeof msg.owner === 'string'
+    typeof msg.owner === 'string' &&
+    typeof msg.inEdit === 'boolean' &&
+    typeof msg.lastEditor === 'string'
   );
 }

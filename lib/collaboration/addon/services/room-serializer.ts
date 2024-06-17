@@ -225,6 +225,8 @@ export default class RoomSerializer extends Service {
           annotationTitle: annotation.annotationTitle,
           owner: annotation.owner,
           shared: snapshot ? false : true,
+          inEdit: annotation.inEdit,
+          lastEditor: annotation.lastEditor,
         };
       });
   }

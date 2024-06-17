@@ -61,6 +61,8 @@ export type SerializedAnnotation = {
   annotationTitle: string;
   owner: string;
   shared: boolean;
+  inEdit: boolean;
+  lastEditor: string;
 };
 
 export type SerializedDetachedMenu = {

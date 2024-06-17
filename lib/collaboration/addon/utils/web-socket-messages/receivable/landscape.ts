@@ -34,6 +34,8 @@ type Annotation = {
   annotationTitle: string;
   owner: string;
   shared: boolean;
+  inEdit: boolean;
+  lastEditor: string;
 };
 
 type App = {
