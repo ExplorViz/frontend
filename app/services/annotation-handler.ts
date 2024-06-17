@@ -42,6 +42,15 @@ import {
   isAnnotationUpdatedResponse,
 } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-updated-response';
 import { AnnotationUpdatedForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-updated-forward';
+import {
+  ANNOTATION_EDIT_EVENT,
+  AnnotationEditMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-edit';
+import {
+  AnnotationEditResponse,
+  isAnnotationEditResponse,
+} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-edit-response';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -55,6 +64,9 @@ export default class AnnotationHandlerService extends Service {
 
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
 
   @service('auth')
   private auth!: Auth;
@@ -110,6 +122,13 @@ export default class AnnotationHandlerService extends Service {
     );
 
     if (annotation) {
+      if (annotation.inEdit && !annotation.hidden) {
+        this.toastHandlerService.showErrorToastMessage(
+          'Please exit edit mode before hiding.'
+        );
+        return;
+      }
+
       if (annotation.hidden) {
         annotation.hidden = false;
       } else {
@@ -125,6 +144,13 @@ export default class AnnotationHandlerService extends Service {
     );
 
     if (annotation) {
+      if (annotation.inEdit) {
+        this.toastHandlerService.showErrorToastMessage(
+          'Please exit edit mode before minimizing.'
+        );
+        return;
+      }
+
       // remove potential toggle effects
       if (annotation.entity) {
         const mesh = this.applicationRenderer.getMeshById(annotation.entity.id);
@@ -143,12 +169,66 @@ export default class AnnotationHandlerService extends Service {
   }
 
   @action
+  editAnnotation(annotationId: number) {
+    const annotation = this.annotationData.find(
+      (an) => an.annotationId === annotationId
+    );
+
+    if (!annotation) {
+      return;
+    }
+
+    if (!annotation.shared || !this.collaborationSession.isOnline) {
+      annotation.inEdit = true;
+      return;
+    }
+
+    if (this.collaborationSession.isOnline) {
+      this.webSocket.sendRespondableMessage<
+        AnnotationEditMessage,
+        AnnotationEditResponse
+      >(
+        ANNOTATION_EDIT_EVENT,
+        {
+          event: ANNOTATION_EDIT_EVENT,
+          objectId: annotation.menuId!,
+          nonce: 0,
+        },
+        {
+          responseType: isAnnotationEditResponse,
+          onResponse: (response: AnnotationEditResponse) => {
+            if (!response.isEditable) {
+              this.toastHandlerService.showErrorToastMessage(
+                'Another user is currently editing this annotation.'
+              );
+              return false;
+            }
+
+            annotation.inEdit = true;
+            return true;
+          },
+          onOffline: () => {
+            // Nothing
+          },
+        }
+      );
+    }
+  }
+
+  @action
   updateAnnotation(annotationId: number) {
     const annotation = this.annotationData.find(
       (an) => an.annotationId === annotationId
     );
 
-    if (!annotation || !annotation.shared) {
+    if (!annotation) {
+      return;
+    }
+
+    annotation.lastEditor = this.auth.user!.name;
+
+    if (!this.collaborationSession.isOnline || !annotation.shared) {
+      annotation.inEdit = false;
       return;
     }
 
@@ -163,14 +243,19 @@ export default class AnnotationHandlerService extends Service {
         annotationId: annotation.annotationId,
         annotationTitle: annotation.annotationTitle,
         annotationText: annotation.annotationText,
+        lastEditor: annotation.lastEditor,
         nonce: 0,
       },
       {
         responseType: isAnnotationUpdatedResponse,
         onResponse: (response: AnnotationUpdatedResponse) => {
           if (response.updated) {
+            annotation.inEdit = false;
             return true;
           } else {
+            this.toastHandlerService.showErrorToastMessage(
+              'Something went wrong.'
+            );
             return false;
           }
         },
@@ -265,6 +350,8 @@ export default class AnnotationHandlerService extends Service {
         annotationTitle: annotation.annotationTitle,
         annotationText: annotation.annotationText,
         owner: annotation.owner,
+        inEdit: annotation.inEdit,
+        lastEditor: annotation.lastEditor,
         nonce: 0,
       },
       {
@@ -310,6 +397,8 @@ export default class AnnotationHandlerService extends Service {
     sharedBy,
     owner,
     shared,
+    inEdit,
+    lastEditor,
   }: {
     annotationId: number | undefined;
     mesh?: THREE.Object3D;
@@ -322,6 +411,8 @@ export default class AnnotationHandlerService extends Service {
     sharedBy: string;
     owner: string | undefined;
     shared: boolean;
+    inEdit: boolean | undefined;
+    lastEditor: string | undefined;
   }) {
     let minimized = false;
 
@@ -368,6 +459,8 @@ export default class AnnotationHandlerService extends Service {
           sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
           owner: owner || this.auth.user!.name,
           shared: shared,
+          inEdit: inEdit === undefined ? true : inEdit,
+          lastEditor: lastEditor || this.auth.user!.name,
         });
       } else {
         newAnnotation = new AnnotationData({
@@ -389,6 +482,8 @@ export default class AnnotationHandlerService extends Service {
           sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
           owner: owner || this.auth.user!.name,
           shared: shared,
+          inEdit: inEdit === undefined ? true : inEdit,
+          lastEditor: lastEditor || this.auth.user!.name,
         });
 
         if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {
@@ -432,6 +527,7 @@ export default class AnnotationHandlerService extends Service {
     annotationTitle,
     annotationText,
     owner,
+    lastEditor,
   }: AnnotationForwardMessage) {
     let mesh = undefined;
     if (entityId) {
@@ -450,51 +546,32 @@ export default class AnnotationHandlerService extends Service {
       sharedBy: userId,
       owner: owner,
       shared: true,
+      inEdit: false,
+      lastEditor: lastEditor,
     });
   }
 
   onUpdatedAnnotation({
     objectId,
-    annotationId,
     annotationTitle,
     annotationText,
+    lastEditor,
   }: AnnotationUpdatedForwardMessage) {
-    const annotation = this.annotationData.find(
-      (an) => an.annotationId === annotationId
-    );
+    let annotation = this.annotationData.find((an) => an.menuId === objectId);
 
     if (!annotation) {
-      return;
+      annotation = this.minimizedAnnotations.find(
+        (an) => an.menuId === objectId
+      );
+
+      if (!annotation) {
+        return;
+      }
     }
-
-    if (annotation.menuId !== objectId) {
-      return;
-    }
-
-    // to update the text we remove the annotation from the data
-    // and add the updated one to it
-    // => because no way to update the HTML element from here
-
-    this.annotationData = this.annotationData.filter(
-      (an) => an.annotationId !== annotationId
-    );
 
     annotation.annotationTitle = annotationTitle;
     annotation.annotationText = annotationText;
-
-    this.addAnnotation({
-      annotationId: annotation.annotationId,
-      sharedBy: annotation.sharedBy,
-      shared: annotation.shared,
-      mesh: annotation.mesh,
-      position: { x: annotation.mouseX, y: annotation.mouseY },
-      wasMoved: true,
-      menuId: annotation.menuId,
-      hovered: annotation.hovered,
-      annotationText: annotation.annotationText,
-      annotationTitle: annotation.annotationTitle,
-      owner: annotation.owner,
-    });
+    annotation.lastEditor = lastEditor;
   }
 
   onRestoreAnnotations(annotations: SerializedAnnotation[]) {
@@ -520,6 +597,8 @@ export default class AnnotationHandlerService extends Service {
         annotationText: annotation.annotationText,
         owner: annotation.owner,
         shared: annotation.shared !== undefined ? false : true,
+        inEdit: false,
+        lastEditor: annotation.lastEditor,
       });
     }
   }

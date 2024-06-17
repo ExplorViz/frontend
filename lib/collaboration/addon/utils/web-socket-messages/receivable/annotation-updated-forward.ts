@@ -6,6 +6,7 @@ export type AnnotationUpdatedForwardMessage = {
   annotationId: number;
   annotationTitle: string;
   annotationText: string;
+  lastEditor: string;
 };
 
 export function isAnnotationUpdatedForwardMessage(
@@ -18,6 +19,7 @@ export function isAnnotationUpdatedForwardMessage(
     typeof msg.object === 'string' &&
     typeof msg.annotationId === 'number' &&
     typeof msg.annotationTitle === 'string' &&
-    typeof msg.annotationText === 'string'
+    typeof msg.annotationText === 'string' &&
+    typeof msg.lastEditor === 'string'
   );
 }

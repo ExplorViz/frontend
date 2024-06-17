@@ -10,6 +10,7 @@ export type AnnotationForwardMessage = {
   annotationTitle: string;
   annotationText: string;
   owner: string;
+  lastEditor: string;
 };
 
 export function isAnnotationForwardMessage(
@@ -26,6 +27,7 @@ export function isAnnotationForwardMessage(
     (typeof msg.menuId === 'string' || msg.menuId === undefined) &&
     typeof msg.annotationTitle === 'string' &&
     typeof msg.annotationText === 'string' &&
-    typeof msg.owner === 'string'
+    typeof msg.owner === 'string' &&
+    typeof msg.lastEditor === 'string'
   );
 }

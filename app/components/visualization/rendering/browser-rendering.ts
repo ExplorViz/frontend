@@ -250,6 +250,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             sharedBy: '',
             owner: this.auth.user!.name,
             shared: false,
+            inEdit: true,
+            lastEditor: undefined,
           });
         },
       },
@@ -627,6 +629,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
+  editAnnotation(annotationId: number) {
+    this.annotationHandler.editAnnotation(annotationId);
+  }
+
+  @action
   updateAnnotation(annotationId: number) {
     this.annotationHandler.updateAnnotation(annotationId);
   }
@@ -675,6 +682,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         sharedBy: '',
         owner: this.auth.user!.name,
         shared: false,
+        inEdit: true,
+        lastEditor: undefined,
       });
     }
   }

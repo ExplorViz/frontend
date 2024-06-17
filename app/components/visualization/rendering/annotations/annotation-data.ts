@@ -25,6 +25,8 @@ export interface AnnotationDataArgs {
   sharedBy: string;
   owner: string;
   shared: boolean;
+  inEdit: boolean;
+  lastEditor: string;
 }
 
 export default class AnnotationData {
@@ -54,8 +56,10 @@ export default class AnnotationData {
   @tracked
   hovered: boolean;
 
+  @tracked
   annotationText: string;
 
+  @tracked
   annotationTitle: string;
 
   @tracked
@@ -69,6 +73,12 @@ export default class AnnotationData {
 
   @tracked
   owner: string;
+
+  @tracked
+  inEdit: boolean;
+
+  @tracked
+  lastEditor: string;
 
   constructor({
     annotationId,
@@ -87,6 +97,8 @@ export default class AnnotationData {
     sharedBy,
     shared,
     owner,
+    inEdit,
+    lastEditor,
   }: AnnotationDataArgs) {
     if (annotationId) {
       this.annotationId = annotationId;
@@ -110,5 +122,7 @@ export default class AnnotationData {
     this.sharedBy = sharedBy;
     this.owner = owner;
     this.shared = shared;
+    this.inEdit = inEdit;
+    this.lastEditor = lastEditor;
   }
 }

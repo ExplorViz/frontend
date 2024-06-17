@@ -11,18 +11,33 @@
     {{#if @annotationData.isAssociated}}
       {{#if @annotationData.wasMoved}}
         <div class="d-flex justify-content-between">
-          <label style="font-weight: bold; margin-left: 3px;">Associated with '{{@annotationData.entity.name}}'</label>
-          <label style="font-weight: bold; margin-right: 3px; align:right;">Creator: {{@annotationData.owner}}</label>
+          <label style="font-weight: bold; margin-left: 3px; margin-bottom: 0;">Associated with '{{@annotationData.entity.name}}'</label>
+          <div>
+          <label style="font-weight: bold; margin-right: 3px; margin-bottom: 0;">Creator: {{@annotationData.owner}}</label>
+          </div>
         </div>
         <div class="d-flex justify-content-between">
-          <Input
-            id='annotationTitle'
-            style="font-weight: bold;"
-            class='form-control mr-2'
-            placeholder="Annotation Title"
-            @type="text"
-            @value={{@annotationData.annotationTitle}}
-          />
+          <div></div>
+          <label style="font-weight: bold; font-size: smaller; margin-right: 3px; color: #6c757d;">Last change by {{@annotationData.lastEditor}}</label>
+        </div>
+        <div class="d-flex justify-content-between">
+          {{#if @annotationData.inEdit}}
+            <Input
+              id='annotationTitle'
+              style="font-weight: bold;"
+              class='form-control mr-2'
+              placeholder="Annotation Title"
+              @type="text"
+              @value={{@annotationData.annotationTitle}}
+            />
+          {{else}}
+            <label
+            style="font-weight: bold; font-size: x-large; margin-left: 3px; margin-bottom:0; min-width: 276px; max-width: 276px; min-height: 38px; max-height: 38px; overflow: scroll; white-space: nowrap;"
+            class='mr-2'
+            >
+            {{@annotationData.annotationTitle}}
+            </label>
+          {{/if}}
 
           <BsButton @type={{'primary'}} @onClick={{this.ping}}>
             {{svg-jar 'location-16' class='octicon align-middle'}}
@@ -73,24 +88,49 @@
           </BsButton>
         </div>
         {{#unless @annotationData.hidden}}
-          <div class="annotation-text" style="margin-top: 5px;">
-            <Textarea
-              id="annotationtext"
-              @value={{@annotationData.annotationText}}
-              rows="4"
-              cols="50"
-              style="resize: none;"
-            />
-          </div>
-          <BsButton
-            title='Update'
-            style="width: 98.8%; background-color: #86d993; color: white; font-weight: bold; font-size: large; border: none;"
-            @type='secondary'
-            @outline={{true}}
-            @onClick={{fn @updateAnnotation @annotationData.annotationId}}
-          >
-            Update Annotation
-          </BsButton>
+          {{#if @annotationData.inEdit}}
+            <div class="annotation-text" style="margin-top: 5px;">
+              <Textarea
+                id="annotationtext"
+                @value={{@annotationData.annotationText}}
+                rows="4"
+                cols="50"
+                style="resize: none;"
+              />
+            </div>
+          {{else}}
+            <div class="annotation-text" style="margin-top: 5px;">
+              <Textarea
+                id="annotationtext"
+                @value={{@annotationData.annotationText}}
+                rows="4"
+                cols="50"
+                style="resize: none;"
+                readonly
+              />
+            </div>
+          {{/if}}
+          {{#if @annotationData.inEdit}}
+            <BsButton
+              title='Update'
+              style="width: 98.8%; background-color: #28a745; color: white; font-weight: bold; font-size: large; border: none;"
+              @type='secondary'
+              @outline={{true}}
+              @onClick={{fn @updateAnnotation @annotationData.annotationId}}
+            >
+              Update Annotation
+            </BsButton>
+          {{else}}
+            <BsButton
+              title='Update'
+              style="width: 98.8%; background-color: #007bff; color: white; font-weight: bold; font-size: large; border: none;"
+              @type='secondary'
+              @outline={{true}}
+              @onClick={{fn @editAnnotation @annotationData.annotationId}}
+            >
+              Edit Annotation
+            </BsButton>
+          {{/if}}
         {{/unless}}
       {{else}}
         <div class="d-flex justify-content-between">
@@ -109,16 +149,27 @@
     {{else}}
       <div class="d-flex justify-content-between">
           <label style="font-weight: bold; margin-left: 3px;">Creator: {{@annotationData.owner}}</label>
+          <label style="font-weight: bold; font-size: smaller; margin-right: 3px; margin-top: 2px; color: #6c757d;">Last change by {{@annotationData.lastEditor}}</label>
       </div>
       <div class="d-flex justify-content-between">
-        <Input
-          id='annotationTitle'
-          style="font-weight: bold;"
-          class='form-control mr-2'
-          placeholder="Annotation Title"
-          @type="text"
-          @value={{@annotationData.annotationTitle}}
-        />
+        {{#if @annotationData.inEdit}}
+          <Input
+            id='annotationTitle'
+            style="font-weight: bold;"
+            class='form-control mr-2'
+            placeholder="Annotation Title"
+            @type="text"
+            @value={{@annotationData.annotationTitle}}
+          />
+        {{else}}
+          <label
+            style="font-weight: bold; font-size: x-large; margin-left: 3px; margin-bottom:0; min-width: 273px; max-width: 273px; min-height: 38px; max-height: 38px; overflow: scroll; white-space: nowrap;"
+            class='mr-2'
+          >
+            {{@annotationData.annotationTitle}}
+          </label>
+        {{/if}}
+
         {{#if (not this.collaborationSession.isOnline)}}
           <BsButton class="annotation-share-button" @type='secondary' @outline='true' disabled='true'>
             {{svg-jar 'share-android-16' class='octicon align-right'}}
@@ -159,24 +210,49 @@
           </BsButton>
       </div>
       {{#unless @annotationData.hidden}}
-        <div class="annotation-text" style="margin-top: 5px;">
+        {{#if @annotationData.inEdit}}
+          <div class="annotation-text" style="margin-top: 5px;">
+            <Textarea
+              id="annotationtext"
+              @value={{@annotationData.annotationText}}
+              rows="4"
+              cols="45"
+              style="resize: none;"
+            />
+          </div>
+        {{else}}
+          <div class="annotation-text" style="margin-top: 5px;">
           <Textarea
             id="annotationtext"
             @value={{@annotationData.annotationText}}
             rows="4"
             cols="45"
             style="resize: none;"
+            readonly
           />
         </div>
-        <BsButton
-            title='Update'
-            style="width: 98.5%; background-color: #86d993; color: white; font-weight: bold; font-size: large; border: none;"
-            @type='secondary'
-            @outline={{true}}
-            @onClick={{fn @updateAnnotation @annotationData.annotationId}}
-          >
-            Update Annotation
-          </BsButton>
+        {{/if}}
+        {{#if @annotationData.inEdit}}
+          <BsButton
+              title='Update'
+              style="width: 98.5%; background-color: #28a745; color: white; font-weight: bold; font-size: large; border: none;"
+              @type='secondary'
+              @outline={{true}}
+              @onClick={{fn @updateAnnotation @annotationData.annotationId}}
+            >
+              Update Annotation
+            </BsButton>
+        {{else}}
+          <BsButton
+              title='Update'
+              style="width: 98.5%; background-color: #007bff; color: white; font-weight: bold; font-size: large; border: none;"
+              @type='secondary'
+              @outline={{true}}
+              @onClick={{fn @editAnnotation @annotationData.annotationId}}
+            >
+              Edit Annotation
+            </BsButton>
+        {{/if}}
       {{/unless}}
     {{/if}}
   {{/if}}

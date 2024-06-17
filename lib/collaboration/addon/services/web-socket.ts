@@ -2,6 +2,7 @@ import Evented from '@ember/object/evented';
 import Service from '@ember/service';
 import { VisualizationMode } from 'collaboration/services/local-user';
 import { INITIAL_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/landscape';
+import { ANNOTATION_EDIT_RESPONSE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-edit-response';
 import { ANNOTATION_RESPONSE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-response';
 import { ANNOTATION_UPDATED_RESPONSE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-updated-response';
 import { SELF_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/self-connected';
@@ -10,6 +11,7 @@ import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/re
 import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import { ANNOTATION_CLOSED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
+import { ANNOTATION_EDIT_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-edit';
 import { ANNOTATION_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-opened';
 import { ANNOTATION_UPDATED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/annotation-updated';
 import { APP_OPENED_EVENT } from 'collaboration/utils/web-socket-messages/sendable/app-opened';
@@ -60,6 +62,7 @@ const RECEIVABLE_EVENTS = [
   MENU_DETACHED_EVENT,
   MENU_DETACHED_EVENT,
   ANNOTATION_OPENED_EVENT,
+  ANNOTATION_EDIT_EVENT,
   ANNOTATION_UPDATED_EVENT,
   MOUSE_PING_UPDATE_EVENT,
   OBJECT_MOVED_EVENT,
@@ -80,6 +83,7 @@ const RECEIVABLE_EVENTS = [
 const RESPONSE_EVENTS = [
   MENU_DETACHED_RESPONSE_EVENT,
   ANNOTATION_RESPONSE_EVENT,
+  ANNOTATION_EDIT_RESPONSE_EVENT,
   ANNOTATION_UPDATED_RESPONSE_EVENT,
   OBJECT_CLOSED_RESPONSE_EVENT,
   OBJECT_GRABBED_RESPONSE_EVENT,
