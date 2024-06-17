@@ -30,7 +30,6 @@ module.exports = (environment) => {
     modulePrefix: 'explorviz-frontend',
     environment,
     rootURL: '/',
-    shareSnapshotURL: P_ENV.SHARE_SNAPSHOT_URL,
     locationType: 'history',
     EmberENV: {
       EXTEND_PROTOTYPES: true,
@@ -60,6 +59,8 @@ module.exports = (environment) => {
       userServiceApi: P_ENV.USER_SERV_API_URL,
       vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
+      shareSnapshot: P_ENV.SHARE_SNAPSHOT_URL,
+      gitlabApi: P_ENV.GITLAB_API,
     },
     version: {
       versionTag: P_ENV.VERSION_TAG,

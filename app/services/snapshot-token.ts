@@ -42,8 +42,7 @@ export type SnapshotInfo = {
   subsricedSnapshots: TinySnapshot[];
 };
 
-const { userServiceApi } = ENV.backendAddresses;
-const shareSnapshotURL = ENV.shareSnapshotURL;
+const { userServiceApi, shareSnapshot } = ENV.backendAddresses;
 
 export default class SnapshotTokenService extends Service {
   @service('auth')
@@ -221,16 +220,17 @@ export default class SnapshotTokenService extends Service {
       headers: { 'Content-Type': 'application/json; charset=UTF-8' },
     })
       .then(async (response: Response) => {
-        if (response.ok) {
+        console.log(response.status);
+        if (response.status === 200) {
           await navigator.clipboard.writeText(
-            `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
+            `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
           );
           this.toastHandler.showSuccessToastMessage(
             'Successfully shared snapshot. Snaphsot URL copied to clipboard'
           );
         } else if (response.status === 222) {
-          this.toastHandler.showErrorToastMessage(
-            'Snapshot could not be shared. A shared version already exists.'
+          this.toastHandler.showInfoToastMessage(
+            'A shared version already exists.'
           );
         } else {
           this.toastHandler.showErrorToastMessage(

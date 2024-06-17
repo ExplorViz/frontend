@@ -13,7 +13,6 @@ declare const config: {
   podModulePrefix: string;
   locationType: string;
   rootURL: string;
-  shareSnapshotURL: string;
   auth0: {
     enabled: string;
     clientId: string;
@@ -26,6 +25,8 @@ declare const config: {
     profile: Auth0UserProfile;
   };
   backendAddresses: {
+    shareSnapshot: string;
+    gitlabApi: string;
     spanService: string;
     userService: string;
     userServiceApi: string;

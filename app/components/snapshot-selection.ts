@@ -13,7 +13,7 @@ interface Args {
   selectToken(token: SnapshotToken): void;
 }
 
-const shareSnapshotURL = ENV.shareSnapshotURL;
+const shareSnapshotURL = ENV.backendAddresses.shareSnapshotURL;
 
 export default class SnapshotSelection extends Component<Args> {
   @service('snapshot-token')
