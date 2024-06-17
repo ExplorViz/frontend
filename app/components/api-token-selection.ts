@@ -33,6 +33,9 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   token: string = '';
 
   @tracked
+  hostUrl: string = '';
+
+  @tracked
   saveBtnDisabled: boolean = true;
 
   @action
@@ -50,8 +53,14 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   }
 
   @action
-  async deleteApiToken(apiToken: string, uId: string) {
-    this.userApiTokenService.deleteApiToken(apiToken, uId);
+  async deleteApiToken(apiToken: ApiToken) {
+    await this.userApiTokenService.deleteApiToken(apiToken.token, apiToken.uid);
+    if (localStorage.getItem('gitAPIToken') !== null) {
+      if (localStorage.getItem('gitAPIToken') === JSON.stringify(apiToken)) {
+        localStorage.removeItem('gitAPIToken');
+        localStorage.removeItem('gitProject');
+      }
+    }
   }
 
   @action
@@ -70,6 +79,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
     this.userApiTokenService.createApiToken(
       this.name,
       this.token,
+      this.hostUrl,
       this.expDate
     );
     this.reset();
@@ -81,6 +91,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
     this.expDate = null;
     this.token = '';
     this.createToken = false;
+    this.hostUrl = '';
   }
 
   @action
@@ -98,6 +109,13 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   }
 
   @action
+  updateHostUrl(event: InputEvent) {
+    const target: HTMLInputElement = event.target as HTMLInputElement;
+    this.hostUrl = target.value;
+    this.canSaveToken();
+  }
+
+  @action
   updateExpDate(event: InputEvent) {
     const target: HTMLInputElement = event.target as HTMLInputElement;
     const date = convertDate(target.value);
@@ -106,7 +124,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
 
   @action
   canSaveToken() {
-    if (this.token !== '' && this.name !== '') {
+    if (this.token !== '' && this.name !== '' && this.hostUrl !== '') {
       this.saveBtnDisabled = false;
     } else {
       this.saveBtnDisabled = true;
