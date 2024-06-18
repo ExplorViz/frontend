@@ -333,8 +333,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.ortographicCamera.lookAt(this.scene.position);
 
     //enable layers for cameras
-    this.localUser.camera.layers.enableAll();
-    this.localUser.orthographicCamera.layers.enableAll();
+    this.localUser.defaultCamera.layers.enableAll();
+    this.localUser.ortographicCamera.layers.enableAll();
+
+    // disable layer 4, thats the layer for the minimap-specific label
+    this.localUser.defaultCamera.layers.disable(4);
+    this.localUser.ortographicCamera.layers.disable(4);
 
     // minimap camera
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
@@ -350,6 +354,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.minimapCamera.layers.disable(0);
     this.localUser.minimapCamera.layers.enable(1);
     this.localUser.minimapCamera.layers.enable(2);
+    this.localUser.minimapCamera.layers.enable(3);
+    this.localUser.minimapCamera.layers.enable(4);
 
     // controls
     this.cameraControls = new CameraControls(

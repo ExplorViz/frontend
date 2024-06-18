@@ -8,6 +8,7 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -65,16 +66,23 @@ export function addApplicationLabels(
    */
   const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
 
+  //let maxHeight = 0;
+
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
+      // get highest value for the minimap-label, which is usually the clazz but only if it´s visible
+      // if (mesh.geometry.parameters.height >= maxHeight){
+      //   maxHeight = mesh.geometry.parameters.height + 0.01;
+      // }
       if (mesh instanceof ClazzMesh) {
         addClazzTextLabel(mesh, font, clazzTextColor);
       } else if (mesh instanceof ComponentMesh) {
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {
         addBoxTextLabel(mesh, font, foundationTextColor);
+        addMinimapTextLabel(mesh, font, foundationTextColor);
       }
     }
   });
@@ -110,6 +118,9 @@ export function addBoxTextLabel(
   );
   labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
 
+  if (boxMesh instanceof FoundationMesh){
+    labelMesh.layers.set(5);
+  }
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);
 
@@ -148,4 +159,29 @@ export function addClazzTextLabel(
   labelMesh.rotation.z = -(Math.PI / 3);
 
   clazzMesh.add(labelMesh);
+}
+
+export function addMinimapTextLabel(
+  foundationMesh: FoundationMesh,
+  font: Font,
+  color: THREE.Color,
+  size = 0.15,
+  heigth = 10
+){
+  const text = foundationMesh.dataModel.name;
+
+  const minimapLabelMesh = new MinimapLabelMesh(font, text, color, size);
+  minimapLabelMesh.computeLabel(text,size);
+  foundationMesh.minimapLabelMesh = minimapLabelMesh;
+
+  minimapLabelMesh.geometry.center();
+  minimapLabelMesh.position.y = heigth;
+  
+  // Rotate text
+  minimapLabelMesh.rotation.x = -(Math.PI / 2);
+  minimapLabelMesh.rotation.z = -(Math.PI / 2);
+
+  minimapLabelMesh.layers.set(4);
+
+  foundationMesh.add(minimapLabelMesh);
 }
