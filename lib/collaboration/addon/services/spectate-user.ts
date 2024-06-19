@@ -143,7 +143,7 @@ export default class SpectateUser extends Service {
 
   activateConfig(configId: string, remoteUsersIds: string[]) {
     this.sender.sendSpectatingUpdate(
-      configId === 'arena-2',
+      configId !== 'default',
       this.localUser.userId,
       remoteUsersIds,
       configId
@@ -222,6 +222,9 @@ export default class SpectateUser extends Service {
       spectatingUserIds.forEach((userId) => this.removeSpectatingUser(userId));
     }
 
+    // Apply camera configuration (for multi-device setups)
+    this.applyCameraConfiguration(configuration);
+
     // Add spectating users if we are spectated
     if (spectatedUser instanceof LocalUser) {
       spectatingUserIds.forEach((userId) => this.addSpectatingUser(userId));
@@ -234,7 +237,6 @@ export default class SpectateUser extends Service {
       spectatingUsers.some((user) => user instanceof LocalUser)
     ) {
       this.activate(spectatedUser, false);
-      this.applyCameraConfiguration(configuration);
     } else {
       // Update spectatedUser's state and visibility
       spectatedUser.state = isSpectating ? 'spectating' : 'online';
