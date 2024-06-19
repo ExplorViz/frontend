@@ -161,12 +161,12 @@ export default class CollaborationSession extends Service.extend({
     return this.idToRemoteUser.get(userId);
   }
 
-  getColor(userId: string) {
+  getCssColor(userId: string) {
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) {
       return `#${this.localUser.color?.getHexString()}`;
     }
-    return `#${remoteUser?.color.getHexString()}`;
+    return remoteUser?.color.getStyle();
   }
 
   /**

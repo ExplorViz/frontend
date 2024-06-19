@@ -67,7 +67,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (!userId) {
       return '';
     }
-    return this.collaborationSession.getColor(userId);
+    return this.collaborationSession.getCssColor(userId);
   }
 
   @action
