@@ -1,4 +1,3 @@
-version: '3.5'
 services:
   collaboration-service-js:
     image: explorviz/collaboration-service-js:latest
