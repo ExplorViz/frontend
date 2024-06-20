@@ -319,12 +319,22 @@
             </li>
           {{/each}}
         </ul>
+        <ul></ul>
+        <BsButton
+          title='Upload Issue to Gitlab'
+          {{on 'click' (fn this.uploadIssueToGitLab index)}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.saveCredBtnDisabled}}
+        >
+          Upload to Gitlab
+        </BsButton>
+
       </div>
       <ul></ul>
     {{/each}}
-
-    <div class='ml-3'>
-      <div class='d-flex justify-content-between'>
+    <div class='ml-3 mt-2'>
+      <div class='d-flex justify-content-between mt-3'>
         <BsButton
           title='Create Issue'
           {{on 'click' this.createIssue}}
@@ -333,18 +343,6 @@
         >
           Create Issue
         </BsButton>
-
-        {{#if this.issues.length}}
-          <BsButton
-            title='Upload Issue to Gitlab'
-            {{on 'click' this.uploadIssueToGitLab}}
-            @type='secondary'
-            @outline={{true}}
-            disabled={{this.saveCredBtnDisabled}}
-          >
-            Upload to Gitlab
-          </BsButton>
-        {{/if}}
       </div>
       <ul></ul>
 

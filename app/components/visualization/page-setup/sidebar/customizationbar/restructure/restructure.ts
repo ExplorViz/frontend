@@ -595,61 +595,13 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  async uploadIssueToGitLab() {
-    // try {
-    //   const uploadPromises = this.issues.map(async (issue) => {
-    //     // Upload the screenshots and get their URLs
-    //     const screenshotUrls = await Promise.all(
-    //       issue.screenshots.map((screenshot) =>
-    //         this.uploadImageToRepository(screenshot)
-    //       )
-    //     );
-
-    //     // Append the screenshot URLs to the issue content
-    //     const contentWithScreenshots = `${issue.content}\n${screenshotUrls
-    //       .map((url) => `![Screenshot](${url})`)
-    //       .join('\n')}`;
-
-    //     // Upload the issue
-    //     const response = await fetch(this.issueURL, {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         Authorization: `Bearer ${this.token}`,
-    //       },
-    //       body: JSON.stringify({
-    //         title: issue.title,
-    //         description: contentWithScreenshots,
-    //       }),
-    //     });
-
-    //     if (!response.ok) {
-    //       this.toastHandlerService.showErrorToastMessage(
-    //         `Failed to upload issue: ${issue.title}`
-    //       );
-    //       throw new Error(`Failed to upload issue: ${issue.title}`);
-    //     }
-
-    //     return response.json();
-    //   });
-
-    //   const results = await Promise.all(uploadPromises);
-
-    //   this.toastHandlerService.showSuccessToastMessage(
-    //     'Issue(s) successfully uploaded'
-    //   );
-    //   return results;
-    // } catch (error) {
-    //   console.error(error);
-    //   return [];
-    // }
-
+  async uploadIssueToGitLab(index: number) {
     const body = {
       project_id: this.project!.id,
       api_token: this.token!.token,
       host_url: this.token!.hostUrl,
-      title: this.issues[0].title,
-      description: this.issues[0].content,
+      title: this.issues[index].title,
+      description: this.issues[index].content,
     };
 
     fetch(`${gitlabApi}/create_issue`, {
@@ -673,6 +625,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
           'Network error: Could not load projects.'
         );
       });
+    this.deleteIssue(index);
   }
 
   async uploadImageToRepository(dataURL: string) {
