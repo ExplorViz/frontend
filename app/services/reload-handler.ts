@@ -14,7 +14,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
   landscapeHttpRequestUtil: LandscapeHttpRequestUtil =
     new LandscapeHttpRequestUtil(getOwner(this));
 
-  debug = debugLogger();
+  debug = debugLogger('ReloadHandler');
 
   /**
    * Loads a landscape from the backend and triggers a visualization update

@@ -181,7 +181,7 @@ export default class VisualizationController extends Controller {
   @tracked
   flag: boolean = false; // default value
 
-  private readonly debug = debugLogger();
+  private readonly debug = debugLogger('VisualizationController');
 
   private previousMethodHashes: string[] = [];
   private previousLandscapeDynamicData: DynamicLandscapeData | null = null;

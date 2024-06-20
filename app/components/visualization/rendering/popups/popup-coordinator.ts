@@ -182,10 +182,6 @@ export default class PopupCoordinator extends Component<IArgs> {
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
 
-    //console.log('mouse', popupData.mouseX);
-    //console.log('popupLeftPosition', popupLeftPosition);
-    //console.log('popupLeftOffset', popupLeftOffset);
-
     // Prevent popup positioning on top of rendering canvas =>
     // position under mouse cursor
     if (popupTopPosition < 0) {
