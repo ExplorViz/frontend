@@ -46,6 +46,7 @@ module.exports = {
     'import/no-cycle': 'off',
     'import/no-unresolved': 'off',
     'linebreak-style': 'off',
+    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-param-reassign': ['error', { props: false }],
     'no-plusplus': 'off',
     'prefer-rest-params': 'off',
