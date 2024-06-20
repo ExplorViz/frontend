@@ -34,7 +34,7 @@ export default class LinkRenderer extends Service.extend({}) {
 
   private _flag = false;
 
-  readonly debug = debugLogger();
+  readonly debug = debugLogger('LinkRenderer');
 
   get appSettings() {
     return this.userSettings.applicationSettings;

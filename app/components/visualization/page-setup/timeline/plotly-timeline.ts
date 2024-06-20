@@ -64,7 +64,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
   // END template-argument getters for default values
 
-  readonly debug = debugLogger();
+  readonly debug = debugLogger('PlotlyTimeline');
 
   initDone = false;
 

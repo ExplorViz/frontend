@@ -285,13 +285,11 @@ export default class GamepadControls {
   }
 
   private onGamepadConnected(event: GamepadEvent) {
-    console.log(event);
     this.connectedGamepads[event.gamepad.id] = event.gamepad;
     this.activate();
   }
 
   private onGamepadDisconnected(event: GamepadEvent) {
-    console.log(event);
     delete this.connectedGamepads[event.gamepad.id];
     if (Object.keys(this.connectedGamepads).length == 0) this.deactivate();
   }

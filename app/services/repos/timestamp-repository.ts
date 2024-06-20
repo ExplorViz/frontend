@@ -11,7 +11,7 @@ import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp'
  * @extends Ember.Service
  */
 export default class TimestampRepository extends Service.extend(Evented) {
-  debug = debugLogger();
+  debug = debugLogger('TimestampRepository');
 
   private timelineTimestamps: Map<string, Map<number, Timestamp>> = new Map();
 

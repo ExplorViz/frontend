@@ -91,7 +91,6 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     ).map((user) => {
       const isSpectatedByUs =
         this.spectateUserService.spectatedUser?.userId === user.userId;
-      console.log(`color: ${user.color.getStyle()}`);
 
       return {
         remoteUserId: user.userId,

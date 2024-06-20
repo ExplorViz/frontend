@@ -6,7 +6,7 @@ import debugLogger from 'ember-debug-logger';
 import Evented from '@ember/object/evented';
 
 export default class Auth extends Service.extend(Evented) {
-  private debug = debugLogger();
+  private debug = debugLogger('Auth');
 
   @service('router')
   router!: any;

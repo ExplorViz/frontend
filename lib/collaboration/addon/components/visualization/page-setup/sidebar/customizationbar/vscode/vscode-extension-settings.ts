@@ -4,6 +4,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
+import debugLogger from 'ember-debug-logger';
 
 interface VscodeExtensionSettingsArgs {
   removeComponent(componentPath: string): void;
@@ -17,6 +18,8 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  debug = debugLogger('VscodeExtensionSettings');
 
   constructor(owner: any, args: VscodeExtensionSettingsArgs) {
     super(owner, args);
@@ -37,8 +40,6 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   @action
   monitoring() {
-    console.log('monitoring');
-
     const payload = {
       fqn: 'org.springframework.samples.petclinic.model.Person',
       description: 'Test by akr',
@@ -50,7 +51,7 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   @action
   connectToIDE() {
-    console.log('connectToIDE');
+    this.debug('connectToIDE');
     this.toastHandlerService.showInfoToastMessage('Connect to IDE');
     this.ideWebsocketFacade.restartConnection();
   }

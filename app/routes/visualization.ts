@@ -27,7 +27,7 @@ export default class VisualizationRoute extends BaseRoute {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  debug = debugLogger();
+  debug = debugLogger('VisualizationRoute');
 
   async beforeModel() {
     if (this.landscapeToken.token === null) {
