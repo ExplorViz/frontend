@@ -113,9 +113,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   restructureMode: boolean = this.landscapeRestructure.restructureMode;
 
   @tracked
-  saveCredBtnDisabled: boolean = true;
-
-  @tracked
   createAppBtnDisabled: boolean = true;
 
   @tracked
@@ -150,6 +147,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     localStorage.getItem('gitProject') !== null
       ? JSON.parse(localStorage.getItem('gitProject')!)
       : undefined;
+
+  @tracked
+  saveCredBtnDisabled: boolean =
+    this.token !== null && this.project !== undefined ? false : true;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
@@ -596,12 +597,24 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   async uploadIssueToGitLab(index: number) {
+    this.uploadImageToRepository(this.issues[index].screenshots[0]);
+
+    const screenshotUrls = await Promise.all(
+      this.issues[index].screenshots.map((screenshot) =>
+        this.uploadImageToRepository(screenshot)
+      )
+    );
+
+    const contentWithScreenShots = `${this.issues[index].content}\n${screenshotUrls
+      .map((url) => `![Screenshot](${url})`)
+      .join('\n')}`;
+
     const body = {
       project_id: this.project!.id,
       api_token: this.token!.token,
       host_url: this.token!.hostUrl,
       title: this.issues[index].title,
-      description: this.issues[index].content,
+      description: contentWithScreenShots,
     };
 
     fetch(`${gitlabApi}/create_issue`, {
@@ -630,23 +643,26 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   async uploadImageToRepository(dataURL: string) {
     const blob = await fetch(dataURL).then((res) => res.blob());
-    const imgFile = new File([blob], 'screenshotCanva.png', {
+    const imgFile = new File([blob], 'screenshotCanvas.png', {
       type: 'image/png',
     });
     const formData = new FormData();
 
     formData.append('file', imgFile);
 
-    const res = await fetch(this.uploadURL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: formData,
-    });
+    const res = await fetch(
+      `https://${this.token!.hostUrl}/api/v4/projects/${this.project!.id}/uploads`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.token!.token}`,
+        },
+        body: formData,
+      }
+    );
 
     if (!res.ok) {
-      throw new Error('Failed to Upload Image');
+      this.toastHandlerService.showErrorToastMessage('Could not upload Image.');
     }
 
     const jsonRes = await res.json();
