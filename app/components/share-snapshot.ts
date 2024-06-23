@@ -8,13 +8,6 @@ import SnapshotTokenService, {
 } from 'explorviz-frontend/services/snapshot-token';
 import { tracked } from '@glimmer/tracking';
 import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
-// import ENV from 'explorviz-frontend/config/environment';
-/**
- * TODO: website must reload to show snapshot in right table
- * TODO: Button not only share, also revoke access or something like that
- */
-
-// const url = ENV.shareSnapshotURL;
 
 export default class ShareSnapshotComponent extends Component<TinySnapshot> {
   @service('auth')

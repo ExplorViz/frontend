@@ -13,7 +13,7 @@ interface Args {
   selectToken(token: SnapshotToken): void;
 }
 
-const shareSnapshotURL = ENV.backendAddresses.shareSnapshotURL;
+const { shareSnapshot } = ENV.backendAddresses;
 
 export default class SnapshotSelection extends Component<Args> {
   @service('snapshot-token')
@@ -145,7 +145,7 @@ export default class SnapshotSelection extends Component<Args> {
   async createLink(snapshot: SnapshotToken) {
     try {
       await navigator.clipboard.writeText(
-        `${shareSnapshotURL}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
+        `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
       );
       this.toastHandler.showSuccessToastMessage(
         'Snapshot URL copied to clipboard.'
