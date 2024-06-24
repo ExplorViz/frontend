@@ -23,6 +23,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 import LocalUser from 'collaboration/services/local-user';
 import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
+import { ApiToken } from 'explorviz-frontend/services/user-api-token';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -35,11 +36,12 @@ interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
+  userApiToknes: ApiToken;
   toggleVisualizationUpdating: () => void;
   removeTimestampListener: () => void;
 }
 
-const shareSnapshotURL = ENV.shareSnapshotURL;
+const { shareSnapshot, gitlabApi } = ENV.backendAddresses;
 
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
@@ -78,7 +80,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   // token: string = localStorage.getItem('gitAPIToken') || '';
 
   @tracked
-  token: string = '';
+  token: ApiToken | null =
+    localStorage.getItem('gitAPIToken') !== null
+      ? JSON.parse(localStorage.getItem('gitAPIToken')!)
+      : null;
 
   @tracked
   issueURL: string = localStorage.getItem('gitIssue') || '';
@@ -108,9 +113,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   restructureMode: boolean = this.landscapeRestructure.restructureMode;
 
   @tracked
-  saveCredBtnDisabled: boolean = true;
-
-  @tracked
   createAppBtnDisabled: boolean = true;
 
   @tracked
@@ -133,6 +135,22 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @tracked
   createPersonalSnapshot = false;
+
+  @tracked
+  disabledSelectProject: boolean = this.token === null ? true : false;
+
+  @tracked
+  gitLabProjects: any = [];
+
+  @tracked
+  project: { id: string; name: string } | undefined =
+    localStorage.getItem('gitProject') !== null
+      ? JSON.parse(localStorage.getItem('gitProject')!)
+      : undefined;
+
+  @tracked
+  saveCredBtnDisabled: boolean =
+    this.token !== null && this.project !== undefined ? false : true;
 
   get clip_board() {
     return this.landscapeRestructure.clipboard;
@@ -283,11 +301,50 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  updateToken(event: any) {
-    // console.log(event.target.value);
-    // const target = event.target as HTMLInputElement;
-    this.token = event.target.value;
+  updateToken(token: ApiToken) {
+    if (JSON.stringify(token) !== JSON.stringify(this.token)) {
+      this.project = undefined;
+    }
+    this.token = token;
+    this.disabledSelectProject = false;
     this.canSaveCredentials();
+  }
+
+  @action
+  onSelect(project: any) {
+    this.project = project as { id: string; name: string };
+    this.canSaveCredentials();
+  }
+
+  @action
+  loadProjects() {
+    const token = this.token!.token;
+    const hostUrl = this.token!.hostUrl;
+    this.gitLabProjects = new Promise<{ id: string; name: string }[]>(
+      (resolve) => {
+        fetch(`${gitlabApi}/get_all_projects/${token}/${hostUrl}`)
+          .then(async (response: Response) => {
+            if (response.ok) {
+              const projects = (await response.json()) as {
+                id: string;
+                name: string;
+              }[];
+              resolve(projects);
+            } else {
+              this.toastHandlerService.showErrorToastMessage(
+                'Could not load projects.'
+              );
+              resolve([]);
+            }
+          })
+          .catch(async () => {
+            resolve([]);
+            this.toastHandlerService.showErrorToastMessage(
+              'Network error: Could not load projects.'
+            );
+          });
+      }
+    );
   }
 
   @action
@@ -316,7 +373,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   canSaveCredentials() {
-    this.saveCredBtnDisabled = this.token === '' || this.issueURL === '';
+    this.saveCredBtnDisabled =
+      this.token === null || this.project === undefined;
     if (this.uploadURL) this.canUpload();
   }
 
@@ -493,7 +551,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
     this.snapshotService.saveSnapshot(sharedToken);
 
-    const snapshotURL = `${shareSnapshotURL}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
+    const snapshotURL = `${shareSnapshot}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
 
     this.addSnapshotLink(this.index!, snapshotURL, sharedToken.name);
 
@@ -516,9 +574,12 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @action
   saveGitlabCredentials() {
-    localStorage.setItem('gitAPIToken', this.token);
-    localStorage.setItem('gitIssue', this.issueURL);
-    localStorage.setItem('gitUpload', this.uploadURL);
+    localStorage.setItem('gitAPIToken', JSON.stringify(this.token!));
+    localStorage.setItem('gitProject', JSON.stringify(this.project!));
+    // localStorage.setItem('gitUpload', this.uploadURL);
+    this.toastHandlerService.showSuccessToastMessage(
+      'Git credentials successfully saved.'
+    );
   }
 
   @action
@@ -534,75 +595,73 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   }
 
   @action
-  async uploadIssueToGitLab() {
-    try {
-      const uploadPromises = this.issues.map(async (issue) => {
-        // Upload the screenshots and get their URLs
-        const screenshotUrls = await Promise.all(
-          issue.screenshots.map((screenshot) =>
-            this.uploadImageToRepository(screenshot)
-          )
-        );
+  async uploadIssueToGitLab(index: number) {
+    this.uploadImageToRepository(this.issues[index].screenshots[0]);
 
-        // Append the screenshot URLs to the issue content
-        const contentWithScreenshots = `${issue.content}\n${screenshotUrls
-          .map((url) => `![Screenshot](${url})`)
-          .join('\n')}`;
+    const screenshotUrls = await Promise.all(
+      this.issues[index].screenshots.map((screenshot) =>
+        this.uploadImageToRepository(screenshot)
+      )
+    );
 
-        // Upload the issue
-        const response = await fetch(this.issueURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.token}`,
-          },
-          body: JSON.stringify({
-            title: issue.title,
-            description: contentWithScreenshots,
-          }),
-        });
+    const contentWithScreenShots = `${this.issues[index].content}\n${screenshotUrls
+      .map((url) => `![Screenshot](${url})`)
+      .join('\n')}`;
 
-        if (!response.ok) {
-          this.toastHandlerService.showErrorToastMessage(
-            `Failed to upload issue: ${issue.title}`
+    const body = {
+      project_id: this.project!.id,
+      api_token: this.token!.token,
+      host_url: this.token!.hostUrl,
+      title: this.issues[index].title,
+      description: contentWithScreenShots,
+    };
+
+    fetch(`${gitlabApi}/create_issue`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    })
+      .then(async (response: Response) => {
+        if (response.ok) {
+          this.toastHandlerService.showSuccessToastMessage(
+            'Successfully created Issue.'
           );
-          throw new Error(`Failed to upload issue: ${issue.title}`);
+        } else {
+          this.toastHandlerService.showErrorToastMessage(
+            'Could not load projects.'
+          );
         }
-
-        return response.json();
+      })
+      .catch(async () => {
+        this.toastHandlerService.showErrorToastMessage(
+          'Network error: Could not load projects.'
+        );
       });
-
-      const results = await Promise.all(uploadPromises);
-
-      this.toastHandlerService.showSuccessToastMessage(
-        'Issue(s) successfully uploaded'
-      );
-      return results;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
+    this.deleteIssue(index);
   }
 
   async uploadImageToRepository(dataURL: string) {
     const blob = await fetch(dataURL).then((res) => res.blob());
-    const imgFile = new File([blob], 'screenshotCanva.png', {
+    const imgFile = new File([blob], 'screenshotCanvas.png', {
       type: 'image/png',
     });
     const formData = new FormData();
 
     formData.append('file', imgFile);
 
-    const res = await fetch(this.uploadURL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: formData,
-    });
+    const res = await fetch(
+      `https://${this.token!.hostUrl}/api/v4/projects/${this.project!.id}/uploads`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.token!.token}`,
+        },
+        body: formData,
+      }
+    );
 
     if (!res.ok) {
-      throw new Error('Failed to Upload Image');
+      this.toastHandlerService.showErrorToastMessage('Could not upload Image.');
     }
 
     const jsonRes = await res.json();

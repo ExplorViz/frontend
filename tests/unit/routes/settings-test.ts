@@ -1,5 +1,5 @@
 import { module, test } from 'qunit';
-import { setupTest } from 'explorviz-frontend/tests/helpers';
+import { setupTest } from 'ember-qunit';
 
 module('Unit | Route | settings', function (hooks) {
   setupTest(hooks);

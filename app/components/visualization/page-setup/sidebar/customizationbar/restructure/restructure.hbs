@@ -22,27 +22,34 @@
     <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
       <label for='token-select'>API Token:</label>
-      <div class='d-flex justify-content-between'>
-        <select
-          class='form-control mr-2'
-          name='api-tokens'
-          id='token-select'
-          {{on 'change' this.updateToken}}
+      <div class='d-flex justify-content-between mr-2'>
+        <PowerSelect
+          class='form-control'
+          @placeholder='Please select one API Token'
+          @options={{@userApiTokens}}
+          @onChange={{this.updateToken}}
+          @selected={{this.token}}
+          as |token|
         >
-          <option value=''>Please select one API Token</option>
-          {{#each @userApiTokens as |token|}}
-            <option value={{token.token}}>{{token.name}}</option>
-          {{/each}}
-        </select>
+          {{token.name}}
+        </PowerSelect>
       </div>
-      {{!-- <div class='d-flex justify-content-between'>
-        <input
-          id='token'
-          class='form-control mr-2'
-          oninput={{this.updateToken}}
-          value={{this.token}}
-        />
-      </div> --}}
+      <ul></ul>
+      <label for='token-select'>GitLab Project:</label>
+      <div class='mr-2'>
+        <PowerSelect
+          class='form-control'
+          @options={{this.gitLabProjects}}
+          @onOpen={{this.loadProjects}}
+          @placeholder='Select Gitlab Project'
+          @onChange={{this.onSelect}}
+          @disabled={{this.disabledSelectProject}}
+          @selected={{this.project}}
+          as |project|
+        >
+          {{project.name}}
+        </PowerSelect>
+      </div>
       <ul></ul>
       <label for='issueURL'>Gitlab Issue Link:</label>
       <div class='d-flex justify-content-between'>
@@ -51,16 +58,6 @@
           class='form-control mr-2'
           oninput={{this.updateIssueURL}}
           value={{this.issueURL}}
-        />
-      </div>
-      <ul></ul>
-      <label for='uploadURL'>Gitlab Upload Link:</label>
-      <div class='d-flex justify-content-between'>
-        <input
-          id='uploadURL'
-          class='form-control mr-2'
-          oninput={{this.updateUploadURL}}
-          value={{this.uploadURL}}
         />
       </div>
       <ul></ul>
@@ -322,12 +319,22 @@
             </li>
           {{/each}}
         </ul>
+        <ul></ul>
+        <BsButton
+          title='Upload Issue to Gitlab'
+          {{on 'click' (fn this.uploadIssueToGitLab index)}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.saveCredBtnDisabled}}
+        >
+          Upload to Gitlab
+        </BsButton>
+
       </div>
       <ul></ul>
     {{/each}}
-
-    <div class='ml-3'>
-      <div class='d-flex justify-content-between'>
+    <div class='ml-3 mt-2'>
+      <div class='d-flex justify-content-between mt-3'>
         <BsButton
           title='Create Issue'
           {{on 'click' this.createIssue}}
@@ -336,18 +343,6 @@
         >
           Create Issue
         </BsButton>
-
-        {{#if this.issues.length}}
-          <BsButton
-            title='Upload Issue to Gitlab'
-            {{on 'click' this.uploadIssueToGitLab}}
-            @type='secondary'
-            @outline={{true}}
-            disabled={{this.uploadIssueBtnDisabled}}
-          >
-            Upload to Gitlab
-          </BsButton>
-        {{/if}}
       </div>
       <ul></ul>
 
@@ -386,7 +381,8 @@
       </div>
       <div class='mt-2 d-flex'>
         <div>
-          <label class='mr-3' for='personalSnapshot'>Create Personal Snapshot:</label>
+          <label class='mr-3' for='personalSnapshot'>Duplicate as Personal
+            Snapshot:</label>
         </div>
         <div>
           <input

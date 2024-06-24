@@ -2,7 +2,6 @@ import Service, { inject as service } from '@ember/service';
 import Auth from './auth';
 import ToastHandlerService from './toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
-// import { action } from '@ember/object';
 
 const { userServiceApi } = ENV.backendAddresses;
 
@@ -10,6 +9,7 @@ export type ApiToken = {
   uid: string;
   name: string;
   token: string;
+  hostUrl: string;
   createdAt: number;
   expires?: number;
 };
@@ -54,11 +54,6 @@ export default class UserApiTokenService extends Service {
     });
   }
 
-  /**
-   * TODO: mit fetch und dann try catch, wie retrieveTokens
-   * @param apiToken
-   * @param uId
-   */
   async deleteApiToken(apiToken: string, uId: string) {
     const url = `${userServiceApi}/userapi/delete?uId=${uId}&token=${apiToken}`;
     const response = await fetch(url, {
@@ -77,19 +72,18 @@ export default class UserApiTokenService extends Service {
     this.router.refresh('settings');
   }
 
-  /**
-   * TODO: mit fetch und dann try catch, wie retrieveTokens
-   * @param name
-   * @param token
-   * @param expDate
-   */
-  async createApiToken(name: string, token: string, expDate: number | null) {
+  async createApiToken(
+    name: string,
+    token: string,
+    hostUrl: string,
+    expDate: number | null
+  ) {
     const createdAt: number = new Date().getTime();
 
     const url =
       expDate !== null
-        ? `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&expires=${expDate}`
-        : `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}`;
+        ? `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
+        : `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
     const response = await fetch(url, {
       method: 'POST',
     });

@@ -37,7 +37,7 @@
                       href='#'
                       {{on
                         'click'
-                        (fn this.deleteApiToken apiToken.token apiToken.uid)
+                        (fn this.deleteApiToken apiToken)
                       }}
                     >
                       {{svg-jar 'trash-16' class='octicon align-middle'}}
@@ -92,6 +92,16 @@
           class='form-control mr-2'
           oninput={{this.updateName}}
           value={{this.name}}
+        />
+      </div>
+            <label for='token'>Host URL:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='url'
+          class='form-control mr-2'
+          placeholder="git.<hostname>.<de/com...>"
+          oninput={{this.updateHostUrl}}
+          value={{this.hostUrl}}
         />
       </div>
       <label class='mt-2' for='token'>Expires <i>- Optional:</i> </label>

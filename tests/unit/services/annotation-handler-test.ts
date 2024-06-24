@@ -1,5 +1,5 @@
 import { module, test } from 'qunit';
-import { setupTest } from 'explorviz-frontend/tests/helpers';
+import { setupTest } from 'ember-qunit';
 
 module('Unit | Service | annotation-handler', function (hooks) {
   setupTest(hooks);
