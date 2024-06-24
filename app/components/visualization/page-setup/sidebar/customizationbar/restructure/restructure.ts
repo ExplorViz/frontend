@@ -478,7 +478,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         y: this.localUser.camera.position.y,
         z: this.localUser.camera.position.z,
       },
-      annotations: {},
       isShared: true,
       subscribedUsers: { subscriberList: [] },
       deleteAt: this.expDate !== null ? this.expDate : 0,
