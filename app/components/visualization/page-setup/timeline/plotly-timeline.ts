@@ -14,26 +14,20 @@ interface IMarkerStates {
 
 interface IArgs {
   timestamps?: Timestamp[];
-  defaultMarkerColor?: string;
-  defaultMarkerSize?: number;
-  highlightedMarkerColor?: string;
-  highlightedMarkerSize?: number;
-  selectionCount?: number;
-  slidingWindowLowerBoundInMinutes?: number;
-  slidingWindowUpperBoundInMinutes?: number;
-  setChildReference?(timeline: PlotlyTimeline): void;
+  selectedTimestampRecords?: Timestamp[];
   clicked?(selectedTimestamps: Timestamp[]): void;
+  highlightedMarkerColor?: string;
 }
 
 export default class PlotlyTimeline extends Component<IArgs> {
   // BEGIN template-argument getters for default values
   get defaultMarkerColor() {
-    return this.args.defaultMarkerColor || '#1f77b4';
+    return '#1f77b4';
   }
 
   get defaultMarkerSize() {
     const fallbackValue = 8;
-    return this.args.defaultMarkerSize || fallbackValue;
+    return fallbackValue;
   }
 
   get highlightedMarkerColor() {
@@ -42,21 +36,21 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   get highlightedMarkerSize() {
     const fallbackValue = 15;
-    return this.args.highlightedMarkerSize || fallbackValue;
+    return fallbackValue;
   }
 
   get selectionCount() {
-    return this.args.selectionCount || 1;
+    return 1;
   }
 
   get slidingWindowLowerBoundInMinutes() {
     const fallbackValue = 4;
-    return this.args.slidingWindowLowerBoundInMinutes || fallbackValue;
+    return fallbackValue;
   }
 
   get slidingWindowUpperBoundInMinutes() {
     const fallbackValue = 4;
-    return this.args.slidingWindowUpperBoundInMinutes || fallbackValue;
+    return fallbackValue;
   }
 
   get timestamps() {
@@ -100,12 +94,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   @action
   didRender(plotlyDiv: any) {
-    // register this component at its parent if set via template
-    const parentFunction = this.args.setChildReference;
-    if (parentFunction) {
-      parentFunction(this);
-    }
-
+    this.debug('didRender');
     this.timelineDiv = plotlyDiv;
 
     if (this.initDone) {
@@ -283,7 +272,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
     );
   }
 
-  continueTimeline(oldSelectedTimestampRecords: Timestamp[]) {
+  @action
+  continueTimeline() {
+    this.debug('continueTimeline');
     this.resetHighlingInStateObjects();
 
     // call this to initialize the internal marker state variable
@@ -291,7 +282,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
-    oldSelectedTimestampRecords.forEach((timestamp) => {
+    this.args.selectedTimestampRecords?.forEach((timestamp) => {
       const timestampId = timestamp.epochMilli;
 
       this.markerState[timestampId].color = highlightedMarkerColor;

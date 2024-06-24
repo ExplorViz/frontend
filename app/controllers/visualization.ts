@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import { action, set } from '@ember/object';
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
@@ -37,7 +37,6 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
-import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import ENV from 'explorviz-frontend/config/environment';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -136,10 +135,9 @@ export default class VisualizationController extends Controller {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  plotlyTimelineRef!: PlotlyTimeline;
-
   queryParams = ['roomId', 'deviceId'];
 
+  @tracked
   selectedTimestampRecords: Timestamp[] = [];
 
   @tracked
@@ -321,7 +319,8 @@ export default class VisualizationController extends Controller {
 
   @action
   resetView() {
-    this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+    const tempValue = this.selectedTimestampRecords;
+    this.selectedTimestampRecords = tempValue;
   }
 
   @action
@@ -447,11 +446,11 @@ export default class VisualizationController extends Controller {
 
       if (requiresRerendering) {
         this.updateLandscape(structureData, dynamicData);
-        if (timestampRecordArray) {
-          this.selectedTimestampRecords = timestampRecordArray;
-        }
-        this.timestampService.updateSelectedTimestamp(epochMilli);
       }
+      if (timestampRecordArray) {
+        this.selectedTimestampRecords = timestampRecordArray;
+      }
+      this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
@@ -459,12 +458,6 @@ export default class VisualizationController extends Controller {
       );
       this.resumeVisualizationUpdating();
     }
-  }
-
-  @action
-  getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
-    // called from within the plotly timeline component
-    set(this, 'plotlyTimelineRef', plotlyTimelineRef);
   }
 
   @action
@@ -486,7 +479,8 @@ export default class VisualizationController extends Controller {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       this.highlightedMarkerColor = 'blue ';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      const tempValue = this.selectedTimestampRecords;
+      this.selectedTimestampRecords = tempValue;
       animatePlayPauseButton(false);
     }
   }
@@ -496,7 +490,9 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
+      const tempValue = this.selectedTimestampRecords;
+      this.selectedTimestampRecords = [];
+      this.selectedTimestampRecords = tempValue;
       animatePlayPauseButton(true);
     }
   }
@@ -578,7 +574,6 @@ export default class VisualizationController extends Controller {
     ) {
       this.updateTimestamp(timestampToRender.epochMilli);
       this.selectedTimestampRecords = [timestampToRender];
-      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords);
     }
   }
 
