@@ -19,6 +19,7 @@ import { VrPose } from 'extended-reality/utils/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import equal from 'fast-deep-equal';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -105,7 +106,7 @@ export default class SpectateUser extends Service {
         this.localUser.controller1,
         this.localUser.controller2
       );
-      if (JSON.stringify(this.lastPose) !== JSON.stringify(poses)) {
+      if (equal(this.lastPose, poses)) {
         this.sender.sendPoseUpdate(
           poses.camera,
           poses.controller1,

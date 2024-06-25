@@ -59,6 +59,7 @@ import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/u
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
+import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -425,22 +426,20 @@ export default class VisualizationController extends Controller {
       const [structureData, dynamicData] =
         await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
 
-      // Check if we need to retrigger the layout and rendering pipelines
-      let requiresRerendering = this.landscapeData === null;
-      const latestMethodHashes =
-        getAllMethodHashesOfLandscapeStructureData(structureData).sort();
-      if (latestMethodHashes.length == this.previousMethodHashes.length) {
-        for (let i = 0; i <= latestMethodHashes.length; i++) {
-          if (latestMethodHashes[i] !== this.previousMethodHashes[i]) {
-            requiresRerendering = true;
-          }
+      let requiresRerendering = !this.landscapeData;
+      let latestMethodHashes: string[] = [];
+
+      if (!requiresRerendering) {
+        latestMethodHashes =
+          getAllMethodHashesOfLandscapeStructureData(structureData);
+
+        if (
+          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
+          !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
+        ) {
+          requiresRerendering = true;
         }
       }
-
-      requiresRerendering =
-        requiresRerendering ??
-        JSON.stringify(dynamicData) ===
-          JSON.stringify(this.previousLandscapeDynamicData);
 
       this.previousMethodHashes = latestMethodHashes;
       this.previousLandscapeDynamicData = dynamicData;
@@ -573,8 +572,7 @@ export default class VisualizationController extends Controller {
 
     if (
       timestampToRender &&
-      JSON.stringify(this.selectedTimestampRecords) !==
-        JSON.stringify([timestampToRender])
+      !areArraysEqual(this.selectedTimestampRecords, [timestampToRender])
     ) {
       this.updateTimestamp(timestampToRender.epochMilli);
       this.selectedTimestampRecords = [timestampToRender];
