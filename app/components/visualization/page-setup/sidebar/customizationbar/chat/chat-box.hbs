@@ -1,0 +1,17 @@
+<div class="chat">
+    <ul class="chat-thread">
+        {{#each this.chatService.chatMessages as |message|}}
+        {{this.postMessage message}}
+        {{/each}}
+    </ul>
+
+    <div class="message-box">
+        <Input
+          id='texfield'
+          class='message-input form-control mr-2'
+          @enter={{this.insertMessage}}
+          @spacebar-press={{this.handleSpaceBar}}
+        />
+    </div>
+</div>
+<div class="bg"></div>
