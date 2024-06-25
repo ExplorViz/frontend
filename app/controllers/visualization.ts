@@ -319,12 +319,6 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  resetView() {
-    const tempValue = this.selectedTimestampRecords;
-    this.selectedTimestampRecords = tempValue;
-  }
-
-  @action
   resetTimestampPolling() {
     this.timestampPollingService.resetPolling();
   }
@@ -412,7 +406,7 @@ export default class VisualizationController extends Controller {
     ) {
       return;
     }
-    this.selectedTimestampRecords = selectedTimestamps;
+    //this.selectedTimestampRecords = selectedTimestamps;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
@@ -490,7 +484,6 @@ export default class VisualizationController extends Controller {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
       const tempValue = this.selectedTimestampRecords;
-      this.selectedTimestampRecords = [];
       this.selectedTimestampRecords = tempValue;
       animatePlayPauseButton(true);
     }
