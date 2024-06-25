@@ -15,6 +15,10 @@ import {
   PingUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import {
+  CHAT_MESSAGE_EVENT,
+  ChatMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/chat-message';
+import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/share-settings';
@@ -573,6 +577,13 @@ export default class MessageSender extends Service {
     this.webSocket.send<TimestampUpdateMessage>(TIMESTAMP_UPDATE_EVENT, {
       event: 'timestamp_update',
       timestamp,
+    });
+  }
+
+  sendChatMessage(msg: string) {
+    this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
+      event: 'chat_message',
+      msg,
     });
   }
 }
