@@ -156,6 +156,9 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
+              <Visualization::PageSetup::Sidebar::Customizationbar::Chat::ChatBoxOpener
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
               <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -174,6 +177,10 @@
             <Visualization::PageSetup::Sidebar::SidebarComponent
               @componentId={{componentId}}
             >
+              {{#if (eq componentId 'Chat')}}
+                <Visualization::PageSetup::Sidebar::Customizationbar::Chat::ChatBox
+                />
+              {{/if}}
               {{#if (eq componentId 'Collaboration')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
                 />
