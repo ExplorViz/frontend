@@ -35,6 +35,8 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { CHAT_MESSAGE_EVENT, ChatMessage } from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -76,6 +78,9 @@ export default class CollaborationSession extends Service.extend({
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @service('chat')
+  chatService!: ChatService
+
   @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -99,6 +104,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
+    this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
   }
 
   willDestroy() {
@@ -107,6 +113,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
+    this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -423,7 +430,18 @@ export default class CollaborationSession extends Service.extend({
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
   }
+
+  onChatMessageEvent({
+    userId,
+    originalMessage: { msg} ,
+  }: ForwardedMessage<ChatMessage>) {
+    this.toastHandlerService.showInfoToastMessage(
+      `Message received: ` + msg
+    );
+    this.chatService.addChatMessage(userId, msg)
+  }
 }
+
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
