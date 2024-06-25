@@ -431,11 +431,10 @@ export default class VisualizationController extends Controller {
 
       if (!requiresRerendering) {
         latestMethodHashes =
-          getAllMethodHashesOfLandscapeStructureData(structureData).sort();
+          getAllMethodHashesOfLandscapeStructureData(structureData);
 
-        if (!areArraysEqual(latestMethodHashes, this.previousMethodHashes)) {
-          requiresRerendering = true;
-        } else if (
+        if (
+          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
           !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
         ) {
           requiresRerendering = true;
