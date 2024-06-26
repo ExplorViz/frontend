@@ -1,8 +1,8 @@
+/* eslint-disable no-self-assign */
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
 } from 'collaboration/services/local-user';
@@ -56,7 +56,6 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 
@@ -79,6 +78,15 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
+  queryParams = ['roomId', 'deviceId'];
+
+  private readonly debug = debugLogger('VisualizationController');
+
+  private previousMethodHashes: string[] = [];
+  private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+
+  // #region Services
+
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -88,9 +96,6 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
-
   @service('landscape-token')
   landscapeTokenService!: LandscapeTokenService;
 
@@ -99,9 +104,6 @@ export default class VisualizationController extends Controller {
 
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
-
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
 
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
@@ -136,7 +138,9 @@ export default class VisualizationController extends Controller {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  queryParams = ['roomId', 'deviceId'];
+  // #endregion
+
+  // #region Tracked properties
 
   @tracked
   selectedTimestampRecords: Timestamp[] = [];
@@ -180,10 +184,9 @@ export default class VisualizationController extends Controller {
   @tracked
   flag: boolean = false; // default value
 
-  private readonly debug = debugLogger('VisualizationController');
+  // #endregion
 
-  private previousMethodHashes: string[] = [];
-  private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+  // #region Template helpers
 
   get isLandscapeExistentAndEmpty() {
     return (
@@ -212,6 +215,73 @@ export default class VisualizationController extends Controller {
   get showVrButton() {
     return this.userSettings.applicationSettings.showVrButton.value;
   }
+
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
+  }
+
+  get showAR() {
+    return this.localUser.visualizationMode === 'ar';
+  }
+
+  get showVR() {
+    return this.localUser.visualizationMode === 'vr';
+  }
+
+  // #endregion
+
+  // #region Main Loop Setup
+
+  initRendering() {
+    // called from route
+    this.debug('initRendering');
+    this.landscapeData = null;
+    this.selectedTimestampRecords = [];
+    this.visualizationPaused = false;
+    this.timestampPollingService.initTimestampPollingWithCallback(
+      this.timestampPollingCallback.bind(this)
+    );
+    this.updateTimestampList();
+    this.debug('initRendering done');
+  }
+
+  // #endregion
+
+  // #region Main Loop
+
+  timestampPollingCallback(timestamps: Timestamp[]) {
+    this.timestampRepo.addTimestamps(
+      this.landscapeTokenService.token!.value,
+      timestamps
+    );
+
+    if (timestamps.length > 0) {
+      this.timestampRepo.triggerTimelineUpdate();
+    }
+
+    const lastSelectTimestamp = this.timestampService.timestamp;
+
+    if (this.visualizationPaused) {
+      return;
+    }
+
+    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
+      this.landscapeTokenService.token!.value,
+      lastSelectTimestamp
+    );
+
+    if (
+      timestampToRender &&
+      !areArraysEqual(this.selectedTimestampRecords, [timestampToRender])
+    ) {
+      this.updateTimestamp(timestampToRender.epochMilli);
+      this.selectedTimestampRecords = [timestampToRender];
+    }
+  }
+
+  // #endregion
 
   @action
   setupListeners() {
@@ -292,20 +362,6 @@ export default class VisualizationController extends Controller {
   @action
   openLandscapeView() {
     this.switchToMode('browser');
-  }
-
-  get isSingleLandscapeMode() {
-    return (
-      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
-    );
-  }
-
-  get showAR() {
-    return this.localUser.visualizationMode === 'ar';
-  }
-
-  get showVR() {
-    return this.localUser.visualizationMode === 'vr';
   }
 
   private switchToMode(mode: VisualizationMode) {
@@ -472,8 +528,7 @@ export default class VisualizationController extends Controller {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       this.highlightedMarkerColor = 'blue ';
-      const tempValue = this.selectedTimestampRecords;
-      this.selectedTimestampRecords = tempValue;
+      this.triggerRerenderingOfTimeline();
       animatePlayPauseButton(false);
     }
   }
@@ -483,27 +538,12 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      const tempValue = this.selectedTimestampRecords;
-      this.selectedTimestampRecords = tempValue;
+      this.triggerRerenderingOfTimeline();
       animatePlayPauseButton(true);
     }
   }
 
-  initRendering() {
-    this.debug('initRendering');
-    this.landscapeData = null;
-    this.selectedTimestampRecords = [];
-    this.visualizationPaused = false;
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
-    this.updateTimestampList();
-    this.initWebSocket();
-    this.debug('initRendering done');
-  }
-
   willDestroy() {
-    this.collaborationSession.disconnect();
     this.landscapeRestructure.resetLandscapeRestructure();
     this.resetTimestampPolling();
     this.applicationRepo.cleanup();
@@ -536,40 +576,6 @@ export default class VisualizationController extends Controller {
         this.onTimestampUpdate
       );
     }
-  }
-
-  timestampPollingCallback(timestamps: Timestamp[]) {
-    this.timestampRepo.addTimestamps(
-      this.landscapeTokenService.token!.value,
-      timestamps
-    );
-
-    if (timestamps.length > 0) {
-      this.timestampRepo.triggerTimelineUpdate();
-    }
-
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    if (this.visualizationPaused) {
-      return;
-    }
-
-    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
-      this.landscapeTokenService.token!.value,
-      lastSelectTimestamp
-    );
-
-    if (
-      timestampToRender &&
-      !areArraysEqual(this.selectedTimestampRecords, [timestampToRender])
-    ) {
-      this.updateTimestamp(timestampToRender.epochMilli);
-      this.selectedTimestampRecords = [timestampToRender];
-    }
-  }
-
-  private async initWebSocket() {
-    this.debug('Initializing websocket...');
   }
 
   // collaboration start
@@ -666,6 +672,11 @@ export default class VisualizationController extends Controller {
     } else {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
+  }
+
+  private triggerRerenderingOfTimeline() {
+    // Setting tracked properties will always trigger an update, even if the property is set to the same value as it was before.
+    this.selectedTimestampRecords = this.selectedTimestampRecords;
   }
 }
 

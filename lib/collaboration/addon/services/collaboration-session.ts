@@ -399,6 +399,7 @@ export default class CollaborationSession extends Service.extend({
    * Switch to offline mode, close socket connection
    */
   disconnect() {
+    this.debug('Disconnect Collab Session');
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
     this.webSocket.closeSocket();
