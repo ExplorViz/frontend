@@ -1,18 +1,13 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import Auth from 'explorviz-frontend/services/auth';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import collaborationSession from 'explorviz-frontend/services/collaboration-session';
 import ChatService from 'explorviz-frontend/services/chat';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
-
 export default class ChatBox extends Component {
-    @service('auth')
-    auth!: Auth;
-
     @service('local-user')
     private localUser!: LocalUser;
 
@@ -23,25 +18,16 @@ export default class ChatBox extends Component {
     collaborationSession!: collaborationSession;
 
     @service('chat')
-    chatService!: ChatService
+    chatService!: ChatService;
 
     @service('toast-handler')
     toastHandler!: ToastHandlerService;
-    
-    $messages = $('.messages-content') as JQuery<HTMLElement>;
-
-    chatWindow = document.querySelector('.chat-window');
-	chatWindowMessage = document.querySelector('.chat-window-message');
-	chatThread = document.querySelector('.chat-thread');
-
-    @action
-    handleSpaceBar() {
-        $('.message-input').val('');
-    }
 
     @action
     insertMessage() {
-        const msg = $('.message-input').val() as string;
+        const inputElement = document.querySelector('.message-input') as HTMLInputElement;
+
+        const msg = inputElement.value.trim();
         if (msg.trim() === '') {
             return;
         }
@@ -53,24 +39,37 @@ export default class ChatBox extends Component {
             this.sender.sendChatMessage(msg);
         }
 
-        $('.message-input').val('');
-        //this.updateScrollbar();
+        inputElement.value = '';
     }
 
     @action
     postMessage(msg: string) {
-        $('<div class="">' + this.localUser.userName + ' (' + this.getTime() + ')' + '</div>').appendTo($('.chat-thread')).addClass('User');
-        $('<li>' + msg + '</li>').appendTo($('.chat-thread')).addClass('Message');
+        const chatThread = document.querySelector('.chat-thread') as HTMLElement;
+        if (chatThread) {
+            const userDiv = document.createElement('div');
+            userDiv.textContent = `${this.localUser.userName} (${this.getTime()})`;
+            userDiv.classList.add('User');
+            chatThread.appendChild(userDiv);
+
+            const messageLi = document.createElement('li');
+            messageLi.textContent = msg;
+            messageLi.classList.add('Message');
+            chatThread.appendChild(messageLi);
+
+            this.scrollChatToBottom();
+        }
     }
 
     getTime() {
         const h = new Date().getHours();
-        var m = new Date().getMinutes();
+        const m = new Date().getMinutes();
+        return `${h}:${m < 10 ? '0' + m : m}`;
+    }
 
-        if(m < 10){
-            return h + ':' + '0' + m;
-        } else {
-            return h + ':' + m;
+    scrollChatToBottom() {
+        const chatThread = document.querySelector('.chat-thread') as HTMLElement;
+        if(chatThread) {
+            chatThread.scrollTop = chatThread.scrollHeight;
         }
     }
 }
