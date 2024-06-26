@@ -3,9 +3,9 @@
     class='plotlyDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
     {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update this.didRender @timestamps}}
-    {{did-update this.continueTimeline @selectedTimestampRecords}}
-    {{did-insert this.didRender}}
+    {{did-update this.updateMarkerStates @selectedTimestampRecords}}
+    {{did-update this.updatePlotlyTimelineChart @timestamps}}
+    {{did-insert this.setupPlotlyTimelineChart}}
   >
   </div>
 {{else}}

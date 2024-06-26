@@ -75,7 +75,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   plotlyTimestampsWithoutNullValues: any;
 
-  // BEGIN Ember Div Events
+  // #region Ember Div Events
   @action
   handleMouseEnter(plotlyDiv: any) {
     // if user hovers over plotly, save his
@@ -90,24 +90,54 @@ export default class PlotlyTimeline extends Component<IArgs> {
   handleMouseLeave() {
     //this.userSlidingWindow = null;
   }
-  // END Ember Div Events
+  // #endregion
+
+  // #region Plot Setup
 
   @action
-  didRender(plotlyDiv: any) {
-    this.debug('didRender');
+  setupPlotlyTimelineChart(plotlyDiv: any) {
+    this.debug('setupTimeline');
     this.timelineDiv = plotlyDiv;
+    const timestamps = this.args.timestamps || [];
 
-    if (this.initDone) {
-      this.extendPlotlyTimelineChart(this.timestamps);
-    } else {
-      this.setupPlotlyTimelineChart(this.timestamps);
-      if (this.initDone) {
-        this.setupPlotlyListener();
-      }
+    if (timestamps.length === 0) {
+      this.createDummyTimeline();
+      return;
     }
+
+    const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
+
+    const { shapes } = data;
+
+    this.plotlyTimestampsWithoutNullValues = data.x.filter(
+      (x: any) => !!x
+    ).length;
+
+    let layout = this.userSlidingWindow
+      ? this.userSlidingWindow
+      : this.getPlotlyLayoutObject(
+          this.plotlyTimestampsWithoutNullValues - 30,
+          this.plotlyTimestampsWithoutNullValues
+        );
+
+    this.oldPlotlySlidingWindow = {
+      min: this.plotlyTimestampsWithoutNullValues - 30,
+      max: this.plotlyTimestampsWithoutNullValues,
+    };
+
+    layout = { ...layout, ...{ shapes: shapes } };
+
+    Plotly.newPlot(
+      this.timelineDiv,
+      [data],
+      layout,
+      this.getPlotlyOptionsObject()
+    );
+
+    this.setupPlotlyListener();
   }
 
-  setupPlotlyListener() {
+  private setupPlotlyListener() {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
 
     const plotlyDiv = this.timelineDiv;
@@ -158,11 +188,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
         if (self.selectionCount > 1) {
           if (self.selectedTimestamps.length === self.selectionCount) {
             // closure action
-            if (self.args.clicked) self.args.clicked(self.selectedTimestamps);
+            //  if (self.args.clicked) self.args.clicked(self.selectedTimestamps);
           }
         } else if (self.args.clicked) {
           // closure action
-          self.args.clicked(self.selectedTimestamps);
+          //self.args.clicked(self.selectedTimestamps);
         }
       });
 
@@ -197,47 +227,14 @@ export default class PlotlyTimeline extends Component<IArgs> {
     }
   }
 
-  // BEGIN Plot Logic
+  // #endregion
 
-  setupPlotlyTimelineChart(timestamps: Timestamp[]) {
-    if (timestamps.length === 0) {
-      this.createDummyTimeline();
-      return;
-    }
+  // #region Plot Update
 
-    const data = this.getUpdatedPlotlyDataObject(timestamps, this.markerState);
-
-    const { shapes } = data;
-
-    this.plotlyTimestampsWithoutNullValues = data.x.filter(
-      (x: any) => !!x
-    ).length;
-
-    let layout = this.userSlidingWindow
-      ? this.userSlidingWindow
-      : this.getPlotlyLayoutObject(
-          this.plotlyTimestampsWithoutNullValues - 30,
-          this.plotlyTimestampsWithoutNullValues
-        );
-
-    this.oldPlotlySlidingWindow = {
-      min: this.plotlyTimestampsWithoutNullValues - 30,
-      max: this.plotlyTimestampsWithoutNullValues,
-    };
-
-    layout = { ...layout, ...{ shapes: shapes } };
-
-    Plotly.newPlot(
-      this.timelineDiv,
-      [data],
-      layout,
-      this.getPlotlyOptionsObject()
-    );
-
-    this.initDone = true;
-  }
-
-  extendPlotlyTimelineChart(timestamps: Timestamp[]) {
+  @action
+  updatePlotlyTimelineChart() {
+    this.debug('updatePlot');
+    const timestamps = this.args.timestamps || [];
     if (timestamps.length === 0) {
       return;
     }
@@ -273,8 +270,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   @action
-  continueTimeline() {
-    this.debug('continueTimeline');
+  updateMarkerStates() {
+    this.debug('updateMarkerStates');
     this.resetHighlingInStateObjects();
 
     // call this to initialize the internal marker state variable
@@ -292,15 +289,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
       this.selectedTimestamps.push(this.markerState[timestampId].emberModel);
     });
 
-    this.extendPlotlyTimelineChart(this.timestamps);
+    //this.updatePlotlyTimelineChart();
   }
 
-  resetHighlighting() {
-    this.resetHighlingInStateObjects();
-    this.extendPlotlyTimelineChart(this.timestamps);
-  }
-
-  createDummyTimeline() {
+  private createDummyTimeline() {
     const minRange = 0;
     const maxRange = 90;
     Plotly.newPlot(
@@ -311,9 +303,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
     );
   }
 
-  // END Plot Logic
+  // #endregion
 
-  // BEGIN Helper functions
+  // #region Helper functions
 
   getPlotlyAxisXObject(minRange: number, maxRange: number) {
     return {
@@ -537,5 +529,5 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
-  // END Helper functions
+  // #endregion
 }
