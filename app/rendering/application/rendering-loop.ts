@@ -6,6 +6,9 @@ import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
+import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
+import LocalUser from 'collaboration/services/local-user';
+
 
 const clock = new Clock();
 
@@ -30,6 +33,9 @@ export default class RenderingLoop {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('local-user')
+  private localUser!: LocalUser;
 
   camera: THREE.Camera;
 
@@ -153,13 +159,27 @@ export default class RenderingLoop {
   }
 
   renderMinimap() {
-    // Set the size and position for the minimap
-    const minimapWidth = 300;
-    const minimapHeight = 300;
-    const minimapX = this.renderer.domElement.clientWidth - minimapWidth -10 -52;
-    const minimapY = this.renderer.domElement.clientHeight - minimapHeight -10; 
+    // Set the size and newPos for the minimap
+    const minimapSize = 7.5;
+    const minimapHeight = Math.max(window.innerHeight, window.innerWidth) / minimapSize;
+    const minimapWidth = minimapHeight;
 
-    const currentViewport = this.renderer.getContext().getParameter(this.renderer.getContext().VIEWPORT);
+    const marginSettingsSymbol = 55;
+    const margin = 10;
+    const minimapX = window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapY = window.innerHeight - minimapHeight - margin; 
+
+    let newPos = new THREE.Vector3();
+    
+    newPos = minimapRaycasting.raycastToGround(this.camera);
+    // Visualiziation of Minimapraycast
+    // let sphere = new THREE.Mesh();
+    // this.scene.add(sphere);
+
+    this.localUser.minimapCamera.position.set(newPos.x, 1, newPos.z);
+    
+    const currentViewport = this.renderer.getContext().getParameter(this.renderer
+      .getContext().VIEWPORT);
     // Enable scissor test and set the scissor area
     this.renderer.setScissorTest(true);
     this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);

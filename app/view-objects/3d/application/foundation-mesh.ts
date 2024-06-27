@@ -31,6 +31,8 @@ export default class FoundationMesh<
     this.geometry = geometry;
     this.setDefaultMaterial();
     this.dataModel = foundation;
+
+    this.layers.enable(1);
   }
 
   setDefaultMaterial() {

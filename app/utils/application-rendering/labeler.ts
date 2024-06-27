@@ -181,7 +181,7 @@ export function addMinimapTextLabel(
   minimapLabelMesh.rotation.x = -(Math.PI / 2);
   minimapLabelMesh.rotation.z = -(Math.PI / 2);
 
-  minimapLabelMesh.layers.set(4);
+  minimapLabelMesh.layers.set(6);
 
   foundationMesh.add(minimapLabelMesh);
 }

@@ -16,6 +16,7 @@ export default class MousePing {
       animationMixer,
       color,
     });
+    this.mesh.layers.enable(5);
   }
 
   ping = task(

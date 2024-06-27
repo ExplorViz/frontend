@@ -32,6 +32,8 @@ export default class ComponentMesh extends BoxMesh {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
     this.dataModel = component;
+
+    this.layers.enable(2);
   }
 
   getModelId() {

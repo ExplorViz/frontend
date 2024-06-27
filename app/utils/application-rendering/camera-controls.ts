@@ -17,7 +17,7 @@ export default class CameraControls {
 
   private perspectiveCamera: PerspectiveCamera;
   private orthographicCamera: OrthographicCamera | undefined;
-  // private minimapCamera: OrthographicCamera;
+  private minimapCamera: OrthographicCamera;
 
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
@@ -28,13 +28,13 @@ export default class CameraControls {
     owner: any,
     perspectiveCamera: PerspectiveCamera,
     orthographicCamera: OrthographicCamera | undefined,
-    // minimapCamera: OrthographicCamera,
+    minimapCamera: OrthographicCamera,
     canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
     this.orthographicCamera = orthographicCamera;
-    // this.minimapCamera = minimapCamera;
+    this.minimapCamera = minimapCamera;
 
     this.perspectiveCameraControls = new MapControls(
       this.perspectiveCamera,
@@ -85,6 +85,9 @@ export default class CameraControls {
     box.getCenter(center);
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
+    console.log(size);
+    console.log(center);
+    
 
     // fit perspective camera
 
@@ -157,7 +160,9 @@ export default class CameraControls {
       } else {
         this.orthographicCamera.position.copy(position);
         this.orthographicCameraControls.target.copy(center);
-      }
+      } 
+
+      this.minimapCamera.scale
     }
   }
 

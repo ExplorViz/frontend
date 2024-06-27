@@ -32,6 +32,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.material.transparent = true;
 
     this.castShadow = true;
+    this.layers.enable(4);
   }
 
   getModelId() {

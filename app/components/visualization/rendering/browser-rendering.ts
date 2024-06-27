@@ -332,15 +332,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.localUser.ortographicCamera.lookAt(this.scene.position);
 
-    //enable layers for cameras
-    this.localUser.defaultCamera.layers.enableAll();
-    this.localUser.ortographicCamera.layers.enableAll();
-
-    // disable layer 4, thats the layer for the minimap-specific label
-    this.localUser.defaultCamera.layers.disable(4);
-    this.localUser.ortographicCamera.layers.disable(4);
-
     // minimap camera
+    //ToDo: Minimap helper initialisieren
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
       (-aspectRatio * this.frustumSize) / 8,
       (aspectRatio * this.frustumSize) / 8,
@@ -351,18 +344,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.localUser.minimapCamera.position.set(0, 1, 0);
     this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
-    this.localUser.minimapCamera.layers.disable(0);
-    this.localUser.minimapCamera.layers.enable(1);
-    this.localUser.minimapCamera.layers.enable(2);
-    this.localUser.minimapCamera.layers.enable(3);
-    this.localUser.minimapCamera.layers.enable(4);
+    this.localUser.minimapCamera.layers.disable(0); //default layer
+    this.localUser.minimapCamera.layers.enable(1);  //foundation layer
+    this.localUser.minimapCamera.layers.enable(2);  //component layer
+    // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
+    //this.localUser.minimapCamera.layers.enable(4);  //communication layer
+    this.localUser.minimapCamera.layers.enable(5);  //ping layer
+    this.localUser.minimapCamera.layers.enable(6);  //minimapLabel layer
+
 
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
       this.localUser.ortographicCamera,
-      // this.localUser.minimapCamera,
+      this.localUser.minimapCamera,
       this.canvas
     );
 
@@ -647,8 +643,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   // initLayers(){
   //   // Second Layer for only specific objects to be rendered (layer 0 is default)
-  
-    
   // }
 
   /**
