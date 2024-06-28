@@ -252,10 +252,7 @@ export default class VisualizationController extends Controller {
   // #region Main Loop
 
   timestampPollingCallback(timestamps: Timestamp[]) {
-    this.timestampRepo.addTimestamps(
-      this.landscapeTokenService.token!.value,
-      timestamps
-    );
+    this.timestampRepo.addTimestamps(timestamps);
 
     if (timestamps.length > 0) {
       this.timestampRepo.triggerTimelineUpdate();
@@ -267,10 +264,8 @@ export default class VisualizationController extends Controller {
       return;
     }
 
-    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
-      this.landscapeTokenService.token!.value,
-      lastSelectTimestamp
-    );
+    const timestampToRender =
+      this.timestampRepo.getNextTimestampOrLatest(lastSelectTimestamp);
 
     if (
       timestampToRender &&
@@ -321,9 +316,7 @@ export default class VisualizationController extends Controller {
       return;
     }
     this.debug('updateTimestampList');
-    const currentToken = this.landscapeTokenService.token.value;
-    this.timelineTimestamps =
-      this.timestampRepo.getTimestamps(currentToken) ?? [];
+    this.timelineTimestamps = this.timestampRepo.getTimestamps() ?? [];
   }
 
   @action
