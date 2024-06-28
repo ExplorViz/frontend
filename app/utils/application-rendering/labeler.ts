@@ -118,7 +118,7 @@ export function addBoxTextLabel(
   );
   labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
 
-  if (boxMesh instanceof FoundationMesh){
+  if (boxMesh instanceof FoundationMesh) {
     labelMesh.layers.set(5);
   }
   boxMesh.labelMesh = labelMesh;
@@ -167,16 +167,16 @@ export function addMinimapTextLabel(
   color: THREE.Color,
   size = 0.15,
   heigth = 10
-){
+) {
   const text = foundationMesh.dataModel.name;
 
   const minimapLabelMesh = new MinimapLabelMesh(font, text, color, size);
-  minimapLabelMesh.computeLabel(text,size);
+  minimapLabelMesh.computeLabel(text, size);
   foundationMesh.minimapLabelMesh = minimapLabelMesh;
 
   minimapLabelMesh.geometry.center();
   minimapLabelMesh.position.y = heigth;
-  
+
   // Rotate text
   minimapLabelMesh.rotation.x = -(Math.PI / 2);
   minimapLabelMesh.rotation.z = -(Math.PI / 2);

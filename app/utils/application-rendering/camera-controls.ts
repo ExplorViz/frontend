@@ -87,7 +87,6 @@ export default class CameraControls {
     const maxSize = Math.max(size.x, size.y, size.z);
     console.log(size);
     console.log(center);
-    
 
     // fit perspective camera
 
@@ -160,9 +159,9 @@ export default class CameraControls {
       } else {
         this.orthographicCamera.position.copy(position);
         this.orthographicCameraControls.target.copy(center);
-      } 
+      }
 
-      this.minimapCamera.scale
+      this.minimapCamera.scale;
     }
   }
 

@@ -9,7 +9,6 @@ import * as THREE from 'three';
 import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
 import LocalUser from 'collaboration/services/local-user';
 
-
 const clock = new Clock();
 
 interface Args {
@@ -94,7 +93,7 @@ export default class RenderingLoop {
       } else {
         this.renderer.render(this.scene, this.camera);
       }
-      
+
       this.renderMinimap();
 
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
@@ -161,25 +160,28 @@ export default class RenderingLoop {
   renderMinimap() {
     // Set the size and newPos for the minimap
     const minimapSize = 7.5;
-    const minimapHeight = Math.max(window.innerHeight, window.innerWidth) / minimapSize;
+    const minimapHeight =
+      Math.max(window.innerHeight, window.innerWidth) / minimapSize;
     const minimapWidth = minimapHeight;
 
     const marginSettingsSymbol = 55;
     const margin = 10;
-    const minimapX = window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
-    const minimapY = window.innerHeight - minimapHeight - margin; 
+    const minimapX =
+      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapY = window.innerHeight - minimapHeight - margin;
 
     let newPos = new THREE.Vector3();
-    
+
     newPos = minimapRaycasting.raycastToGround(this.camera);
     // Visualiziation of Minimapraycast
     // let sphere = new THREE.Mesh();
     // this.scene.add(sphere);
 
     this.localUser.minimapCamera.position.set(newPos.x, 1, newPos.z);
-    
-    const currentViewport = this.renderer.getContext().getParameter(this.renderer
-      .getContext().VIEWPORT);
+
+    const currentViewport = this.renderer
+      .getContext()
+      .getParameter(this.renderer.getContext().VIEWPORT);
     // Enable scissor test and set the scissor area
     this.renderer.setScissorTest(true);
     this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);

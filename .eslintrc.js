@@ -29,7 +29,7 @@ module.exports = {
     auth0: false,
   },
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': ['error', { endOfLine: 'auto' }],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

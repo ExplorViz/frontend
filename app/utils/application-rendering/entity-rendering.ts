@@ -221,4 +221,3 @@ export function repositionGlobeToApplication(
 //   else if (mesh instanceof ClazzMesh){
 //     mesh.layers.enable(3);
 //   }
-
