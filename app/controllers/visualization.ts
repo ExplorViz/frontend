@@ -276,8 +276,7 @@ export default class VisualizationController extends Controller {
       timestampToRender &&
       !areArraysEqual(this.selectedTimestampRecords, [timestampToRender])
     ) {
-      this.updateTimestamp(timestampToRender.epochMilli);
-      this.selectedTimestampRecords = [timestampToRender];
+      this.updateTimestamp(timestampToRender.epochMilli, [timestampToRender]);
     }
   }
 
@@ -497,6 +496,7 @@ export default class VisualizationController extends Controller {
         this.updateLandscape(structureData, dynamicData);
       }
       if (timestampRecordArray) {
+        console.log('hello');
         this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.updateSelectedTimestamp(epochMilli);

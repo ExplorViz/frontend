@@ -188,11 +188,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
         if (self.selectionCount > 1) {
           if (self.selectedTimestamps.length === self.selectionCount) {
             // closure action
-            //  if (self.args.clicked) self.args.clicked(self.selectedTimestamps);
+            if (self.args.clicked) self.args.clicked(self.selectedTimestamps);
           }
         } else if (self.args.clicked) {
           // closure action
-          //self.args.clicked(self.selectedTimestamps);
+          self.args.clicked(self.selectedTimestamps);
         }
       });
 
