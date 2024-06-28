@@ -56,8 +56,7 @@ export default class TimestampPollingService extends Service {
       return;
     }
 
-    const newestLocalTimestamp =
-      this.timestampRepo.getLatestTimestamp(landscapeToken);
+    const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp();
 
     const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
 
