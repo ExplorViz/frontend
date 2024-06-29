@@ -280,6 +280,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
     this.args.selectedTimestampRecords?.forEach((timestamp) => {
+      console.log(timestamp);
       const timestampId = timestamp.epochMilli;
 
       this.markerState[timestampId].color = highlightedMarkerColor;
@@ -459,6 +460,8 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         colors.push(defaultColor);
         sizes.push(defaultSize);
+
+        console.log('embermodel', timestamp);
 
         // eslint-disable-next-line
         markerStates[timestampId] = {

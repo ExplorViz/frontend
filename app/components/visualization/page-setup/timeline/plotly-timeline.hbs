@@ -1,19 +1,9 @@
-{{#if @timestamps.length}}
-  <div
-    class='plotlyDiv'
-    {{on 'mouseenter' this.handleMouseEnter}}
-    {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update this.updateMarkerStates @selectedTimestampRecords}}
-    {{did-update this.updatePlotlyTimelineChart @timestamps}}
-    {{did-insert this.setupPlotlyTimelineChart}}
-  >
-  </div>
-{{else}}
-  <div class='timeline-no-timestamps-outer'>
-    <div class='timeline-no-timestamps-inner'>
-      No timestamps available!
-    </div>
-  </div>
-  <div class='plotlyDiv timeline-blur-effect' {{did-insert this.didRender}}>
-  </div>
-{{/if}}
+<div
+  class='plotlyDiv'
+  {{on 'mouseenter' this.handleMouseEnter}}
+  {{on 'mouseleave' this.handleMouseLeave}}
+  {{did-update this.updateMarkerStates @selectedTimestampRecords}}
+  {{did-update this.updatePlotlyTimelineChart @timestamps}}
+  {{did-insert this.setupPlotlyTimelineChart}}
+>
+</div>

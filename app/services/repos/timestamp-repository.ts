@@ -3,6 +3,7 @@ import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { tracked } from '@glimmer/tracking';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines
@@ -13,7 +14,12 @@ import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp'
 export default class TimestampRepository extends Service.extend(Evented) {
   debug = debugLogger('TimestampRepository');
 
-  private timelineTimestamps: Map<number, Timestamp> = new Map();
+  @tracked
+  timelineTimestamps: Map<number, Timestamp> = new Map();
+
+  get timestamps() {
+    return [...this.timelineTimestamps.values()] ?? [];
+  }
 
   getNextTimestampOrLatest(epochMilli: number): Timestamp | undefined {
     if (this.timelineTimestamps) {
