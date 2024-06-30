@@ -1,5 +1,3 @@
-{{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
-
 {{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
@@ -167,7 +165,7 @@
       class='timeline {{unless this.isTimelineActive "timelinehide"}}'
     >
       <Visualization::PageSetup::Timeline::PlotlyTimeline
-        @timestamps={{this.timestampRepo.timestamps}}
+        @timestamps={{this.timelineDataObject.timestamps}}
         @selectedTimestampRecords={{this.selectedTimestampRecords}}
         @clicked={{this.timelineClicked}}
         @highlightedMarkerColor={{this.highlightedMarkerColor}}

@@ -17,10 +17,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
   @tracked
   timelineTimestamps: Map<number, Timestamp> = new Map();
 
-  get timestamps() {
-    return [...this.timelineTimestamps.values()] ?? [];
-  }
-
   getNextTimestampOrLatest(epochMilli: number): Timestamp | undefined {
     if (this.timelineTimestamps) {
       let isNextTimestamp: boolean = false;
@@ -58,7 +54,8 @@ export default class TimestampRepository extends Service.extend(Evented) {
     for (const timestamp of timestamps) {
       this.addTimestamp(timestamp);
     }
-    if (timestamps) {
+    if (timestamps.length) {
+      console.log('retrigger');
       this.timelineTimestamps = new Map(
         [...this.timelineTimestamps.entries()].sort()
       );

@@ -1,4 +1,5 @@
 /* eslint-disable no-self-assign */
+import { getOwner } from '@ember/application';
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
@@ -58,6 +59,7 @@ import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/u
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
+import TimelineDataObject from 'explorviz-frontend/utils/timeline/timeline-data-object';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -170,9 +172,6 @@ export default class VisualizationController extends Controller {
   visualizationPaused = false;
 
   @tracked
-  timelineTimestamps: Timestamp[] = [];
-
-  @tracked
   highlightedMarkerColor = 'blue';
 
   @tracked
@@ -183,6 +182,11 @@ export default class VisualizationController extends Controller {
 
   @tracked
   flag: boolean = false; // default value
+
+  @tracked
+  timelineDataObject: TimelineDataObject = new TimelineDataObject(
+    getOwner(this)
+  );
 
   // #endregion
 
@@ -243,7 +247,6 @@ export default class VisualizationController extends Controller {
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
-    this.updateTimestampList();
     this.debug('initRendering done');
   }
 
@@ -307,16 +310,6 @@ export default class VisualizationController extends Controller {
         this.onTimestampUpdateTimer
       );
     }
-  }
-
-  @action
-  updateTimestampList() {
-    if (!this.landscapeTokenService.token) {
-      this.debug('No token available to update timestamp list');
-      return;
-    }
-    this.debug('updateTimestampList');
-    this.timelineTimestamps = this.timestampRepo.getTimestamps() ?? [];
   }
 
   @action
@@ -489,7 +482,7 @@ export default class VisualizationController extends Controller {
         this.updateLandscape(structureData, dynamicData);
       }
       if (timestampRecordArray) {
-        console.log('hello');
+        this.timelineDataObject.selectedTimestamps = timestampRecordArray;
         this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.updateSelectedTimestamp(epochMilli);
@@ -521,7 +514,6 @@ export default class VisualizationController extends Controller {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       this.highlightedMarkerColor = 'blue ';
-      this.triggerRerenderingOfTimeline();
       animatePlayPauseButton(false);
     }
   }
@@ -531,7 +523,6 @@ export default class VisualizationController extends Controller {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.highlightedMarkerColor = 'red';
-      this.triggerRerenderingOfTimeline();
       animatePlayPauseButton(true);
     }
   }
@@ -665,11 +656,6 @@ export default class VisualizationController extends Controller {
     } else {
       this.buttonText = 'WEBXR NOT SUPPORTED';
     }
-  }
-
-  private triggerRerenderingOfTimeline() {
-    // Setting tracked properties will always trigger an update, even if the property is set to the same value as it was before.
-    this.selectedTimestampRecords = this.selectedTimestampRecords;
   }
 }
 
