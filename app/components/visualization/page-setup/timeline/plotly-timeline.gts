@@ -3,6 +3,12 @@ import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
+// #region Template Imports
+import { on } from '@ember/modifier';
+import { notEq } from 'ember-truth-helpers';
+import didInsert from '@ember/render-modifiers/modifiers/did-insert';
+import didUpdate from '@ember/render-modifiers/modifiers/did-update';
+// #endregion
 
 interface IMarkerStates {
   [timestampId: string]: {
@@ -532,4 +538,29 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   // #endregion
+
+  <template>
+    {{#if (notEq @timestamps.length 0)}}
+      <div
+        class='plotlyDiv'
+        {{on 'mouseenter' this.handleMouseEnter}}
+        {{on 'mouseleave' this.handleMouseLeave}}
+        {{didUpdate this.updateMarkerStates @selectedTimestampRecords}}
+        {{didUpdate this.updatePlotlyTimelineChart @timestamps}}
+        {{didInsert this.setupPlotlyTimelineChart}}
+      >
+      </div>
+    {{else}}
+      <div class='timeline-no-timestamps-outer'>
+        <div class='timeline-no-timestamps-inner'>
+          No timestamps available!
+        </div>
+      </div>
+      <div
+        class='plotlyDiv timeline-blur-effect'
+        {{didInsert this.setupPlotlyTimelineChart}}
+      >
+      </div>
+    {{/if}}
+  </template>
 }
