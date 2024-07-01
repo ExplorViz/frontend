@@ -59,7 +59,7 @@ import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/u
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
-import TimelineDataObject from 'explorviz-frontend/utils/timeline/timeline-data-object';
+import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 
 export interface LandscapeData {
   structureLandscapeData: StructureLandscapeData;
@@ -169,9 +169,6 @@ export default class VisualizationController extends Controller {
   visualizationPaused = false;
 
   @tracked
-  highlightedMarkerColor = 'blue';
-
-  @tracked
   vrSupported: boolean = false;
 
   @tracked
@@ -181,9 +178,7 @@ export default class VisualizationController extends Controller {
   flag: boolean = false; // default value
 
   @tracked
-  timelineDataObject: TimelineDataObject = new TimelineDataObject(
-    getOwner(this)
-  );
+  timelineDataObjectHandler!: TimelineDataObjectHandler;
 
   // #endregion
 
@@ -238,6 +233,9 @@ export default class VisualizationController extends Controller {
   initRendering() {
     // called from route
     this.debug('initRendering');
+    this.timelineDataObjectHandler = new TimelineDataObjectHandler(
+      getOwner(this)
+    );
     this.landscapeData = null;
     this.visualizationPaused = false;
     this.timestampPollingService.initTimestampPollingWithCallback(
@@ -268,7 +266,7 @@ export default class VisualizationController extends Controller {
 
     if (
       timestampToRender &&
-      !areArraysEqual(this.timelineDataObject.selectedTimestamps, [
+      !areArraysEqual(this.timelineDataObjectHandler.selectedTimestamps, [
         timestampToRender,
       ])
     ) {
@@ -440,12 +438,13 @@ export default class VisualizationController extends Controller {
   @action
   async timelineClicked(selectedTimestamps: Timestamp[]) {
     if (
-      this.timelineDataObject.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] === this.timelineDataObject.selectedTimestamps[0]
+      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] ===
+        this.timelineDataObjectHandler.selectedTimestamps[0]
     ) {
       return;
     }
-    //this.timelineDataObject.selectedTimestamps = selectedTimestamps;
+    //this.timelineDataObjectHandler.selectedTimestamps = selectedTimestamps;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
@@ -480,7 +479,9 @@ export default class VisualizationController extends Controller {
         this.updateLandscape(structureData, dynamicData);
       }
       if (timestampRecordArray) {
-        this.timelineDataObject.selectedTimestamps = timestampRecordArray;
+        this.timelineDataObjectHandler.updateSelectedTimestamps(
+          timestampRecordArray
+        );
       }
       this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
@@ -510,7 +511,7 @@ export default class VisualizationController extends Controller {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
-      this.highlightedMarkerColor = 'blue ';
+      this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
       animatePlayPauseButton(false);
     }
   }
@@ -519,7 +520,7 @@ export default class VisualizationController extends Controller {
   pauseVisualizationUpdating() {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      this.highlightedMarkerColor = 'red';
+      this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
       animatePlayPauseButton(true);
     }
   }

@@ -19,10 +19,8 @@ interface IMarkerStates {
 }
 
 interface IArgs {
-  timestamps?: Timestamp[];
-  selectedTimestampRecords?: Timestamp[];
+  timelineDataObject: TimelineDataObject;
   clicked?(selectedTimestamps: Timestamp[]): void;
-  highlightedMarkerColor?: string;
 }
 
 export default class PlotlyTimeline extends Component<IArgs> {
@@ -37,7 +35,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   get highlightedMarkerColor() {
-    return this.args.highlightedMarkerColor || 'red';
+    return this.args.timelineDataObject.highlightedMarkerColor || 'red';
   }
 
   get highlightedMarkerSize() {
@@ -60,7 +58,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   get timestamps() {
-    return this.args.timestamps || [];
+    return this.args.timelineDataObject.timestamps || [];
   }
   // END template-argument getters for default values
 
@@ -104,7 +102,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   setupPlotlyTimelineChart(plotlyDiv: any) {
     this.debug('setupTimeline');
     this.timelineDiv = plotlyDiv;
-    const timestamps = this.args.timestamps || [];
+    const timestamps = this.args.timelineDataObject.timestamps || [];
 
     if (timestamps.length === 0) {
       this.createDummyTimeline();
@@ -241,8 +239,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
   @action
   updatePlotlyTimelineChart() {
+    this.updateMarkerStates();
+
     this.debug('updatePlot');
-    const timestamps = this.args.timestamps || [];
+    const timestamps = this.args.timelineDataObject.timestamps || [];
     if (timestamps.length === 0) {
       return;
     }
@@ -277,8 +277,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
     );
   }
 
-  @action
   updateMarkerStates() {
+    if (!this.args.timelineDataObject.selectedTimestamps) {
+      return;
+    }
+
     this.debug('updateMarkerStates');
     this.resetHighlingInStateObjects();
 
@@ -287,7 +290,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const { highlightedMarkerColor, highlightedMarkerSize } = this;
 
-    this.args.selectedTimestampRecords?.forEach((timestamp) => {
+    this.args.timelineDataObject.selectedTimestamps?.forEach((timestamp) => {
       const timestampId = timestamp.epochMilli;
 
       this.markerState[timestampId].color = highlightedMarkerColor;
@@ -540,13 +543,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
   // #endregion
 
   <template>
-    {{#if (gt @timestamps.length 0)}}
+    {{#if (gt @timelineDataObject.timestamps.length 0)}}
       <div
         class='plotlyDiv'
         {{on 'mouseenter' this.handleMouseEnter}}
         {{on 'mouseleave' this.handleMouseLeave}}
-        {{didUpdate this.updateMarkerStates @selectedTimestampRecords}}
-        {{didUpdate this.updatePlotlyTimelineChart @timestamps}}
+        {{didUpdate this.updatePlotlyTimelineChart @timelineDataObject}}
         {{didInsert this.setupPlotlyTimelineChart}}
       >
       </div>

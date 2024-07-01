@@ -165,10 +165,8 @@
       class='timeline {{unless this.isTimelineActive "timelinehide"}}'
     >
       <Visualization::PageSetup::Timeline::PlotlyTimeline
-        @timestamps={{this.timelineDataObject.timestamps}}
-        @selectedTimestampRecords={{this.timelineDataObject.selectedTimestamps}}
+        @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
         @clicked={{this.timelineClicked}}
-        @highlightedMarkerColor={{this.highlightedMarkerColor}}
       />
     </div>
   </div>
