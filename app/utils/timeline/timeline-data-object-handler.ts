@@ -15,7 +15,7 @@ export default class TimelineDataObjectHandler {
   timestampRepo!: TimestampRepository;
 
   @tracked timelineDataObject: TimelineDataObject = {
-    timestamps: [...this.timestampRepo.timelineTimestamps.values()] ?? [],
+    timestamps: [...this.timestampRepo.timestamps.values()] ?? [],
     highlightedMarkerColor: 'blue',
     selectedTimestamps: [],
   };
@@ -39,9 +39,7 @@ export default class TimelineDataObjectHandler {
   }
 
   updateTimestamps(
-    timestamps: Timestamp[] = [
-      ...this.timestampRepo.timelineTimestamps.values(),
-    ]
+    timestamps: Timestamp[] = [...this.timestampRepo.timestamps.values()]
   ) {
     this.timelineDataObject = {
       ...this.timelineDataObject,

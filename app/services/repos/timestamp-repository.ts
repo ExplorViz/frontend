@@ -15,35 +15,27 @@ export default class TimestampRepository extends Service.extend(Evented) {
   debug = debugLogger('TimestampRepository');
 
   @tracked
-  timelineTimestamps: Map<number, Timestamp> = new Map();
+  timestamps: Map<number, Timestamp> = new Map();
 
   getNextTimestampOrLatest(epochMilli: number): Timestamp | undefined {
-    if (this.timelineTimestamps) {
+    if (this.timestamps) {
       let isNextTimestamp: boolean = false;
-      for (const [, value] of this.timelineTimestamps.entries()) {
+      for (const [, value] of this.timestamps.entries()) {
         if (isNextTimestamp) {
           return value;
         } else if (epochMilli === value.epochMilli) {
           isNextTimestamp = true;
         }
       }
-      const values = [...this.timelineTimestamps.values()];
+      const values = [...this.timestamps.values()];
       return values[values.length - 1];
     }
     return undefined;
   }
 
-  getTimestamps(): Timestamp[] {
-    if (this.timelineTimestamps) {
-      return [...this.timelineTimestamps.values()];
-    } else {
-      return [];
-    }
-  }
-
   getLatestTimestamp() {
-    if (this.timelineTimestamps) {
-      const timestampSetAsArray = [...this.timelineTimestamps.values()];
+    if (this.timestamps) {
+      const timestampSetAsArray = [...this.timestamps.values()];
       return timestampSetAsArray[timestampSetAsArray.length - 1];
     }
 
@@ -55,19 +47,17 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.addTimestamp(timestamp);
     }
     if (timestamps.length) {
-      this.timelineTimestamps = new Map(
-        [...this.timelineTimestamps.entries()].sort()
-      );
+      this.timestamps = new Map([...this.timestamps.entries()].sort());
     }
   }
 
   private addTimestamp(timestamp: Timestamp) {
-    if (this.timelineTimestamps) {
-      this.timelineTimestamps.set(timestamp.epochMilli, timestamp);
+    if (this.timestamps) {
+      this.timestamps.set(timestamp.epochMilli, timestamp);
     } else {
       const newTimestampMap = new Map<number, Timestamp>();
       newTimestampMap.set(timestamp.epochMilli, timestamp);
-      this.timelineTimestamps = newTimestampMap;
+      this.timestamps = newTimestampMap;
     }
   }
 

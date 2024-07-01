@@ -228,10 +228,10 @@ export default class VisualizationController extends Controller {
 
   // #endregion
 
-  // #region Main Loop Setup
+  // #region Setup
 
-  initRendering() {
-    // called from route
+  @action
+  setupListeners() {
     this.debug('initRendering');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
@@ -242,13 +242,32 @@ export default class VisualizationController extends Controller {
       this.timestampPollingCallback.bind(this)
     );
     this.debug('initRendering done');
+
+    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
+    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+    this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
+
+    if (!this.isSingleLandscapeMode) {
+      this.webSocket.on(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+
+    this.timestampService.on(
+      TIMESTAMP_UPDATE_EVENT,
+      this,
+      this.onTimestampUpdate
+    );
   }
 
   // #endregion
 
-  // #region Main Loop
+  // #region Short Polling Event Loop
 
-  timestampPollingCallback(timestamps: Timestamp[]) {
+  timestampPollingCallback(timestamps: Timestamp[]): void {
+    // called every tenth second, main update loop
     this.timestampRepo.addTimestamps(timestamps);
 
     if (timestamps.length > 0) {
@@ -270,42 +289,87 @@ export default class VisualizationController extends Controller {
         timestampToRender,
       ])
     ) {
-      this.updateTimestamp(timestampToRender.epochMilli, [timestampToRender]);
+      this.triggerRenderingForGivenTimestamp(timestampToRender.epochMilli, [
+        timestampToRender,
+      ]);
     }
   }
 
   // #endregion
 
-  @action
-  setupListeners() {
-    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
+  // #region Event Handlers
 
-    if (!this.isSingleLandscapeMode) {
-      this.webSocket.on(
-        TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
-        this.onTimestampUpdateTimer
-      );
+  // collaboration start
+  // user handling end
+  async onInitialLandscape({
+    landscape,
+    openApps,
+    detachedMenus,
+    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
+  }: InitialLandscapeMessage): Promise<void> {
+    this.linkRenderer.flag = true;
+    while (this.linkRenderer.flag) {
+      await timeout(50);
     }
+    // Now we can be sure our linkRenderer has all extern links
 
-    this.timestampService.on(
-      TIMESTAMP_UPDATE_EVENT,
-      this,
-      this.onTimestampUpdate
-    );
+    // Serialized room is used in landscape-data-watcher
+    this.roomSerializer.serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+      highlightedExternCommunicationLinks,
+      popups: [], // ToDo
+    };
+
+    this.highlightingService.updateHighlighting();
+    await this.triggerRenderingForGivenTimestamp(landscape.timestamp);
+    // Disable polling. It is now triggerd by the websocket.
   }
 
-  @action
-  removeTimestampListener() {
-    if (this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(
-        TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
-        this.onTimestampUpdateTimer
-      );
-    }
+  async onTimestampUpdate({
+    originalMessage: { timestamp },
+  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
+    this.triggerRenderingForGivenTimestamp(timestamp);
+  }
+
+  async onTimestampUpdateTimer({
+    timestamp,
+  }: TimestampUpdateTimerMessage): Promise<void> {
+    await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+    this.triggerRenderingForGivenTimestamp(timestamp);
+  }
+
+  async onSyncRoomState(event: {
+    userId: string;
+    originalMessage: SyncRoomStateMessage;
+  }) {
+    const {
+      landscape,
+      openApps,
+      highlightedExternCommunicationLinks,
+      popups,
+      detachedMenus,
+    } = event.originalMessage;
+    const serializedRoom = {
+      landscape: landscape,
+      openApps: openApps as SerializedApp[],
+      highlightedExternCommunicationLinks,
+      popups: popups as SerializedPopup[],
+      detachedMenus: detachedMenus as SerializedDetachedMenu[],
+    };
+
+    this.applicationRenderer.restoreFromSerialization(serializedRoom);
+    this.detachedMenuRenderer.restore(
+      serializedRoom.popups,
+      serializedRoom.detachedMenus
+    );
+
+    this.highlightingService.updateHighlighting();
+
+    this.toastHandlerService.showInfoToastMessage(
+      'Room state synchronizing ...'
+    );
   }
 
   @action
@@ -314,6 +378,54 @@ export default class VisualizationController extends Controller {
     dynamicData: DynamicLandscapeData
   ) {
     this.updateLandscape(structureData, dynamicData);
+  }
+
+  // #endregion
+
+  // #region Rendering Triggering
+
+  async triggerRenderingForGivenTimestamp(
+    epochMilli: number,
+    timestampRecordArray?: Timestamp[]
+  ) {
+    try {
+      const [structureData, dynamicData] =
+        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
+
+      let requiresRerendering = !this.landscapeData;
+      let latestMethodHashes: string[] = [];
+
+      if (!requiresRerendering) {
+        latestMethodHashes =
+          getAllMethodHashesOfLandscapeStructureData(structureData);
+
+        if (
+          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
+          !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
+        ) {
+          requiresRerendering = true;
+        }
+      }
+
+      this.previousMethodHashes = latestMethodHashes;
+      this.previousLandscapeDynamicData = dynamicData;
+
+      if (requiresRerendering) {
+        this.updateLandscape(structureData, dynamicData);
+      }
+      if (timestampRecordArray) {
+        this.timelineDataObjectHandler.updateSelectedTimestamps(
+          timestampRecordArray
+        );
+      }
+      this.timestampService.updateSelectedTimestamp(epochMilli);
+    } catch (e) {
+      this.debug("Landscape couldn't be requested!", e);
+      this.toastHandlerService.showErrorToastMessage(
+        "Landscape couldn't be requested!"
+      );
+      this.resumeVisualizationUpdating();
+    }
   }
 
   @action
@@ -327,38 +439,9 @@ export default class VisualizationController extends Controller {
     };
   }
 
-  @action
-  switchToAR() {
-    this.switchToMode('ar');
-  }
+  // #endregion
 
-  @action
-  switchToVR() {
-    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
-    if (this.vrSupported) {
-      this.switchToMode('vr');
-    }
-  }
-
-  @action
-  openLandscapeView() {
-    this.switchToMode('browser');
-  }
-
-  private switchToMode(mode: VisualizationMode) {
-    this.roomSerializer.serializeRoom();
-    this.closeDataSelection();
-    this.localUser.visualizationMode = mode;
-    this.webSocket.send<VisualizationModeUpdateMessage>(
-      VISUALIZATION_MODE_UPDATE_EVENT,
-      { mode }
-    );
-  }
-
-  @action
-  resetTimestampPolling() {
-    this.timestampPollingService.resetPolling();
-  }
+  // #region Sidebars
 
   @action
   closeDataSelection() {
@@ -435,63 +518,64 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  // #endregion
+
+  // #region XR
+
   @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] ===
-        this.timelineDataObjectHandler.selectedTimestamps[0]
-    ) {
-      return;
-    }
-    //this.timelineDataObjectHandler.selectedTimestamps = selectedTimestamps;
-    this.pauseVisualizationUpdating();
-    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
+  switchToAR() {
+    this.switchToMode('ar');
   }
 
-  async updateTimestamp(
-    epochMilli: number,
-    timestampRecordArray?: Timestamp[]
-  ) {
-    try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
-
-      let requiresRerendering = !this.landscapeData;
-      let latestMethodHashes: string[] = [];
-
-      if (!requiresRerendering) {
-        latestMethodHashes =
-          getAllMethodHashesOfLandscapeStructureData(structureData);
-
-        if (
-          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
-          !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
-        ) {
-          requiresRerendering = true;
-        }
-      }
-
-      this.previousMethodHashes = latestMethodHashes;
-      this.previousLandscapeDynamicData = dynamicData;
-
-      if (requiresRerendering) {
-        this.updateLandscape(structureData, dynamicData);
-      }
-      if (timestampRecordArray) {
-        this.timelineDataObjectHandler.updateSelectedTimestamps(
-          timestampRecordArray
-        );
-      }
-      this.timestampService.updateSelectedTimestamp(epochMilli);
-    } catch (e) {
-      this.debug("Landscape couldn't be requested!", e);
-      this.toastHandlerService.showErrorToastMessage(
-        "Landscape couldn't be requested!"
-      );
-      this.resumeVisualizationUpdating();
+  @action
+  switchToVR() {
+    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
+    if (this.vrSupported) {
+      this.switchToMode('vr');
     }
   }
+
+  @action
+  openLandscapeView() {
+    this.switchToMode('browser');
+  }
+
+  private switchToMode(mode: VisualizationMode) {
+    this.roomSerializer.serializeRoom();
+    this.closeDataSelection();
+    this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
+  }
+
+  /**
+   * Checks the current status of WebXR in the browser and if compatible
+   * devices are connected. Sets the tracked properties
+   * 'buttonText' and 'vrSupported' accordingly.
+   */
+  @action
+  async updateVrStatus() {
+    if ('xr' in navigator) {
+      this.vrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+
+      if (this.vrSupported) {
+        this.buttonText = 'Enter VR';
+      } else if (window.isSecureContext === false) {
+        this.buttonText = 'WEBXR NEEDS HTTPS';
+      } else {
+        this.buttonText = 'WEBXR NOT AVAILABLE';
+      }
+    } else {
+      this.buttonText = 'WEBXR NOT SUPPORTED';
+    }
+  }
+
+  // #endregion
+
+  // #region Template Actions
 
   @action
   toggleTimeline() {
@@ -525,11 +609,16 @@ export default class VisualizationController extends Controller {
     }
   }
 
+  // #endregion
+
+  // #region Cleanup
+
   willDestroy() {
     this.landscapeRestructure.resetLandscapeRestructure();
-    this.resetTimestampPolling();
+    this.timestampPollingService.resetPolling();
     this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
+    this.timestampRepo.timestamps = new Map();
 
     this.closeDataSelection();
     this.closeToolsSidebar();
@@ -560,101 +649,18 @@ export default class VisualizationController extends Controller {
     }
   }
 
-  // collaboration start
-  // user handling end
-  async onInitialLandscape({
-    landscape,
-    openApps,
-    detachedMenus,
-    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-  }: InitialLandscapeMessage): Promise<void> {
-    this.linkRenderer.flag = true;
-    while (this.linkRenderer.flag) {
-      await timeout(50);
-    }
-    // Now we can be sure our linkRenderer has all extern links
-
-    // Serialized room is used in landscape-data-watcher
-    this.roomSerializer.serializedRoom = {
-      landscape: landscape,
-      openApps: openApps as SerializedApp[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks,
-      popups: [], // ToDo
-    };
-
-    this.highlightingService.updateHighlighting();
-    await this.updateTimestamp(landscape.timestamp);
-    // Disable polling. It is now triggerd by the websocket.
-  }
-
-  async onTimestampUpdate({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.updateTimestamp(timestamp);
-  }
-
-  async onTimestampUpdateTimer({
-    timestamp,
-  }: TimestampUpdateTimerMessage): Promise<void> {
-    await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
-    this.updateTimestamp(timestamp);
-  }
-
-  async onSyncRoomState(event: {
-    userId: string;
-    originalMessage: SyncRoomStateMessage;
-  }) {
-    const {
-      landscape,
-      openApps,
-      highlightedExternCommunicationLinks,
-      popups,
-      detachedMenus,
-    } = event.originalMessage;
-    const serializedRoom = {
-      landscape: landscape,
-      openApps: openApps as SerializedApp[],
-      highlightedExternCommunicationLinks,
-      popups: popups as SerializedPopup[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    };
-
-    this.applicationRenderer.restoreFromSerialization(serializedRoom);
-    this.detachedMenuRenderer.restore(
-      serializedRoom.popups,
-      serializedRoom.detachedMenus
-    );
-
-    this.highlightingService.updateHighlighting();
-
-    this.toastHandlerService.showInfoToastMessage(
-      'Room state synchronizing ...'
-    );
-  }
-
-  /**
-   * Checks the current status of WebXR in the browser and if compatible
-   * devices are connected. Sets the tracked properties
-   * 'buttonText' and 'vrSupported' accordingly.
-   */
   @action
-  async updateVrStatus() {
-    if ('xr' in navigator) {
-      this.vrSupported =
-        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
-
-      if (this.vrSupported) {
-        this.buttonText = 'Enter VR';
-      } else if (window.isSecureContext === false) {
-        this.buttonText = 'WEBXR NEEDS HTTPS';
-      } else {
-        this.buttonText = 'WEBXR NOT AVAILABLE';
-      }
-    } else {
-      this.buttonText = 'WEBXR NOT SUPPORTED';
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
     }
   }
+
+  // #endregion
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
