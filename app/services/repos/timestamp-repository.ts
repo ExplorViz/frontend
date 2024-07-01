@@ -60,14 +60,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.timestamps = newTimestampMap;
     }
   }
-
-  /**
-   * Triggers the 'updated' event in the timeline for updating the chart
-   * @method triggerTimelineUpdate
-   */
-  triggerTimelineUpdate() {
-    this.trigger('updated');
-  }
 }
 
 declare module '@ember/service' {

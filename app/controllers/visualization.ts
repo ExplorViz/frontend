@@ -49,7 +49,7 @@ import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
+import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
@@ -259,15 +259,14 @@ export default class VisualizationController extends Controller {
     // called every tenth second, main update loop
     this.timestampRepo.addTimestamps(timestamps);
 
-    if (timestamps.length > 0) {
-      this.timestampRepo.triggerTimelineUpdate();
+    this.timelineDataObjectHandler.updateTimestamps();
+
+    if (this.visualizationPaused) {
+      this.timelineDataObjectHandler.triggerTimelineUpdate();
+      return;
     }
 
     const lastSelectTimestamp = this.timestampService.timestamp;
-
-    if (this.visualizationPaused) {
-      return;
-    }
 
     const timestampToRender =
       this.timestampRepo.getNextTimestampOrLatest(lastSelectTimestamp);
@@ -287,6 +286,22 @@ export default class VisualizationController extends Controller {
   // #endregion
 
   // #region Event Handlers
+
+  @action
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
+    if (
+      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] ===
+        this.timelineDataObjectHandler.selectedTimestamps[0]
+    ) {
+      return;
+    }
+    this.pauseVisualizationUpdating(false);
+    this.triggerRenderingForGivenTimestamp(
+      selectedTimestamps[0].epochMilli,
+      selectedTimestamps
+    );
+  }
 
   // collaboration start
   // user handling end
@@ -402,11 +417,14 @@ export default class VisualizationController extends Controller {
       if (requiresRerendering) {
         this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
       }
+
       if (timestampRecordArray) {
         this.timelineDataObjectHandler.updateSelectedTimestamps(
           timestampRecordArray
         );
       }
+      this.timelineDataObjectHandler.triggerTimelineUpdate();
+
       this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
@@ -584,16 +602,20 @@ export default class VisualizationController extends Controller {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
-      animatePlayPauseButton(false);
+      animatePlayPauseIcon(false);
+      this.timelineDataObjectHandler.triggerTimelineUpdate();
     }
   }
 
   @action
-  pauseVisualizationUpdating() {
+  pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
       this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
-      animatePlayPauseButton(true);
+      animatePlayPauseIcon(true);
+      if (triggerTimelineUpdate) {
+        this.timelineDataObjectHandler.triggerTimelineUpdate();
+      }
     }
   }
 

@@ -23,7 +23,7 @@ export default class TimelineDataObjectHandler {
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
-    this.timestampRepo.on('updated', this, this.updateTimestamps);
+    //this.timestampRepo.on('updated', this, this.updateTimestamps);
   }
 
   get timestamps() {
@@ -41,23 +41,24 @@ export default class TimelineDataObjectHandler {
   updateTimestamps(
     timestamps: Timestamp[] = [...this.timestampRepo.timestamps.values()]
   ) {
-    this.timelineDataObject = {
-      ...this.timelineDataObject,
-      timestamps,
-    };
+    this.timelineDataObject.timestamps = timestamps;
   }
 
   updateSelectedTimestamps(selectedTimestamps: Timestamp[]) {
-    this.timelineDataObject = {
-      ...this.timelineDataObject,
-      selectedTimestamps,
-    };
+    this.timelineDataObject.selectedTimestamps = selectedTimestamps;
   }
 
   updateHighlightedMarkerColor(highlightedMarkerColor: 'blue' | 'red') {
-    this.timelineDataObject = {
-      ...this.timelineDataObject,
-      highlightedMarkerColor,
-    };
+    this.timelineDataObject.highlightedMarkerColor = highlightedMarkerColor;
+  }
+
+  triggerTimelineUpdate() {
+    // Calling this in each update function will multiple renderings,
+    // therefore we manually call it when the updated data object is ready
+    // Additionally, we can manually trigger this update after the gsap
+    // animation of the play/pause icon
+
+    // eslint-disable-next-line no-self-assign
+    this.timelineDataObject = this.timelineDataObject;
   }
 }
