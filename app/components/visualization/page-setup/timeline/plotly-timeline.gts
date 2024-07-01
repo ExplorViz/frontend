@@ -19,7 +19,7 @@ interface IMarkerStates {
 }
 
 interface IArgs {
-  timelineDataObject: TimelineDataObject;
+  timelineDataObject?: TimelineDataObject;
   clicked?(selectedTimestamps: Timestamp[]): void;
 }
 
