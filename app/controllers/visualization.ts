@@ -366,7 +366,7 @@ export default class VisualizationController extends Controller {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
-    this.updateLandscape(structureData, dynamicData);
+    this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
   }
 
   // #endregion
@@ -400,7 +400,7 @@ export default class VisualizationController extends Controller {
       this.previousLandscapeDynamicData = dynamicData;
 
       if (requiresRerendering) {
-        this.updateLandscape(structureData, dynamicData);
+        this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
       }
       if (timestampRecordArray) {
         this.timelineDataObjectHandler.updateSelectedTimestamps(
@@ -418,7 +418,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  updateLandscape(
+  triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
