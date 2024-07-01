@@ -383,7 +383,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         yref: 'paper',
         x0: '0',
         y0: 0.1,
-        x1: '0',
+        x1: '1',
         y1: 1,
         fillcolor: '#d3d3d3',
         opacity: 0.4,

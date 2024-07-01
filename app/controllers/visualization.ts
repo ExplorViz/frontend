@@ -145,9 +145,6 @@ export default class VisualizationController extends Controller {
   // #region Tracked properties
 
   @tracked
-  selectedTimestampRecords: Timestamp[] = [];
-
-  @tracked
   roomId?: string | undefined | null;
 
   @tracked
@@ -242,7 +239,6 @@ export default class VisualizationController extends Controller {
     // called from route
     this.debug('initRendering');
     this.landscapeData = null;
-    this.selectedTimestampRecords = [];
     this.visualizationPaused = false;
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
@@ -272,7 +268,9 @@ export default class VisualizationController extends Controller {
 
     if (
       timestampToRender &&
-      !areArraysEqual(this.selectedTimestampRecords, [timestampToRender])
+      !areArraysEqual(this.timelineDataObject.selectedTimestamps, [
+        timestampToRender,
+      ])
     ) {
       this.updateTimestamp(timestampToRender.epochMilli, [timestampToRender]);
     }
@@ -442,12 +440,12 @@ export default class VisualizationController extends Controller {
   @action
   async timelineClicked(selectedTimestamps: Timestamp[]) {
     if (
-      this.selectedTimestampRecords.length > 0 &&
-      selectedTimestamps[0] === this.selectedTimestampRecords[0]
+      this.timelineDataObject.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] === this.timelineDataObject.selectedTimestamps[0]
     ) {
       return;
     }
-    //this.selectedTimestampRecords = selectedTimestamps;
+    //this.timelineDataObject.selectedTimestamps = selectedTimestamps;
     this.pauseVisualizationUpdating();
     this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
   }
@@ -483,7 +481,6 @@ export default class VisualizationController extends Controller {
       }
       if (timestampRecordArray) {
         this.timelineDataObject.selectedTimestamps = timestampRecordArray;
-        this.selectedTimestampRecords = timestampRecordArray;
       }
       this.timestampService.updateSelectedTimestamp(epochMilli);
     } catch (e) {
