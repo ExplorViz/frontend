@@ -39,7 +39,11 @@
       @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
-    {{#if (and this.flag this.showVR)}}
+    {{#if
+      (and
+        this.userSettings.applicationSettings.showVrOnClick.value this.showVR
+      )
+    }}
       <VrRendering
         @id='vr-rendering'
         @landscapeData={{this.landscapeData}}
@@ -50,7 +54,7 @@
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
-        @debugMode={{this.flag}}
+        @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
       <div class='position-absolute mt-6 ml-3'>
         <BsButton
@@ -77,7 +81,7 @@
           @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
           @visualizationPaused={{this.visualizationPaused}}
           @applicationArgs={{this.applicationArgs}}
-          @debugMode={{this.flag}}
+          @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
         />
 
       {{else}}

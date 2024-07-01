@@ -42,10 +42,8 @@ import ENV from 'explorviz-frontend/config/environment';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
@@ -98,14 +96,8 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('landscape-token')
-  landscapeTokenService!: LandscapeTokenService;
-
   @service('reload-handler')
   reloadHandler!: ReloadHandler;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
@@ -173,9 +165,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   buttonText: string = '';
-
-  @tracked
-  flag: boolean = false; // default value
 
   @tracked
   timelineDataObjectHandler!: TimelineDataObjectHandler;
@@ -529,7 +518,6 @@ export default class VisualizationController extends Controller {
 
   @action
   switchToVR() {
-    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
     if (this.vrSupported) {
       this.switchToMode('vr');
     }
@@ -616,7 +604,6 @@ export default class VisualizationController extends Controller {
   willDestroy() {
     this.landscapeRestructure.resetLandscapeRestructure();
     this.timestampPollingService.resetPolling();
-    this.applicationRepo.cleanup();
     this.applicationRenderer.cleanup();
     this.timestampRepo.timestamps = new Map();
 
