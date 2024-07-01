@@ -55,7 +55,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.addTimestamp(timestamp);
     }
     if (timestamps.length) {
-      console.log('retrigger');
+      //console.log('retrigger');
       this.timelineTimestamps = new Map(
         [...this.timelineTimestamps.entries()].sort()
       );
