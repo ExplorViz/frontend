@@ -43,16 +43,18 @@ export default class ChatBox extends Component {
     }
 
     @action
-    postMessage(msg: string) {
+    postMessage(chatMessage: {userName: string, userColor: THREE.Color, message: string}) {
         const chatThread = document.querySelector('.chat-thread') as HTMLElement;
+        //const userName = this.chatService.name;
         if (chatThread) {
             const userDiv = document.createElement('div');
-            userDiv.textContent = `${this.localUser.userName} (${this.getTime()})`;
+            userDiv.textContent = `${chatMessage.userName} (${this.getTime()})`;
             userDiv.classList.add('User');
+            userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
             chatThread.appendChild(userDiv);
 
             const messageLi = document.createElement('li');
-            messageLi.textContent = msg;
+            messageLi.textContent = chatMessage.message;
             messageLi.classList.add('Message');
             chatThread.appendChild(messageLi);
 
