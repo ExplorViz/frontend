@@ -78,18 +78,6 @@ export default class VisualizationRoute extends BaseRoute {
     return super.error(error);
   }
 
-  // @Override
-  setupController(
-    controller: VisualizationController,
-    model: any,
-    transition: any
-  ) {
-    // Call _super for default behavior
-    super.setupController(controller, model, transition);
-
-    controller.initRendering();
-  }
-
   // @Override Ember-Hook
   /* eslint-disable-next-line class-methods-use-this */
   resetController(

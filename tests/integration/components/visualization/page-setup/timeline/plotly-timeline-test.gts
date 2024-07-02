@@ -12,7 +12,9 @@ module(
       // Set any properties with this.set('myProperty', 'value');
       // Handle any actions with this.set('myAction', function(val) { ... });
 
-      await render(hbs`<Visualization::PageSetup::Timeline::PlotlyTimeline />`);
+      this.set('timelineDataObject', {timestamps: []});
+
+      await render(hbs`<Visualization::PageSetup::Timeline::PlotlyTimeline @timelineDataObject={{this.timelineDataObject}} />`);
 
       const el: any = this.element;
 

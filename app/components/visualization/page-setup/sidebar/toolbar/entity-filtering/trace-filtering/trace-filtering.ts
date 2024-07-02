@@ -15,7 +15,7 @@ import TimestampService, {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  updateLandscape(
+  triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
@@ -81,13 +81,13 @@ export default class TraceFiltering extends Component<Args> {
   @action
   updateDuration(newMinDuration: number) {
     this.selectedMinDuration = newMinDuration;
-    this.updateLandscape();
+    this.triggerRenderingForGivenLandscapeData();
   }
 
   @action
   updateStartTimestamp(newMinStartTimestamp: number) {
     this.selectedMinStartTimestamp = newMinStartTimestamp;
-    this.updateLandscape();
+    this.triggerRenderingForGivenLandscapeData();
   }
 
   //#endregion template actions
@@ -107,7 +107,7 @@ export default class TraceFiltering extends Component<Args> {
     this.selectedMinStartTimestamp = 0;
   }
 
-  private updateLandscape() {
+  private triggerRenderingForGivenLandscapeData() {
     let numFilter = 0;
 
     // hide all traces that begin before selected timestamp
@@ -136,14 +136,14 @@ export default class TraceFiltering extends Component<Args> {
     this.numRemainingTracesAfterFilteredByDuration = numFilter;
     numFilter = 0;
 
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.args.landscapeData.structureLandscapeData,
       newTraces
     );
   }
 
   willDestroy(): void {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
