@@ -1,6 +1,14 @@
-import Service, {inject as service} from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ToastHandlerService from './toast-handler';
+import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import * as THREE from 'three';
+
+interface ChatMessage {
+  userName: string;
+  userColor: THREE.Color;
+  message: string;
+}
 
 export default class ChatService extends Service {
 
@@ -11,13 +19,17 @@ export default class ChatService extends Service {
   private chatMessagesByUser = new Map<string, string[]>;
 
   @tracked
-  private chatMessageByEvents!: string[];
+  private chatMessageByEvents: string[] = [];
 
   @tracked
-  private chatMessages: string[] = [];
+  private chatMessages: ChatMessage[] = [];
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
+
+  @service('collaboration-session')
+  collaborationSession!: collaborationSession;
+
 
   getChatMessagesByUserId(userId: string) {
     if(this.chatMessagesByUser.has(userId)) {
@@ -28,8 +40,13 @@ export default class ChatService extends Service {
   }
 
   addChatMessage(userId: string, msg: string) {
-    this.chatMessages = [...this.chatMessages, msg];
-
+    const user = this.collaborationSession.lookupRemoteUserById(userId);
+    const userName = user?.userName || 'You';
+    const userColor = user?.color || new THREE.Color(0,0,0);
+    
+    const chatMessage: ChatMessage = { userName, userColor, message: msg };
+    this.chatMessages = [...this.chatMessages, chatMessage];
+    //this.chatMessagesByUser.set(userId, [...this.getChatMessagesByUserId(userId) as [], msg]);
     /* TODO: User or Event message?
     if(user msg) {
       this.chatMessagesByUser.set(userId, ..)
@@ -40,7 +57,6 @@ export default class ChatService extends Service {
   }
 
   removeChatMessage(userId: string, msg: string) {
-
   }
 
   muteUserById(userId: string) {
