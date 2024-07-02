@@ -1,9 +1,10 @@
 export type SettingGroup =
   | 'Camera'
   | 'Colors'
+  | 'Controls'
   | 'Communication'
   | 'Highlighting'
-  | 'Hover Effect'
+  | 'Effects'
   | 'Popups'
   | 'Virtual Reality'
   | 'Debugging';
@@ -21,13 +22,19 @@ export type ApplicationColorSettingId =
   | 'communicationArrowColor'
   | 'backgroundColor';
 
+export type ApplicationControlSettingId =
+  | 'enableGamepadControls'
+  | 'selectedGamepadIndex';
+
 export type ApplicationHighlightingSettingId =
   | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
 
-export type ApplicationHoveringSettingId = 'enableHoverEffects';
+export type ApplicationHoveringSettingId =
+  | 'enableHoverEffects'
+  | 'enableAnimations';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'
@@ -50,6 +57,7 @@ export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
 export type ApplicationSettingId =
   | ApplicationColorSettingId
+  | ApplicationControlSettingId
   | ApplicationHighlightingSettingId
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
@@ -57,6 +65,11 @@ export type ApplicationSettingId =
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
+
+export type ApplicationControlSettings = {
+  enableGamepadControls: FlagSetting;
+  selectedGamepadIndex: RangeSetting;
+};
 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
@@ -103,6 +116,7 @@ export type ApplicationCameraSettings = {
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
+  ApplicationControlSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &

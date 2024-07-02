@@ -1,1 +1,5 @@
-<a href='#' {{on 'click' (fn @onClick @option)}}>{{@option.className}}</a>
+{{#if @option.className}}
+  <a href='#' {{on 'click' (fn @onClick @option)}}>{{@option.className}}</a>
+{{else if @option.fqn}}
+  <a href='#' {{on 'click' (fn @onClick @option)}}>{{@option.fqn}}</a>
+{{/if}}

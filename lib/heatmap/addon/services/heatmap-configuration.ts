@@ -73,7 +73,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   simpleHeatGradient = getSimpleDefaultGradient();
 
-  debug = debugLogger();
+  debug = debugLogger('HeatmapConfiguration');
 
   @action
   toggleShared() {

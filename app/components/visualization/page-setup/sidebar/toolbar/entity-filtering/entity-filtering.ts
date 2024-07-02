@@ -10,7 +10,7 @@ import TimestampService, {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  updateLandscape(
+  triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
@@ -39,7 +39,7 @@ export default class EntityFiltering extends Component<Args> {
 
   @action
   resetToInit() {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
@@ -56,7 +56,7 @@ export default class EntityFiltering extends Component<Args> {
   }
 
   willDestroy(): void {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
