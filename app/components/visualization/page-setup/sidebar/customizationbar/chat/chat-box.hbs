@@ -1,6 +1,23 @@
 <div class="chat">
+    <div class="filter-box">
+        <BsButton {{on "click" this.toggleFilter}}>
+            {{svg-jar 'gear-16' class='octicon align-middle'}}
+        </BsButton>
+        {{#if this.isFiltering}}
+        <div class="filter-options">
+            <label for="filter-checkbox">
+                <input type="checkbox" checked={{this.isFilterEnabled}} id="filter-checkbox" {{on "change" this.toggleCheckbox}} /> Enable Filtering By
+            </label>
+            <select id="filter-by" {{on "change" this.updateFilterMode}}>
+                <option value="UserId">UserId</option>
+                <option value="Events">Events</option>
+            </select>
+            <input type="text" id="filter-value" class="filter-input" {{on "input" this.updateFilterValue}} value={{this.filterValue}}>
+        </div>
+        {{/if}}
+    </div>
     <ul class="chat-thread">
-        {{#each this.chatService.chatMessages as |message|}}
+        {{#each this.filteredMessages as |message|}}
         {{this.postMessage message}}
         {{/each}}
     </ul>
@@ -14,3 +31,5 @@
     </div>
 </div>
 <div class="bg"></div>
+
+
