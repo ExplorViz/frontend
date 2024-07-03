@@ -5,8 +5,10 @@ import collaborationSession from 'explorviz-frontend/services/collaboration-sess
 import * as THREE from 'three';
 
 interface ChatMessage {
+  msgId: number;
   userName: string;
   userColor: THREE.Color;
+  timestamp: string;
   message: string;
 }
 
@@ -16,13 +18,10 @@ export default class ChatService extends Service {
   userIdMuteList?: string[];
 
   @tracked
-  private chatMessagesByUser = new Map<string, string[]>;
+  chatMessages: ChatMessage[] = [];
 
-  @tracked
-  private chatMessageByEvents: string[] = [];
-
-  @tracked
-  private chatMessages: ChatMessage[] = [];
+  @tracked 
+  filteredChatMessages: ChatMessage[] = [];
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
@@ -30,51 +29,68 @@ export default class ChatService extends Service {
   @service('collaboration-session')
   collaborationSession!: collaborationSession;
 
-
-  getChatMessagesByUserId(userId: string) {
-    if(this.chatMessagesByUser.has(userId)) {
-      return this.chatMessagesByUser.get(userId);
-    } else {
-      return [];
-    }
-  }
+  @tracked
+  msgId: number = 1;
 
   addChatMessage(userId: string, msg: string) {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     const userName = user?.userName || 'You';
     const userColor = user?.color || new THREE.Color(0,0,0);
+    const timestamp = this.getTime();
     
-    const chatMessage: ChatMessage = { userName, userColor, message: msg };
+    const chatMessage: ChatMessage = {
+      msgId: this.msgId++,
+      userName, userColor,
+      timestamp,
+      message: msg
+    };
+
     this.chatMessages = [...this.chatMessages, chatMessage];
-    //this.chatMessagesByUser.set(userId, [...this.getChatMessagesByUserId(userId) as [], msg]);
-    /* TODO: User or Event message?
-    if(user msg) {
-      this.chatMessagesByUser.set(userId, ..)
-    } else {
-      this.chatMessagesByEvents.set(userId, ..)
-    }
-    */
+    this.applyCurrentFilter();
   }
 
-  removeChatMessage(userId: string, msg: string) {
+  removeChatMessage(messageId: number) {
+    this.chatMessages = this.chatMessages.filter(msg => msg.msgId !== messageId);
+    //this.updateFilteredMessages();
   }
 
   muteUserById(userId: string) {
-    // this.userIdMuteList?.
+
   }
 
   unmuteUserById(userId: string) {
-    // this.userIdMuteList?.remove(userId);
+
   }
 
-  filterChat(filterMode: string) {
-    /* TODO: Filter by UserId, by Users, by Events
-    if(filterMode == 'Events') {
+  filterChat(filterMode: string, filterValue: string) {
+    this.applyCurrentFilter(filterMode, filterValue);
+  }
 
+  clearFilter() {
+    this.filteredChatMessages = this.chatMessages;
+  }
+
+  private applyCurrentFilter(filterMode: string = '', filterValue: string = '') {
+    if (!filterMode || !filterValue) {
+      this.filteredChatMessages = this.chatMessages;
     } else {
-
+      switch (filterMode) {
+        case 'UserId':
+          this.filteredChatMessages = this.chatMessages.filter(msg => msg.userName === filterValue);
+          break;
+        case 'Events':
+          // TODO: Implement event filtering logic here
+          break;
+        default:
+          this.filteredChatMessages = this.chatMessages;
+      }
     }
-    */
+  }
+
+  private getTime() {
+    const h = new Date().getHours();
+    const m = new Date().getMinutes();
+    return `${h}:${m < 10 ? '0' + m : m}`;
   }
 }
 
