@@ -1,6 +1,7 @@
 #token-selection-table {
   min-width: 400px;
   width: auto;
+  font-weight: 500;
 }
 
 #token-selection-table > tbody > tr:hover {
@@ -47,4 +48,14 @@
   > li:last-child {
     margin-right: 0;
   }
+}
+
+
+@media only screen and (max-width: 600px) {
+.token-header-row,
+.token-timestamp-cell,
+.token-button-cell,
+#landscape-selection-header {
+  display: none !important;
+}
 }
