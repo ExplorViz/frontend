@@ -172,10 +172,11 @@ export default class RenderingLoop {
 
     let newPos = new THREE.Vector3();
 
-    newPos = minimapRaycasting.raycastToGround(this.camera);
+    this.localUser.
     // Visualiziation of Minimapraycast
-    // let sphere = new THREE.Mesh();
-    // this.scene.add(sphere);
+    let sphere = new THREE.Mesh();
+    [newPos,sphere] = minimapRaycasting.raycastToGround(this.camera, this.renderer.domElement);
+    this.scene.add(sphere);
 
     this.localUser.minimapCamera.position.set(newPos.x, 1, newPos.z);
 

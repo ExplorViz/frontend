@@ -348,7 +348,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.minimapCamera.layers.enable(1); //foundation layer
     this.localUser.minimapCamera.layers.enable(2); //component layer
     // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
-    //this.localUser.minimapCamera.layers.enable(4);  //communication layer
+    this.localUser.minimapCamera.layers.enable(4);  //communication layer
     this.localUser.minimapCamera.layers.enable(5); //ping layer
     this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
 

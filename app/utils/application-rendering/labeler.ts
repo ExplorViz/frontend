@@ -118,9 +118,9 @@ export function addBoxTextLabel(
   );
   labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
 
-  if (boxMesh instanceof FoundationMesh) {
-    labelMesh.layers.set(5);
-  }
+  // if (boxMesh instanceof FoundationMesh) {
+  //   labelMesh.layers.enable(5);
+  // }
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);
 
