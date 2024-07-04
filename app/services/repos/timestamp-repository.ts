@@ -3,6 +3,7 @@ import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { tracked } from '@glimmer/tracking';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines
@@ -13,78 +14,51 @@ import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp'
 export default class TimestampRepository extends Service.extend(Evented) {
   debug = debugLogger('TimestampRepository');
 
-  private timelineTimestamps: Map<string, Map<number, Timestamp>> = new Map();
+  @tracked
+  timestamps: Map<number, Timestamp> = new Map();
 
-  getNextTimestampOrLatest(
-    landscapeToken: string,
-    epochMilli: number
-  ): Timestamp | undefined {
-    const timestampsForLandscapetoken =
-      this.timelineTimestamps.get(landscapeToken);
-    if (timestampsForLandscapetoken) {
+  getNextTimestampOrLatest(epochMilli: number): Timestamp | undefined {
+    if (this.timestamps) {
       let isNextTimestamp: boolean = false;
-      for (const [, value] of timestampsForLandscapetoken.entries()) {
+      for (const [, value] of this.timestamps.entries()) {
         if (isNextTimestamp) {
           return value;
         } else if (epochMilli === value.epochMilli) {
           isNextTimestamp = true;
         }
       }
-      const values = [...timestampsForLandscapetoken.values()];
+      const values = [...this.timestamps.values()];
       return values[values.length - 1];
     }
     return undefined;
   }
 
-  getTimestamps(landscapeToken: string): Timestamp[] {
-    const timestampsForLandscapetoken =
-      this.timelineTimestamps.get(landscapeToken);
-    if (timestampsForLandscapetoken) {
-      return [...timestampsForLandscapetoken.values()];
-    } else {
-      return [];
-    }
-  }
-
-  getLatestTimestamp(landscapeToken: string) {
-    const timestamps = this.getTimestamps(landscapeToken);
-    if (timestamps) {
-      const timestampSetAsArray = [...timestamps];
+  getLatestTimestamp() {
+    if (this.timestamps) {
+      const timestampSetAsArray = [...this.timestamps.values()];
       return timestampSetAsArray[timestampSetAsArray.length - 1];
     }
 
     return undefined;
   }
 
-  addTimestamps(landscapeToken: string, timestamps: Timestamp[]) {
+  addTimestamps(timestamps: Timestamp[]) {
     for (const timestamp of timestamps) {
-      this.addTimestamp(landscapeToken, timestamp);
+      this.addTimestamp(timestamp);
     }
-    if (timestamps) {
-      this.timelineTimestamps = new Map(
-        [...this.timelineTimestamps.entries()].sort()
-      );
+    if (timestamps.length) {
+      this.timestamps = new Map([...this.timestamps.entries()].sort());
     }
   }
 
-  private addTimestamp(landscapeToken: string, timestamp: Timestamp) {
-    const timestamps = this.timelineTimestamps.get(landscapeToken);
-
-    if (timestamps) {
-      timestamps.set(timestamp.epochMilli, timestamp);
+  private addTimestamp(timestamp: Timestamp) {
+    if (this.timestamps) {
+      this.timestamps.set(timestamp.epochMilli, timestamp);
     } else {
       const newTimestampMap = new Map<number, Timestamp>();
       newTimestampMap.set(timestamp.epochMilli, timestamp);
-      this.timelineTimestamps.set(landscapeToken, newTimestampMap);
+      this.timestamps = newTimestampMap;
     }
-  }
-
-  /**
-   * Triggers the 'updated' event in the timeline for updating the chart
-   * @method triggerTimelineUpdate
-   */
-  triggerTimelineUpdate() {
-    this.trigger('updated');
   }
 }
 
