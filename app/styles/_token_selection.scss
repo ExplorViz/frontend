@@ -52,23 +52,10 @@
 
 
 @media only screen and (max-width: 600px) {
-
-  .token-header-row, .token-button-cell, #landscape-selection-header {
-    display: none !important;
-  }
-
-  .token-selection-row {
-    margin-bottom: 3rem;
-  }
-
-  .token-selection-row td {
-    display: block;
-    text-align: right;
-  }
-
-  .token-selection-row td::before {
-    content: attr(data-label);
-    float: left;
-    font-weight: bold;
-  }
+.token-header-row,
+.token-timestamp-cell,
+.token-button-cell,
+#landscape-selection-header {
+  display: none !important;
+}
 }

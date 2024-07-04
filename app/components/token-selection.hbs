@@ -13,12 +13,24 @@
     }}
       <tr class='token-selection-row' {{on 'click' (fn @selectToken token)}}>
         <td data-label='Alias'>{{token.alias}}</td>
-        <td data-label='Created'>{{timestamp-to-date
+        <td class='token-timestamp-cell'>{{timestamp-to-date
             token.created
             'localString'
           }}</td>
         <td class='token-button-cell'>
           <ul class='token-selection-icons'>
+            <li>
+              <button
+                class='button-svg-with-hover'
+                type='button'
+                {{on 'click' (fn @selectToken token)}}
+              >
+                {{svg-jar 'eye-16' class='octicon align-middle'}}
+                <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                  Go to Landscape
+                </BsTooltip>
+              </button>
+            </li>
             <li>
               <AdditionalTokenInfo @token={{token}} />
             </li>
