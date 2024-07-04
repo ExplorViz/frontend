@@ -27,6 +27,7 @@ import {
   ObjectClosedResponse,
   isObjectClosedResponse,
 } from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+import LocalUser from 'collaboration/services/local-user';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('extended-reality@vr-asset-repo')
@@ -37,6 +38,9 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('collaboration-session')
   private collaborationSession!: CollaborationSession;
+
+  @service('local-user')
+  localUser!: LocalUser;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
@@ -114,8 +118,7 @@ export default class DetachedMenuGroupsService extends Service {
         onResponse: (response: MenuDetachedResponse) => {
           const menuId = response.objectId;
           if (menuId) {
-            const color = this.collaborationSession.getColor('');
-            icon.material.color = new THREE.Color(color);
+            icon.material.color = this.localUser.color;
             menuGroup.menuId = menuId;
             if (menuId) this.detachedMenuGroupsById.set(menuId, menuGroup);
             return true;
@@ -170,7 +173,7 @@ export default class DetachedMenuGroupsService extends Service {
 
     let color = 'white';
     if (userId) {
-      color = this.collaborationSession.getColor(userId);
+      color = this.collaborationSession.getCssColor(userId);
     }
     // Make detached menu closable.
     // Since the menu has been scaled already and is not scaled when it has its
@@ -189,9 +192,7 @@ export default class DetachedMenuGroupsService extends Service {
         onAction: () => {
           this.heatmapConf.toggleShared();
           if (this.heatmapConf.heatmapShared) {
-            shareIcon.material.color = new THREE.Color(
-              this.collaborationSession.getColor('')
-            );
+            shareIcon.material.color = this.localUser.color;
           } else {
             shareIcon.material.color = new THREE.Color('white');
           }
@@ -228,7 +229,7 @@ export default class DetachedMenuGroupsService extends Service {
       // shareIcon.position.y -= 0.04;
       shareIcon.position.x -= 0.15;
 
-      color = this.collaborationSession.getColor('');
+      color = this.collaborationSession.getCssColor('');
       // highlight icon
       const highlightIcon = new ActionIcon({
         textures: this.assetRepo.paintbrushIconTextures,

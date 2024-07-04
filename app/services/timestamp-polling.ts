@@ -19,7 +19,7 @@ export default class TimestampPollingService extends Service {
   timestampRepo!: TimestampRepository;
 
   private timer: NodeJS.Timeout | null = null;
-  private debug = debugLogger();
+  private debug = debugLogger('TimestampPollingService');
 
   async initTimestampPollingWithCallback(
     callback: (timestamps: Timestamp[]) => void
@@ -48,23 +48,22 @@ export default class TimestampPollingService extends Service {
   }
 
   private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
-    // check if we already have a timestamp that acts as base point
+    // Check if we already have a timestamp that acts as base point
     const landscapeToken = this.tokenService.token?.value;
 
     if (!landscapeToken) {
-      console.log('No landscape token.');
+      console.error('No landscape token to pull timestamps.');
       return;
     }
 
-    const newestLocalTimestamp =
-      this.timestampRepo.getLatestTimestamp(landscapeToken);
+    const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp();
 
     const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
 
     timestampPromise
       .then((timestamps: Timestamp[]) => callback(timestamps))
       .catch((error: Error) => {
-        console.log(error);
+        console.error(`Error on fetch of timestamps: ${error}`);
       });
   }
 

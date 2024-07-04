@@ -10,7 +10,10 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -240,10 +243,12 @@ export default class LocalUser extends Service.extend({
     if (parentObj) {
       parentObj.worldToLocal(pingPosition);
 
-      this.applicationRenderer.openParents(
-        obj as EntityMesh,
-        (parentObj as ApplicationObject3D).data.application.id
-      );
+      if (isEntityMesh(obj) && parentObj instanceof ApplicationObject3D) {
+        this.applicationRenderer.openParents(
+          obj as EntityMesh,
+          (parentObj as ApplicationObject3D).data.application.id
+        );
+      }
 
       this.mousePing.ping.perform({
         parentObj,

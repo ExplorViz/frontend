@@ -27,7 +27,7 @@ export default class VisualizationRoute extends BaseRoute {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  debug = debugLogger();
+  debug = debugLogger('VisualizationRoute');
 
   async beforeModel() {
     if (this.landscapeToken.token === null) {
@@ -76,18 +76,6 @@ export default class VisualizationRoute extends BaseRoute {
       return true;
     }
     return super.error(error);
-  }
-
-  // @Override
-  setupController(
-    controller: VisualizationController,
-    model: any,
-    transition: any
-  ) {
-    // Call _super for default behavior
-    super.setupController(controller, model, transition);
-
-    controller.initRendering();
   }
 
   // @Override Ember-Hook

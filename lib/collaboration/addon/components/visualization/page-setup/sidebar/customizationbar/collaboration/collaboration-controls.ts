@@ -80,7 +80,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     if (this.localUser.color) {
       users.push({
         name: `${this.localUser.userName} (you)`,
-        style: `color:#${this.localUser.color.getHexString()}`,
+        style: `color: ${this.localUser.color.getStyle()}`,
         isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
@@ -91,10 +91,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     ).map((user) => {
       const isSpectatedByUs =
         this.spectateUserService.spectatedUser?.userId === user.userId;
+
       return {
         remoteUserId: user.userId,
         name: user.userName,
-        style: `color:#${user.color.getHexString()}`,
+        style: `color: ${user.color.getStyle()}`,
         isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,
@@ -180,7 +181,10 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
     // this.tokenService.setToken(event.target.value);
     this.router.transitionTo('visualization', {
-      queryParams: { landscapeToken: event.target.value },
+      queryParams: {
+        landscapeToken: event.target.value,
+        deviceId: this.deviceId,
+      },
     });
     this.sender.sendChangeLandscape(event.target.value);
   }

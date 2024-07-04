@@ -80,6 +80,28 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Background',
     isColorSetting: true,
   },
+  // Control Settings
+  enableGamepadControls: {
+    value: true,
+    orderNumber: 1,
+    group: 'Controls',
+    displayName: 'Enable Gamepad Controls',
+    description: 'Toggle gamepad controls for navigation',
+    isFlagSetting: true,
+  },
+  selectedGamepadIndex: {
+    value: 0,
+    range: {
+      min: 0,
+      max: 10,
+      step: 1,
+    },
+    orderNumber: 2,
+    group: 'Controls',
+    displayName: 'Selected Gamepad Index',
+    description: 'Index of the gamepad to be used for navigation',
+    isRangeSetting: true,
+  },
   // Highlighting Settings
   applyHighlightingOnHover: {
     value: true,
@@ -122,13 +144,21 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'Toggle if highlighting should be kept on highlighting an unhighlighted component within the same application',
     isFlagSetting: true,
   },
-  // Hover Effect Settings
+  // Effect Settings
   enableHoverEffects: {
     value: true,
     orderNumber: 1,
-    group: 'Hover Effect',
+    group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
+    isFlagSetting: true,
+  },
+  enableAnimations: {
+    value: true,
+    orderNumber: 2,
+    group: 'Effects',
+    displayName: 'Enable Package Animations',
+    description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
   // Communication Settings

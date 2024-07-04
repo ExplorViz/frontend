@@ -16,7 +16,7 @@ import TimestampService, {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  updateLandscape(
+  triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
@@ -76,7 +76,7 @@ export default class StructureFiltering extends Component<Args> {
   @action
   updateMinMethodCount(newMinMethodCount: number) {
     this.selectedMinMethodCount = newMinMethodCount;
-    this.updateLandscape();
+    this.triggerRenderingForGivenLandscapeData();
   }
 
   //#endregion template actions
@@ -98,7 +98,7 @@ export default class StructureFiltering extends Component<Args> {
       this.initialClasses.length;
   }
 
-  private updateLandscape() {
+  private triggerRenderingForGivenLandscapeData() {
     let numFilter = 0;
 
     // hide all classes that have a strict lower method count than selected
@@ -143,7 +143,7 @@ export default class StructureFiltering extends Component<Args> {
 
     classes = [];
 
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       deepCopyStructure,
       this.args.landscapeData.dynamicLandscapeData
     );
@@ -169,7 +169,7 @@ export default class StructureFiltering extends Component<Args> {
   }
 
   willDestroy(): void {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );

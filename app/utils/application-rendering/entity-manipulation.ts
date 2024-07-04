@@ -17,6 +17,7 @@ import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { getStoredSettings } from '../settings/local-storage-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -66,15 +67,22 @@ export function openComponentMesh(
     return;
   }
 
-  gsap.to(mesh, {
-    duration: 0.25,
-    height: 1.5,
-  });
+  const OPENED_COMPONENT_HEIGHT = 1.5;
 
-  gsap.to(mesh.position, {
-    duration: 0.25,
-    y: mesh.layout.positionY,
-  });
+  if (getStoredSettings().enableAnimations.value) {
+    gsap.to(mesh, {
+      duration: 0.25,
+      height: OPENED_COMPONENT_HEIGHT,
+    });
+
+    gsap.to(mesh.position, {
+      duration: 0.25,
+      y: mesh.layout.positionY,
+    });
+  } else {
+    mesh.height = OPENED_COMPONENT_HEIGHT;
+    mesh.position.y = mesh.layout.positionY;
+  }
 
   mesh.opened = true;
   mesh.visible = true;
@@ -114,15 +122,20 @@ export function closeComponentMesh(
     return;
   }
 
-  gsap.to(mesh, {
-    duration: 0.5,
-    height: mesh.layout.height,
-  });
+  if (getStoredSettings().enableAnimations.value) {
+    gsap.to(mesh, {
+      duration: 0.5,
+      height: mesh.layout.height,
+    });
 
-  gsap.to(mesh.position, {
-    duration: 0.5,
-    y: mesh.layout.positionY + 0.75,
-  });
+    gsap.to(mesh.position, {
+      duration: 0.5,
+      y: mesh.layout.positionY + 0.75,
+    });
+  } else {
+    mesh.height = mesh.layout.height;
+    mesh.position.y = mesh.layout.positionY + 0.75;
+  }
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);

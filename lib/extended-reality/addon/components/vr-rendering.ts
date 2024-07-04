@@ -707,9 +707,9 @@ export default class VrRendering extends Component<Args> {
     this.vrSessionActive = true;
 
     session.addEventListener('inputsourceschange', (event) => {
-      console.log(event);
+      this.debug(event);
       for (const inputSource of event.added) {
-        console.log('Input source:', inputSource);
+        this.debug('Input source:', inputSource);
       }
     });
   }
