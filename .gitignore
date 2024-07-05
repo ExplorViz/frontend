@@ -24,3 +24,6 @@
 
 # broccoli-debug
 /DEBUG/
+
+# Ignore custom pre-commit hooks
+.husky/
