@@ -131,6 +131,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   selectedApplicationId: string = '';
 
+  toggleForceAppearenceLayer: boolean = false;
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -457,7 +459,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleAltDown() {
     //Testing
-    SemanticZoomManager.instance.forceLevel(1);
+    if (this.toggleForceAppearenceLayer == true)
+      SemanticZoomManager.instance.forceLevel(0);
+    else SemanticZoomManager.instance.forceLevel(1);
+    this.toggleForceAppearenceLayer = !this.toggleForceAppearenceLayer;
     // Original
     //this.highlightingService.updateHighlightingOnHover(true);
   }

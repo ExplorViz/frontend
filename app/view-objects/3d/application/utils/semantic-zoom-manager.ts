@@ -50,28 +50,47 @@ export class Appearence {
   private handleRecipe(): boolean {
     if (this.recipe == undefined) return false;
     if (this.object3D == undefined) return false;
+    // Select between Vector add and override
+
     // Task 1 set visibility
     this.object3D.visible = this.recipe.visible;
     // Task 2 set position X
     // Task 3 set position Y
     // Task 4 set position Z
-    this.object3D.position.add(
-      new THREE.Vector3(
+
+    if (this.recipe.valuesAreAbs == false) {
+      this.object3D.position.add(
+        new THREE.Vector3(
+          this.recipe.positionX,
+          this.recipe.positionY,
+          this.recipe.positionZ
+        )
+      );
+    } else {
+      this.object3D.position.set(
         this.recipe.positionX,
         this.recipe.positionY,
         this.recipe.positionZ
-      )
-    );
+      );
+    }
     // Task 5 set width
     // Task 6 set height
     // Task 7 set depth
-    this.object3D.scale.add(
-      new THREE.Vector3(
+    if (this.recipe.valuesAreAbs == false) {
+      this.object3D.scale.add(
+        new THREE.Vector3(
+          this.recipe.width,
+          this.recipe.height,
+          this.recipe.depth
+        )
+      );
+    } else {
+      this.object3D.scale.set(
         this.recipe.width,
         this.recipe.height,
         this.recipe.depth
-      )
-    );
+      );
+    }
     // Task 8 set color
     // TODO Fix coloring Problem
     if (this.recipe.colorchange == true)
@@ -95,11 +114,31 @@ export class Recipe {
   colorchange: boolean = false;
   color: THREE.Color;
   radius: number = 0;
+  valuesAreAbs: boolean = false;
 
   constructor() {
     this.color = new THREE.Color(0xffffff); // Use hexadecimal value
   }
 
+  public static generateFromMesh(mesh: Mesh): Recipe {
+    mesh.visible;
+    return new Recipe()
+      .setAbsValues(true)
+      .setVisible(mesh.visible)
+      .setPositionX(mesh.position.x)
+      .setPositionY(mesh.position.y)
+      .setPositionZ(mesh.position.z)
+      .setWidth(mesh.scale.x)
+      .setHeight(mesh.scale.y)
+      .setDepth(mesh.scale.z);
+    //.setColor(mesh.material.color)
+    //.setRadius(0)
+  }
+
+  setAbsValues(v: boolean) {
+    this.valuesAreAbs = v;
+    return this;
+  }
   setVisible(visible: boolean): this {
     this.visible = visible;
     return this;

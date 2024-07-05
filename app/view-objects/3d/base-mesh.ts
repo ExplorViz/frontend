@@ -5,6 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import {
   SemanticZoomableObject,
   Appearence,
+  Recipe,
 } from './application/utils/semantic-zoom-manager';
 
 export default abstract class BaseMesh<
@@ -29,6 +30,8 @@ export default abstract class BaseMesh<
 
   appearencesMap: Map<number, Appearence> = new Map();
 
+  originalAppearence: Recipe | undefined = undefined;
+
   constructor(
     defaultColor: THREE.Color = new THREE.Color(),
     highlightingColor = new THREE.Color('red'),
@@ -42,6 +45,14 @@ export default abstract class BaseMesh<
   showAppearence(i: number): boolean {
     if (i == 0) {
       // return to default look
+      const tmpAppearence = new Appearence();
+      if (this.originalAppearence == undefined) return false;
+      tmpAppearence.setRecipe(this.originalAppearence);
+      tmpAppearence.setObject3D(this);
+      tmpAppearence.activate();
+    } else if (this.originalAppearence == undefined) {
+      // Save Orignal Once
+      this.originalAppearence = Recipe.generateFromMesh(this);
     }
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
