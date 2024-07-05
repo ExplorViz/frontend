@@ -45,6 +45,7 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -444,6 +445,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
+    SemanticZoomManager.instance.logCurrentState();
     // nothing to do atm
   }
 
@@ -454,7 +456,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleAltDown() {
-    this.highlightingService.updateHighlightingOnHover(true);
+    //Testing
+    SemanticZoomManager.instance.forceLevel(1);
+    // Original
+    //this.highlightingService.updateHighlightingOnHover(true);
   }
 
   @action

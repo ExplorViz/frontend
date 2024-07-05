@@ -7,6 +7,10 @@ import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import SemanticZoomManager, {
+  Appearence,
+  Recipe,
+} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -31,6 +35,7 @@ export function addMeshToApplication(
 
   mesh.position.copy(centerPoint);
   applicationObject3D.add(mesh);
+  SemanticZoomManager.instance.add(mesh);
 }
 
 /**
@@ -93,6 +98,13 @@ export function addComponentAndChildrenToScene(
     color,
     highlightedEntityColor
   );
+  const recipe = new Recipe();
+  //recipe.setColor(new THREE.Color(255, 0, 0));
+  recipe.setPositionY(2);
+  const appearenceForOne = new Appearence();
+  appearenceForOne.setRecipe(recipe);
+
+  mesh.setAppearence(1, appearenceForOne);
 
   addMeshToApplication(mesh, applicationObject3D);
   updateMeshVisiblity(mesh, applicationObject3D);

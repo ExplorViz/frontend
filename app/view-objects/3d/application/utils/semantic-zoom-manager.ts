@@ -1,39 +1,38 @@
-import THREE, { Mesh, Object3D } from 'three'
-
+import debugLogger from 'ember-debug-logger';
+import * as THREE from 'three';
+import { Mesh } from 'three';
 
 export interface SemanticZoomableObject {
-  // number i is == 0 if not shown
+  appearenceLevel: number;
+  // number i is == 0 default appearence
   //              > 0 if appearence selected
-  //              < 0 Ignored
-  showAppearence(i: number): boolean
-  getCurrentAppearenceLevel(): number
-  setAppearence(i: number, ap: Appearence, thismesh: Mesh): void
-  getNumberOfLevels(): number
-
+  //              < 0 hide all and itsself
+  appearencesMap: Map<number, Appearence>;
+  showAppearence(i: number): boolean;
+  getCurrentAppearenceLevel(): number;
+  setAppearence(i: number, ap: Appearence): void;
+  getNumberOfLevels(): number;
 }
 
-class Appearence {
-
+export class Appearence {
   // is like a recipe to tell the original/base 3d Object how to change
 
   // is the Appearence currently active.
   activated: boolean = false;
   // triggered when `activate` gets called
-  callbackFunction: ((currentMesh: Mesh|undefined) => void) = (() => { });
+  callbackFunction: (currentMesh: Mesh | undefined) => void = () => {};
   recipe: Recipe | undefined;
   object3D: Mesh | undefined;
 
-
-  constructor(object3D: Mesh);
-  constructor(object3D: Mesh,rec?: Recipe) {
-    this.object3D = object3D
+  constructor();
+  constructor(rec?: Recipe) {
     this.recipe = rec;
   }
   public activate(): boolean {
     this.callbackFunction(this.object3D);
-    this.handleRecipe()
+    const success = this.handleRecipe();
     this.activated = true;
-    return false;
+    return success;
   }
   public deactivate(): boolean {
     this.activated = false;
@@ -49,11 +48,10 @@ class Appearence {
     this.object3D = obj3d;
   }
   private handleRecipe(): boolean {
-
     if (this.recipe == undefined) return false;
     if (this.object3D == undefined) return false;
     // Task 1 set visibility
-    this.object3D.visible = this.recipe.visible
+    this.object3D.visible = this.recipe.visible;
     // Task 2 set position X
     // Task 3 set position Y
     // Task 4 set position Z
@@ -63,7 +61,7 @@ class Appearence {
         this.recipe.positionY,
         this.recipe.positionZ
       )
-    )
+    );
     // Task 5 set width
     // Task 6 set height
     // Task 7 set depth
@@ -76,25 +74,31 @@ class Appearence {
     );
     // Task 8 set color
     // TODO Fix coloring Problem
-    //this.object3D.material.color.set(this.recipe.color);
+    if (this.recipe.colorchange == true)
+      //this.object3D.material.color.set(this.recipe.color);
+      console.log('We colored!!');
     // Task 9 set radius
     // TODO Only for Circles
-
 
     return true;
   }
 }
-class Recipe {
+export class Recipe {
   // All Numbers are deltas and not absolute values.
-  visible: boolean = true
-  positionX: number | undefined = undefined
-  positionY: number | undefined = undefined
-  positionZ: number | undefined = undefined
-  width: number | undefined = undefined
-  height: number | undefined = undefined
-  depth: number | undefined = undefined
-  color: THREE.Color | undefined = undefined
-  radius: number | undefined = undefined
+  visible: boolean = true;
+  positionX: number = 0;
+  positionY: number = 0;
+  positionZ: number = 0;
+  width: number = 0;
+  height: number = 0;
+  depth: number = 0;
+  colorchange: boolean = false;
+  color: THREE.Color;
+  radius: number = 0;
+
+  constructor() {
+    this.color = new THREE.Color(0xffffff); // Use hexadecimal value
+  }
 
   setVisible(visible: boolean): this {
     this.visible = visible;
@@ -132,6 +136,7 @@ class Recipe {
   }
 
   setColor(color: THREE.Color): this {
+    this.colorchange = true;
     this.color = color;
     return this;
   }
@@ -140,22 +145,52 @@ class Recipe {
     this.radius = radius;
     return this;
   }
-
 }
 
-class AppearenceExtension extends Appearence {
+export class AppearenceExtension extends Appearence {
   objects3D: Array<Mesh> = new Array();
   // can be used to add further Objects to the appearence level of a `SemanticZoomableObject`
 }
 
-
 export default class SemanticZoomManager {
-
+  /**
+   * Is a Singleton
+   * Has a List of all Objects3D types
+   */
   zoomableObjects: Array<SemanticZoomableObject> = new Array();
+  clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
+  clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
 
+  static #instance: SemanticZoomManager;
 
-  constructor(){}
+  debug = debugLogger('SemanticZoomManager');
 
-  
+  /**
+   *
+   */
+  constructor() {}
 
+  public static get instance(): SemanticZoomManager {
+    if (!SemanticZoomManager.#instance) {
+      SemanticZoomManager.#instance = new SemanticZoomManager();
+    }
+
+    return SemanticZoomManager.#instance;
+  }
+
+  public add(obj3d: SemanticZoomableObject) {
+    this.zoomableObjects.push(obj3d);
+  }
+  public logCurrentState() {
+    this.debug(
+      `Current State:\nNumber of Elements in Store: ${this.zoomableObjects.length}`
+    );
+  }
+
+  public forceLevel(level: number) {
+    this.zoomableObjects.forEach((element) => {
+      //element.
+      element.showAppearence(level);
+    });
+  }
 }

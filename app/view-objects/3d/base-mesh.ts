@@ -2,11 +2,18 @@ import * as THREE from 'three';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { tracked } from '@glimmer/tracking';
+import {
+  SemanticZoomableObject,
+  Appearence,
+} from './application/utils/semantic-zoom-manager';
 
 export default abstract class BaseMesh<
-  TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
-> extends THREE.Mesh<TGeometry, TMaterial> {
+    TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
+    TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
+  >
+  extends THREE.Mesh<TGeometry, TMaterial>
+  implements SemanticZoomableObject
+{
   @tracked
   highlighted: boolean = false;
 
@@ -18,6 +25,10 @@ export default abstract class BaseMesh<
 
   isHovered = false;
 
+  appearenceLevel: number = 0;
+
+  appearencesMap: Map<number, Appearence> = new Map();
+
   constructor(
     defaultColor: THREE.Color = new THREE.Color(),
     highlightingColor = new THREE.Color('red'),
@@ -27,6 +38,26 @@ export default abstract class BaseMesh<
     this.defaultColor = defaultColor;
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
+  }
+  showAppearence(i: number): boolean {
+    if (i == 0) {
+      // return to default look
+    }
+    const targetAppearence = this.appearencesMap.get(i);
+    if (targetAppearence == undefined) return false;
+    targetAppearence.activate();
+    this.appearenceLevel = i;
+    return true;
+  }
+  getCurrentAppearenceLevel(): number {
+    return this.appearenceLevel;
+  }
+  setAppearence(i: number, ap: Appearence): void {
+    ap.setObject3D(this);
+    this.appearencesMap.set(i, ap);
+  }
+  getNumberOfLevels(): number {
+    return Array.from(this.appearencesMap.keys()).length;
   }
 
   changeTexture(texturePath: string, repeat: number = 5) {
