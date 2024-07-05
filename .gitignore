@@ -26,4 +26,4 @@
 /DEBUG/
 
 # Ignore custom pre-commit hooks
-.husky/
+.husky/*
