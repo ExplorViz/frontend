@@ -17,15 +17,24 @@ $chat-thread-offset:           #{$chat-thread-avatar-size + 30px};
 }
 
 .chat-thread li {
-	position: relative;
-	clear: both;
-	display: inline-block;
-	padding: 16px 40px 16px 20px;
-	margin: 0 0 20px 0;
-	font: 16px/20px 'Noto Sans', sans-serif;
-	border-radius: 10px;
-	background-color: $chat-thread-bgd-color;
-  overflow-x: hidden;
+    position: relative;
+    clear: both;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+    margin: 0 0 20px 0;
+    font: 16px/20px 'Noto Sans', sans-serif;
+    border-radius: 10px;
+    background-color: $chat-thread-bgd-color;
+    overflow-x: hidden;
+}
+
+.chat-timestamp {
+    font-size: 0.75em;
+    color: #888;
+    align-self: flex-end;
+    margin-left: 10px;
 }
 
 .chat-window {
@@ -85,4 +94,13 @@ $chat-thread-offset:           #{$chat-thread-avatar-size + 30px};
 
 .btn-chat:hover {
   background-color: #6c757d !important;
+}
+
+.radio-buttons-chat {
+    display: flex;
+    flex-direction: column;
+}
+
+.radio-buttons-chat label {
+    margin: 5px 0;
 }
