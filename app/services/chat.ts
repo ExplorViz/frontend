@@ -79,7 +79,7 @@ export default class ChatService extends Service {
     } else {
       switch (filterMode) {
         case 'UserId':
-          this.filteredChatMessages = this.chatMessages.filter(msg => msg.userName === filterValue);
+          this.filteredChatMessages = this.chatMessages.filter(msg => msg.userName + "(" + msg.userId + ")" === filterValue);
           break;
         case 'Events':
           // TODO: Implement event filtering logic here
