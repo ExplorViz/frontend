@@ -54,12 +54,18 @@ export default class ChatBox extends Component {
         const target = event.target as HTMLInputElement;
         this.isFilterEnabled = target.checked;
         if (!this.isFilterEnabled) {
-            this.filterMode = '';
-            this.filterValue = '';
+            this.filterMode = this.filterMode;
+            this.filterValue = this.filterValue;
             this.chatService.clearFilter();
         } else {
             this.applyFilter();
         }
+    }
+
+    @action
+    setFilterMode(mode: string) {
+        this.filterMode = mode;
+        this.applyFilter();
     }
 
     @action
@@ -108,7 +114,7 @@ export default class ChatBox extends Component {
 
     @action
     postMessage(chatMessage: {msgId: number, userId: string, userName: string, userColor: THREE.Color, timestamp: string, message: string}) {
-        const chatThreadClass = this.isFilterEnabled && chatMessage.userName === this.filterValue && this.filterMode !== 'Events' ? '.chat-thread.filtered' : '.chat-thread.normal'; //Change userName filter on filter update
+        const chatThreadClass = this.isFilterEnabled && chatMessage.userName + "(" + chatMessage.userId + ")" === this.filterValue && this.filterMode !== 'Events' ? '.chat-thread.filtered' : '.chat-thread.normal';
         const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
         if (chatThread) {
             const messageContainer = document.createElement('div');
@@ -116,7 +122,7 @@ export default class ChatBox extends Component {
             chatThread.appendChild(messageContainer);
 
             const userDiv = document.createElement('div');
-            userDiv.textContent = `${chatMessage.userName} (${chatMessage.timestamp})`;
+            userDiv.textContent = chatMessage.userId !== 'unknown' ? `${chatMessage.userName}(${chatMessage.userId})` : `${chatMessage.userName}`;
             userDiv.classList.add('User');
             userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
             messageContainer.appendChild(userDiv);
@@ -127,20 +133,22 @@ export default class ChatBox extends Component {
             messageContainer.setAttribute('data-message-id', chatMessage.msgId.toString());
             messageContainer.appendChild(messageLi);
 
+            const timestampDiv = document.createElement('div');
+            timestampDiv.textContent = chatMessage.timestamp;
+            timestampDiv.classList.add('chat-timestamp');
+            messageLi.appendChild(timestampDiv);
+
             this.scrollChatToBottom();
             this.addUserToChat(chatMessage.userId, chatMessage.userName);
         }
     }
 
+    @action
     private addUserToChat(id: string, name: string) {
         const userExists = this.usersInChat.some(user => user.id === id);
-
-        //TODO: find solution for local chat messages
-        if(id === "0") {
-            name += " (local)"; // Maybe merge local 'You' with collaborative 'You' and vice versa
-        }
-
+        //TODO: maybe find solution for local chat messages (merge?)
         if (!userExists) {
+            name = name + "(" + id + ")";
             this.usersInChat.push({ id, name });
         }
     }
