@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 interface ChatMessage {
   msgId: number;
+  userId: string;
   userName: string;
   userColor: THREE.Color;
   timestamp: string;
@@ -40,7 +41,9 @@ export default class ChatService extends Service {
     
     const chatMessage: ChatMessage = {
       msgId: this.msgId++,
-      userName, userColor,
+      userId,
+      userName, 
+      userColor,
       timestamp,
       message: msg
     };
