@@ -8,6 +8,11 @@ import ChatService from 'explorviz-frontend/services/chat';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
 
+interface chatUser {
+    id: string;
+    name: string;
+}
+
 export default class ChatBox extends Component {
     @service('local-user')
     private localUser!: LocalUser;
@@ -35,6 +40,9 @@ export default class ChatBox extends Component {
 
     @tracked
     filterValue = '';
+
+    @tracked
+    usersInChat: chatUser[] = []; // TODO: synchronize with server
 
     @action
     toggleFilter() {
@@ -71,13 +79,9 @@ export default class ChatBox extends Component {
     @action
     applyFilter() {
         if (this.isFilterEnabled) {
+            this.clearChat()
             this.chatService.filterChat(this.filterMode, this.filterValue);
         }
-        /*
-        for(message : this.chatService.chatMessages) {
-            
-        }
-        */
     }
 
     get filteredMessages() {
@@ -103,8 +107,9 @@ export default class ChatBox extends Component {
     }
 
     @action
-    postMessage(chatMessage: {msgId: number, userName: string, userColor: THREE.Color, timestamp: string, message: string}) {
-        const chatThread = document.querySelector('.chat-thread') as HTMLElement;
+    postMessage(chatMessage: {msgId: number, userId: string, userName: string, userColor: THREE.Color, timestamp: string, message: string}) {
+        const chatThreadClass = this.isFilterEnabled && chatMessage.userName === this.filterValue && this.filterMode !== 'Events' ? '.chat-thread.filtered' : '.chat-thread.normal'; //Change userName filter on filter update
+        const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
         if (chatThread) {
             const messageContainer = document.createElement('div');
             messageContainer.classList.add('message-container');
@@ -121,25 +126,64 @@ export default class ChatBox extends Component {
             messageLi.classList.add('Message');
             messageContainer.setAttribute('data-message-id', chatMessage.msgId.toString());
             messageContainer.appendChild(messageLi);
+
             this.scrollChatToBottom();
+            this.addUserToChat(chatMessage.userId, chatMessage.userName);
+        }
+    }
+
+    private addUserToChat(id: string, name: string) {
+        const userExists = this.usersInChat.some(user => user.id === id);
+
+        //TODO: find solution for local chat messages
+        if(id === "0") {
+            name += " (local)"; // Maybe merge local 'You' with collaborative 'You' and vice versa
+        }
+
+        if (!userExists) {
+            this.usersInChat.push({ id, name });
         }
     }
 
     @action
+    removeFilteredMessages(chatMessages: {msgId: number, userId: string, userName: string, userColor: THREE.Color, timestamp: string, message: string}[]) {
+        chatMessages.forEach(chatMessage => {this.removeMessage(chatMessage.msgId)})
+    }
+
+    @action
+    removeUserMessage(messageId: number){
+        this.chatService.removeChatMessage(messageId);
+        this.removeMessage(messageId);
+    }
+
+    @action
     removeMessage(messageId: number) {
-        //this.chatService.removeChatMessage(messageId);
-        const chatThread = document.querySelector('.chat-thread') as HTMLElement;
+        const chatThread = document.querySelector('.chat-thread.filtered') as HTMLElement;
         if (chatThread) {
-            if(!this.filteredMessages.some(message => message.msgId === messageId)) {
-                const messageToRemove = chatThread.querySelector(`li[data-message-id="${messageId}"]`);
+            if(this.filteredMessages.some(message => message.msgId === messageId)) {
+                const messageToRemove = chatThread.querySelector(`.message-container[data-message-id="${messageId}"]`);
                 if (messageToRemove) {
+                    this.toastHandler.showInfoToastMessage("Found message here id: " + messageId + "msg: " + messageToRemove)
                     messageToRemove.remove();
                 }
-            } 
+            }
         }
     }
 
-    scrollChatToBottom() {
+    @action
+    clearChat() {
+        const chatThread = document.querySelector('.chat-thread.filtered') as HTMLElement;
+        if (chatThread) {
+            this.chatService.filteredChatMessages.forEach(chatMessage => {
+                const messageToRemove = chatThread.querySelector(`.message-container[data-message-id="${chatMessage.msgId}"]`);
+                if (messageToRemove) {
+                    messageToRemove.remove();
+                }
+            })
+        }
+    }
+
+    private scrollChatToBottom() {
         const chatThread = document.querySelector('.chat-thread') as HTMLElement;
         if(chatThread) {
             chatThread.scrollTop = chatThread.scrollHeight;

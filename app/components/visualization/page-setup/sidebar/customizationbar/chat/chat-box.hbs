@@ -8,20 +8,37 @@
             <label for="filter-checkbox">
                 <input type="checkbox" checked={{this.isFilterEnabled}} id="filter-checkbox" {{on "change" this.toggleCheckbox}} /> Enable Filtering By
             </label>
-            <select id="filter-by" {{on "change" this.updateFilterMode}}>
-                <option value="UserId">UserId</option>
+            <select id="filter-by" {{on "change" this.updateFilterMode}} selected={{this.filterMode}}>
+                <option value="UserId">User</option>
                 <option value="Events">Events</option>
             </select>
-            <input type="text" id="filter-value" class="filter-input" {{on "input" this.updateFilterValue}} value={{this.filterValue}}>
+            <input type="text" id="filter-value" class="filter-input" {{on "change" this.updateFilterValue}} value={{this.filterValue}}>
+            {{!<select id="filter-val" {{on "change" this.updateFilterValue selected={{this.filterValue>
+                {{#each this.usersInChat as |users|
+                    <option
+                    selected={{true
+                    value={{users.name
+                    >{{users.name</option>
+                {{/each
+            </select>}}
         </div>
         {{/if}}
     </div>
-    <ul class="chat-thread">
+
+    {{#if this.isFilterEnabled}}
+    <ul class="chat-thread filtered">
         {{#each this.filteredMessages as |message|}}
         {{this.postMessage message}}
         {{/each}}
     </ul>
-
+    {{else}}
+    <ul class="chat-thread normal">
+        {{#each this.chatService.chatMessages as |message|}}
+        {{this.postMessage message}}
+        {{/each}}
+    </ul>
+    {{/if}}
+    
     <div class="message-box">
         <Input
           id='texfield'
