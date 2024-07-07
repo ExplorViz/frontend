@@ -1,32 +1,46 @@
 <div class="chat">
-    <div class="filter-box">
-        <BsButton {{on "click" this.toggleFilter}}>
-            {{svg-jar 'gear-16' class='octicon align-middle'}}
-        </BsButton>
-        {{#if this.isFiltering}}
-        <div class="filter-options">
-            <label for="filter-checkbox">
-                <input type="checkbox" checked={{this.isFilterEnabled}} id="filter-checkbox" {{on "change" this.toggleCheckbox}} /> Enable Filtering By
-                    <div class="radio-buttons-chat">
-                        <label>
-                            <input type="radio" name="filter" value="UserId" checked={{eq this.filterMode "UserId"}} {{on "change" (fn this.setFilterMode "UserId")}} /> User
-                                <input type="text" id="filter-value" class="filter-input" {{on "change" this.updateFilterValue}} value={{this.filterValue}}>
-                        </label>
-                        <label>
-                            <input type="radio" name="filter" value="Events" checked={{eq this.filterMode "Events"}} {{on "change" (fn this.setFilterMode "Events")}} /> Events
-                        </label>
-                    </div>
-            </label>
-            <select id="filter-val" {{on "change" this.updateFilterValue}} selected={{this.filterValue}}>
-                {{#each this.usersInChat as |users|}}
-                    <option
-                    selected={{true}}
-                    value={{users.name}}
-                    >{{users.name}}</option>
-                {{/each}}
-            </select>
+    <div class="chat-button-area">
+        <div class="filter-box">
+            <BsButton {{on "click" this.toggleFilter}} title="Filter">
+                {{svg-jar 'gear-16' class='octicon align-middle'}}
+            </BsButton>
+            {{#if this.isFiltering}}
+            <div class="filter-options">
+                <label for="filter-checkbox">
+                    <input type="checkbox" checked={{this.isFilterEnabled}} id="filter-checkbox" {{on "change" this.toggleCheckbox}} /> Enable Filtering By
+                        <div class="radio-buttons-chat">
+                            <label>
+                                <input type="radio" name="filter" value="UserId" checked={{eq this.filterMode "UserId"}} {{on "change" (fn this.setFilterMode "UserId")}} /> User
+                                    <input type="text" id="filter-value" class="filter-input" {{on "change" this.updateFilterValue}} value={{this.filterValue}}>
+                            </label>
+                            <label>
+                                <input type="radio" name="filter" value="Events" checked={{eq this.filterMode "Events"}} {{on "change" (fn this.setFilterMode "Events")}} /> Events
+                            </label>
+                        </div>
+                </label>
+                <select id="filter-val" {{on "focus" this.updateFilterValue}} {{on "change" this.updateFilterValue}} selected={{this.filterValue}}>
+                    {{#each this.usersInChat as |users|}}
+                        <option
+                        selected={{true}}
+                        value={{users.name}}
+                        >{{users.name}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            {{/if}}
         </div>
-        {{/if}}
+        <div class="chat-right-buttons">
+            <div class="synchronize">
+                <BsButton {{on "click" this.synchronize}} title="Synchronize">
+                    {{svg-jar "sync-16" class='octicon align-middle'}}
+                </BsButton>
+            </div>
+            <div class="download">
+                <BsButton {{on "click" this.downloadChat}} title="Download">
+                    {{svg-jar "download-16" class='octicon align-middle'}}
+                </BsButton>
+            </div>
+        </div>
     </div>
 
     {{#if this.isFilterEnabled}}

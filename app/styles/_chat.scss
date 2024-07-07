@@ -37,6 +37,25 @@ $chat-thread-offset:           #{$chat-thread-avatar-size + 30px};
     margin-left: 10px;
 }
 
+.chat-button-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-box {
+    flex-grow: 1;
+}
+
+.chat-right-buttons {
+    display: flex;
+    gap: 10px; /* Abstand zwischen den Buttons */
+}
+
+.chat-synchronize, .chat-download {
+    margin-right: 10px; /* Optional: Abstand zwischen den Buttons */
+}
+
 .chat-window {
 	bottom: 18px;
 }

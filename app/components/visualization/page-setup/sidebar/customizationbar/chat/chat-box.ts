@@ -95,20 +95,43 @@ export default class ChatBox extends Component {
     }
 
     @action
+    synchronize() {
+        if(this.collaborationSession.connectionStatus == 'offline') {
+            this.toastHandler.showErrorToastMessage("Can't synchronize with server")
+            return;
+        }
+        this.clearNormalChat();
+        this.sender.sendChatSynchronize();
+    }
+
+    @action
+    downloadChat() {
+        const chatMessages = this.chatService.chatMessages;
+        const chatContent = chatMessages.map(msg => `${msg.timestamp} ${msg.userName}: ${msg.message}`).join('\n');
+        
+        const blob = new Blob([chatContent], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'chat.txt'; //TODO: Change filename to landscape token + id and date?
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    @action
     insertMessage() {
         const inputElement = document.querySelector('.message-input') as HTMLInputElement;
+        const userId = this.localUser.userId;
 
         const msg = inputElement.value.trim();
         if (msg.trim() === '') {
             return;
         }
-        
-        if(this.collaborationSession.connectionStatus == 'offline') {
-            this.chatService.addChatMessage(this.localUser.userId, msg);
-        } else {
-            this.sender.sendChatMessage(msg);
-        }
 
+        this.chatService.sendChatMessage(userId, msg);
         inputElement.value = '';
     }
 
@@ -146,7 +169,7 @@ export default class ChatBox extends Component {
     @action
     private addUserToChat(id: string, name: string) {
         const userExists = this.usersInChat.some(user => user.id === id);
-        //TODO: maybe find solution for local chat messages (merge?)
+        //TODO: find solution for local chat messages (->merge?..)
         if (!userExists) {
             name = name + "(" + id + ")";
             this.usersInChat.push({ id, name });
@@ -181,6 +204,19 @@ export default class ChatBox extends Component {
     @action
     clearChat() {
         const chatThread = document.querySelector('.chat-thread.filtered') as HTMLElement;
+        if (chatThread) {
+            this.chatService.filteredChatMessages.forEach(chatMessage => {
+                const messageToRemove = chatThread.querySelector(`.message-container[data-message-id="${chatMessage.msgId}"]`);
+                if (messageToRemove) {
+                    messageToRemove.remove();
+                }
+            })
+        }
+    }
+
+    @action
+    clearNormalChat() {
+        const chatThread = document.querySelector('.chat-thread.normal') as HTMLElement;
         if (chatThread) {
             this.chatService.filteredChatMessages.forEach(chatMessage => {
                 const messageToRemove = chatThread.querySelector(`.message-container[data-message-id="${chatMessage.msgId}"]`);
