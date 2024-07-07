@@ -2,7 +2,9 @@ export const CHAT_MESSAGE_EVENT = 'chat_message';
 
 export type ChatMessage = {
   event: typeof CHAT_MESSAGE_EVENT;
-  msg: string
+  userId: string;
+  msg: string;
+  timestamp: string
 };
 
 export function isChatMessage(
@@ -12,6 +14,8 @@ export function isChatMessage(
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === CHAT_MESSAGE_EVENT &&
-    typeof msg.msg === 'string'
+    typeof msg.userId === 'string' &&
+    typeof msg.msg === 'string' &&
+    typeof msg.timestamp === 'string'
   );
 }
