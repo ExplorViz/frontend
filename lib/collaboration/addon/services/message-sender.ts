@@ -18,6 +18,10 @@ import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/chat-message';
+import { 
+  CHAT_SYNC_EVENT,
+  ChatSynchronizeMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/chat-syncronization';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
@@ -113,10 +117,15 @@ import {
   SyncRoomStateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 export default class MessageSender extends Service {
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   /**
    * Gets the next request identifier.
@@ -580,10 +589,18 @@ export default class MessageSender extends Service {
     });
   }
 
-  sendChatMessage(msg: string) {
+  sendChatMessage(userId: string, msg: string, timestamp: string) {
     this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
       event: 'chat_message',
+      userId,
       msg,
+      timestamp
+    });
+  }
+
+  sendChatSynchronize() {
+    this.webSocket.send<ChatSynchronizeMessage>(CHAT_SYNC_EVENT, {
+      event: 'chat_synchronization',
     });
   }
 }

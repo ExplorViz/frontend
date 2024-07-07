@@ -39,7 +39,12 @@ import {
   CHAT_MESSAGE_EVENT, 
   ChatMessage 
 } from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+import { 
+  CHAT_SYNC_EVENT, 
+  ChatSynchronizeMessage 
+} from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import ChatService from 'explorviz-frontend/services/chat';
+import { time } from 'console';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -108,6 +113,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
     this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
+    this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
   }
 
   willDestroy() {
@@ -117,6 +123,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
     this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
+    this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -446,6 +453,16 @@ export default class CollaborationSession extends Service.extend({
     }
     this.chatService.addChatMessage(userId, msg);
   }
+
+  onChatSyncEvent({
+    userId,
+    originalMessage,
+  }: ForwardedMessage<ChatSynchronizeMessage[]>): void {
+    if(this.localUser.userId == userId) {
+      this.chatService.syncChatMessages(originalMessage);
+    }
+  }
+  
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
