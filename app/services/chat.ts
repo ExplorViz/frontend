@@ -2,9 +2,11 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ToastHandlerService from './toast-handler';
 import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import MessageSender from 'collaboration/services/message-sender';
+import { ChatSynchronizeMessage } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import * as THREE from 'three';
 
-interface ChatMessage {
+export interface ChatMessageInterface {
   msgId: number;
   userId: string;
   userName: string;
@@ -19,10 +21,10 @@ export default class ChatService extends Service {
   userIdMuteList?: string[];
 
   @tracked
-  chatMessages: ChatMessage[] = [];
+  chatMessages: ChatMessageInterface[] = [];
 
   @tracked 
-  filteredChatMessages: ChatMessage[] = [];
+  filteredChatMessages: ChatMessageInterface[] = [];
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
@@ -30,16 +32,28 @@ export default class ChatService extends Service {
   @service('collaboration-session')
   collaborationSession!: collaborationSession;
 
+  @service('message-sender')
+  private sender!: MessageSender;
+
   @tracked
   msgId: number = 1;
 
-  addChatMessage(userId: string, msg: string) {
+  sendChatMessage(userId: string, msg: string) {
+    if(this.collaborationSession.connectionStatus == 'offline') {
+      this.addChatMessage(userId, msg);
+    } else {
+      const timestamp = this.getTime();
+      this.sender.sendChatMessage(userId, msg, timestamp);
+    }
+  }
+
+  addChatMessage(userId: string, msg: string, tmstp: string = '') {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     const userName = user?.userName || 'You';
     const userColor = user?.color || new THREE.Color(0,0,0);
-    const timestamp = this.getTime();
+    const timestamp = tmstp === '' ? this.getTime() : tmstp;
     
-    const chatMessage: ChatMessage = {
+    const chatMessage: ChatMessageInterface = {
       msgId: this.msgId++,
       userId,
       userName, 
@@ -94,6 +108,11 @@ export default class ChatService extends Service {
     const h = new Date().getHours();
     const m = new Date().getMinutes();
     return `${h}:${m < 10 ? '0' + m : m}`;
+  }
+
+  syncChatMessages(messages: ChatSynchronizeMessage[]) {
+    this.chatMessages = [];
+    messages.forEach(msg => this.addChatMessage(msg.userId, msg.msg, msg.timestamp)) //TODO: Also save user name on server
   }
 }
 
