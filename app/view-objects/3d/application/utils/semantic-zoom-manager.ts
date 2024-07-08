@@ -68,9 +68,15 @@ export class Appearence {
       );
     } else {
       this.object3D.position.set(
-        this.recipe.positionX,
-        this.recipe.positionY,
-        this.recipe.positionZ
+        this.recipe.modifiedParams[1] == true
+          ? this.recipe.positionX
+          : this.object3D.position.x,
+        this.recipe.modifiedParams[2] == true
+          ? this.recipe.positionY
+          : this.object3D.position.y,
+        this.recipe.modifiedParams[3] == true
+          ? this.recipe.positionZ
+          : this.object3D.position.z
       );
     }
     // Task 5 set width
@@ -86,14 +92,20 @@ export class Appearence {
       );
     } else {
       this.object3D.scale.set(
-        this.recipe.width,
-        this.recipe.height,
-        this.recipe.depth
+        this.recipe.modifiedParams[4] == true
+          ? this.recipe.width
+          : this.object3D.scale.x,
+        this.recipe.modifiedParams[5] == true
+          ? this.recipe.height
+          : this.object3D.scale.y,
+        this.recipe.modifiedParams[6] == true
+          ? this.recipe.depth
+          : this.object3D.scale.z
       );
     }
     // Task 8 set color
     // TODO Fix coloring Problem
-    if (this.recipe.colorchange == true)
+    if (this.recipe.modifiedParams[7] == true)
       //this.object3D.material.color.set(this.recipe.color);
       console.log('We colored!!');
     // Task 9 set radius
@@ -104,6 +116,7 @@ export class Appearence {
 }
 export class Recipe {
   // All Numbers are deltas and not absolute values.
+  modifiedParams: Array<boolean> = [];
   visible: boolean = true;
   positionX: number = 0;
   positionY: number = 0;
@@ -111,12 +124,14 @@ export class Recipe {
   width: number = 0;
   height: number = 0;
   depth: number = 0;
-  colorchange: boolean = false;
+  //colorchange: boolean = false;
   color: THREE.Color;
   radius: number = 0;
   valuesAreAbs: boolean = false;
 
   constructor() {
+    this.modifiedParams = new Array(9);
+    this.modifiedParams.fill(false);
     this.color = new THREE.Color(0xffffff); // Use hexadecimal value
   }
 
@@ -143,47 +158,55 @@ export class Recipe {
   }
   setVisible(visible: boolean): this {
     this.visible = visible;
+    this.modifiedParams[0] = true;
     return this;
   }
 
   setPositionX(positionX: number): this {
     this.positionX = positionX;
+    this.modifiedParams[1] = true;
     return this;
   }
 
   setPositionY(positionY: number): this {
     this.positionY = positionY;
+    this.modifiedParams[2] = true;
     return this;
   }
 
   setPositionZ(positionZ: number): this {
     this.positionZ = positionZ;
+    this.modifiedParams[3] = true;
     return this;
   }
 
   setWidth(width: number): this {
     this.width = width;
+    this.modifiedParams[4] = true;
     return this;
   }
 
   setHeight(height: number): this {
     this.height = height;
+    this.modifiedParams[5] = true;
     return this;
   }
 
   setDepth(depth: number): this {
     this.depth = depth;
+    this.modifiedParams[6] = true;
     return this;
   }
 
   setColor(color: THREE.Color): this {
-    this.colorchange = true;
     this.color = color;
+    this.modifiedParams[7] = true;
     return this;
   }
 
   setRadius(radius: number): this {
     this.radius = radius;
+    this.modifiedParams[8] = true;
     return this;
   }
 }
