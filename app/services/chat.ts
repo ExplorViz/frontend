@@ -16,14 +16,13 @@ export interface ChatMessageInterface {
 }
 
 export default class ChatService extends Service {
-
   @tracked
   userIdMuteList?: string[];
 
   @tracked
   chatMessages: ChatMessageInterface[] = [];
 
-  @tracked 
+  @tracked
   filteredChatMessages: ChatMessageInterface[] = [];
 
   @service('toast-handler')
@@ -39,7 +38,7 @@ export default class ChatService extends Service {
   msgId: number = 1;
 
   sendChatMessage(userId: string, msg: string) {
-    if(this.collaborationSession.connectionStatus == 'offline') {
+    if (this.collaborationSession.connectionStatus == 'offline') {
       this.addChatMessage(userId, msg);
     } else {
       const timestamp = this.getTime();
@@ -50,16 +49,16 @@ export default class ChatService extends Service {
   addChatMessage(userId: string, msg: string, tmstp: string = '') {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
     const userName = user?.userName || 'You';
-    const userColor = user?.color || new THREE.Color(0,0,0);
+    const userColor = user?.color || new THREE.Color(0, 0, 0);
     const timestamp = tmstp === '' ? this.getTime() : tmstp;
-    
+
     const chatMessage: ChatMessageInterface = {
       msgId: this.msgId++,
       userId,
-      userName, 
+      userName,
       userColor,
       timestamp,
-      message: msg
+      message: msg,
     };
 
     this.chatMessages = [...this.chatMessages, chatMessage];
@@ -67,17 +66,15 @@ export default class ChatService extends Service {
   }
 
   removeChatMessage(messageId: number) {
-    this.chatMessages = this.chatMessages.filter(msg => msg.msgId !== messageId);
-    //this.updateFilteredMessages();
+    this.chatMessages = this.chatMessages.filter(
+      (msg) => msg.msgId !== messageId
+    );
+    //this.removeChatMessageFromServer(messageId);
   }
 
-  muteUserById(userId: string) {
+  muteUserById() {}
 
-  }
-
-  unmuteUserById(userId: string) {
-
-  }
+  unmuteUserById() {}
 
   filterChat(filterMode: string, filterValue: string) {
     this.applyCurrentFilter(filterMode, filterValue);
@@ -87,13 +84,18 @@ export default class ChatService extends Service {
     this.filteredChatMessages = this.chatMessages;
   }
 
-  private applyCurrentFilter(filterMode: string = '', filterValue: string = '') {
+  private applyCurrentFilter(
+    filterMode: string = '',
+    filterValue: string = ''
+  ) {
     if (!filterMode || !filterValue) {
       this.filteredChatMessages = this.chatMessages;
     } else {
       switch (filterMode) {
         case 'UserId':
-          this.filteredChatMessages = this.chatMessages.filter(msg => msg.userName + "(" + msg.userId + ")" === filterValue);
+          this.filteredChatMessages = this.chatMessages.filter(
+            (msg) => msg.userName + '(' + msg.userId + ')' === filterValue
+          );
           break;
         case 'Events':
           // TODO: Implement event filtering logic here
@@ -112,13 +114,15 @@ export default class ChatService extends Service {
 
   syncChatMessages(messages: ChatSynchronizeMessage[]) {
     this.chatMessages = [];
-    messages.forEach(msg => this.addChatMessage(msg.userId, msg.msg, msg.timestamp)) //TODO: Also save user name on server
+    messages.forEach((msg) =>
+      this.addChatMessage(msg.userId, msg.msg, msg.timestamp)
+    ); //TODO: Also save user name on server
   }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'chat': ChatService;
+    chat: ChatService;
   }
 }
