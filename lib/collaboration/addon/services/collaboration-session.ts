@@ -35,16 +35,15 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import {  
-  CHAT_MESSAGE_EVENT, 
-  ChatMessage 
+import {
+  CHAT_MESSAGE_EVENT,
+  ChatMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/chat-message';
-import { 
-  CHAT_SYNC_EVENT, 
-  ChatSynchronizeMessage 
+import {
+  CHAT_SYNC_EVENT,
+  ChatSynchronizeMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import ChatService from 'explorviz-frontend/services/chat';
-import { time } from 'console';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -446,9 +445,9 @@ export default class CollaborationSession extends Service.extend({
 
   onChatMessageEvent({
     userId,
-    originalMessage: { msg } ,
+    originalMessage: { msg },
   }: ForwardedMessage<ChatMessage>) {
-    if(this.localUser.userId != userId) {
+    if (this.localUser.userId != userId) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
     this.chatService.addChatMessage(userId, msg);
@@ -458,11 +457,10 @@ export default class CollaborationSession extends Service.extend({
     userId,
     originalMessage,
   }: ForwardedMessage<ChatSynchronizeMessage[]>): void {
-    if(this.localUser.userId == userId) {
+    if (this.localUser.userId == userId) {
       this.chatService.syncChatMessages(originalMessage);
     }
   }
-  
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

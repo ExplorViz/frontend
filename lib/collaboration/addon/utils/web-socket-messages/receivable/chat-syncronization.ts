@@ -7,9 +7,7 @@ export type ChatSynchronizeMessage = {
   timestamp: string;
 };
 
-export function isChatSyncMessage(
-  msg: any
-): msg is ChatSynchronizeMessage {
+export function isChatSyncMessage(msg: any): msg is ChatSynchronizeMessage {
   return (
     msg !== null &&
     typeof msg === 'object' &&

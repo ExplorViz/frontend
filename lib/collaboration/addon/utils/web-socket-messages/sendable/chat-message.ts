@@ -4,12 +4,10 @@ export type ChatMessage = {
   event: typeof CHAT_MESSAGE_EVENT;
   userId: string;
   msg: string;
-  timestamp: string
+  timestamp: string;
 };
 
-export function isChatMessage(
-  msg: any
-): msg is ChatMessage {
+export function isChatMessage(msg: any): msg is ChatMessage {
   return (
     msg !== null &&
     typeof msg === 'object' &&

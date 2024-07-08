@@ -18,7 +18,7 @@ import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/chat-message';
-import { 
+import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/chat-syncronization';
@@ -123,7 +123,6 @@ export default class MessageSender extends Service {
   @service('web-socket')
   private webSocket!: WebSocketService;
 
-  
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
@@ -594,7 +593,7 @@ export default class MessageSender extends Service {
       event: 'chat_message',
       userId,
       msg,
-      timestamp
+      timestamp,
     });
   }
 
