@@ -13,6 +13,7 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -24,14 +25,14 @@ export default class ApplicationObject3D extends THREE.Object3D {
   /**
    * The underlying application data model
    */
-  data: ApplicationData;
+  dataModel: ApplicationData;
 
   boxLayoutMap: Map<string, BoxLayout>;
 
   /**
    * Map to store all box shaped meshes (i.e., Clazz, Component, Foundation)
    */
-  modelIdToMesh: Map<string, BaseMesh> = new Map();
+  modelIdToMesh: Map<string, EntityMesh> = new Map();
 
   /**
    * Map to store all ClazzCommunicationMeshes
@@ -55,12 +56,12 @@ export default class ApplicationObject3D extends THREE.Object3D {
   constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
     super();
 
-    this.data = data;
+    this.dataModel = data;
     this.boxLayoutMap = boxLayoutMap;
   }
 
   get layout() {
-    const layout = this.getBoxLayout(this.data.application.id);
+    const layout = this.getBoxLayout(this.dataModel.getId());
     if (layout) {
       return layout;
     }
@@ -174,7 +175,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   getModelId() {
-    return this.data.application.id;
+    return this.dataModel.getId();
   }
 
   /**
@@ -221,7 +222,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
   }
 
   get foundationMesh() {
-    return this.getBoxMeshbyModelId(this.data.application.id);
+    return this.getBoxMeshbyModelId(this.dataModel.getId());
   }
 
   /**
@@ -257,7 +258,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
     });
 
     // consider clazzes too
-    getAllClassesInApplication(this.data.application).forEach((clazz) => {
+    getAllClassesInApplication(this.dataModel.application).forEach((clazz) => {
       const clazzParentPackage = clazz.parent;
 
       const pckg = findFirstOpenOrLastClosedAncestorComponent(

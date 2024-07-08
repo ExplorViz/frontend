@@ -179,21 +179,22 @@ export default class LocalUser extends Service.extend({
 
     if (applicationObject3D) {
       const mesh = applicationObject3D.getBoxMeshbyModelId(modelId);
+      if (!mesh) return;
 
       if (options?.nonrestartable) {
         this.pingNonRestartable(
-          mesh!,
-          mesh!.getWorldPosition(mesh!.position),
+          mesh,
+          mesh.getWorldPosition(mesh!.position),
           duration
         );
       } else {
-        this.ping(mesh!, mesh!.getWorldPosition(mesh!.position), duration);
+        this.ping(mesh, mesh.getWorldPosition(mesh.position), duration);
       }
     }
   }
 
   pingNonRestartable(
-    obj: THREE.Object3D | null,
+    obj: EntityMesh | null,
     pingPosition: THREE.Vector3,
     durationInMs: number = 5000
   ) {
@@ -201,65 +202,48 @@ export default class LocalUser extends Service.extend({
     if (!this.mousePing || !obj) {
       return;
     }
-    const parentObj = obj.parent;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
 
-      this.applicationRenderer.openParents(
-        obj as EntityMesh,
-        (parentObj as ApplicationObject3D).data.application.id
-      );
-
-      this.mousePing.pingNonRestartable.perform({
-        parentObj,
-        position: pingPosition,
-        durationInMs,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    const app3D = obj.parent;
+    if (!(app3D instanceof ApplicationObject3D)) {
+      return;
     }
+
+    app3D.worldToLocal(pingPosition);
+
+    this.applicationRenderer.openParents(obj, app3D.getModelId());
+
+    this.mousePing.pingNonRestartable.perform({
+      parentObj: app3D,
+      position: pingPosition,
+      durationInMs,
+    });
+
+    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
   }
 
   ping(
-    obj: THREE.Object3D | null,
+    obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
     durationInMs: number = 5000
   ) {
-    // or touch, primary input ...
-    if (!this.mousePing || !obj) {
+    const app3D = obj.parent;
+    if (!app3D || !(app3D instanceof ApplicationObject3D)) {
       return;
     }
-    const parentObj = obj.parent;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
 
-      if (isEntityMesh(obj) && parentObj instanceof ApplicationObject3D) {
-        this.applicationRenderer.openParents(
-          obj as EntityMesh,
-          (parentObj as ApplicationObject3D).data.application.id
-        );
-      }
+    app3D.worldToLocal(pingPosition);
 
-      this.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-        durationInMs,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    if (isEntityMesh(obj)) {
+      this.applicationRenderer.openParents(obj, app3D.getModelId());
     }
+
+    this.mousePing.ping.perform({
+      parentObj: app3D,
+      position: pingPosition,
+      durationInMs,
+    });
+
+    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
   }
 
   /*
