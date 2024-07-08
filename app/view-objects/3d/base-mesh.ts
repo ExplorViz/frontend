@@ -42,17 +42,26 @@ export default abstract class BaseMesh<
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
   }
+  saveOriginalAppearence() {
+    this.originalAppearence = Recipe.generateFromMesh(this);
+  }
+  restoreOriginalAppearence() {
+    const tmpAppearence = new Appearence();
+    if (this.originalAppearence == undefined) return;
+    tmpAppearence.setRecipe(this.originalAppearence);
+    tmpAppearence.setObject3D(this);
+    tmpAppearence.activate();
+  }
+  restoreAppearence() {
+    this.showAppearence(this.appearenceLevel);
+  }
   showAppearence(i: number): boolean {
     if (i == 0) {
       // return to default look
-      const tmpAppearence = new Appearence();
-      if (this.originalAppearence == undefined) return false;
-      tmpAppearence.setRecipe(this.originalAppearence);
-      tmpAppearence.setObject3D(this);
-      tmpAppearence.activate();
+      this.restoreOriginalAppearence();
     } else if (this.originalAppearence == undefined) {
-      // Save Orignal Once
-      this.originalAppearence = Recipe.generateFromMesh(this);
+      // Save Orignal
+      this.saveOriginalAppearence();
     }
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;

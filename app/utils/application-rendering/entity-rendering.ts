@@ -34,6 +34,7 @@ export function addMeshToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
+  mesh.saveOriginalAppearence();
   applicationObject3D.add(mesh);
   SemanticZoomManager.instance.add(mesh);
 }
@@ -126,6 +127,14 @@ export function addComponentAndChildrenToScene(
       clazzColor,
       highlightedEntityColor
     );
+    const recipe = new Recipe();
+    //recipe.setColor(new THREE.Color(255, 0, 0));
+    recipe.setWidth(2).setAbsValues(false);
+    const appearenceClassForOne = new Appearence();
+    appearenceClassForOne.setRecipe(recipe);
+
+    clazzMesh.setAppearence(1, appearenceClassForOne);
+
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
   });

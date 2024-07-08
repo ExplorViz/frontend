@@ -121,13 +121,15 @@ export class Recipe {
   }
 
   public static generateFromMesh(mesh: Mesh): Recipe {
-    mesh.visible;
+    let position = mesh.position;
+    debugger;
+    //if (mesh instanceof BoxMesh) position = mesh.layout.position;
     return new Recipe()
       .setAbsValues(true)
       .setVisible(mesh.visible)
-      .setPositionX(mesh.position.x)
-      .setPositionY(mesh.position.y)
-      .setPositionZ(mesh.position.z)
+      .setPositionX(position.x)
+      .setPositionY(position.y)
+      .setPositionZ(position.z)
       .setWidth(mesh.scale.x)
       .setHeight(mesh.scale.y)
       .setDepth(mesh.scale.z);

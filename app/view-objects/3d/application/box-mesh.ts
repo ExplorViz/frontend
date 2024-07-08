@@ -23,12 +23,25 @@ export default abstract class BoxMesh<
     this.depth = layout.depth;
   }
 
+  private setterHelper(fn: () => void) {
+    // Semantic Zoom Injection
+    if (this instanceof BaseMesh) this.restoreOriginalAppearence();
+
+    fn();
+
+    // Save new Original
+    if (this instanceof BaseMesh) {
+      this.saveOriginalAppearence();
+      this.restoreAppearence();
+    }
+  }
+
   get width() {
     return this.scale.x;
   }
 
   set width(width: number) {
-    this.scale.x = width;
+    this.setterHelper(() => (this.scale.x = width));
   }
 
   get height() {
@@ -36,7 +49,7 @@ export default abstract class BoxMesh<
   }
 
   set height(height: number) {
-    this.scale.y = height;
+    this.setterHelper(() => (this.scale.y = height));
   }
 
   get depth() {
@@ -44,6 +57,6 @@ export default abstract class BoxMesh<
   }
 
   set depth(depth: number) {
-    this.scale.z = depth;
+    this.setterHelper(() => (this.scale.z = depth));
   }
 }
