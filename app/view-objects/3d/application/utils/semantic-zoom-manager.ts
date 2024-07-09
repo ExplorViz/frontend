@@ -229,12 +229,18 @@ export class AppearenceExtension extends Appearence {
 }
 
 export default class SemanticZoomManager {
+  deactivate() {
+    this.isEnabled = false;
+  }
+  activate() {
+    this.isEnabled = true;
+  }
   /**
    * Is a Singleton
    * Has a List of all Objects3D types
    */
   NUMBER_OF_CLUSTERS = 6;
-
+  isEnabled: boolean = false;
   zoomableObjects: Array<SemanticZoomableObject> = new Array();
   clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
@@ -286,6 +292,7 @@ export default class SemanticZoomManager {
   reClusterAllMembers(): void {}
 
   triggerLevelDecision(cam: THREE.Camera): void {
+    if (this.isEnabled == false) return;
     let distances: Array<number> = new Array();
     this.zoomableObjects.forEach((element) => {
       //TODO position not in SemanticlyZoomableObject
@@ -298,7 +305,7 @@ export default class SemanticZoomManager {
       let distance = cam.position.distanceTo(worldPos);
       distances.push(distance);
 
-      if (distance < 4) {
+      if (distance < 1) {
         if (element.getCurrentAppearenceLevel() != 1) {
           console.log('Changed to 1');
           element.showAppearence(1);
@@ -313,7 +320,7 @@ export default class SemanticZoomManager {
       }
     });
     distances.sort((a, b) => a - b);
-    console.log(distances);
+    //console.log(distances);
     this.logCurrentState();
   }
 }
