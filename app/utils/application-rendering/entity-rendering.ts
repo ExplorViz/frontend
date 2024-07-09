@@ -101,7 +101,7 @@ export function addComponentAndChildrenToScene(
   );
   const recipe = new Recipe();
   //recipe.setColor(new THREE.Color(255, 0, 0));
-  recipe.setPositionY(2);
+  //recipe.setPositionY(2);
   const appearenceForOne = new Appearence();
   appearenceForOne.setRecipe(recipe);
 
@@ -116,9 +116,18 @@ export function addComponentAndChildrenToScene(
   // Add clazzes of given component
   clazzes.forEach((clazz: Class) => {
     const clazzLayout = applicationObject3D.getBoxLayout(clazz.id);
+    const orignalHeight = clazzLayout?.height;
 
     if (clazzLayout === undefined) {
       return;
+    }
+
+    const recipe = new Recipe().setAbsValues(true);
+    //recipe.setColor(new THREE.Color(255, 0, 0));
+    //const startingPos: number = mesh.position.y + mesh.height;
+    if (orignalHeight) {
+      recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
+      clazzLayout.height = 1.5;
     }
 
     const clazzMesh = new ClazzMesh(
@@ -127,9 +136,7 @@ export function addComponentAndChildrenToScene(
       clazzColor,
       highlightedEntityColor
     );
-    const recipe = new Recipe();
-    //recipe.setColor(new THREE.Color(255, 0, 0));
-    recipe.setWidth(2).setAbsValues(false);
+    //recipe.setPositionY(startingPos)
     const appearenceClassForOne = new Appearence();
     appearenceClassForOne.setRecipe(recipe);
 

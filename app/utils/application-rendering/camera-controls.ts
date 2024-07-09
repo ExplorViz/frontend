@@ -10,6 +10,7 @@ import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import { MapControls } from '../controls/MapControls';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class CameraControls {
   @service('user-settings')
@@ -41,7 +42,10 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-
+    // Semantic Zoom trigger Level Decision
+    this.perspectiveCameraControls.addEventListener('end', () =>
+      SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
+    );
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
         this.orthographicCamera!,

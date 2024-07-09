@@ -53,11 +53,12 @@ export class Appearence {
     // Select between Vector add and override
 
     // Task 1 set visibility
-    this.object3D.visible = this.recipe.visible;
+    if (this.recipe.modifiedParams[0] == true)
+      this.object3D.visible = this.recipe.visible;
+
     // Task 2 set position X
     // Task 3 set position Y
     // Task 4 set position Z
-
     if (this.recipe.valuesAreAbs == false) {
       this.object3D.position.add(
         new THREE.Vector3(
@@ -79,6 +80,7 @@ export class Appearence {
           : this.object3D.position.z
       );
     }
+
     // Task 5 set width
     // Task 6 set height
     // Task 7 set depth
@@ -103,11 +105,13 @@ export class Appearence {
           : this.object3D.scale.z
       );
     }
+
     // Task 8 set color
     // TODO Fix coloring Problem
     if (this.recipe.modifiedParams[7] == true)
       //this.object3D.material.color.set(this.recipe.color);
       console.log('We colored!!');
+
     // Task 9 set radius
     // TODO Only for Circles
 
@@ -137,7 +141,6 @@ export class Recipe {
 
   public static generateFromMesh(mesh: Mesh): Recipe {
     let position = mesh.position;
-    debugger;
     //if (mesh instanceof BoxMesh) position = mesh.layout.position;
     return new Recipe()
       .setAbsValues(true)
@@ -150,6 +153,15 @@ export class Recipe {
       .setDepth(mesh.scale.z);
     //.setColor(mesh.material.color)
     //.setRadius(0)
+  }
+
+  //TODO function implementieren
+  changeHeightAccordingToCurrentPosition(currentMesh: Mesh, newHeight: number) {
+    // use current y pos + height difference
+    const currentHeight = currentMesh.scale.y;
+    const currentYPosition = currentMesh.position.y;
+    this.setPositionY(currentYPosition + newHeight / 2);
+    this.setHeight(newHeight);
   }
 
   setAbsValues(v: boolean) {
@@ -221,6 +233,8 @@ export default class SemanticZoomManager {
    * Is a Singleton
    * Has a List of all Objects3D types
    */
+  NUMBER_OF_CLUSTERS = 6;
+
   zoomableObjects: Array<SemanticZoomableObject> = new Array();
   clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
@@ -246,8 +260,19 @@ export default class SemanticZoomManager {
     this.zoomableObjects.push(obj3d);
   }
   public logCurrentState() {
+    const currentState: Map<number, number> = new Map();
+    this.zoomableObjects.forEach((element) => {
+      const currentView = element.getCurrentAppearenceLevel();
+      if (currentState.has(currentView))
+        currentState.set(currentView, currentState.get(currentView) + 1);
+      else currentState.set(currentView, 1);
+    });
+    let currentStatesAsString = '';
+    currentState.forEach((v, key) => {
+      currentStatesAsString = currentStatesAsString + key + ': ' + v + '\n';
+    });
     this.debug(
-      `Current State:\nNumber of Elements in Store: ${this.zoomableObjects.length}`
+      `Current State:\nNumber of Elements in Store: ${this.zoomableObjects.length}\n Mappings:\n${currentStatesAsString}`
     );
   }
 
@@ -256,5 +281,37 @@ export default class SemanticZoomManager {
       //element.
       element.showAppearence(level);
     });
+  }
+
+  reClusterAllMembers(): void {}
+
+  triggerLevelDecision(cam: THREE.Camera): void {
+    let distances: Array<number> = new Array();
+    this.zoomableObjects.forEach((element) => {
+      //TODO position not in SemanticlyZoomableObject
+      // cast ?
+      //if (element instanceof ComponentMesh) return;
+      //if (element instanceof FoundationMesh) return;
+      //if (element instanceof ClazzCommunicationMesh) return;
+      let distance = cam.position.distanceTo(element.position);
+      distances.push(distance);
+
+      if (distance < 4) {
+        if (element.getCurrentAppearenceLevel() != 1) {
+          console.log('Changed to 1');
+          element.showAppearence(1);
+          element.highlight();
+        }
+      } else {
+        if (element.getCurrentAppearenceLevel() != 0) {
+          console.log('Changed to 0');
+          element.showAppearence(0);
+          element.unhighlight();
+        }
+      }
+    });
+    distances.sort((a, b) => a - b);
+    console.log(distances);
+    this.logCurrentState();
   }
 }

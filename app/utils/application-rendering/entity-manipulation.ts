@@ -86,6 +86,7 @@ export function openComponentMesh(
 
   mesh.opened = true;
   mesh.visible = true;
+  mesh.saveOriginalAppearence();
   Labeler.positionBoxLabel(mesh);
 
   const childComponents = mesh.dataModel.subPackages;
@@ -103,6 +104,7 @@ export function openComponentMesh(
     const childMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     if (childMesh) {
       childMesh.visible = true;
+      childMesh.saveOriginalAppearence();
     }
   });
 }
@@ -139,7 +141,7 @@ export function closeComponentMesh(
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
-
+  mesh.saveOriginalAppearence();
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
     const childMesh = applicationObject3D.getBoxMeshbyModelId(
@@ -154,6 +156,7 @@ export function closeComponentMesh(
       if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, applicationObject3D);
       }
+      childMesh.saveOriginalAppearence();
     }
   });
 

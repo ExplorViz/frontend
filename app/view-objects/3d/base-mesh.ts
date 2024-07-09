@@ -56,12 +56,16 @@ export default abstract class BaseMesh<
     this.showAppearence(this.appearenceLevel);
   }
   showAppearence(i: number): boolean {
-    if (i == 0) {
+    if (i == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.restoreOriginalAppearence();
-    } else if (this.originalAppearence == undefined) {
+      this.appearenceLevel = i;
+      return true;
+    } else if (i == 0 && this.originalAppearence == undefined) {
       // Save Orignal
       this.saveOriginalAppearence();
+      this.appearenceLevel = i;
+      return true;
     }
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
