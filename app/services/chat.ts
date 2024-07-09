@@ -5,6 +5,7 @@ import collaborationSession from 'explorviz-frontend/services/collaboration-sess
 import MessageSender from 'collaboration/services/message-sender';
 import { ChatSynchronizeMessage } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import * as THREE from 'three';
+import LocalUser from 'collaboration/services/local-user';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -34,6 +35,9 @@ export default class ChatService extends Service {
   @service('message-sender')
   private sender!: MessageSender;
 
+  @service('local-user')
+  private localUser!: LocalUser;
+
   @tracked
   msgId: number = 1;
 
@@ -42,15 +46,26 @@ export default class ChatService extends Service {
       this.addChatMessage(userId, msg);
     } else {
       const timestamp = this.getTime();
-      this.sender.sendChatMessage(userId, msg, timestamp);
+      const userName = this.localUser.userName;
+      this.sender.sendChatMessage(userId, msg, userName, timestamp);
     }
   }
 
-  addChatMessage(userId: string, msg: string, tmstp: string = '') {
-    const user = this.collaborationSession.lookupRemoteUserById(userId);
-    const userName = user?.userName || 'You';
-    const userColor = user?.color || new THREE.Color(0, 0, 0);
-    const timestamp = tmstp === '' ? this.getTime() : tmstp;
+  addChatMessage(userId: string, msg: string, username: string = '', time: string = '') {
+    var userName;
+    var userColor;
+    var timestamp;
+
+    if(!(userId == this.localUser.userId)) {
+      const user = this.collaborationSession.lookupRemoteUserById(userId);
+      userName = user?.userName || username;
+      userColor = user?.color || new THREE.Color(0,0,0);
+      timestamp = time;
+    } else {
+      userName = this.localUser.userName;
+      userColor = this.localUser.color;
+      timestamp = time === '' ? this.getTime() : time;
+    }
 
     const chatMessage: ChatMessageInterface = {
       msgId: this.msgId++,
@@ -115,8 +130,9 @@ export default class ChatService extends Service {
   syncChatMessages(messages: ChatSynchronizeMessage[]) {
     this.chatMessages = [];
     messages.forEach((msg) =>
-      this.addChatMessage(msg.userId, msg.msg, msg.timestamp)
-    ); //TODO: Also save user name on server
+      this.addChatMessage(msg.userId, msg.msg, msg.userName, msg.timestamp)
+    );
+    this.toastHandler.showInfoToastMessage("Synchronized")
   }
 }
 
