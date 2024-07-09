@@ -588,11 +588,12 @@ export default class MessageSender extends Service {
     });
   }
 
-  sendChatMessage(userId: string, msg: string, timestamp: string) {
+  sendChatMessage(userId: string, msg: string, userName: string, timestamp: string) {
     this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
       event: 'chat_message',
       userId,
       msg,
+      userName,
       timestamp,
     });
   }

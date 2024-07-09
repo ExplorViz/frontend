@@ -445,12 +445,12 @@ export default class CollaborationSession extends Service.extend({
 
   onChatMessageEvent({
     userId,
-    originalMessage: { msg },
+    originalMessage: { msg, userName, timestamp },
   }: ForwardedMessage<ChatMessage>) {
     if (this.localUser.userId != userId) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
-    this.chatService.addChatMessage(userId, msg);
+    this.chatService.addChatMessage(userId, msg, userName, timestamp);
   }
 
   onChatSyncEvent({
