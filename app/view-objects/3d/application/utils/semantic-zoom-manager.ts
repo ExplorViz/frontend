@@ -293,20 +293,22 @@ export default class SemanticZoomManager {
       //if (element instanceof ComponentMesh) return;
       //if (element instanceof FoundationMesh) return;
       //if (element instanceof ClazzCommunicationMesh) return;
-      let distance = cam.position.distanceTo(element.position);
+      var worldPos = new THREE.Vector3();
+      element.getWorldPosition(worldPos);
+      let distance = cam.position.distanceTo(worldPos);
       distances.push(distance);
 
       if (distance < 4) {
         if (element.getCurrentAppearenceLevel() != 1) {
           console.log('Changed to 1');
           element.showAppearence(1);
-          element.highlight();
+          //element.highlight();
         }
       } else {
         if (element.getCurrentAppearenceLevel() != 0) {
           console.log('Changed to 0');
           element.showAppearence(0);
-          element.unhighlight();
+          //element.unhighlight();
         }
       }
     });
