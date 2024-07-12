@@ -6,7 +6,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { inject as service } from '@ember/service';

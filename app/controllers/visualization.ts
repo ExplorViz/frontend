@@ -58,11 +58,7 @@ import DetachedMenuRenderer from 'extended-reality/services/detached-menu-render
 import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-
-export interface LandscapeData {
-  structureLandscapeData: StructureLandscapeData;
-  dynamicLandscapeData: DynamicLandscapeData;
-}
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -590,7 +586,6 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleVisualizationUpdating() {
-    // TODO: need to notify the timeline
     if (this.visualizationPaused) {
       this.resumeVisualizationUpdating();
     } else {
