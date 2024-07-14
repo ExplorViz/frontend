@@ -24,11 +24,28 @@
 <AutoJoinLobby @roomId={{this.roomId}} />
 
 <div id='vizspace' {{sync-state}}>
+
+  {{! Loading screen }}
+  {{#unless this.allLandscapeDataExistsAndNotEmpty}}
+    <div class='container-fluid mt-6'>
+      <div class='jumbotron'>
+        {{#if this.isLandscapeExistentAndEmpty}}
+          <h2>Empty Landscape received!</h2>
+        {{else}}
+          <h2>No Landscape found!</h2>
+        {{/if}}
+        <p>A new landscape will be fetched every 10 seconds.</p>
+      </div>
+      <div class='spinner-center-3' role='status'></div>
+    </div>
+  {{/unless}}
+
+  {{! Rendering mode }}
   {{#if this.showAR}}
     <ArRendering
       @id='ar-rendering'
       @landscapeData={{this.landscapeData}}
-      @openLandscapeView={{this.openLandscapeView}}
+      @switchToOnScreenMode={{this.switchToOnScreenMode}}
       @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
@@ -38,94 +55,47 @@
       @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
       @applicationArgs={{this.applicationArgs}}
     />
+
   {{else}}
-    {{#if
-      (and
-        this.userSettings.applicationSettings.showVrOnClick.value this.showVR
-      )
-    }}
+    {{#if this.showVR}}
+
       <VrRendering
         @id='vr-rendering'
         @landscapeData={{this.landscapeData}}
-        @components={{this.sidebarHandler.components}}
-        @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
-        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
-        @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
         @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
-      <div class='position-absolute mt-6 ml-3'>
-        <BsButton
-          id='backToLandscapeButton'
-          @onClick={{this.openLandscapeView}}
-          @type='secondary'
-          @outline={{true}}
-          title='Back to Landscape View'
-        >
-          {{svg-jar 'reply-16' class='octicon align-middle'}}
-        </BsButton>
-      </div>
 
     {{else}}
-      {{#if this.showVR}}
-
-        <VrRendering
-          @id='vr-rendering'
-          @landscapeData={{this.landscapeData}}
-          @components={{this.sidebarHandler.components}}
-          @openDataSelection={{this.sidebarHandler.openDataSelection}}
-          @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
-          @showDataSelection={{this.sidebarHandler.showDataSelection}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @applicationArgs={{this.applicationArgs}}
-          @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
-        />
-
-      {{else}}
-        <Visualization::Rendering::BrowserRendering
-          @id='browser-rendering'
-          @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
-          @landscapeData={{this.landscapeData}}
-          @components={{this.sidebarHandler.components}}
-          @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
-          @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
-          @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
-          @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
-          @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
-          @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
-          @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
-          @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
-          @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
-          @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
-          @toggleVisualizationUpdating={{this.sidebarHandler.toggleVisualizationUpdating}}
-          @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
-          @addComponent={{this.sidebarHandler.addComponent}}
-          @visualizationPaused={{this.visualizationPaused}}
-          @removeTimestampListener={{this.removeTimestampListener}}
-          @restructureLandscape={{this.restructureLandscape}}
-          @switchToAR={{this.switchToAR}}
-          @applicationArgs={{this.applicationArgs}}
-          @triggerRenderingForGivenLandscapeData={{this.triggerRenderingForGivenLandscapeData}}
-        />
-      {{/if}}
-
-      {{#unless this.allLandscapeDataExistsAndNotEmpty}}
-        <div class='container-fluid mt-6'>
-          <div class='jumbotron'>
-            {{#if this.isLandscapeExistentAndEmpty}}
-              <h2>Empty Landscape received!</h2>
-            {{else}}
-              <h2>No Landscape found!</h2>
-            {{/if}}
-            <p>A new landscape will be fetched every 10 seconds.</p>
-          </div>
-          <div class='spinner-center-3' role='status'></div>
-        </div>
-      {{/unless}}
+      <Visualization::Rendering::BrowserRendering
+        @id='browser-rendering'
+        @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
+        @landscapeData={{this.landscapeData}}
+        @components={{this.sidebarHandler.components}}
+        @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
+        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
+        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+        @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
+        @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
+        @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+        @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
+        @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
+        @toggleVisualizationUpdating={{this.sidebarHandler.toggleVisualizationUpdating}}
+        @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
+        @addComponent={{this.sidebarHandler.addComponent}}
+        @visualizationPaused={{this.visualizationPaused}}
+        @removeTimestampListener={{this.removeTimestampListener}}
+        @restructureLandscape={{this.restructureLandscape}}
+        @switchToAR={{this.switchToAR}}
+        @applicationArgs={{this.applicationArgs}}
+        @triggerRenderingForGivenLandscapeData={{this.triggerRenderingForGivenLandscapeData}}
+      />
     {{/if}}
+
   {{/if}}
 </div>
 

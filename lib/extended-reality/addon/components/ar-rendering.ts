@@ -41,7 +41,7 @@ interface Args {
   readonly components: string[];
   readonly showSettingsSidebar: boolean;
   readonly visualizationPaused: boolean;
-  openLandscapeView(): void;
+  switchToOnScreenMode(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   openSettingsSidebar(): void;
   closeDataSelection(): void;
@@ -159,7 +159,7 @@ export default class ArRendering extends Component<Args> {
   @action
   leaveArView() {
     this.currentSession?.end();
-    this.args.openLandscapeView();
+    this.args.switchToOnScreenMode();
   }
 
   // #endregion CLASS FIELDS AND GETTERS

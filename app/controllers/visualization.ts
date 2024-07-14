@@ -454,7 +454,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  openLandscapeView() {
+  switchToOnScreenMode() {
     this.switchToMode('browser');
   }
 
