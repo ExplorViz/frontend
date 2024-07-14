@@ -97,25 +97,25 @@
 
 {{! Bottom Bar }}
 {{#if this.shouldDisplayBottomBar}}
-  <div id='bottom-bar-content'>
+  <div id='bottom-bar-container'>
 
     {{! Toggle Bottom Bar Button}}
     <BsButton
       @onClick={{this.toggleBottomBar}}
       @type='secondary'
       @outline={{true}}
-      class='btn-bottom-bar'
-      title={{if this.isBottomBarMinimized 'Hide Bottom Bar' 'Show Bottom Bar'}}
+      class='bottom-bar-toggle-btn'
+      title={{if this.isBottomBarMaximized 'Hide Bottom Bar' 'Show Bottom Bar'}}
     >
 
-      {{#unless this.isBottomBarMinimized}}
+      {{#unless this.isBottomBarMaximized}}
         <span class='pr-1'>Show Bottom Bar</span>
       {{/unless}}
       {{svg-jar
         'chevron-up-16'
         id='hide-bottom-bar-icon'
         class=(if
-          this.isBottomBarMinimized
+          this.isBottomBarMaximized
           'octicon align-middle hide-bottom-bar-icon-down'
           'octicon align-middle'
         )
@@ -141,9 +141,26 @@
 
     {{! Timeline / Commit Tree}}
     <div
-      id='timeline'
-      class='timeline {{unless this.isBottomBarMinimized "timelinehide"}}'
+      id='bottom-bar-chart-container'
+      class='bottom-bar-chart
+        {{if
+          (and this.isCommitTreeSelected this.isBottomBarMaximized)
+          "bottom-bar-chart-commitTree"
+        }}
+        {{unless this.isBottomBarMaximized "bottom-bar-chart-hide"}}'
     >
+
+      <div id='bottom-bar-chart-button-div'>
+        <BsButton
+          @onClick={{this.toggleBottomChart}}
+          @outline={{true}}
+          class='bottom-bar-chart-button'
+        >
+          {{if this.isRuntimeTimelineSelected 'Show Code Chart'}}
+          {{if this.isCommitTreeSelected 'Show Runtime Chart'}}
+        </BsButton>
+
+      </div>
 
       <Visualization::PageSetup::Timeline::PlotlyTimeline
         @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}

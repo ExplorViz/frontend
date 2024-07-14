@@ -1,4 +1,4 @@
-#bottom-bar-content {
+#bottom-bar-container {
   width: 100%;
   position: absolute;
   bottom: 0;
@@ -6,30 +6,46 @@
 }
 
 .plotlyDiv {
-  height: 150px;
+  height: 200px;
 }
 
-.timeline {
+.bottom-bar-chart-commitTree {
+  height: 300px !important;
+}
+
+.bottom-bar-chart {
   background-color: white;
   border-top: darkgray 1px solid;
   transition: 0.7s ease-in-out;
   opacity: 1;
-  height: 150px;
+  height: 250px;
   margin-bottom: 10px;
 }
 
-.timelinehide {
+.bottom-bar-chart-hide {
   height: 0;
   opacity: 0;
   margin-bottom: 0;
   overflow: hidden;
 }
 
+#bottom-bar-chart-button-div {
+  width: max-content;
+  margin-left: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 23px;
+}
+
+.bottom-bar-chart-button {
+  border-color: darkgray;
+  font-weight: bold !important;
+}
+
 #timelineCanvas {
   border-top: darkgray 1px solid;
 }
 
-.btn-bottom-bar {
+.bottom-bar-toggle-btn {
   border-bottom: none !important;
   border-color: darkgray;
   border-bottom-right-radius: 0 !important;
@@ -44,11 +60,11 @@
   padding-bottom: 0 !important;
 }
 
-.btn-bottom-bar:focus {
+.bottom-bar-toggle-btn:focus {
   box-shadow: none !important;
 }
 
-.btn-bottom-bar:hover {
+.bottom-bar-toggle-btn:hover {
   background-color: #6c757d !important;
 }
 

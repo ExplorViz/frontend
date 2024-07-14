@@ -139,7 +139,7 @@ export default class VisualizationController extends Controller {
   roomId?: string | undefined | null;
 
   @tracked
-  isBottomBarMinimized: boolean = true;
+  isBottomBarMaximized: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -496,6 +496,17 @@ export default class VisualizationController extends Controller {
   // #region Template Actions
 
   @action
+  toggleBottomChart() {
+    if (this.isCommitTreeSelected) {
+      this.isCommitTreeSelected = false;
+      this.isRuntimeTimelineSelected = true;
+    } else {
+      this.isRuntimeTimelineSelected = false;
+      this.isCommitTreeSelected = true;
+    }
+  }
+
+  @action
   setRuntimeTimelineAsSelected() {
     this.isCommitTreeSelected = false;
     this.isRuntimeTimelineSelected = true;
@@ -509,7 +520,7 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleBottomBar() {
-    this.isBottomBarMinimized = !this.isBottomBarMinimized;
+    this.isBottomBarMaximized = !this.isBottomBarMaximized;
   }
 
   @action
