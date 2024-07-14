@@ -20,7 +20,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';

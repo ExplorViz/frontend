@@ -563,8 +563,10 @@ export default class VisualizationController extends Controller {
     this.applicationRenderer.cleanup();
     this.timestampRepo.timestamps = new Map();
 
-    this.sidebarHandler.closeDataSelection();
-    this.sidebarHandler.closeToolsSidebar();
+    if (this.sidebarHandler) {
+      this.sidebarHandler.closeDataSelection();
+      this.sidebarHandler.closeToolsSidebar();
+    }
 
     this.roomId = null;
 
