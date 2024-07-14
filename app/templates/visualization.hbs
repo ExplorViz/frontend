@@ -29,13 +29,13 @@
       @id='ar-rendering'
       @landscapeData={{this.landscapeData}}
       @openLandscapeView={{this.openLandscapeView}}
-      @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
+      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
       @visualizationPaused={{this.visualizationPaused}}
-      @components={{this.components}}
-      @openSettingsSidebar={{this.openSettingsSidebar}}
-      @closeDataSelection={{this.closeDataSelection}}
-      @showSettingsSidebar={{this.showSettingsSidebar}}
+      @components={{this.sidebarHandler.components}}
+      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+      @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+      @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
       @applicationArgs={{this.applicationArgs}}
     />
   {{else}}
@@ -47,10 +47,10 @@
       <VrRendering
         @id='vr-rendering'
         @landscapeData={{this.landscapeData}}
-        @components={{this.components}}
-        @openSettingsSidebar={{this.openSettingsSidebar}}
-        @closeDataSelection={{this.closeDataSelection}}
-        @showSettingsSidebar={{this.showSettingsSidebar}}
+        @components={{this.sidebarHandler.components}}
+        @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+        @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
         @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @visualizationPaused={{this.visualizationPaused}}
         @applicationArgs={{this.applicationArgs}}
@@ -74,10 +74,10 @@
         <VrRendering
           @id='vr-rendering'
           @landscapeData={{this.landscapeData}}
-          @components={{this.components}}
-          @openDataSelection={{this.openDataSelection}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @showDataSelection={{this.showDataSelection}}
+          @components={{this.sidebarHandler.components}}
+          @openDataSelection={{this.sidebarHandler.openDataSelection}}
+          @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+          @showDataSelection={{this.sidebarHandler.showDataSelection}}
           @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
           @visualizationPaused={{this.visualizationPaused}}
           @applicationArgs={{this.applicationArgs}}
@@ -89,20 +89,20 @@
           @id='browser-rendering'
           @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
           @landscapeData={{this.landscapeData}}
-          @components={{this.components}}
-          @componentsToolsSidebar={{this.componentsToolsSidebar}}
-          @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
-          @closeDataSelection={{this.closeDataSelection}}
-          @closeToolsSidebar={{this.closeToolsSidebar}}
-          @openSettingsSidebar={{this.openSettingsSidebar}}
-          @openToolsSidebar={{this.openToolsSidebar}}
-          @showSettingsSidebar={{this.showSettingsSidebar}}
-          @showToolsSidebar={{this.showToolsSidebar}}
-          @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
-          @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
-          @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
+          @components={{this.sidebarHandler.components}}
+          @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
+          @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
+          @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+          @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+          @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+          @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
+          @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
+          @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+          @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
+          @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
+          @toggleVisualizationUpdating={{this.sidebarHandler.toggleVisualizationUpdating}}
           @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
-          @addComponent={{this.addComponent}}
+          @addComponent={{this.sidebarHandler.addComponent}}
           @visualizationPaused={{this.visualizationPaused}}
           @removeTimestampListener={{this.removeTimestampListener}}
           @restructureLandscape={{this.restructureLandscape}}
@@ -133,7 +133,7 @@
 {{#if this.shouldDisplayBottomBar}}
   <div id='bottom-bar-content'>
 
-    {{! Toggle Button}}
+    {{! Toggle Bottom Bar Button}}
     <BsButton
       @onClick={{this.toggleBottomBar}}
       @type='secondary'

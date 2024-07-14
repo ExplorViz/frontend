@@ -59,6 +59,7 @@ import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -80,6 +81,8 @@ export default class VisualizationController extends Controller {
 
   private previousMethodHashes: string[] = [];
   private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+
+  private sidebarHandler!: SidebarHandler;
 
   // #region Services
 
@@ -134,18 +137,6 @@ export default class VisualizationController extends Controller {
 
   @tracked
   roomId?: string | undefined | null;
-
-  @tracked
-  showSettingsSidebar = false;
-
-  @tracked
-  showToolsSidebar = false;
-
-  @tracked
-  components: string[] = [];
-
-  @tracked
-  componentsToolsSidebar: string[] = [];
 
   @tracked
   isBottomBarMinimized: boolean = true;
@@ -223,6 +214,8 @@ export default class VisualizationController extends Controller {
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
     );
+
+    this.sidebarHandler = new SidebarHandler();
     this.landscapeData = null;
     this.visualizationPaused = false;
     this.timestampPollingService.initTimestampPollingWithCallback(
@@ -446,85 +439,6 @@ export default class VisualizationController extends Controller {
 
   // #endregion
 
-  // #region Sidebars
-
-  @action
-  closeDataSelection() {
-    this.debug('closeDataSelection');
-    this.showSettingsSidebar = false;
-    this.components = [];
-  }
-
-  @action
-  closeToolsSidebar() {
-    this.debug('closeToolsSidebar');
-    this.showToolsSidebar = false;
-    this.componentsToolsSidebar = [];
-  }
-
-  @action
-  openSettingsSidebar() {
-    this.debug('openSettingsSidebar');
-    this.showSettingsSidebar = true;
-  }
-
-  @action
-  openToolsSidebar() {
-    this.debug('openToolsSidebar');
-    this.showToolsSidebar = true;
-  }
-
-  @action
-  toggleToolsSidebarComponent(component: string): boolean {
-    if (this.componentsToolsSidebar.includes(component)) {
-      this.removeToolsSidebarComponent(component);
-    } else {
-      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
-    }
-    return this.componentsToolsSidebar.includes(component);
-  }
-
-  @action
-  toggleSettingsSidebarComponent(component: string): boolean {
-    if (this.components.includes(component)) {
-      this.removeComponent(component);
-    } else {
-      this.components = [component, ...this.components];
-    }
-    return this.components.includes(component);
-  }
-
-  removeComponent(path: string) {
-    if (this.components.length === 0) {
-      return;
-    }
-
-    const index = this.components.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const components = [...this.components];
-      components.splice(index, 1);
-      this.components = components;
-    }
-  }
-
-  @action
-  removeToolsSidebarComponent(path: string) {
-    if (this.componentsToolsSidebar.length === 0) {
-      return;
-    }
-
-    const index = this.componentsToolsSidebar.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const componentsToolsSidebar = [...this.componentsToolsSidebar];
-      componentsToolsSidebar.splice(index, 1);
-      this.componentsToolsSidebar = componentsToolsSidebar;
-    }
-  }
-
-  // #endregion
-
   // #region XR
 
   @action
@@ -546,7 +460,7 @@ export default class VisualizationController extends Controller {
 
   private switchToMode(mode: VisualizationMode) {
     this.roomSerializer.serializeRoom();
-    this.closeDataSelection();
+    this.sidebarHandler.closeDataSelection();
     this.localUser.visualizationMode = mode;
     this.webSocket.send<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -638,8 +552,8 @@ export default class VisualizationController extends Controller {
     this.applicationRenderer.cleanup();
     this.timestampRepo.timestamps = new Map();
 
-    this.closeDataSelection();
-    this.closeToolsSidebar();
+    this.sidebarHandler.closeDataSelection();
+    this.sidebarHandler.closeToolsSidebar();
 
     this.roomId = null;
 
