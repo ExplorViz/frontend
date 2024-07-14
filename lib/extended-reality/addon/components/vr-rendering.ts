@@ -9,9 +9,7 @@ import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import ApplicationRenderer, {
-  AddApplicationArgs,
-} from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -96,19 +94,11 @@ import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sen
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
-export interface MessageArgs {
-  title: string;
-  text: string;
-  color: string;
-  time: number;
-}
-
 interface Args {
-  debugMode: boolean;
   readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly font: Font;
-  applicationArgs: Map<string, AddApplicationArgs>;
+  readonly switchToOnScreenMode: () => void;
+  debugMode: boolean;
 }
 
 const THUMBPAD_THRESHOLD = 0.5;

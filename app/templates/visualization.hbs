@@ -53,7 +53,6 @@
       @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
       @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
       @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
-      @applicationArgs={{this.applicationArgs}}
     />
 
   {{else}}
@@ -62,9 +61,7 @@
       <VrRendering
         @id='vr-rendering'
         @landscapeData={{this.landscapeData}}
-        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-        @visualizationPaused={{this.visualizationPaused}}
-        @applicationArgs={{this.applicationArgs}}
+        @switchToOnScreenMode={{this.switchToOnScreenMode}}
         @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
 
@@ -74,6 +71,7 @@
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
         @landscapeData={{this.landscapeData}}
         @components={{this.sidebarHandler.components}}
+        @addComponent={{this.sidebarHandler.addComponent}}
         @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
         @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
         @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
@@ -84,14 +82,12 @@
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
-        @toggleVisualizationUpdating={{this.sidebarHandler.toggleVisualizationUpdating}}
+        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
         @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
-        @addComponent={{this.sidebarHandler.addComponent}}
         @visualizationPaused={{this.visualizationPaused}}
         @removeTimestampListener={{this.removeTimestampListener}}
         @restructureLandscape={{this.restructureLandscape}}
         @switchToAR={{this.switchToAR}}
-        @applicationArgs={{this.applicationArgs}}
         @triggerRenderingForGivenLandscapeData={{this.triggerRenderingForGivenLandscapeData}}
       />
     {{/if}}
@@ -127,7 +123,12 @@
     </BsButton>
 
     {{! VR Button}}
-    {{#if this.userSettings.applicationSettings.showVrButton.value}}
+    {{#if
+      (and
+        this.userSettings.applicationSettings.showVrButton.value
+        (not this.showVR)
+      )
+    }}
       <button
         class='bottom-bar-vr-button'
         type='button'
