@@ -139,7 +139,7 @@
       </button>
     {{/if}}
 
-    {{! Timeline / Commit Tree}}
+    {{! Runtime / Code Charts}}
     <div
       id='bottom-bar-chart-container'
       class='bottom-bar-chart
@@ -159,13 +159,15 @@
           {{if this.isRuntimeTimelineSelected 'Show Code Chart'}}
           {{if this.isCommitTreeSelected 'Show Runtime Chart'}}
         </BsButton>
-
       </div>
 
-      <Visualization::PageSetup::Timeline::PlotlyTimeline
-        @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
-        @clicked={{this.timelineClicked}}
-      />
+      {{#if this.isRuntimeTimelineSelected}}
+        <Visualization::PageSetup::Timeline::PlotlyTimeline
+          @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
+          @clicked={{this.timelineClicked}}
+        />
+      {{/if}}
+
     </div>
   </div>
 {{/if}}
