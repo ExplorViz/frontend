@@ -130,33 +130,36 @@
 </div>
 
 {{! Bottom Bar }}
-{{#if this.showBottomBar}}
+{{#if this.shouldDisplayBottomBar}}
   <div id='bottom-bar-content'>
+
+    {{! Toggle Button}}
     <BsButton
-      @onClick={{this.toggleTimeline}}
+      @onClick={{this.toggleBottomBar}}
       @type='secondary'
       @outline={{true}}
-      class='btn-timeline'
-      title={{if this.isTimelineActive 'Hide Timeline' 'Show Timeline'}}
+      class='btn-bottom-bar'
+      title={{if this.isBottomBarMinimized 'Hide Bottom Bar' 'Show Bottom Bar'}}
     >
 
-      {{#unless this.isTimelineActive}}
-        <span class='pr-1'>Show Timeline</span>
+      {{#unless this.isBottomBarMinimized}}
+        <span class='pr-1'>Show Bottom Bar</span>
       {{/unless}}
       {{svg-jar
         'chevron-up-16'
-        id='hidetimeline-icon'
+        id='hide-bottom-bar-icon'
         class=(if
-          this.isTimelineActive
-          'octicon align-middle hidetimeline-icon-down'
+          this.isBottomBarMinimized
+          'octicon align-middle hide-bottom-bar-icon-down'
           'octicon align-middle'
         )
       }}
     </BsButton>
 
+    {{! VR Button}}
     {{#if this.userSettings.applicationSettings.showVrButton.value}}
       <button
-        class='timeline-vr-button'
+        class='bottom-bar-vr-button'
         type='button'
         {{did-insert this.updateVrStatus}}
         {{on 'click' this.switchToVR}}
@@ -164,10 +167,13 @@
         {{this.buttonText}}
       </button>
     {{/if}}
+
+    {{! Timeline / Commit Tree}}
     <div
       id='timeline'
-      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+      class='timeline {{unless this.isBottomBarMinimized "timelinehide"}}'
     >
+
       <Visualization::PageSetup::Timeline::PlotlyTimeline
         @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
         @clicked={{this.timelineClicked}}

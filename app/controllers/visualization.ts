@@ -148,7 +148,7 @@ export default class VisualizationController extends Controller {
   componentsToolsSidebar: string[] = [];
 
   @tracked
-  isTimelineActive: boolean = true;
+  isBottomBarMinimized: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -164,6 +164,12 @@ export default class VisualizationController extends Controller {
 
   @tracked
   timelineDataObjectHandler!: TimelineDataObjectHandler;
+
+  @tracked
+  isRuntimeTimelineSelected: boolean = true;
+
+  @tracked
+  isCommitTreeSelected: boolean = false;
 
   // #endregion
 
@@ -183,7 +189,7 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  get showBottomBar() {
+  get shouldDisplayBottomBar() {
     return (
       this.landscapeData &&
       !this.showAR &&
@@ -576,8 +582,20 @@ export default class VisualizationController extends Controller {
   // #region Template Actions
 
   @action
-  toggleTimeline() {
-    this.isTimelineActive = !this.isTimelineActive;
+  setRuntimeTimelineAsSelected() {
+    this.isCommitTreeSelected = false;
+    this.isRuntimeTimelineSelected = true;
+  }
+
+  @action
+  setCommitTreeAsSelected() {
+    this.isRuntimeTimelineSelected = false;
+    this.isCommitTreeSelected = true;
+  }
+
+  @action
+  toggleBottomBar() {
+    this.isBottomBarMinimized = !this.isBottomBarMinimized;
   }
 
   @action

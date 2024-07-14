@@ -29,7 +29,7 @@
   border-top: darkgray 1px solid;
 }
 
-.btn-timeline {
+.btn-bottom-bar {
   border-bottom: none !important;
   border-color: darkgray;
   border-bottom-right-radius: 0 !important;
@@ -44,15 +44,15 @@
   padding-bottom: 0 !important;
 }
 
-.btn-timeline:focus {
+.btn-bottom-bar:focus {
   box-shadow: none !important;
 }
 
-.btn-timeline:hover {
+.btn-bottom-bar:hover {
   background-color: #6c757d !important;
 }
 
-.hidetimeline-icon-down {
+.hide-bottom-bar-icon-down {
   transform: rotate(180deg);
 }
 
