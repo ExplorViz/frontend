@@ -128,10 +128,10 @@
     {{/if}}
   {{/if}}
 </div>
-{{! timeline }}
 
-{{#if this.showTimeline}}
-  <div id='timeline-content'>
+{{! Bottom Bar }}
+{{#if this.showBottomBar}}
+  <div id='bottom-bar-content'>
     <BsButton
       @onClick={{this.toggleTimeline}}
       @type='secondary'
@@ -154,7 +154,7 @@
       }}
     </BsButton>
 
-    {{#if this.showVrButton}}
+    {{#if this.userSettings.applicationSettings.showVrButton.value}}
       <button
         class='timeline-vr-button'
         type='button'

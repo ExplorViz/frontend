@@ -183,7 +183,7 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  get showTimeline() {
+  get showBottomBar() {
     return (
       this.landscapeData &&
       !this.showAR &&
@@ -191,10 +191,6 @@ export default class VisualizationController extends Controller {
       !this.isSingleLandscapeMode &&
       this.spectateUser.spectateConfigurationId !== 'arena-2'
     );
-  }
-
-  get showVrButton() {
-    return this.userSettings.applicationSettings.showVrButton.value;
   }
 
   get isSingleLandscapeMode() {
