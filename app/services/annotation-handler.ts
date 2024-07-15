@@ -101,14 +101,34 @@ export default class AnnotationHandlerService extends Service {
 
   @action
   removeUnmovedAnnotations() {
+    // remvove annotation from minimized, if minimized one was opened and moved again
+    this.minimizedAnnotations.forEach((man) => {
+      this.annotationData.forEach((an) => {
+        if (man.annotationId === an.annotationId && an.wasMoved) {
+          this.minimizedAnnotations = this.minimizedAnnotations.filter(
+            (data) => data.annotationId !== an.annotationId
+          );
+        }
+      });
+    });
+
     const unmovedAnnotations = this.annotationData.filter(
       (data) => !data.wasMoved
     );
     this.annotationData = this.annotationData.filter((data) => data.wasMoved);
 
     unmovedAnnotations.forEach((an) => {
+      let found = false;
       if (an.entity) {
-        if (!(an.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+        this.minimizedAnnotations.forEach((man) => {
+          if (an.annotationId === man.annotationId) {
+            found = true;
+          }
+        });
+        if (
+          !found &&
+          !(an.mesh!.dataModel instanceof ClazzCommuMeshDataModel)
+        ) {
           this.applicationRenderer.updateLabel(an.entity.id, '');
         }
       }
@@ -422,9 +442,9 @@ export default class AnnotationHandlerService extends Service {
       );
       if (annotation.length === 1) {
         this.annotationData = [...this.annotationData, annotation[0]];
-        this.minimizedAnnotations = this.minimizedAnnotations.filter(
-          (an) => an.annotationId !== annotation[0].annotationId
-        );
+        // this.minimizedAnnotations = this.minimizedAnnotations.filter(
+        //   (an) => an.annotationId !== annotation[0].annotationId
+        // );
         minimized = true;
       }
     }
