@@ -22,14 +22,14 @@ export class Appearence {
   // triggered when `activate` gets called
   callbackFunction: (currentMesh: Mesh | undefined) => void = () => {};
   recipe: Recipe | undefined;
-  object3D: Mesh | undefined;
+  originObject3D: Mesh | undefined;
 
   constructor();
   constructor(rec?: Recipe) {
     this.recipe = rec;
   }
   public activate(): boolean {
-    this.callbackFunction(this.object3D);
+    this.callbackFunction(this.originObject3D);
     const success = this.handleRecipe();
     this.activated = true;
     return success;
@@ -45,22 +45,22 @@ export class Appearence {
     this.recipe = rec;
   }
   public setObject3D(obj3d: Mesh) {
-    this.object3D = obj3d;
+    this.originObject3D = obj3d;
   }
   private handleRecipe(): boolean {
     if (this.recipe == undefined) return false;
-    if (this.object3D == undefined) return false;
+    if (this.originObject3D == undefined) return false;
     // Select between Vector add and override
 
     // Task 1 set visibility
     if (this.recipe.modifiedParams[0] == true)
-      this.object3D.visible = this.recipe.visible;
+      this.originObject3D.visible = this.recipe.visible;
 
     // Task 2 set position X
     // Task 3 set position Y
     // Task 4 set position Z
     if (this.recipe.valuesAreAbs == false) {
-      this.object3D.position.add(
+      this.originObject3D.position.add(
         new THREE.Vector3(
           this.recipe.positionX,
           this.recipe.positionY,
@@ -68,16 +68,16 @@ export class Appearence {
         )
       );
     } else {
-      this.object3D.position.set(
+      this.originObject3D.position.set(
         this.recipe.modifiedParams[1] == true
           ? this.recipe.positionX
-          : this.object3D.position.x,
+          : this.originObject3D.position.x,
         this.recipe.modifiedParams[2] == true
           ? this.recipe.positionY
-          : this.object3D.position.y,
+          : this.originObject3D.position.y,
         this.recipe.modifiedParams[3] == true
           ? this.recipe.positionZ
-          : this.object3D.position.z
+          : this.originObject3D.position.z
       );
     }
 
@@ -85,7 +85,7 @@ export class Appearence {
     // Task 6 set height
     // Task 7 set depth
     if (this.recipe.valuesAreAbs == false) {
-      this.object3D.scale.add(
+      this.originObject3D.scale.add(
         new THREE.Vector3(
           this.recipe.width,
           this.recipe.height,
@@ -93,24 +93,26 @@ export class Appearence {
         )
       );
     } else {
-      this.object3D.scale.set(
+      this.originObject3D.scale.set(
         this.recipe.modifiedParams[4] == true
           ? this.recipe.width
-          : this.object3D.scale.x,
+          : this.originObject3D.scale.x,
         this.recipe.modifiedParams[5] == true
           ? this.recipe.height
-          : this.object3D.scale.y,
+          : this.originObject3D.scale.y,
         this.recipe.modifiedParams[6] == true
           ? this.recipe.depth
-          : this.object3D.scale.z
+          : this.originObject3D.scale.z
       );
     }
 
     // Task 8 set color
     // TODO Fix coloring Problem
-    if (this.recipe.modifiedParams[7] == true)
-      //this.object3D.material.color.set(this.recipe.color);
-      console.log('We colored!!');
+    if (this.recipe.modifiedParams[7] == true) {
+      throw new Error('Color changing is not yet implemented');
+    }
+    //this.object3D.material.color.set(this.recipe.color);
+    //console.log('We colored!!');
 
     // Task 9 set radius
     // TODO Only for Circles
@@ -140,7 +142,7 @@ export class Recipe {
   }
 
   public static generateFromMesh(mesh: Mesh): Recipe {
-    let position = mesh.position;
+    const position = mesh.position;
     //if (mesh instanceof BoxMesh) position = mesh.layout.position;
     return new Recipe()
       .setAbsValues(true)
@@ -158,7 +160,7 @@ export class Recipe {
   //TODO function implementieren
   changeHeightAccordingToCurrentPosition(currentMesh: Mesh, newHeight: number) {
     // use current y pos + height difference
-    const currentHeight = currentMesh.scale.y;
+    //const currentHeight = currentMesh.scale.y;
     const currentYPosition = currentMesh.position.y;
     this.setPositionY(currentYPosition + newHeight / 2);
     this.setHeight(newHeight);
@@ -224,8 +226,25 @@ export class Recipe {
 }
 
 export class AppearenceExtension extends Appearence {
-  objects3D: Array<Mesh> = new Array();
   // can be used to add further Objects to the appearence level of a `SemanticZoomableObject`
+  objects3D: Array<Mesh> = [];
+
+  public activate(): boolean {
+    this.objects3D.forEach((foreignOjects) => {
+      return this.originObject3D?.add(foreignOjects);
+    });
+    return super.activate() && true;
+  }
+  public deactivate(): boolean {
+    this.objects3D.forEach((foreignOjects) => {
+      this.originObject3D?.remove(foreignOjects);
+    });
+    return super.deactivate();
+  }
+
+  public addMesh(mesh: SemanticZoomableObject | Mesh) {
+    this.objects3D.push(mesh);
+  }
 }
 
 export default class SemanticZoomManager {
@@ -241,7 +260,7 @@ export default class SemanticZoomManager {
    */
   NUMBER_OF_CLUSTERS = 6;
   isEnabled: boolean = false;
-  zoomableObjects: Array<SemanticZoomableObject> = new Array();
+  zoomableObjects: Array<SemanticZoomableObject> = [];
   clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
 
@@ -293,27 +312,27 @@ export default class SemanticZoomManager {
 
   triggerLevelDecision(cam: THREE.Camera): void {
     if (this.isEnabled == false) return;
-    let distances: Array<number> = new Array();
+    const distances: Array<number> = [];
     this.zoomableObjects.forEach((element) => {
       //TODO position not in SemanticlyZoomableObject
       // cast ?
       //if (element instanceof ComponentMesh) return;
       //if (element instanceof FoundationMesh) return;
       //if (element instanceof ClazzCommunicationMesh) return;
-      var worldPos = new THREE.Vector3();
+      const worldPos = new THREE.Vector3();
       element.getWorldPosition(worldPos);
-      let distance = cam.position.distanceTo(worldPos);
+      const distance = cam.position.distanceTo(worldPos);
       distances.push(distance);
 
       if (distance < 1) {
         if (element.getCurrentAppearenceLevel() != 1) {
-          console.log('Changed to 1');
+          //console.log('Changed to 1');
           element.showAppearence(1);
           //element.highlight();
         }
       } else {
         if (element.getCurrentAppearenceLevel() != 0) {
-          console.log('Changed to 0');
+          //console.log('Changed to 0');
           element.showAppearence(0);
           //element.unhighlight();
         }
