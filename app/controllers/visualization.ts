@@ -60,6 +60,8 @@ import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
+import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+import CommitTreeData from 'explorviz-frontend/utils/commit-tree/commit-tree-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -83,6 +85,7 @@ export default class VisualizationController extends Controller {
   private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
 
   private sidebarHandler!: SidebarHandler;
+  private commitTreeData!: CommitTreeData;
 
   // #region Services
 
@@ -130,6 +133,9 @@ export default class VisualizationController extends Controller {
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  @service('repos/evolution-data-repository')
+  evolutionDataRepository!: EvolutionDataRepository;
 
   // #endregion
 
@@ -209,19 +215,25 @@ export default class VisualizationController extends Controller {
   // #region Setup
 
   @action
-  setupListeners() {
-    this.debug('initRendering');
+  initRenderingAndSetupListeners() {
+    this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
     );
 
+    this.commitTreeData = new CommitTreeData();
+
     this.sidebarHandler = new SidebarHandler();
     this.landscapeData = null;
     this.visualizationPaused = false;
+
+    // start main loop
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
-    this.debug('initRendering done');
+
+    // fetch applications for evolution mode
+    this.evolutionDataRepository.fetchAllApplications();
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);

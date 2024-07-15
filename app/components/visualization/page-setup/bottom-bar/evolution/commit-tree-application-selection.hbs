@@ -1,0 +1,38 @@
+{{#if (gt @applications.length 0)}}
+  <div class='row justify-content-md-center'>
+    <div class='col-md-auto'>
+      <div id='application-selection' class='dropdown' style='z-index: 500;'>
+        <button
+          class='btn btn-outline-dark dropdown-toggle'
+          type='button'
+          data-toggle='dropdown'
+          aria-haspopup='true'
+          aria-expanded='false'
+        >
+          {{#if @selectedApplication}}
+            {{@selectedApplication}}
+          {{else}}
+            Applications
+          {{/if}}
+        </button>
+
+        <div class='dropdown-menu'>
+          {{#each @applications as |application|}}
+            <div
+              class='dropdown-item pointer-cursor'
+              {{on 'click' (fn @setSelectedApplication application.name)}}
+            >
+              {{application.name}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class='timeline-no-timestamps-outer'>
+    <div class='timeline-no-timestamps-inner'>
+      No applications found!
+    </div>
+  </div>
+{{/if}}

@@ -19,7 +19,7 @@
   this.toggleVisualizationUpdating
 }}
 
-{{did-insert this.setupListeners}}
+{{did-insert this.initRenderingAndSetupListeners}}
 
 <AutoJoinLobby @roomId={{this.roomId}} />
 
@@ -162,9 +162,17 @@
       </div>
 
       {{#if this.isRuntimeTimelineSelected}}
-        <Visualization::PageSetup::BottomBar::Timeline::PlotlyTimeline
+        <Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline
           @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
           @clicked={{this.timelineClicked}}
+        />
+      {{/if}}
+
+      {{#if this.isCommitTreeSelected}}
+        <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
+          @applications={{this.evolutionDataRepository.evolutionLandscapeData.applications}}
+          @selectedApplication={{this.commitTreeData.currentSelectedApplicationName}}
+          @setSelectedApplication={{this.commitTreeData.setCurrentSelectedApplicationName}}
         />
       {{/if}}
 
