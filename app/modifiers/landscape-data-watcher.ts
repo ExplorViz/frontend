@@ -41,7 +41,7 @@ interface Args {
 }
 
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
-  debug = debugLogger('ApplicationRendererModifier');
+  debug = debugLogger('LandscapeDataWatcherModifier');
 
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
@@ -107,6 +107,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return;
     }
 
+    this.debug('Update Visualization');
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -153,7 +155,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.find(
-          (node) => node.id == applicationData.application.id
+          (node) => node.id === applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
