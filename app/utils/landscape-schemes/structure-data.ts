@@ -87,7 +87,8 @@ export function preProcessAndEnhanceStructureLandscape(
 
   function createApplicationId(app: Application, parent: Node) {
     const { hostName, ipAddress } = parent;
-    app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+    //app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+    app.id = `${hostName}#${ipAddress}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
 
@@ -139,9 +140,8 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure)
-  );
+  const enhancedlandscapeStructure: StructureLandscapeData =
+    structuredClone(landscapeStructure);
 
   enhancedlandscapeStructure.nodes.forEach((node) => {
     createNodeId(node);
