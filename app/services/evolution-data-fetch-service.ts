@@ -3,7 +3,7 @@ import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
-import { EvolutedApplication } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { CommitTree } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 
 const { codeService } = ENV.backendAddresses;
 
@@ -22,12 +22,10 @@ export default class EvolutionDataFetchServiceService extends Service {
     return response as string[];
   }
 
-  async fetchCommitTreeForAppName(
-    appName: string
-  ): Promise<EvolutedApplication> {
+  async fetchCommitTreeForAppName(appName: string): Promise<CommitTree> {
     const url = this.constructUrl('commit-tree', appName);
     const response = await this.fetchFromService(url);
-    return response as EvolutedApplication;
+    return response as CommitTree;
   }
 
   // #endregion

@@ -1,9 +1,9 @@
 import Component from '@glimmer/component';
 
-import { EvolutionLandscapeData } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { AppNameCommitTreeMap } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 
 interface IArgs {
-  applications: EvolutionLandscapeData;
+  appNameCommitTreeMap: AppNameCommitTreeMap;
   setSelectedApplication(application: string): void;
   selectedApplication: string;
 }

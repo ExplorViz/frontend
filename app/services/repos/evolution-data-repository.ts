@@ -1,8 +1,8 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import {
-  EvolutedApplication,
-  EvolutionLandscapeData,
+  CommitTree,
+  AppNameCommitTreeMap,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { createEmptyStructureLandscapeData } from 'explorviz-frontend/utils/landscape-structure-helpers';
@@ -29,10 +29,10 @@ export default class EvolutionDataRepository extends Service {
   }
 
   @tracked
-  private _evolutionLandscapeData: EvolutionLandscapeData = new Map();
+  private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
-  get evolutionLandscapeData() {
-    return this._evolutionLandscapeData;
+  get appNameCommitTreeMap() {
+    return this._appNameCommitTreeMap;
   }
 
   // #endregion
@@ -43,7 +43,7 @@ export default class EvolutionDataRepository extends Service {
     try {
       const applicationNames: string[] =
         await this.evolutionDataFetchService.fetchApplications();
-      const evolutionLandscapeData: EvolutionLandscapeData = new Map();
+      const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
       for (const appName of applicationNames) {
         // fetch commit tree for each found appName
@@ -51,16 +51,14 @@ export default class EvolutionDataRepository extends Service {
           await this.fetchCommitTreeForAppName(appName);
 
         if (commitTreeForAppName) {
-          evolutionLandscapeData.set(appName, commitTreeForAppName);
+          appNameCommitTreeMap.set(appName, commitTreeForAppName);
         }
       }
 
-      this._evolutionLandscapeData = evolutionLandscapeData;
+      this._appNameCommitTreeMap = appNameCommitTreeMap;
     } catch (reason) {
-      this.resetEvolutionLandscapeData();
-      console.error(
-        `Failed to fetch EvolutionLandscapeData, reason: ${reason}`
-      );
+      this.resetAppNameCommitTreeMap();
+      console.error(`Failed to build AppNameCommitTreeMap, reason: ${reason}`);
     }
   }
   // #endregion
@@ -70,8 +68,8 @@ export default class EvolutionDataRepository extends Service {
     this._evolutionStructureLandscapeData = createEmptyStructureLandscapeData();
   }
 
-  resetEvolutionLandscapeData() {
-    this._evolutionLandscapeData = new Map();
+  resetAppNameCommitTreeMap() {
+    this._appNameCommitTreeMap = new Map();
   }
   // #endregion
 
@@ -79,9 +77,9 @@ export default class EvolutionDataRepository extends Service {
 
   private async fetchCommitTreeForAppName(
     appName: string
-  ): Promise<EvolutedApplication | undefined> {
+  ): Promise<CommitTree | undefined> {
     try {
-      const evolutionApplication: EvolutedApplication =
+      const evolutionApplication: CommitTree =
         await this.evolutionDataFetchService.fetchCommitTreeForAppName(appName);
       return evolutionApplication;
     } catch (reason) {

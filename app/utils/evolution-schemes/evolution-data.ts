@@ -1,6 +1,6 @@
-export type EvolutionLandscapeData = Map<string, EvolutedApplication>;
+export type AppNameCommitTreeMap = Map<string, CommitTree>;
 
-export type EvolutedApplication = {
+export type CommitTree = {
   name: string;
   branches: Branch[];
 };

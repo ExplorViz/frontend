@@ -1,4 +1,4 @@
-{{#if (gt @applications.size 0)}}
+{{#if (gt @appNameCommitTreeMap.size 0)}}
   <div class='row justify-content-md-center'>
     <div class='col-md-auto'>
       <div id='application-selection' class='dropdown' style='z-index: 500;'>
@@ -17,7 +17,7 @@
         </button>
 
         <div class='dropdown-menu'>
-          {{#each @applications as |mapEntry|}}
+          {{#each @appNameCommitTreeMap as |mapEntry|}}
             {{#let (get-key-of-map-entry mapEntry) as |appName|}}
               <div
                 class='dropdown-item pointer-cursor'
