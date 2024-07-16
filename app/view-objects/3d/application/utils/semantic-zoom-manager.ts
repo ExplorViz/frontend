@@ -274,12 +274,12 @@ export class AppearenceExtension extends Appearence {
   public addMeshToScene() {}
 
   private counterParentScaling(child: Mesh) {
-    let originScale = this.originObject3D?.scale;
+    const originScale = this.originObject3D?.scale;
     if (originScale == undefined) {
       child.scale.set(1, 1, 1);
       return;
     }
-    let childScale = new THREE.Vector3(1, 1, 1);
+    const childScale = new THREE.Vector3(1, 1, 1);
     childScale.divide(originScale);
     child.scale.set(childScale.x, childScale.y, childScale.z);
     return;
@@ -364,21 +364,18 @@ export default class SemanticZoomManager {
       distances.push(distance);
       if (distance < 1) {
         if (element.getCurrentAppearenceLevel() != 2) {
-          console.log('Changed to 2');
+          //console.log('Changed to 2');
           element.showAppearence(2);
-          //element.highlight();
         }
       } else if (distance < 1.5) {
         if (element.getCurrentAppearenceLevel() != 1) {
-          console.log('Changed to 1');
+          //console.log('Changed to 1');
           element.showAppearence(1);
-          //element.highlight();
         }
       } else {
         if (element.getCurrentAppearenceLevel() != 0) {
-          console.log('Changed to 0');
+          //console.log('Changed to 0');
           element.showAppearence(0);
-          //element.unhighlight();
         }
       }
     });

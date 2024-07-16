@@ -77,7 +77,7 @@ export default abstract class BaseMesh<
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
     targetAppearence.activate();
-    this.appearencesMap.forEach((v, _) => {
+    this.appearencesMap.forEach((v) => {
       if (v != targetAppearence) v.deactivate();
     });
     this.appearenceLevel = i;
