@@ -72,14 +72,14 @@ export function addApplicationLabels(
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
-
+  const { componentTextColor, foundationTextColor } = colors;
+  // clazzTextColor was used for addClazzTextLabel
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
-        addClazzTextLabel(mesh, font, clazzTextColor);
+        //addClazzTextLabel(mesh, font, clazzTextColor);
       } else if (mesh instanceof ComponentMesh) {
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {
@@ -157,4 +157,36 @@ export function addClazzTextLabel(
   labelMesh.rotation.z = -(Math.PI / 3);
 
   clazzMesh.add(labelMesh);
+}
+
+export function createClazzTextLabelForZoomLevel(
+  clazzMesh: ClazzMesh,
+  font: Font,
+  color: THREE.Color,
+  size = 0.75,
+  maxletters = -1,
+  replace = false
+) {
+  if (clazzMesh.labelMesh && !replace) return;
+  const text = clazzMesh.dataModel.name;
+
+  const labelMesh = new ClazzLabelMesh(
+    font,
+    text,
+    color,
+    size,
+    maxletters > -1 ? maxletters : undefined
+  );
+  //clazzMesh.labelMesh = labelMesh;
+
+  // Set label origin to center of clazz mesh
+  labelMesh.geometry.center();
+  // Set y-position just above the clazz mesh
+  labelMesh.position.y = clazzMesh.geometry.parameters.height / 2 + 0.01;
+
+  // Rotate text
+  labelMesh.rotation.x = -(Math.PI / 2);
+  labelMesh.rotation.z = -(Math.PI / 3);
+
+  return labelMesh;
 }

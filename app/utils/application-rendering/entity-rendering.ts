@@ -8,10 +8,11 @@ import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import SemanticZoomManager, {
-  Appearence,
   AppearenceExtension,
   Recipe,
 } from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { createClazzTextLabelForZoomLevel as createClazzTextLabelForZoomLevel } from './labeler';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -74,6 +75,7 @@ export function addComponentAndChildrenToScene(
   component: Package,
   applicationObject3D: ApplicationObject3D,
   applicationColors: ApplicationColors,
+  applicationFont: Font,
   componentLevel = 1
 ) {
   const application = applicationObject3D.data.application;
@@ -103,7 +105,7 @@ export function addComponentAndChildrenToScene(
   const recipe = new Recipe();
   //recipe.setColor(new THREE.Color(255, 0, 0));
   //recipe.setPositionY(2);
-  const appearenceForOne = new Appearence();
+  const appearenceForOne = new AppearenceExtension();
   appearenceForOne.setRecipe(recipe);
 
   mesh.setAppearence(1, appearenceForOne);
@@ -123,7 +125,7 @@ export function addComponentAndChildrenToScene(
       return;
     }
     // Create a basic appearence change for the class by changing the height.
-    const appearenceClassForOne = new Appearence();
+    const appearenceClassForOne = new AppearenceExtension();
     const recipe = new Recipe().setAbsValues(true);
     //recipe.setColor(new THREE.Color(255, 0, 0));
     //const startingPos: number = mesh.position.y + mesh.height;
@@ -153,6 +155,24 @@ export function addComponentAndChildrenToScene(
     lodLayer2.addMesh(sph);
     clazzMesh.setAppearence(2, lodLayer2);
 
+    // Add different Text Levels
+    const textclose = createClazzTextLabelForZoomLevel(
+      clazzMesh,
+      applicationFont,
+      new THREE.Color(0xffffff),
+      0.66,
+      20
+    );
+    const textintermedian = createClazzTextLabelForZoomLevel(
+      clazzMesh,
+      applicationFont,
+      new THREE.Color(0xffff00),
+      1,
+      10
+    );
+    if (textclose) lodLayer2.addMesh(textclose);
+    if (textintermedian) appearenceClassForOne.addMesh(textintermedian);
+
     // // Playground to extend the extended Appearence by another Mesh
     // // like a sub sub Appearence
     // const subgeometry = new THREE.SphereGeometry(1, 8, 8);
@@ -181,6 +201,7 @@ export function addComponentAndChildrenToScene(
       child,
       applicationObject3D,
       applicationColors,
+      applicationFont,
       componentLevel + 1
     );
   });
@@ -196,7 +217,8 @@ export function addComponentAndChildrenToScene(
  */
 export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors
+  applicationColors: ApplicationColors,
+  applicationFont: Font
 ) {
   const application = applicationObject3D.data.application;
   const applicationLayout = applicationObject3D.layout;
@@ -222,7 +244,8 @@ export function addFoundationAndChildrenToApplication(
     addComponentAndChildrenToScene(
       child,
       applicationObject3D,
-      applicationColors
+      applicationColors,
+      applicationFont
     );
   });
 }

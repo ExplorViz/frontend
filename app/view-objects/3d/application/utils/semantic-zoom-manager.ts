@@ -1,6 +1,7 @@
 import debugLogger from 'ember-debug-logger';
 import * as THREE from 'three';
 import { Mesh } from 'three';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 export interface SemanticZoomableObject {
   appearenceLevel: number;
@@ -302,6 +303,16 @@ export default class SemanticZoomManager {
   zoomableObjects: Array<SemanticZoomableObject> = [];
   clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
+
+  // TODO Does it make sense to store the Font here? Dont like it!
+  private _configFont: Font | undefined;
+
+  public get configFont(): Font | undefined {
+    return this._configFont;
+  }
+  public set configFont(value: Font | undefined) {
+    this._configFont = value;
+  }
 
   static #instance: SemanticZoomManager;
 

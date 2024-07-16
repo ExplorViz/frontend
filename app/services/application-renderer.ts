@@ -234,7 +234,8 @@ export default class ApplicationRenderer extends Service.extend({
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.applicationColors
+          this.userSettings.applicationColors,
+          this.font
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
