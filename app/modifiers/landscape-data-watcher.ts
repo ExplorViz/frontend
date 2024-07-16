@@ -134,7 +134,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      return nodes.some((n) => n.applications[0].id === node.id);
+      const appears = nodes.some((n) => {
+        return n.applications.some((app) => app.id === node.id);
+      });
+
+      if (!appears) {
+        // also delete from application renderer so it can be rerendered if it existent again
+        this.applicationRenderer.removeApplicationLocallyById(node.id);
+      }
+      return appears;
     });
 
     const nodeLinks: any[] = [];
