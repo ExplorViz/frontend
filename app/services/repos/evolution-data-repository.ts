@@ -7,7 +7,6 @@ import {
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { createEmptyStructureLandscapeData } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
-import ToastHandlerService from '../toast-handler';
 import { tracked } from '@glimmer/tracking';
 
 export default class EvolutionDataRepository extends Service {
@@ -17,9 +16,6 @@ export default class EvolutionDataRepository extends Service {
 
   @service('evolution-data-fetch-service')
   evolutionDataFetchService!: EvolutionDataFetchServiceService;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   // #endregion
 
@@ -69,7 +65,7 @@ export default class EvolutionDataRepository extends Service {
       })
       .catch((reason) => {
         this.resetEvolutionLandscapeData();
-        this.toastHandlerService.showErrorToastMessage(
+        console.error(
           'Failed to fetch EvolutionLandscapeData, reason: ' + reason
         );
       });
