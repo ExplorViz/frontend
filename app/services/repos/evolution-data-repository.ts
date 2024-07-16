@@ -64,6 +64,12 @@ export default class EvolutionDataRepository extends Service {
   // #endregion
 
   // #region Reset functions
+
+  resetAllEvolutionData() {
+    this.resetEvolutionStructureLandscapeData();
+    this.resetAppNameCommitTreeMap();
+  }
+
   resetEvolutionStructureLandscapeData() {
     this._evolutionStructureLandscapeData = createEmptyStructureLandscapeData();
   }
@@ -89,6 +95,8 @@ export default class EvolutionDataRepository extends Service {
       return undefined;
     }
   }
+
+  // #endregion
 }
 
 declare module '@ember/service' {
