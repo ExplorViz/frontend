@@ -47,12 +47,18 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     return 'red';
   }
 
-  private selectedApplication: string | undefined;
   private selectedCommits: Map<string, Commit[]> | undefined;
-  private appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
   get applicationNameAndBranchNameToColorMap() {
     return new Map();
+  }
+
+  get selectedApplication() {
+    return this.args.selectedApplication;
+  }
+
+  get appNameCommitTreeMap() {
+    return this.args.appNameCommitTreeMap;
   }
 
   // END template-argument getters
@@ -75,15 +81,13 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   // END Ember Div Events
 
   @action
-  didRender(plotlyDiv: any) {
-    this.debug('didRender');
+  setupPlotlyCommitTreeChart(plotlyDiv: any) {
+    this.debug('setupPlotlyCommitTreeChart');
 
     this.commitTreeDiv = plotlyDiv;
 
     // deep copy attributes (Map and Object is passed via reference, therefor changes in this component would actually be executed on the original element)
 
-    this.appNameCommitTreeMap = structuredClone(this.args.appNameCommitTreeMap);
-    this.selectedApplication = this.args.selectedApplication;
     //this.selectedCommits = structuredClone(
     //  commitTreeData.evolutionData?.selectedCommits
     //);
@@ -95,15 +99,30 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       this.selectedApplication &&
       this.selectedCommits
     ) {
-      this.computeSizes(this.appNameCommitTreeMap, this.selectedApplication);
-      this.createPlotlyCommitTreeChart(
+      this.updatePlotlyCommitTree();
+      this.setupPlotlyListener(
         this.appNameCommitTreeMap,
         this.selectedApplication,
         this.selectedCommits
       );
-      this.setupPlotlyListener(
-        this.appNameCommitTreeMap,
-        this.selectedApplication,
+    }
+  }
+
+  @action
+  updatePlotlyCommitTree() {
+    if (
+      this.args.appNameCommitTreeMap &&
+      this.args.selectedApplication &&
+      this.selectedCommits
+    ) {
+      this.debug('updatePlotlyCommitTree');
+      this.computeSizes(
+        this.args.appNameCommitTreeMap,
+        this.args.selectedApplication
+      );
+      this.createPlotlyCommitTreeChart(
+        this.args.appNameCommitTreeMap,
+        this.args.selectedApplication,
         this.selectedCommits
       );
     }
