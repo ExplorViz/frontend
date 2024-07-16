@@ -311,11 +311,14 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     selectedApplication: string,
     selectedCommits: Map<string, Commit[]>
   ) {
-    const commitTree = appNameCommitTreeMap.get(selectedApplication);
+    const commitTreeForSelectedAppName =
+      appNameCommitTreeMap.get(selectedApplication);
 
     if (
-      commitTree &&
-      commitTree.branches.find((branch) => branch.commits.length > 0)
+      commitTreeForSelectedAppName &&
+      commitTreeForSelectedAppName.branches.find(
+        (branch) => branch.commits.length > 0
+      )
     ) {
       //if (!selectedCommits.get(selectedApplication)) {
       //  selectedCommits.set(selectedApplication, []);
@@ -325,7 +328,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       const plotlyBranches: any[] = [];
       let branchCounter = 0;
 
-      for (const branch of commitTree.branches) {
+      for (const branch of commitTreeForSelectedAppName.branches) {
         const numOfCommits = branch.commits.length;
         const offset = this.calculateOffset(selectedApplication, branch);
         const commits = Array.from(
@@ -360,7 +363,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       }
 
       // add branch-to-branch connections
-      for (const branch of commitTree.branches) {
+      for (const branch of commitTreeForSelectedAppName.branches) {
         const branchY = this.branchToY.get(branch.name);
         const branchX = this.calculateOffset(selectedApplication, branch);
 
