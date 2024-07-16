@@ -1,7 +1,7 @@
 {{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
-  this.restructureLandscapeData
+  this.triggerRenderingForGivenLandscapeData
 }}
 {{add-listener
   this.landscapeRestructure
@@ -101,7 +101,7 @@
 
     {{! Toggle Bottom Bar Button}}
     <BsButton
-      @onClick={{this.toggleBottomBar}}
+      @onClick={{this.toggleVisibilityBottomBar}}
       @type='secondary'
       @outline={{true}}
       class='bottom-bar-toggle-btn'
@@ -135,7 +135,7 @@
         {{did-insert this.updateVrStatus}}
         {{on 'click' this.switchToVR}}
       >
-        {{this.buttonText}}
+        {{this.vrButtonText}}
       </button>
     {{/if}}
 

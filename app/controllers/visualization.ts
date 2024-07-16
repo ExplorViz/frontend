@@ -145,9 +145,6 @@ export default class VisualizationController extends Controller {
   roomId?: string | undefined | null;
 
   @tracked
-  isBottomBarMaximized: boolean = true;
-
-  @tracked
   landscapeData: LandscapeData | null = null;
 
   @tracked
@@ -157,10 +154,13 @@ export default class VisualizationController extends Controller {
   vrSupported: boolean = false;
 
   @tracked
-  buttonText: string = '';
+  vrButtonText: string = '';
 
   @tracked
   timelineDataObjectHandler!: TimelineDataObjectHandler;
+
+  @tracked
+  isBottomBarMaximized: boolean = true;
 
   @tracked
   isRuntimeTimelineSelected: boolean = true;
@@ -290,22 +290,6 @@ export default class VisualizationController extends Controller {
 
   // #region Event Handlers
 
-  @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] ===
-        this.timelineDataObjectHandler.selectedTimestamps[0]
-    ) {
-      return;
-    }
-    this.pauseVisualizationUpdating(false);
-    this.triggerRenderingForGivenTimestamp(
-      selectedTimestamps[0].epochMilli,
-      selectedTimestamps
-    );
-  }
-
   // collaboration start
   // user handling end
   async onInitialLandscape({
@@ -377,14 +361,6 @@ export default class VisualizationController extends Controller {
     this.toastHandlerService.showInfoToastMessage(
       'Room state synchronizing ...'
     );
-  }
-
-  @action
-  restructureLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
   }
 
   // #endregion
@@ -483,7 +459,7 @@ export default class VisualizationController extends Controller {
   /**
    * Checks the current status of WebXR in the browser and if compatible
    * devices are connected. Sets the tracked properties
-   * 'buttonText' and 'vrSupported' accordingly.
+   * 'vrButtonText' and 'vrSupported' accordingly.
    */
   @action
   async updateVrStatus() {
@@ -492,20 +468,36 @@ export default class VisualizationController extends Controller {
         (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
 
       if (this.vrSupported) {
-        this.buttonText = 'Enter VR';
+        this.vrButtonText = 'Enter VR';
       } else if (window.isSecureContext === false) {
-        this.buttonText = 'WEBXR NEEDS HTTPS';
+        this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
-        this.buttonText = 'WEBXR NOT AVAILABLE';
+        this.vrButtonText = 'WEBXR NOT AVAILABLE';
       }
     } else {
-      this.buttonText = 'WEBXR NOT SUPPORTED';
+      this.vrButtonText = 'WEBXR NOT SUPPORTED';
     }
   }
 
   // #endregion
 
   // #region Template Actions
+
+  @action
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
+    if (
+      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] ===
+        this.timelineDataObjectHandler.selectedTimestamps[0]
+    ) {
+      return;
+    }
+    this.pauseVisualizationUpdating(false);
+    this.triggerRenderingForGivenTimestamp(
+      selectedTimestamps[0].epochMilli,
+      selectedTimestamps
+    );
+  }
 
   @action
   toggleBottomChart() {
@@ -519,19 +511,7 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  setRuntimeTimelineAsSelected() {
-    this.isCommitTreeSelected = false;
-    this.isRuntimeTimelineSelected = true;
-  }
-
-  @action
-  setCommitTreeAsSelected() {
-    this.isRuntimeTimelineSelected = false;
-    this.isCommitTreeSelected = true;
-  }
-
-  @action
-  toggleBottomBar() {
+  toggleVisibilityBottomBar() {
     this.isBottomBarMaximized = !this.isBottomBarMaximized;
   }
 
