@@ -17,7 +17,10 @@ export default class CommitTreeData {
   // #region Template actions
   @action
   setCurrentSelectedApplicationName(appName: string) {
-    this._currentSelectedApplicationName = appName;
+    if (this._currentSelectedApplicationName !== appName) {
+      // don't trigger unnecessary rerendering of components
+      this._currentSelectedApplicationName = appName;
+    }
   }
   // #endregion
 }

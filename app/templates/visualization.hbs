@@ -170,7 +170,7 @@
 
       {{#if this.isCommitTreeSelected}}
         <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
-          @applications={{this.evolutionDataRepository.evolutionLandscapeData.applications}}
+          @applications={{this.evolutionDataRepository.evolutionLandscapeData}}
           @selectedApplication={{this.commitTreeData.currentSelectedApplicationName}}
           @setSelectedApplication={{this.commitTreeData.setCurrentSelectedApplicationName}}
         />

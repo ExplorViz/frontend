@@ -1,6 +1,4 @@
-export type EvolutionLandscapeData = {
-  applications: EvolutedApplication[];
-};
+export type EvolutionLandscapeData = Map<string, EvolutedApplication>;
 
 export type EvolutedApplication = {
   name: string;

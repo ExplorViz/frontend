@@ -29,9 +29,7 @@ export default class EvolutionDataRepository extends Service {
   }
 
   @tracked
-  private _evolutionLandscapeData: EvolutionLandscapeData = {
-    applications: [],
-  };
+  private _evolutionLandscapeData: EvolutionLandscapeData = new Map();
 
   get evolutionLandscapeData() {
     return this._evolutionLandscapeData;
@@ -40,35 +38,30 @@ export default class EvolutionDataRepository extends Service {
   // #endregion
 
   // #region Fetch functions
-  fetchAllApplications() {
+  async fetchAllApplications() {
     this.debug('fetchAllApplications');
-    this.evolutionDataFetchService
-      .fetchApplications()
-      .then((applicationNames: string[]) => {
-        const evolutionLandscapeData: EvolutionLandscapeData = {
-          applications: [],
-        };
+    try {
+      const applicationNames: string[] =
+        await this.evolutionDataFetchService.fetchApplications();
+      const evolutionLandscapeData: EvolutionLandscapeData = new Map();
 
-        applicationNames.forEach((appName) => {
-          const evolutedApplication: EvolutedApplication = {
-            name: appName,
-            branches: [],
-          };
+      for (const appName of applicationNames) {
+        // fetch commit tree for each found appName
+        const commitTreeForAppName =
+          await this.fetchCommitTreeForAppName(appName);
 
-          evolutionLandscapeData.applications = [
-            ...evolutionLandscapeData.applications,
-            evolutedApplication,
-          ];
-        });
+        if (commitTreeForAppName) {
+          evolutionLandscapeData.set(appName, commitTreeForAppName);
+        }
+      }
 
-        this._evolutionLandscapeData = evolutionLandscapeData;
-      })
-      .catch((reason) => {
-        this.resetEvolutionLandscapeData();
-        console.error(
-          'Failed to fetch EvolutionLandscapeData, reason: ' + reason
-        );
-      });
+      this._evolutionLandscapeData = evolutionLandscapeData;
+    } catch (reason) {
+      this.resetEvolutionLandscapeData();
+      console.error(
+        `Failed to fetch EvolutionLandscapeData, reason: ${reason}`
+      );
+    }
   }
   // #endregion
 
@@ -78,9 +71,26 @@ export default class EvolutionDataRepository extends Service {
   }
 
   resetEvolutionLandscapeData() {
-    this._evolutionLandscapeData = { applications: [] };
+    this._evolutionLandscapeData = new Map();
   }
   // #endregion
+
+  //#region Private Helper Functions
+
+  private async fetchCommitTreeForAppName(
+    appName: string
+  ): Promise<EvolutedApplication | undefined> {
+    try {
+      const evolutionApplication: EvolutedApplication =
+        await this.evolutionDataFetchService.fetchCommitTreeForAppName(appName);
+      return evolutionApplication;
+    } catch (reason) {
+      console.error(
+        `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`
+      );
+      return undefined;
+    }
+  }
 }
 
 declare module '@ember/service' {
