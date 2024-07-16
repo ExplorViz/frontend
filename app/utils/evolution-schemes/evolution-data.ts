@@ -15,3 +15,8 @@ export type BranchPoint = {
   name: string;
   commit: string;
 };
+
+export type Commit = {
+  commitId: string;
+  branchName: string;
+};
