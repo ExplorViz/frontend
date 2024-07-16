@@ -19,7 +19,8 @@ interface IMarkerStates {
 interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedApplication: string;
-  clicked?(selectedCommits: Map<string, Commit[]>): void;
+  selectedCommits: Map<string, Commit[]>;
+  clicked?(newSelectedCommits: Map<string, Commit[]>): void;
 }
 
 export default class PlotlyCommitTree extends Component<IArgs> {

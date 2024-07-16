@@ -176,6 +176,7 @@
         />
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+          @clicked={{this.commitTreeClicked}}
           @selectedApplication={{this.commitTreeData.currentSelectedApplicationName}}
         />
       {{/if}}
