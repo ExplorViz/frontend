@@ -1,4 +1,4 @@
-{{#if (and @appNameCommitTreeMap @selectedApplication)}}
+{{#if (and @appNameCommitTreeMap @selectedAppName)}}
   <div
     class='plotlyCommitDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
@@ -6,7 +6,8 @@
     {{did-update
       this.updatePlotlyCommitTree
       @commitTreeData
-      @selectedApplication
+      @selectedAppName
+      @selectedCommits
     }}
     {{did-insert this.setupPlotlyCommitTreeChart}}
   >

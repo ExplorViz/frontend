@@ -9,8 +9,8 @@
           aria-haspopup='true'
           aria-expanded='false'
         >
-          {{#if @selectedApplication}}
-            {{@selectedApplication}}
+          {{#if @selectedAppName}}
+            {{@selectedAppName}}
           {{else}}
             Applications
           {{/if}}
@@ -21,7 +21,7 @@
             {{#let (get-key-of-map-entry mapEntry) as |appName|}}
               <div
                 class='dropdown-item pointer-cursor'
-                {{on 'click' (fn @setSelectedApplication appName)}}
+                {{on 'click' (fn @setSelectedAppName appName)}}
               >
                 {{appName}}
               </div>

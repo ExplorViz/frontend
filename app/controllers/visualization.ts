@@ -486,7 +486,7 @@ export default class VisualizationController extends Controller {
 
   @action
   async commitTreeClicked(newSelectedCommits: Map<string, Commit[]>) {
-    console.log(newSelectedCommits);
+    //console.log(newSelectedCommits);
   }
 
   @action

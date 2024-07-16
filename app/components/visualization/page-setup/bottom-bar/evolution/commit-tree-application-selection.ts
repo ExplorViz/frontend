@@ -4,8 +4,8 @@ import { AppNameCommitTreeMap } from 'explorviz-frontend/utils/evolution-schemes
 
 interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
-  setSelectedApplication(application: string): void;
-  selectedApplication: string;
+  setSelectedAppName(appName: string): void;
+  selectedAppName: string;
 }
 
 export default class CommitTreeApplicationSelection extends Component<IArgs> {}
