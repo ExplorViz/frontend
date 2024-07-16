@@ -59,6 +59,9 @@ export default abstract class BaseMesh<
     if (i == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.restoreOriginalAppearence();
+      this.appearencesMap.forEach((v, k) => {
+        if (k != 0) v.deactivate();
+      });
       this.appearenceLevel = i;
       return true;
     } else if (i == 0 && this.originalAppearence == undefined) {
@@ -67,9 +70,16 @@ export default abstract class BaseMesh<
       this.appearenceLevel = i;
       return true;
     }
+
+    // Make sure to return to default Appearence first
+    this.restoreOriginalAppearence();
+
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
     targetAppearence.activate();
+    this.appearencesMap.forEach((v, _) => {
+      if (v != targetAppearence) v.deactivate();
+    });
     this.appearenceLevel = i;
     return true;
   }

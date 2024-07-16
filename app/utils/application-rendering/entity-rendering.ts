@@ -9,6 +9,7 @@ import { Class, Package } from '../landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import SemanticZoomManager, {
   Appearence,
+  AppearenceExtension,
   Recipe,
 } from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
@@ -121,29 +122,57 @@ export function addComponentAndChildrenToScene(
     if (clazzLayout === undefined) {
       return;
     }
-
+    // Create a basic appearence change for the class by changing the height.
+    const appearenceClassForOne = new Appearence();
     const recipe = new Recipe().setAbsValues(true);
     //recipe.setColor(new THREE.Color(255, 0, 0));
     //const startingPos: number = mesh.position.y + mesh.height;
     if (orignalHeight) {
-      recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
+      //recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
+      //appearenceClassForOne.callbackFunctionBefore = () =>
+      //  recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
       clazzLayout.height = 1.5;
     }
-
+    // Create class mesh
     const clazzMesh = new ClazzMesh(
       clazzLayout,
       clazz,
       clazzColor,
       highlightedEntityColor
     );
-    //recipe.setPositionY(startingPos)
-    const appearenceClassForOne = new Appearence();
+    // Set the basic height changing recipe as the new appearence and register it as Level 1
     appearenceClassForOne.setRecipe(recipe);
-
     clazzMesh.setAppearence(1, appearenceClassForOne);
+
+    // Create another mesh for an extended Appearence as Level 2
+    const geometry = new THREE.SphereGeometry(1, 8, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0a00 });
+    const sph = new THREE.Mesh(geometry, material);
+    // and register it
+    const lodLayer2 = new AppearenceExtension();
+    lodLayer2.addMesh(sph);
+    clazzMesh.setAppearence(2, lodLayer2);
+
+    // // Playground to extend the extended Appearence by another Mesh
+    // // like a sub sub Appearence
+    // const subgeometry = new THREE.SphereGeometry(1, 8, 8);
+    // const submaterial = new THREE.MeshBasicMaterial({ color: 0xff0a00 });
+
+    // const subsph = new THREE.Mesh(subgeometry, submaterial);
+    // const sublodLayer2 = new AppearenceExtension();
+    // sublodLayer2.addMesh(subsph);
+
+    // sph.setAppearence()
 
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
+    if (orignalHeight) {
+      recipe.changeAxisScaleAccordingToCurrentPosition(
+        clazzMesh,
+        orignalHeight,
+        'y'
+      );
+    }
   });
 
   // Add components with alternating colors (e.g. dark and light green)

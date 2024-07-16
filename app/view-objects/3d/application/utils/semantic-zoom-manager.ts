@@ -20,7 +20,7 @@ export class Appearence {
   // is the Appearence currently active.
   activated: boolean = false;
   // triggered when `activate` gets called
-  callbackFunction: (currentMesh: Mesh | undefined) => void = () => {};
+  callbackFunctionBefore: (currentMesh: Mesh | undefined) => void = () => {};
   recipe: Recipe | undefined;
   originObject3D: Mesh | undefined;
 
@@ -29,7 +29,7 @@ export class Appearence {
     this.recipe = rec;
   }
   public activate(): boolean {
-    this.callbackFunction(this.originObject3D);
+    this.callbackFunctionBefore(this.originObject3D);
     const success = this.handleRecipe();
     this.activated = true;
     return success;
@@ -158,12 +158,36 @@ export class Recipe {
   }
 
   //TODO function implementieren
-  changeHeightAccordingToCurrentPosition(currentMesh: Mesh, newHeight: number) {
-    // use current y pos + height difference
-    //const currentHeight = currentMesh.scale.y;
-    const currentYPosition = currentMesh.position.y;
-    this.setPositionY(currentYPosition + newHeight / 2);
-    this.setHeight(newHeight);
+  changeAxisScaleAccordingToCurrentPosition(
+    currentMesh: Mesh,
+    newValue: number,
+    axis: string
+  ) {
+    let currentValue = 0;
+    let currentPosition = 0;
+    if (axis == 'y') {
+      currentValue = currentMesh.scale.y;
+      currentPosition = currentMesh.position.y;
+      this.setPositionY(currentPosition - currentValue / 2 + newValue / 2);
+      this.setHeight(newValue);
+    } else if (axis == 'x') {
+      currentValue = currentMesh.scale.x;
+      currentPosition = currentMesh.position.x;
+      this.setPositionX(currentPosition - currentValue / 2 + newValue / 2);
+      this.setWidth(newValue);
+    } else if (axis == 'z') {
+      currentValue = currentMesh.scale.z;
+      currentPosition = currentMesh.position.z;
+      this.setPositionZ(currentPosition - currentValue / 2 + newValue / 2);
+      this.setDepth(newValue);
+    }
+    // console.log(
+    //   'Current Mesh Height: %d, Y-Pos: %d, new Y-Pos: %d, new Height: %d',
+    //   currentHeight,
+    //   currentYPosition,
+    //   currentYPosition - currentHeight / 2 + newValue / 2,
+    //   newValue
+    // );
   }
 
   setAbsValues(v: boolean) {
@@ -230,10 +254,12 @@ export class AppearenceExtension extends Appearence {
   objects3D: Array<Mesh> = [];
 
   public activate(): boolean {
+    const parentResults = super.activate();
     this.objects3D.forEach((foreignOjects) => {
+      this.counterParentScaling(foreignOjects);
       return this.originObject3D?.add(foreignOjects);
     });
-    return super.activate() && true;
+    return parentResults || this.objects3D.length > 0 ? true : false;
   }
   public deactivate(): boolean {
     this.objects3D.forEach((foreignOjects) => {
@@ -244,6 +270,19 @@ export class AppearenceExtension extends Appearence {
 
   public addMesh(mesh: SemanticZoomableObject | Mesh) {
     this.objects3D.push(mesh);
+  }
+  public addMeshToScene() {}
+
+  private counterParentScaling(child: Mesh) {
+    let originScale = this.originObject3D?.scale;
+    if (originScale == undefined) {
+      child.scale.set(1, 1, 1);
+      return;
+    }
+    let childScale = new THREE.Vector3(1, 1, 1);
+    childScale.divide(originScale);
+    child.scale.set(childScale.x, childScale.y, childScale.z);
+    return;
   }
 }
 
@@ -323,16 +362,21 @@ export default class SemanticZoomManager {
       element.getWorldPosition(worldPos);
       const distance = cam.position.distanceTo(worldPos);
       distances.push(distance);
-
       if (distance < 1) {
+        if (element.getCurrentAppearenceLevel() != 2) {
+          console.log('Changed to 2');
+          element.showAppearence(2);
+          //element.highlight();
+        }
+      } else if (distance < 1.5) {
         if (element.getCurrentAppearenceLevel() != 1) {
-          //console.log('Changed to 1');
+          console.log('Changed to 1');
           element.showAppearence(1);
           //element.highlight();
         }
       } else {
         if (element.getCurrentAppearenceLevel() != 0) {
-          //console.log('Changed to 0');
+          console.log('Changed to 0');
           element.showAppearence(0);
           //element.unhighlight();
         }
