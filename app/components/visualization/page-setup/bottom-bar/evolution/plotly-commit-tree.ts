@@ -116,8 +116,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       plotlyDiv.on('plotly_click', async (data: any) => {
         // https://plot.ly/javascript/reference/#scatter-marker
 
-        //console.log('click start', this.selectedCommits);
-
         if (data.points[0].data.mode === 'markers') {
           // no functionality for metric circles
           return;
@@ -394,7 +392,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         });
       });
 
-      Plotly.newPlot(
+      Plotly.react(
         this.commitTreeDiv,
         plotlyBranches,
         layout,
