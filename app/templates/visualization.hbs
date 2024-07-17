@@ -1,7 +1,7 @@
 {{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
-  this.triggerRenderingForGivenLandscapeData
+  this.renderingService.triggerRenderingForGivenLandscapeData
 }}
 {{add-listener
   this.landscapeRestructure
@@ -44,7 +44,7 @@
   {{#if this.showAR}}
     <ArRendering
       @id='ar-rendering'
-      @landscapeData={{this.landscapeData}}
+      @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
       @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
@@ -60,7 +60,7 @@
 
       <VrRendering
         @id='vr-rendering'
-        @landscapeData={{this.landscapeData}}
+        @landscapeData={{this.renderingService.landscapeData}}
         @switchToOnScreenMode={{this.switchToOnScreenMode}}
         @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
@@ -69,7 +69,7 @@
       <Visualization::Rendering::BrowserRendering
         @id='browser-rendering'
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
-        @landscapeData={{this.landscapeData}}
+        @landscapeData={{this.renderingService.landscapeData}}
         @components={{this.sidebarHandler.components}}
         @addComponent={{this.sidebarHandler.addComponent}}
         @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
@@ -88,7 +88,7 @@
         @removeTimestampListener={{this.removeTimestampListener}}
         @restructureLandscape={{this.restructureLandscape}}
         @switchToAR={{this.switchToAR}}
-        @triggerRenderingForGivenLandscapeData={{this.triggerRenderingForGivenLandscapeData}}
+        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
       />
     {{/if}}
 
