@@ -61,8 +61,7 @@ import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timelin
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
-import CommitTreeData from 'explorviz-frontend/utils/commit-tree/commit-tree-data';
-import { Commit } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import CommitTreeHandler from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -86,7 +85,7 @@ export default class VisualizationController extends Controller {
   private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
 
   private sidebarHandler!: SidebarHandler;
-  private commitTreeData!: CommitTreeData;
+  private commitTreeHandler!: CommitTreeHandler;
 
   // #region Services
 
@@ -222,7 +221,7 @@ export default class VisualizationController extends Controller {
       getOwner(this)
     );
 
-    this.commitTreeData = new CommitTreeData();
+    this.commitTreeHandler = new CommitTreeHandler();
 
     this.sidebarHandler = new SidebarHandler();
     this.landscapeData = null;
@@ -483,11 +482,6 @@ export default class VisualizationController extends Controller {
   // #endregion
 
   // #region Template Actions
-
-  @action
-  async commitTreeClicked(newSelectedCommits: Map<string, Commit[]>) {
-    //console.log(newSelectedCommits);
-  }
 
   @action
   async timelineClicked(selectedTimestamps: Timestamp[]) {

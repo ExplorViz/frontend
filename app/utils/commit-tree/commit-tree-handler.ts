@@ -6,8 +6,8 @@ import { Commit } from '../evolution-schemes/evolution-data';
 
 export type SelectedCommit = Commit;
 
-export default class CommitTreeData {
-  private readonly debug = debugLogger('CommitTreeData');
+export default class CommitTreeHandler {
+  private readonly debug = debugLogger('CommitTreeHandler');
 
   // #region Properties and getter
   @tracked
@@ -26,6 +26,11 @@ export default class CommitTreeData {
   // #endregion
 
   // #region Template actions
+  @action
+  async triggerRenderingForSelectedCommits() {
+    this.debug('triggerRenderingForSelectedCommits', this.selectedCommits);
+  }
+
   @action
   setCurrentSelectedApplicationName(appName: string) {
     if (this._currentSelectedApplicationName !== appName) {

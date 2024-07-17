@@ -171,15 +171,15 @@
       {{#if this.isCommitTreeSelected}}
         <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @selectedAppName={{this.commitTreeData.currentSelectedApplicationName}}
-          @setSelectedAppName={{this.commitTreeData.setCurrentSelectedApplicationName}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @setSelectedAppName={{this.commitTreeHandler.setCurrentSelectedApplicationName}}
         />
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @clicked={{this.commitTreeClicked}}
-          @selectedAppName={{this.commitTreeData.currentSelectedApplicationName}}
-          @selectedCommits={{this.commitTreeData.selectedCommits}}
-          @setSelectedCommits={{this.commitTreeData.setSelectedCommits}}
+          @triggerRenderingForSelectedCommits={{this.commitTreeHandler.triggerRenderingForSelectedCommits}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @selectedCommits={{this.commitTreeHandler.selectedCommits}}
+          @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}
         />
       {{/if}}
 

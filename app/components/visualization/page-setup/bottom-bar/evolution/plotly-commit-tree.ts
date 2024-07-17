@@ -7,7 +7,7 @@ import {
   Branch,
   Commit,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-data';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
 interface IMarkerStates {
   [commitId: string]: {
@@ -21,7 +21,7 @@ interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
   selectedCommits: Map<string, SelectedCommit[]>;
-  clicked?(newSelectedCommits: Map<string, Commit[]>): void;
+  triggerRenderingForSelectedCommits?(): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
 }
 
@@ -169,7 +169,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         //const x: Map<string, SelectedCommit[]> =
         this.args.setSelectedCommits(this.selectedCommits);
 
-        this.args.clicked?.(this.selectedCommits);
+        this.args.triggerRenderingForSelectedCommits?.();
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName = self.appNameCommitTreeMap.get(
