@@ -17,6 +17,8 @@ export default class CommitTreeHandler {
     return this._selectedCommits;
   }
 
+  private _appNameAndBranchNameToColorMap: Map<string, string> = new Map();
+
   @tracked
   private _currentSelectedApplicationName: string = '';
 
@@ -46,6 +48,18 @@ export default class CommitTreeHandler {
     this._selectedCommits = newSelectedCommits;
     //console.log('newSelectedCommits', newSelectedCommits);
     // }
+  }
+
+  @action
+  getCloneOfAppNameAndBranchNameToColorMap() {
+    return structuredClone(this._appNameAndBranchNameToColorMap);
+  }
+
+  @action
+  setAppNameAndBranchNameToColorMap(
+    newAppNameAndBranchNameToColorMap: Map<string, string>
+  ) {
+    this._appNameAndBranchNameToColorMap = newAppNameAndBranchNameToColorMap;
   }
   // #endregion
 }

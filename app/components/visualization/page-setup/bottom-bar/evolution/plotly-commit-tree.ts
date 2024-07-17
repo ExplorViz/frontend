@@ -23,6 +23,10 @@ interface IArgs {
   selectedCommits: Map<string, SelectedCommit[]>;
   triggerRenderingForSelectedCommits?(): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
+  getCloneOfAppNameAndBranchNameToColorMap(): Map<string, string>;
+  setAppNameAndBranchNameToColorMap(
+    newAppNameAndBranchNameToColorMap: Map<string, string>
+  ): void;
 }
 
 export default class PlotlyCommitTree extends Component<IArgs> {
@@ -52,10 +56,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
   private selectedCommits: Map<string, Commit[]> = new Map();
   private appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-  get applicationNameAndBranchNameToColorMap() {
-    return new Map();
-  }
 
   get selectedAppName() {
     return this.args.selectedAppName;
@@ -404,16 +404,15 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   }
 
   private createColor(branchName: string) {
-    let color: string | undefined =
-      this.applicationNameAndBranchNameToColorMap.get(
-        this.selectedAppName + branchName
-      );
+    const cloneColorMap = this.args.getCloneOfAppNameAndBranchNameToColorMap();
+
+    let color: string | undefined = cloneColorMap.get(
+      this.selectedAppName + branchName
+    );
     if (!color) {
       color = this.randomRGBA();
-      this.applicationNameAndBranchNameToColorMap.set(
-        this.selectedAppName + branchName,
-        color
-      );
+      cloneColorMap.set(this.selectedAppName + branchName, color);
+      this.args.setAppNameAndBranchNameToColorMap(cloneColorMap);
     }
     return color;
   }
