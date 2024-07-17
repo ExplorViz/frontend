@@ -599,27 +599,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         },
       },
       annotations: [],
-
-      //,
-      //   xaxis: {
-      //     title: {
-      //       font: {
-      //         color: '#7f7f7f',
-      //         size: 16,
-      //       },
-      //       text: 'Commit',
-      //     },
-      //   },
-      //   yaxis: {
-      //     fixedrange: true,
-      //     title: {
-      //       font: {
-      //         color: '#7f7f7f',
-      //         size: 16,
-      //       },
-      //       text: 'Branch',
-      //     },
-      //   },
     };
   }
 
