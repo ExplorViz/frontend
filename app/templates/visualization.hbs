@@ -164,7 +164,7 @@
       {{#if this.isRuntimeTimelineSelected}}
         <Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline
           @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
-          @clicked={{this.timelineClicked}}
+          @clicked={{this.timelineDataObjectHandler.timelineClicked}}
         />
       {{/if}}
 

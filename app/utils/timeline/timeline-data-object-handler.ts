@@ -3,6 +3,8 @@ import { Timestamp } from '../landscape-schemes/timestamp';
 import { inject as service } from '@ember/service';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import { setOwner } from '@ember/application';
+import RenderingService from 'explorviz-frontend/services/rendering-service';
+import { action } from '@ember/object';
 
 export type TimelineDataObject = {
   timestamps: Timestamp[];
@@ -13,6 +15,9 @@ export type TimelineDataObject = {
 export default class TimelineDataObjectHandler {
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
+
+  @service('rendering-service')
+  renderingService!: RenderingService;
 
   @tracked timelineDataObject: TimelineDataObject = {
     timestamps: [...this.timestampRepo.timestamps.values()] ?? [],
@@ -50,6 +55,21 @@ export default class TimelineDataObjectHandler {
 
   updateHighlightedMarkerColor(highlightedMarkerColor: 'blue' | 'red') {
     this.timelineDataObject.highlightedMarkerColor = highlightedMarkerColor;
+  }
+
+  @action
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
+    if (
+      this.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] === this.selectedTimestamps[0]
+    ) {
+      return;
+    }
+    this.renderingService.pauseVisualizationUpdating(false);
+    this.renderingService.triggerRenderingForGivenTimestamp(
+      selectedTimestamps[0].epochMilli,
+      selectedTimestamps
+    );
   }
 
   triggerTimelineUpdate() {

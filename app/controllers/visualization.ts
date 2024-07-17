@@ -420,22 +420,6 @@ export default class VisualizationController extends Controller {
   // #region Template Actions
 
   @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] ===
-        this.timelineDataObjectHandler.selectedTimestamps[0]
-    ) {
-      return;
-    }
-    this.renderingService.pauseVisualizationUpdating(false);
-    this.renderingService.triggerRenderingForGivenTimestamp(
-      selectedTimestamps[0].epochMilli,
-      selectedTimestamps
-    );
-  }
-
-  @action
   toggleBottomChart() {
     if (this.isCommitTreeSelected) {
       this.isCommitTreeSelected = false;
