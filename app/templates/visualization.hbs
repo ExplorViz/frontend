@@ -16,7 +16,7 @@
 {{add-listener
   this.landscapeRestructure
   'toggelVisualization'
-  this.toggleVisualizationUpdating
+  this.renderingService.toggleVisualizationUpdating
 }}
 
 {{did-insert this.initRenderingAndSetupListeners}}
@@ -47,8 +47,8 @@
       @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
       @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
-      @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-      @visualizationPaused={{this.visualizationPaused}}
+      @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+      @visualizationPaused={{this.renderingService.visualizationPaused}}
       @components={{this.sidebarHandler.components}}
       @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
       @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
@@ -82,9 +82,9 @@
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
-        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-        @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
-        @visualizationPaused={{this.visualizationPaused}}
+        @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
+        @visualizationPaused={{this.renderingService.visualizationPaused}}
         @removeTimestampListener={{this.removeTimestampListener}}
         @restructureLandscape={{this.restructureLandscape}}
         @switchToAR={{this.switchToAR}}

@@ -12,6 +12,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import TimestampService from './timestamp';
 import ToastHandlerService from './toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
+import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
 
 export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
@@ -51,6 +52,17 @@ export default class RenderingService extends Service {
 
   get landscapeData() {
     return this._landscapeData;
+  }
+
+  @tracked
+  private _visualizationPaused = false;
+
+  set visualizationPaused(newValue: boolean) {
+    this._visualizationPaused = newValue;
+  }
+
+  get visualizationPaused() {
+    return this._visualizationPaused;
   }
 
   // #endregion
@@ -117,6 +129,42 @@ export default class RenderingService extends Service {
     };
   }
 
+  // #endregion
+
+  // #region Pause / Play
+  @action
+  toggleVisualizationUpdating() {
+    if (this.visualizationPaused) {
+      this.resumeVisualizationUpdating();
+    } else {
+      this.pauseVisualizationUpdating();
+    }
+  }
+
+  resumeVisualizationUpdating() {
+    if (this.visualizationPaused) {
+      this.visualizationPaused = false;
+      if (this.timelineDataObjectHandler) {
+        this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
+        animatePlayPauseIcon(false);
+        this.timelineDataObjectHandler.triggerTimelineUpdate();
+      }
+    }
+  }
+
+  @action
+  pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
+    if (!this.visualizationPaused) {
+      this.visualizationPaused = true;
+      if (this.timelineDataObjectHandler) {
+        this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
+        animatePlayPauseIcon(true);
+        if (triggerTimelineUpdate) {
+          this.timelineDataObjectHandler.triggerTimelineUpdate();
+        }
+      }
+    }
+  }
   // #endregion
 }
 

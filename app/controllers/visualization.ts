@@ -49,7 +49,6 @@ import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
@@ -142,9 +141,6 @@ export default class VisualizationController extends Controller {
   roomId?: string | undefined | null;
 
   @tracked
-  visualizationPaused = false;
-
-  @tracked
   vrSupported: boolean = false;
 
   @tracked
@@ -224,7 +220,7 @@ export default class VisualizationController extends Controller {
       this.timelineDataObjectHandler;
 
     this.sidebarHandler = new SidebarHandler();
-    this.visualizationPaused = false;
+    this.renderingService.visualizationPaused = false;
 
     // start main loop
     this.timestampPollingService.initTimestampPollingWithCallback(
@@ -263,7 +259,7 @@ export default class VisualizationController extends Controller {
 
     this.timelineDataObjectHandler.updateTimestamps();
 
-    if (this.visualizationPaused) {
+    if (this.renderingService.visualizationPaused) {
       this.timelineDataObjectHandler.triggerTimelineUpdate();
       return;
     }
@@ -432,7 +428,7 @@ export default class VisualizationController extends Controller {
     ) {
       return;
     }
-    this.pauseVisualizationUpdating(false);
+    this.renderingService.pauseVisualizationUpdating(false);
     this.renderingService.triggerRenderingForGivenTimestamp(
       selectedTimestamps[0].epochMilli,
       selectedTimestamps
@@ -453,36 +449,6 @@ export default class VisualizationController extends Controller {
   @action
   toggleVisibilityBottomBar() {
     this.isBottomBarMaximized = !this.isBottomBarMaximized;
-  }
-
-  @action
-  toggleVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.resumeVisualizationUpdating();
-    } else {
-      this.pauseVisualizationUpdating();
-    }
-  }
-
-  resumeVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.visualizationPaused = false;
-      this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
-      animatePlayPauseIcon(false);
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
-    }
-  }
-
-  @action
-  pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
-    if (!this.visualizationPaused) {
-      this.visualizationPaused = true;
-      this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
-      animatePlayPauseIcon(true);
-      if (triggerTimelineUpdate) {
-        this.timelineDataObjectHandler.triggerTimelineUpdate();
-      }
-    }
   }
 
   // #endregion
