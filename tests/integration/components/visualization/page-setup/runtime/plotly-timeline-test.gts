@@ -4,7 +4,7 @@ import { render } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
 
 module(
-  'Integration | Component | visualization/page-setup/timeline/plotly-timeline',
+  'Integration | Component | visualization/page-setup/bottom-bar/runtime/plotly-timeline',
   function (hooks) {
     setupRenderingTest(hooks);
 
@@ -14,7 +14,7 @@ module(
 
       this.set('timelineDataObject', {timestamps: []});
 
-      await render(hbs`<Visualization::PageSetup::Timeline::PlotlyTimeline @timelineDataObject={{this.timelineDataObject}} />`);
+      await render(hbs`<Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline @timelineDataObject={{this.timelineDataObject}} />`);
 
       const el: any = this.element;
 

@@ -58,11 +58,10 @@ import DetachedMenuRenderer from 'extended-reality/services/detached-menu-render
 import * as THREE from 'three';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-
-export interface LandscapeData {
-  structureLandscapeData: StructureLandscapeData;
-  dynamicLandscapeData: DynamicLandscapeData;
-}
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
+import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+import CommitTreeData from 'explorviz-frontend/utils/commit-tree/commit-tree-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -84,6 +83,9 @@ export default class VisualizationController extends Controller {
 
   private previousMethodHashes: string[] = [];
   private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+
+  private sidebarHandler!: SidebarHandler;
+  private commitTreeData!: CommitTreeData;
 
   // #region Services
 
@@ -132,27 +134,15 @@ export default class VisualizationController extends Controller {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
+  @service('repos/evolution-data-repository')
+  evolutionDataRepository!: EvolutionDataRepository;
+
   // #endregion
 
   // #region Tracked properties
 
   @tracked
   roomId?: string | undefined | null;
-
-  @tracked
-  showSettingsSidebar = false;
-
-  @tracked
-  showToolsSidebar = false;
-
-  @tracked
-  components: string[] = [];
-
-  @tracked
-  componentsToolsSidebar: string[] = [];
-
-  @tracked
-  isTimelineActive: boolean = true;
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -164,10 +154,19 @@ export default class VisualizationController extends Controller {
   vrSupported: boolean = false;
 
   @tracked
-  buttonText: string = '';
+  vrButtonText: string = '';
 
   @tracked
   timelineDataObjectHandler!: TimelineDataObjectHandler;
+
+  @tracked
+  isBottomBarMaximized: boolean = true;
+
+  @tracked
+  isRuntimeTimelineSelected: boolean = true;
+
+  @tracked
+  isCommitTreeSelected: boolean = false;
 
   // #endregion
 
@@ -187,7 +186,7 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  get showTimeline() {
+  get shouldDisplayBottomBar() {
     return (
       this.landscapeData &&
       !this.showAR &&
@@ -195,10 +194,6 @@ export default class VisualizationController extends Controller {
       !this.isSingleLandscapeMode &&
       this.spectateUser.spectateConfigurationId !== 'arena-2'
     );
-  }
-
-  get showVrButton() {
-    return this.userSettings.applicationSettings.showVrButton.value;
   }
 
   get isSingleLandscapeMode() {
@@ -220,17 +215,25 @@ export default class VisualizationController extends Controller {
   // #region Setup
 
   @action
-  setupListeners() {
-    this.debug('initRendering');
+  initRenderingAndSetupListeners() {
+    this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
     );
+
+    this.commitTreeData = new CommitTreeData();
+
+    this.sidebarHandler = new SidebarHandler();
     this.landscapeData = null;
     this.visualizationPaused = false;
+
+    // start main loop
     this.timestampPollingService.initTimestampPollingWithCallback(
       this.timestampPollingCallback.bind(this)
     );
-    this.debug('initRendering done');
+
+    // fetch applications for evolution mode
+    this.evolutionDataRepository.fetchAllApplications();
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
@@ -286,22 +289,6 @@ export default class VisualizationController extends Controller {
   // #endregion
 
   // #region Event Handlers
-
-  @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] ===
-        this.timelineDataObjectHandler.selectedTimestamps[0]
-    ) {
-      return;
-    }
-    this.pauseVisualizationUpdating(false);
-    this.triggerRenderingForGivenTimestamp(
-      selectedTimestamps[0].epochMilli,
-      selectedTimestamps
-    );
-  }
 
   // collaboration start
   // user handling end
@@ -376,14 +363,6 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  @action
-  restructureLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
-  }
-
   // #endregion
 
   // #region Rendering Triggering
@@ -448,85 +427,6 @@ export default class VisualizationController extends Controller {
 
   // #endregion
 
-  // #region Sidebars
-
-  @action
-  closeDataSelection() {
-    this.debug('closeDataSelection');
-    this.showSettingsSidebar = false;
-    this.components = [];
-  }
-
-  @action
-  closeToolsSidebar() {
-    this.debug('closeToolsSidebar');
-    this.showToolsSidebar = false;
-    this.componentsToolsSidebar = [];
-  }
-
-  @action
-  openSettingsSidebar() {
-    this.debug('openSettingsSidebar');
-    this.showSettingsSidebar = true;
-  }
-
-  @action
-  openToolsSidebar() {
-    this.debug('openToolsSidebar');
-    this.showToolsSidebar = true;
-  }
-
-  @action
-  toggleToolsSidebarComponent(component: string): boolean {
-    if (this.componentsToolsSidebar.includes(component)) {
-      this.removeToolsSidebarComponent(component);
-    } else {
-      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
-    }
-    return this.componentsToolsSidebar.includes(component);
-  }
-
-  @action
-  toggleSettingsSidebarComponent(component: string): boolean {
-    if (this.components.includes(component)) {
-      this.removeComponent(component);
-    } else {
-      this.components = [component, ...this.components];
-    }
-    return this.components.includes(component);
-  }
-
-  removeComponent(path: string) {
-    if (this.components.length === 0) {
-      return;
-    }
-
-    const index = this.components.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const components = [...this.components];
-      components.splice(index, 1);
-      this.components = components;
-    }
-  }
-
-  @action
-  removeToolsSidebarComponent(path: string) {
-    if (this.componentsToolsSidebar.length === 0) {
-      return;
-    }
-
-    const index = this.componentsToolsSidebar.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const componentsToolsSidebar = [...this.componentsToolsSidebar];
-      componentsToolsSidebar.splice(index, 1);
-      this.componentsToolsSidebar = componentsToolsSidebar;
-    }
-  }
-
-  // #endregion
-
   // #region XR
 
   @action
@@ -542,13 +442,13 @@ export default class VisualizationController extends Controller {
   }
 
   @action
-  openLandscapeView() {
+  switchToOnScreenMode() {
     this.switchToMode('browser');
   }
 
   private switchToMode(mode: VisualizationMode) {
     this.roomSerializer.serializeRoom();
-    this.closeDataSelection();
+    this.sidebarHandler.closeDataSelection();
     this.localUser.visualizationMode = mode;
     this.webSocket.send<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -559,7 +459,7 @@ export default class VisualizationController extends Controller {
   /**
    * Checks the current status of WebXR in the browser and if compatible
    * devices are connected. Sets the tracked properties
-   * 'buttonText' and 'vrSupported' accordingly.
+   * 'vrButtonText' and 'vrSupported' accordingly.
    */
   @action
   async updateVrStatus() {
@@ -568,14 +468,14 @@ export default class VisualizationController extends Controller {
         (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
 
       if (this.vrSupported) {
-        this.buttonText = 'Enter VR';
+        this.vrButtonText = 'Enter VR';
       } else if (window.isSecureContext === false) {
-        this.buttonText = 'WEBXR NEEDS HTTPS';
+        this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
-        this.buttonText = 'WEBXR NOT AVAILABLE';
+        this.vrButtonText = 'WEBXR NOT AVAILABLE';
       }
     } else {
-      this.buttonText = 'WEBXR NOT SUPPORTED';
+      this.vrButtonText = 'WEBXR NOT SUPPORTED';
     }
   }
 
@@ -584,13 +484,39 @@ export default class VisualizationController extends Controller {
   // #region Template Actions
 
   @action
-  toggleTimeline() {
-    this.isTimelineActive = !this.isTimelineActive;
+  async timelineClicked(selectedTimestamps: Timestamp[]) {
+    if (
+      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
+      selectedTimestamps[0] ===
+        this.timelineDataObjectHandler.selectedTimestamps[0]
+    ) {
+      return;
+    }
+    this.pauseVisualizationUpdating(false);
+    this.triggerRenderingForGivenTimestamp(
+      selectedTimestamps[0].epochMilli,
+      selectedTimestamps
+    );
+  }
+
+  @action
+  toggleBottomChart() {
+    if (this.isCommitTreeSelected) {
+      this.isCommitTreeSelected = false;
+      this.isRuntimeTimelineSelected = true;
+    } else {
+      this.isRuntimeTimelineSelected = false;
+      this.isCommitTreeSelected = true;
+    }
+  }
+
+  @action
+  toggleVisibilityBottomBar() {
+    this.isBottomBarMaximized = !this.isBottomBarMaximized;
   }
 
   @action
   toggleVisualizationUpdating() {
-    // TODO: need to notify the timeline
     if (this.visualizationPaused) {
       this.resumeVisualizationUpdating();
     } else {
@@ -629,8 +555,10 @@ export default class VisualizationController extends Controller {
     this.applicationRenderer.cleanup();
     this.timestampRepo.timestamps = new Map();
 
-    this.closeDataSelection();
-    this.closeToolsSidebar();
+    if (this.sidebarHandler) {
+      this.sidebarHandler.closeDataSelection();
+      this.sidebarHandler.closeToolsSidebar();
+    }
 
     this.roomId = null;
 
