@@ -24,7 +24,7 @@ interface IArgs {
 export default class PlotlyCommitTree extends Component<IArgs> {
   private readonly debug = debugLogger('PlotlyCommitTree');
 
-  private MAX_SELECTION = 2;
+  private MAX_COMMIT_SELECTION_PER_APP = 1;
   private COMMIT_UNSELECTED_SIZE = 8;
   private COMMIT_SELECTED_SIZE = 15;
 
@@ -139,7 +139,9 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         ) {
           unselectCommit(selectedCommit, pn);
         } else {
-          if (selectedCommitsForApp.length >= this.MAX_SELECTION) {
+          if (
+            selectedCommitsForApp.length === this.MAX_COMMIT_SELECTION_PER_APP
+          ) {
             unselectAllCommits();
           } else {
             selectCommit(selectedCommit, pn);
