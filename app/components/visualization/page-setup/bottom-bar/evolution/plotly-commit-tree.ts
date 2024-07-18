@@ -9,19 +9,11 @@ import {
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
-interface IMarkerStates {
-  [commitId: string]: {
-    color: string;
-    size: number;
-    emberModel: Commit;
-  };
-}
-
 interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
   selectedCommits: Map<string, SelectedCommit[]>;
-  triggerRenderingForSelectedCommits?(): void;
+  triggerRenderingForSelectedCommits(): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
   getCloneOfAppNameAndBranchNameToColorMap(): Map<string, string>;
   setAppNameAndBranchNameToColorMap(
@@ -30,23 +22,20 @@ interface IArgs {
 }
 
 export default class PlotlyCommitTree extends Component<IArgs> {
-  private MAX_SELECTION = 2;
-
   private readonly debug = debugLogger('PlotlyCommitTree');
 
-  oldPlotlySlidingWindow = { min: 0, max: 0 };
+  private MAX_SELECTION = 2;
+  private COMMIT_UNSELECTED_SIZE = 8;
+  private COMMIT_SELECTED_SIZE = 15;
 
-  userSlidingWindow = null;
+  private userSlidingWindow = null;
 
-  markerState: IMarkerStates = {};
+  private commitTreeDiv: any;
 
-  commitTreeDiv: any;
-
-  commitSizes: Map<string, number> = new Map();
-  usedColors: Set<number[]> = new Set();
-  branchNameToLineColor: Map<string, string> = new Map();
-  branchToY: Map<string, number> = new Map();
-  branchToColor: Map<string, string> = new Map();
+  private usedColors: Set<number[]> = new Set();
+  private branchNameToLineColor: Map<string, string> = new Map();
+  private branchToY: Map<string, number> = new Map();
+  private branchToColor: Map<string, string> = new Map();
 
   // BEGIN template-argument getters
 
@@ -112,6 +101,8 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyCommitTree = this;
 
+      // #region Click Event
+
       // singe click
       plotlyDiv.on('plotly_click', async (data: any) => {
         // https://plot.ly/javascript/reference/#scatter-marker
@@ -167,7 +158,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         //const x: Map<string, SelectedCommit[]> =
         this.args.setSelectedCommits(this.selectedCommits);
 
-        this.args.triggerRenderingForSelectedCommits?.();
+        //this.args.triggerRenderingForSelectedCommits();
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName = self.appNameCommitTreeMap.get(
@@ -205,7 +196,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
                 self.branchNameToLineColor.get(branch.name)
               );
               sizes = Array(branch.commits.length).fill(
-                self.commitSizes.get(branch.name)
+                self.COMMIT_UNSELECTED_SIZE
               );
               const update = { marker: { color: colors, size: sizes } };
               Plotly.restyle(plotlyDiv, update, curveNumber);
@@ -215,6 +206,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
         function selectCommit(commit: Commit, pointNumber: number) {
           colors[pointNumber] = highlightedMarkerColor;
+          sizes[pointNumber] = self.COMMIT_SELECTED_SIZE;
           const update = { marker: { color: colors, size: sizes } };
           const tn = data.points[0].curveNumber;
           Plotly.restyle(plotlyDiv, update, [tn]);
@@ -231,6 +223,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
           //console.log('unselect selectedCommitsForApp', selectedCommitsForApp);
 
           colors[pointNumber] = data.points[0].fullData.line.color;
+          sizes[pointNumber] = self.COMMIT_UNSELECTED_SIZE;
           if (selectedCommitsForApp.length === 0) {
             self.selectedCommits.delete(self.selectedAppName);
           } else {
@@ -244,6 +237,8 @@ export default class PlotlyCommitTree extends Component<IArgs> {
           Plotly.restyle(plotlyDiv, update, [tn]);
         }
       });
+
+      // #endregion
     }
   }
 
@@ -259,7 +254,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
       this.selectedCommits
     ) {
       this.debug('updatePlotlyCommitTree');
-      this.computeSizes(this.appNameCommitTreeMap, this.selectedAppName);
       this.createPlotlyCommitTreeChart(
         this.appNameCommitTreeMap,
         this.selectedAppName,
@@ -326,14 +320,21 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         );
         const color = this.createColor(branch.name);
         const colors = Array.from(Array(numOfCommits)).map(() => color);
+        const sizes = Array.from(Array(numOfCommits)).map(
+          () => this.COMMIT_UNSELECTED_SIZE
+        );
 
         const selectedCommitsForSelectedAppName =
           selectedCommits.get(selectedAppName);
         if (selectedCommitsForSelectedAppName) {
-          this.markCommit(selectedCommitsForSelectedAppName, branch, colors);
+          this.markCommit(
+            selectedCommitsForSelectedAppName,
+            branch,
+            colors,
+            sizes
+          );
         }
 
-        const sizes = Array.from(Array(numOfCommits)).map(() => 10);
         const plotlyBranch = this.getPlotlyDataObject(
           commits,
           colors,
@@ -420,30 +421,16 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   private markCommit(
     selectedCommitsForSelectedAppName: Commit[],
     branch: Branch,
-    colors: string[]
+    colors: string[],
+    sizes: number[]
   ) {
-    //console.log('markCommit');
     for (const selectedCommit of selectedCommitsForSelectedAppName) {
       const index = branch.commits.findIndex(
         (commitId) => commitId === selectedCommit.commitId
       );
       if (index !== -1) {
         colors[index] = this.highlightedMarkerColor;
-      }
-    }
-  }
-
-  // TODO: remove this?
-  private computeSizes(
-    appNameCommitTreeMap: AppNameCommitTreeMap,
-    selectedAppName: string
-  ) {
-    const commitTreeForSelectedAppName =
-      appNameCommitTreeMap.get(selectedAppName);
-
-    if (commitTreeForSelectedAppName) {
-      for (const branch of commitTreeForSelectedAppName.branches) {
-        this.commitSizes.set(branch.name, 10);
+        sizes[index] = this.COMMIT_SELECTED_SIZE;
       }
     }
   }
