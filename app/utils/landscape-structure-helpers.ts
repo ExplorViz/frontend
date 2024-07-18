@@ -189,6 +189,8 @@ export function createEmptyStructureLandscapeData(): StructureLandscapeData {
   return { landscapeToken: '', nodes: [] };
 }
 
+// #region Combination
+
 export function combineStructureLandscapeData(
   structureA: StructureLandscapeData,
   structureB: StructureLandscapeData
@@ -224,11 +226,12 @@ export function combineStructureLandscapeData(
       applications.forEach((app) => (app.parentId = node.id));
       structure.nodes.push(node);
     } else {
-      // missing node
+      // node of structureA that is not in structureB
       structure.nodes.push(nodeA);
     }
   }
 
+  // remaining nodes of structureB that are not in structureA
   for (const nodeB of structureB.nodes) {
     const nodeA = findCommonNode(nodeB, structureA.nodes);
     if (!nodeA) {
@@ -390,7 +393,7 @@ function combineApplications(
       applications.push(applicationB);
     }
   }
-
+  //console.log('applications', applications);
   return applications;
 }
 
@@ -416,3 +419,5 @@ function findCommonNode(node: Node, nodes: Node[]) {
   }
   return undefined;
 }
+
+// #endregion

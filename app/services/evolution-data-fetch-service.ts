@@ -5,7 +5,10 @@ import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import { CommitTree } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  preProcessAndEnhanceStructureLandscape,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 const { codeService } = ENV.backendAddresses;
 
@@ -57,7 +60,9 @@ export default class EvolutionDataFetchServiceService extends Service {
     }
 
     const response = await this.fetchFromService(url);
-    return response as StructureLandscapeData;
+    return preProcessAndEnhanceStructureLandscape(
+      response as StructureLandscapeData
+    );
   }
 
   // #endregion

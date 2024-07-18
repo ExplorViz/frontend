@@ -91,10 +91,12 @@ export default class EvolutionDataRepository extends Service {
           appName,
           selectedCommits
         );
+
       newEvolutionStructureLandscapeData.set(
         appName,
         combinedLandscapeStructureForAppAndCommits
       );
+
       allCombinedStructureLandscapes = combineStructureLandscapeData(
         allCombinedStructureLandscapes,
         combinedLandscapeStructureForAppAndCommits
@@ -108,8 +110,6 @@ export default class EvolutionDataRepository extends Service {
       allCombinedStructureLandscapes,
       []
     );
-
-    console.log(this._evolutionStructureLandscapeData);
   }
   // #endregion
 
