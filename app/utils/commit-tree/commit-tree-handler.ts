@@ -29,8 +29,8 @@ export default class CommitTreeHandler {
 
   // #region Template actions
   @action
-  async triggerRenderingForSelectedCommits() {
-    this.debug('triggerRenderingForSelectedCommits', this.selectedCommits);
+  async triggerVizRenderingForSelectedCommits() {
+    this.debug('triggerVizRenderingForSelectedCommits', this.selectedCommits);
   }
 
   @action
