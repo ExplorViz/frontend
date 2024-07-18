@@ -49,10 +49,8 @@ import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
-import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
@@ -216,16 +214,19 @@ export default class VisualizationController extends Controller {
     this.commitTreeHandler = new CommitTreeHandler();
 
     this.renderingService.landscapeData = null;
+
+    // set timelineDataObjectHandler where necessary
     this.renderingService.timelineDataObjectHandler =
+      this.timelineDataObjectHandler;
+
+    this.timestampRepo.timelineDataObjectHandler =
       this.timelineDataObjectHandler;
 
     this.sidebarHandler = new SidebarHandler();
     this.renderingService.visualizationPaused = false;
 
     // start main loop
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
+    this.timestampRepo.restartTimestampPollingAndVizUpdate();
 
     // fetch applications for evolution mode
     this.evolutionDataRepository.fetchAllApplications();
@@ -249,40 +250,7 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  // #endregion
-
-  // #region Short Polling Event Loop
-
-  timestampPollingCallback(timestamps: Timestamp[]): void {
-    // called every tenth second, main update loop
-    this.timestampRepo.addTimestamps(timestamps);
-
-    this.timelineDataObjectHandler.updateTimestamps();
-
-    if (this.renderingService.visualizationPaused) {
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
-      return;
-    }
-
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    const timestampToRender =
-      this.timestampRepo.getNextTimestampOrLatest(lastSelectTimestamp);
-
-    if (
-      timestampToRender &&
-      !areArraysEqual(this.timelineDataObjectHandler.selectedTimestamps, [
-        timestampToRender,
-      ])
-    ) {
-      this.renderingService.triggerRenderingForGivenTimestamp(
-        timestampToRender.epochMilli,
-        [timestampToRender]
-      );
-    }
-  }
-
-  // #endregion
+  // #endregio
 
   // #region Event Handlers
 

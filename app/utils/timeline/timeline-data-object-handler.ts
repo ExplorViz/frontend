@@ -72,6 +72,14 @@ export default class TimelineDataObjectHandler {
     );
   }
 
+  resetState() {
+    this.timelineDataObject = {
+      timestamps: [...this.timestampRepo.timestamps.values()] ?? [],
+      highlightedMarkerColor: 'blue',
+      selectedTimestamps: [],
+    };
+  }
+
   triggerTimelineUpdate() {
     // Calling this in each update function will multiple renderings,
     // therefore we manually call it when the updated data object is ready

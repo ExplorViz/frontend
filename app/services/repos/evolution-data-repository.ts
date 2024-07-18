@@ -14,6 +14,7 @@ import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import TimestampRepository from './timestamp-repository';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionData');
@@ -25,6 +26,9 @@ export default class EvolutionDataRepository extends Service {
 
   @service('rendering-service')
   renderingService!: RenderingService;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
 
   // #endregion
 
@@ -105,11 +109,15 @@ export default class EvolutionDataRepository extends Service {
 
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
 
-    this.renderingService.pauseVisualizationUpdating();
-    this.renderingService.triggerRenderingForGivenLandscapeData(
-      allCombinedStructureLandscapes,
-      []
-    );
+    if (allCombinedStructureLandscapes.nodes.length > 0) {
+      this.timestampRepo.stopTimestampPollingAndVizUpdate();
+      this.renderingService.triggerRenderingForGivenLandscapeData(
+        allCombinedStructureLandscapes,
+        []
+      );
+    } else {
+      this.timestampRepo.restartTimestampPollingAndVizUpdate();
+    }
   }
   // #endregion
 
