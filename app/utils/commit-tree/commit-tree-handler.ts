@@ -29,11 +29,6 @@ export default class CommitTreeHandler {
 
   // #region Template actions
   @action
-  async triggerVizRenderingForSelectedCommits() {
-    this.debug('triggerVizRenderingForSelectedCommits', this.selectedCommits);
-  }
-
-  @action
   setCurrentSelectedApplicationName(appName: string) {
     if (this._currentSelectedApplicationName !== appName) {
       // don't trigger unnecessary rerendering of components

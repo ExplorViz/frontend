@@ -176,7 +176,7 @@
         />
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @triggerVizRenderingForSelectedCommits={{this.commitTreeHandler.triggerVizRenderingForSelectedCommits}}
+          @triggerVizRenderingForSelectedCommits={{this.evolutionDataRepository.fetchAndUpdateAllStructureLandscapeDataForSelectedCommits}}
           @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
           @selectedCommits={{this.commitTreeHandler.selectedCommits}}
           @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}

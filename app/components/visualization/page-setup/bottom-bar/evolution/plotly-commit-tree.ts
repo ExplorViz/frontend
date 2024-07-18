@@ -13,7 +13,9 @@ interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
   selectedCommits: Map<string, SelectedCommit[]>;
-  triggerVizRenderingForSelectedCommits(): void;
+  triggerVizRenderingForSelectedCommits(
+    commitsToBeVisualized: Map<string, SelectedCommit[]>
+  ): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
   getCloneOfAppNameAndBranchNameToColorMap(): Map<string, string>;
   setAppNameAndBranchNameToColorMap(
@@ -158,7 +160,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         }
 
         this.args.setSelectedCommits(this.selectedCommits);
-        this.args.triggerVizRenderingForSelectedCommits();
+        this.args.triggerVizRenderingForSelectedCommits(this.selectedCommits);
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName = self.appNameCommitTreeMap.get(
