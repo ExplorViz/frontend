@@ -72,14 +72,14 @@ export function addApplicationLabels(
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { componentTextColor, foundationTextColor } = colors;
+  const { componentTextColor, foundationTextColor, clazzTextColor } = colors;
   // clazzTextColor was used for addClazzTextLabel
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
-        //addClazzTextLabel(mesh, font, clazzTextColor);
+        addClazzTextLabel(mesh, font, clazzTextColor);
       } else if (mesh instanceof ComponentMesh) {
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {

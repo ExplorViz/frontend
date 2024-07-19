@@ -21,7 +21,10 @@ export class Appearence {
   // is the Appearence currently active.
   activated: boolean = false;
   // triggered when `activate` gets called
-  callbackFunctionBefore: (currentMesh: Mesh | undefined) => void = () => {};
+  callBeforeActivation: (currentMesh: Mesh | undefined) => void = () => {};
+  callAfterActivation: (currentMesh: Mesh | undefined) => void = () => {};
+  callAfterDeactivation: (currentMesh: Mesh | undefined) => void = () => {};
+
   recipe: Recipe | undefined;
   originObject3D: Mesh | undefined;
 
@@ -30,12 +33,14 @@ export class Appearence {
     this.recipe = rec;
   }
   public activate(): boolean {
-    this.callbackFunctionBefore(this.originObject3D);
+    this.callBeforeActivation(this.originObject3D);
     const success = this.handleRecipe();
     this.activated = true;
+    this.callAfterActivation(this.originObject3D);
     return success;
   }
   public deactivate(): boolean {
+    this.callAfterDeactivation(this.originObject3D);
     this.activated = false;
     return false;
   }
@@ -85,26 +90,49 @@ export class Appearence {
     // Task 5 set width
     // Task 6 set height
     // Task 7 set depth
-    if (this.recipe.valuesAreAbs == false) {
-      this.originObject3D.scale.add(
-        new THREE.Vector3(
-          this.recipe.width,
-          this.recipe.height,
-          this.recipe.depth
-        )
+    if (
+      this.recipe.valuesAreAbs == false &&
+      this.originObject3D.geometry instanceof THREE.BoxGeometry
+    ) {
+      const new_geometry = new THREE.BoxGeometry(
+        this.recipe.modifiedParams[4] == true
+          ? this.recipe.width + this.originObject3D.geometry.parameters.width
+          : this.originObject3D.geometry.parameters.width,
+        this.recipe.modifiedParams[5] == true
+          ? this.recipe.height + this.originObject3D.geometry.parameters.height
+          : this.originObject3D.geometry.parameters.height,
+        this.recipe.modifiedParams[6] == true
+          ? this.recipe.depth + this.originObject3D.geometry.parameters.depth
+          : this.originObject3D.geometry.parameters.depth
       );
-    } else {
-      this.originObject3D.scale.set(
+      this.originObject3D.geometry.dispose();
+      this.originObject3D.geometry = new_geometry;
+    } else if (this.originObject3D.geometry instanceof THREE.BoxGeometry) {
+      const new_geometry = new THREE.BoxGeometry(
         this.recipe.modifiedParams[4] == true
           ? this.recipe.width
-          : this.originObject3D.scale.x,
+          : this.originObject3D.geometry.parameters.width,
         this.recipe.modifiedParams[5] == true
           ? this.recipe.height
-          : this.originObject3D.scale.y,
+          : this.originObject3D.geometry.parameters.height,
         this.recipe.modifiedParams[6] == true
           ? this.recipe.depth
-          : this.originObject3D.scale.z
+          : this.originObject3D.geometry.parameters.depth
       );
+      this.originObject3D.geometry.dispose();
+      this.originObject3D.geometry = new_geometry;
+
+      // this.originObject3D.scale.set(
+      //   this.recipe.modifiedParams[4] == true
+      //     ? this.recipe.width
+      //     : this.originObject3D.scale.x,
+      //   this.recipe.modifiedParams[5] == true
+      //     ? this.recipe.height
+      //     : this.originObject3D.scale.y,
+      //   this.recipe.modifiedParams[6] == true
+      //     ? this.recipe.depth
+      //     : this.originObject3D.scale.z
+      // );
     }
 
     // Task 8 set color
@@ -145,15 +173,22 @@ export class Recipe {
   public static generateFromMesh(mesh: Mesh): Recipe {
     const position = mesh.position;
     //if (mesh instanceof BoxMesh) position = mesh.layout.position;
+    if (mesh instanceof THREE.BoxGeometry)
+      return new Recipe()
+        .setAbsValues(true)
+        .setVisible(mesh.visible)
+        .setPositionX(position.x)
+        .setPositionY(position.y)
+        .setPositionZ(position.z)
+        .setWidth(mesh.geometry.parameters.width)
+        .setHeight(mesh.geometry.parameters.height)
+        .setDepth(mesh.geometry.parameters.depth);
     return new Recipe()
       .setAbsValues(true)
       .setVisible(mesh.visible)
       .setPositionX(position.x)
       .setPositionY(position.y)
-      .setPositionZ(position.z)
-      .setWidth(mesh.scale.x)
-      .setHeight(mesh.scale.y)
-      .setDepth(mesh.scale.z);
+      .setPositionZ(position.z);
     //.setColor(mesh.material.color)
     //.setRadius(0)
   }
@@ -253,11 +288,14 @@ export class Recipe {
 export class AppearenceExtension extends Appearence {
   // can be used to add further Objects to the appearence level of a `SemanticZoomableObject`
   objects3D: Array<Mesh> = [];
+  //TODO improve rendinger Options
+  objects3Drescale: Array<boolean> = [];
 
   public activate(): boolean {
     const parentResults = super.activate();
-    this.objects3D.forEach((foreignOjects) => {
-      this.counterParentScaling(foreignOjects);
+    this.objects3D.forEach((foreignOjects, idx) => {
+      if (this.objects3Drescale[idx] == true)
+        this.counterParentScaling(foreignOjects);
       return this.originObject3D?.add(foreignOjects);
     });
     return parentResults || this.objects3D.length > 0 ? true : false;
@@ -269,8 +307,12 @@ export class AppearenceExtension extends Appearence {
     return super.deactivate();
   }
 
-  public addMesh(mesh: SemanticZoomableObject | Mesh) {
+  public addMesh(
+    mesh: SemanticZoomableObject | Mesh,
+    rescale: boolean = false
+  ) {
     this.objects3D.push(mesh);
+    this.objects3Drescale.push(rescale);
   }
   public addMeshToScene() {}
 
