@@ -15,7 +15,11 @@
 {{else}}
   <div class='timeline-no-timestamps-outer'>
     <div class='timeline-no-timestamps-inner'>
-      No application selected!
+      {{#if @selectedAppName}}
+        No commit tree data available!
+      {{else}}
+        No application selected!
+      {{/if}}
     </div>
   </div>
   <div
