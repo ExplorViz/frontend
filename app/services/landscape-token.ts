@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 import Service, { inject as service } from '@ember/service';
+import debugLogger from 'ember-debug-logger';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import ToastHandlerService from './toast-handler';
 const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
@@ -18,11 +18,10 @@ export type LandscapeToken = {
 const tokenToShow = ENV.mode.tokenToShow;
 
 export default class LandscapeTokenService extends Service {
+  private readonly debug = debugLogger('LandscapeTokenService');
+
   @service('auth')
   private auth!: Auth;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @tracked
   token: LandscapeToken | null = null;
@@ -108,9 +107,7 @@ export default class LandscapeTokenService extends Service {
     this.token = token;
 
     if (token) {
-      this.toastHandler.showInfoToastMessage(
-        `Set landscape token to " ${token.alias || token.value}"`
-      );
+      this.debug(`Set landscape token to " ${token.alias || token.value}"`);
     }
   }
 

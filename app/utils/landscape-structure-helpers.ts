@@ -181,3 +181,7 @@ export function spanIdToClass(
   const spanIdToClassMap = getSpanIdToClassMap(structureData, trace);
   return spanIdToClassMap.get(spanId);
 }
+
+export function createEmptyStructureLandscapeData(): StructureLandscapeData {
+  return { landscapeToken: '', nodes: [] };
+}
