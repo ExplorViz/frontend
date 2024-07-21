@@ -1,13 +1,20 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import {
-  EvolutedApplication,
-  EvolutionLandscapeData,
+  CommitTree,
+  AppNameCommitTreeMap,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { createEmptyStructureLandscapeData } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
 import { tracked } from '@glimmer/tracking';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import { action } from '@ember/object';
+import RenderingService from '../rendering-service';
+import {
+  combineStructureLandscapeData,
+  createEmptyStructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
+import TimestampRepository from './timestamp-repository';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionData');
@@ -17,69 +24,136 @@ export default class EvolutionDataRepository extends Service {
   @service('evolution-data-fetch-service')
   evolutionDataFetchService!: EvolutionDataFetchServiceService;
 
+  @service('rendering-service')
+  renderingService!: RenderingService;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
+
   // #endregion
 
   // #region Properties and getter
 
-  private _evolutionStructureLandscapeData: StructureLandscapeData =
-    createEmptyStructureLandscapeData();
+  private _evolutionStructureLandscapeData: Map<
+    string,
+    StructureLandscapeData
+  > = new Map();
 
   get evolutionStructureLandscapeData() {
     return this._evolutionStructureLandscapeData;
   }
 
   @tracked
-  private _evolutionLandscapeData: EvolutionLandscapeData = {
-    applications: [],
-  };
+  private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
-  get evolutionLandscapeData() {
-    return this._evolutionLandscapeData;
+  get appNameCommitTreeMap() {
+    return this._appNameCommitTreeMap;
   }
 
   // #endregion
 
   // #region Fetch functions
-  fetchAllApplications() {
+  async fetchAllApplications() {
     this.debug('fetchAllApplications');
-    this.evolutionDataFetchService
-      .fetchApplications()
-      .then((applicationNames: string[]) => {
-        const evolutionLandscapeData: EvolutionLandscapeData = {
-          applications: [],
-        };
+    try {
+      const applicationNames: string[] =
+        await this.evolutionDataFetchService.fetchApplications();
+      const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
-        applicationNames.forEach((appName) => {
-          const evolutedApplication: EvolutedApplication = {
-            name: appName,
-            branches: [],
-          };
+      for (const appName of applicationNames) {
+        // fetch commit tree for each found appName
+        const commitTreeForAppName =
+          await this.fetchCommitTreeForAppName(appName);
 
-          evolutionLandscapeData.applications = [
-            ...evolutionLandscapeData.applications,
-            evolutedApplication,
-          ];
-        });
+        if (commitTreeForAppName) {
+          appNameCommitTreeMap.set(appName, commitTreeForAppName);
+        }
+      }
 
-        this._evolutionLandscapeData = evolutionLandscapeData;
-      })
-      .catch((reason) => {
-        this.resetEvolutionLandscapeData();
-        console.error(
-          'Failed to fetch EvolutionLandscapeData, reason: ' + reason
+      this._appNameCommitTreeMap = appNameCommitTreeMap;
+    } catch (reason) {
+      this.resetAppNameCommitTreeMap();
+      console.error(`Failed to build AppNameCommitTreeMap, reason: ${reason}`);
+    }
+  }
+
+  @action
+  async fetchAndUpdateAllStructureLandscapeDataForSelectedCommits(
+    appNameToSelectedCommits: Map<string, SelectedCommit[]>
+  ) {
+    const newEvolutionStructureLandscapeData: Map<
+      string,
+      StructureLandscapeData
+    > = new Map();
+
+    let allCombinedStructureLandscapes: StructureLandscapeData =
+      createEmptyStructureLandscapeData();
+
+    for (const [appName, selectedCommits] of appNameToSelectedCommits) {
+      const combinedLandscapeStructureForAppAndCommits =
+        await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+          appName,
+          selectedCommits
         );
-      });
+
+      newEvolutionStructureLandscapeData.set(
+        appName,
+        combinedLandscapeStructureForAppAndCommits
+      );
+
+      allCombinedStructureLandscapes = combineStructureLandscapeData(
+        allCombinedStructureLandscapes,
+        combinedLandscapeStructureForAppAndCommits
+      );
+    }
+
+    this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
+
+    if (allCombinedStructureLandscapes.nodes.length > 0) {
+      this.timestampRepo.stopTimestampPollingAndVizUpdate();
+      this.renderingService.triggerRenderingForGivenLandscapeData(
+        allCombinedStructureLandscapes,
+        []
+      );
+    } else {
+      this.timestampRepo.restartTimestampPollingAndVizUpdate();
+    }
   }
   // #endregion
 
   // #region Reset functions
-  resetEvolutionStructureLandscapeData() {
-    this._evolutionStructureLandscapeData = createEmptyStructureLandscapeData();
+
+  resetAllEvolutionData() {
+    this.resetEvolutionStructureLandscapeData();
+    this.resetAppNameCommitTreeMap();
   }
 
-  resetEvolutionLandscapeData() {
-    this._evolutionLandscapeData = { applications: [] };
+  resetEvolutionStructureLandscapeData() {
+    this._evolutionStructureLandscapeData = new Map();
   }
+
+  resetAppNameCommitTreeMap() {
+    this._appNameCommitTreeMap = new Map();
+  }
+  // #endregion
+
+  //#region Private Helper Functions
+
+  private async fetchCommitTreeForAppName(
+    appName: string
+  ): Promise<CommitTree | undefined> {
+    try {
+      const evolutionApplication: CommitTree =
+        await this.evolutionDataFetchService.fetchCommitTreeForAppName(appName);
+      return evolutionApplication;
+    } catch (reason) {
+      console.error(
+        `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`
+      );
+      return undefined;
+    }
+  }
+
   // #endregion
 }
 

@@ -3,6 +3,12 @@ import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
+import { CommitTree } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import {
+  preProcessAndEnhanceStructureLandscape,
+  StructureLandscapeData,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 const { codeService } = ENV.backendAddresses;
 
@@ -19,6 +25,44 @@ export default class EvolutionDataFetchServiceService extends Service {
     const url = this.constructUrl('applications');
     const response = await this.fetchFromService(url);
     return response as string[];
+  }
+
+  async fetchCommitTreeForAppName(appName: string): Promise<CommitTree> {
+    const url = this.constructUrl('commit-tree', appName);
+    const response = await this.fetchFromService(url);
+    return response as CommitTree;
+  }
+
+  async fetchStaticLandscapeStructuresForAppName(
+    applicationName: string,
+    commits: SelectedCommit[]
+  ): Promise<StructureLandscapeData> {
+    this.debug('Fetching static landscape structure(s)');
+
+    const firstSelectedCommitId = commits[0].commitId;
+    let url: string;
+
+    if (commits.length === 1) {
+      url = this.constructUrl(
+        'structure',
+        applicationName,
+        firstSelectedCommitId
+      );
+    } else if (commits.length === 2) {
+      const secondSelectedCommitId = commits[1].commitId;
+      url = this.constructUrl(
+        'structure',
+        applicationName,
+        `${firstSelectedCommitId}-${secondSelectedCommitId}`
+      );
+    } else {
+      throw new Error('Invalid number of commits');
+    }
+
+    const response = await this.fetchFromService(url);
+    return preProcessAndEnhanceStructureLandscape(
+      response as StructureLandscapeData
+    );
   }
 
   // #endregion

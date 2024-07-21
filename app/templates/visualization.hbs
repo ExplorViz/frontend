@@ -1,7 +1,7 @@
 {{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
-  this.triggerRenderingForGivenLandscapeData
+  this.renderingService.triggerRenderingForGivenLandscapeData
 }}
 {{add-listener
   this.landscapeRestructure
@@ -16,7 +16,7 @@
 {{add-listener
   this.landscapeRestructure
   'toggelVisualization'
-  this.toggleVisualizationUpdating
+  this.renderingService.toggleVisualizationUpdating
 }}
 
 {{did-insert this.initRenderingAndSetupListeners}}
@@ -44,11 +44,11 @@
   {{#if this.showAR}}
     <ArRendering
       @id='ar-rendering'
-      @landscapeData={{this.landscapeData}}
+      @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
       @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
-      @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-      @visualizationPaused={{this.visualizationPaused}}
+      @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+      @visualizationPaused={{this.renderingService.visualizationPaused}}
       @components={{this.sidebarHandler.components}}
       @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
       @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
@@ -60,7 +60,7 @@
 
       <VrRendering
         @id='vr-rendering'
-        @landscapeData={{this.landscapeData}}
+        @landscapeData={{this.renderingService.landscapeData}}
         @switchToOnScreenMode={{this.switchToOnScreenMode}}
         @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
@@ -69,7 +69,7 @@
       <Visualization::Rendering::BrowserRendering
         @id='browser-rendering'
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
-        @landscapeData={{this.landscapeData}}
+        @landscapeData={{this.renderingService.landscapeData}}
         @components={{this.sidebarHandler.components}}
         @addComponent={{this.sidebarHandler.addComponent}}
         @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
@@ -82,13 +82,13 @@
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
-        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-        @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
-        @visualizationPaused={{this.visualizationPaused}}
+        @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
+        @visualizationPaused={{this.renderingService.visualizationPaused}}
         @removeTimestampListener={{this.removeTimestampListener}}
         @restructureLandscape={{this.restructureLandscape}}
         @switchToAR={{this.switchToAR}}
-        @triggerRenderingForGivenLandscapeData={{this.triggerRenderingForGivenLandscapeData}}
+        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
       />
     {{/if}}
 
@@ -164,15 +164,24 @@
       {{#if this.isRuntimeTimelineSelected}}
         <Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline
           @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
-          @clicked={{this.timelineClicked}}
+          @clicked={{this.timelineDataObjectHandler.timelineClicked}}
         />
       {{/if}}
 
       {{#if this.isCommitTreeSelected}}
         <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
-          @applications={{this.evolutionDataRepository.evolutionLandscapeData.applications}}
-          @selectedApplication={{this.commitTreeData.currentSelectedApplicationName}}
-          @setSelectedApplication={{this.commitTreeData.setCurrentSelectedApplicationName}}
+          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @setSelectedAppName={{this.commitTreeHandler.setCurrentSelectedApplicationName}}
+        />
+        <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
+          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+          @triggerVizRenderingForSelectedCommits={{this.evolutionDataRepository.fetchAndUpdateAllStructureLandscapeDataForSelectedCommits}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @selectedCommits={{this.commitTreeHandler.selectedCommits}}
+          @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}
+          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeHandler.getCloneOfAppNameAndBranchNameToColorMap}}
+          @setAppNameAndBranchNameToColorMap={{this.commitTreeHandler.setAppNameAndBranchNameToColorMap}}
         />
       {{/if}}
 

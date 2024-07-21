@@ -49,19 +49,13 @@ import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
-import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
-import CommitTreeData from 'explorviz-frontend/utils/commit-tree/commit-tree-data';
+import CommitTreeHandler from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import RenderingService from 'explorviz-frontend/services/rendering-service';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -77,17 +71,17 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
-  queryParams = ['roomId', 'deviceId'];
-
   private readonly debug = debugLogger('VisualizationController');
 
-  private previousMethodHashes: string[] = [];
-  private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+  queryParams = ['roomId', 'deviceId'];
 
   private sidebarHandler!: SidebarHandler;
-  private commitTreeData!: CommitTreeData;
+  private commitTreeHandler!: CommitTreeHandler;
 
   // #region Services
+
+  @service('rendering-service')
+  renderingService!: RenderingService;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -145,12 +139,6 @@ export default class VisualizationController extends Controller {
   roomId?: string | undefined | null;
 
   @tracked
-  landscapeData: LandscapeData | null = null;
-
-  @tracked
-  visualizationPaused = false;
-
-  @tracked
   vrSupported: boolean = false;
 
   @tracked
@@ -174,21 +162,23 @@ export default class VisualizationController extends Controller {
 
   get isLandscapeExistentAndEmpty() {
     return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length === 0
+      this.renderingService.landscapeData !== null &&
+      this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length === 0
     );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
     return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length > 0
+      this.renderingService.landscapeData !== null &&
+      this.renderingService.landscapeData.structureLandscapeData?.nodes.length >
+        0
     );
   }
 
   get shouldDisplayBottomBar() {
     return (
-      this.landscapeData &&
+      this.renderingService.landscapeData &&
       !this.showAR &&
       !this.showVR &&
       !this.isSingleLandscapeMode &&
@@ -221,16 +211,22 @@ export default class VisualizationController extends Controller {
       getOwner(this)
     );
 
-    this.commitTreeData = new CommitTreeData();
+    this.commitTreeHandler = new CommitTreeHandler();
+
+    this.renderingService.landscapeData = null;
+
+    // set timelineDataObjectHandler where necessary
+    this.renderingService.timelineDataObjectHandler =
+      this.timelineDataObjectHandler;
+
+    this.timestampRepo.timelineDataObjectHandler =
+      this.timelineDataObjectHandler;
 
     this.sidebarHandler = new SidebarHandler();
-    this.landscapeData = null;
-    this.visualizationPaused = false;
+    this.renderingService.visualizationPaused = false;
 
     // start main loop
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
+    this.timestampRepo.restartTimestampPollingAndVizUpdate();
 
     // fetch applications for evolution mode
     this.evolutionDataRepository.fetchAllApplications();
@@ -254,39 +250,7 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  // #endregion
-
-  // #region Short Polling Event Loop
-
-  timestampPollingCallback(timestamps: Timestamp[]): void {
-    // called every tenth second, main update loop
-    this.timestampRepo.addTimestamps(timestamps);
-
-    this.timelineDataObjectHandler.updateTimestamps();
-
-    if (this.visualizationPaused) {
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
-      return;
-    }
-
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    const timestampToRender =
-      this.timestampRepo.getNextTimestampOrLatest(lastSelectTimestamp);
-
-    if (
-      timestampToRender &&
-      !areArraysEqual(this.timelineDataObjectHandler.selectedTimestamps, [
-        timestampToRender,
-      ])
-    ) {
-      this.triggerRenderingForGivenTimestamp(timestampToRender.epochMilli, [
-        timestampToRender,
-      ]);
-    }
-  }
-
-  // #endregion
+  // #endregio
 
   // #region Event Handlers
 
@@ -314,21 +278,23 @@ export default class VisualizationController extends Controller {
     };
 
     this.highlightingService.updateHighlighting();
-    await this.triggerRenderingForGivenTimestamp(landscape.timestamp);
+    await this.renderingService.triggerRenderingForGivenTimestamp(
+      landscape.timestamp
+    );
     // Disable polling. It is now triggerd by the websocket.
   }
 
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.triggerRenderingForGivenTimestamp(timestamp);
+    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
-    this.triggerRenderingForGivenTimestamp(timestamp);
+    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onSyncRoomState(event: {
@@ -361,68 +327,6 @@ export default class VisualizationController extends Controller {
     this.toastHandlerService.showInfoToastMessage(
       'Room state synchronizing ...'
     );
-  }
-
-  // #endregion
-
-  // #region Rendering Triggering
-
-  async triggerRenderingForGivenTimestamp(
-    epochMilli: number,
-    timestampRecordArray?: Timestamp[]
-  ) {
-    try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
-
-      let requiresRerendering = !this.landscapeData;
-      let latestMethodHashes: string[] = [];
-
-      if (!requiresRerendering) {
-        latestMethodHashes =
-          getAllMethodHashesOfLandscapeStructureData(structureData);
-
-        if (
-          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
-          !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
-        ) {
-          requiresRerendering = true;
-        }
-      }
-
-      this.previousMethodHashes = latestMethodHashes;
-      this.previousLandscapeDynamicData = dynamicData;
-
-      if (requiresRerendering) {
-        this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
-      }
-
-      if (timestampRecordArray) {
-        this.timelineDataObjectHandler.updateSelectedTimestamps(
-          timestampRecordArray
-        );
-      }
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
-
-      this.timestampService.updateSelectedTimestamp(epochMilli);
-    } catch (e) {
-      this.debug("Landscape couldn't be requested!", e);
-      this.toastHandlerService.showErrorToastMessage(
-        "Landscape couldn't be requested!"
-      );
-      this.resumeVisualizationUpdating();
-    }
-  }
-
-  @action
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.landscapeData = {
-      structureLandscapeData: structureData,
-      dynamicLandscapeData: dynamicData,
-    };
   }
 
   // #endregion
@@ -484,22 +388,6 @@ export default class VisualizationController extends Controller {
   // #region Template Actions
 
   @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.timelineDataObjectHandler.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] ===
-        this.timelineDataObjectHandler.selectedTimestamps[0]
-    ) {
-      return;
-    }
-    this.pauseVisualizationUpdating(false);
-    this.triggerRenderingForGivenTimestamp(
-      selectedTimestamps[0].epochMilli,
-      selectedTimestamps
-    );
-  }
-
-  @action
   toggleBottomChart() {
     if (this.isCommitTreeSelected) {
       this.isCommitTreeSelected = false;
@@ -513,36 +401,6 @@ export default class VisualizationController extends Controller {
   @action
   toggleVisibilityBottomBar() {
     this.isBottomBarMaximized = !this.isBottomBarMaximized;
-  }
-
-  @action
-  toggleVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.resumeVisualizationUpdating();
-    } else {
-      this.pauseVisualizationUpdating();
-    }
-  }
-
-  resumeVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.visualizationPaused = false;
-      this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
-      animatePlayPauseIcon(false);
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
-    }
-  }
-
-  @action
-  pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
-    if (!this.visualizationPaused) {
-      this.visualizationPaused = true;
-      this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
-      animatePlayPauseIcon(true);
-      if (triggerTimelineUpdate) {
-        this.timelineDataObjectHandler.triggerTimelineUpdate();
-      }
-    }
   }
 
   // #endregion
@@ -559,6 +417,12 @@ export default class VisualizationController extends Controller {
       this.sidebarHandler.closeDataSelection();
       this.sidebarHandler.closeToolsSidebar();
     }
+
+    // always show runtime first
+    this.isRuntimeTimelineSelected = true;
+    this.isCommitTreeSelected = false;
+
+    this.evolutionDataRepository.resetAllEvolutionData();
 
     this.roomId = null;
 
