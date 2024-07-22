@@ -24,3 +24,7 @@
 
 # broccoli-debug
 /DEBUG/
+
+# Dev Container
+.devcontainer/devcontainer.json
+.github/dependabot.yml
