@@ -389,6 +389,9 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleBottomChart() {
+    // disable keyboard events for button to prevent space bar
+    document.getElementById('bottom-bar-toggle-chart-button')?.blur();
+
     if (this.isCommitTreeSelected) {
       this.isCommitTreeSelected = false;
       this.isRuntimeTimelineSelected = true;
