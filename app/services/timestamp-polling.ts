@@ -5,6 +5,7 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
+import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 
 const { spanService } = ENV.backendAddresses;
 
@@ -22,9 +23,10 @@ export default class TimestampPollingService extends Service {
   private debug = debugLogger('TimestampPollingService');
 
   async initTimestampPollingWithCallback(
-    callback: (timestamps: Timestamp[]) => void
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) {
-    this.startTimestampPolling(callback);
+    this.startTimestampPolling(commits, callback);
   }
 
   resetPolling() {
@@ -34,40 +36,76 @@ export default class TimestampPollingService extends Service {
     }
   }
 
-  private startTimestampPolling(callback: (timestamps: Timestamp[]) => void) {
+  private startTimestampPolling(
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
+  ) {
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
     }
 
     this.timer = setIntervalImmediately(async () => {
-      this.pollTimestamps(callback);
+      this.pollTimestamps(commits, callback);
     }, 10 * 1000);
 
     this.debug('Timestamp timer started');
   }
 
-  private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
-    // Check if we already have a timestamp that acts as base point
-    const landscapeToken = this.tokenService.token?.value;
+  private async pollTimestamps(
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
+  ) {
+    const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
 
-    if (!landscapeToken) {
-      console.error('No landscape token to pull timestamps.');
+    if (commits.length === 0) {
+      // No commit selected -> get all runtime behavior regardless of commit
+      const commitId = '';
+      const newestLocalTimestamp =
+        this.timestampRepo.getLatestTimestamp(commitId);
+      const allCommitsTimestampPromise = this.httpFetchTimestamps(
+        undefined,
+        newestLocalTimestamp
+      );
+
+      await allCommitsTimestampPromise
+        .then((timestamps: Timestamp[]) => {
+          polledCommitToTimestampMap.set(commitId, timestamps);
+        })
+        .catch((error: Error) => {
+          console.error(`Error on fetch of timestamps: ${error}`);
+          callback(new Map([['', []]]));
+          return;
+        });
+      callback(polledCommitToTimestampMap);
       return;
+    } else {
+      for (const selectedCommit of commits) {
+        const newestLocalTimestampForCommit =
+          this.timestampRepo.getLatestTimestamp(selectedCommit.commitId);
+
+        const promise = this.httpFetchTimestamps(
+          selectedCommit,
+          newestLocalTimestampForCommit
+        );
+
+        await promise
+          .then((timestamps: Timestamp[]) => {
+            polledCommitToTimestampMap.set(selectedCommit.commitId, timestamps);
+          })
+          .catch((error: Error) => {
+            console.error(`Error on fetch of timestamps: ${error}`);
+            polledCommitToTimestampMap.set(selectedCommit.commitId, []);
+          });
+      }
+      callback(polledCommitToTimestampMap);
     }
-
-    const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp();
-
-    const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
-
-    timestampPromise
-      .then((timestamps: Timestamp[]) => callback(timestamps))
-      .catch((error: Error) => {
-        console.error(`Error on fetch of timestamps: ${error}`);
-      });
   }
 
-  private httpFetchTimestamps(newestLocalTimestamp?: Timestamp | undefined) {
+  private httpFetchTimestamps(
+    commit?: SelectedCommit,
+    newestLocalTimestamp?: Timestamp
+  ) {
     this.debug('Polling timestamps');
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {
@@ -79,6 +117,14 @@ export default class TimestampPollingService extends Service {
 
       if (newestLocalTimestamp) {
         url += `?newest=${newestLocalTimestamp.epochMilli}`;
+
+        if (commit) {
+          url += `&commit=${commit.commitId}`;
+        }
+      }
+
+      if (commit && !newestLocalTimestamp) {
+        url += `?commit=${commit.commitId}`;
       }
 
       fetch(url, {

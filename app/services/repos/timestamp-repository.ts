@@ -8,6 +8,7 @@ import RenderingService from '../rendering-service';
 import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines
@@ -28,7 +29,8 @@ export default class TimestampRepository extends Service.extend(Evented) {
   timestampService!: TimestampService;
 
   @tracked
-  timestamps: Map<number, Timestamp> = new Map();
+  timestamps: Map<string, Map<number, Timestamp>> = new Map();
+  // <commitId, <epochMilli, timestamp>>
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
 
@@ -42,13 +44,16 @@ export default class TimestampRepository extends Service.extend(Evented) {
     return this._timelineDataObjectHandler;
   }
 
-  restartTimestampPollingAndVizUpdate() {
+  restartTimestampPollingAndVizUpdate(commits: SelectedCommit[]) {
     this.timestamps = new Map();
     this._timelineDataObjectHandler?.resetState();
 
     this.renderingService.resumeVisualizationUpdating();
 
+    console.log('commits', commits);
+
     this.timestampPollingService.initTimestampPollingWithCallback(
+      commits,
       this.timestampPollingCallback.bind(this)
     );
   }
@@ -60,81 +65,119 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   // #region Short Polling Event Loop for Runtime Data
 
-  timestampPollingCallback(timestamps: Timestamp[]): void {
+  timestampPollingCallback(commitToNewTimestampsMap: Map<string, Timestamp[]>) {
     if (!this.timelineDataObjectHandler) {
       throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
     }
 
-    this.addTimestamps(timestamps);
+    const commitTimestampsToRenderMap = new Map();
+    const allNewTimestampsToRender: Timestamp[] = [];
 
-    this.timelineDataObjectHandler.updateTimestamps();
+    for (const [commitId, newTimestampsForCommit] of commitToNewTimestampsMap) {
+      this.addTimestamps(commitId, newTimestampsForCommit);
+      this.timelineDataObjectHandler.updateTimestampsForCommit(
+        this.getTimestamps(commitId),
+        commitId
+      );
+
+      const lastSelectTimestamp =
+        this.timestampService.getLatestTimestampByCommitOrFallback(commitId);
+
+      const nextOrLatestTimestamp = this.getNextTimestampOrLatest(
+        commitId,
+        lastSelectTimestamp
+      );
+
+      const timestampToRender = nextOrLatestTimestamp
+        ? [nextOrLatestTimestamp]
+        : [];
+
+      commitTimestampsToRenderMap.set(commitId, timestampToRender);
+      allNewTimestampsToRender.pushObjects(timestampToRender);
+    }
 
     if (this.renderingService.visualizationPaused) {
       this.timelineDataObjectHandler.triggerTimelineUpdate();
       return;
     }
 
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    const timestampToRender =
-      this.getNextTimestampOrLatest(lastSelectTimestamp);
+    const currentlySelectedTimestamps: Timestamp[] = [];
+    currentlySelectedTimestamps.pushObjects(
+      this.timelineDataObjectHandler.selectedTimestamps
+    );
 
     if (
-      timestampToRender &&
-      !areArraysEqual(this.timelineDataObjectHandler.selectedTimestamps, [
-        timestampToRender,
-      ])
+      commitTimestampsToRenderMap.size > 0 &&
+      !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
     ) {
-      this.renderingService.triggerRenderingForGivenTimestamp(
-        timestampToRender.epochMilli,
-        [timestampToRender]
+      this.renderingService.triggerRenderingForGivenTimestamps(
+        commitTimestampsToRenderMap
       );
     }
   }
 
   // #endregion
 
-  getNextTimestampOrLatest(epochMilli: number): Timestamp | undefined {
-    if (this.timestamps) {
+  getNextTimestampOrLatest(
+    commitId: string,
+    epochMilli?: number
+  ): Timestamp | undefined {
+    const timestampsForCommit = this.timestamps.get(commitId);
+    if (timestampsForCommit) {
       let isNextTimestamp: boolean = false;
-      for (const [, value] of this.timestamps.entries()) {
+      for (const [, value] of timestampsForCommit.entries()) {
         if (isNextTimestamp) {
           return value;
         } else if (epochMilli === value.epochMilli) {
           isNextTimestamp = true;
         }
       }
-      const values = [...this.timestamps.values()];
+      const values = [...timestampsForCommit.values()];
       return values[values.length - 1];
     }
     return undefined;
   }
 
-  getLatestTimestamp() {
-    if (this.timestamps) {
-      const timestampSetAsArray = [...this.timestamps.values()];
+  getTimestamps(commitId: string): Timestamp[] {
+    const timestampsForCommitId = this.timestamps.get(commitId);
+    if (timestampsForCommitId) {
+      return [...timestampsForCommitId.values()];
+    } else {
+      return [];
+    }
+  }
+
+  getLatestTimestamp(commitId: string): Timestamp | undefined {
+    const timestamps = this.getTimestamps(commitId);
+    if (timestamps) {
+      const timestampSetAsArray = [...timestamps];
       return timestampSetAsArray[timestampSetAsArray.length - 1];
     }
 
     return undefined;
   }
 
-  addTimestamps(timestamps: Timestamp[]) {
+  addTimestamps(commitId: string, timestamps: Timestamp[]) {
+    if (!timestamps) {
+      return;
+    }
     for (const timestamp of timestamps) {
-      this.addTimestamp(timestamp);
+      this.addTimestamp(commitId, timestamp);
     }
     if (timestamps.length) {
       this.timestamps = new Map([...this.timestamps.entries()].sort());
     }
   }
 
-  private addTimestamp(timestamp: Timestamp) {
-    if (this.timestamps) {
-      this.timestamps.set(timestamp.epochMilli, timestamp);
+  private addTimestamp(commitId: string, timestamp: Timestamp) {
+    const timestamps = this.timestamps.get(commitId);
+
+    if (timestamps) {
+      timestamps.set(timestamp.epochMilli, timestamp);
     } else {
       const newTimestampMap = new Map<number, Timestamp>();
       newTimestampMap.set(timestamp.epochMilli, timestamp);
-      this.timestamps = newTimestampMap;
+      this.timestamps.set(commitId, newTimestampMap);
     }
   }
 }

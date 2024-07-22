@@ -38,6 +38,7 @@ export default class EvolutionDataRepository extends Service {
     string,
     StructureLandscapeData
   > = new Map();
+  // <appName, StructureLandscapeData>
 
   get evolutionStructureLandscapeData() {
     return this._evolutionStructureLandscapeData;
@@ -49,6 +50,10 @@ export default class EvolutionDataRepository extends Service {
   get appNameCommitTreeMap() {
     return this._appNameCommitTreeMap;
   }
+
+  @tracked
+  combinedStructureLandscapes: StructureLandscapeData =
+    createEmptyStructureLandscapeData();
 
   // #endregion
 
@@ -109,6 +114,8 @@ export default class EvolutionDataRepository extends Service {
 
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
 
+    this.combinedStructureLandscapes = allCombinedStructureLandscapes;
+
     if (allCombinedStructureLandscapes.nodes.length > 0) {
       this.timestampRepo.stopTimestampPollingAndVizUpdate();
       this.renderingService.triggerRenderingForGivenLandscapeData(
@@ -116,7 +123,7 @@ export default class EvolutionDataRepository extends Service {
         []
       );
     } else {
-      this.timestampRepo.restartTimestampPollingAndVizUpdate();
+      this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
     }
   }
   // #endregion

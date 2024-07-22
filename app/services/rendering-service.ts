@@ -2,7 +2,11 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import {
+  combineStructureLandscapeData,
+  createEmptyStructureLandscapeData,
+  getAllMethodHashesOfLandscapeStructureData,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ReloadHandler from './reload-handler';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { tracked } from '@glimmer/tracking';
@@ -13,6 +17,8 @@ import TimestampService from './timestamp';
 import ToastHandlerService from './toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
+import { combineDynamicLandscapeData } from 'explorviz-frontend/utils/landscape-dynamic-helpers';
+import EvolutionDataRepository from './repos/evolution-data-repository';
 
 export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
@@ -25,6 +31,9 @@ export default class RenderingService extends Service {
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  @service('repos/evolution-data-repository')
+  evolutionDataRepository!: EvolutionDataRepository;
 
   // #region Properties / Getter / Setter
 
@@ -69,46 +78,107 @@ export default class RenderingService extends Service {
 
   // #region Rendering Triggering
 
-  async triggerRenderingForGivenTimestamp(
-    epochMilli: number,
-    timestampRecordArray?: Timestamp[]
+  async triggerRenderingForGivenTimestamps(
+    commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) {
+    if (!this.timelineDataObjectHandler) {
+      throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
+    }
+
+    this.debug('triggerRenderingForGivenTimestamps');
+
+    //console.log('commitToSelectedTimestampMap', commitToSelectedTimestampMap);
+
     try {
-      const [structureData, dynamicData] =
-        await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
+      const commitToSelectedEpochMap: Map<string, number[]> = new Map();
 
-      let requiresRerendering = !this._landscapeData;
-      let latestMethodHashes: string[] = [];
+      //const selectedEpochMillis: number[] = [];
 
-      if (!requiresRerendering) {
-        latestMethodHashes =
-          getAllMethodHashesOfLandscapeStructureData(structureData);
+      let fetchedCombinedRuntimeLandscapeData: LandscapeData | undefined =
+        undefined;
 
-        if (
-          !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
-          !areArraysEqual(dynamicData, this.previousLandscapeDynamicData)
-        ) {
-          requiresRerendering = true;
+      for (const [
+        commitId,
+        selectedTimestampsForACommit,
+      ] of commitToSelectedTimestampMap.entries()) {
+        commitToSelectedEpochMap.set(
+          commitId,
+          selectedTimestampsForACommit.map((timestamp) => timestamp.epochMilli)
+        );
+
+        for (const selectedTimestamp of selectedTimestampsForACommit) {
+          const [structureLandscapeData, dynamicLandscapeData] =
+            await this.reloadHandler.loadLandscapeByTimestamp(
+              selectedTimestamp.epochMilli
+            );
+
+          if (fetchedCombinedRuntimeLandscapeData) {
+            fetchedCombinedRuntimeLandscapeData = {
+              structureLandscapeData: combineStructureLandscapeData(
+                fetchedCombinedRuntimeLandscapeData.structureLandscapeData,
+                structureLandscapeData
+              ),
+              dynamicLandscapeData: combineDynamicLandscapeData(
+                fetchedCombinedRuntimeLandscapeData.dynamicLandscapeData,
+                dynamicLandscapeData
+              ),
+            };
+          } else {
+            fetchedCombinedRuntimeLandscapeData = {
+              structureLandscapeData,
+              dynamicLandscapeData,
+            };
+          }
         }
       }
 
-      this.previousMethodHashes = latestMethodHashes;
-      this.previousLandscapeDynamicData = dynamicData;
+      if (fetchedCombinedRuntimeLandscapeData) {
+        const newDynamic =
+          fetchedCombinedRuntimeLandscapeData.dynamicLandscapeData;
 
-      if (requiresRerendering) {
-        this.triggerRenderingForGivenLandscapeData(structureData, dynamicData);
+        const newStruct = combineStructureLandscapeData(
+          this.evolutionDataRepository.combinedStructureLandscapes ||
+            createEmptyStructureLandscapeData,
+          fetchedCombinedRuntimeLandscapeData.structureLandscapeData
+        );
+
+        let requiresRerendering = false;
+        let latestMethodHashes: string[] = [];
+
+        if (!requiresRerendering) {
+          latestMethodHashes =
+            getAllMethodHashesOfLandscapeStructureData(newStruct);
+
+          if (
+            !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
+            !areArraysEqual(newDynamic, this.previousLandscapeDynamicData)
+          ) {
+            requiresRerendering = true;
+          }
+        }
+
+        this.previousMethodHashes = latestMethodHashes;
+        this.previousLandscapeDynamicData = newDynamic;
+
+        if (requiresRerendering) {
+          this.triggerRenderingForGivenLandscapeData(newStruct, newDynamic);
+        }
       }
 
-      if (this.timelineDataObjectHandler) {
-        if (timestampRecordArray) {
-          this.timelineDataObjectHandler.updateSelectedTimestamps(
-            timestampRecordArray
+      // check if we need to retrigger timeline
+      if (commitToSelectedTimestampMap.size > 0) {
+        for (const [
+          commitId,
+          selectedTimestamps,
+        ] of commitToSelectedTimestampMap.entries()) {
+          this.timelineDataObjectHandler.updateSelectedTimestampsForCommit(
+            selectedTimestamps,
+            commitId
           );
         }
         this.timelineDataObjectHandler.triggerTimelineUpdate();
       }
-
-      this.timestampService.updateSelectedTimestamp(epochMilli);
+      this.timestampService.updateSelectedTimestamp(commitToSelectedEpochMap);
     } catch (e) {
       this.debug("Landscape couldn't be requested!", e);
       this.toastHandlerService.showErrorToastMessage(
@@ -145,7 +215,7 @@ export default class RenderingService extends Service {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
       if (this.timelineDataObjectHandler) {
-        this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
+        //this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
         animatePlayPauseIcon(false);
         this.timelineDataObjectHandler.triggerTimelineUpdate();
       }
@@ -156,8 +226,9 @@ export default class RenderingService extends Service {
   pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
+      console.log('timelineDataObjectHandler', this.timelineDataObjectHandler);
       if (this.timelineDataObjectHandler) {
-        this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
+        //this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
         animatePlayPauseIcon(true);
         if (triggerTimelineUpdate) {
           this.timelineDataObjectHandler.triggerTimelineUpdate();

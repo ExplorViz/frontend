@@ -226,7 +226,7 @@ export default class VisualizationController extends Controller {
     this.renderingService.visualizationPaused = false;
 
     // start main loop
-    this.timestampRepo.restartTimestampPollingAndVizUpdate();
+    this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
 
     // fetch applications for evolution mode
     this.evolutionDataRepository.fetchAllApplications();

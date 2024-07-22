@@ -7,9 +7,37 @@ export const NEW_SELECTED_TIMESTAMP_EVENT = 'new_selected_timestamp';
 
 export default class TimestampService extends Service.extend(Evented) {
   @tracked
-  timestamp!: number;
+  timestamp: Map<string, number[]> = new Map();
 
-  updateSelectedTimestamp(timestamp: number) {
+  getLatestTimestampByCommitOrFallback(commit: string): number {
+    let returnValue;
+
+    const latestTimestampsForCommit = this.timestamp.get(commit) ?? [];
+
+    for (const selectedTimestamp of latestTimestampsForCommit) {
+      if (!returnValue) {
+        returnValue = selectedTimestamp;
+      } else {
+        if (selectedTimestamp > returnValue) {
+          returnValue = selectedTimestamp;
+        }
+      }
+    }
+
+    if (
+      !returnValue &&
+      this.timestamp.size > 0 &&
+      this.timestamp.values().next()
+    ) {
+      // this is the case when only dynamic is being visualized
+
+      returnValue = this.timestamp.values().next().value[0];
+    }
+
+    return returnValue;
+  }
+
+  updateSelectedTimestamp(timestamp: Map<string, number[]>) {
     this.timestamp = timestamp;
     this.trigger(NEW_SELECTED_TIMESTAMP_EVENT, this.timestamp);
   }

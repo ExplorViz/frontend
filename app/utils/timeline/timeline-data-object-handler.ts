@@ -6,11 +6,17 @@ import { setOwner } from '@ember/application';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { action } from '@ember/object';
 
-export type TimelineDataObject = {
+export type TimelineDataForCommit = {
   timestamps: Timestamp[];
   highlightedMarkerColor: 'blue' | 'red';
   selectedTimestamps: Timestamp[];
+  applicationNameAndBranchNameToColorMap: Map<string, string>;
 };
+
+export type TimelineDataObject = Map<
+  string, // commit
+  TimelineDataForCommit
+>;
 
 export default class TimelineDataObjectHandler {
   @service('repos/timestamp-repository')
@@ -19,11 +25,7 @@ export default class TimelineDataObjectHandler {
   @service('rendering-service')
   renderingService!: RenderingService;
 
-  @tracked timelineDataObject: TimelineDataObject = {
-    timestamps: [...this.timestampRepo.timestamps.values()] ?? [],
-    highlightedMarkerColor: 'blue',
-    selectedTimestamps: [],
-  };
+  @tracked timelineDataObject: TimelineDataObject = new Map();
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
@@ -43,41 +45,87 @@ export default class TimelineDataObjectHandler {
     return this.timelineDataObject.highlightedMarkerColor;
   }
 
-  updateTimestamps(
-    timestamps: Timestamp[] = [...this.timestampRepo.timestamps.values()]
+  createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {
+    return {
+      timestamps: [],
+      highlightedMarkerColor: 'blue',
+      selectedTimestamps: [],
+      applicationNameAndBranchNameToColorMap: new Map(),
+    };
+  }
+
+  setTimelineDataForCommit(
+    timelineDataForCommit: TimelineDataForCommit,
+    commitId: string
   ) {
-    this.timelineDataObject.timestamps = timestamps;
+    this.timelineDataObject.set(commitId, timelineDataForCommit);
   }
 
-  updateSelectedTimestamps(selectedTimestamps: Timestamp[]) {
-    this.timelineDataObject.selectedTimestamps = selectedTimestamps;
+  getTimelineDataForCommit(commitId: string) {
+    return this.timelineDataObject.get(commitId);
   }
 
-  updateHighlightedMarkerColor(highlightedMarkerColor: 'blue' | 'red') {
-    this.timelineDataObject.highlightedMarkerColor = highlightedMarkerColor;
+  updateCommitTimestampsIfPresent(timestamps: Timestamp[], commitId: string) {
+    if (timestamps && timestamps.length > 0) {
+      this.updateTimestampsForCommit(timestamps, commitId);
+    }
+  }
+
+  updateTimestampsForCommit(timestamps: Timestamp[], commitId: string) {
+    const timelineDataForCommit =
+      this.timelineDataObject.get(commitId) ??
+      this.createEmptyTimelineDataForCommitObj();
+
+    timelineDataForCommit.timestamps = timestamps;
+    // reset, since it might be new
+    this.setTimelineDataForCommit(timelineDataForCommit, commitId);
+  }
+
+  updateSelectedTimestampsForCommit(timestamps: Timestamp[], commitId: string) {
+    const timelineDataForCommit = this.timelineDataObject.get(commitId);
+    if (timelineDataForCommit) {
+      timelineDataForCommit.selectedTimestamps = timestamps;
+    }
+  }
+
+  updateHighlightedMarkerColorForCommit(
+    highlightedMarkerColor: 'blue' | 'red',
+    commitId: string
+  ) {
+    const timelineDataForCommit = this.timelineDataObject.get(commitId);
+    if (timelineDataForCommit) {
+      timelineDataForCommit.highlightedMarkerColor = highlightedMarkerColor;
+    }
   }
 
   @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.selectedTimestamps.length > 0 &&
-      selectedTimestamps[0] === this.selectedTimestamps[0]
-    ) {
-      return;
+  async timelineClicked(
+    commitToSelectedTimestampMap: Map<string, Timestamp[]>
+  ) {
+    for (const [
+      commitId,
+      selectedTimestamps,
+    ] of commitToSelectedTimestampMap.entries()) {
+      const timelineData = this.getTimelineDataForCommit(commitId);
+
+      if (
+        timelineData &&
+        timelineData.selectedTimestamps.length > 0 &&
+        selectedTimestamps === timelineData.selectedTimestamps
+      ) {
+        return;
+      }
     }
+
     this.renderingService.pauseVisualizationUpdating(false);
-    this.renderingService.triggerRenderingForGivenTimestamp(
-      selectedTimestamps[0].epochMilli,
-      selectedTimestamps
+
+    this.renderingService.triggerRenderingForGivenTimestamps(
+      commitToSelectedTimestampMap
     );
   }
 
   resetState() {
-    this.timelineDataObject = {
-      timestamps: [...this.timestampRepo.timestamps.values()] ?? [],
-      highlightedMarkerColor: 'blue',
-      selectedTimestamps: [],
-    };
+    this.timelineDataObject = new Map();
   }
 
   triggerTimelineUpdate() {
