@@ -6,9 +6,9 @@ import ClazzLabelMesh from './clazz-label-mesh';
 import { VisualizationMode } from 'collaboration/services/local-user';
 
 export default class ClazzMesh extends BoxMesh {
-  geometry: THREE.BoxGeometry;
+  geometry: THREE.BoxGeometry | THREE.BufferGeometry;
 
-  material: THREE.MeshLambertMaterial;
+  material: THREE.MeshLambertMaterial | THREE.Material;
 
   // Set by labeler
   labelMesh: ClazzLabelMesh | null = null;
@@ -28,7 +28,11 @@ export default class ClazzMesh extends BoxMesh {
 
     this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
     this.material.transparent = true;
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometry = new THREE.BoxGeometry(
+      layout.width,
+      layout.height,
+      layout.depth
+    );
     this.geometry = geometry;
     this.dataModel = clazz;
   }

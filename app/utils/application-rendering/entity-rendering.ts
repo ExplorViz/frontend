@@ -125,16 +125,15 @@ export function addComponentAndChildrenToScene(
       return;
     }
     // Create a basic appearence change for the class by changing the height.
+    // For Level 1
     const appearenceHeight = new AppearenceExtension();
     const recipe = new Recipe().setAbsValues(true);
-    //recipe.setColor(new THREE.Color(255, 0, 0));
-    //const startingPos: number = mesh.position.y + mesh.height;
+
+    // Set the current height to a default value for all
     if (orignalHeight) {
-      //recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
-      //appearenceClassForOne.callbackFunctionBefore = () =>
-      //  recipe.changeHeightAccordingToCurrentPosition(mesh, orignalHeight);
       clazzLayout.height = 1.5;
     }
+
     // Create class mesh
     const clazzMesh = new ClazzMesh(
       clazzLayout,
@@ -142,7 +141,20 @@ export function addComponentAndChildrenToScene(
       clazzColor,
       highlightedEntityColor
     );
+
+    // Remvoe original Label
+    clazzMesh.setCallBeforeAppearenceAboveZero((clazzMesh) => {
+      clazzMesh.remove(clazzMesh.labelMesh);
+    });
+    clazzMesh.setCallBeforeAppearenceZero((clazzMesh) => {
+      clazzMesh.add(clazzMesh.labelMesh);
+    });
+
     // Set the basic height changing recipe as the new appearence and register it as Level 1
+
+    // Change the Geometry to a Sphere
+    //recipe.setGeometry(new THREE.SphereGeometry(1, 8, 8));
+
     appearenceHeight.setRecipe(recipe);
     clazzMesh.setAppearence(1, appearenceHeight);
 
@@ -165,12 +177,11 @@ export function addComponentAndChildrenToScene(
     // Function 3 -> 12 LOC
 
     const functionSeperation: Array<number> = [];
-    functionSeperation.push(33);
-    functionSeperation.push(67);
-    functionSeperation.push(12);
-    functionSeperation.push(52);
-    functionSeperation.push(12);
-    functionSeperation.push(76);
+    clazz.methods.forEach(() => {
+      // Add each method with a default loc of 1
+      functionSeperation.push(1);
+    });
+
     let runningHeight = 0;
     let rNumber = 128;
     let gNumber = 16;
@@ -194,11 +205,10 @@ export function addComponentAndChildrenToScene(
       gNumber =
         heighColor % 2 == 0 ? Math.abs(heighColor - gNumber) % 255 : gNumber;
       bNumber =
-        heighColor % 2 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
+        heighColor % 3 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
       boxmaterial.color.set(
         new THREE.Color(rNumber / 255, gNumber / 255, bNumber / 255)
       );
-      //boxmaterial.color.set(new THREE.Color(110 / 255, 15 / 255, 10 / 255));
 
       const methodHeightMesh = new THREE.Mesh(box, boxmaterial);
       methodHeightMesh.position.setX(methodHeightMesh.position.x - 0.7);
@@ -206,25 +216,14 @@ export function addComponentAndChildrenToScene(
         -orignalHeight / 2 + functionHeight / 2 + runningHeight
       );
 
-      // Mittelpunkt finden:
-      // const middlebox = new THREE.BoxGeometry(0.25, 0.25, 0.25);
-      // const middlematerial = new THREE.MeshBasicMaterial();
-      // middlematerial.color.set(new THREE.Color(255, 0, 0));
-
-      // const midleMesh = new THREE.Mesh(middlebox, middlematerial);
-      // midleMesh.position.setX(methodHeightMesh.position.x - 0.5);
-      // midleMesh.position.setY(
-      //   -orignalHeight / 2 + midleMesh.geometry.parameters.height / 2
-      // );
-      // appearenceMethodProportion.addMesh(midleMesh, false);
-
-      // END of Mittelpunkt
-
       runningHeight = runningHeight + functionHeight;
+      // Add each MethodeDisplaying Mesh
       appearenceMethodProportion.addMesh(methodHeightMesh, false);
     }
 
     // Add different Text Levels
+
+    // Long Text with small font
     const textclose = createClazzTextLabelForZoomLevel(
       clazzMesh,
       applicationFont,
@@ -232,15 +231,21 @@ export function addComponentAndChildrenToScene(
       0.66,
       20
     );
-    // const textintermedian = createClazzTextLabelForZoomLevel(
-    //   clazzMesh,
-    //   applicationFont,
-    //   new THREE.Color(0xffff00),
-    //   1,
-    //   10
-    // );
+    // Change position to the top of the Box. Move it up by the half of the parent size
+    textclose?.position.setY(orignalHeight / 2 + 0.02);
+    // Shorter Text with larger font
+    const textintermedian = createClazzTextLabelForZoomLevel(
+      clazzMesh,
+      applicationFont,
+      new THREE.Color(0xffffff),
+      1,
+      10
+    );
+    // Change position to the top of the Box. Move it up by the half of the parent size
+    textintermedian?.position.setY(orignalHeight / 2 + 0.02);
+
     if (textclose) appearenceMethodProportion.addMesh(textclose, true);
-    //if (textintermedian) appearenceHeight.addMesh(textintermedian, true);
+    if (textintermedian) appearenceHeight.addMesh(textintermedian, true);
 
     // if (clazzMesh instanceof ClazzMesh) {
     //   appearenceClassForOne.callBeforeActivation = (cu) => {
@@ -272,7 +277,7 @@ export function addComponentAndChildrenToScene(
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
     if (orignalHeight) {
-      recipe.changeAxisScaleAccordingToCurrentPosition(
+      recipe.changeAxisSizeAccordingToCurrentPosition(
         clazzMesh,
         orignalHeight,
         'y'

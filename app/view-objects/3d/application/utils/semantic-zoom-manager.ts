@@ -4,15 +4,34 @@ import { Mesh } from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 export interface SemanticZoomableObject {
-  appearenceLevel: number;
-  // number i is == 0 default appearence
+  // Should be the visibility property of the Mesh
+  visible: boolean;
+  // appearenceLevel number i is == 0 default appearence
   //              > 0 if appearence selected
   //              < 0 hide all and itsself
+  appearenceLevel: number;
+  // Callback that triggers before the activation of any Appearence that is not 0
+  callBeforeAppearenceAboveZero: (currentMesh: Mesh | undefined) => void;
+  // Callback that is triggered before the default Appearence gets restored
+  callBeforeAppearenceZero: (currentMesh: Mesh | undefined) => void;
+  // Maps a Number 0-inf to one Appearence
   appearencesMap: Map<number, Appearence>;
+  // Displays the Appearence i
   showAppearence(i: number): boolean;
+  // Return the currently active Appearence Level
   getCurrentAppearenceLevel(): number;
+  // Regsiters a new Appearence for an index i
   setAppearence(i: number, ap: Appearence): void;
+  // Returns the number of available level of Appearences - 1 (-1 because of the default Appearence of 0)
   getNumberOfLevels(): number;
+  // Callback Setter
+  setCallBeforeAppearenceAboveZero(
+    fn: (currentMesh: Mesh | undefined) => void
+  ): void;
+  // Callback Setter
+  setCallBeforeAppearenceZero(
+    fn: (currentMesh: Mesh | undefined) => void
+  ): void;
 }
 
 export class Appearence {
@@ -188,6 +207,8 @@ export class Appearence {
   }
 }
 export class Recipe {
+  //TODO alter the Recipe such that each value can be absolute or relativ
+
   // All Numbers are deltas and not absolute values.
   modifiedParams: Array<boolean> = [];
   visible: boolean = true;
@@ -202,7 +223,7 @@ export class Recipe {
   scaledepth: number = 0;
 
   geometry: THREE.BufferGeometry | undefined = undefined;
-  material: THREE.Material | undefined = undefined;
+  material: THREE.Material | THREE.Material[] | undefined = undefined;
 
   //colorchange: boolean = false;
   color: THREE.Color;
@@ -226,9 +247,9 @@ export class Recipe {
       .setPositionZ(position.z)
       .setGeometry(mesh.geometry)
       .setMaterial(mesh.material)
-      .setScaleWidth(mesh.scale.x);
-    //.setScaleDepth(mesh.scale.z)
-    //.setScaleHeight(mesh.scale.y);
+      .setScaleWidth(mesh.scale.x)
+      .setScaleDepth(mesh.scale.z)
+      .setScaleHeight(mesh.scale.y);
     if (mesh instanceof THREE.BoxGeometry)
       freshRecipe
         .setWidth(mesh.geometry.parameters.width)
@@ -240,29 +261,36 @@ export class Recipe {
   }
 
   //TODO function implementieren
-  changeAxisScaleAccordingToCurrentPosition(
+  changeAxisSizeAccordingToCurrentPosition(
     currentMesh: Mesh,
     newValue: number,
     axis: string
   ) {
+    // TODO only handles BoxGeometries! Handle other aswell
+    // TODO add function to increase size on the opposite site
+    if (!(currentMesh.geometry instanceof THREE.BoxGeometry)) return;
     let currentValue = 0;
     let currentPosition = 0;
     if (axis == 'y') {
-      currentValue = currentMesh.scale.y;
+      currentValue = currentMesh.geometry.parameters.height;
       currentPosition = currentMesh.position.y;
       this.setPositionY(currentPosition - currentValue / 2 + newValue / 2);
       this.setHeight(newValue);
+      this.setScaleHeight(1);
     } else if (axis == 'x') {
-      currentValue = currentMesh.scale.x;
+      currentValue = currentMesh.geometry.parameters.width;
       currentPosition = currentMesh.position.x;
       this.setPositionX(currentPosition - currentValue / 2 + newValue / 2);
       this.setWidth(newValue);
+      this.setScaleWidth(1);
     } else if (axis == 'z') {
-      currentValue = currentMesh.scale.z;
+      currentValue = currentMesh.geometry.parameters.depth;
       currentPosition = currentMesh.position.z;
       this.setPositionZ(currentPosition - currentValue / 2 + newValue / 2);
       this.setDepth(newValue);
+      this.setScaleDepth(1);
     }
+    this.setAbsValues(true);
   }
 
   setAbsValues(v: boolean) {
@@ -480,6 +508,7 @@ export default class SemanticZoomManager {
       //if (element instanceof ComponentMesh) return;
       //if (element instanceof FoundationMesh) return;
       //if (element instanceof ClazzCommunicationMesh) return;
+      if (element.visible == false) return;
       const worldPos = new THREE.Vector3();
       element.getWorldPosition(worldPos);
       const distance = cam.position.distanceTo(worldPos);

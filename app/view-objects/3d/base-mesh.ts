@@ -32,6 +32,11 @@ export default abstract class BaseMesh<
 
   originalAppearence: Recipe | undefined = undefined;
 
+  callBeforeAppearenceAboveZero: (currentMesh: THREE.Mesh | undefined) => void =
+    () => {};
+  callBeforeAppearenceZero: (currentMesh: THREE.Mesh | undefined) => void =
+    () => {};
+
   constructor(
     defaultColor: THREE.Color = new THREE.Color(),
     highlightingColor = new THREE.Color('red'),
@@ -42,6 +47,17 @@ export default abstract class BaseMesh<
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
   }
+  setCallBeforeAppearenceAboveZero(
+    fn: (currentMesh: THREE.Mesh | undefined) => void
+  ): void {
+    this.callBeforeAppearenceAboveZero = fn;
+  }
+  setCallBeforeAppearenceZero(
+    fn: (currentMesh: THREE.Mesh | undefined) => void
+  ): void {
+    this.callBeforeAppearenceZero = fn;
+  }
+
   saveOriginalAppearence() {
     this.originalAppearence = Recipe.generateFromMesh(this);
   }
@@ -51,6 +67,7 @@ export default abstract class BaseMesh<
     tmpAppearence.setRecipe(this.originalAppearence);
     tmpAppearence.setObject3D(this);
     tmpAppearence.activate();
+    this.appearenceLevel = 0;
   }
   restoreAppearence() {
     this.showAppearence(this.appearenceLevel);
@@ -58,6 +75,7 @@ export default abstract class BaseMesh<
   showAppearence(i: number): boolean {
     if (i == 0 && this.originalAppearence != undefined) {
       // return to default look
+      this.callBeforeAppearenceZero(this);
       this.restoreOriginalAppearence();
       this.appearencesMap.forEach((v, k) => {
         if (k != 0) v.deactivate();
@@ -70,7 +88,7 @@ export default abstract class BaseMesh<
       this.appearenceLevel = i;
       return true;
     }
-
+    this.callBeforeAppearenceAboveZero(this);
     // Make sure to return to default Appearence first
     this.restoreOriginalAppearence();
 
