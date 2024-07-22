@@ -61,6 +61,12 @@ export default class TimestampRepository extends Service.extend(Evented) {
     this.timestampPollingService.resetPolling();
   }
 
+  resetState() {
+    this.timestamps = new Map();
+    this.timelineDataObjectHandler?.resetState();
+    this.timelineDataObjectHandler?.triggerTimelineUpdate();
+  }
+
   // #region Short Polling Event Loop for Runtime Data
 
   timestampPollingCallback(commitToNewTimestampsMap: Map<string, Timestamp[]>) {

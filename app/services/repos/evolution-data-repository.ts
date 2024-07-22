@@ -86,43 +86,62 @@ export default class EvolutionDataRepository extends Service {
   async fetchAndUpdateAllStructureLandscapeDataForSelectedCommits(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) {
-    const newEvolutionStructureLandscapeData: Map<
-      string,
-      StructureLandscapeData
-    > = new Map();
+    this.timestampRepo.stopTimestampPollingAndVizUpdate();
 
-    let allCombinedStructureLandscapes: StructureLandscapeData =
-      createEmptyStructureLandscapeData();
+    if (appNameToSelectedCommits.size > 0) {
+      const newEvolutionStructureLandscapeData: Map<
+        string,
+        StructureLandscapeData
+      > = new Map();
 
-    for (const [appName, selectedCommits] of appNameToSelectedCommits) {
-      const combinedLandscapeStructureForAppAndCommits =
-        await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+      let allCombinedStructureLandscapes: StructureLandscapeData =
+        createEmptyStructureLandscapeData();
+
+      for (const [appName, selectedCommits] of appNameToSelectedCommits) {
+        const combinedLandscapeStructureForAppAndCommits =
+          await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+            appName,
+            selectedCommits
+          );
+
+        newEvolutionStructureLandscapeData.set(
           appName,
-          selectedCommits
+          combinedLandscapeStructureForAppAndCommits
         );
 
-      newEvolutionStructureLandscapeData.set(
-        appName,
-        combinedLandscapeStructureForAppAndCommits
-      );
+        allCombinedStructureLandscapes = combineStructureLandscapeData(
+          allCombinedStructureLandscapes,
+          combinedLandscapeStructureForAppAndCommits
+        );
+      }
 
-      allCombinedStructureLandscapes = combineStructureLandscapeData(
-        allCombinedStructureLandscapes,
-        combinedLandscapeStructureForAppAndCommits
-      );
-    }
+      this._evolutionStructureLandscapeData =
+        newEvolutionStructureLandscapeData;
 
-    this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
+      this.combinedStructureLandscapes = allCombinedStructureLandscapes;
 
-    this.combinedStructureLandscapes = allCombinedStructureLandscapes;
+      // always resume when commit got clicked so the landscape updates
+      if (this.renderingService.visualizationPaused) {
+        this.renderingService.resumeVisualizationUpdating();
+      }
 
-    if (allCombinedStructureLandscapes.nodes.length > 0) {
-      this.timestampRepo.stopTimestampPollingAndVizUpdate();
-      this.renderingService.triggerRenderingForGivenLandscapeData(
-        allCombinedStructureLandscapes,
-        []
-      );
+      if (allCombinedStructureLandscapes.nodes.length > 0) {
+        this.renderingService.triggerRenderingForGivenLandscapeData(
+          allCombinedStructureLandscapes,
+          []
+        );
+      }
+
+      this.timestampRepo.resetState();
+
+      // TODO init timestampolling
     } else {
+      // no more selected commits, go back to visualize cross-commit runtime behavior
+
+      // reset state
+
+      //this.resetAllEvolutionData();
+      this.timestampRepo.resetState();
       this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
     }
   }

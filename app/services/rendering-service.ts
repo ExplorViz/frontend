@@ -193,6 +193,7 @@ export default class RenderingService extends Service {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
+    this.debug('triggerRenderingForGivenLandscapeData');
     this._landscapeData = {
       structureLandscapeData: structureData,
       dynamicLandscapeData: dynamicData,
