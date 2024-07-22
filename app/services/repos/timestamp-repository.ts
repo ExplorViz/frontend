@@ -50,8 +50,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
     this.renderingService.resumeVisualizationUpdating();
 
-    console.log('commits', commits);
-
     this.timestampPollingService.initTimestampPollingWithCallback(
       commits,
       this.timestampPollingCallback.bind(this)
@@ -101,10 +99,8 @@ export default class TimestampRepository extends Service.extend(Evented) {
       return;
     }
 
-    const currentlySelectedTimestamps: Timestamp[] = [];
-    currentlySelectedTimestamps.pushObjects(
-      this.timelineDataObjectHandler.selectedTimestamps
-    );
+    const currentlySelectedTimestamps =
+      this.timelineDataObjectHandler.getAllSelectedTimestampsOfAllCommits();
 
     if (
       commitTimestampsToRenderMap.size > 0 &&

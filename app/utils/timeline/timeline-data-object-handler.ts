@@ -33,18 +33,6 @@ export default class TimelineDataObjectHandler {
     //this.timestampRepo.on('updated', this, this.updateTimestamps);
   }
 
-  get timestamps() {
-    return this.timelineDataObject.timestamps;
-  }
-
-  get selectedTimestamps() {
-    return this.timelineDataObject.selectedTimestamps;
-  }
-
-  get highlightedMarkerColor() {
-    return this.timelineDataObject.highlightedMarkerColor;
-  }
-
   createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {
     return {
       timestamps: [],
@@ -52,6 +40,15 @@ export default class TimelineDataObjectHandler {
       selectedTimestamps: [],
       applicationNameAndBranchNameToColorMap: new Map(),
     };
+  }
+
+  getAllSelectedTimestampsOfAllCommits() {
+    const currentlySelectedTimestamps: Timestamp[] = [];
+
+    this.timelineDataObject.forEach((timelineData) => {
+      currentlySelectedTimestamps.push(...timelineData.selectedTimestamps);
+    });
+    return currentlySelectedTimestamps;
   }
 
   setTimelineDataForCommit(
@@ -122,6 +119,12 @@ export default class TimelineDataObjectHandler {
     this.renderingService.triggerRenderingForGivenTimestamps(
       commitToSelectedTimestampMap
     );
+  }
+
+  updateHighlightedMarkerColorForSelectedCommits(newColor: 'blue' | 'red') {
+    this.timelineDataObject.forEach((dataForCommit) => {
+      dataForCommit.highlightedMarkerColor = newColor;
+    });
   }
 
   resetState() {

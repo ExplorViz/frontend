@@ -214,8 +214,11 @@ export default class RenderingService extends Service {
   resumeVisualizationUpdating() {
     if (this.visualizationPaused) {
       this.visualizationPaused = false;
+
       if (this.timelineDataObjectHandler) {
-        //this.timelineDataObjectHandler.updateHighlightedMarkerColor('blue');
+        this.timelineDataObjectHandler.updateHighlightedMarkerColorForSelectedCommits(
+          'blue'
+        );
         animatePlayPauseIcon(false);
         this.timelineDataObjectHandler.triggerTimelineUpdate();
       }
@@ -226,9 +229,11 @@ export default class RenderingService extends Service {
   pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
     if (!this.visualizationPaused) {
       this.visualizationPaused = true;
-      console.log('timelineDataObjectHandler', this.timelineDataObjectHandler);
+
       if (this.timelineDataObjectHandler) {
-        //this.timelineDataObjectHandler.updateHighlightedMarkerColor('red');
+        this.timelineDataObjectHandler.updateHighlightedMarkerColorForSelectedCommits(
+          'red'
+        );
         animatePlayPauseIcon(true);
         if (triggerTimelineUpdate) {
           this.timelineDataObjectHandler.triggerTimelineUpdate();
