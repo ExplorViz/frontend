@@ -134,18 +134,56 @@ export class Appearence {
       //     : this.originObject3D.scale.z
       // );
     }
+    // Task 8 set width
+    // Task 9 set height
+    // Task 10 set depth
+    if (this.recipe.valuesAreAbs == false) {
+      this.originObject3D.scale.add(
+        new THREE.Vector3(
+          this.recipe.scalewidth,
+          this.recipe.scaleheight,
+          this.recipe.scaledepth
+        )
+      );
+    } else {
+      this.originObject3D.scale.set(
+        this.recipe.modifiedParams[7] == true
+          ? this.recipe.scalewidth
+          : this.originObject3D.scale.x,
+        this.recipe.modifiedParams[8] == true
+          ? this.recipe.scaleheight
+          : this.originObject3D.scale.y,
+        this.recipe.modifiedParams[9] == true
+          ? this.recipe.scaledepth
+          : this.originObject3D.scale.z
+      );
+    }
 
-    // Task 8 set color
+    // Task 11 set color
     // TODO Fix coloring Problem
-    if (this.recipe.modifiedParams[7] == true) {
+    if (this.recipe.modifiedParams[10] == true) {
       throw new Error('Color changing is not yet implemented');
     }
     //this.object3D.material.color.set(this.recipe.color);
     //console.log('We colored!!');
 
-    // Task 9 set radius
+    // Task 12 set radius
     // TODO Only for Circles
 
+    //Task 13
+    if (
+      this.recipe.modifiedParams[12] == true &&
+      this.recipe.geometry != undefined
+    ) {
+      this.originObject3D.geometry = this.recipe.geometry;
+    }
+    //Task 14
+    if (
+      this.recipe.modifiedParams[13] == true &&
+      this.recipe.material != undefined
+    ) {
+      this.originObject3D.material = this.recipe.material;
+    }
     return true;
   }
 }
@@ -159,13 +197,20 @@ export class Recipe {
   width: number = 0;
   height: number = 0;
   depth: number = 0;
+  scalewidth: number = 0;
+  scaleheight: number = 0;
+  scaledepth: number = 0;
+
+  geometry: THREE.BufferGeometry | undefined = undefined;
+  material: THREE.Material | undefined = undefined;
+
   //colorchange: boolean = false;
   color: THREE.Color;
   radius: number = 0;
   valuesAreAbs: boolean = false;
 
   constructor() {
-    this.modifiedParams = new Array(9);
+    this.modifiedParams = new Array(12);
     this.modifiedParams.fill(false);
     this.color = new THREE.Color(0xffffff); // Use hexadecimal value
   }
@@ -173,22 +218,23 @@ export class Recipe {
   public static generateFromMesh(mesh: Mesh): Recipe {
     const position = mesh.position;
     //if (mesh instanceof BoxMesh) position = mesh.layout.position;
-    if (mesh instanceof THREE.BoxGeometry)
-      return new Recipe()
-        .setAbsValues(true)
-        .setVisible(mesh.visible)
-        .setPositionX(position.x)
-        .setPositionY(position.y)
-        .setPositionZ(position.z)
-        .setWidth(mesh.geometry.parameters.width)
-        .setHeight(mesh.geometry.parameters.height)
-        .setDepth(mesh.geometry.parameters.depth);
-    return new Recipe()
+    const freshRecipe = new Recipe()
       .setAbsValues(true)
       .setVisible(mesh.visible)
       .setPositionX(position.x)
       .setPositionY(position.y)
-      .setPositionZ(position.z);
+      .setPositionZ(position.z)
+      .setGeometry(mesh.geometry)
+      .setMaterial(mesh.material)
+      .setScaleWidth(mesh.scale.x);
+    //.setScaleDepth(mesh.scale.z)
+    //.setScaleHeight(mesh.scale.y);
+    if (mesh instanceof THREE.BoxGeometry)
+      freshRecipe
+        .setWidth(mesh.geometry.parameters.width)
+        .setHeight(mesh.geometry.parameters.height)
+        .setDepth(mesh.geometry.parameters.depth);
+    return freshRecipe;
     //.setColor(mesh.material.color)
     //.setRadius(0)
   }
@@ -217,13 +263,6 @@ export class Recipe {
       this.setPositionZ(currentPosition - currentValue / 2 + newValue / 2);
       this.setDepth(newValue);
     }
-    // console.log(
-    //   'Current Mesh Height: %d, Y-Pos: %d, new Y-Pos: %d, new Height: %d',
-    //   currentHeight,
-    //   currentYPosition,
-    //   currentYPosition - currentHeight / 2 + newValue / 2,
-    //   newValue
-    // );
   }
 
   setAbsValues(v: boolean) {
@@ -267,20 +306,49 @@ export class Recipe {
   }
 
   setDepth(depth: number): this {
-    this.depth = depth;
+    this.scaledepth = depth;
     this.modifiedParams[6] = true;
+    return this;
+  }
+
+  setScaleWidth(width: number): this {
+    this.scalewidth = width;
+    this.modifiedParams[7] = true;
+    return this;
+  }
+
+  setScaleHeight(height: number): this {
+    this.scaleheight = height;
+    this.modifiedParams[8] = true;
+    return this;
+  }
+
+  setScaleDepth(depth: number): this {
+    this.scaledepth = depth;
+    this.modifiedParams[9] = true;
     return this;
   }
 
   setColor(color: THREE.Color): this {
     this.color = color;
-    this.modifiedParams[7] = true;
+    this.modifiedParams[10] = true;
     return this;
   }
 
   setRadius(radius: number): this {
     this.radius = radius;
-    this.modifiedParams[8] = true;
+    this.modifiedParams[11] = true;
+    return this;
+  }
+
+  setGeometry(geo: THREE.BufferGeometry): this {
+    this.geometry = geo;
+    this.modifiedParams[12] = true;
+    return this;
+  }
+  setMaterial(tx: THREE.Material): this {
+    this.material = tx;
+    this.modifiedParams[13] = true;
     return this;
   }
 }
@@ -332,6 +400,7 @@ export class AppearenceExtension extends Appearence {
 export default class SemanticZoomManager {
   deactivate() {
     this.isEnabled = false;
+    this.forceLevel(0);
   }
   activate() {
     this.isEnabled = true;

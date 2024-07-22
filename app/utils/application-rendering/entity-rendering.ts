@@ -168,7 +168,13 @@ export function addComponentAndChildrenToScene(
     functionSeperation.push(33);
     functionSeperation.push(67);
     functionSeperation.push(12);
+    functionSeperation.push(52);
+    functionSeperation.push(12);
+    functionSeperation.push(76);
     let runningHeight = 0;
+    let rNumber = 128;
+    let gNumber = 16;
+    let bNumber = 32;
     for (let index = 0; index < functionSeperation.length; index++) {
       const element = functionSeperation[index];
       const functionHeight =
@@ -181,12 +187,21 @@ export function addComponentAndChildrenToScene(
         clazzLayout?.depth / 4
       );
       const boxmaterial = new THREE.MeshBasicMaterial();
-      boxmaterial.color.set(new THREE.Color(100 + index * 10, index * 10, 0));
+      const maxColor = Math.max(rNumber, gNumber, bNumber);
+      const minColor = Math.min(rNumber, gNumber, bNumber);
+      const heighColor = maxColor + minColor;
+      rNumber = Math.abs(heighColor - rNumber) % 255;
+      gNumber =
+        heighColor % 2 == 0 ? Math.abs(heighColor - gNumber) % 255 : gNumber;
+      bNumber =
+        heighColor % 2 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
+      boxmaterial.color.set(
+        new THREE.Color(rNumber / 255, gNumber / 255, bNumber / 255)
+      );
+      //boxmaterial.color.set(new THREE.Color(110 / 255, 15 / 255, 10 / 255));
 
       const methodHeightMesh = new THREE.Mesh(box, boxmaterial);
-      methodHeightMesh.position.setX(
-        methodHeightMesh.position.x - 0.5 * (index + 1)
-      );
+      methodHeightMesh.position.setX(methodHeightMesh.position.x - 0.7);
       methodHeightMesh.position.setY(
         -orignalHeight / 2 + functionHeight / 2 + runningHeight
       );
