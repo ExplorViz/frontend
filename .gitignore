@@ -25,6 +25,9 @@
 # broccoli-debug
 /DEBUG/
 
+# Ignore custom pre-commit hooks
+.husky/*
+
 # Dev Container
 .devcontainer/devcontainer.json
 .github/dependabot.yml

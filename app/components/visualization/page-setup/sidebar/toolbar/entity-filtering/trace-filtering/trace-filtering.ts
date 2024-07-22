@@ -5,7 +5,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { inject as service } from '@ember/service';
