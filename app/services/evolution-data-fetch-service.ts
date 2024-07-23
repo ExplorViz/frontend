@@ -15,54 +15,41 @@ const { codeService } = ENV.backendAddresses;
 export default class EvolutionDataFetchServiceService extends Service {
   private readonly debug = debugLogger('EvolutionDataFetchServiceService');
 
+  // #region Services
+
   @service('landscape-token') tokenService!: LandscapeTokenService;
   @service('auth') auth!: Auth;
+
+  // #endregion
 
   // #region Fetch functions
 
   async fetchApplications(): Promise<string[]> {
-    this.debug('Fetching applications');
     const url = this.constructUrl('applications');
-    const response = await this.fetchFromService(url);
-    return response as string[];
+    return await this.fetchFromService<string[]>(url);
   }
 
   async fetchCommitTreeForAppName(appName: string): Promise<CommitTree> {
     const url = this.constructUrl('commit-tree', appName);
-    const response = await this.fetchFromService(url);
-    return response as CommitTree;
+    return await this.fetchFromService<CommitTree>(url);
   }
 
   async fetchStaticLandscapeStructuresForAppName(
     applicationName: string,
     commits: SelectedCommit[]
   ): Promise<StructureLandscapeData> {
-    this.debug('Fetching static landscape structure(s)');
-
-    const firstSelectedCommitId = commits[0].commitId;
-    let url: string;
-
-    if (commits.length === 1) {
-      url = this.constructUrl(
-        'structure',
-        applicationName,
-        firstSelectedCommitId
-      );
-    } else if (commits.length === 2) {
-      const secondSelectedCommitId = commits[1].commitId;
-      url = this.constructUrl(
-        'structure',
-        applicationName,
-        `${firstSelectedCommitId}-${secondSelectedCommitId}`
-      );
-    } else {
+    if (commits.length < 1 || commits.length > 2) {
       throw new Error('Invalid number of commits');
     }
 
-    const response = await this.fetchFromService(url);
-    return preProcessAndEnhanceStructureLandscape(
-      response as StructureLandscapeData
-    );
+    const [firstCommit, secondCommit] = commits;
+    const commitPath = secondCommit
+      ? `${firstCommit.commitId}-${secondCommit.commitId}`
+      : firstCommit.commitId;
+    const url = this.constructUrl('structure', applicationName, commitPath);
+
+    const response = await this.fetchFromService<StructureLandscapeData>(url);
+    return preProcessAndEnhanceStructureLandscape(response);
   }
 
   // #endregion
@@ -82,25 +69,39 @@ export default class EvolutionDataFetchServiceService extends Service {
     return `${codeService}/v2/code/${endpoint}/${landscapeToken}/${params.join('/')}`;
   }
 
-  private async fetchFromService(url: string): Promise<any> {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${this.auth.accessToken}`,
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
+  private async fetchFromService<T>(url: string): Promise<T> {
+    this.debug(`Fetching from service with URL: ${url}`);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.auth.accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
 
-    if (response.ok) {
-      return await response.json();
-    } else {
-      const errorText = await response.text();
-      throw new Error(
-        `Fetch failed with status ${response.status}: ${errorText}`
-      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new FetchError(response.status, errorText);
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      this.debug(`Fetch error: ${error}`);
+      throw error;
     }
   }
 
   // #endregion
+}
+
+class FetchError extends Error {
+  constructor(
+    public status: number,
+    message: string
+  ) {
+    super(`Fetch failed with status ${status}: ${message}`);
+    this.name = 'FetchError';
+  }
 }
 
 declare module '@ember/service' {
