@@ -460,6 +460,7 @@ export default class SemanticZoomManager {
   }
 
   public add(obj3d: SemanticZoomableObject) {
+    obj3d.saveOriginalAppearence();
     this.zoomableObjects.push(obj3d);
   }
   public logCurrentState() {

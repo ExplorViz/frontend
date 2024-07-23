@@ -11,12 +11,15 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
-import { Vector3 } from 'three';
+import * as THREE from 'three';
 import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
-import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import SemanticZoomManager, {
+  AppearenceExtension,
+  Recipe,
+} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -81,9 +84,9 @@ export default class LinkRenderer extends Service.extend({}) {
       classCommunication.sourceClass
     );
     const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id);
-    let start = new Vector3();
+    let start = new THREE.Vector3();
     if (sourceMesh) {
-      start = sourceMesh.getWorldPosition(new Vector3());
+      start = sourceMesh.getWorldPosition(new THREE.Vector3());
       forceGraph.worldToLocal(start);
     } else {
       this.debug('Source mesh not found');
@@ -95,9 +98,9 @@ export default class LinkRenderer extends Service.extend({}) {
       classCommunication.targetClass
     );
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id);
-    let end = new Vector3();
+    let end = new THREE.Vector3();
     if (targetMesh) {
-      end = targetMesh.getWorldPosition(new Vector3());
+      end = targetMesh.getWorldPosition(new THREE.Vector3());
       forceGraph.worldToLocal(end);
     } else {
       this.debug('Target mesh not found');
@@ -115,13 +118,13 @@ export default class LinkRenderer extends Service.extend({}) {
     line.geometry.dispose();
 
     const curveHeight = this.computeCurveHeight(commLayout);
-    line.render(new Vector3(), curveHeight);
+    line.render(new THREE.Vector3(), curveHeight);
 
     // to move particles and arrow
     const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
     link.__curve = curve;
     line.children.clear();
-    this.addArrows(line, curveHeight, new Vector3());
+    this.addArrows(line, curveHeight, new THREE.Vector3());
 
     return true;
   }
@@ -152,7 +155,29 @@ export default class LinkRenderer extends Service.extend({}) {
       communicationColor,
       highlightedEntityColor
     );
+    const closeDistance = new AppearenceExtension();
+    closeDistance.callBeforeActivation = (commMesh) => {
+      if (commMesh != undefined) {
+        commMesh.layout.lineThickness *= 5;
+        commMesh.geometry.dispose();
+        commMesh.render(commMesh.applicationCenter, commMesh.curveHeight);
+      }
+    };
+    closeDistance.callAfterDeactivation = (commMesh) => {
+      if (commMesh != undefined) {
+        commMesh.layout.lineThickness /= 5;
+        commMesh.geometry.dispose();
+        commMesh.render(commMesh.applicationCenter, commMesh.curveHeight);
+      }
+    };
+    const recipe = new Recipe().setAbsValues(true);
+    recipe.setScaleHeight(1.5);
+    recipe.setMaterial(new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+    closeDistance.setRecipe(recipe);
+    newMesh.setAppearence(1, closeDistance);
+
     this.linkIdToMesh.set(id, newMesh);
+
     SemanticZoomManager.instance.add(newMesh);
     return newMesh;
   }
@@ -202,7 +227,7 @@ export default class LinkRenderer extends Service.extend({}) {
   private addArrows(
     pipe: ClazzCommunicationMesh,
     curveHeight: number,
-    viewCenterPoint: Vector3
+    viewCenterPoint: THREE.Vector3
   ) {
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
