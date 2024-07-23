@@ -21,49 +21,62 @@ const SELECTED_COLOR = 'red';
 const UNSELECTED_COLOR = 'blue';
 
 export default class TimelineDataObjectHandler {
+  // #region Services
+
   @service('rendering-service')
   renderingService!: RenderingService;
 
+  // #endregion
+
+  // #region Properties
+
   @tracked timelineDataObject: TimelineDataObject = new Map();
+
+  // #endregion
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
   }
 
-  createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {
-    return {
-      timestamps: [],
-      highlightedMarkerColor: 'blue',
-      selectedTimestamps: [],
-      applicationNameAndBranchNameToColorMap: new Map(),
-    };
-  }
+  // #region Timeline Click Handler
 
-  getAllSelectedTimestampsOfAllCommits() {
-    const currentlySelectedTimestamps: Timestamp[] = [];
-
-    this.timelineDataObject.forEach((timelineData) => {
-      currentlySelectedTimestamps.push(...timelineData.selectedTimestamps);
-    });
-    return currentlySelectedTimestamps;
-  }
-
-  setTimelineDataForCommit(
-    timelineDataForCommit: TimelineDataForCommit,
-    commitId: string
+  @action
+  async timelineClicked(
+    commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) {
-    this.timelineDataObject.set(commitId, timelineDataForCommit);
-  }
+    for (const [
+      commitId,
+      selectedTimestamps,
+    ] of commitToSelectedTimestampMap.entries()) {
+      const timelineData = this.getTimelineDataForCommit(commitId);
 
-  getTimelineDataForCommit(commitId: string) {
-    return this.timelineDataObject.get(commitId);
-  }
-
-  updateCommitTimestampsIfPresent(timestamps: Timestamp[], commitId: string) {
-    if (timestamps && timestamps.length > 0) {
-      this.updateTimestampsForCommit(timestamps, commitId);
+      if (
+        timelineData &&
+        timelineData.selectedTimestamps.length > 0 &&
+        selectedTimestamps === timelineData.selectedTimestamps
+      ) {
+        return;
+      }
     }
+
+    this.renderingService.pauseVisualizationUpdating(false);
+
+    this.renderingService.triggerRenderingForGivenTimestamps(
+      commitToSelectedTimestampMap
+    );
+  }
+
+  // #endregion
+
+  // #region Timeline Setter
+
+  updateHighlightedMarkerColorForSelectedCommits(areCommitsSelected: boolean) {
+    this.timelineDataObject.forEach((dataForCommit) => {
+      dataForCommit.highlightedMarkerColor = areCommitsSelected
+        ? SELECTED_COLOR
+        : UNSELECTED_COLOR;
+    });
   }
 
   updateTimestampsForCommit(timestamps: Timestamp[], commitId: string) {
@@ -93,43 +106,50 @@ export default class TimelineDataObjectHandler {
     }
   }
 
-  @action
-  async timelineClicked(
-    commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ) {
-    for (const [
-      commitId,
-      selectedTimestamps,
-    ] of commitToSelectedTimestampMap.entries()) {
-      const timelineData = this.getTimelineDataForCommit(commitId);
+  // #endregion
 
-      if (
-        timelineData &&
-        timelineData.selectedTimestamps.length > 0 &&
-        selectedTimestamps === timelineData.selectedTimestamps
-      ) {
-        return;
-      }
-    }
+  // #region Timeline Getter
 
-    this.renderingService.pauseVisualizationUpdating(false);
+  getAllSelectedTimestampsOfAllCommits() {
+    const currentlySelectedTimestamps: Timestamp[] = [];
 
-    this.renderingService.triggerRenderingForGivenTimestamps(
-      commitToSelectedTimestampMap
-    );
-  }
-
-  updateHighlightedMarkerColorForSelectedCommits(areCommitsSelected: boolean) {
-    this.timelineDataObject.forEach((dataForCommit) => {
-      dataForCommit.highlightedMarkerColor = areCommitsSelected
-        ? SELECTED_COLOR
-        : UNSELECTED_COLOR;
+    this.timelineDataObject.forEach((timelineData) => {
+      currentlySelectedTimestamps.push(...timelineData.selectedTimestamps);
     });
+    return currentlySelectedTimestamps;
   }
+
+  // #region Helper functions
+
+  private getTimelineDataForCommit(commitId: string) {
+    return this.timelineDataObject.get(commitId);
+  }
+
+  private createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {
+    return {
+      timestamps: [],
+      highlightedMarkerColor: 'blue',
+      selectedTimestamps: [],
+      applicationNameAndBranchNameToColorMap: new Map(),
+    };
+  }
+
+  private setTimelineDataForCommit(
+    timelineDataForCommit: TimelineDataForCommit,
+    commitId: string
+  ) {
+    this.timelineDataObject.set(commitId, timelineDataForCommit);
+  }
+
+  // #endregion
+
+  // #region Reset functions
 
   resetState() {
     this.timelineDataObject = new Map();
   }
+
+  // #endregion
 
   triggerTimelineUpdate() {
     // Calling this in each update function will multiple renderings,
