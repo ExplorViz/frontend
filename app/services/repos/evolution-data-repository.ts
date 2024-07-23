@@ -14,7 +14,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 export default class EvolutionDataRepository extends Service {
-  private readonly debug = debugLogger('EvolutionData');
+  private readonly debug = debugLogger('EvolutionDataRepository');
 
   // #region Services
 
@@ -23,33 +23,36 @@ export default class EvolutionDataRepository extends Service {
 
   // #endregion
 
-  // #region Properties and getter
+  // #region Properties
 
-  private _evolutionStructureLandscapeData: Map<
+  @tracked private _evolutionStructureLandscapeData: Map<
     string,
     StructureLandscapeData
   > = new Map();
   // <appName, StructureLandscapeData>
 
-  get evolutionStructureLandscapeData() {
-    return this._evolutionStructureLandscapeData;
-  }
+  @tracked private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
-  @tracked
-  private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-  get appNameCommitTreeMap() {
-    return this._appNameCommitTreeMap;
-  }
-
-  @tracked
-  combinedStructureLandscapes: StructureLandscapeData =
+  @tracked combinedStructureLandscapes: StructureLandscapeData =
     createEmptyStructureLandscapeData();
 
   // #endregion
 
+  // #region Getter / Setter
+
+  get evolutionStructureLandscapeData(): Map<string, StructureLandscapeData> {
+    return this._evolutionStructureLandscapeData;
+  }
+
+  get appNameCommitTreeMap(): AppNameCommitTreeMap {
+    return this._appNameCommitTreeMap;
+  }
+
+  // #endregion
+
   // #region Fetch functions
-  async fetchAllApplications() {
+
+  async fetchAllApplications(): Promise<void> {
     this.debug('fetchAllApplications');
     try {
       const applicationNames: string[] =
@@ -57,7 +60,6 @@ export default class EvolutionDataRepository extends Service {
       const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
       for (const appName of applicationNames) {
-        // fetch commit tree for each found appName
         const commitTreeForAppName =
           await this.fetchCommitTreeForAppName(appName);
 
@@ -75,62 +77,69 @@ export default class EvolutionDataRepository extends Service {
 
   async fetchAndSetAllStructureLandscapeDataForSelectedCommits(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
-  ) {
+  ): Promise<void> {
     const newEvolutionStructureLandscapeData: Map<
       string,
       StructureLandscapeData
     > = new Map();
-
     let allCombinedStructureLandscapes: StructureLandscapeData =
       createEmptyStructureLandscapeData();
 
     for (const [appName, selectedCommits] of appNameToSelectedCommits) {
-      const combinedLandscapeStructureForAppAndCommits =
-        await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+      try {
+        const combinedLandscapeStructureForAppAndCommits =
+          await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+            appName,
+            selectedCommits
+          );
+
+        newEvolutionStructureLandscapeData.set(
           appName,
-          selectedCommits
+          combinedLandscapeStructureForAppAndCommits
         );
 
-      newEvolutionStructureLandscapeData.set(
-        appName,
-        combinedLandscapeStructureForAppAndCommits
-      );
-
-      allCombinedStructureLandscapes = combineStructureLandscapeData(
-        allCombinedStructureLandscapes,
-        combinedLandscapeStructureForAppAndCommits
-      );
+        allCombinedStructureLandscapes = combineStructureLandscapeData(
+          allCombinedStructureLandscapes,
+          combinedLandscapeStructureForAppAndCommits
+        );
+      } catch (reason) {
+        console.error(
+          `Failed to fetch and set structure landscape data for app: ${appName}, reason: ${reason}`
+        );
+      }
     }
 
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
     this.combinedStructureLandscapes = allCombinedStructureLandscapes;
   }
+
   // #endregion
 
   // #region Reset functions
 
-  resetStructureLandscapeData() {
+  resetStructureLandscapeData(): void {
     this.debug('Reset Evolution StructureLandscapeData');
     this.resetEvolutionStructureLandscapeData();
   }
 
-  resetAllEvolutionData() {
+  resetAllEvolutionData(): void {
     this.debug('Reset All Evolution Data');
     this.resetEvolutionStructureLandscapeData();
     this.resetAppNameCommitTreeMap();
   }
 
-  resetEvolutionStructureLandscapeData() {
+  resetEvolutionStructureLandscapeData(): void {
     this._evolutionStructureLandscapeData = new Map();
     this.combinedStructureLandscapes = createEmptyStructureLandscapeData();
   }
 
-  resetAppNameCommitTreeMap() {
+  resetAppNameCommitTreeMap(): void {
     this._appNameCommitTreeMap = new Map();
   }
+
   // #endregion
 
-  //#region Private Helper Functions
+  // #region Private Helper Functions
 
   private async fetchCommitTreeForAppName(
     appName: string
@@ -152,6 +161,6 @@ export default class EvolutionDataRepository extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'repos/evolution-data-repository.ts': EvolutionDataRepository;
+    'evolution-data-repository': EvolutionDataRepository;
   }
 }
