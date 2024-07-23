@@ -18,6 +18,9 @@ export type TimelineDataObject = Map<
   TimelineDataForCommit
 >;
 
+const SELECTED_COLOR = 'red';
+const UNSELECTED_COLOR = 'blue';
+
 export default class TimelineDataObjectHandler {
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
@@ -121,9 +124,11 @@ export default class TimelineDataObjectHandler {
     );
   }
 
-  updateHighlightedMarkerColorForSelectedCommits(newColor: 'blue' | 'red') {
+  updateHighlightedMarkerColorForSelectedCommits(areCommitsSelected: boolean) {
     this.timelineDataObject.forEach((dataForCommit) => {
-      dataForCommit.highlightedMarkerColor = newColor;
+      dataForCommit.highlightedMarkerColor = areCommitsSelected
+        ? SELECTED_COLOR
+        : UNSELECTED_COLOR;
     });
   }
 
