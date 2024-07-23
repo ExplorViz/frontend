@@ -8,21 +8,23 @@ export interface SemanticZoomableObject {
   // appearenceLevel number i is == 0 default appearence
   //              > 0 if appearence selected
   //              < 0 hide all and itsself
-  appearenceLevel: number;
+  //appearenceLevel: number;
   // Callback that triggers before the activation of any Appearence that is not 0
   callBeforeAppearenceAboveZero: (currentMesh: Mesh | undefined) => void;
   // Callback that is triggered before the default Appearence gets restored
   callBeforeAppearenceZero: (currentMesh: Mesh | undefined) => void;
   // Maps a Number 0-inf to one Appearence
-  appearencesMap: Map<number, Appearence>;
+  //appearencesMap: Map<number, Appearence>;
   // Displays the Appearence i
   showAppearence(i: number): boolean;
   // Return the currently active Appearence Level
   getCurrentAppearenceLevel(): number;
   // Regsiters a new Appearence for an index i
-  setAppearence(i: number, ap: Appearence): void;
+  setAppearence(i: number, ap: Appearence | (() => void)): void;
   // Returns the number of available level of Appearences - 1 (-1 because of the default Appearence of 0)
   getNumberOfLevels(): number;
+  // saveOriginalAppearence saves the orignal appearence
+  saveOriginalAppearence(): void;
   // Callback Setter
   setCallBeforeAppearenceAboveZero(
     fn: (currentMesh: Mesh | undefined) => void
@@ -202,6 +204,15 @@ export class Appearence {
     ) {
       this.originObject3D.material = this.recipe.material;
     }
+    // Task 15 Restore Childs
+    if (
+      this.recipe.modifiedParams[14] == true &&
+      this.originObject3D != undefined
+    ) {
+      this.recipe.childs.forEach((element) => {
+        this.originObject3D.add(element);
+      });
+    }
     return true;
   }
 }
@@ -227,10 +238,12 @@ export class Recipe {
   //colorchange: boolean = false;
   color: THREE.Color;
   radius: number = 0;
+
+  childs: Array<THREE.Object3D> = [];
   valuesAreAbs: boolean = false;
 
   constructor() {
-    this.modifiedParams = new Array(12);
+    this.modifiedParams = new Array(13);
     this.modifiedParams.fill(false);
     this.color = new THREE.Color(0xffffff); // Use hexadecimal value
   }
@@ -248,7 +261,8 @@ export class Recipe {
       .setMaterial(mesh.material)
       .setScaleWidth(mesh.scale.x)
       .setScaleDepth(mesh.scale.z)
-      .setScaleHeight(mesh.scale.y);
+      .setScaleHeight(mesh.scale.y)
+      .setCurrentChilds(mesh.children);
     if (mesh instanceof THREE.BoxGeometry)
       freshRecipe
         .setWidth(mesh.geometry.parameters.width)
@@ -378,6 +392,11 @@ export class Recipe {
     this.modifiedParams[13] = true;
     return this;
   }
+  setCurrentChilds(children: THREE.Object3D<THREE.Object3DEventMap>[]) {
+    this.childs = [...children];
+    this.modifiedParams[14] = true;
+    return this;
+  }
 }
 
 export class AppearenceExtension extends Appearence {
@@ -425,13 +444,6 @@ export class AppearenceExtension extends Appearence {
 }
 
 export default class SemanticZoomManager {
-  deactivate() {
-    this.isEnabled = false;
-    this.forceLevel(0);
-  }
-  activate() {
-    this.isEnabled = true;
-  }
   /**
    * Is a Singleton
    * Has a List of all Objects3D types
@@ -459,6 +471,14 @@ export default class SemanticZoomManager {
     return SemanticZoomManager.#instance;
   }
 
+  deactivate() {
+    this.isEnabled = false;
+    this.forceLevel(0);
+  }
+  activate() {
+    this.isEnabled = true;
+  }
+
   public add(obj3d: SemanticZoomableObject) {
     obj3d.saveOriginalAppearence();
     this.zoomableObjects.push(obj3d);
@@ -481,6 +501,12 @@ export default class SemanticZoomManager {
   }
 
   public forceLevel(level: number) {
+    /**
+     * Forces the `level` of appearence on all registered object
+     *
+     * @param level - Level of Appearence to show
+     *
+     */
     this.zoomableObjects.forEach((element) => {
       //element.
       element.showAppearence(level);

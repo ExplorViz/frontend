@@ -20,6 +20,20 @@ export default class ClazzLabelMesh extends LabelMesh {
     // Set label slightly transparent to avoid errors
     // due to different render order (of transparent objects)
     this.turnTransparent(0.99);
+
+    // Semantic Zoom preparations
+    this.saveOriginalAppearence();
+    // Set Appearence on Level 1
+    this.setAppearence(1, () =>
+      this.computeLabel(labelText, size - 0.3, limitletters + 10)
+    );
+    // Remove original Label
+    this.setCallBeforeAppearenceAboveZero((clazzMesh) => {
+      clazzMesh.remove(clazzMesh.labelMesh);
+    });
+    this.setCallBeforeAppearenceZero((clazzMesh) => {
+      clazzMesh.add(clazzMesh.labelMesh);
+    });
   }
 
   /**

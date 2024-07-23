@@ -28,7 +28,7 @@ export default abstract class BaseMesh<
 
   appearenceLevel: number = 0;
 
-  appearencesMap: Map<number, Appearence> = new Map();
+  appearencesMap: Map<number, Appearence | (() => void)> = new Map();
 
   originalAppearence: Recipe | undefined = undefined;
 
@@ -78,7 +78,7 @@ export default abstract class BaseMesh<
       this.callBeforeAppearenceZero(this);
       this.restoreOriginalAppearence();
       this.appearencesMap.forEach((v, k) => {
-        if (k != 0) v.deactivate();
+        if (k != 0 && v instanceof Appearence) v.deactivate();
       });
       this.appearenceLevel = i;
       return true;
@@ -91,21 +91,26 @@ export default abstract class BaseMesh<
     this.callBeforeAppearenceAboveZero(this);
     // Make sure to return to default Appearence first
     this.restoreOriginalAppearence();
-
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
-    targetAppearence.activate();
-    this.appearencesMap.forEach((v) => {
-      if (v != targetAppearence) v.deactivate();
-    });
+    if (targetAppearence instanceof Appearence) {
+      if (targetAppearence instanceof Appearence) targetAppearence.activate();
+      this.appearencesMap.forEach((v) => {
+        if (v != targetAppearence && v instanceof Appearence) v.deactivate();
+      });
+    } else {
+      //console.log(`Calling Function with Level: ${i}`);
+      targetAppearence();
+    }
+
     this.appearenceLevel = i;
     return true;
   }
   getCurrentAppearenceLevel(): number {
     return this.appearenceLevel;
   }
-  setAppearence(i: number, ap: Appearence): void {
-    ap.setObject3D(this);
+  setAppearence(i: number, ap: Appearence | (() => void)): void {
+    if (ap instanceof Appearence) ap.setObject3D(this);
     this.appearencesMap.set(i, ap);
   }
   getNumberOfLevels(): number {

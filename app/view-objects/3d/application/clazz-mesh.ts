@@ -28,13 +28,15 @@ export default class ClazzMesh extends BoxMesh {
 
     this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
     this.material.transparent = true;
-    const geometry = new THREE.BoxGeometry(
-      layout.width,
-      layout.height,
-      layout.depth
-    );
+    const geometry = new THREE.BoxGeometry(layout.width, 1.5, layout.depth);
     this.geometry = geometry;
     this.dataModel = clazz;
+
+    // Semantic Zoom preparations
+    this.saveOriginalAppearence();
+    // Register multiple levels
+    this.setAppearence(1, this.setHeightAccordingToClassSize);
+    this.setAppearence(2, this.showMethodMesh);
   }
 
   getModelId() {
@@ -60,4 +62,68 @@ export default class ClazzMesh extends BoxMesh {
       }
     }
   }
+
+  setHeightAccordingToClassSize = () => {
+    if (this.geometry == undefined) return;
+    // console.log(
+    //   `Changing from ${this.geometry.parameters.height} to ${this.layout.height}`
+    // );
+    this.geometry.parameters.height = this.layout.height;
+  };
+
+  showMethodMesh = () => {
+    // Add Methods lengths
+    // Example with 3 Function
+    // Function 1 -> 33 Line of Code
+    // Function 2 -> 67 LOC
+    // Function 3 -> 12 LOC
+    if (!this.geometry) return;
+    const functionSeperation: Array<number> = [];
+    this.dataModel.methods.forEach(() => {
+      // Add each method with a default loc of 1
+      functionSeperation.push(1);
+    });
+
+    let runningHeight = 0;
+    let rNumber = 128;
+    let gNumber = 16;
+    let bNumber = 32;
+    for (let index = 0; index < functionSeperation.length; index++) {
+      const element = functionSeperation[index];
+      const functionHeight =
+        (this.geometry.parameters.height /
+          functionSeperation.reduce((sum, current) => sum + current, 0)) *
+        element;
+      const box = new THREE.BoxGeometry(
+        this.layout.width / 4,
+        functionHeight,
+        this.layout.depth / 4
+      );
+      const boxmaterial = new THREE.MeshBasicMaterial();
+      const maxColor = Math.max(rNumber, gNumber, bNumber);
+      const minColor = Math.min(rNumber, gNumber, bNumber);
+      const heighColor = maxColor + minColor;
+      rNumber = Math.abs(heighColor - rNumber) % 255;
+      gNumber =
+        heighColor % 2 == 0 ? Math.abs(heighColor - gNumber) % 255 : gNumber;
+      bNumber =
+        heighColor % 3 == 0 ? Math.abs(heighColor - bNumber) % 255 : bNumber;
+      boxmaterial.color.set(
+        new THREE.Color(rNumber / 255, gNumber / 255, bNumber / 255)
+      );
+
+      const methodHeightMesh = new THREE.Mesh(box, boxmaterial);
+      methodHeightMesh.position.setX(methodHeightMesh.position.x - 0.7);
+      methodHeightMesh.position.setY(
+        -this.geometry.parameters.height / 2 +
+          functionHeight / 2 +
+          runningHeight
+      );
+
+      runningHeight = runningHeight + functionHeight;
+      // Add each MethodeDisplaying Mesh
+      //appearenceMethodProportion.addMesh(methodHeightMesh, false);
+      this.add(methodHeightMesh);
+    }
+  };
 }
