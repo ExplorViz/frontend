@@ -19,6 +19,8 @@ import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timelin
 import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/utils/landscape-dynamic-helpers';
 import EvolutionDataRepository from './repos/evolution-data-repository';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import TimestampRepository from './repos/timestamp-repository';
 
 export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
@@ -34,6 +36,9 @@ export default class RenderingService extends Service {
 
   @service('repos/evolution-data-repository')
   evolutionDataRepository!: EvolutionDataRepository;
+
+  @service('repos/timestamp-repository')
+  timestampRepo!: TimestampRepository;
 
   // #region Properties / Getter / Setter
 
@@ -73,6 +78,8 @@ export default class RenderingService extends Service {
   get visualizationPaused() {
     return this._visualizationPaused;
   }
+
+  private visualizationMode: 'evolution' | 'runtime' = 'runtime';
 
   // #endregion
 
@@ -200,6 +207,62 @@ export default class RenderingService extends Service {
     };
   }
 
+  @action
+  async triggerRenderingForSelectedCommits(
+    appNameToSelectedCommits: Map<string, SelectedCommit[]>
+  ) {
+    this.timestampRepo.stopTimestampPollingAndVizUpdate();
+
+    if (appNameToSelectedCommits.size > 0) {
+      if (this.visualizationMode === 'runtime') {
+        this.toastHandlerService.showInfoToastMessage(
+          'Switching to evolution mode.'
+        );
+        this.visualizationMode = 'evolution';
+      }
+
+      await this.evolutionDataRepository.fetchAndSetAllStructureLandscapeDataForSelectedCommits(
+        appNameToSelectedCommits
+      );
+
+      const allCombinedStructureLandscapes =
+        this.evolutionDataRepository.combinedStructureLandscapes;
+
+      // always resume when commit got clicked so the landscape updates
+      if (this.visualizationPaused) {
+        this.resumeVisualizationUpdating();
+      }
+
+      if (allCombinedStructureLandscapes.nodes.length > 0) {
+        this.triggerRenderingForGivenLandscapeData(
+          allCombinedStructureLandscapes,
+          []
+        );
+      }
+
+      this.timestampRepo.resetState();
+
+      const selectedCommits = Array.from(
+        appNameToSelectedCommits.values()
+      ).flat();
+
+      this.timestampRepo.restartTimestampPollingAndVizUpdate(selectedCommits);
+    } else {
+      if (this.visualizationMode === 'evolution') {
+        this.toastHandlerService.showInfoToastMessage(
+          'Switching to cross-commit runtime visualization.'
+        );
+        this.visualizationMode = 'runtime';
+      }
+
+      // no more selected commits, reset all evolution data and go back to visualize cross-commit runtime behavior
+      this.resetAllRenderingStates();
+      this.evolutionDataRepository.resetStructureLandscapeData();
+      this.timestampRepo.resetState();
+      this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+    }
+  }
+
   // #endregion
 
   // #region Pause / Play
@@ -243,6 +306,13 @@ export default class RenderingService extends Service {
     }
   }
   // #endregion
+
+  resetAllRenderingStates() {
+    this.debug('Reset Rendering States');
+    this._landscapeData = null;
+    this.previousLandscapeDynamicData = null;
+    this.previousMethodHashes = [];
+  }
 }
 
 declare module '@ember/service' {
