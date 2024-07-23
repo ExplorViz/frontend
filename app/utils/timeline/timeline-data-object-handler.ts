@@ -1,7 +1,6 @@
 import { tracked } from '@glimmer/tracking';
 import { Timestamp } from '../landscape-schemes/timestamp';
 import { inject as service } from '@ember/service';
-import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import { setOwner } from '@ember/application';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { action } from '@ember/object';
@@ -22,9 +21,6 @@ const SELECTED_COLOR = 'red';
 const UNSELECTED_COLOR = 'blue';
 
 export default class TimelineDataObjectHandler {
-  @service('repos/timestamp-repository')
-  timestampRepo!: TimestampRepository;
-
   @service('rendering-service')
   renderingService!: RenderingService;
 
@@ -33,7 +29,6 @@ export default class TimelineDataObjectHandler {
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
-    //this.timestampRepo.on('updated', this, this.updateTimestamps);
   }
 
   createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {

@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
-import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import { tracked } from '@glimmer/tracking';
 import TimestampPollingService from '../timestamp-polling';
@@ -17,7 +16,7 @@ import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree
  * @extends Ember.Service
  */
 export default class TimestampRepository extends Service.extend(Evented) {
-  private debug = debugLogger('TimestampRepository');
+  // #region Services
 
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
@@ -28,11 +27,19 @@ export default class TimestampRepository extends Service.extend(Evented) {
   @service('timestamp')
   timestampService!: TimestampService;
 
+  // #endregion
+
+  // #region Properties
+
   @tracked
-  timestamps: Map<string, Map<number, Timestamp>> = new Map();
+  commitToTimestampMap: Map<string, Map<number, Timestamp>> = new Map();
   // <commitId, <epochMilli, timestamp>>
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
+
+  // #endregion
+
+  // #region  Getter / Setter
 
   set timelineDataObjectHandler(
     newTimelineDataObjectHandler: TimelineDataObjectHandler | null
@@ -40,12 +47,16 @@ export default class TimestampRepository extends Service.extend(Evented) {
     this._timelineDataObjectHandler = newTimelineDataObjectHandler;
   }
 
-  get timelineDataObjectHandler() {
+  get timelineDataObjectHandler(): TimelineDataObjectHandler | null {
     return this._timelineDataObjectHandler;
   }
 
-  restartTimestampPollingAndVizUpdate(commits: SelectedCommit[]) {
-    this.timestamps = new Map();
+  // #endregion
+
+  // #region Timestamp Polling
+
+  restartTimestampPollingAndVizUpdate(commits: SelectedCommit[]): void {
+    this.commitToTimestampMap = new Map();
     this._timelineDataObjectHandler?.resetState();
 
     this.renderingService.resumeVisualizationUpdating();
@@ -56,20 +67,16 @@ export default class TimestampRepository extends Service.extend(Evented) {
     );
   }
 
-  stopTimestampPollingAndVizUpdate() {
+  stopTimestampPollingAndVizUpdate(): void {
     this.renderingService.pauseVisualizationUpdating();
     this.timestampPollingService.resetPolling();
   }
 
-  resetState() {
-    this.timestamps = new Map();
-    this.timelineDataObjectHandler?.resetState();
-    this.timelineDataObjectHandler?.triggerTimelineUpdate();
-  }
+  timestampPollingCallback(
+    commitToNewTimestampsMap: Map<string, Timestamp[]>
+  ): void {
+    // Short Polling Event Loop for Runtime Data
 
-  // #region Short Polling Event Loop for Runtime Data
-
-  timestampPollingCallback(commitToNewTimestampsMap: Map<string, Timestamp[]>) {
     if (!this.timelineDataObjectHandler) {
       throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
     }
@@ -80,7 +87,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
     for (const [commitId, newTimestampsForCommit] of commitToNewTimestampsMap) {
       this.addTimestamps(commitId, newTimestampsForCommit);
       this.timelineDataObjectHandler.updateTimestampsForCommit(
-        this.getTimestamps(commitId),
+        this.getTimestampsForCommitId(commitId),
         commitId
       );
 
@@ -120,28 +127,44 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   // #endregion
 
+  // #region Timestamp functions
+
   getNextTimestampOrLatest(
     commitId: string,
     epochMilli?: number
   ): Timestamp | undefined {
-    const timestampsForCommit = this.timestamps.get(commitId);
-    if (timestampsForCommit) {
-      let isNextTimestamp: boolean = false;
-      for (const [, value] of timestampsForCommit.entries()) {
-        if (isNextTimestamp) {
-          return value;
-        } else if (epochMilli === value.epochMilli) {
-          isNextTimestamp = true;
-        }
-      }
-      const values = [...timestampsForCommit.values()];
+    const timestampsForCommit = this.commitToTimestampMap.get(commitId);
+    if (!timestampsForCommit) return undefined;
+
+    const values = [...timestampsForCommit.values()];
+
+    if (epochMilli === undefined) {
       return values[values.length - 1];
     }
-    return undefined;
+
+    const index = values.findIndex(
+      (timestamp) => timestamp.epochMilli === epochMilli
+    );
+
+    // Return the next timestamp if it exists, otherwise return the last timestamp
+    return index >= 0 && index < values.length - 1
+      ? values[index + 1]
+      : values[values.length - 1];
   }
 
-  getTimestamps(commitId: string): Timestamp[] {
-    const timestampsForCommitId = this.timestamps.get(commitId);
+  getLatestTimestamp(commitId: string): Timestamp | undefined {
+    const timestamps = this.getTimestampsForCommitId(commitId);
+    return timestamps.length > 0
+      ? timestamps[timestamps.length - 1]
+      : undefined;
+  }
+
+  // #endregion
+
+  // #region Helper functions
+
+  private getTimestampsForCommitId(commitId: string): Timestamp[] {
+    const timestampsForCommitId = this.commitToTimestampMap.get(commitId);
     if (timestampsForCommitId) {
       return [...timestampsForCommitId.values()];
     } else {
@@ -149,17 +172,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
     }
   }
 
-  getLatestTimestamp(commitId: string): Timestamp | undefined {
-    const timestamps = this.getTimestamps(commitId);
-    if (timestamps) {
-      const timestampSetAsArray = [...timestamps];
-      return timestampSetAsArray[timestampSetAsArray.length - 1];
-    }
-
-    return undefined;
-  }
-
-  addTimestamps(commitId: string, timestamps: Timestamp[]) {
+  private addTimestamps(commitId: string, timestamps: Timestamp[]) {
     if (!timestamps) {
       return;
     }
@@ -167,21 +180,31 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.addTimestamp(commitId, timestamp);
     }
     if (timestamps.length) {
-      this.timestamps = new Map([...this.timestamps.entries()].sort());
+      this.commitToTimestampMap = new Map(
+        [...this.commitToTimestampMap.entries()].sort()
+      );
     }
   }
 
-  private addTimestamp(commitId: string, timestamp: Timestamp) {
-    const timestamps = this.timestamps.get(commitId);
+  private addTimestamp(commitId: string, timestamp: Timestamp): void {
+    const timestamps =
+      this.commitToTimestampMap.get(commitId) ?? new Map<number, Timestamp>();
 
-    if (timestamps) {
-      timestamps.set(timestamp.epochMilli, timestamp);
-    } else {
-      const newTimestampMap = new Map<number, Timestamp>();
-      newTimestampMap.set(timestamp.epochMilli, timestamp);
-      this.timestamps.set(commitId, newTimestampMap);
-    }
+    timestamps.set(timestamp.epochMilli, timestamp);
+    this.commitToTimestampMap.set(commitId, timestamps);
   }
+
+  // #endregion
+
+  // #region Reset functions
+
+  resetState() {
+    this.commitToTimestampMap = new Map();
+    this.timelineDataObjectHandler?.resetState();
+    this.timelineDataObjectHandler?.triggerTimelineUpdate();
+  }
+
+  // #endregion
 }
 
 declare module '@ember/service' {
