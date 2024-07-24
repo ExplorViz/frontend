@@ -279,6 +279,9 @@ export default class RenderingService extends Service {
         'Switching to evolution mode.'
       );
       this.visualizationMode = 'evolution';
+
+      // reset all timestamp data upon first change to this mode
+      this.timestampRepo.resetState();
     }
 
     await this.evolutionDataRepository.fetchAndSetAllStructureLandscapeDataForSelectedCommits(
@@ -298,8 +301,6 @@ export default class RenderingService extends Service {
         []
       );
     }
-
-    this.timestampRepo.resetState();
 
     const selectedCommits = Array.from(
       appNameToSelectedCommits.values()

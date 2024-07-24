@@ -46,6 +46,10 @@ export default class TimestampService extends Service.extend(Evented) {
   updateTimestampFromVr(timestamp: number) {
     this.trigger(TIMESTAMP_UPDATE_EVENT, { originalMessage: { timestamp } });
   }
+
+  resetState() {
+    this.timestamp = new Map();
+  }
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

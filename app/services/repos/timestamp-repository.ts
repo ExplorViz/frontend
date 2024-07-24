@@ -200,6 +200,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   resetState() {
     this.commitToTimestampMap = new Map();
+    this.timestampService.resetState();
     this.timelineDataObjectHandler?.resetState();
     this.timelineDataObjectHandler?.triggerTimelineUpdate();
   }
