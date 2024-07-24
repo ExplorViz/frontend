@@ -107,7 +107,9 @@ export default class TimestampPollingService extends Service {
     commit?: SelectedCommit,
     newestLocalTimestamp?: Timestamp
   ) {
-    this.debug('Polling timestamps');
+    this.debug(
+      'Polling timestamps for commitId: ' + (commit?.commitId ?? 'cross-commit')
+    );
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {
         reject(new Error('No landscape token selected'));
