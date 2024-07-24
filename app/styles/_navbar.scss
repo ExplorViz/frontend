@@ -2,13 +2,20 @@
   all: unset;
 }
 
-.navbar-token-link {
-  color: #007bff;
+.navbar-middle-row {
   float: none;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.navbar-token-link {
+  color: #007bff;
+}
+
+.navbar-rendering-mode {
+  color: #515151;
 }
 
 .truncate-text {

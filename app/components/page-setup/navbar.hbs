@@ -10,20 +10,27 @@
   />
   {{#unless this.isSingleLandscapeMode}}
     {{#if this.tokenService.token}}
-      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-        <span
-          class='d-flex-center'
-          type='button'
-          {{on 'click' this.goToLandscapeSelection}}
-        >
-          {{svg-jar
-            'key-16'
-            class='octicon'
-          }}&nbsp;{{this.tokenService.token.alias}}
-        </span>
+      <div class='navbar-middle-row pointer-events-all d-none d-md-block'>
+        <div class='navbar-token-link text-center'>
+          <span
+            class='d-flex-center'
+            type='button'
+            {{on 'click' this.goToLandscapeSelection}}
+          >
+            {{svg-jar
+              'key-16'
+              class='octicon'
+            }}&nbsp;{{this.tokenService.token.alias}}
+          </span>
+        </div>
+        <div class='navbar-rendering-mode text-center'>
+          {{this.renderingMode}}
+        </div>
       </div>
     {{else if this.tokenService.latestToken}}
-      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
+      <div
+        class='navbar-middle-row navbar-token-link pointer-events-all d-none d-md-block'
+      >
         <span
           class='d-flex-center'
           type='button'
