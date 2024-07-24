@@ -27,7 +27,7 @@ interface IArgs {
 export default class PlotlyCommitTree extends Component<IArgs> {
   private readonly debug = debugLogger('PlotlyCommitTree');
 
-  private MAX_COMMIT_SELECTION_PER_APP = 1;
+  private MAX_COMMIT_SELECTION_PER_APP = 2;
   private COMMIT_UNSELECTED_SIZE = 8;
   private COMMIT_SELECTED_SIZE = 15;
 

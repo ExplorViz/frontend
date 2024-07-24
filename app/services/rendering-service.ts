@@ -146,7 +146,7 @@ export default class RenderingService extends Service {
         });
 
         const structureToRender = combineStructureLandscapeData(
-          this.evolutionDataRepository.combinedStructureLandscapes ||
+          this.evolutionDataRepository.combinedStructureLandscapeData ||
             createEmptyStructureLandscapeData,
           combinedRuntimeLandscapeData.structureLandscapeData
         );
@@ -337,20 +337,20 @@ export default class RenderingService extends Service {
       this.timestampRepo.resetState();
     }
 
-    await this.evolutionDataRepository.fetchAndSetAllStructureLandscapeDataForSelectedCommits(
+    await this.evolutionDataRepository.fetchAndStoreStructureLandscapeDataForSelectedCommits(
       appNameToSelectedCommits
     );
 
-    const allCombinedStructureLandscapes =
-      this.evolutionDataRepository.combinedStructureLandscapes;
+    const combinedEvolutionStructureLandscapeData =
+      this.evolutionDataRepository.combinedStructureLandscapeData;
 
     const flattenedSelectedCommits: SelectedCommit[] = Array.from(
       appNameToSelectedCommits.values()
     ).flat();
 
-    if (allCombinedStructureLandscapes.nodes.length > 0) {
+    if (combinedEvolutionStructureLandscapeData.nodes.length > 0) {
       let combinedStructureLandscapeData: StructureLandscapeData =
-        allCombinedStructureLandscapes;
+        combinedEvolutionStructureLandscapeData;
 
       let combinedDynamicLandscapeData: DynamicLandscapeData = [];
 

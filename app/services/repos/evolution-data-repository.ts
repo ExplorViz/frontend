@@ -33,7 +33,7 @@ export default class EvolutionDataRepository extends Service {
 
   @tracked private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
 
-  @tracked combinedStructureLandscapes: StructureLandscapeData =
+  @tracked combinedStructureLandscapeData: StructureLandscapeData =
     createEmptyStructureLandscapeData();
 
   // #endregion
@@ -75,14 +75,14 @@ export default class EvolutionDataRepository extends Service {
     }
   }
 
-  async fetchAndSetAllStructureLandscapeDataForSelectedCommits(
+  async fetchAndStoreStructureLandscapeDataForSelectedCommits(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ): Promise<void> {
     const newEvolutionStructureLandscapeData: Map<
       string,
       StructureLandscapeData
     > = new Map();
-    let allCombinedStructureLandscapes: StructureLandscapeData =
+    let allcombinedStructureLandscapeData: StructureLandscapeData =
       createEmptyStructureLandscapeData();
 
     for (const [appName, selectedCommits] of appNameToSelectedCommits) {
@@ -98,8 +98,8 @@ export default class EvolutionDataRepository extends Service {
           combinedLandscapeStructureForAppAndCommits
         );
 
-        allCombinedStructureLandscapes = combineStructureLandscapeData(
-          allCombinedStructureLandscapes,
+        allcombinedStructureLandscapeData = combineStructureLandscapeData(
+          allcombinedStructureLandscapeData,
           combinedLandscapeStructureForAppAndCommits
         );
       } catch (reason) {
@@ -110,7 +110,7 @@ export default class EvolutionDataRepository extends Service {
     }
 
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
-    this.combinedStructureLandscapes = allCombinedStructureLandscapes;
+    this.combinedStructureLandscapeData = allcombinedStructureLandscapeData;
   }
 
   // #endregion
@@ -130,7 +130,7 @@ export default class EvolutionDataRepository extends Service {
 
   resetEvolutionStructureLandscapeData(): void {
     this._evolutionStructureLandscapeData = new Map();
-    this.combinedStructureLandscapes = createEmptyStructureLandscapeData();
+    this.combinedStructureLandscapeData = createEmptyStructureLandscapeData();
   }
 
   resetAppNameCommitTreeMap(): void {
