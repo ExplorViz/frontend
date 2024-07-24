@@ -393,7 +393,6 @@ function combineApplications(
       applications.push(applicationB);
     }
   }
-  //console.log('applications', applications);
   return applications;
 }
 

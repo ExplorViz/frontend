@@ -4,6 +4,7 @@ import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { action } from '@ember/object';
+import debugLogger from 'ember-debug-logger';
 
 export type TimelineDataForCommit = {
   timestamps: Timestamp[];
@@ -21,6 +22,8 @@ const SELECTED_COLOR = 'red';
 const UNSELECTED_COLOR = 'blue';
 
 export default class TimelineDataObjectHandler {
+  private readonly debug = debugLogger('TimelineDataObjectHandler');
+
   // #region Services
 
   @service('rendering-service')
@@ -60,7 +63,11 @@ export default class TimelineDataObjectHandler {
       }
     }
 
-    this.renderingService.pauseVisualizationUpdating(false);
+    this.renderingService.pauseVisualizationUpdating(true);
+
+    if (this.renderingService.visualizationMode === 'evolution') {
+      this.renderingService.userInitiatedStaticDynamicCombination = true;
+    }
 
     this.renderingService.triggerRenderingForGivenTimestamps(
       commitToSelectedTimestampMap
@@ -156,6 +163,8 @@ export default class TimelineDataObjectHandler {
     // therefore we manually call it when the updated data object is ready
     // Additionally, we can manually trigger this update after the gsap
     // animation of the play/pause icon
+
+    this.debug('triggerTimelineUpdate');
 
     // eslint-disable-next-line no-self-assign
     this.timelineDataObject = this.timelineDataObject;

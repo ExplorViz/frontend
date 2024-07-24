@@ -5,8 +5,8 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
-import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
 const { spanService } = ENV.backendAddresses;
 

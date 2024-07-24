@@ -8,6 +8,7 @@ import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import debugLogger from 'ember-debug-logger';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines
@@ -16,6 +17,8 @@ import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree
  * @extends Ember.Service
  */
 export default class TimestampRepository extends Service.extend(Evented) {
+  private readonly debug = debugLogger('TimestampRepository');
+
   // #region Services
 
   @service('timestamp-polling')
@@ -56,19 +59,23 @@ export default class TimestampRepository extends Service.extend(Evented) {
   // #region Timestamp Polling
 
   restartTimestampPollingAndVizUpdate(commits: SelectedCommit[]): void {
-    this.commitToTimestampMap = new Map();
-    this._timelineDataObjectHandler?.resetState();
+    this.debug('restartTimestampPollingAndVizUpdate');
 
-    this.renderingService.resumeVisualizationUpdating();
+    if (!this.renderingService.userInitiatedStaticDynamicCombination) {
+      // reset states when going back to runtime mode
+      this.commitToTimestampMap = new Map();
+      this._timelineDataObjectHandler?.resetState();
+      this.renderingService.resumeVisualizationUpdating();
+    }
 
+    this.timestampPollingService.resetPolling();
     this.timestampPollingService.initTimestampPollingWithCallback(
       commits,
       this.timestampPollingCallback.bind(this)
     );
   }
 
-  stopTimestampPollingAndVizUpdate(): void {
-    this.renderingService.pauseVisualizationUpdating();
+  stopTimestampPolling(): void {
     this.timestampPollingService.resetPolling();
   }
 
@@ -108,7 +115,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
     }
 
     if (this.renderingService.visualizationPaused) {
-      this.timelineDataObjectHandler.triggerTimelineUpdate();
       return;
     }
 

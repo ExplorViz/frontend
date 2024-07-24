@@ -22,32 +22,35 @@ import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import TimestampRepository from './repos/timestamp-repository';
 
+export type VisualizationMode = 'evolution' | 'runtime';
+
 export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
 
   // #region Services
 
   @service('reload-handler')
-  reloadHandler!: ReloadHandler;
+  private reloadHandler!: ReloadHandler;
 
   @service('timestamp')
-  timestampService!: TimestampService;
+  private timestampService!: TimestampService;
 
   @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
+  private toastHandlerService!: ToastHandlerService;
 
   @service('repos/evolution-data-repository')
-  evolutionDataRepository!: EvolutionDataRepository;
+  private evolutionDataRepository!: EvolutionDataRepository;
 
   @service('repos/timestamp-repository')
-  timestampRepo!: TimestampRepository;
+  private timestampRepo!: TimestampRepository;
 
   // #endregion
 
   // #region Properties
 
   private previousMethodHashes: string[] = [];
-  private previousLandscapeDynamicData: DynamicLandscapeData | null = null;
+
+  private currentRuntimeLandscapeData: Map<string, LandscapeData> = new Map(); // <commitId, LandscapeData>
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
 
@@ -57,11 +60,26 @@ export default class RenderingService extends Service {
   @tracked
   private _visualizationPaused = false;
 
-  private visualizationMode: 'evolution' | 'runtime' = 'runtime';
+  @tracked
+  private _visualizationMode: VisualizationMode = 'runtime';
+
+  private _userInitiatedStaticDynamicCombination = false;
 
   // #endregion
 
   // #region  Getter / Setter
+
+  get visualizationMode(): VisualizationMode {
+    return this._visualizationMode;
+  }
+
+  get userInitiatedStaticDynamicCombination(): boolean {
+    return this._userInitiatedStaticDynamicCombination;
+  }
+
+  set userInitiatedStaticDynamicCombination(newValue: boolean) {
+    this._userInitiatedStaticDynamicCombination = newValue;
+  }
 
   set timelineDataObjectHandler(
     newTimelineDataObjectHandler: TimelineDataObjectHandler | null
@@ -100,20 +118,47 @@ export default class RenderingService extends Service {
       throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
     }
 
+    if (
+      this._visualizationMode === 'evolution' &&
+      !this._userInitiatedStaticDynamicCombination
+    ) {
+      return;
+    }
+
     this.debug('triggerRenderingForGivenTimestamps');
 
     try {
-      const fetchedCombinedRuntimeLandscapeData =
-        await this.fetchCombinedRuntimeLandscapeData(
-          commitToSelectedTimestampMap
+      const fetchedRuntimeLandscapeData = await this.fetchRuntimeLandscapeData(
+        commitToSelectedTimestampMap
+      );
+
+      let combinedRuntimeLandscapeData: LandscapeData = {
+        structureLandscapeData: createEmptyStructureLandscapeData(),
+        dynamicLandscapeData: [],
+      };
+
+      if (fetchedRuntimeLandscapeData.size > 0) {
+        fetchedRuntimeLandscapeData.forEach((landscapeData) => {
+          combinedRuntimeLandscapeData = this.combineLandscapeData(
+            combinedRuntimeLandscapeData,
+            landscapeData
+          );
+        });
+
+        const structureToRender = combineStructureLandscapeData(
+          this.evolutionDataRepository.combinedStructureLandscapes ||
+            createEmptyStructureLandscapeData,
+          combinedRuntimeLandscapeData.structureLandscapeData
         );
 
-      if (fetchedCombinedRuntimeLandscapeData) {
-        const { newDynamic, newStruct, requiresRerendering } =
-          this.processFetchedLandscapeData(fetchedCombinedRuntimeLandscapeData);
+        const dynamicToRender =
+          combinedRuntimeLandscapeData.dynamicLandscapeData;
 
-        if (requiresRerendering) {
-          this.triggerRenderingForGivenLandscapeData(newStruct, newDynamic);
+        if (this.requiresRerendering(structureToRender, dynamicToRender)) {
+          this.triggerRenderingForGivenLandscapeData(
+            structureToRender,
+            dynamicToRender
+          );
         }
       }
 
@@ -122,6 +167,9 @@ export default class RenderingService extends Service {
       this.timestampService.updateSelectedTimestamp(
         this.mapTimestampsToEpochs(commitToSelectedTimestampMap)
       );
+
+      this.currentRuntimeLandscapeData =
+        fetchedRuntimeLandscapeData ?? new Map();
     } catch (e) {
       this.handleError(e);
     }
@@ -144,7 +192,8 @@ export default class RenderingService extends Service {
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ): Promise<void> {
     try {
-      this.timestampRepo.stopTimestampPollingAndVizUpdate();
+      this.pauseVisualizationUpdating();
+      this.timestampRepo.stopTimestampPolling();
 
       if (appNameToSelectedCommits.size > 0) {
         await this.setEvolutionModeActiveAndHandleRendering(
@@ -178,80 +227,84 @@ export default class RenderingService extends Service {
     return commitToSelectedEpochMap;
   }
 
-  private async fetchCombinedRuntimeLandscapeData(
+  private async fetchRuntimeLandscapeData(
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ): Promise<LandscapeData | undefined> {
-    let currentFetchedCombinedRuntimeLandscapeData: LandscapeData | undefined =
-      undefined;
-    for (const selectedTimestampsForACommit of commitToSelectedTimestampMap.values()) {
-      for (const selectedTimestamp of selectedTimestampsForACommit) {
+  ): Promise<Map<string, LandscapeData>> {
+    const commitToRuntimeLandscapeDataMap = new Map<string, LandscapeData>();
+
+    for (const [commitId, timestamps] of commitToSelectedTimestampMap) {
+      for (const selectedTimestamp of timestamps) {
         const [
           latestFetchedStructureLandscapeData,
           latestFetchedDynamicLandscapeData,
         ] = await this.reloadHandler.loadLandscapeByTimestamp(
           selectedTimestamp.epochMilli
         );
-        currentFetchedCombinedRuntimeLandscapeData = this.combineLandscapeData(
-          currentFetchedCombinedRuntimeLandscapeData,
-          latestFetchedStructureLandscapeData,
-          latestFetchedDynamicLandscapeData
-        );
+
+        commitToRuntimeLandscapeDataMap.set(commitId, {
+          structureLandscapeData: latestFetchedStructureLandscapeData,
+          dynamicLandscapeData: latestFetchedDynamicLandscapeData,
+        });
       }
     }
-    return currentFetchedCombinedRuntimeLandscapeData;
+    return commitToRuntimeLandscapeDataMap;
   }
 
   private combineLandscapeData(
-    previousData: LandscapeData | undefined,
-    newStructureLandscapeData: StructureLandscapeData,
-    newDynamicLandscapeData: DynamicLandscapeData
+    prevLandscapeData: LandscapeData | undefined,
+    newLandscapeData: LandscapeData
   ): LandscapeData {
-    if (previousData) {
+    if (prevLandscapeData) {
       return {
         structureLandscapeData: combineStructureLandscapeData(
-          previousData.structureLandscapeData,
-          newStructureLandscapeData
+          prevLandscapeData.structureLandscapeData,
+          newLandscapeData.structureLandscapeData
         ),
         dynamicLandscapeData: combineDynamicLandscapeData(
-          previousData.dynamicLandscapeData,
-          newDynamicLandscapeData
+          prevLandscapeData.dynamicLandscapeData,
+          newLandscapeData.dynamicLandscapeData
         ),
       };
     } else {
-      return {
-        structureLandscapeData: newStructureLandscapeData,
-        dynamicLandscapeData: newDynamicLandscapeData,
-      };
+      return newLandscapeData;
     }
   }
 
-  private processFetchedLandscapeData(fetchedData: LandscapeData): {
-    newDynamic: DynamicLandscapeData;
-    newStruct: StructureLandscapeData;
-    requiresRerendering: boolean;
-  } {
-    const newDynamic = fetchedData.dynamicLandscapeData;
-    const newStruct = combineStructureLandscapeData(
-      this.evolutionDataRepository.combinedStructureLandscapes ||
-        createEmptyStructureLandscapeData,
-      fetchedData.structureLandscapeData
-    );
+  private getCombineDynamicLandscapeData(
+    commitToLandscapeDataMap: Map<string, LandscapeData>
+  ): DynamicLandscapeData {
+    const combinedDynamicLandscapeData: DynamicLandscapeData = [];
 
+    commitToLandscapeDataMap.forEach((landscapeData) => {
+      combinedDynamicLandscapeData.pushObjects(
+        landscapeData.dynamicLandscapeData
+      );
+    });
+    return combinedDynamicLandscapeData;
+  }
+
+  private requiresRerendering(
+    newStructureLandscapeData: StructureLandscapeData,
+    newDynamicLandscapeData: DynamicLandscapeData
+  ) {
     let requiresRerendering = false;
-    const latestMethodHashes =
-      getAllMethodHashesOfLandscapeStructureData(newStruct);
+    const latestMethodHashes = getAllMethodHashesOfLandscapeStructureData(
+      newStructureLandscapeData
+    );
 
     if (
       !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
-      !areArraysEqual(newDynamic, this.previousLandscapeDynamicData)
+      !areArraysEqual(
+        newDynamicLandscapeData,
+        this.getCombineDynamicLandscapeData(this.currentRuntimeLandscapeData)
+      )
     ) {
       requiresRerendering = true;
     }
 
     this.previousMethodHashes = latestMethodHashes;
-    this.previousLandscapeDynamicData = newDynamic;
 
-    return { newDynamic, newStruct, requiresRerendering };
+    return requiresRerendering;
   }
 
   private updateTimelineData(
@@ -274,11 +327,11 @@ export default class RenderingService extends Service {
   private async setEvolutionModeActiveAndHandleRendering(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) {
-    if (this.visualizationMode === 'runtime') {
+    if (this._visualizationMode === 'runtime') {
       this.toastHandlerService.showInfoToastMessage(
         'Switching to evolution mode.'
       );
-      this.visualizationMode = 'evolution';
+      this._visualizationMode = 'evolution';
 
       // reset all timestamp data upon first change to this mode
       this.timestampRepo.resetState();
@@ -291,29 +344,74 @@ export default class RenderingService extends Service {
     const allCombinedStructureLandscapes =
       this.evolutionDataRepository.combinedStructureLandscapes;
 
-    if (this.visualizationPaused) {
-      this.resumeVisualizationUpdating();
-    }
+    const flattenedSelectedCommits: SelectedCommit[] = Array.from(
+      appNameToSelectedCommits.values()
+    ).flat();
 
     if (allCombinedStructureLandscapes.nodes.length > 0) {
+      let combinedStructureLandscapeData: StructureLandscapeData =
+        allCombinedStructureLandscapes;
+
+      let combinedDynamicLandscapeData: DynamicLandscapeData = [];
+
+      for (const commit of flattenedSelectedCommits) {
+        const potentialRuntimeData = this.currentRuntimeLandscapeData.get(
+          commit.commitId
+        );
+
+        if (potentialRuntimeData) {
+          combinedStructureLandscapeData = combineStructureLandscapeData(
+            combinedStructureLandscapeData,
+            potentialRuntimeData.structureLandscapeData
+          );
+
+          combinedDynamicLandscapeData = combineDynamicLandscapeData(
+            combinedDynamicLandscapeData,
+            potentialRuntimeData.dynamicLandscapeData
+          );
+        }
+      }
+
+      // remove timestamp and landscapedata with commits that are not selected anymore
+
+      let notSelectedCommitIds: string[] = Array.from(
+        this.currentRuntimeLandscapeData.keys()
+      ).flat();
+
+      notSelectedCommitIds = notSelectedCommitIds.filter(
+        (commitId1) =>
+          !flattenedSelectedCommits.some(
+            ({ commitId: id2 }) => id2 === commitId1
+          )
+      );
+
+      for (const commitIdToBeRemoved of notSelectedCommitIds) {
+        this.currentRuntimeLandscapeData.delete(commitIdToBeRemoved);
+        this.timestampRepo.commitToTimestampMap.delete(commitIdToBeRemoved);
+        this._timelineDataObjectHandler?.timelineDataObject.delete(
+          commitIdToBeRemoved
+        );
+      }
+
       this.triggerRenderingForGivenLandscapeData(
-        allCombinedStructureLandscapes,
-        []
+        combinedStructureLandscapeData,
+        combinedDynamicLandscapeData
       );
     }
 
-    const selectedCommits = Array.from(
-      appNameToSelectedCommits.values()
-    ).flat();
-    this.timestampRepo.restartTimestampPollingAndVizUpdate(selectedCommits);
+    this.timestampRepo.restartTimestampPollingAndVizUpdate(
+      flattenedSelectedCommits
+    );
   }
 
   private setRuntimeModeActive() {
-    if (this.visualizationMode === 'evolution') {
+    if (this._visualizationMode === 'evolution') {
       this.toastHandlerService.showInfoToastMessage(
         'Switching to cross-commit runtime visualization.'
       );
-      this.visualizationMode = 'runtime';
+      this._visualizationMode = 'runtime';
+
+      this._userInitiatedStaticDynamicCombination = false;
     }
 
     this.resetAllRenderingStates();
@@ -335,7 +433,7 @@ export default class RenderingService extends Service {
   // #region Pause / Play
   @action
   toggleVisualizationUpdating() {
-    if (this.visualizationPaused) {
+    if (this._visualizationPaused) {
       this.resumeVisualizationUpdating();
     } else {
       this.pauseVisualizationUpdating();
@@ -343,33 +441,28 @@ export default class RenderingService extends Service {
   }
 
   resumeVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.visualizationPaused = false;
+    if (this._visualizationPaused) {
+      this._visualizationPaused = false;
 
-      if (this.timelineDataObjectHandler) {
-        this.timelineDataObjectHandler.updateHighlightedMarkerColorForSelectedCommits(
-          false
-        );
-        animatePlayPauseIcon(false);
-        this.timelineDataObjectHandler.triggerTimelineUpdate();
-      }
+      this.timelineDataObjectHandler?.updateHighlightedMarkerColorForSelectedCommits(
+        false
+      );
+      animatePlayPauseIcon(false);
+      this.timelineDataObjectHandler?.triggerTimelineUpdate();
     }
   }
 
   @action
-  pauseVisualizationUpdating(triggerTimelineUpdate: boolean = true) {
-    if (!this.visualizationPaused) {
-      this.visualizationPaused = true;
+  pauseVisualizationUpdating(forceTimelineUpdate: boolean = false) {
+    if (forceTimelineUpdate || !this._visualizationPaused) {
+      this._visualizationPaused = true;
 
-      if (this.timelineDataObjectHandler) {
-        this.timelineDataObjectHandler.updateHighlightedMarkerColorForSelectedCommits(
-          true
-        );
-        animatePlayPauseIcon(true);
-        if (triggerTimelineUpdate) {
-          this.timelineDataObjectHandler.triggerTimelineUpdate();
-        }
-      }
+      this.timelineDataObjectHandler?.updateHighlightedMarkerColorForSelectedCommits(
+        true
+      );
+      animatePlayPauseIcon(true);
+
+      this.timelineDataObjectHandler?.triggerTimelineUpdate();
     }
   }
   // #endregion
@@ -378,8 +471,9 @@ export default class RenderingService extends Service {
 
   resetAllRenderingStates() {
     this.debug('Reset Rendering States');
+    this._userInitiatedStaticDynamicCombination = false;
     this._landscapeData = null;
-    this.previousLandscapeDynamicData = null;
+    this.currentRuntimeLandscapeData = new Map();
     this.previousMethodHashes = [];
   }
 

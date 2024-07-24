@@ -2,7 +2,6 @@ import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import debugLogger from 'ember-debug-logger';
 import { Commit } from '../evolution-schemes/evolution-data';
-//import { areMapsEqual } from '../helpers/map-helpers';
 
 export type SelectedCommit = Commit;
 
@@ -38,11 +37,7 @@ export default class CommitTreeHandler {
 
   @action
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>) {
-    //if (!areMapsEqual(this._selectedCommits, newSelectedCommits)) {
-    // don't trigger unnecessary rerendering of components
     this._selectedCommits = newSelectedCommits;
-    //console.log('newSelectedCommits', newSelectedCommits);
-    // }
   }
 
   @action

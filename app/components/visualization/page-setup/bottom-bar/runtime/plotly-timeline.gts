@@ -374,10 +374,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       const selectedTimestampsForCommit =
         timelineDataForCommit.selectedTimestamps;
 
-      //console.log(timelineDataForCommit);
-
       selectedTimestampsForCommit.forEach((timestamp) => {
-        //console.log('selected Timestamp', timestamp);
         const timestampId = timestamp.epochMilli;
         markerStates[timestampId].color =
           timelineDataForCommit.highlightedMarkerColor;
