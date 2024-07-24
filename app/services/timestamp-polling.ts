@@ -6,6 +6,7 @@ import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
 import { SelectedCommit } from 'explorviz-frontend/controllers/visualization';
+import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 
 const { spanService } = ENV.backendAddresses;
 
@@ -60,7 +61,7 @@ export default class TimestampPollingService extends Service {
 
     if (commits.length === 0) {
       // No commit selected -> get all runtime behavior regardless of commit
-      const commitId = '';
+      const commitId = CROSS_COMMIT_IDENTIFIER;
       const newestLocalTimestamp =
         this.timestampRepo.getLatestTimestamp(commitId);
       const allCommitsTimestampPromise = this.httpFetchTimestamps(
@@ -74,7 +75,7 @@ export default class TimestampPollingService extends Service {
         })
         .catch((error: Error) => {
           console.error(`Error on fetch of timestamps: ${error}`);
-          callback(new Map([['', []]]));
+          callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
           return;
         });
       callback(polledCommitToTimestampMap);

@@ -20,3 +20,5 @@ export type Commit = {
   commitId: string;
   branchName: string;
 };
+
+export const CROSS_COMMIT_IDENTIFIER = 'cross-commit';

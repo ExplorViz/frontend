@@ -6,6 +6,7 @@ import {
   AppNameCommitTreeMap,
   Branch,
   Commit,
+  CROSS_COMMIT_IDENTIFIER,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
@@ -175,7 +176,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
               }
             }
           }
-          return '';
+          return CROSS_COMMIT_IDENTIFIER;
         }
 
         function isCommitAlreadySelected(
