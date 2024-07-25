@@ -7,11 +7,12 @@ import {
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
 import { tracked } from '@glimmer/tracking';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { SelectedCommit } from '../commit-tree-state';
+import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionDataRepository');
@@ -35,6 +36,11 @@ export default class EvolutionDataRepository extends Service {
 
   @tracked combinedStructureLandscapeData: StructureLandscapeData =
     createEmptyStructureLandscapeData();
+
+  appNameToCommitIdToApplicationMetricsCodeMap: Map<
+    string,
+    Map<string, ApplicationMetricsCode>
+  > = new Map();
 
   // #endregion
 
@@ -87,6 +93,17 @@ export default class EvolutionDataRepository extends Service {
 
     for (const [appName, selectedCommits] of appNameToSelectedCommits) {
       try {
+        const commitIdToAppMetricsCodeMap =
+          await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppAndCommits(
+            appName,
+            selectedCommits
+          );
+
+        this.appNameToCommitIdToApplicationMetricsCodeMap.set(
+          appName,
+          commitIdToAppMetricsCodeMap
+        );
+
         const combinedLandscapeStructureForAppAndCommits =
           await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
             appName,
@@ -117,15 +134,20 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Reset functions
 
-  resetStructureLandscapeData(): void {
-    this.debug('Reset Evolution StructureLandscapeData');
-    this.resetEvolutionStructureLandscapeData();
-  }
-
   resetAllEvolutionData(): void {
     this.debug('Reset All Evolution Data');
     this.resetEvolutionStructureLandscapeData();
     this.resetAppNameCommitTreeMap();
+  }
+
+  resetStructureLandscapeData(): void {
+    this.debug('Reset Evolution StructureLandscapeData');
+    this.resetAppNameToCommitIdToApplicationMetricsCodeMap();
+    this.resetEvolutionStructureLandscapeData();
+  }
+
+  resetAppNameToCommitIdToApplicationMetricsCodeMap() {
+    this.appNameToCommitIdToApplicationMetricsCodeMap = new Map();
   }
 
   resetEvolutionStructureLandscapeData(): void {

@@ -4,11 +4,13 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import { CommitTree } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import { SelectedCommit } from './commit-tree-state';
 
 const { codeService } = ENV.backendAddresses;
 
@@ -32,6 +34,28 @@ export default class EvolutionDataFetchServiceService extends Service {
   async fetchCommitTreeForAppName(appName: string): Promise<CommitTree> {
     const url = this.constructUrl('commit-tree', appName);
     return await this.fetchFromService<CommitTree>(url);
+  }
+
+  async fetchApplicationMetricsCodeForAppAndCommits(
+    applicationName: string,
+    commits: SelectedCommit[]
+  ): Promise<Map<string, ApplicationMetricsCode>> {
+    const commitIdToAppMetricsCodeMap: Map<string, ApplicationMetricsCode> =
+      new Map();
+
+    for (const commit of commits) {
+      const url = this.constructUrl(
+        'metrics',
+        applicationName,
+        commit.commitId
+      );
+      const appMetricsCode =
+        await this.fetchFromService<ApplicationMetricsCode>(url);
+
+      commitIdToAppMetricsCodeMap.set(commit.commitId, appMetricsCode);
+    }
+
+    return commitIdToAppMetricsCodeMap;
   }
 
   async fetchStaticLandscapeStructuresForAppName(
