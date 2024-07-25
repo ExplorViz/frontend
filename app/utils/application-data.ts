@@ -1,11 +1,8 @@
 import { tracked } from '@glimmer/tracking';
 import { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import {
-  ApplicationHeatmapData,
-  Metric,
-} from 'heatmap/services/heatmap-configuration';
 import ClassCommunication from './landscape-schemes/dynamic/class-communication';
+import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
 
 export default class ApplicationData {
   application: Application;
@@ -18,7 +15,7 @@ export default class ApplicationData {
   };
 
   @tracked
-  heatmapData: ApplicationHeatmapData;
+  applicationMetrics: ApplicationMetrics;
 
   classCommunications: ClassCommunication[] = [];
 
@@ -33,7 +30,7 @@ export default class ApplicationData {
     this.application = application;
     this.layoutData = layoutData;
     this.flatData = flatData;
-    this.heatmapData = {
+    this.applicationMetrics = {
       metrics: [],
       latestClazzMetricScores: [],
       metricsArray: [[]],
