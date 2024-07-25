@@ -116,19 +116,9 @@ export function addComponentAndChildrenToScene(
   // Add clazzes of given component
   clazzes.forEach((clazz: Class) => {
     const clazzLayout = applicationObject3D.getBoxLayout(clazz.id);
-    const orignalHeight = clazzLayout?.height;
 
     if (clazzLayout === undefined) {
       return;
-    }
-    // Create a basic appearence change for the class by changing the height.
-    // For Level 1
-    //const appearenceHeight = new AppearenceExtension();
-    //const recipe = new Recipe().setAbsValues(true);
-
-    // Set the current height to a default value for all
-    if (orignalHeight) {
-      clazzLayout.height = 1.5;
     }
 
     // Create class mesh

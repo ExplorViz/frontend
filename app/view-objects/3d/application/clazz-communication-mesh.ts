@@ -4,12 +4,13 @@ import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaboration/services/local-user';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
   layout: CommunicationLayout;
-
+  _layout_original: CommunicationLayout;
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
 
   curveHeight: number = 0.0;
@@ -24,6 +25,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   ) {
     super(defaultColor, highlightingColor);
     this.layout = layout;
+    this._layout_original = layout.copy();
     this.dataModel = dataModel;
 
     this.material = new THREE.MeshBasicMaterial({
@@ -32,6 +34,25 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.material.transparent = true;
 
     this.castShadow = true;
+    SemanticZoomManager.instance.add(this);
+
+    // this.setCallBeforeAppearenceZero(() => {
+    //   this.layout = this._layout_original;
+    // });
+    // this.setCallBeforeAppearenceAboveZero(() => {
+    //   this.layout = this._layout_original;
+    // });
+
+    this.setAppearence(1, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 2;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
+    this.setAppearence(2, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 3;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
   }
 
   getModelId() {

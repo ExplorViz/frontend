@@ -88,11 +88,12 @@ export default abstract class BaseMesh<
       this.appearenceLevel = i;
       return true;
     }
-    this.callBeforeAppearenceAboveZero(this);
-    // Make sure to return to default Appearence first
-    this.restoreOriginalAppearence();
+    // Check if the required level is registered, else abort
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
+    this.callBeforeAppearenceAboveZero(this);
+    // Make sure to return to default Appearence first
+    //this.restoreOriginalAppearence();
     if (targetAppearence instanceof Appearence) {
       if (targetAppearence instanceof Appearence) targetAppearence.activate();
       this.appearencesMap.forEach((v) => {

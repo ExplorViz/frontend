@@ -15,20 +15,25 @@ export default class ClazzMesh extends BoxMesh {
 
   dataModel: Class;
 
+  _original_layout: BoxLayout;
+
   constructor(
     layout: BoxLayout,
     clazz: Class,
     defaultColor: THREE.Color,
     highlightingColor: THREE.Color
   ) {
-    super(layout, defaultColor, highlightingColor);
+    const tmpLayout = layout.copy();
+    tmpLayout.height = 1;
+    super(tmpLayout, defaultColor, highlightingColor);
 
+    this._original_layout = layout;
     this.castShadow = true;
     this.receiveShadow = true;
 
     this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
     this.material.transparent = true;
-    const geometry = new THREE.BoxGeometry(layout.width, 1.5, layout.depth);
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
     this.dataModel = clazz;
 
@@ -65,10 +70,13 @@ export default class ClazzMesh extends BoxMesh {
 
   setHeightAccordingToClassSize = () => {
     if (this.geometry == undefined) return;
-    // console.log(
-    //   `Changing from ${this.geometry.parameters.height} to ${this.layout.height}`
-    // );
-    this.geometry.parameters.height = this.layout.height;
+
+    // Scale Position Fix
+    this.position.y =
+      this.position.y -
+      (this.geometry.parameters.height / 2) * this.height +
+      this._original_layout.height / 2;
+    this.height = this._original_layout.height;
   };
 
   showMethodMesh = () => {

@@ -233,6 +233,7 @@ export default class CommunicationRendering {
         if (classCommunication.isBidirectional) {
           this.addBidirectionalArrow(pipe);
         }
+        pipe.saveOriginalAppearence();
       }
     );
 

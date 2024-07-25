@@ -16,7 +16,6 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
-import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -122,7 +121,8 @@ export default class LinkRenderer extends Service.extend({}) {
     link.__curve = curve;
     line.children.clear();
     this.addArrows(line, curveHeight, new THREE.Vector3());
-
+    // SemanticZoomManager: save the original appearence
+    line.saveOriginalAppearence();
     return true;
   }
 
@@ -155,7 +155,6 @@ export default class LinkRenderer extends Service.extend({}) {
 
     this.linkIdToMesh.set(id, newMesh);
 
-    SemanticZoomManager.instance.add(newMesh);
     return newMesh;
   }
 
