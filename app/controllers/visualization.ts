@@ -54,8 +54,8 @@ import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
-import CommitTreeHandler from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
+import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -76,9 +76,11 @@ export default class VisualizationController extends Controller {
   queryParams = ['roomId', 'deviceId'];
 
   private sidebarHandler!: SidebarHandler;
-  private commitTreeHandler!: CommitTreeHandler;
 
   // #region Services
+
+  @service('commit-tree-state')
+  commitTreeStateService!: CommitTreeStateService;
 
   @service('rendering-service')
   renderingService!: RenderingService;
@@ -210,8 +212,6 @@ export default class VisualizationController extends Controller {
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
     );
-
-    this.commitTreeHandler = new CommitTreeHandler();
 
     this.renderingService.landscapeData = null;
 

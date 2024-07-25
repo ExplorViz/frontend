@@ -1,13 +1,11 @@
+import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
-import debugLogger from 'ember-debug-logger';
-import { Commit } from '../evolution-schemes/evolution-data';
+import { Commit } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 
 export type SelectedCommit = Commit;
 
-export default class CommitTreeHandler {
-  private readonly debug = debugLogger('CommitTreeHandler');
-
+export default class CommitTreeStateService extends Service {
   // #region Properties and getter
   @tracked
   private _selectedCommits: Map<string, SelectedCommit[]> = new Map();
@@ -52,4 +50,10 @@ export default class CommitTreeHandler {
     this._appNameAndBranchNameToColorMap = newAppNameAndBranchNameToColorMap;
   }
   // #endregion
+}
+
+declare module '@ember/service' {
+  interface Registry {
+    'commit-tree-state': CommitTreeStateService;
+  }
 }

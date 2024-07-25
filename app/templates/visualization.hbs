@@ -172,17 +172,17 @@
       {{#if this.isCommitTreeSelected}}
         <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
-          @setSelectedAppName={{this.commitTreeHandler.setCurrentSelectedApplicationName}}
+          @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+          @setSelectedAppName={{this.commitTreeStateService.setCurrentSelectedApplicationName}}
         />
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
           @triggerVizRenderingForSelectedCommits={{this.renderingService.triggerRenderingForSelectedCommits}}
-          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
-          @selectedCommits={{this.commitTreeHandler.selectedCommits}}
-          @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}
-          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeHandler.getCloneOfAppNameAndBranchNameToColorMap}}
-          @setAppNameAndBranchNameToColorMap={{this.commitTreeHandler.setAppNameAndBranchNameToColorMap}}
+          @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+          @selectedCommits={{this.commitTreeStateService.selectedCommits}}
+          @setSelectedCommits={{this.commitTreeStateService.setSelectedCommits}}
+          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeStateService.getCloneOfAppNameAndBranchNameToColorMap}}
+          @setAppNameAndBranchNameToColorMap={{this.commitTreeStateService.setAppNameAndBranchNameToColorMap}}
         />
       {{/if}}
 
