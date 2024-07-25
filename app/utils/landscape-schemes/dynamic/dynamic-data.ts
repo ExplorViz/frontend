@@ -13,6 +13,7 @@ export type Trace = {
 };
 
 export type Span = {
+  traceId: string;
   spanId: string;
   parentSpanId: string;
   startTime: number;
