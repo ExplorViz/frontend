@@ -215,7 +215,7 @@ export function combineStructureLandscapeData(
         id: nodeB.id,
         ipAddress: nodeB.ipAddress,
         hostName: nodeB.hostName,
-        //originOfData: 'static+dynamic',
+        originOfData: 'static+dynamic',
         applications: [],
       };
       const applications: Application[] = combineApplications(
@@ -293,7 +293,7 @@ function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
     if (classB) {
       const clazz: Class = {
         id: classB.id,
-        //originOfData: 'static+dynamic',
+        originOfData: 'static+dynamic',
         name: classB.name,
         methods: [],
         parent: classB.parent,
@@ -326,7 +326,7 @@ function combinePackages(
     if (packageB) {
       const pckg: Package = {
         id: packageB.id,
-        //originOfData: 'static+dynamic',
+        originOfData: 'static+dynamic',
         name: packageB.name,
         subPackages: [],
         classes: [],
@@ -368,7 +368,7 @@ function combineApplications(
     if (applicationB) {
       const application: Application = {
         id: applicationB.id,
-        //originOfData: 'static+dynamic',
+        originOfData: 'static+dynamic',
         name: applicationB.name,
         language: applicationB.language,
         instanceId: applicationB.instanceId,

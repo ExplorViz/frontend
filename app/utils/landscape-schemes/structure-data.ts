@@ -84,7 +84,8 @@ export function getNodeById(
 }
 
 export function preProcessAndEnhanceStructureLandscape(
-  landscapeStructure: StructureLandscapeData
+  landscapeStructure: StructureLandscapeData,
+  typeOfAnalysis: TypeOfAnalyis
 ) {
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
@@ -149,6 +150,12 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
+  function setOriginStatus(typeOfAnalysis: TypeOfAnalyis) {
+    entitiesForIdHashing.forEach((entity) => {
+      entity.originOfData = typeOfAnalysis;
+    });
+  }
+
   /* const a = performance.now(); */
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
@@ -172,6 +179,7 @@ export function preProcessAndEnhanceStructureLandscape(
   });
 
   hashEntityIds();
+  setOriginStatus(typeOfAnalysis);
 
   return enhancedlandscapeStructure;
 }

@@ -33,7 +33,8 @@ export default class ReloadHandler extends Service.extend(Evented) {
         dynamicDataPromise.status === 'fulfilled'
       ) {
         const structure = preProcessAndEnhanceStructureLandscape(
-          structureDataPromise.value
+          structureDataPromise.value,
+          'dynamic'
         );
 
         const dynamic = dynamicDataPromise.value;

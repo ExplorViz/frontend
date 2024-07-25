@@ -49,7 +49,7 @@ export default class EvolutionDataFetchServiceService extends Service {
     const url = this.constructUrl('structure', applicationName, commitPath);
 
     const response = await this.fetchFromService<StructureLandscapeData>(url);
-    return preProcessAndEnhanceStructureLandscape(response);
+    return preProcessAndEnhanceStructureLandscape(response, 'static');
   }
 
   // #endregion
