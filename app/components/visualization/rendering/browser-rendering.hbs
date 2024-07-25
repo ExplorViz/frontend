@@ -165,7 +165,7 @@
               <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::RestructureOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsOpener
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
@@ -195,7 +195,7 @@
                 />
               {{/if}}
               {{#if (eq componentId 'Metric-Data')}}
-                <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricData
+                <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsViewer
                 />
               {{/if}}
               {{#if (eq componentId 'trace-selection')}}
