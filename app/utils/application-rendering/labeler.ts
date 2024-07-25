@@ -8,6 +8,7 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { getStoredSettings } from '../settings/local-storage-settings';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -42,15 +43,23 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
     // Do not animate label on foundation since it is always opened
     label.position.x = xPosOfOpenedBox;
   } else if (boxMesh.opened) {
-    gsap.to(label.position, {
-      duration: 0.25,
-      x: xPosOfOpenedBox,
-    });
+    if (getStoredSettings().enableAnimations.value) {
+      gsap.to(label.position, {
+        duration: 0.25,
+        x: xPosOfOpenedBox,
+      });
+    } else {
+      label.position.x = xPosOfOpenedBox;
+    }
   } else {
-    gsap.to(label.position, {
-      duration: 0.25,
-      x: 0,
-    });
+    if (getStoredSettings().enableAnimations.value) {
+      gsap.to(label.position, {
+        duration: 0.25,
+        x: 0,
+      });
+    } else {
+      label.position.x = 0;
+    }
   }
 }
 

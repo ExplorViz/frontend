@@ -11,12 +11,13 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import VrMessageSender from 'virtual-reality/services/vr-message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { getStoredSettings } from '../settings/local-storage-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -41,12 +42,15 @@ export function openComponentsByList(
   components: Package[],
   application: ApplicationObject3D
 ) {
+  let didOpenComponent = false;
   components.forEach((component) => {
     const ancestorMesh = application.getBoxMeshbyModelId(component.id);
-    if (ancestorMesh instanceof ComponentMesh) {
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
+      didOpenComponent = true;
       openComponentMesh(ancestorMesh, application);
     }
   });
+  return didOpenComponent;
 }
 
 /**
@@ -63,15 +67,22 @@ export function openComponentMesh(
     return;
   }
 
-  gsap.to(mesh, {
-    duration: 0.25,
-    height: 1.5,
-  });
+  const OPENED_COMPONENT_HEIGHT = 1.5;
 
-  gsap.to(mesh.position, {
-    duration: 0.25,
-    y: mesh.layout.positionY,
-  });
+  if (getStoredSettings().enableAnimations.value) {
+    gsap.to(mesh, {
+      duration: 0.25,
+      height: OPENED_COMPONENT_HEIGHT,
+    });
+
+    gsap.to(mesh.position, {
+      duration: 0.25,
+      y: mesh.layout.positionY,
+    });
+  } else {
+    mesh.height = OPENED_COMPONENT_HEIGHT;
+    mesh.position.y = mesh.layout.positionY;
+  }
 
   mesh.opened = true;
   mesh.visible = true;
@@ -111,15 +122,20 @@ export function closeComponentMesh(
     return;
   }
 
-  gsap.to(mesh, {
-    duration: 0.5,
-    height: mesh.layout.height,
-  });
+  if (getStoredSettings().enableAnimations.value) {
+    gsap.to(mesh, {
+      duration: 0.5,
+      height: mesh.layout.height,
+    });
 
-  gsap.to(mesh.position, {
-    duration: 0.5,
-    y: mesh.layout.positionY + 0.75,
-  });
+    gsap.to(mesh.position, {
+      duration: 0.5,
+      y: mesh.layout.positionY + 0.75,
+    });
+  } else {
+    mesh.height = mesh.layout.height;
+    mesh.position.y = mesh.layout.positionY + 0.75;
+  }
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
@@ -183,7 +199,7 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -210,7 +226,7 @@ export function openComponentsRecursively(
  */
 export function openAllComponents(
   applicationObject3D: ApplicationObject3D,
-  sender: VrMessageSender
+  sender: MessageSender
 ) {
   applicationObject3D.data.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);

@@ -328,8 +328,8 @@ function calculateMetrics(application, allLandscapeTraces) {
     const hashCodeToClassMap = new Map();
 
     clazzes.forEach((clazz) => {
-      clazz.methods.forEach(({ hashCode }) =>
-        hashCodeToClassMap.set(hashCode, clazz)
+      clazz.methods.forEach(({ methodHash }) =>
+        hashCodeToClassMap.set(methodHash, clazz)
       );
     });
 

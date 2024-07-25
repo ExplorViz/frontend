@@ -26,7 +26,7 @@ export interface Application {
   name: string;
   language: string;
   instanceId: string;
-  parent: Node;
+  parentId: string;
   packages: Package[];
 }
 
@@ -66,6 +66,13 @@ export function isMethod(x: any): x is Method {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
 }
 
+export function getNodeById(
+  landscapeStructure: StructureLandscapeData,
+  id: string
+) {
+  return landscapeStructure.nodes.find((node) => node.id === id);
+}
+
 export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData
 ) {
@@ -78,9 +85,10 @@ export function preProcessAndEnhanceStructureLandscape(
     entitiesForIdHashing.add(node);
   }
 
-  function createApplicationId(app: Application) {
-    const { hostName, ipAddress } = app.parent;
-    app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+  function createApplicationId(app: Application, parent: Node) {
+    const { hostName, ipAddress } = parent;
+    //app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+    app.id = `${hostName}#${ipAddress}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
 
@@ -119,24 +127,27 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   function addParentToApplication(app: Application, parent: Node) {
-    app.parent = parent;
+    app.parentId = parent.id;
   }
 
   function hashEntityIds() {
     entitiesForIdHashing.forEach((entity) => {
       entity.id = sha256(entity.id).toString();
+      if (isApplication(entity)) {
+        entity.parentId = sha256(entity.parentId).toString();
+      }
     });
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure)
-  );
+  const enhancedlandscapeStructure: StructureLandscapeData =
+    structuredClone(landscapeStructure);
 
   enhancedlandscapeStructure.nodes.forEach((node) => {
+    createNodeId(node);
     node.applications.forEach((app) => {
+      createApplicationId(app, node);
       addParentToApplication(app, node);
-      createApplicationId(app);
       app.packages.forEach((component) => {
         // create package ids in Java notation, e.g., 'net.explorviz.test'
         // and add parent relations for quicker access
@@ -148,7 +159,6 @@ export function preProcessAndEnhanceStructureLandscape(
       });
       createClassIds(app.packages);
     });
-    createNodeId(node);
   });
 
   hashEntityIds();

@@ -6,9 +6,12 @@ import {
 import { Trace } from './landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
+  Node,
   Class,
   isApplication,
   StructureLandscapeData,
+  Method,
+  Package,
 } from './landscape-schemes/structure-data';
 import { getAncestorPackages, getPackageById } from './package-helpers';
 import { getTraceIdToSpanTree, SpanTree } from './trace-helpers';
@@ -98,6 +101,22 @@ export function getHashCodeToApplicationMap(
   return hashCodeToApplicationMap;
 }
 
+export function getAllMethodHashesOfLandscapeStructureData(
+  landscapeStructure: StructureLandscapeData
+): string[] {
+  const methodHashes: string[] = [];
+
+  landscapeStructure.nodes.forEach((node) =>
+    node.applications.forEach((application) =>
+      getAllMethodHashCodesInApplication(application).forEach((hashCode) =>
+        methodHashes.push(hashCode)
+      )
+    )
+  );
+
+  return methodHashes;
+}
+
 export function getHashCodeToClassMap(
   structureData: StructureLandscapeData | Application
 ) {
@@ -165,3 +184,240 @@ export function spanIdToClass(
   const spanIdToClassMap = getSpanIdToClassMap(structureData, trace);
   return spanIdToClassMap.get(spanId);
 }
+
+export function createEmptyStructureLandscapeData(): StructureLandscapeData {
+  return { landscapeToken: '', nodes: [] };
+}
+
+// #region Combination
+
+export function combineStructureLandscapeData(
+  structureA: StructureLandscapeData,
+  structureB: StructureLandscapeData
+): StructureLandscapeData {
+  if (!structureA) {
+    return structureB;
+  }
+
+  if (!structureB) {
+    return structureA;
+  }
+
+  const structure: StructureLandscapeData = {
+    landscapeToken: structureA.landscapeToken,
+    nodes: [],
+  };
+
+  for (const nodeA of structureA.nodes) {
+    const nodeB = findCommonNode(nodeA, structureB.nodes);
+    if (nodeB) {
+      const node: Node = {
+        id: nodeB.id,
+        ipAddress: nodeB.ipAddress,
+        hostName: nodeB.hostName,
+        //originOfData: 'static+dynamic',
+        applications: [],
+      };
+      const applications: Application[] = combineApplications(
+        nodeA.applications,
+        nodeB.applications
+      );
+      node.applications = applications;
+      applications.forEach((app) => (app.parentId = node.id));
+      structure.nodes.push(node);
+    } else {
+      // node of structureA that is not in structureB
+      structure.nodes.push(nodeA);
+    }
+  }
+
+  // remaining nodes of structureB that are not in structureA
+  for (const nodeB of structureB.nodes) {
+    const nodeA = findCommonNode(nodeB, structureA.nodes);
+    if (!nodeA) {
+      structure.nodes.push(nodeB);
+    }
+  }
+
+  return structure;
+}
+function findCommonMethod(
+  method: Method,
+  methods: Method[]
+): Method | undefined {
+  for (const mthd of methods) {
+    if (mthd.methodHash === method.methodHash) {
+      return mthd;
+    }
+  }
+  return undefined;
+}
+
+function findCommonClass(clss: Class, classes: Class[]): Class | undefined {
+  for (const clazz of classes) {
+    if (clazz.id === clss.id) {
+      return clazz;
+    }
+  }
+  return undefined;
+}
+
+function findCommonPackage(
+  pckg: Package,
+  packages: Package[]
+): Package | undefined {
+  for (const pckage of packages) {
+    if (pckage.id === pckg.id) {
+      return pckage;
+    }
+  }
+  return undefined;
+}
+
+function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
+  const methods: Method[] = [...methodsB];
+  for (const methodA of methodsA) {
+    const methodB = findCommonMethod(methodA, methodsB);
+    if (!methodB) {
+      methods.push(methodA);
+    }
+  }
+
+  return methods;
+}
+
+function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
+  const classes: Class[] = [];
+  for (const classA of classesA) {
+    const classB = findCommonClass(classA, classesB);
+    if (classB) {
+      const clazz: Class = {
+        id: classB.id,
+        //originOfData: 'static+dynamic',
+        name: classB.name,
+        methods: [],
+        parent: classB.parent,
+      };
+      const methods: Method[] = combineMethods(classA.methods, classB.methods);
+      clazz.methods = methods;
+      classes.push(clazz);
+    } else {
+      classes.push(classA);
+    }
+  }
+
+  for (const classB of classesB) {
+    const classA = findCommonClass(classB, classesA);
+    if (!classA) {
+      classes.push(classB);
+    }
+  }
+
+  return classes;
+}
+
+function combinePackages(
+  packagesA: Package[],
+  packagesB: Package[]
+): Package[] {
+  const packages: Package[] = [];
+  for (const packageA of packagesA) {
+    const packageB = findCommonPackage(packageA, packagesB);
+    if (packageB) {
+      const pckg: Package = {
+        id: packageB.id,
+        //originOfData: 'static+dynamic',
+        name: packageB.name,
+        subPackages: [],
+        classes: [],
+        parent: packageB.parent,
+      };
+
+      const subPackages = combinePackages(
+        packageA.subPackages,
+        packageB.subPackages
+      );
+      const classes = combineClasses(packageA.classes, packageB.classes);
+      classes.forEach((clazz) => (clazz.parent = pckg));
+      pckg.subPackages = subPackages;
+      subPackages.forEach((subPckg) => (subPckg.parent = pckg));
+      pckg.classes = classes;
+      packages.push(pckg);
+    } else {
+      packages.push(packageA);
+    }
+  }
+
+  for (const packageB of packagesB) {
+    const packageA = findCommonPackage(packageB, packagesA);
+    if (!packageA) {
+      packages.push(packageB);
+    }
+  }
+
+  return packages;
+}
+
+function combineApplications(
+  applicationsA: Application[],
+  applicationsB: Application[]
+): Application[] {
+  const applications: Application[] = [];
+  for (const applicationA of applicationsA) {
+    const applicationB = findCommonApplication(applicationA, applicationsB);
+    if (applicationB) {
+      const application: Application = {
+        id: applicationB.id,
+        //originOfData: 'static+dynamic',
+        name: applicationB.name,
+        language: applicationB.language,
+        instanceId: applicationB.instanceId,
+        parentId: applicationB.parentId,
+        packages: [],
+      };
+      const packages: Package[] = combinePackages(
+        applicationA.packages,
+        applicationB.packages
+      );
+      application.packages = packages;
+      packages.forEach((pckg) => (pckg.parent = undefined));
+      applications.push(application);
+    } else {
+      applications.push(applicationA);
+    }
+  }
+
+  for (const applicationB of applicationsB) {
+    const applicationA = findCommonApplication(applicationB, applicationsA);
+    if (!applicationA) {
+      applications.push(applicationB);
+    }
+  }
+  //console.log('applications', applications);
+  return applications;
+}
+
+function findCommonApplication(
+  application: Application,
+  applications: Application[]
+) {
+  // do we also need to consider instanceId?
+  for (const app of applications) {
+    if (app.id === application.id) {
+      return app;
+    }
+  }
+  return undefined;
+}
+
+// finds and returns the node in the nodes-list
+function findCommonNode(node: Node, nodes: Node[]) {
+  for (const nd of nodes) {
+    if (nd.id === node.id) {
+      return nd;
+    }
+  }
+  return undefined;
+}
+
+// #endregion

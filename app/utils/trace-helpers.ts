@@ -109,7 +109,6 @@ export function getTraceIdToSpanTree(trace: Trace) {
   trace.spanList.forEach((span) => {
     if (!span.parentSpanId) {
       firstSpan = span;
-      //console.log('root', span);
     } else {
       spanIdToSpanMap.set(span.spanId, span);
     }

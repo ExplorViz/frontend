@@ -1,0 +1,43 @@
+{{! template-lint-disable simple-unless }}
+{{! CSS styling https://ember-power-select.com/cookbook/css-animations }}
+
+{{! Maybe not the nicest option to use multiple select for single select
+      However, the search inside the trigger seems more intuitive
+  }}
+
+<PowerSelectMultiple
+  {{did-insert this.initPowerSelect}}
+  @selected={{this.selected}}
+  @selectedItemComponent={{component
+    'visualization/page-setup/sidebar/toolbar/application-search/application-search-selected-item'
+    onClick=this.onClick
+  }}
+  @onChange={{this.onSelect}}
+  @searchEnabled={{true}}
+  @search={{this.searchEntity}}
+  @searchMessage='Insert substring...'
+  @searchField='fqn'
+  @placeholder='Search Entity...'
+  @loadingMessage='loading...'
+  @matchTriggerWidth={{false}}
+  as |entity|
+>
+  {{this.formatEntry entity.fqn}}
+</PowerSelectMultiple>
+
+<div class='mt-3 col text-center'>
+  <BsButton
+    {{on 'click' this.highlightAllSelectedEntities}}
+    @type='secondary'
+    @outline={{true}}
+  >
+    Hightlight All
+  </BsButton>
+  <BsButton
+    {{on 'click' this.pingAllSelectedEntities}}
+    @type='secondary'
+    @outline={{true}}
+  >
+    Ping All
+  </BsButton>
+</div>

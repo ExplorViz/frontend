@@ -1,14 +1,7 @@
 {{add-listener
-  this.landscapeListener
-  'newLandscapeData'
-  this.receiveNewLandscapeData
-}}
-{{add-listener this.timestampRepo 'updated' this.updateTimestampList}}
-
-{{add-listener
   this.landscapeRestructure
   'restructureLandscapeData'
-  this.restructureLandscapeData
+  this.renderingService.triggerRenderingForGivenLandscapeData
 }}
 {{add-listener
   this.landscapeRestructure
@@ -22,183 +15,176 @@
 }}
 {{add-listener
   this.landscapeRestructure
-  'resetPolling'
-  this.resetLandscapeListenerPolling
-}}
-{{add-listener
-  this.landscapeRestructure
   'toggelVisualization'
-  this.toggleVisualizationUpdating
+  this.renderingService.toggleVisualizationUpdating
 }}
 
-{{did-insert this.setupListeners}}
+{{did-insert this.initRenderingAndSetupListeners}}
 
 <AutoJoinLobby @roomId={{this.roomId}} />
 
 <div id='vizspace' {{sync-state}}>
+
+  {{! Loading screen }}
+  {{#unless this.allLandscapeDataExistsAndNotEmpty}}
+    <div class='container-fluid mt-6'>
+      <div class='jumbotron'>
+        {{#if this.isLandscapeExistentAndEmpty}}
+          <h2>Empty Landscape received!</h2>
+        {{else}}
+          <h2>No Landscape found!</h2>
+        {{/if}}
+        <p>A new landscape will be fetched every 10 seconds.</p>
+      </div>
+      <div class='spinner-center-3' role='status'></div>
+    </div>
+  {{/unless}}
+
+  {{! Rendering mode }}
   {{#if this.showAR}}
     <ArRendering
-      @id='landscape1'
-      @landscapeData={{this.landscapeData}}
-      @openLandscapeView={{this.openLandscapeView}}
-      @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
-      @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-      @visualizationPaused={{this.visualizationPaused}}
-      @components={{this.components}}
-      @openSettingsSidebar={{this.openSettingsSidebar}}
-      @closeDataSelection={{this.closeDataSelection}}
-      @showSettingsSidebar={{this.showSettingsSidebar}}
-      @applicationArgs={{this.applicationArgs}}
+      @id='ar-rendering'
+      @landscapeData={{this.renderingService.landscapeData}}
+      @switchToOnScreenMode={{this.switchToOnScreenMode}}
+      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
+      @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+      @visualizationPaused={{this.renderingService.visualizationPaused}}
+      @components={{this.sidebarHandler.components}}
+      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+      @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+      @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
     />
+
   {{else}}
-    {{#if (and this.flag this.showVR)}}
+    {{#if this.showVR}}
+
       <VrRendering
-        @id='landscape1'
-        @landscapeData={{this.landscapeData}}
-        @components={{this.components}}
-        @openSettingsSidebar={{this.openSettingsSidebar}}
-        @closeDataSelection={{this.closeDataSelection}}
-        @showSettingsSidebar={{this.showSettingsSidebar}}
-        @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-        @visualizationPaused={{this.visualizationPaused}}
-        @applicationArgs={{this.applicationArgs}}
-        @debugMode={{this.flag}}
+        @id='vr-rendering'
+        @landscapeData={{this.renderingService.landscapeData}}
+        @switchToOnScreenMode={{this.switchToOnScreenMode}}
+        @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
       />
-      <div class='position-absolute mt-6 ml-3'>
-        <BsButton
-          id='backToLandscapeButton'
-          @onClick={{this.openLandscapeView}}
-          @type='secondary'
-          @outline={{true}}
-          title='Back to Landscape View'
-        >
-          {{svg-jar 'reply-16' class='octicon align-middle'}}
-        </BsButton>
-      </div>
 
     {{else}}
-      {{#if this.isLandscapeExistentAndEmpty}}
-        <div class='container-fluid mt-6'>
-          <div class='jumbotron'>
-            <h2>Empty Landscape received!</h2>
-            <p>A new landscape will be fetched every 10 seconds.</p>
-          </div>
-          <div class='spinner-center-3' role='status'></div>
-        </div>
-      {{else if this.allLandscapeDataExistsAndNotEmpty}}
-
-        {{#if this.showVR}}
-
-          <VrRendering
-            @id='landscape1'
-            @landscapeData={{this.landscapeData}}
-            @components={{this.components}}
-            @openDataSelection={{this.openDataSelection}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @showDataSelection={{this.showDataSelection}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @applicationArgs={{this.applicationArgs}}
-            @debugMode={{this.flag}}
-          />
-
-        {{else}}
-          <Visualization::Rendering::BrowserRendering
-            @landscapeData={{this.landscapeData}}
-            @components={{this.components}}
-            @componentsToolsSidebar={{this.componentsToolsSidebar}}
-            @removeToolsSidebarComponent={{this.removeToolsSidebarComponent}}
-            @closeDataSelection={{this.closeDataSelection}}
-            @closeToolsSidebar={{this.closeToolsSidebar}}
-            @openSettingsSidebar={{this.openSettingsSidebar}}
-            @openToolsSidebar={{this.openToolsSidebar}}
-            @showSettingsSidebar={{this.showSettingsSidebar}}
-            @showToolsSidebar={{this.showToolsSidebar}}
-            @toggleSettingsSidebarComponent={{this.toggleSettingsSidebarComponent}}
-            @toggleToolsSidebarComponent={{this.toggleToolsSidebarComponent}}
-            @toggleVisualizationUpdating={{this.toggleVisualizationUpdating}}
-            @addComponent={{this.addComponent}}
-            @visualizationPaused={{this.visualizationPaused}}
-            @resetLandscapeListenerPolling={{this.resetLandscapeListenerPolling}}
-            @removeTimestampListener={{this.removeTimestampListener}}
-            @restructureLandscape={{this.restructureLandscape}}
-            @switchToAR={{this.switchToAR}}
-            @switchToVR={{this.switchToVR}}
-            @applicationArgs={{this.applicationArgs}}
-          />
-
-          {{#unless this.showTimeline}}
-            {{#if this.showXRButton}}
-              <button
-                id='VrButton'
-                type='button'
-                {{did-insert this.updateVrStatus}}
-                {{on 'click' this.switchToVR}}
-              >
-                {{this.buttonText}}
-              </button>
-            {{/if}}
-          {{/unless}}
-        {{/if}}
-
-      {{else}}
-        <div class='container-fluid mt-6'>
-          <div class='jumbotron'>
-            <h2>No Landscape found!</h2>
-            <p>A new landscape will be fetched every 10 seconds.</p>
-          </div>
-          <div class='spinner-center-3' role='status'></div>
-        </div>
-      {{/if}}
+      <Visualization::Rendering::BrowserRendering
+        @id='browser-rendering'
+        @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
+        @landscapeData={{this.renderingService.landscapeData}}
+        @components={{this.sidebarHandler.components}}
+        @addComponent={{this.sidebarHandler.addComponent}}
+        @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
+        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
+        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+        @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
+        @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
+        @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+        @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
+        @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
+        @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
+        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
+        @visualizationPaused={{this.renderingService.visualizationPaused}}
+        @removeTimestampListener={{this.removeTimestampListener}}
+        @restructureLandscape={{this.restructureLandscape}}
+        @switchToAR={{this.switchToAR}}
+        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
+      />
     {{/if}}
+
   {{/if}}
 </div>
-{{! timeline }}
 
-{{#if this.showTimeline}}
-  <div id='timeline-content'>
+{{! Bottom Bar }}
+{{#if this.shouldDisplayBottomBar}}
+  <div id='bottom-bar-container'>
+
+    {{! Toggle Bottom Bar Button}}
     <BsButton
-      @onClick={{this.toggleTimeline}}
+      @onClick={{this.toggleVisibilityBottomBar}}
       @type='secondary'
       @outline={{true}}
-      class='btn-timeline'
-      title={{if this.isTimelineActive 'Hide Timeline' 'Show Timeline'}}
+      class='bottom-bar-toggle-btn'
+      title={{if this.isBottomBarMaximized 'Hide Bottom Bar' 'Show Bottom Bar'}}
     >
 
-      {{#unless this.isTimelineActive}}
-        <span class='pr-1'>Show Timeline</span>
+      {{#unless this.isBottomBarMaximized}}
+        <span class='pr-1'>Show Bottom Bar</span>
       {{/unless}}
       {{svg-jar
         'chevron-up-16'
-        id='hidetimeline-icon'
+        id='hide-bottom-bar-icon'
         class=(if
-          this.isTimelineActive
-          'octicon align-middle hidetimeline-icon-down'
+          this.isBottomBarMaximized
+          'octicon align-middle hide-bottom-bar-icon-down'
           'octicon align-middle'
         )
       }}
     </BsButton>
 
-    {{#if this.showXRButton}}
+    {{! VR Button}}
+    {{#if
+      (and
+        this.userSettings.applicationSettings.showVrButton.value
+        (not this.showVR)
+      )
+    }}
       <button
-        class='btn-timeline-above'
+        class='bottom-bar-vr-button'
         type='button'
         {{did-insert this.updateVrStatus}}
         {{on 'click' this.switchToVR}}
       >
-        {{this.buttonText}}
+        {{this.vrButtonText}}
       </button>
     {{/if}}
+
+    {{! Runtime / Code Charts}}
     <div
-      id='timeline'
-      class='timeline {{unless this.isTimelineActive "timelinehide"}}'
+      id='bottom-bar-chart-container'
+      class='bottom-bar-chart
+        {{if
+          (and this.isCommitTreeSelected this.isBottomBarMaximized)
+          "bottom-bar-chart-commitTree"
+        }}
+        {{unless this.isBottomBarMaximized "bottom-bar-chart-hide"}}'
     >
-      <Visualization::PageSetup::Timeline::PlotlyTimeline
-        @timestamps={{this.timelineTimestamps}}
-        @clicked={{this.timelineClicked}}
-        @highlightedMarkerColor={{this.highlightedMarkerColor}}
-        @setChildReference={{this.getTimelineReference}}
-      />
+
+      <div id='bottom-bar-chart-button-div'>
+        <BsButton
+          @onClick={{this.toggleBottomChart}}
+          @outline={{true}}
+          class='bottom-bar-chart-button'
+        >
+          {{if this.isRuntimeTimelineSelected 'Show Commit Chart'}}
+          {{if this.isCommitTreeSelected 'Show Runtime Chart'}}
+        </BsButton>
+      </div>
+
+      {{#if this.isRuntimeTimelineSelected}}
+        <Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline
+          @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
+          @clicked={{this.timelineDataObjectHandler.timelineClicked}}
+        />
+      {{/if}}
+
+      {{#if this.isCommitTreeSelected}}
+        <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
+          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @setSelectedAppName={{this.commitTreeHandler.setCurrentSelectedApplicationName}}
+        />
+        <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
+          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+          @triggerVizRenderingForSelectedCommits={{this.evolutionDataRepository.fetchAndUpdateAllStructureLandscapeDataForSelectedCommits}}
+          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
+          @selectedCommits={{this.commitTreeHandler.selectedCommits}}
+          @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}
+          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeHandler.getCloneOfAppNameAndBranchNameToColorMap}}
+          @setAppNameAndBranchNameToColorMap={{this.commitTreeHandler.setAppNameAndBranchNameToColorMap}}
+        />
+      {{/if}}
+
     </div>
   </div>
 {{/if}}

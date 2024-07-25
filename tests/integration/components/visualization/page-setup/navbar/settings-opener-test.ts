@@ -12,7 +12,7 @@ module(
       // Set any properties with this.set('myProperty', 'value');
       // Handle any actions with this.set('myAction', function(val) { ... });
 
-      await render(hbs`<Visualization::PageSetup::Navbar::SettingsOpener />`);
+      await render(hbs`<Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener />`);
 
       const { textContent } = this.element;
 

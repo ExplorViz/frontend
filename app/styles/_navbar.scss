@@ -20,6 +20,24 @@
   overflow: hidden;
 }
 
+.navbar-status-icons {
+  display: grid;
+  grid-auto-flow: column;
+  grid-column-gap: 0.5rem;
+}
+
+.navbar-success-icon {
+  display: flex;
+  align-items: center;
+  color: green;
+}
+
+.navbar-danger-icon {
+  display: flex;
+  align-items: center;
+  color: red;
+}
+
 #navbar-user-options {
   position: static;
   align-items: center;

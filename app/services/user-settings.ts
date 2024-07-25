@@ -1,9 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import isObject, {
-  objectsHaveSameKeys,
-} from 'explorviz-frontend/utils/object-helpers';
 import {
   classicApplicationColors,
   ColorSchemeId,
@@ -21,15 +18,35 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
-  RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
+import MessageSender from 'collaboration/services/message-sender';
+import HighlightingService from './highlighting-service';
+import ApplicationRenderer from './application-renderer';
+import LocalUser from 'collaboration/services/local-user';
+import {
+  getStoredSettings,
+  saveSettings,
+  validateRangeSetting,
+} from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class UserSettings extends Service {
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
+
+  @service('local-user')
+  private localUser!: LocalUser;
+
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('message-sender')
+  private sender!: MessageSender;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @tracked
   applicationSettings!: ApplicationSettings;
@@ -46,47 +63,34 @@ export default class UserSettings extends Service {
   constructor() {
     super(...arguments);
 
-    try {
-      this.restoreApplicationSettings();
-    } catch (e) {
-      this.applyDefaultApplicationSettings();
-    }
-    this.setColorsFromSettings();
-  }
-
-  restoreApplicationSettings() {
-    const userApplicationSettingsJSON = localStorage.getItem(
-      'userApplicationSettings'
-    );
-
-    if (userApplicationSettingsJSON === null) {
-      throw new Error('There are no application settings to restore');
-    }
-
-    const parsedApplicationSettings = JSON.parse(userApplicationSettingsJSON);
-
-    if (this.areValidApplicationSettings(parsedApplicationSettings)) {
-      this.set('applicationSettings', parsedApplicationSettings);
-    } else {
-      localStorage.removeItem('userApplicationSettings');
-      throw new Error('Application settings are invalid');
-    }
-
-    this.updateColors();
+    this.restoreApplicationSettings();
   }
 
   @action
-  applyDefaultApplicationSettings(saveSettings = true) {
-    this.set(
-      'applicationSettings',
-      JSON.parse(JSON.stringify(defaultApplicationSettings))
+  applyDefaultApplicationSettings(saveToLocalStorage = true) {
+    this.applicationSettings = JSON.parse(
+      JSON.stringify(defaultApplicationSettings)
     );
 
     this.updateColors();
 
-    if (saveSettings) {
-      this.saveSettings();
+    if (saveToLocalStorage) {
+      saveSettings(this.applicationSettings);
     }
+  }
+
+  shareApplicationSettings() {
+    this.sender.sendSharedSettings(this.applicationSettings);
+  }
+
+  updateSettings(settings: ApplicationSettings) {
+    this.applicationSettings = settings;
+
+    this.updateColors();
+    this.applicationRenderer.addCommunicationForAllApplications();
+    this.highlightingService.updateHighlighting();
+    this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value;
+    this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
@@ -95,7 +99,7 @@ export default class UserSettings extends Service {
     const newValue = value ?? defaultApplicationSettings[name].value;
 
     if (isRangeSetting(setting) && typeof newValue === 'number') {
-      this.validateRangeSetting(setting, newValue);
+      validateRangeSetting(setting, newValue);
       this.applicationSettings = {
         ...this.applicationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
@@ -108,17 +112,17 @@ export default class UserSettings extends Service {
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
       setting.value = newValue;
     }
-    this.saveSettings();
+
+    saveSettings(this.applicationSettings);
   }
 
-  saveSettings() {
-    localStorage.setItem(
-      'userApplicationSettings',
-      JSON.stringify(this.applicationSettings)
-    );
+  restoreApplicationSettings() {
+    this.applicationSettings = getStoredSettings();
+    this.setColorsFromSettings();
+    this.updateColors();
   }
 
-  setColorScheme(schemeId: ColorSchemeId, saveSettings = true) {
+  setColorScheme(schemeId: ColorSchemeId, saveToLocalStorage = true) {
     let scheme = defaultApplicationColors;
 
     switch (schemeId) {
@@ -142,8 +146,8 @@ export default class UserSettings extends Service {
 
     this.updateColors(scheme);
 
-    if (saveSettings) {
-      this.saveSettings();
+    if (saveToLocalStorage) {
+      saveSettings(this.applicationSettings);
     }
   }
 
@@ -201,22 +205,6 @@ export default class UserSettings extends Service {
         applicationSettings.backgroundColor.value
       ),
     };
-  }
-
-  private areValidApplicationSettings(maybeSettings: unknown) {
-    return (
-      isObject(maybeSettings) &&
-      objectsHaveSameKeys(maybeSettings, defaultApplicationSettings)
-    );
-  }
-
-  private validateRangeSetting(rangeSetting: RangeSetting, value: number) {
-    const { range } = rangeSetting;
-    if (Number.isNaN(value)) {
-      throw new Error('Value is not a number');
-    } else if (value < range.min || value > range.max) {
-      throw new Error(`Value must be between ${range.min} and ${range.max}`);
-    }
   }
 }
 

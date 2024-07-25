@@ -151,8 +151,8 @@ function applyBoxLayout(application, allLandscapeTraces) {
     const hashCodeToClassMap = new Map();
 
     clazzes.forEach((clazz) => {
-      clazz.methods.forEach(({ hashCode }) =>
-        hashCodeToClassMap.set(hashCode, clazz)
+      clazz.methods.forEach(({ methodHash }) =>
+        hashCodeToClassMap.set(methodHash, clazz)
       );
     });
 
@@ -479,8 +479,8 @@ function applyBoxLayout(application, allLandscapeTraces) {
   function layoutGeneric(children) {
     const rootSegment = createRootSegment(children);
 
-    let maxX = 0.0;
-    let maxZ = 0.0;
+    let maxX = 5.0;
+    let maxZ = 10.0;
 
     // Sort by width and by name (for entities with same width)
     children.sort(function (e1, e2) {
@@ -536,12 +536,6 @@ function applyBoxLayout(application, allLandscapeTraces) {
 
     rootSegment.width += INSET_SPACE;
     //rootSegment.height += INSET_SPACE;
-    /*console.log('rootSegment:');
-    for (let property in rootSegment) {
-      if (rootSegment.hasOwnProperty(property)) {
-          console.log(`${property}: ${rootSegment[property]}`);
-      }
-    }*/
 
     return rootSegment;
 

@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 
-export function animatePlayPauseButton(isPaused: boolean) {
+export function animatePlayPauseIcon(isPaused: boolean) {
   const beforeClass = isPaused ? '.play' : '.pause';
   const afterClass = isPaused ? 'pause' : 'play';
 
@@ -8,6 +8,7 @@ export function animatePlayPauseButton(isPaused: boolean) {
     duration: 1,
     css: { className: afterClass },
   });
+
   gsap.fromTo(
     '#play-pause-button-container',
     { opacity: 1, scale: 0.9 },

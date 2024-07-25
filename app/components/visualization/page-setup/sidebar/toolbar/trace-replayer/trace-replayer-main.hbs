@@ -1,0 +1,31 @@
+<h5 align='center'>
+  Trace Replayer
+  <BsButton
+    class='th-btn {{if this.isReplayAnimated "navbar-highlight red-hover"}}'
+    title={{if this.isReplayAnimated 'Pause animation' 'Resume animation'}}
+    @onClick={{this.toggleAnimation}}
+    @type='button'
+  >
+    {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
+  </BsButton>
+</h5>
+
+<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation
+  @selectPreviousTraceStep={{this.selectPreviousTraceStep}}
+  @selectNextTraceStep={{this.selectNextTraceStep}}
+  @currentTraceStepIndex={{this.currentTraceStepIndex}}
+  @traceStepCount={{this.traceSteps.length}}
+/>
+
+<hr />
+
+<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+  @operationName={{this.operationName}}
+  @sourceClass={{this.sourceClass}}
+  @targetClass={{this.targetClass}}
+  @sourceApplicationName={{this.sourceApplication.name}}
+  @targetApplicationName={{this.targetApplication.name}}
+  @spanStartTime={{this.currentTraceStep.startTime}}
+  @spanEndTime={{this.currentTraceStep.endTime}}
+  @moveCameraTo={{@moveCameraTo}}
+/>

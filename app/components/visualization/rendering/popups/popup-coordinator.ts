@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'collaborative-mode/services/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -14,7 +14,8 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
-import LocalUser from 'collaborative-mode/services/local-user';
+import LocalUser from 'collaboration/services/local-user';
+import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
   isMovable: boolean;
@@ -27,14 +28,17 @@ interface IArgs {
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
+  @service('collaboration-session')
+  private collaborationSession!: CollaborationSession;
+
   @service('configuration')
   configuration!: Configuration;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  @service('collaboration-session')
-  private collaborationSession!: CollaborationSession;
+  @service('landscape-restructure')
+  landscapeRestructure!: LandscapeRestructure;
 
   @service('local-user')
   localUser!: LocalUser;
@@ -63,14 +67,15 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (!userId) {
       return '';
     }
-    return this.collaborationSession.getColor(userId);
+    return this.collaborationSession.getCssColor(userId);
   }
 
   @action
   highlight() {
     this.args.updateMeshReference(this.args.popupData);
-    this.highlightingService.highlight(this.args.popupData.mesh, true);
-    this.highlightingService.updateHighlighting();
+    this.highlightingService.toggleHighlight(this.args.popupData.mesh, {
+      sendMessage: true,
+    });
   }
 
   @action
@@ -171,7 +176,7 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
-    const popupTopOffset = popoverHeight + 10;
+    const popupTopOffset = popoverHeight + 30;
     const popupLeftOffset = popoverWidth / 2;
 
     let popupTopPosition = popupData.mouseY - popupTopOffset;

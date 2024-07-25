@@ -1,11 +1,12 @@
 export type SettingGroup =
-  | 'Colors'
-  | 'Highlighting'
-  | 'Hover Effects'
-  | 'Communication'
-  | 'Popup'
   | 'Camera'
-  | 'Extended Reality'
+  | 'Colors'
+  | 'Controls'
+  | 'Communication'
+  | 'Highlighting'
+  | 'Effects'
+  | 'Popups'
+  | 'Virtual Reality'
   | 'Debugging';
 
 export type ApplicationColorSettingId =
@@ -21,35 +22,42 @@ export type ApplicationColorSettingId =
   | 'communicationArrowColor'
   | 'backgroundColor';
 
+export type ApplicationControlSettingId =
+  | 'enableGamepadControls'
+  | 'selectedGamepadIndex';
+
 export type ApplicationHighlightingSettingId =
   | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
   | 'transparencyIntensity'
   | 'enableMultipleHighlighting';
 
-export type ApplicationHoveringSettingId = 'enableHoverEffects';
+export type ApplicationHoveringSettingId =
+  | 'enableHoverEffects'
+  | 'enableAnimations';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationCameraSettingId = 'useOrthographicCamera';
+export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
-export type ApplicationXRSettingId = 'showXRButton';
+export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type ApplicationDebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
-  | 'showVrOnClick'
   | 'fullscreen'
+  | 'syncRoomState'
   | 'resetToDefaults';
 
 export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
 
 export type ApplicationSettingId =
   | ApplicationColorSettingId
+  | ApplicationControlSettingId
   | ApplicationHighlightingSettingId
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
@@ -57,6 +65,11 @@ export type ApplicationSettingId =
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
+
+export type ApplicationControlSettings = {
+  enableGamepadControls: FlagSetting;
+  selectedGamepadIndex: RangeSetting;
+};
 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
@@ -86,6 +99,7 @@ export type ApplicationDebugSettings = {
   showLightHelper: FlagSetting;
   showVrOnClick: FlagSetting;
   fullscreen: ButtonSetting;
+  syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
 };
 
@@ -94,14 +108,15 @@ export type ApplicationPopupSettings = Record<
   FlagSetting
 >;
 
-export type ApplicationCameraSettings = Record<
-  ApplicationCameraSettingId,
-  FlagSetting
->;
+export type ApplicationCameraSettings = {
+  useOrthographicCamera: FlagSetting;
+  cameraFov: RangeSetting;
+};
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
+  ApplicationControlSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &

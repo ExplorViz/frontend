@@ -30,6 +30,7 @@ declare const config: {
     vsCodeService: string;
     collaborationService: string;
     metricService: string;
+    codeService: string;
   };
   version: {
     versionTag: P_ENV.VERSION_TAG;

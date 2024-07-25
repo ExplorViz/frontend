@@ -3,7 +3,7 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaboration/services/local-user';
 
 export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;

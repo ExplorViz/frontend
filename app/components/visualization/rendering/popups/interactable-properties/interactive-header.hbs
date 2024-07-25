@@ -4,24 +4,3 @@
     @appId={{@appId}}
   />
 {{/if}}
-
-<h3 class='popover-header'>
-  {{#if this.landscapeRestructure.restructureMode}}
-    <div class='text-center text-break font-weight-bold pl-1'>
-      {{#if this.isEditing}}
-        <Input
-          aria-label='name'
-          @value={{this.name}}
-          @enter={{this.handleEnter}}
-          {{on 'focusout' this.handleFocusOut}}
-        />
-      {{else}}
-        <div style='cursor: text;' {{on 'click' this.edit}}>{{this.name}}</div>
-      {{/if}}
-    </div>
-  {{else}}
-    <div class='text-center text-break font-weight-bold pl-1'>
-      {{this.name}}
-    </div>
-  {{/if}}
-</h3>

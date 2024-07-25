@@ -3,7 +3,7 @@ import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaboration/services/local-user';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;

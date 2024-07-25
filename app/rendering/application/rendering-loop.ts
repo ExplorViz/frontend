@@ -4,7 +4,7 @@ import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
-import ArZoomHandler from 'virtual-reality/utils/ar-helpers/ar-zoom-handler';
+import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
 
 const clock = new Clock();
@@ -76,7 +76,6 @@ export default class RenderingLoop {
       this.tick(frame);
 
       // render a frame
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
       if (
         this.orthographicCamera &&
         this.userSettings.applicationSettings.useOrthographicCamera.value

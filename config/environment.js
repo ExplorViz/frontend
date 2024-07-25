@@ -2,6 +2,7 @@
 'use strict';
 
 const DOTENV = require('dotenv');
+const DOTENV_EXPAND = require('dotenv-expand');
 
 module.exports = (environment) => {
   const path = { path: process.env.DOTENV };
@@ -10,7 +11,7 @@ module.exports = (environment) => {
 
   // Custom DOTENV file, e.g., "DOTENV=.env-custom ember s"
   if (P_ENV.DOTENV) {
-    const dotEnvConfig = DOTENV.config(path);
+    const dotEnvConfig = DOTENV_EXPAND.expand(DOTENV.config(path));
     // Detect and output errors when loading a config, e.g. a missing file
     if (dotEnvConfig.error) {
       throw (
@@ -20,10 +21,10 @@ module.exports = (environment) => {
       );
     }
   } else if (environment === 'production') {
-    DOTENV.config({ path: '.env-prod' });
+    DOTENV_EXPAND.expand(DOTENV.config({ path: '.env-prod' }));
   } else {
     // Development, use .env file
-    DOTENV.config();
+    DOTENV_EXPAND.expand(DOTENV.config());
   }
 
   const ENV = {
@@ -32,13 +33,10 @@ module.exports = (environment) => {
     rootURL: '/',
     locationType: 'history',
     EmberENV: {
+      EXTEND_PROTOTYPES: true,
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
         // e.g. 'with-controller': true
-      },
-      EXTEND_PROTOTYPES: {
-        // Prevent Ember Data from overriding Date.parse.
-        Date: false,
       },
     },
     auth0: {
@@ -62,6 +60,7 @@ module.exports = (environment) => {
       vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
       metricService: P_ENV.METRIC_SERV_URL,
+      codeService: P_ENV.CODE_SERV_URL,
     },
     version: {
       versionTag: P_ENV.VERSION_TAG,

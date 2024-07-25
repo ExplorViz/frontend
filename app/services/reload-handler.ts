@@ -1,4 +1,4 @@
-import Service, { inject as service } from '@ember/service';
+import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 
 import debugLogger from 'ember-debug-logger';
@@ -7,13 +7,14 @@ import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import LandscapeListener from './landscape-listener';
+import LandscapeHttpRequestUtil from './landscape-http-request-util';
+import { getOwner } from '@ember/application';
 
 export default class ReloadHandler extends Service.extend(Evented) {
-  @service('landscape-listener')
-  landscapeListener!: LandscapeListener;
+  landscapeHttpRequestUtil: LandscapeHttpRequestUtil =
+    new LandscapeHttpRequestUtil(getOwner(this));
 
-  debug = debugLogger();
+  debug = debugLogger('ReloadHandler');
 
   /**
    * Loads a landscape from the backend and triggers a visualization update
@@ -21,13 +22,11 @@ export default class ReloadHandler extends Service.extend(Evented) {
    * @param {*} timestamp
    */
   async loadLandscapeByTimestamp(timestamp: number, interval: number = 10) {
-    const self = this;
-
-    self.debug('Start import landscape-request');
+    this.debug('Start landscape request');
 
     try {
       const [structureDataPromise, dynamicDataPromise] =
-        await this.landscapeListener.requestData(timestamp, interval);
+        await this.landscapeHttpRequestUtil.requestData(timestamp, interval);
 
       if (
         structureDataPromise.status === 'fulfilled' &&
@@ -37,7 +36,17 @@ export default class ReloadHandler extends Service.extend(Evented) {
           structureDataPromise.value
         );
 
-        return [structure, dynamicDataPromise.value] as [
+        const dynamic = dynamicDataPromise.value;
+
+        for (const t of dynamic) {
+          const traceId = t.traceId;
+
+          for (const s of t.spanList) {
+            s.traceId = traceId;
+          }
+        }
+
+        return [structure, dynamic] as [
           StructureLandscapeData,
           DynamicLandscapeData,
         ];

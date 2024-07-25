@@ -1,0 +1,27 @@
+<div class='mb-3'>
+  <HelpTooltip @title='bla' />
+  <label class='m-0' for='filtering-class-method'>Min. # methods (# classes:
+    <b>{{@remainingEntityCountAfterFiltering}}
+      /
+      {{@initialEntityCount}}</b>)</label>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <input
+        id='filtering-class-method'
+        value={{this.classes.selected}}
+        min={{this.classes.min}}
+        max={{this.classes.max}}
+        type='range'
+        step='1'
+        class='form-control mr-2'
+        {{on 'change' this.onChange}}
+        oninput={{fn this.onInput this}}
+      />
+      <div class='range-slider--values'>
+        <span>{{this.classes.min}}</span>
+        <span style='font-weight: bold;'>{{this.classes.selected}}</span>
+        <span>{{this.classes.max}}</span>
+      </div>
+    </div>
+  </div>
+</div>

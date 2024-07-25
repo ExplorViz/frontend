@@ -1,0 +1,19 @@
+<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelection
+  @moveCameraTo={{@moveCameraTo}}
+  @selectTrace={{this.selectTrace}}
+  @dynamicData={{@dynamicData}}
+  @structureData={{@structureData}}
+  @application={{@application}}
+  @applicationTraces={{this.applicationTraces}}
+  @selectedTrace={{this.selectedTrace}}
+/>
+
+{{#if this.selectedTrace}}
+  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerMain
+    @selectedTrace={{this.selectedTrace}}
+    @structureData={{@structureData}}
+    @dynamicData={{@dynamicData}}
+    @highlightTrace={{@highlightTrace}}
+    @moveCameraTo={{@moveCameraTo}}
+  />
+{{/if}}

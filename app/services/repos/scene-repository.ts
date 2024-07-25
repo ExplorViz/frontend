@@ -1,5 +1,5 @@
 import Service from '@ember/service';
-import { VisualizationMode } from 'collaborative-mode/services/local-user';
+import { VisualizationMode } from 'collaboration/services/local-user';
 import { createScene } from 'explorviz-frontend/utils/scene';
 import * as THREE from 'three';
 

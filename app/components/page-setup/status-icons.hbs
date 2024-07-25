@@ -1,0 +1,30 @@
+<div class='navbar-status-icons'>
+  {{#if this.isSpectating}}
+    <div class='navbar-danger-icon'>
+      {{svg-jar 'device-camera-video-16' class='octicon'}}
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+        Spectator mode is active
+      </BsTooltip>
+    </div>
+  {{/if}}
+
+  {{#if this.isOnline}}
+    <div class='navbar-success-icon'>
+      {{svg-jar 'globe-16' class='octicon'}}&nbsp;({{this.users}})
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+        Connected to a room with
+        {{this.users}}
+        users.
+      </BsTooltip>
+    </div>
+  {{/if}}
+
+  {{#if this.isCommunicationHidden}}
+    <div class='navbar-danger-icon'>
+      {{svg-jar 'eye-closed-16' class='octicon'}}
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+        Communication is hidden
+      </BsTooltip>
+    </div>
+  {{/if}}
+</div>

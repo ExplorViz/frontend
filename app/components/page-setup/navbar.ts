@@ -22,18 +22,20 @@ export default class Navbar extends Component {
 
   @action
   goToLandscapeSelection() {
-    if (this.router.currentRouteName === 'landscapes') {
-      this.tokenService.setToken(this.tokenService.latestToken!);
-      this.router.transitionTo('visualization', {
-        queryParams: {
-          landscapeToken: this.tokenService.latestToken!.value,
-        },
-      });
-    } else {
-      this.router.transitionTo('landscapes', {
-        queryParams: { landscapeToken: undefined },
-      });
-    }
+    this.tokenService.setToken(null);
+    this.router.transitionTo('landscapes', {
+      queryParams: { landscapeToken: undefined },
+    });
+  }
+
+  @action
+  goToVisualization() {
+    this.tokenService.setToken(this.tokenService.latestToken!);
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: this.tokenService.latestToken!.value,
+      },
+    });
   }
 
   get isSingleLandscapeMode() {
