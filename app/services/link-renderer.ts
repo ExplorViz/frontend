@@ -132,7 +132,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-      applicationObject3D.data.application,
+      applicationObject3D.dataModel.application,
       classCommunication,
       id
     );
