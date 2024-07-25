@@ -3,7 +3,6 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
-import BaseMesh from '../base-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 export default class ClazzLabelMesh extends LabelMesh {
   //parents: THREE.Object3D | undefined = undefined;

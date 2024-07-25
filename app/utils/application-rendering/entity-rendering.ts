@@ -7,10 +7,7 @@ import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-import SemanticZoomManager, {
-  AppearenceExtension,
-  Recipe,
-} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 //import { createClazzTextLabelForZoomLevel as createClazzTextLabelForZoomLevel } from './labeler';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
