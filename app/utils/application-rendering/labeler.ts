@@ -9,6 +9,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import { getStoredSettings } from '../settings/local-storage-settings';
+import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -147,16 +148,22 @@ export function addClazzTextLabel(
   const labelMesh = new ClazzLabelMesh(font, text, color, size);
   clazzMesh.labelMesh = labelMesh;
 
+  //Rotate text and position
+  positionClassLabel(labelMesh, clazzMesh);
+  clazzMesh.add(labelMesh);
+}
+
+export function positionClassLabel(
+  labelMesh: LabelMesh,
+  parentMesh: ClazzMesh
+) {
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
   // Set y-position just above the clazz mesh
-  labelMesh.position.y = clazzMesh.geometry.parameters.height / 2 + 0.01;
-
+  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
   labelMesh.rotation.z = -(Math.PI / 3);
-
-  clazzMesh.add(labelMesh);
 }
 
 export function createClazzTextLabelForZoomLevel(

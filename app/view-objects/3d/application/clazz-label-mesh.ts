@@ -2,8 +2,11 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
-
+import SemanticZoomManager from './utils/semantic-zoom-manager';
+import BaseMesh from '../base-mesh';
+import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 export default class ClazzLabelMesh extends LabelMesh {
+  //parents: THREE.Object3D | undefined = undefined;
   constructor(
     font: Font,
     labelText: string,
@@ -21,19 +24,31 @@ export default class ClazzLabelMesh extends LabelMesh {
     // due to different render order (of transparent objects)
     this.turnTransparent(0.99);
 
+    // Add this to the SemanticZoomManager
+    SemanticZoomManager.instance.add(this);
     // Semantic Zoom preparations
     this.saveOriginalAppearence();
     // Set Appearence on Level 1
-    this.setAppearence(1, () =>
-      this.computeLabel(labelText, size - 0.3, limitletters + 10)
-    );
-    // Remove original Label
-    this.setCallBeforeAppearenceAboveZero((clazzMesh) => {
-      clazzMesh.remove(clazzMesh.labelMesh);
+    this.setAppearence(1, () => {
+      this.computeLabel(labelText, size - 0.1, limitletters + 5);
+      if (this.parent != undefined) {
+        Labeler.positionClassLabel(this, this.parent);
+      }
     });
-    this.setCallBeforeAppearenceZero((clazzMesh) => {
-      clazzMesh.add(clazzMesh.labelMesh);
+    this.setAppearence(2, () => {
+      this.computeLabel(labelText, size - 0.2, limitletters + 10);
+      if (this.parent != undefined) {
+        Labeler.positionClassLabel(this, this.parent);
+      }
     });
+    // // Remove original Label
+    // this.setCallBeforeAppearenceAboveZero((clazzMesh) => {
+    //   debugger;
+    //   clazzMesh.remove(clazzMesh.labelMesh);
+    // });
+    // this.setCallBeforeAppearenceZero((clazzMesh) => {
+    //   clazzMesh.add(clazzMesh.labelMesh);
+    // });
   }
 
   /**

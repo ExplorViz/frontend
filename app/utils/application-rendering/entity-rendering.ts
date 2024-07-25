@@ -102,13 +102,13 @@ export function addComponentAndChildrenToScene(
     color,
     highlightedEntityColor
   );
-  const recipe = new Recipe();
-  //recipe.setColor(new THREE.Color(255, 0, 0));
-  //recipe.setPositionY(2);
-  const appearenceForOne = new AppearenceExtension();
-  appearenceForOne.setRecipe(recipe);
+  // const recipe = new Recipe();
+  // //recipe.setColor(new THREE.Color(255, 0, 0));
+  // //recipe.setPositionY(2);
+  // const appearenceForOne = new AppearenceExtension();
+  // appearenceForOne.setRecipe(recipe);
 
-  mesh.setAppearence(1, appearenceForOne);
+  // mesh.setAppearence(1, appearenceForOne);
 
   addMeshToApplication(mesh, applicationObject3D);
   updateMeshVisiblity(mesh, applicationObject3D);

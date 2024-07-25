@@ -16,10 +16,7 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
-import SemanticZoomManager, {
-  AppearenceExtension,
-  Recipe,
-} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -155,26 +152,6 @@ export default class LinkRenderer extends Service.extend({}) {
       communicationColor,
       highlightedEntityColor
     );
-    const closeDistance = new AppearenceExtension();
-    closeDistance.callBeforeActivation = (commMesh) => {
-      if (commMesh != undefined) {
-        commMesh.layout.lineThickness *= 5;
-        commMesh.geometry.dispose();
-        commMesh.render(commMesh.applicationCenter, commMesh.curveHeight);
-      }
-    };
-    closeDistance.callAfterDeactivation = (commMesh) => {
-      if (commMesh != undefined) {
-        commMesh.layout.lineThickness /= 5;
-        commMesh.geometry.dispose();
-        commMesh.render(commMesh.applicationCenter, commMesh.curveHeight);
-      }
-    };
-    const recipe = new Recipe().setAbsValues(true);
-    recipe.setScaleHeight(1.5);
-    recipe.setMaterial(new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
-    closeDistance.setRecipe(recipe);
-    newMesh.setAppearence(1, closeDistance);
 
     this.linkIdToMesh.set(id, newMesh);
 
