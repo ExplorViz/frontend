@@ -147,10 +147,10 @@ export function addClazzTextLabel(
 
   const labelMesh = new ClazzLabelMesh(font, text, color, size);
   clazzMesh.labelMesh = labelMesh;
-
   //Rotate text and position
   positionClassLabel(labelMesh, clazzMesh);
   clazzMesh.add(labelMesh);
+  clazzMesh.saveOriginalAppearence();
 }
 
 export function positionClassLabel(

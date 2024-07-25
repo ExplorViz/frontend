@@ -209,6 +209,9 @@ export class Appearence {
       this.recipe.modifiedParams[14] == true &&
       this.originObject3D != undefined
     ) {
+      while (this.originObject3D.children.length) {
+        this.originObject3D.remove(this.originObject3D.children[0]);
+      }
       this.recipe.childs.forEach((element) => {
         this.originObject3D.add(element);
       });
