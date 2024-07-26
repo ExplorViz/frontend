@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
-import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaboration/services/local-user';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
+import CommunicationArrowMesh from './communication-arrow-mesh';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -35,7 +35,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     this.castShadow = true;
     SemanticZoomManager.instance.add(this);
-
+    this.saveCurrentlyActiveLayout();
     // this.setCallBeforeAppearenceZero(() => {
     //   this.layout = this._layout_original;
     // });
@@ -53,6 +53,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
     });
+  }
+  saveCurrentlyActiveLayout() {
+    this._layout_original = this.layout.copy();
   }
 
   getModelId() {
@@ -285,6 +288,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         headWidth
       );
       this.add(arrow);
+      SemanticZoomManager.instance.add(arrow);
     }
   }
 

@@ -123,6 +123,7 @@ export default class LinkRenderer extends Service.extend({}) {
     this.addArrows(line, curveHeight, new THREE.Vector3());
     // SemanticZoomManager: save the original appearence
     line.saveOriginalAppearence();
+    line.saveCurrentlyActiveLayout();
     return true;
   }
 
@@ -154,7 +155,6 @@ export default class LinkRenderer extends Service.extend({}) {
     );
 
     this.linkIdToMesh.set(id, newMesh);
-
     return newMesh;
   }
 

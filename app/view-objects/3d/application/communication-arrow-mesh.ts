@@ -2,8 +2,9 @@ import { VisualizationMode } from 'collaboration/services/local-user';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
+import { SemanticZoomableObjectBaseMixin } from './utils/semantic-zoom-manager';
 
-export default class CommunicationArrowMesh extends THREE.ArrowHelper {
+class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
   dataModel: ClassCommunication | ComponentCommunication;
 
   isHovered = false;
@@ -110,5 +111,43 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
    */
   turnOpaque() {
     this.changeOpacity(1);
+  }
+}
+
+// export const CommunicationArrowMesh = SemanticZoomableObjectBaseMixin(
+//   CommunicationArrowMeshPrivate
+// );
+// export type CommunicationArrowMesh = InstanceType<
+//   typeof CommunicationArrowMesh
+// >;
+
+export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMixin(
+  CommunicationArrowMeshPrivate
+) {
+  constructor(
+    dataModel: ClassCommunication | ComponentCommunication,
+    dir: THREE.Vector3,
+    origin: THREE.Vector3,
+    length: number,
+    color: number,
+    headLength: number,
+    headWidth: number
+  ) {
+    super(dataModel, dir, origin, length, color, headLength, headWidth);
+
+    // this.originalLength = length;
+    // this.originalHeadLength = headLength;
+    // this.originalHeadWidth = headWidth;
+    //this.saveOriginalAppearence();
+    this.setCallBeforeAppearenceZero(() => {
+      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
+      // .setLength (length : Number, headLength : Number, headWidth : Number)
+      this.setLength(length, headLength, headWidth);
+    });
+    this.setAppearence(1, () => {
+      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
+      // .setLength (length : Number, headLength : Number, headWidth : Number)
+      this.setLength(length / 2, headLength / 2, headWidth / 2);
+    });
   }
 }

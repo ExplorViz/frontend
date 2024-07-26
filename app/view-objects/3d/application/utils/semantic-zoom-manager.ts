@@ -2,6 +2,122 @@ import debugLogger from 'ember-debug-logger';
 import * as THREE from 'three';
 import { Mesh } from 'three';
 
+// Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
+
+type Constructor = new (...args: any[]) => any;
+
+// This mixin itsself
+export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
+  base: Base
+) {
+  return class extends base implements SemanticZoomableObject {
+    // Mixins may not declare private/protected properties
+    // however, you can use ES2020 private fields
+    // Variables
+    visible: boolean = true;
+
+    appearenceLevel: number = 0;
+
+    appearencesMap: Map<number, Appearence | (() => void)> = new Map();
+
+    originalAppearence: Recipe | undefined = undefined;
+    callBeforeAppearenceAboveZero: (currentMesh: Mesh | undefined) => void =
+      () => {};
+    callBeforeAppearenceZero: (currentMesh: Mesh | undefined) => void =
+      () => {};
+
+    // Functions
+    showAppearence(
+      i: number,
+      fromBeginning: boolean = true,
+      includeOrignal: boolean = true
+    ): boolean {
+      if (i == 0 && this.originalAppearence != undefined) {
+        // return to default look
+        this.callBeforeAppearenceZero(this);
+        this.restoreOriginalAppearence();
+        this.appearencesMap.forEach((v, k) => {
+          if (k != 0 && v instanceof Appearence) v.deactivate();
+        });
+        this.appearenceLevel = i;
+        return true;
+      } else if (i == 0 && this.originalAppearence == undefined) {
+        // Save Orignal
+        this.saveOriginalAppearence();
+        this.appearenceLevel = i;
+        return true;
+      }
+      // Check if the required level is registered, else abort
+      const targetAppearence = this.appearencesMap.get(i);
+      if (targetAppearence == undefined) return false;
+
+      // Possible manipulation before any changes
+      this.callBeforeAppearenceAboveZero(this);
+
+      // Start with Original Appearence
+      if (includeOrignal == true) this.restoreOriginalAppearence();
+
+      // Make sure to return to default Appearence first
+      //this.restoreOriginalAppearence();
+      if (targetAppearence instanceof Appearence) {
+        targetAppearence.activate();
+        this.appearencesMap.forEach((v) => {
+          if (v != targetAppearence && v instanceof Appearence) v.deactivate();
+        });
+      } else {
+        //console.log(`Calling Function with Level: ${i}`);
+        if (fromBeginning == true) {
+          this.appearencesMap.forEach((v, idx) => {
+            if (idx < i) {
+              if (v instanceof Appearence) v.activate();
+              else v();
+            }
+          });
+        }
+        targetAppearence();
+      }
+
+      this.appearenceLevel = i;
+      return true;
+    }
+
+    getCurrentAppearenceLevel(): number {
+      return this.appearenceLevel;
+    }
+    setAppearence(i: number, ap: Appearence | (() => void)): void {
+      if (ap instanceof Appearence) ap.setObject3D(this);
+      this.appearencesMap.set(i, ap);
+    }
+    getNumberOfLevels(): number {
+      return Array.from(this.appearencesMap.keys()).length;
+    }
+    saveOriginalAppearence(): void {
+      this.originalAppearence = Recipe.generateFromMesh(this);
+    }
+    restoreAppearence() {
+      this.showAppearence(this.appearenceLevel, false, false);
+    }
+    restoreOriginalAppearence() {
+      const tmpAppearence = new Appearence();
+      if (this.originalAppearence == undefined) return;
+      tmpAppearence.setRecipe(this.originalAppearence);
+      tmpAppearence.setObject3D(this);
+      tmpAppearence.activate();
+      this.appearenceLevel = 0;
+    }
+    setCallBeforeAppearenceAboveZero(
+      fn: (currentMesh: THREE.Mesh | undefined) => void
+    ): void {
+      this.callBeforeAppearenceAboveZero = fn;
+    }
+    setCallBeforeAppearenceZero(
+      fn: (currentMesh: THREE.Mesh | undefined) => void
+    ): void {
+      this.callBeforeAppearenceZero = fn;
+    }
+  };
+}
+
 export interface SemanticZoomableObject {
   // Should be the visibility property of the Mesh
   visible: boolean;
@@ -16,7 +132,11 @@ export interface SemanticZoomableObject {
   // Maps a Number 0-inf to one Appearence
   //appearencesMap: Map<number, Appearence>;
   // Displays the Appearence i
-  showAppearence(i: number): boolean;
+  showAppearence(
+    i: number,
+    fromBeginning: boolean,
+    includeOrignal: boolean
+  ): boolean;
   // Return the currently active Appearence Level
   getCurrentAppearenceLevel(): number;
   // Regsiters a new Appearence for an index i

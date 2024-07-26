@@ -70,9 +70,13 @@ export default abstract class BaseMesh<
     this.appearenceLevel = 0;
   }
   restoreAppearence() {
-    this.showAppearence(this.appearenceLevel);
+    this.showAppearence(this.appearenceLevel, false, false);
   }
-  showAppearence(i: number): boolean {
+  showAppearence(
+    i: number,
+    fromBeginning: boolean = true,
+    includeOrignal: boolean = true
+  ): boolean {
     if (i == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.callBeforeAppearenceZero(this);
@@ -91,16 +95,30 @@ export default abstract class BaseMesh<
     // Check if the required level is registered, else abort
     const targetAppearence = this.appearencesMap.get(i);
     if (targetAppearence == undefined) return false;
+
+    // Possible manipulation before any changes
     this.callBeforeAppearenceAboveZero(this);
+
+    // Start with Original Appearence
+    if (includeOrignal == true) this.restoreOriginalAppearence();
+
     // Make sure to return to default Appearence first
     //this.restoreOriginalAppearence();
     if (targetAppearence instanceof Appearence) {
-      if (targetAppearence instanceof Appearence) targetAppearence.activate();
+      targetAppearence.activate();
       this.appearencesMap.forEach((v) => {
         if (v != targetAppearence && v instanceof Appearence) v.deactivate();
       });
     } else {
       //console.log(`Calling Function with Level: ${i}`);
+      if (fromBeginning == true) {
+        this.appearencesMap.forEach((v, idx) => {
+          if (idx < i) {
+            if (v instanceof Appearence) v.activate();
+            else v();
+          }
+        });
+      }
       targetAppearence();
     }
 

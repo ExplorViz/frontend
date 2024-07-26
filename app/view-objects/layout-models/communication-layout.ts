@@ -27,7 +27,7 @@ export default class CommunicationLayout {
 
   // Copy function
   copy(): CommunicationLayout {
-    const copy = new CommunicationLayout();
+    const copy = new CommunicationLayout(this.model);
     copy.model = this.model; // Assuming shallow copy is sufficient, otherwise you need to handle deep copy based on the actual structure of ClassCommunication or ComponentCommunication
     copy.startX = this.startX;
     copy.startY = this.startY;
