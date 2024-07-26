@@ -91,7 +91,7 @@ export default class CommunicationRendering {
   ) {
     if (!this.configuration.isCommRendered) return;
 
-    const application = applicationObject3D.data.application;
+    const application = applicationObject3D.dataModel.application;
     const applicationLayout = applicationObject3D.boxLayoutMap.get(
       application.id
     );
@@ -131,7 +131,7 @@ export default class CommunicationRendering {
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
     // Render all class communications
-    applicationObject3D.data.classCommunications.forEach(
+    applicationObject3D.dataModel.classCommunications.forEach(
       (classCommunication) => {
         const commLayout = commLayoutMap.get(classCommunication.id);
 

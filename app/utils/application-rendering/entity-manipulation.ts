@@ -182,7 +182,7 @@ export function closeAllComponents(
   applicationObject3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {
-  const application = applicationObject3D.data.application;
+  const application = applicationObject3D.dataModel.application;
 
   // Close each component
   application.packages.forEach((component) => {
@@ -231,7 +231,7 @@ export function openAllComponents(
   applicationObject3D: ApplicationObject3D,
   sender: MessageSender
 ) {
-  applicationObject3D.data.application.packages.forEach((child) => {
+  applicationObject3D.dataModel.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       openComponentMesh(mesh, applicationObject3D);
@@ -333,7 +333,7 @@ export function applyDefaultApplicationLayout(
 
   applyComponentLayout(
     applicationObject3D,
-    applicationObject3D.data.application.packages
+    applicationObject3D.dataModel.application.packages
   );
 }
 
@@ -360,7 +360,7 @@ export function moveCameraTo(
       return;
     }
 
-    const { application } = applicationObject3D.data;
+    const { application } = applicationObject3D.dataModel;
 
     const sourceClass = spanIdToClass(
       application,

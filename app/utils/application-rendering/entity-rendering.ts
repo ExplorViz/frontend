@@ -75,7 +75,7 @@ export function addComponentAndChildrenToScene(
   applicationFont: Font,
   componentLevel = 1
 ) {
-  const application = applicationObject3D.data.application;
+  const application = applicationObject3D.dataModel.application;
   const componentLayout = applicationObject3D.getBoxLayout(component.id);
   const applicationLayout = applicationObject3D.getBoxLayout(application.id);
 
@@ -238,7 +238,7 @@ export function addFoundationAndChildrenToApplication(
   applicationColors: ApplicationColors,
   applicationFont: Font
 ) {
-  const application = applicationObject3D.data.application;
+  const application = applicationObject3D.dataModel.application;
   const applicationLayout = applicationObject3D.layout;
 
   if (!applicationLayout) {

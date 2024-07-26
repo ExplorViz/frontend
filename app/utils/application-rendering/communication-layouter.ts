@@ -39,7 +39,7 @@ export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D,
   settings: ApplicationSettings
 ) {
-  const { application, classCommunications } = applicationObject3D.data;
+  const { application, classCommunications } = applicationObject3D.dataModel;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
 
   const layoutMap: Map<string, CommunicationLayout> = new Map();
