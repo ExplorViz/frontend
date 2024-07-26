@@ -1,41 +1,40 @@
 {{#each-in this.commitIdToClassMetricsMap as |commitId classMetricCodeMap|}}
-  {{commitId}}
-  <br />
-
-  {{#each-in classMetricCodeMap as |filename metricValue|}}
-    <table class='w-100'>
-      <thead>
-        <tr>
-          <th>Class name:</th>
-          <th class='text-left'>{{filename}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>LOC:</td>
-          <td class='text-left'>
-            {{metricValue.loc}}
-          </td>
-        </tr>
-        <tr>
-          <td>LCOM4:</td>
-          <td class='text-left'>
-            {{metricValue.LCOM4}}
-          </td>
-        </tr>
-        <tr>
-          <td>Cyclomatic complexity:</td>
-          <td class='text-left'>
-            {{metricValue.cyclomatic_complexity}}
-          </td>
-        </tr>
-        <tr>
-          <td>Cyclomatic complexity (weighted):</td>
-          <td class='text-left'>
-            {{metricValue.cyclomatic_complexity_weighted}}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  {{/each-in}}
+  <div class='card mb-4'>
+    <div class='card-header'>
+      <strong>Commit:</strong>
+      {{commitId}}
+    </div>
+    <div class='card-body'>
+      {{#each-in classMetricCodeMap as |filename metricValue|}}
+        <table class='table table-sm'>
+          <thead>
+            <tr>
+              <th>Class name:</th>
+              <th class='text-left'>{{filename}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>LOC:</td>
+              <td class='text-left'>{{metricValue.loc}}</td>
+            </tr>
+            <tr>
+              <td>LCOM4:</td>
+              <td class='text-left'>{{metricValue.LCOM4}}</td>
+            </tr>
+            <tr>
+              <td>Cyclomatic complexity:</td>
+              <td class='text-left'>{{metricValue.cyclomatic_complexity}}</td>
+            </tr>
+            <tr>
+              <td>Cyclomatic complexity (weighted):</td>
+              <td
+                class='text-left'
+              >{{metricValue.cyclomatic_complexity_weighted}}</td>
+            </tr>
+          </tbody>
+        </table>
+      {{/each-in}}
+    </div>
+  </div>
 {{/each-in}}
