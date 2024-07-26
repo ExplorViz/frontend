@@ -14,6 +14,13 @@ export type ApplicationMetrics = {
   aggregatedMetricScores: Map<string, Metric>;
 };
 
+export type ClassMetricCode = {
+  loc: string;
+  LCOM4: string;
+  cyclomatic_complexity_weighted: string;
+  cyclomatic_complexity: string;
+};
+
 export type ApplicationMetricsCode = {
   files: string[]; // fileMetrics, classMetrics and methodMetrics should have
   // the size of the files list to provide a mapping logic
@@ -22,13 +29,7 @@ export type ApplicationMetricsCode = {
     cyclomatic_complexity: string;
   }[];
   classMetrics: {
-    [fullQualifiedClassName: string]: {
-      // a file can consist of multiple classes
-      loc: string;
-      LCOM4: string;
-      cyclomatic_complexity_weighted: string;
-      cyclomatic_complexity: string;
-    };
+    [fullQualifiedClassName: string]: ClassMetricCode;
   }[];
   methodMetrics: {
     loc: string;

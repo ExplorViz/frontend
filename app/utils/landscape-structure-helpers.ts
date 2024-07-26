@@ -189,6 +189,25 @@ export function createEmptyStructureLandscapeData(): StructureLandscapeData {
   return { landscapeToken: '', nodes: [] };
 }
 
+export function calculateFqn(classInstance: Class, delimiter: string): string {
+  // Helper function to traverse the package hierarchy
+  function getPackageNameHierarchy(pkg: Package | undefined): string[] {
+    if (!pkg) {
+      return [];
+    }
+    const parentNames = getPackageNameHierarchy(pkg.parent);
+    return [...parentNames, pkg.name];
+  }
+
+  // Get the package name hierarchy
+  const packageNames = getPackageNameHierarchy(classInstance.parent);
+
+  // Join the package names with the given delimiter and append the class name
+  const fqn = [...packageNames, classInstance.name].join(delimiter);
+
+  return fqn;
+}
+
 // #region Combination
 
 export function combineStructureLandscapeData(
