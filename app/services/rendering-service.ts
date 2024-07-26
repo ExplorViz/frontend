@@ -21,6 +21,7 @@ import { combineDynamicLandscapeData } from 'explorviz-frontend/utils/landscape-
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import TimestampRepository from './repos/timestamp-repository';
+import CommitTreeStateService from './commit-tree-state';
 
 export type VisualizationMode = 'evolution' | 'runtime';
 
@@ -43,6 +44,9 @@ export default class RenderingService extends Service {
 
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
+
+  @service('commit-tree-state')
+  commitTreeStateService!: CommitTreeStateService;
 
   // #endregion
 
@@ -188,10 +192,12 @@ export default class RenderingService extends Service {
   }
 
   @action
-  async triggerRenderingForSelectedCommits(
-    appNameToSelectedCommits: Map<string, SelectedCommit[]>
-  ): Promise<void> {
+  async triggerRenderingForSelectedCommits(): Promise<void> {
     try {
+      const appNameToSelectedCommits: Map<string, SelectedCommit[]> =
+        this.commitTreeStateService.selectedCommits;
+
+      // always pause when the selected commits change
       this.pauseVisualizationUpdating();
       this.timestampRepo.stopTimestampPolling();
 
