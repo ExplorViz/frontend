@@ -6,7 +6,7 @@ import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import { SelectedCommit } from './commit-tree-state';
 
 const { spanService } = ENV.backendAddresses;
 

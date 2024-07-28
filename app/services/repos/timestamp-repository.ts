@@ -7,8 +7,8 @@ import RenderingService from '../rendering-service';
 import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import debugLogger from 'ember-debug-logger';
+import { SelectedCommit } from '../commit-tree-state';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines

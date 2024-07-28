@@ -19,7 +19,7 @@ import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timelin
 import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/utils/landscape-dynamic-helpers';
 import EvolutionDataRepository from './repos/evolution-data-repository';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
+import { SelectedCommit } from './commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
 import CommitTreeStateService from './commit-tree-state';
 
