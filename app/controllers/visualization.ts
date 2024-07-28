@@ -73,9 +73,12 @@ export const earthTexture = new THREE.TextureLoader().load(
 export default class VisualizationController extends Controller {
   private readonly debug = debugLogger('VisualizationController');
 
-  queryParams = ['roomId', 'deviceId'];
+  queryParams = ['roomId', 'deviceId', 'commit1', 'commit2'];
 
   private sidebarHandler!: SidebarHandler;
+
+  private commit1: string | undefined | null;
+  private commit2: string | undefined | null;
 
   // #region Services
 
@@ -207,7 +210,7 @@ export default class VisualizationController extends Controller {
   // #region Setup
 
   @action
-  initRenderingAndSetupListeners() {
+  async initRenderingAndSetupListeners() {
     this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
@@ -225,11 +228,28 @@ export default class VisualizationController extends Controller {
     this.sidebarHandler = new SidebarHandler();
     this.renderingService.visualizationPaused = false;
 
-    // start main loop
-    this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
-
     // fetch applications for evolution mode
-    this.evolutionDataRepository.fetchAllApplications();
+    await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
+
+    let shouldTriggerEvolutionFirst = false;
+
+    // check what kind of rendering we should start
+    if (this.commit1 && this.commit1.length > 0) {
+      this.isRuntimeTimelineSelected = false;
+      this.isCommitTreeSelected = true;
+      shouldTriggerEvolutionFirst = this.commitTreeStateService.setDefaultState(
+        this.evolutionDataRepository.appNameCommitTreeMap,
+        this.commit1,
+        this.commit2
+      );
+    }
+
+    if (shouldTriggerEvolutionFirst) {
+      this.renderingService.triggerRenderingForSelectedCommits();
+    } else {
+      // start main loop for cross-commit runtime
+      this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+    }
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);

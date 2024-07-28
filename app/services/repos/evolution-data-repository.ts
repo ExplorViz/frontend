@@ -58,8 +58,8 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Fetch functions
 
-  async fetchAllApplications(): Promise<void> {
-    this.debug('fetchAllApplications');
+  async fetchAndStoreApplicationCommitTrees(): Promise<void> {
+    this.debug('fetchAndStoreApplicationCommitTrees');
     try {
       const applicationNames: string[] =
         await this.evolutionDataFetchService.fetchApplications();
