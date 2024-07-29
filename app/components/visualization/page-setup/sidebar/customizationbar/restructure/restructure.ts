@@ -320,10 +320,17 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   loadProjects() {
     const token = this.token!.token;
     const hostUrl = this.token!.hostUrl;
+    const body = { api_token: token, host_url: hostUrl };
     this.gitLabProjects = new Promise<{ id: string; name: string }[]>(
       (resolve) => {
-        fetch(`${gitlabApi}/get_all_projects/${token}/${hostUrl}`)
+        // fetch(`${gitlabApi}/get_all_projects/${token}/${hostUrl}`)
+        fetch(`${gitlabApi}/get_all_projects`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: { 'Content-Type': 'application/json' },
+        })
           .then(async (response: Response) => {
+            console.log(response);
             if (response.ok) {
               const projects = (await response.json()) as {
                 id: string;
@@ -337,7 +344,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
               resolve([]);
             }
           })
-          .catch(async () => {
+          .catch(async (e) => {
+            console.log(e);
             resolve([]);
             this.toastHandlerService.showErrorToastMessage(
               'Network error: Could not load projects.'
@@ -650,7 +658,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     formData.append('file', imgFile);
 
     const res = await fetch(
-      `https://${this.token!.hostUrl}/api/v4/projects/${this.project!.id}/uploads`,
+      // `https://${this.token!.hostUrl}/api/v4/projects/${this.project!.id}/uploads`,
+      `${this.token!.hostUrl}/api/v4/projects/${this.project!.id}/uploads`,
       {
         method: 'POST',
         headers: {

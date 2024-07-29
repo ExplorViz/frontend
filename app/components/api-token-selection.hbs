@@ -35,10 +35,7 @@
                       type='button'
                       tabindex='0'
                       href='#'
-                      {{on
-                        'click'
-                        (fn this.deleteApiToken apiToken)
-                      }}
+                      {{on 'click' (fn this.deleteApiToken apiToken)}}
                     >
                       {{svg-jar 'trash-16' class='octicon align-middle'}}
                       <BsTooltip @placement='bottom' @triggerEvents='hover'>
@@ -76,15 +73,7 @@
       <h4 class='modal-title'>Create API Token</h4>
     </modal.header>
     <modal.body>
-      <label for='token'>API Token:</label>
-      <div class='d-flex justify-content-between'>
-        <input
-          id='token'
-          class='form-control mr-2'
-          oninput={{this.updateToken}}
-          value={{this.token}}
-        />
-      </div>
+
       <label class='mt-2' for='token'>Name:</label>
       <div class='d-flex justify-content-between'>
         <input
@@ -94,12 +83,21 @@
           value={{this.name}}
         />
       </div>
-            <label for='token'>Host URL:</label>
+      <label for='token'>API Token:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='token'
+          class='form-control mr-2'
+          oninput={{this.updateToken}}
+          value={{this.token}}
+        />
+      </div>
+      <label for='token'>Host URL:</label>
       <div class='d-flex justify-content-between'>
         <input
           id='url'
           class='form-control mr-2'
-          placeholder="git.<hostname>.<de/com...>"
+          placeholder='e.g.: https://git.<hostname>.<de/com...>'
           oninput={{this.updateHostUrl}}
           value={{this.hostUrl}}
         />
