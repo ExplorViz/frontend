@@ -1,6 +1,4 @@
 import GlimmerComponent from '@glimmer/component';
-import { inject as service } from '@ember/service';
-import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import {
   Package,
   TypeOfAnalysis,
@@ -10,10 +8,7 @@ interface Args {
   component: Package;
 }
 
-export default class ComponentPopup extends GlimmerComponent<Args> {
-  @service('landscape-restructure')
-  landscapeRestructure!: LandscapeRestructure;
-
+export default class ComponentPopupCode extends GlimmerComponent<Args> {
   get name() {
     return this.args.component.name;
   }
@@ -28,7 +23,7 @@ export default class ComponentPopup extends GlimmerComponent<Args> {
 
   getClazzesCount(component: Package): number {
     let result = component.classes.filter((clazz) =>
-      clazz.originOfData.includes(TypeOfAnalysis.Dynamic)
+      clazz.originOfData.includes(TypeOfAnalysis.Static)
     ).length;
     const children = component.subPackages;
     children.forEach((child) => {
@@ -39,7 +34,7 @@ export default class ComponentPopup extends GlimmerComponent<Args> {
 
   getPackagesCount(component: Package): number {
     let result = component.subPackages.filter((subPack) =>
-      subPack.originOfData.includes(TypeOfAnalysis.Dynamic)
+      subPack.originOfData.includes(TypeOfAnalysis.Static)
     ).length;
     const children = component.subPackages;
     children.forEach((child) => {

@@ -1,8 +1,8 @@
-import { TypeOfAnalyis } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { TypeOfAnalysis } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
 export default function isValidPopupSection(
   typeOfPopup: string,
-  originOfData: TypeOfAnalyis
+  originOfData: TypeOfAnalysis
 ) {
   if (!typeOfPopup || !originOfData) {
     return false;

@@ -1,14 +1,18 @@
 import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
-export type TypeOfAnalyis = 'dynamic' | 'static' | 'static+dynamic';
+export enum TypeOfAnalysis {
+  Dynamic = 'dynamic',
+  Static = 'static',
+  StaticAndDynamic = 'static+dynamic',
+}
 
 type BaseModel = {
   id: string;
 };
 
 type OriginOfData = {
-  originOfData: TypeOfAnalyis;
+  originOfData: TypeOfAnalysis;
 };
 
 export type Method = {
@@ -85,7 +89,7 @@ export function getNodeById(
 
 export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData,
-  typeOfAnalysis: TypeOfAnalyis
+  typeOfAnalysis: TypeOfAnalysis
 ) {
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
@@ -150,7 +154,7 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
-  function setOriginStatus(typeOfAnalysis: TypeOfAnalyis) {
+  function setOriginStatus(typeOfAnalysis: TypeOfAnalysis) {
     entitiesForIdHashing.forEach((entity) => {
       entity.originOfData = typeOfAnalysis;
     });

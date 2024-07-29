@@ -12,18 +12,18 @@ interface Args {
   application: Application;
 }
 
-export default class FoundationPopup extends Component<Args> {
+export default class FoundationPopupCode extends Component<Args> {
   get clazzCount() {
     return getAllClassesInApplicationForGivenOrigin(
       this.args.application,
-      TypeOfAnalysis.Dynamic
+      TypeOfAnalysis.Static
     ).length;
   }
 
   get packageCount() {
     return getAllPackagesInApplicationForGivenOrigin(
       this.args.application,
-      TypeOfAnalysis.Dynamic
+      TypeOfAnalysis.Static
     ).length;
   }
 }
