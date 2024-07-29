@@ -31,8 +31,8 @@ export default class TimestampPollingService extends Service {
   }
 
   resetPolling() {
-    this.debug('Stopping timestamp polling.');
     if (this.timer) {
+      this.debug('Stopping timestamp polling.');
       clearTimeout(this.timer);
     }
   }
