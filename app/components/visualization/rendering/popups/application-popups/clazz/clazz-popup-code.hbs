@@ -1,40 +1,76 @@
-{{#each-in this.commitIdToClassMetricsMap as |commitId classMetricCodeMap|}}
+{{#each-in
+  this.classnameToCommitAndClassMetricsArray
+  as |classname commitAndClassMetricsArray|
+}}
   <div class='card mb-4'>
     <div class='card-header'>
-      <strong>Commit:</strong>
-      {{commitId}}
+      <strong>Class Name:</strong>
+      {{classname}}
     </div>
     <div class='card-body'>
-      {{#each-in classMetricCodeMap as |filename metricValue|}}
-        <table class='table table-sm'>
-          <thead>
-            <tr>
-              <th>Class name:</th>
-              <th class='text-left'>{{filename}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>LOC:</td>
-              <td class='text-left'>{{metricValue.loc}}</td>
-            </tr>
-            <tr>
-              <td>LCOM4:</td>
-              <td class='text-left'>{{metricValue.LCOM4}}</td>
-            </tr>
-            <tr>
-              <td>Cyclomatic complexity:</td>
-              <td class='text-left'>{{metricValue.cyclomatic_complexity}}</td>
-            </tr>
-            <tr>
-              <td>Cyclomatic complexity (weighted):</td>
-              <td
+      <table class='table table-sm'>
+        <thead>
+          <tr>
+            <th>Commit:</th>
+            {{#each
+              commitAndClassMetricsArray
+              as |commitAndClassMetricsObject index|
+            }}
+              <th class='text-left'>{{this.shortCommitIdentifierForTable
+                  index
+                }}<HelpTooltip
+                  @title={{commitAndClassMetricsObject.commitId}}
+                /></th>
+            {{/each}}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>LOC:</th>
+            {{#each
+              commitAndClassMetricsArray
+              as |commitAndClassMetricsObject|
+            }}
+              <th
                 class='text-left'
-              >{{metricValue.cyclomatic_complexity_weighted}}</td>
-            </tr>
-          </tbody>
-        </table>
-      {{/each-in}}
+              >{{commitAndClassMetricsObject.classMetric.loc}}</th>
+            {{/each}}
+          </tr>
+          <tr>
+            <th>LCOM4:</th>
+            {{#each
+              commitAndClassMetricsArray
+              as |commitAndClassMetricsObject|
+            }}
+              <th
+                class='text-left'
+              >{{commitAndClassMetricsObject.classMetric.LCOM4}}</th>
+            {{/each}}
+          </tr>
+          <tr>
+            <th>Cyclomatic complexity:</th>
+            {{#each
+              commitAndClassMetricsArray
+              as |commitAndClassMetricsObject|
+            }}
+              <th
+                class='text-left'
+              >{{commitAndClassMetricsObject.classMetric.cyclomatic_complexity}}</th>
+            {{/each}}
+          </tr>
+          <tr>
+            <th>Cyclomatic complexity (weighted):</th>
+            {{#each
+              commitAndClassMetricsArray
+              as |commitAndClassMetricsObject|
+            }}
+              <th
+                class='text-left'
+              >{{commitAndClassMetricsObject.classMetric.cyclomatic_complexity_weighted}}</th>
+            {{/each}}
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 {{/each-in}}

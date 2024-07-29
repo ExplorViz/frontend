@@ -29,8 +29,13 @@ export default class ClazzPopup extends Component<Args> {
     return (this.args.popupData.entity as Class).name;
   }
 
-  get commitIdToClassMetricsMap() {
+  get classnameToCommitAndClassMetricsArray() {
     const commitToAppMetricsCodeMap = this.commitToAppMetricsCodeMap;
+
+    const classnameToCommitAndClassMetricsArray: Map<
+      string,
+      { commitId: string; classMetric: ClassMetricCode }[]
+    > = new Map();
 
     const commitIdToClassMetricsMap: Map<
       string,
@@ -55,6 +60,16 @@ export default class ClazzPopup extends Component<Args> {
         const fqnDelimited = classFqn.split('.');
         const simpleClassName = fqnDelimited[fqnDelimited.length - 1];
 
+        if (classnameToCommitAndClassMetricsArray.has(simpleClassName)) {
+          classnameToCommitAndClassMetricsArray
+            .get(simpleClassName)
+            ?.push({ commitId, classMetric: metricsData });
+        } else {
+          classnameToCommitAndClassMetricsArray.set(simpleClassName, [
+            { commitId, classMetric: metricsData },
+          ]);
+        }
+
         commitIdToClassMetricsMap.set(
           commitId,
           new Map([[simpleClassName, metricsData]])
@@ -62,7 +77,7 @@ export default class ClazzPopup extends Component<Args> {
       }
     }
 
-    return commitIdToClassMetricsMap;
+    return classnameToCommitAndClassMetricsArray;
   }
 
   get commitToAppMetricsCodeMap(): Map<string, ApplicationMetricsCode> {
@@ -108,4 +123,9 @@ export default class ClazzPopup extends Component<Args> {
 
     return appData.application.name;
   }
+
+  // local helper function
+  shortCommitIdentifierForTable = (tableIndex: number) => {
+    return `C-${tableIndex + 1}`;
+  };
 }
