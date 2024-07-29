@@ -612,9 +612,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
         i++;
       } else {
         // gap fills for timestamps that did not occur
-        x.push(null);
-        y.push(null);
         if (!tempGapRectObj) {
+          x.push(null);
+          y.push(null);
           tempGapRectObj = getGapRectangleObj();
           tempGapRectObj.x0 = getTimestampTickLabel(
             nextExpectedTimestamp - 10000
