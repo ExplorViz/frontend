@@ -231,20 +231,20 @@ export default class VisualizationController extends Controller {
     // fetch applications for evolution mode
     await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
 
-    let shouldTriggerEvolutionFirst = false;
+    let showEvolutionVisualization = false;
 
     // check what kind of rendering we should start
     if (this.commit1 && this.commit1.length > 0) {
       this.isRuntimeTimelineSelected = false;
       this.isCommitTreeSelected = true;
-      shouldTriggerEvolutionFirst = this.commitTreeStateService.setDefaultState(
+      showEvolutionVisualization = this.commitTreeStateService.setDefaultState(
         this.evolutionDataRepository.appNameCommitTreeMap,
         this.commit1,
         this.commit2
       );
     }
 
-    if (shouldTriggerEvolutionFirst) {
+    if (showEvolutionVisualization) {
       this.renderingService.triggerRenderingForSelectedCommits();
     } else {
       // start main loop for cross-commit runtime
