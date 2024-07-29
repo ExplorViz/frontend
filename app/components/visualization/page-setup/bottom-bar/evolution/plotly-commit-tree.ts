@@ -96,11 +96,19 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   }
 
   private setupPlotlyListener() {
-    //const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
+    const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
     const plotlyDiv = this.commitTreeDiv;
 
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyCommitTree = this;
+
+      plotlyDiv.on('plotly_hover', () => {
+        dragLayer.style.cursor = 'pointer';
+      });
+
+      plotlyDiv.on('plotly_unhover', () => {
+        dragLayer.style.cursor = '';
+      });
 
       // #region Click Event
 
@@ -513,6 +521,8 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     minRangeY: number,
     maxRangeY: number
   ): {
+    hovermode: string;
+    hoverdistance: number;
     dragmode: string;
     margin: {
       b: number;
@@ -543,9 +553,9 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     annotations: any[];
   } {
     return {
+      hovermode: 'closests',
+      hoverdistance: 3,
       dragmode: 'pan',
-      //   hoverdistance: 10,
-      //   hovermode: 'closest',
       margin: {
         b: 120,
         pad: 5,

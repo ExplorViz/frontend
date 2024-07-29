@@ -515,7 +515,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     return {
       ...{
         dragmode: 'pan',
-        hoverdistance: 10,
+        hoverdistance: 3,
         hovermode: 'closest',
         margin: {
           b: 40,
