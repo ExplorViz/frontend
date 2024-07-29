@@ -21,19 +21,26 @@ export type ClassMetricCode = {
   cyclomatic_complexity: string;
 };
 
+export type MethodMetricCode = {
+  loc: string;
+  nestedBlockDepth: string;
+  cyclomatic_complexity: string;
+};
+
+export type FileMetricCode = {
+  loc: string;
+  cyclomatic_complexity: string;
+};
+
 export type ApplicationMetricsCode = {
-  files: string[]; // fileMetrics, classMetrics and methodMetrics should have
+  // fileMetrics, classMetrics and methodMetrics should have
   // the size of the files list to provide a mapping logic
-  fileMetrics: {
-    loc: string;
-    cyclomatic_complexity: string;
-  }[];
+  files: string[];
+  fileMetrics: FileMetricCode[];
   classMetrics: {
     [fullQualifiedClassName: string]: ClassMetricCode;
   }[];
   methodMetrics: {
-    loc: string;
-    nestedBlockDepth: string;
-    cyclomatic_complexity: string;
+    [fullQualifiedClassName: string]: MethodMetricCode;
   }[];
 };
