@@ -38,6 +38,7 @@ export interface Node {
 }
 
 export interface K8sPod {
+  id: string;
   name: string;
   applications: Application[];
 }
@@ -100,15 +101,19 @@ export function preProcessAndEnhanceStructureLandscape(
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
 
-  function createNodeId(node: Node) {
-    const { hostName, ipAddress } = node;
-    node.id = `${hostName}#${ipAddress}`;
-    entitiesForIdHashing.add(node);
+  function createNodeId(node: Node | K8sPod) {
+    if (isNode(node)) {
+      const { hostName, ipAddress } = node;
+      node.id = `${hostName}#${ipAddress}`;
+      entitiesForIdHashing.add(node);
+      return;
+    }
+    const { name } = node;
+    node.id = name;
   }
 
-  function createApplicationId(app: Application, parent: Node) {
-    const { hostName, ipAddress } = parent;
-    app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+  function createApplicationId(app: Application, parent: Node | K8sPod) {
+    app.id = `${parent.id}#${app.instanceId}`;
     entitiesForIdHashing.add(app);
   }
 
@@ -146,7 +151,7 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
-  function addParentToApplication(app: Application, parent: Node) {
+  function addParentToApplication(app: Application, parent: Node | K8sPod) {
     app.parentId = parent.id;
   }
 
@@ -164,7 +169,14 @@ export function preProcessAndEnhanceStructureLandscape(
     JSON.stringify(landscapeStructure)
   );
 
-  enhancedlandscapeStructure.nodes.forEach((node) => {
+  const pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
+    k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
+      k8sNamespace.k8sDeployments.flatMap((k8sDeployment) => k8sDeployment.k8sPods)
+    )
+  );
+
+
+  [...enhancedlandscapeStructure.nodes, ...pods].forEach((node) => {
     createNodeId(node);
     node.applications.forEach((app) => {
       createApplicationId(app, node);

@@ -226,7 +226,6 @@ export default class ApplicationRenderer extends Service.extend({
         );
         this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
-      debugger;
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
