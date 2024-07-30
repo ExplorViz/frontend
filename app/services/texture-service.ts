@@ -5,13 +5,15 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { Texture, TextureLoader } from 'three';
+import Service from '@ember/service';
 
-export default class Texturer {
+export default class TextureService extends Service {
   private _textureCache: Map<string, Texture> = new Map();
 
   private loader = new TextureLoader();
 
   constructor() {
+    super();
     // load all textures
     this.loadTexture('plus');
     this.loadTexture('minus');
@@ -99,5 +101,11 @@ export default class Texturer {
         mesh.changeTexture(loadedTexture);
       }
     });
+  }
+}
+
+declare module '@ember/service' {
+  interface Registry {
+    'texture-service': TextureService;
   }
 }

@@ -39,7 +39,6 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import Texturer from 'explorviz-frontend/utils/application-rendering/texturer';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import {
@@ -48,6 +47,7 @@ import {
 } from 'explorviz-frontend/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
+import TextureService from './texture-service';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -86,6 +86,9 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
+  @service('texture-service')
+  private textureService!: TextureService;
+
   // #endregion
 
   //#region Fields
@@ -93,8 +96,6 @@ export default class ApplicationRenderer extends Service.extend() {
   private _forceGraph!: ThreeForceGraph;
 
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
-
-  private _texturer: Texturer = new Texturer();
 
   private _appCommRendering: CommunicationRendering;
 
@@ -617,7 +618,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as added
-        this._texturer.applyAddedTextureToMesh(this.getMeshById(id));
+        this.textureService.applyAddedTextureToMesh(this.getMeshById(id));
 
         if (addedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -627,7 +628,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as added
           while (packageNode && packageNode.name !== firstAddedPackageName) {
-            this._texturer.applyAddedTextureToMesh(
+            this.textureService.applyAddedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
             packageNode = packageNode.parent;
@@ -635,7 +636,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Mark the first added package
           if (packageNode) {
-            this._texturer.applyAddedTextureToMesh(
+            this.textureService.applyAddedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
           }
@@ -660,7 +661,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as deleted
-        this._texturer.applyDeletedTextureToMesh(this.getMeshById(id));
+        this.textureService.applyDeletedTextureToMesh(this.getMeshById(id));
 
         if (deletedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -670,7 +671,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as deleted
           while (packageNode && packageNode.name !== firstDeletedPackageName) {
-            this._texturer.applyDeletedTextureToMesh(
+            this.textureService.applyDeletedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
             packageNode = packageNode.parent;
@@ -678,7 +679,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Mark the first deleted package
           if (packageNode) {
-            this._texturer.applyDeletedTextureToMesh(
+            this.textureService.applyDeletedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
           }
@@ -701,7 +702,7 @@ export default class ApplicationRenderer extends Service.extend() {
       )?.modelId;
 
       if (id) {
-        this._texturer.applyModifiedTextureToMesh(this.getMeshById(id));
+        this.textureService.applyModifiedTextureToMesh(this.getMeshById(id));
       }
     }
   }
