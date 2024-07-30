@@ -15,4 +15,4 @@ export function isMetric(x: any): x is Metric {
   return isObject(x) && 'timestamp' in x;
 }
 
-export type MetricLandscapeData = Metric[];
+export type Metrics = Metric[];

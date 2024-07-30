@@ -29,7 +29,7 @@ declare const config: {
     userService: string;
     vsCodeService: string;
     collaborationService: string;
-    metricService: string;
+    metricsService: string;
     codeService: string;
   };
   version: {

@@ -8,7 +8,7 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 
-const { metricService } = ENV.backendAddresses;
+const { metricsService } = ENV.backendAddresses;
 
 export default class MetricDataComponent extends Component {
   @service('auth')
@@ -44,7 +44,7 @@ export default class MetricDataComponent extends Component {
     }
     try {
       const response = await fetch(
-        `${metricService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`
+        `${metricsService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`
       ); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
