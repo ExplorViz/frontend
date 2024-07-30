@@ -12,6 +12,7 @@ export default class ApplicationData {
   flatData: {
     hashCodeClassMap: Map<string, any>;
     packageNameModelMap: Map<string, any>;
+    fqnToModelMap: Map<string, any>;
   };
 
   @tracked
@@ -25,6 +26,7 @@ export default class ApplicationData {
     flatData: {
       hashCodeClassMap: Map<string, any>;
       packageNameModelMap: Map<string, any>;
+      fqnToModelMap: Map<string, any>;
     }
   ) {
     this.application = application;
@@ -45,6 +47,7 @@ export default class ApplicationData {
     flatData: {
       hashCodeClassMap: Map<string, any>;
       packageNameModelMap: Map<string, any>;
+      fqnToModelMap: Map<string, any>;
     }
   ) {
     this.application = newApplication;
