@@ -1,5 +1,10 @@
-<button type='button' {{on 'click' this.loadMetrics}}>Load Metrics</button>
-
+<BsButton
+  @type='primary'
+  class='align-self-end'
+  {{on 'click' this.loadMetrics}}
+>
+  {{svg-jar 'sync-16' class='octicon'}}
+</BsButton>
 <table>
   <thead>
     <tr>
