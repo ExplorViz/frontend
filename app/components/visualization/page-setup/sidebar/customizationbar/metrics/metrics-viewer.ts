@@ -3,10 +3,11 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import { MetricLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/metric-data';
+import { Metrics } from 'explorviz-frontend/utils/landscape-schemes/metrics-data';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
 import TimestampService from 'explorviz-frontend/services/timestamp';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 
 const { metricsService } = ENV.backendAddresses;
 
@@ -20,8 +21,11 @@ export default class MetricDataComponent extends Component {
   @service('timestamp')
   timestampService!: TimestampService;
 
+  @service('toast-handler')
+  toast!: ToastHandlerService;
+
   @tracked
-  metrics: MetricLandscapeData = [];
+  metrics: Metrics = [];
 
   /**
    * Asynchronously loads metrics data from the metric service.
@@ -45,9 +49,12 @@ export default class MetricDataComponent extends Component {
     try {
       const response = await fetch(
         `${metricsService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`
-      ); //"ffb31fc2-24d3-4718-b72b-6f054055b69e"  &secret=${"0CgsRRsidIsv3Yw3"}  this.auth.accessToken
+      );
       if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+        this.toast.showErrorToastMessage(
+          `HTTP error: ${response.status} when loading metrics`
+        );
+        return;
       }
       const rawData: any[] = await response.json();
 
@@ -61,8 +68,9 @@ export default class MetricDataComponent extends Component {
         landscapeToken: metricArray[6],
         unit: metricArray[7],
       }));
-      // console.log(this.metrics);
+      this.toast.showSuccessToastMessage(`${rawData.length} metrics loaded`);
     } catch (error) {
+      this.toast.showErrorToastMessage('Error loading metrics');
       console.error('Error loading metrics', error);
     }
   }
