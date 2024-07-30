@@ -52,7 +52,6 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/utils/application-helpers';
-import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -311,6 +310,7 @@ export default class ApplicationRenderer extends Service.extend({
 
       if (commitComparison) {
         this.visualizeCommitComparisonPackagesAndClasses(
+          applicationData,
           applicationObject3D,
           commitComparison
         );
@@ -571,31 +571,61 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   private visualizeCommitComparisonPackagesAndClasses(
+    applicationData: ApplicationData,
     applicationObject3D: ApplicationObject3D,
     commitComparison: CommitComparison
   ) {
     this.visualizeAddedPackagesAndClasses(
-      commitComparison,
-      applicationObject3D
+      applicationData,
+      applicationObject3D,
+      commitComparison
     );
     this.visualizeDeletedPackagesAndClasses(
-      commitComparison,
-      applicationObject3D
+      applicationData,
+      applicationObject3D,
+      commitComparison
     );
-    this.visualizeModifiedPackagesAndClasses(
-      commitComparison,
-      applicationObject3D
-    );
+    this.visualizeModifiedPackagesAndClasses(applicationData, commitComparison);
+  }
+
+  private findModelIdForLongestFqnMatch(
+    applicationData: ApplicationData,
+    fqFileName: string
+  ) {
+    const fqnToModelMap = applicationData.flatData.fqnToModelMap;
+
+    // replace all occurences of / with .
+    // (change in code service in the future)
+    const fqFileNameDotDelimeter = fqFileName.replace(/\//g, '.');
+
+    let longestKeyMatch = null;
+    let id = null;
+
+    for (const [fqn, modelObj] of fqnToModelMap.entries()) {
+      if (fqFileNameDotDelimeter.includes(fqn)) {
+        if (!longestKeyMatch || fqn.length > longestKeyMatch.length) {
+          longestKeyMatch = fqn;
+          id = modelObj.modelId;
+        }
+      }
+    }
+    return id;
   }
 
   private visualizeAddedPackagesAndClasses(
-    commitComparison: CommitComparison,
-    applicationObject3D: ApplicationObject3D
+    applicationData: ApplicationData,
+    applicationObject3D: ApplicationObject3D,
+    commitComparison: CommitComparison
   ) {
     let indexAdded = 0;
+
     for (const fqFileName of commitComparison.added) {
-      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
       const addedPackages = commitComparison.addedPackages[indexAdded];
+
+      const id = this.findModelIdForLongestFqnMatch(
+        applicationData,
+        fqFileName
+      );
 
       if (id) {
         this.texturer.markAsAddedById(this.getMeshById(id));
@@ -622,12 +652,17 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   private visualizeDeletedPackagesAndClasses(
-    commitComparison: CommitComparison,
-    applicationObject3D: ApplicationObject3D
+    applicationData: ApplicationData,
+    applicationObject3D: ApplicationObject3D,
+    commitComparison: CommitComparison
   ) {
     let indexDeleted = 0;
     for (const fqFileName of commitComparison.deleted) {
-      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      const id = this.findModelIdForLongestFqnMatch(
+        applicationData,
+        fqFileName
+      );
+
       const deletedPackages = commitComparison.deletedPackages[indexDeleted];
 
       if (id) {
@@ -654,14 +689,17 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   private visualizeModifiedPackagesAndClasses(
-    commitComparison: CommitComparison,
-    applicationObject3D: ApplicationObject3D
+    applicationData: ApplicationData,
+    commitComparison: CommitComparison
   ) {
     // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would
     // have to mark every parent package as modified. The design choice is to not do that as it seems overloaded
 
     for (const fqFileName of commitComparison.modified) {
-      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      const id = this.findModelIdForLongestFqnMatch(
+        applicationData,
+        fqFileName
+      );
 
       if (id) {
         this.texturer.markAsModifiedById(this.getMeshById(id));
@@ -700,46 +738,6 @@ export default class ApplicationRenderer extends Service.extend({
         mesh.material.map = null;
       }
     });
-  }
-
-  private fqFileNameToMeshId(
-    applicationObject3D: ApplicationObject3D,
-    fqFileName: string
-  ): string | undefined {
-    try {
-      // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
-      // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
-
-      const clazzes = getAllClassesInApplication(
-        applicationObject3D.data.application
-      );
-      const split1 = fqFileName.split('/');
-      const prefixAndPackageNames = split1.slice(0, split1.length - 1);
-      const split2 = split1[split1.length - 1].split('.');
-      const className = split2[split2.length - 2];
-
-      const candidates = clazzes.filter((clazz) => clazz.name === className);
-
-      for (const candidate of candidates) {
-        const packages = getClassAncestorPackages(candidate);
-        let index = prefixAndPackageNames.length - 1;
-        for (const pckg of packages.slice().reverse()) {
-          if (index < 0) {
-            break;
-          }
-          if (pckg.name === prefixAndPackageNames[index]) {
-            index--;
-          } else {
-            break;
-          }
-        }
-        return candidate.id;
-      }
-      return undefined;
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
   }
 
   cleanup() {
