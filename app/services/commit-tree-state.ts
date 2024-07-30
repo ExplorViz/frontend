@@ -12,7 +12,7 @@ export type SelectedCommit = Commit;
 export default class CommitTreeStateService extends Service {
   // #region Properties and getter
   @tracked
-  private _selectedCommits: Map<string, SelectedCommit[]> = new Map();
+  private _selectedCommits: Map<string, SelectedCommit[]> = new Map(); //<appName, SelectedCommit[]>
 
   get selectedCommits() {
     return this._selectedCommits;

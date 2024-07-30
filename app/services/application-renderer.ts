@@ -44,6 +44,15 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import Texturer from 'explorviz-frontend/utils/application-rendering/texturer';
+import EvolutionDataRepository from './repos/evolution-data-repository';
+import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { getClassInApplicationById } from 'explorviz-frontend/utils/restructure-helper';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/utils/application-helpers';
+import { getClassAncestorPackages } from 'explorviz-frontend/utils/class-helpers';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -52,6 +61,9 @@ export default class ApplicationRenderer extends Service.extend({
   // #region fields
 
   debug = debugLogger('ApplicationRendering');
+
+  @service('repos/evolution-data-repository')
+  evolutionDataRepository!: EvolutionDataRepository;
 
   @service('local-user')
   localUser!: LocalUser;
@@ -91,6 +103,8 @@ export default class ApplicationRenderer extends Service.extend({
   private structureLandscapeData!: StructureLandscapeData;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
+
+  private texturer: Texturer = new Texturer();
 
   readonly appCommRendering: CommunicationRendering;
 
@@ -289,6 +303,21 @@ export default class ApplicationRenderer extends Service.extend({
       // ----------------------------------------
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
+
+      const commitComparison =
+        this.evolutionDataRepository.getCommitComparisonByAppName(
+          applicationModel.name
+        );
+
+      if (commitComparison) {
+        this.visualizeCommitComparisonPackagesAndClasses(
+          applicationObject3D,
+          commitComparison
+        );
+      } else {
+        // remove existing comparison visualizations
+        this.removeCommitComparisonVisualization(applicationObject3D);
+      }
 
       applicationObject3D.resetRotation();
 
@@ -539,6 +568,178 @@ export default class ApplicationRenderer extends Service.extend({
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  private visualizeCommitComparisonPackagesAndClasses(
+    applicationObject3D: ApplicationObject3D,
+    commitComparison: CommitComparison
+  ) {
+    this.visualizeAddedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
+    this.visualizeDeletedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
+    this.visualizeModifiedPackagesAndClasses(
+      commitComparison,
+      applicationObject3D
+    );
+  }
+
+  private visualizeAddedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
+    let indexAdded = 0;
+    for (const fqFileName of commitComparison.added) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName); // class id
+      const addedPackages = commitComparison.addedPackages[indexAdded];
+
+      if (id) {
+        this.texturer.markAsAddedById(this.getMeshById(id));
+
+        if (addedPackages !== '') {
+          const clazz = getClassInApplicationById(
+            applicationObject3D.data.application,
+            id
+          );
+          let pckg: Package | undefined = clazz?.parent;
+          const addedPackagesSplit = addedPackages.split('.');
+          const firstAddedPackageName = addedPackagesSplit[0];
+          while (pckg && pckg.name !== firstAddedPackageName) {
+            this.texturer.markAsAddedById(this.getMeshById(pckg.id));
+            pckg = pckg.parent;
+          }
+          if (pckg) {
+            this.texturer.markAsAddedById(this.getMeshById(pckg.id));
+          }
+        }
+      }
+      indexAdded++;
+    }
+  }
+
+  private visualizeDeletedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
+    let indexDeleted = 0;
+    for (const fqFileName of commitComparison.deleted) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+      const deletedPackages = commitComparison.deletedPackages[indexDeleted];
+
+      if (id) {
+        this.texturer.markAsDeletedById(this.getMeshById(id));
+        if (deletedPackages !== '') {
+          const clazz = getClassInApplicationById(
+            applicationObject3D.data.application,
+            id
+          );
+          let pckg: Package | undefined = clazz?.parent;
+          const deletedPackagesSplit = deletedPackages.split('.');
+          const firstDeletedPackageName = deletedPackagesSplit[0];
+          while (pckg && pckg.name !== firstDeletedPackageName) {
+            this.texturer.markAsDeletedById(this.getMeshById(pckg.id));
+            pckg = pckg.parent;
+          }
+          if (pckg) {
+            this.texturer.markAsDeletedById(this.getMeshById(pckg.id));
+          }
+        }
+      }
+      indexDeleted++;
+    }
+  }
+
+  private visualizeModifiedPackagesAndClasses(
+    commitComparison: CommitComparison,
+    applicationObject3D: ApplicationObject3D
+  ) {
+    // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would
+    // have to mark every parent package as modified. The design choice is to not do that as it seems overloaded
+
+    for (const fqFileName of commitComparison.modified) {
+      const id = this.fqFileNameToMeshId(applicationObject3D, fqFileName);
+
+      if (id) {
+        this.texturer.markAsModifiedById(this.getMeshById(id));
+      }
+    }
+  }
+
+  private removeCommitComparisonVisualization(
+    applicationObject3D: ApplicationObject3D
+  ) {
+    const packages = getAllPackagesInApplication(
+      applicationObject3D.data.application
+    );
+    const classes = getAllClassesInApplication(
+      applicationObject3D.data.application
+    );
+    packages.forEach((pckg) => {
+      const mesh = this.getBoxMeshByModelId(pckg.id);
+      if (
+        mesh &&
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
+        mesh.material.map = null;
+      }
+    });
+    classes.forEach((clazz) => {
+      const mesh = this.getBoxMeshByModelId(clazz.id);
+      if (
+        mesh &&
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
+        mesh.material.map = null;
+      }
+    });
+  }
+
+  private fqFileNameToMeshId(
+    applicationObject3D: ApplicationObject3D,
+    fqFileName: string
+  ): string | undefined {
+    try {
+      // TODO: improve time complexity by getting rid of the prefix in fqFileName that has nothing to do with the landscape (we need to adapt the code-agent for that purpose)
+      // Then we can do a top-down approach (exact matching) instead of this bottom-up approach
+
+      const clazzes = getAllClassesInApplication(
+        applicationObject3D.data.application
+      );
+      const split1 = fqFileName.split('/');
+      const prefixAndPackageNames = split1.slice(0, split1.length - 1);
+      const split2 = split1[split1.length - 1].split('.');
+      const className = split2[split2.length - 2];
+
+      const candidates = clazzes.filter((clazz) => clazz.name === className);
+
+      for (const candidate of candidates) {
+        const packages = getClassAncestorPackages(candidate);
+        let index = prefixAndPackageNames.length - 1;
+        for (const pckg of packages.slice().reverse()) {
+          if (index < 0) {
+            break;
+          }
+          if (pckg.name === prefixAndPackageNames[index]) {
+            index--;
+          } else {
+            break;
+          }
+        }
+        return candidate.id;
+      }
+      return undefined;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
   }
 
   cleanup() {

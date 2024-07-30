@@ -12,9 +12,8 @@ import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { SelectedCommit } from '../commit-tree-state';
+import CommitTreeStateService, { SelectedCommit } from '../commit-tree-state';
 import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
-import { map } from 'jquery';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionDataRepository');
@@ -23,6 +22,9 @@ export default class EvolutionDataRepository extends Service {
 
   @service('evolution-data-fetch-service')
   evolutionDataFetchService!: EvolutionDataFetchServiceService;
+
+  @service('commit-tree-state')
+  commitTreeStateService!: CommitTreeStateService;
 
   // #endregion
 
@@ -59,6 +61,17 @@ export default class EvolutionDataRepository extends Service {
   }
 
   // #endregion
+
+  getCommitComparisonByAppName(appName: string): CommitComparison | undefined {
+    const selectedCommitsForApp =
+      this.commitTreeStateService.selectedCommits.get(appName) ?? [];
+
+    if (selectedCommitsForApp.length == 2) {
+      const mapKey = `${selectedCommitsForApp[0].commitId}-${selectedCommitsForApp[1].commitId}`;
+      return this.commitsToCommitComparisonMap.get(mapKey);
+    }
+    return undefined;
+  }
 
   // #region Fetch functions
 
