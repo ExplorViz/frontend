@@ -9,6 +9,7 @@ import ClassCommunication from './landscape-schemes/dynamic/class-communication'
 
 export default class ApplicationData {
   application: Application;
+  k8sData: K8sData | null;
 
   layoutData: Map<string, LayoutData>;
 
@@ -28,7 +29,8 @@ export default class ApplicationData {
     flatData: {
       hashCodeClassMap: Map<string, any>;
       packageNameModelMap: Map<string, any>;
-    }
+    },
+    k8sData: K8sData | null
   ) {
     this.application = application;
     this.layoutData = layoutData;
@@ -40,6 +42,7 @@ export default class ApplicationData {
       differenceMetricScores: new Map<string, Metric[]>(),
       aggregatedMetricScores: new Map<string, Metric>(),
     };
+    this.k8sData = k8sData;
   }
 
   updateApplication(
@@ -54,4 +57,10 @@ export default class ApplicationData {
     this.layoutData = layoutData;
     this.flatData = flatData;
   }
+}
+export interface K8sData {
+  k8sNode: string
+  k8sNamespace: string
+  k8sDeployment: string
+  k8sPod: string
 }

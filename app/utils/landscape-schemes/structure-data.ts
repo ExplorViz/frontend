@@ -37,9 +37,30 @@ export interface Node {
   applications: Application[];
 }
 
+export interface K8sPod {
+  name: string;
+  applications: Application[];
+}
+
+export interface K8sDeployment {
+  name: string;
+  k8sPods: K8sPod[];
+}
+
+export interface K8sNamespace {
+  name: string;
+  k8sDeployments: K8sDeployment[];
+}
+
+export interface K8sNode {
+  name: string;
+  k8sNamespaces: K8sNamespace[];
+}
+
 export interface StructureLandscapeData {
   landscapeToken: string;
   nodes: Node[];
+  k8sNodes: K8sNode[];
 }
 
 export function isLandscape(x: any): x is StructureLandscapeData {

@@ -53,6 +53,7 @@ export default class LandscapeHttpRequestUtil {
           if (response.ok) {
             const structureData =
               (await response.json()) as StructureLandscapeData;
+              console.log(structureData);
             resolve(structureData);
           } else {
             reject();

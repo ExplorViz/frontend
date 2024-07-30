@@ -176,14 +176,16 @@ export default class VisualizationController extends Controller {
   get isLandscapeExistentAndEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length === 0
+      this.landscapeData.structureLandscapeData?.nodes.length === 0 &&
+      this.landscapeData.structureLandscapeData?.k8sNodes.length === 0
     );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
     return (
       this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length > 0
+      (this.landscapeData.structureLandscapeData?.nodes.length > 0
+        || this.landscapeData.structureLandscapeData?.k8sNodes.length > 0)
     );
   }
 

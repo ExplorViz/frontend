@@ -44,6 +44,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import SceneRepository from './repos/scene-repository';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -86,9 +87,11 @@ export default class ApplicationRenderer extends Service.extend({
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  forceGraph!: ThreeForceGraph;
 
-  private structureLandscapeData!: StructureLandscapeData;
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
+  forceGraph!: ThreeForceGraph;
 
   private openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -104,6 +107,12 @@ export default class ApplicationRenderer extends Service.extend({
       this.userSettings,
       this.localUser
     );
+
+    // const geometry = new THREE.BoxGeometry(1, 1, 1);
+    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // const cube = new THREE.Mesh(geometry, material);
+    // this.sceneRepo.getScene().add(cube);
+
   }
 
   // #region getters
@@ -126,10 +135,6 @@ export default class ApplicationRenderer extends Service.extend({
 
   getApplicationById(id: string): ApplicationObject3D | undefined {
     return this.openApplicationsMap.get(id);
-  }
-
-  getApplicationInCurrentLandscapeById(id: string): Application | undefined {
-    return getApplicationInLandscapeById(this.structureLandscapeData, id);
   }
 
   getBoxMeshByModelId(id: string) {
@@ -198,6 +203,7 @@ export default class ApplicationRenderer extends Service.extend({
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
+      console.log('adding application', applicationData);
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -220,12 +226,13 @@ export default class ApplicationRenderer extends Service.extend({
         );
         this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
+      debugger;
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
           ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
+            applicationObject3D
+          )
           : addApplicationArgs;
 
       if (layoutChanged) {
@@ -510,6 +517,7 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   restoreFromSerialization(room: SerializedRoom) {
+    console.log('restoring from serialization');
     this.cleanup();
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
