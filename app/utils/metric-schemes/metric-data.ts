@@ -44,3 +44,35 @@ export type ApplicationMetricsCode = {
     [fullQualifiedClassName: string]: MethodMetricCode;
   }[];
 };
+
+export type CommitComparisonMetric = {
+  entityName: string; // fqn
+  metricMap: {
+    LCOM4:
+      | {
+          oldValue: string | null;
+          newValue: string;
+        }
+      | undefined;
+    cyclomatic_complexity:
+      | {
+          oldValue: string | null;
+          newValue: string;
+        }
+      | undefined;
+    cyclomatic_complexity_weighted:
+      | {
+          oldValue: string | null;
+          newValue: string;
+        }
+      | undefined;
+    loc:
+      | {
+          // used to identify which communication line needs to be marked as modified
+          // during the commit comparison
+          oldValue: string | null;
+          newValue: string;
+        }
+      | undefined;
+  };
+};

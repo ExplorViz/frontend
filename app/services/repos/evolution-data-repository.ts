@@ -3,6 +3,7 @@ import debugLogger from 'ember-debug-logger';
 import {
   CommitTree,
   AppNameCommitTreeMap,
+  CommitComparison,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
@@ -13,6 +14,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { SelectedCommit } from '../commit-tree-state';
 import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import { map } from 'jquery';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionDataRepository');
@@ -41,6 +43,8 @@ export default class EvolutionDataRepository extends Service {
     string,
     Map<string, ApplicationMetricsCode>
   > = new Map();
+
+  commitsToCommitComparisonMap: Map<string, CommitComparison> = new Map();
 
   // #endregion
 
@@ -91,8 +95,12 @@ export default class EvolutionDataRepository extends Service {
     let allcombinedStructureLandscapeData: StructureLandscapeData =
       createEmptyStructureLandscapeData();
 
+    const newCommitsToCommitComparisonMap: Map<string, CommitComparison> =
+      new Map();
+
     for (const [appName, selectedCommits] of appNameToSelectedCommits) {
       try {
+        // fetch metrics for each commit
         const commitIdToAppMetricsCodeMap =
           await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppAndCommits(
             appName,
@@ -103,6 +111,25 @@ export default class EvolutionDataRepository extends Service {
           appName,
           commitIdToAppMetricsCodeMap
         );
+
+        // fetch commit-comparison
+        if (selectedCommits.length == 2) {
+          const mapKey = `${selectedCommits[0].commitId}-${selectedCommits[1].commitId}`;
+
+          let commitComparison: CommitComparison | undefined = undefined;
+
+          if (this.commitsToCommitComparisonMap.has(mapKey)) {
+            commitComparison = this.commitsToCommitComparisonMap.get(mapKey);
+          } else {
+            commitComparison =
+              await this.evolutionDataFetchService.fetchCommitComparison(
+                appName,
+                selectedCommits[0],
+                selectedCommits[1]
+              );
+          }
+          newCommitsToCommitComparisonMap.set(mapKey, commitComparison!);
+        }
 
         const combinedLandscapeStructureForAppAndCommits =
           await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
@@ -126,6 +153,7 @@ export default class EvolutionDataRepository extends Service {
       }
     }
 
+    this.commitsToCommitComparisonMap = newCommitsToCommitComparisonMap;
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
     this.combinedStructureLandscapeData = allcombinedStructureLandscapeData;
   }
@@ -144,6 +172,7 @@ export default class EvolutionDataRepository extends Service {
     this.debug('Reset Evolution StructureLandscapeData');
     this.resetAppNameToCommitIdToApplicationMetricsCodeMap();
     this.resetEvolutionStructureLandscapeData();
+    this.commitsToCommitComparisonMap = new Map();
   }
 
   resetAppNameToCommitIdToApplicationMetricsCodeMap() {

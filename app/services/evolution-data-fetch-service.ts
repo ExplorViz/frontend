@@ -3,7 +3,11 @@ import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
-import { CommitTree } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import {
+  Commit,
+  CommitComparison,
+  CommitTree,
+} from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 
 import {
   preProcessAndEnhanceStructureLandscape,
@@ -56,6 +60,21 @@ export default class EvolutionDataFetchServiceService extends Service {
     }
 
     return commitIdToAppMetricsCodeMap;
+  }
+
+  async fetchCommitComparison(
+    applicationName: string,
+    baseCommit: Commit,
+    comparisonCommit: Commit
+  ): Promise<CommitComparison> {
+    const url = this.constructUrl(
+      'commit-comparison',
+      applicationName,
+      `${baseCommit.commitId}-${comparisonCommit.commitId}`
+    );
+
+    const response = await this.fetchFromService(url);
+    return response as CommitComparison;
   }
 
   async fetchStaticLandscapeStructuresForAppName(
