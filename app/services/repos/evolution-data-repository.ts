@@ -1,19 +1,19 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
+import { tracked } from '@glimmer/tracking';
 import {
   CommitTree,
   AppNameCommitTreeMap,
   CommitComparison,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
-import { tracked } from '@glimmer/tracking';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
-import CommitTreeStateService, { SelectedCommit } from '../commit-tree-state';
 import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
+import CommitTreeStateService, { SelectedCommit } from '../commit-tree-state';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionDataRepository');
@@ -30,23 +30,24 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Properties
 
-  @tracked private _evolutionStructureLandscapeData: Map<
+  @tracked private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
+
+  private _evolutionStructureLandscapeData: Map<
     string,
     StructureLandscapeData
   > = new Map();
   // <appName, StructureLandscapeData>
 
-  @tracked private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-  @tracked combinedStructureLandscapeData: StructureLandscapeData =
+  private _combinedStructureLandscapeData: StructureLandscapeData =
     createEmptyStructureLandscapeData();
 
-  appNameToCommitIdToApplicationMetricsCodeMap: Map<
+  private _appNameToCommitIdToApplicationMetricsCodeMap: Map<
     string,
     Map<string, ApplicationMetricsCode>
   > = new Map();
 
-  commitsToCommitComparisonMap: Map<string, CommitComparison> = new Map();
+  private _commitsToCommitComparisonMap: Map<string, CommitComparison> =
+    new Map();
 
   // #endregion
 
@@ -60,91 +61,90 @@ export default class EvolutionDataRepository extends Service {
     return this._appNameCommitTreeMap;
   }
 
-  // #endregion
+  get combinedStructureLandscapeData(): StructureLandscapeData {
+    return this._combinedStructureLandscapeData;
+  }
+
+  get commitsToCommitComparisonMap(): Map<string, CommitComparison> {
+    return this._commitsToCommitComparisonMap;
+  }
+
+  get appNameToCommitIdToApplicationMetricsCodeMap(): Map<
+    string,
+    Map<string, ApplicationMetricsCode>
+  > {
+    return this._appNameToCommitIdToApplicationMetricsCodeMap;
+  }
 
   getCommitComparisonByAppName(appName: string): CommitComparison | undefined {
-    const selectedCommitsForApp =
+    const selectedCommits =
       this.commitTreeStateService.selectedCommits.get(appName) ?? [];
 
-    if (selectedCommitsForApp.length == 2) {
-      const mapKey = `${selectedCommitsForApp[0].commitId}-${selectedCommitsForApp[1].commitId}`;
-      return this.commitsToCommitComparisonMap.get(mapKey);
+    if (selectedCommits.length !== 2) {
+      return undefined;
     }
-    return undefined;
+
+    const [firstCommit, secondCommit] = selectedCommits;
+    const mapKey = `${firstCommit.commitId}-${secondCommit.commitId}`;
+
+    return this.commitsToCommitComparisonMap.get(mapKey);
   }
+
+  // #endregion
 
   // #region Fetch functions
 
   async fetchAndStoreApplicationCommitTrees(): Promise<void> {
     this.debug('fetchAndStoreApplicationCommitTrees');
+
     try {
-      const applicationNames: string[] =
+      const applicationNames =
         await this.evolutionDataFetchService.fetchApplications();
-      const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-      for (const appName of applicationNames) {
-        const commitTreeForAppName =
-          await this.fetchCommitTreeForAppName(appName);
-
-        if (commitTreeForAppName) {
-          appNameCommitTreeMap.set(appName, commitTreeForAppName);
-        }
-      }
+      const appNameCommitTreeMap =
+        await this.buildAppNameCommitTreeMap(applicationNames);
 
       this._appNameCommitTreeMap = appNameCommitTreeMap;
-    } catch (reason) {
+    } catch (error) {
       this.resetAppNameCommitTreeMap();
-      console.error(`Failed to build AppNameCommitTreeMap, reason: ${reason}`);
+      console.error(`Failed to build AppNameCommitTreeMap, reason: ${error}`);
     }
   }
 
-  async fetchAndStoreStructureLandscapeDataForSelectedCommits(
+  async fetchAndStoreEvolutionDataForSelectedCommits(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ): Promise<void> {
-    const newEvolutionStructureLandscapeData: Map<
+    // initiate temp variables on which this function will work
+
+    const newEvolutionStructureLandscapeData = new Map<
       string,
       StructureLandscapeData
-    > = new Map();
-    let allcombinedStructureLandscapeData: StructureLandscapeData =
-      createEmptyStructureLandscapeData();
+    >();
 
-    const newCommitsToCommitComparisonMap: Map<string, CommitComparison> =
-      new Map();
+    let newCombinedStructureLandscapeData = createEmptyStructureLandscapeData();
+
+    const newCommitsToCommitComparisonMap = new Map<string, CommitComparison>();
+
+    const newAppNameToCommitIdToApplicationMetricsCodeMap = new Map<
+      string,
+      Map<string, ApplicationMetricsCode>
+    >();
 
     for (const [appName, selectedCommits] of appNameToSelectedCommits) {
       try {
-        // fetch metrics for each commit
-        const commitIdToAppMetricsCodeMap =
-          await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppAndCommits(
-            appName,
-            selectedCommits
-          );
-
-        this.appNameToCommitIdToApplicationMetricsCodeMap.set(
+        await this.fetchMetricsForAppAndCommits(
           appName,
-          commitIdToAppMetricsCodeMap
+          selectedCommits,
+          newAppNameToCommitIdToApplicationMetricsCodeMap
         );
 
-        // fetch commit-comparison
-        if (selectedCommits.length == 2) {
-          const mapKey = `${selectedCommits[0].commitId}-${selectedCommits[1].commitId}`;
+        await this.fetchCommitComparisonForAppAndCommits(
+          appName,
+          selectedCommits,
+          newCommitsToCommitComparisonMap
+        );
 
-          let commitComparison: CommitComparison | undefined = undefined;
-
-          if (this.commitsToCommitComparisonMap.has(mapKey)) {
-            commitComparison = this.commitsToCommitComparisonMap.get(mapKey);
-          } else {
-            commitComparison =
-              await this.evolutionDataFetchService.fetchCommitComparison(
-                appName,
-                selectedCommits[0],
-                selectedCommits[1]
-              );
-          }
-          newCommitsToCommitComparisonMap.set(mapKey, commitComparison!);
-        }
-
-        const combinedLandscapeStructureForAppAndCommits =
+        // fetch single landscape structure for appName and commits
+        const combinedLandscapeStructure =
           await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
             appName,
             selectedCommits
@@ -152,23 +152,27 @@ export default class EvolutionDataRepository extends Service {
 
         newEvolutionStructureLandscapeData.set(
           appName,
-          combinedLandscapeStructureForAppAndCommits
+          combinedLandscapeStructure
         );
 
-        allcombinedStructureLandscapeData = combineStructureLandscapeData(
-          allcombinedStructureLandscapeData,
-          combinedLandscapeStructureForAppAndCommits
+        // combine all fetched landscape structures, i.e., for each appName
+        // in a single object
+        newCombinedStructureLandscapeData = combineStructureLandscapeData(
+          newCombinedStructureLandscapeData,
+          combinedLandscapeStructure
         );
-      } catch (reason) {
+      } catch (error) {
         console.error(
-          `Failed to fetch and set structure landscape data for app: ${appName}, reason: ${reason}`
+          `Failed to fetch and set structure landscape data for app: ${appName}, reason: ${error}`
         );
       }
     }
 
-    this.commitsToCommitComparisonMap = newCommitsToCommitComparisonMap;
+    this._commitsToCommitComparisonMap = newCommitsToCommitComparisonMap;
     this._evolutionStructureLandscapeData = newEvolutionStructureLandscapeData;
-    this.combinedStructureLandscapeData = allcombinedStructureLandscapeData;
+    this._combinedStructureLandscapeData = newCombinedStructureLandscapeData;
+    this._appNameToCommitIdToApplicationMetricsCodeMap =
+      newAppNameToCommitIdToApplicationMetricsCodeMap;
   }
 
   // #endregion
@@ -185,16 +189,16 @@ export default class EvolutionDataRepository extends Service {
     this.debug('Reset Evolution StructureLandscapeData');
     this.resetAppNameToCommitIdToApplicationMetricsCodeMap();
     this.resetEvolutionStructureLandscapeData();
-    this.commitsToCommitComparisonMap = new Map();
+    this._commitsToCommitComparisonMap = new Map();
   }
 
-  resetAppNameToCommitIdToApplicationMetricsCodeMap() {
-    this.appNameToCommitIdToApplicationMetricsCodeMap = new Map();
+  resetAppNameToCommitIdToApplicationMetricsCodeMap(): void {
+    this._appNameToCommitIdToApplicationMetricsCodeMap = new Map();
   }
 
   resetEvolutionStructureLandscapeData(): void {
     this._evolutionStructureLandscapeData = new Map();
-    this.combinedStructureLandscapeData = createEmptyStructureLandscapeData();
+    this._combinedStructureLandscapeData = createEmptyStructureLandscapeData();
   }
 
   resetAppNameCommitTreeMap(): void {
@@ -205,13 +209,93 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Private Helper Functions
 
+  private async fetchMetricsForAppAndCommits(
+    appName: string,
+    selectedCommits: SelectedCommit[],
+    newAppNameToCommitIdToApplicationMetricsCodeMap: Map<
+      string,
+      Map<string, ApplicationMetricsCode>
+    >
+  ) {
+    // Deep clone the existing map or initialize a new one if it doesn't exist
+    let commitIdToApplicationMetricsCode =
+      structuredClone(
+        this.appNameToCommitIdToApplicationMetricsCodeMap.get(appName)
+      ) ?? new Map();
+
+    // Create a set of selected commit IDs for quick look-up
+    const selectedCommitIdsSet = new Set(
+      selectedCommits.map((commit) => commit.commitId)
+    );
+
+    // Filter out old entries that are not in the selected commits
+    commitIdToApplicationMetricsCode = new Map(
+      [...commitIdToApplicationMetricsCode].filter(([commitId]) =>
+        selectedCommitIdsSet.has(commitId)
+      )
+    );
+
+    for (const selectedCommit of selectedCommits) {
+      if (!commitIdToApplicationMetricsCode.has(selectedCommit.commitId)) {
+        const commitIdToAppMetricsCode =
+          await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppNameAndCommit(
+            appName,
+            selectedCommit
+          );
+        commitIdToApplicationMetricsCode.set(
+          selectedCommit.commitId,
+          commitIdToAppMetricsCode
+        );
+      }
+      // else already fetched
+    }
+
+    // Store the result in the temporary map
+    newAppNameToCommitIdToApplicationMetricsCodeMap.set(
+      appName,
+      commitIdToApplicationMetricsCode
+    );
+  }
+
+  private async fetchCommitComparisonForAppAndCommits(
+    appName: string,
+    selectedCommits: SelectedCommit[],
+    newCommitsToCommitComparisonMap: Map<string, CommitComparison>
+  ): Promise<void> {
+    if (selectedCommits.length === 2) {
+      const mapKey = `${selectedCommits[0].commitId}-${selectedCommits[1].commitId}`;
+      const commitComparison =
+        this.commitsToCommitComparisonMap.get(mapKey) ??
+        (await this.evolutionDataFetchService.fetchCommitComparison(
+          appName,
+          selectedCommits[0],
+          selectedCommits[1]
+        ));
+      newCommitsToCommitComparisonMap.set(mapKey, commitComparison!);
+    }
+  }
+
+  private async buildAppNameCommitTreeMap(
+    applicationNames: string[]
+  ): Promise<AppNameCommitTreeMap> {
+    const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
+
+    for (const appName of applicationNames) {
+      const commitTree = await this.fetchCommitTreeForAppName(appName);
+      if (commitTree) {
+        appNameCommitTreeMap.set(appName, commitTree);
+      }
+    }
+    return appNameCommitTreeMap;
+  }
+
   private async fetchCommitTreeForAppName(
     appName: string
   ): Promise<CommitTree | undefined> {
     try {
-      const evolutionApplication: CommitTree =
-        await this.evolutionDataFetchService.fetchCommitTreeForAppName(appName);
-      return evolutionApplication;
+      return await this.evolutionDataFetchService.fetchCommitTreeForAppName(
+        appName
+      );
     } catch (reason) {
       console.error(
         `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`

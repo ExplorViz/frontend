@@ -343,7 +343,7 @@ export default class RenderingService extends Service {
       this.timestampRepo.resetState();
     }
 
-    await this.evolutionDataRepository.fetchAndStoreStructureLandscapeDataForSelectedCommits(
+    await this.evolutionDataRepository.fetchAndStoreEvolutionDataForSelectedCommits(
       appNameToSelectedCommits
     );
 

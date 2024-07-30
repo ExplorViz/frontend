@@ -40,6 +40,14 @@ export default class EvolutionDataFetchServiceService extends Service {
     return await this.fetchFromService<CommitTree>(url);
   }
 
+  async fetchApplicationMetricsCodeForAppNameAndCommit(
+    applicationName: string,
+    commit: Commit
+  ): Promise<ApplicationMetricsCode> {
+    const url = this.constructUrl('metrics', applicationName, commit.commitId);
+    return await this.fetchFromService<ApplicationMetricsCode>(url);
+  }
+
   async fetchApplicationMetricsCodeForAppAndCommits(
     applicationName: string,
     commits: SelectedCommit[]
