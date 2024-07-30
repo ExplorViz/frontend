@@ -6,6 +6,7 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import LandscapeHttpRequestUtil from './landscape-http-request-util';
 import { getOwner } from '@ember/application';
@@ -34,7 +35,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
       ) {
         const structure = preProcessAndEnhanceStructureLandscape(
           structureDataPromise.value,
-          'dynamic'
+          TypeOfAnalysis.Dynamic
         );
 
         const dynamic = dynamicDataPromise.value;

@@ -12,6 +12,7 @@ import {
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 import { SelectedCommit } from './commit-tree-state';
@@ -100,7 +101,10 @@ export default class EvolutionDataFetchServiceService extends Service {
     const url = this.constructUrl('structure', applicationName, commitPath);
 
     const response = await this.fetchFromService<StructureLandscapeData>(url);
-    return preProcessAndEnhanceStructureLandscape(response, 'static');
+    return preProcessAndEnhanceStructureLandscape(
+      response,
+      TypeOfAnalysis.Static
+    );
   }
 
   // #endregion
