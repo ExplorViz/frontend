@@ -1,23 +1,24 @@
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export default class Texturer {
-  markAsAddedById(mesh: any) {
+  markAsAddedById(mesh: BaseMesh | undefined) {
     if (isEntityMesh(mesh)) {
       this.markAsAdded(mesh);
     }
   }
 
-  markAsDeletedById(mesh: any) {
+  markAsDeletedById(mesh: BaseMesh | undefined) {
     if (isEntityMesh(mesh)) {
       this.markAsDeleted(mesh);
     }
   }
 
-  markAsModifiedById(mesh: any) {
+  markAsModifiedById(mesh: BaseMesh | undefined) {
     if (isEntityMesh(mesh)) {
       this.markAsModified(mesh);
     }
