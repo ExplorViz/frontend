@@ -30,7 +30,7 @@ export default abstract class BaseMesh<
   }
 
   changeTexture(
-    texturePath: string,
+    texture: THREE.Texture,
     repeatX: number = 5,
     repeatY: number = repeatX
   ) {
@@ -39,16 +39,9 @@ export default abstract class BaseMesh<
       this.material instanceof THREE.MeshLambertMaterial ||
       this.material instanceof MeshLineMaterial
     ) {
-      const loader = new THREE.TextureLoader();
-
-      const texture = loader.load(
-        texturePath,
-        function textureSettings(texture) {
-          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-          texture.offset.set(0, 0);
-          texture.repeat.set(repeatX, repeatY);
-        }
-      );
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.offset.set(0, 0);
+      texture.repeat.set(repeatX, repeatY);
 
       this.material.map = texture;
       this.material.blending = THREE.NormalBlending;

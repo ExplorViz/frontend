@@ -617,7 +617,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as added
-        this._texturer.markAsAddedById(this.getMeshById(id));
+        this._texturer.applyAddedTextureToMesh(this.getMeshById(id));
 
         if (addedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -627,13 +627,17 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as added
           while (packageNode && packageNode.name !== firstAddedPackageName) {
-            this._texturer.markAsAddedById(this.getMeshById(packageNode.id));
+            this._texturer.applyAddedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
             packageNode = packageNode.parent;
           }
 
           // Mark the first added package
           if (packageNode) {
-            this._texturer.markAsAddedById(this.getMeshById(packageNode.id));
+            this._texturer.applyAddedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
           }
         }
       }
@@ -656,7 +660,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as deleted
-        this._texturer.markAsDeletedById(this.getMeshById(id));
+        this._texturer.applyDeletedTextureToMesh(this.getMeshById(id));
 
         if (deletedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -666,13 +670,17 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as deleted
           while (packageNode && packageNode.name !== firstDeletedPackageName) {
-            this._texturer.markAsDeletedById(this.getMeshById(packageNode.id));
+            this._texturer.applyDeletedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
             packageNode = packageNode.parent;
           }
 
           // Mark the first deleted package
           if (packageNode) {
-            this._texturer.markAsDeletedById(this.getMeshById(packageNode.id));
+            this._texturer.applyDeletedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
           }
         }
       }
@@ -693,7 +701,7 @@ export default class ApplicationRenderer extends Service.extend() {
       )?.modelId;
 
       if (id) {
-        this._texturer.markAsModifiedById(this.getMeshById(id));
+        this._texturer.applyModifiedTextureToMesh(this.getMeshById(id));
       }
     }
   }

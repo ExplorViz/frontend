@@ -24,15 +24,11 @@ export default abstract class BoxMesh<
   }
 
   // Override
-  changeTexture(texturePath: string) {
+  changeTexture(texture: THREE.Texture) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial
     ) {
-      const loader = new THREE.TextureLoader();
-
-      const texture = loader.load(texturePath);
-
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
 
