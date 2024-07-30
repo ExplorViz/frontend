@@ -3,17 +3,14 @@ import { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
+import { FlatData } from './flat-data-schemes/flat-data';
 
 export default class ApplicationData {
   application: Application;
 
   layoutData: Map<string, LayoutData>;
 
-  flatData: {
-    hashCodeClassMap: Map<string, any>;
-    packageNameModelMap: Map<string, any>;
-    fqnToModelMap: Map<string, any>;
-  };
+  flatData: FlatData;
 
   @tracked
   applicationMetrics: ApplicationMetrics;
@@ -23,11 +20,7 @@ export default class ApplicationData {
   constructor(
     application: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: {
-      hashCodeClassMap: Map<string, any>;
-      packageNameModelMap: Map<string, any>;
-      fqnToModelMap: Map<string, any>;
-    }
+    flatData: FlatData
   ) {
     this.application = application;
     this.layoutData = layoutData;
@@ -44,11 +37,7 @@ export default class ApplicationData {
   updateApplication(
     newApplication: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: {
-      hashCodeClassMap: Map<string, any>;
-      packageNameModelMap: Map<string, any>;
-      fqnToModelMap: Map<string, any>;
-    }
+    flatData: FlatData
   ) {
     this.application = newApplication;
     this.layoutData = layoutData;

@@ -7,7 +7,7 @@ export enum TypeOfAnalysis {
   StaticAndDynamic = 'static+dynamic',
 }
 
-type BaseModel = {
+export type BaseModel = {
   id: string;
 };
 
