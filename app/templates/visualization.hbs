@@ -170,11 +170,17 @@
       {{/if}}
 
       {{#if this.isCommitTreeSelected}}
-        <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
-          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
-          @setSelectedAppName={{this.commitTreeStateService.setCurrentSelectedApplicationName}}
-        />
+        <div class='row justify-content-md-center'>
+          <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
+            @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+            @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+            @setSelectedAppName={{this.commitTreeStateService.setCurrentSelectedApplicationName}}
+          />
+          <Visualization::PageSetup::BottomBar::Evolution::EvolutionRenderingButtons
+            @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+            @selectedCommits={{this.commitTreeStateService.selectedCommits}}
+          />
+        </div>
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
           @triggerVizRenderingForSelectedCommits={{this.renderingService.triggerRenderingForSelectedCommits}}
