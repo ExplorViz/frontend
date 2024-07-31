@@ -31,6 +31,9 @@ import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { generateUUID } from 'three/src/math/MathUtils';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import { NodeObject } from 'three-forcegraph';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -179,6 +182,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             id: applicationData.application.id,
             fy: 0,
             collisionRadius,
+            threeObj: app
           } as GraphNode);
         }
 
@@ -236,60 +240,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
 
       // this.sceneRepo.getScene().add(app);
-
-
-      // fix previously existing nodes to position (if present) and calculate collision size
-      const graphNode = graphNodes.find(
-        (node) => node.id == applicationData.application.id
-      ) as GraphNode;
-
-      if (!app.foundationMesh) {
-        console.error('No foundation mesh, this should not happen');
-        return;
-      }
-
-      const { x, z } = app.foundationMesh.scale;
-      const collisionRadius = Math.hypot(x, z) / 2 + 3;
-      if (graphNode) {
-        graphNode.collisionRadius = collisionRadius;
-        //graphNode.fx = graphNode.x;
-        //graphNode.fz = graphNode.z;
-      } else {
-        graphNodes.push({
-          id: applicationData.application.id,
-          fy: 0,
-          collisionRadius,
-        } as GraphNode);
-      }
+      return app;
     });
 
-    // create invisible links between k8sApps
-    var links = k8sApps.flatMap(a => k8sApps.flatMap(b => {
-      let deg = 0;
-      if (a.k8sPod === b.k8sPod)
-        deg = 4;
-      else if (a.k8sDeployment === b.k8sDeployment)
-        deg = 3;
-      else if (a.k8sNamespace === b.k8sNamespace)
-        deg = 2;
-      else if (a.k8sNode === b.k8sNode)
-        deg = 1;
+    const apps = await Promise.all(promises) as ApplicationObject3D[];
 
-      if (a === b)
-        deg = 0;
+    const geometry = new BoxGeometry(1, 1, 1);
+    const material = new MeshBasicMaterial({ color: 0xffff00 });
+    const mesh = new Mesh(geometry, material);
+    apps.forEach((app, i) => {
+      app.position.add(new Vector3(i * 40))
+    });
+    mesh.add(...apps)
+    mesh.position.set(0, 0, 0);
 
-      return Array.from({ length: 1 }, () => {
-        return {
-          source: a.app.id,
-          target: b.app.id,
-          value: 1
-        }
-      });
-    }));
-    await Promise.all(promises);
-
-    // TODO: push links
-    nodeLinks.push(...links);
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
@@ -311,8 +275,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       communicationData: communication,
     }));
 
+    console.log(mesh);
+
     const gData = {
-      nodes: graphNodes,
+      nodes: [{
+        threeObj: mesh,
+    }, ...graphNodes],
       links: [...communicationLinks, ...nodeLinks],
     };
 

@@ -58,8 +58,8 @@ export default class LinkRenderer extends Service.extend({}) {
     _coords: any,
     link: GraphLink
   ) {
-    const sourceApp = link.source.__threeObj;
-    const targetApp = link.target.__threeObj;
+    const sourceApp = link.source.threeObj;
+    const targetApp = link.target.threeObj;
 
     if (
       !(sourceApp instanceof ApplicationObject3D) ||
@@ -128,7 +128,7 @@ export default class LinkRenderer extends Service.extend({}) {
   @action
   createMeshFromLink(link: GraphLink) {
     const classCommunication = link.communicationData;
-    const applicationObject3D = link.source.__threeObj;
+    const applicationObject3D = link.source.threeObj as ApplicationObject3D;
     const { id } = classCommunication;
 
     if (!applicationObject3D.data) {

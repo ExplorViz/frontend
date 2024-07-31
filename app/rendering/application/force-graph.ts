@@ -11,6 +11,7 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
+import { Object3D } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 
 export interface GraphNode {
@@ -24,7 +25,7 @@ export interface GraphNode {
   fx: number;
   fy: number;
   fz: number;
-  __threeObj: ApplicationObject3D;
+  threeObj: Object3D;
 }
 
 export interface GraphLink {
@@ -61,9 +62,10 @@ export default class ForceGraph {
     setOwner(this, owner);
     this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
-      .nodeThreeObject(
-        ({ id }) => this.applicationRenderer.getApplicationById(id as string)!
-      )
+      .nodeThreeObject(obj => {
+        console.log('nodeThreeObject', obj);
+        return obj.threeObj;
+      })
       .warmupTicks(100)
       .linkColor(
         () =>
