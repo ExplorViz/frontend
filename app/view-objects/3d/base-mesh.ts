@@ -29,6 +29,32 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
+  show() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = true;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.show();
+      }
+    });
+  }
+
+  hide() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = false;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.hide();
+      }
+    });
+  }
+
   changeTexture(
     texture: THREE.Texture,
     repeatX: number = 5,

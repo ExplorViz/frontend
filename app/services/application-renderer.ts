@@ -604,6 +604,48 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Priv. Helper
 
+  private showVisualization(
+    applicationObject3D: ApplicationObject3D,
+    structure: StructureLandscapeData | undefined,
+    dataTypeToShow: TypeOfAnalyis,
+    showCommLines: boolean,
+    showOnlyMarkedMeshes: boolean
+  ) {
+    structure?.nodes.forEach((node) => {
+      const app = node.applications.find(
+        (a) => a.id === applicationObject3D.data.application.id
+      );
+
+      if (app) {
+        app.packages.forEach((pckg) =>
+          this.showPackageAndAllSubComponents(
+            applicationObject3D,
+            pckg,
+            dataTypeToShow,
+            showOnlyMarkedMeshes
+          )
+        );
+        if (showCommLines) {
+          // show communication links
+          this.linkRenderer.getAllLinks().forEach((externPipe) => {
+            if (showOnlyMarkedMeshes && externPipe.wasModified) {
+              externPipe.show();
+            } else {
+              externPipe.show();
+            }
+          });
+          applicationObject3D.getCommMeshes().forEach((commMesh) => {
+            if (showOnlyMarkedMeshes && commMesh.wasModified) {
+              commMesh.show();
+            } else {
+              commMesh.show();
+            }
+          });
+        }
+      }
+    });
+  }
+
   private visualizeCommitComparisonPackagesAndClasses(
     applicationData: ApplicationData,
     commitComparison: CommitComparison
