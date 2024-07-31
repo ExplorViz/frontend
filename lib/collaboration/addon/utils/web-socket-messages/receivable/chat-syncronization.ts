@@ -6,6 +6,7 @@ export type ChatSynchronizeMessage = {
   msg: string;
   userName: string;
   timestamp: string;
+  isEvent: boolean;
 };
 
 export function isChatSyncMessage(msg: any): msg is ChatSynchronizeMessage {
@@ -16,6 +17,7 @@ export function isChatSyncMessage(msg: any): msg is ChatSynchronizeMessage {
     typeof msg.userid === 'string' &&
     typeof msg.msg === 'string' &&
     typeof msg.userName === 'string' &&
-    typeof msg.timestamp === 'string'
+    typeof msg.timestamp === 'string' &&
+    typeof msg.isEvent === 'boolean'
   );
 }

@@ -103,6 +103,9 @@ export default class CollaborationSession extends Service.extend({
   @tracked
   currentRoomId: string | null = null;
 
+  @tracked
+  previousRoomId: string | null = this.currentRoomId;
+
   init() {
     super.init();
     this.debug('Initializing collaboration session');
@@ -216,6 +219,7 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
+    this.chatService.sendChatMessage(self.id, `${self.name}(${self.id}) connected to room ${this.currentRoomId}`, true);
     this.toastHandlerService.showSuccessToastMessage(
       'Joined room successfully'
     );
@@ -314,7 +318,7 @@ export default class CollaborationSession extends Service.extend({
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
 
-    this.disconnect();
+    //this.disconnect();
   }
 
   get isOnline() {
@@ -416,6 +420,12 @@ export default class CollaborationSession extends Service.extend({
    */
   disconnect() {
     this.debug('Disconnect Collab Session');
+
+    if(this.connectionStatus != 'offline') {
+      this.previousRoomId = this.currentRoomId;
+    }
+    this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`, true);
+
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
     this.webSocket.closeSocket();
@@ -443,16 +453,22 @@ export default class CollaborationSession extends Service.extend({
     if (camera) remoteUser.updateCamera(camera);
   }
 
+  /**
+   * Chat message received from backend, adding message in chatService
+   */
   onChatMessageEvent({
     userId,
-    originalMessage: { msg, userName, timestamp },
+    originalMessage: { msg, userName, timestamp, isEvent },
   }: ForwardedMessage<ChatMessage>) {
     if (this.localUser.userId != userId) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
-    this.chatService.addChatMessage(userId, msg, userName, timestamp);
+    this.chatService.addChatMessage(userId, msg, userName, timestamp, isEvent);
   }
 
+    /**
+   * Chat synchronization event received from backend, synchronizing with chatService
+   */
   onChatSyncEvent({
     userId,
     originalMessage,

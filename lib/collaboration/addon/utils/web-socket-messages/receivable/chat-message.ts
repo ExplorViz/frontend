@@ -6,6 +6,7 @@ export type ChatMessage = {
   msg: string;
   userName: string,
   timestamp: string;
+  isEvent: boolean;
 };
 
 export function isChatMessageReceived(msg: any): msg is ChatMessage {
@@ -16,6 +17,7 @@ export function isChatMessageReceived(msg: any): msg is ChatMessage {
     typeof msg.userid === 'string' &&
     typeof msg.msg === 'string' &&
     typeof msg.userName === 'string' &&
-    typeof msg.timestamp === 'string'
+    typeof msg.timestamp === 'string' &&
+    typeof msg.isEvent === 'boolean'
   );
 }

@@ -111,7 +111,7 @@ export default class ChatBox extends Component {
   downloadChat() {
     const chatMessages = this.chatService.chatMessages;
     const chatContent = chatMessages
-      .map((msg) => `${msg.timestamp} ${msg.userName}: ${msg.message}`)
+      .map((msg) => `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`)
       .join('\n');
 
     const blob = new Blob([chatContent], { type: 'text/plain' });
@@ -138,7 +138,7 @@ export default class ChatBox extends Component {
       return;
     }
 
-    this.chatService.sendChatMessage(userId, msg);
+    this.chatService.sendChatMessage(userId, msg, false);
     inputElement.value = '';
   }
 
@@ -150,6 +150,7 @@ export default class ChatBox extends Component {
     userColor: THREE.Color;
     timestamp: string;
     message: string;
+    isEvent: boolean;
   }) {
     const chatThreadClass =
       this.isFilterEnabled &&
@@ -182,6 +183,16 @@ export default class ChatBox extends Component {
       );
       messageContainer.appendChild(messageLi);
 
+      if (chatMessage.isEvent) {
+      // Erstelle einen Button für Ereignisnachrichten
+      const eventButton = document.createElement('button');
+      eventButton.textContent = 'Event';
+      eventButton.classList.add('event-button');
+      eventButton.onclick = () => this.handleEventClick(chatMessage);
+
+      // Füge den Button zur Nachricht hinzu
+      messageLi.appendChild(eventButton);
+      }
       const timestampDiv = document.createElement('div');
       timestampDiv.textContent = chatMessage.timestamp;
       timestampDiv.classList.add('chat-timestamp');
@@ -190,6 +201,10 @@ export default class ChatBox extends Component {
       this.scrollChatToBottom();
       this.addUserToChat(chatMessage.userId, chatMessage.userName);
     }
+  }
+
+  handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; }): any {
+    this.toastHandler.showErrorToastMessage("Not implemented yet");
   }
 
   private addUserToChat(id: string, userName: string) {
@@ -220,7 +235,7 @@ export default class ChatBox extends Component {
         if (messageToRemove) {
           messageToRemove.remove();
           this.chatService.removeChatMessage(messageId);
-          this.toastHandler.showInfoToastMessage('Removed message');
+          //this.toastHandler.showInfoToastMessage('Removed message');
         }
       }
     }

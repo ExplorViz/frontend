@@ -14,6 +14,7 @@ export interface ChatMessageInterface {
   userColor: THREE.Color;
   timestamp: string;
   message: string;
+  isEvent?: boolean;
 }
 
 export default class ChatService extends Service {
@@ -41,22 +42,22 @@ export default class ChatService extends Service {
   @tracked
   msgId: number = 1;
 
-  sendChatMessage(userId: string, msg: string) {
+  sendChatMessage(userId: string, msg: string, isEvent: boolean) {
     if (this.collaborationSession.connectionStatus == 'offline') {
       this.addChatMessage(userId, msg);
     } else {
       const timestamp = this.getTime();
       const userName = this.localUser.userName;
-      this.sender.sendChatMessage(userId, msg, userName, timestamp);
+      this.sender.sendChatMessage(userId, msg, userName, timestamp, isEvent);
     }
   }
 
-  addChatMessage(userId: string, msg: string, username: string = '', time: string = '') {
-    var userName;
-    var userColor;
-    var timestamp;
+  addChatMessage(userId: string, msg: string, username: string = '', time: string = '', isEvent: boolean = false) {
+    let userName;
+    let userColor;
+    let timestamp;
 
-    if(!(userId == this.localUser.userId)) {
+    if(userId != this.localUser.userId) {
       const user = this.collaborationSession.lookupRemoteUserById(userId);
       userName = user?.userName || username;
       userColor = user?.color || new THREE.Color(0,0,0);
@@ -74,6 +75,7 @@ export default class ChatService extends Service {
       userColor,
       timestamp,
       message: msg,
+      isEvent,
     };
 
     this.chatMessages = [...this.chatMessages, chatMessage];
@@ -113,7 +115,9 @@ export default class ChatService extends Service {
           );
           break;
         case 'Events':
-          // TODO: Implement event filtering logic here
+          this.filteredChatMessages = this.chatMessages.filter(
+            (msg) => msg.isEvent === true
+          );
           break;
         default:
           this.filteredChatMessages = this.chatMessages;
@@ -130,7 +134,7 @@ export default class ChatService extends Service {
   syncChatMessages(messages: ChatSynchronizeMessage[]) {
     this.chatMessages = [];
     messages.forEach((msg) =>
-      this.addChatMessage(msg.userId, msg.msg, msg.userName, msg.timestamp)
+      this.addChatMessage(msg.userId, msg.msg, msg.userName, msg.timestamp, msg.isEvent)
     );
     this.toastHandler.showInfoToastMessage("Synchronized")
   }
