@@ -63,7 +63,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
         newEvolutionModeRenderingConfiguration.renderOnlyDifferences = true;
       }
     }
-    this.visibilityService.updateStaticAndDynamicLandscapeStructureVisibility(
+    this.visibilityService.applyEvolutionModeRenderingConfiguration(
       newEvolutionModeRenderingConfiguration
     );
   }

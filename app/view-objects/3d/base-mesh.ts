@@ -55,6 +55,17 @@ export default abstract class BaseMesh<
     });
   }
 
+  get texturePath(): string | null {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      return this.material.map ? this.material.map.image.src : null;
+    }
+    return null;
+  }
+
   changeTexture(
     texture: THREE.Texture,
     repeatX: number = 5,

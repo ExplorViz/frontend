@@ -7,6 +7,12 @@ import {
 import { Texture, TextureLoader } from 'three';
 import Service from '@ember/service';
 
+export enum TextureNameConstants {
+  ADDED = 'plus',
+  DELETED = 'minus',
+  MODIFIED = 'hashtag',
+}
+
 export default class TextureService extends Service {
   private _textureCache: Map<string, Texture> = new Map();
 
@@ -15,9 +21,9 @@ export default class TextureService extends Service {
   constructor() {
     super();
     // load all textures
-    this.loadTexture('plus');
-    this.loadTexture('minus');
-    this.loadTexture('hashtag');
+    this.loadTexture(TextureNameConstants.ADDED);
+    this.loadTexture(TextureNameConstants.DELETED);
+    this.loadTexture(TextureNameConstants.MODIFIED);
   }
 
   private loadTexture(
@@ -51,15 +57,13 @@ export default class TextureService extends Service {
       return;
     }
 
-    this.loadTexture('plus', (loadedTexture) => {
+    this.loadTexture(TextureNameConstants.ADDED, (loadedTexture) => {
       if (mesh instanceof ClazzCommunicationMesh) {
         const start = mesh.layout.startPoint;
         const end = mesh.layout.endPoint;
         const dist = start.distanceTo(end);
-        //mesh.wasModified = true;
         (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
       } else {
-        //mesh.wasModified = true;
         mesh.changeTexture(loadedTexture);
       }
     });
@@ -70,15 +74,13 @@ export default class TextureService extends Service {
       return;
     }
 
-    this.loadTexture('minus', (loadedTexture) => {
+    this.loadTexture(TextureNameConstants.DELETED, (loadedTexture) => {
       if (mesh instanceof ClazzCommunicationMesh) {
         const start = mesh.layout.startPoint;
         const end = mesh.layout.endPoint;
         const dist = start.distanceTo(end);
-        //mesh.wasModified = true;
         (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
       } else {
-        //mesh.wasModified = true;
         mesh.changeTexture(loadedTexture);
       }
     });
@@ -89,15 +91,13 @@ export default class TextureService extends Service {
       return;
     }
 
-    this.loadTexture('hashtag', (loadedTexture) => {
+    this.loadTexture(TextureNameConstants.MODIFIED, (loadedTexture) => {
       if (mesh instanceof ClazzCommunicationMesh) {
         const start = mesh.layout.startPoint;
         const end = mesh.layout.endPoint;
         const dist = start.distanceTo(end);
-        //mesh.wasModified = true;
         (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
       } else {
-        //mesh.wasModified = true;
         mesh.changeTexture(loadedTexture);
       }
     });
