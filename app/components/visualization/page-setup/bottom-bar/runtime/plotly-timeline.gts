@@ -589,12 +589,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
       const timestamp = timestampsOfOneCommit[i];
       const timestampId = timestamp.epochMilli;
 
+      // only add real timestamps and shapes in the data arrays
+      let addCurentTimestampToDataObject = false;
+
       if (nextExpectedTimestamp === 0) {
         // first timestamp in series
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         nextExpectedTimestamp = timestampId;
         i++;
+        addCurentTimestampToDataObject = true;
       } else if (nextExpectedTimestamp === timestampId) {
         // subsequent timestamps
         x.push(getTimestampTickLabel(timestampId));
@@ -605,6 +609,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
           shapes.push(tempGapRectObj);
           tempGapRectObj = null;
         }
+        addCurentTimestampToDataObject = true;
       } else if (timestamp.epochMilli === null) {
         // edge case if API will return null values in the future
         x.push(null);
@@ -613,6 +618,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
       } else {
         // gap fills for timestamps that did not occur
         if (!tempGapRectObj) {
+          addCurentTimestampToDataObject = true;
           x.push(null);
           y.push(null);
           tempGapRectObj = getGapRectangleObj();
@@ -626,31 +632,38 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
       const markerState = markerStatesOfOneCommit[timestampId];
 
-      if (markerState) {
-        colors.push(markerState.color);
-        sizes.push(markerState.size);
-      } else {
-        const defaultColor = this.defaultMarkerColor;
-        const defaultSize = this.defaultMarkerSize;
+      if (addCurentTimestampToDataObject) {
+        if (markerState) {
+          colors.push(markerState.color);
+          sizes.push(markerState.size);
+        } else {
+          const defaultColor = this.defaultMarkerColor;
+          const defaultSize = this.defaultMarkerSize;
 
-        colors.push(defaultColor);
-        sizes.push(defaultSize);
+          colors.push(defaultColor);
+          sizes.push(defaultSize);
 
-        markerStatesOfOneCommit[timestampId] = {
-          color: defaultColor,
-          emberModel: timestamp,
-          size: defaultSize,
-        };
+          markerStatesOfOneCommit[timestampId] = {
+            color: defaultColor,
+            emberModel: timestamp,
+            size: defaultSize,
+          };
+        }
+        timestampIds.push(timestampId);
       }
-      timestampIds.push(timestampId);
+      addCurentTimestampToDataObject = false;
     }
 
     this.markerStateMap.set(commitId, markerStatesOfOneCommit);
 
-    return {
+    const updatedPlotlyDataObject = {
       ...this.getPlotlyDataObject(x, y, colors, sizes, timestampIds, commitId),
       ...{ shapes: shapes },
     };
+
+    this.debug('getUpdatedPlotlyDataObject', updatedPlotlyDataObject);
+
+    return updatedPlotlyDataObject;
   }
 
   getPlotlyDataObject(
