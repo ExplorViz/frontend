@@ -34,10 +34,26 @@
       />
     {{/if}}
   </div>
+  {{!--
   <VrButton
     @renderer={{this.renderer}}
     @onSessionStartedCallback={{this.onVrSessionStarted}}
     @onSessionEndedCallback={{this.onVrSessionEnded}}
     @debugMode={{@debugMode}}
   />
+  --}}
 </VrDropArea>
+
+{{#if this.userSettings.applicationSettings.showVrOnClick.value}}
+  <div class='position-absolute mt-6 ml-3'>
+    <BsButton
+      id='backToLandscapeButton'
+      @onClick={{@switchToOnScreenMode}}
+      @type='secondary'
+      @outline={{true}}
+      title='Back to Landscape View'
+    >
+      {{svg-jar 'reply-16' class='octicon align-middle'}}
+    </BsButton>
+  </div>
+{{/if}}

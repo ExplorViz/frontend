@@ -126,18 +126,13 @@ export default class LinkRenderer extends Service.extend({}) {
   }
 
   @action
-  createMeshFromLink(link: GraphLink) {
+  createMeshFromLink(link: GraphLink): ClazzCommunicationMesh {
     const classCommunication = link.communicationData;
     const applicationObject3D = link.source.__threeObj;
     const { id } = classCommunication;
 
-    if (!applicationObject3D.data) {
-      this.debug('Link renderer has no application data yet');
-      return;
-    }
-
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-      applicationObject3D.data.application,
+      applicationObject3D.dataModel.application,
       classCommunication,
       id
     );
@@ -174,7 +169,19 @@ export default class LinkRenderer extends Service.extend({}) {
     if (!link.communicationData) {
       return false;
     }
-    return this.configuration.isCommRendered;
+    const sourceClassMesh = this.applicationRenderer.getMeshById(
+      link.communicationData.sourceClass.id
+    );
+    const targetClassMesh = this.applicationRenderer.getMeshById(
+      link.communicationData.targetClass.id
+    );
+    return (
+      this.configuration.isCommRendered &&
+      sourceClassMesh !== undefined &&
+      targetClassMesh !== undefined &&
+      sourceClassMesh.material.visible &&
+      targetClassMesh.material.visible
+    );
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {

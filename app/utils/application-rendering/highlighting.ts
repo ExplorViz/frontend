@@ -85,7 +85,7 @@ export function highlightTrace(
 
   // All clazzes in application
   const allClassesAsArray = getAllClassesInApplication(
-    applicationObject3D.data.application
+    applicationObject3D.dataModel.application
   );
   const allClazzes = new Set<Class>(allClassesAsArray);
 
@@ -311,7 +311,7 @@ export function turnComponentsAndClassesTransparent(
   let allClassIds: string[] = [];
   applicationObject3DList.forEach((application) => {
     const classIdsInApplication = getAllClassIdsInApplication(
-      application.data.application
+      application.dataModel.application
     );
     classIdsInApplication.forEach((classId) => {
       // set everything transparent at the beginning

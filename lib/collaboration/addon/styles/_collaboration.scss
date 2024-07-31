@@ -19,3 +19,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media only screen and (max-width: 600px) {
+ #session-header{
+  font-size: 1.2rem;
+ }
+
+ #room-selection-table th,
+ #room-selection-table td {
+    display: none;
+ }
+
+ #room-selection-table td:nth-child(1){
+  display: block;
+ }
+}
