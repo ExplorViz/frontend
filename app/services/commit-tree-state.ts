@@ -94,6 +94,11 @@ export default class CommitTreeStateService extends Service {
   }
 
   @action
+  resetSelectedCommits() {
+    this._selectedCommits = new Map();
+  }
+
+  @action
   getCloneOfAppNameAndBranchNameToColorMap() {
     return structuredClone(this._appNameAndBranchNameToColorMap);
   }
