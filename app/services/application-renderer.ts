@@ -15,7 +15,6 @@ import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler
 import {
   Class,
   Package,
-  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -49,9 +48,6 @@ import {
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
-import RenderingService, {
-  EvolutionModeRenderingConfiguration,
-} from './rendering-service';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -59,9 +55,6 @@ export default class ApplicationRenderer extends Service.extend() {
 
   @service('repos/evolution-data-repository')
   private evolutionDataRepository!: EvolutionDataRepository;
-
-  @service('rendering-service')
-  private renderingService!: RenderingService;
 
   @service('local-user')
   private localUser!: LocalUser;
@@ -105,13 +98,6 @@ export default class ApplicationRenderer extends Service.extend() {
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
   private _appCommRendering: CommunicationRendering;
-
-  private _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration =
-    {
-      renderDynamic: true,
-      renderStatic: true,
-      renderOnlyDifferences: false,
-    };
 
   // #endregion
 
@@ -440,27 +426,6 @@ export default class ApplicationRenderer extends Service.extend() {
 
   // #region Utility
 
-  updateStaticAndDynamicLandscapeStructureVisibility(
-    staticAndDynamicStructureLandscapeData: StructureLandscapeData
-  ) {
-    const newEvolutionModeRenderingConfiguration =
-      this.renderingService.getCloneOfEvolutionModeRenderingConfiguration();
-
-    const { renderDynamic, renderStatic, renderOnlyDifferences } =
-      newEvolutionModeRenderingConfiguration;
-
-    const needToChangeDynamic =
-      renderDynamic != this._evolutionModeRenderingConfiguration.renderDynamic;
-    const needToChangeStatic =
-      renderStatic != this._evolutionModeRenderingConfiguration.renderStatic;
-    const needToChangeDifferenceRendering =
-      renderOnlyDifferences !=
-      this._evolutionModeRenderingConfiguration.renderOnlyDifferences;
-
-    this._evolutionModeRenderingConfiguration =
-      newEvolutionModeRenderingConfiguration;
-  }
-
   openAllComponents(applicationObject3D: ApplicationObject3D) {
     this.openAllComponentsLocally(applicationObject3D);
   }
@@ -603,48 +568,6 @@ export default class ApplicationRenderer extends Service.extend() {
   // #endregion
 
   //#region Priv. Helper
-
-  private showVisualization(
-    applicationObject3D: ApplicationObject3D,
-    structure: StructureLandscapeData | undefined,
-    dataTypeToShow: TypeOfAnalyis,
-    showCommLines: boolean,
-    showOnlyMarkedMeshes: boolean
-  ) {
-    structure?.nodes.forEach((node) => {
-      const app = node.applications.find(
-        (a) => a.id === applicationObject3D.data.application.id
-      );
-
-      if (app) {
-        app.packages.forEach((pckg) =>
-          this.showPackageAndAllSubComponents(
-            applicationObject3D,
-            pckg,
-            dataTypeToShow,
-            showOnlyMarkedMeshes
-          )
-        );
-        if (showCommLines) {
-          // show communication links
-          this.linkRenderer.getAllLinks().forEach((externPipe) => {
-            if (showOnlyMarkedMeshes && externPipe.wasModified) {
-              externPipe.show();
-            } else {
-              externPipe.show();
-            }
-          });
-          applicationObject3D.getCommMeshes().forEach((commMesh) => {
-            if (showOnlyMarkedMeshes && commMesh.wasModified) {
-              commMesh.show();
-            } else {
-              commMesh.show();
-            }
-          });
-        }
-      }
-    });
-  }
 
   private visualizeCommitComparisonPackagesAndClasses(
     applicationData: ApplicationData,

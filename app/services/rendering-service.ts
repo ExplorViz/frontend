@@ -22,7 +22,6 @@ import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from './commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
 import CommitTreeStateService from './commit-tree-state';
-import ApplicationRenderer from './application-renderer';
 
 export type VisualizationMode = 'evolution' | 'runtime';
 
@@ -55,9 +54,6 @@ export default class RenderingService extends Service {
   @service('commit-tree-state')
   private commitTreeStateService!: CommitTreeStateService;
 
-  @service('application-renderer')
-  private applicationRenderer!: ApplicationRenderer;
-
   // #endregion
 
   // #region Properties
@@ -79,37 +75,12 @@ export default class RenderingService extends Service {
 
   private _userInitiatedStaticDynamicCombination = false;
 
-  private _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration =
-    {
-      renderDynamic: true,
-      renderStatic: true,
-      renderOnlyDifferences: false,
-    };
-
   // #endregion
 
   // #region  Getter / Setter
 
   get visualizationMode(): VisualizationMode {
     return this._visualizationMode;
-  }
-
-  getCloneOfEvolutionModeRenderingConfiguration() {
-    // return clone so that we don't unintentionally alter the object via
-    // the getter
-    return this._evolutionModeRenderingConfiguration;
-  }
-
-  changeEvolutionModeRenderingConfiguration(
-    newEvolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration
-  ) {
-    this._evolutionModeRenderingConfiguration =
-      newEvolutionModeRenderingConfiguration;
-    this.applicationRenderer.updateStaticAndDynamicLandscapeStructureVisibility(
-      newEvolutionModeRenderingConfiguration,
-      this.landscapeData?.structureLandscapeData ??
-        createEmptyStructureLandscapeData()
-    );
   }
 
   get userInitiatedStaticDynamicCombination(): boolean {

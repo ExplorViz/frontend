@@ -5,6 +5,7 @@ import CommitTreeStateService, {
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
+import VisibilityService from 'explorviz-frontend/services/visibility-service';
 
 interface IArgs {
   selectedAppName: string;
@@ -15,6 +16,9 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   @service('rendering-service')
   renderingService!: RenderingService;
 
+  @service('visibility-service')
+  visibilityService!: VisibilityService;
+
   @service('commit-tree-state')
   commitTreeStateService!: CommitTreeStateService;
 
@@ -23,7 +27,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   }
 
   get checkboxValues() {
-    return this.renderingService.getCloneOfEvolutionModeRenderingConfiguration();
+    return this.visibilityService.getCloneOfEvolutionModeRenderingConfiguration();
   }
 
   get numberOfSelectedCommitsForCurrentApp() {
@@ -39,7 +43,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   @action
   changeRenderingMode(x: any) {
     const newEvolutionModeRenderingConfiguration =
-      this.renderingService.getCloneOfEvolutionModeRenderingConfiguration();
+      this.visibilityService.getCloneOfEvolutionModeRenderingConfiguration();
     if (x === 'dynamic') {
       if (newEvolutionModeRenderingConfiguration.renderDynamic) {
         newEvolutionModeRenderingConfiguration.renderDynamic = false;
@@ -59,7 +63,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
         newEvolutionModeRenderingConfiguration.renderOnlyDifferences = true;
       }
     }
-    this.renderingService.changeEvolutionModeRenderingConfiguration(
+    this.visibilityService.updateStaticAndDynamicLandscapeStructureVisibility(
       newEvolutionModeRenderingConfiguration
     );
   }
