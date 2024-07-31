@@ -105,9 +105,11 @@ export default class RenderingService extends Service {
   ) {
     this._evolutionModeRenderingConfiguration =
       newEvolutionModeRenderingConfiguration;
-    //this.applicationRenderer.changeStaticAndDynamicLandscapeStructureVisibility(
-    // this.landscapeData?.structureLandscapeData
-    //);
+    this.applicationRenderer.updateStaticAndDynamicLandscapeStructureVisibility(
+      newEvolutionModeRenderingConfiguration,
+      this.landscapeData?.structureLandscapeData ??
+        createEmptyStructureLandscapeData()
+    );
   }
 
   get userInitiatedStaticDynamicCombination(): boolean {

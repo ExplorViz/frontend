@@ -22,6 +22,10 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
     return this.renderingService.userInitiatedStaticDynamicCombination;
   }
 
+  get checkboxValues() {
+    return this.renderingService.getCloneOfEvolutionModeRenderingConfiguration();
+  }
+
   get numberOfSelectedCommitsForCurrentApp() {
     return this.args.selectedCommits.get(this.args.selectedAppName)?.length;
   }
@@ -34,7 +38,29 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
 
   @action
   changeRenderingMode(x: any) {
-    console.log('x', x);
-    //this.renderingService.changeEvolutionModeRenderingConfiguration();
+    const newEvolutionModeRenderingConfiguration =
+      this.renderingService.getCloneOfEvolutionModeRenderingConfiguration();
+    if (x === 'dynamic') {
+      if (newEvolutionModeRenderingConfiguration.renderDynamic) {
+        newEvolutionModeRenderingConfiguration.renderDynamic = false;
+      } else {
+        newEvolutionModeRenderingConfiguration.renderDynamic = true;
+      }
+    } else if (x === 'static') {
+      if (newEvolutionModeRenderingConfiguration.renderStatic) {
+        newEvolutionModeRenderingConfiguration.renderStatic = false;
+      } else {
+        newEvolutionModeRenderingConfiguration.renderStatic = true;
+      }
+    } else if (x === 'difference') {
+      if (newEvolutionModeRenderingConfiguration.renderOnlyDifferences) {
+        newEvolutionModeRenderingConfiguration.renderOnlyDifferences = false;
+      } else {
+        newEvolutionModeRenderingConfiguration.renderOnlyDifferences = true;
+      }
+    }
+    this.renderingService.changeEvolutionModeRenderingConfiguration(
+      newEvolutionModeRenderingConfiguration
+    );
   }
 }
