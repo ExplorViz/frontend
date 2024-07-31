@@ -27,7 +27,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   }
 
   @action
-  unselectAllSelectedCommits(x: any) {
+  unselectAllSelectedCommits() {
     this.commitTreeStateService.resetSelectedCommits();
     this.renderingService.triggerRenderingForSelectedCommits();
   }
@@ -35,5 +35,6 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   @action
   changeRenderingMode(x: any) {
     console.log('x', x);
+    //this.renderingService.changeEvolutionModeRenderingConfiguration();
   }
 }

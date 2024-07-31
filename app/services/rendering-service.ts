@@ -22,8 +22,15 @@ import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from './commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
 import CommitTreeStateService from './commit-tree-state';
+import ApplicationRenderer from './application-renderer';
 
 export type VisualizationMode = 'evolution' | 'runtime';
+
+export type EvolutionModeRenderingConfiguration = {
+  renderDynamic: boolean;
+  renderStatic: boolean;
+  renderOnlyDifferences: boolean;
+};
 
 export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
@@ -46,7 +53,10 @@ export default class RenderingService extends Service {
   private timestampRepo!: TimestampRepository;
 
   @service('commit-tree-state')
-  commitTreeStateService!: CommitTreeStateService;
+  private commitTreeStateService!: CommitTreeStateService;
+
+  @service('application-renderer')
+  private applicationRenderer!: ApplicationRenderer;
 
   // #endregion
 
@@ -69,12 +79,35 @@ export default class RenderingService extends Service {
 
   private _userInitiatedStaticDynamicCombination = false;
 
+  private _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration =
+    {
+      renderDynamic: true,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
+
   // #endregion
 
   // #region  Getter / Setter
 
   get visualizationMode(): VisualizationMode {
     return this._visualizationMode;
+  }
+
+  getCloneOfEvolutionModeRenderingConfiguration() {
+    // return clone so that we don't unintentionally alter the object via
+    // the getter
+    return this._evolutionModeRenderingConfiguration;
+  }
+
+  changeEvolutionModeRenderingConfiguration(
+    newEvolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration
+  ) {
+    this._evolutionModeRenderingConfiguration =
+      newEvolutionModeRenderingConfiguration;
+    //this.applicationRenderer.changeStaticAndDynamicLandscapeStructureVisibility(
+    // this.landscapeData?.structureLandscapeData
+    //);
   }
 
   get userInitiatedStaticDynamicCombination(): boolean {
