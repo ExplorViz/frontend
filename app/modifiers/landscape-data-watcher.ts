@@ -201,7 +201,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
 
 
-    console.log('k8sNodes', this.landscapeData.structureLandscapeData.k8sNodes);
     var k8sApps = this.landscapeData.structureLandscapeData.k8sNodes
       .flatMap(n =>
         n.k8sNamespaces.flatMap(ns =>
@@ -245,10 +244,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const apps = await Promise.all(promises) as ApplicationObject3D[];
 
-    
-    const mesh = new SimpleParentMesh();
-    mesh.add(...apps)
-    mesh.position.set(0, 0, 0);
+    const rootParents = this.landscapeData.structureLandscapeData
+    .k8sNodes.map(n => new SimpleParentMesh(
+      n.k8sNamespaces.map(ns => new SimpleParentMesh(
+        ns.k8sDeployments.map(d => new SimpleParentMesh(
+          d.k8sPods.map(p => new SimpleParentMesh(
+            p.applications.map(app => apps.find(a => a.data.application.id === app.id)!)
+          )
+        )
+        )
+      )
+    ))));
 
 
     // Apply restructure textures in restructure mode
@@ -271,12 +277,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       communicationData: communication,
     }));
 
-    console.log(mesh);
-
     const gData = {
-      nodes: [{
-        threeObj: mesh,
-    }, ...graphNodes],
+      nodes: [...rootParents.map(p => {
+        return {
+          threeObj: p        }
+      }), ...graphNodes],
       links: [...communicationLinks, ...nodeLinks],
     };
 

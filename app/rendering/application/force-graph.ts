@@ -63,7 +63,6 @@ export default class ForceGraph {
     this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
       .nodeThreeObject(obj => {
-        console.log('nodeThreeObject', obj);
         return obj.threeObj;
       })
       .warmupTicks(100)

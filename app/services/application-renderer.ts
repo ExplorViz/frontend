@@ -203,7 +203,6 @@ export default class ApplicationRenderer extends Service.extend({
       applicationData: ApplicationData,
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
-      console.log('adding application', applicationData);
       const applicationModel = applicationData.application;
       const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
         applicationData.layoutData
@@ -516,7 +515,6 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   restoreFromSerialization(room: SerializedRoom) {
-    console.log('restoring from serialization');
     this.cleanup();
 
     this.linkRenderer.getAllLinks().forEach((externLink) => {
