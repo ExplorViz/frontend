@@ -5,9 +5,12 @@ implements ChildMesh
 {
 
     constructor(children: Object3D<Object3DEventMap>[] = []) {
+        
         super();
         this.geometry = new BoxGeometry(1, 1, 1);
-        this.material = new MeshLambertMaterial({ color: 0x00ff00 });
+        // random color
+        const color = Math.floor(Math.random() * 16777215);
+        this.material = new MeshLambertMaterial({ color });
         this.dimensionsValue = new Vector3(1, 1, 1);
         this.add(...children);
     }
@@ -26,8 +29,16 @@ implements ChildMesh
         super.add(...object);
         
         const children = this.children as any as ChildMesh[];
-        let largestChildWidth = Math.max(...children.map(child => child.dimensions.x));
-        let largestChildDepth = Math.max(...children.map(child => child.dimensions.z));
+        let largestChildWidth = Math.max(...children.map(child => 
+            child.dimensions.clone().applyAxisAngle(new Vector3(0, 1, 0), (child as any as Object3D).rotation.y).x)
+        );
+        let largestChildDepth = Math.max(...children.map(child => 
+            
+            child.dimensions.clone().applyAxisAngle(new Vector3(0, 1, 0), (child as any as Object3D).rotation.y).z)
+        );
+        // abs
+        largestChildWidth = Math.abs(largestChildWidth);
+        largestChildDepth = Math.abs(largestChildDepth);
         // padding
         largestChildWidth += 5
         largestChildDepth += 5
@@ -45,7 +56,7 @@ implements ChildMesh
                 .map(i => {
                     const width = i % count;
                     const depth = Math.floor(i / count);
-                    return new Vector3(width * largestChildWidth, this.position.y + this.dimensions.y, depth * largestChildDepth)
+                    return new Vector3(width * largestChildWidth, this.dimensions.y / 2, depth * largestChildDepth)
                      .add(new Vector3(largestChildWidth / 2, 0, largestChildDepth / 2))
                      .sub(new Vector3(ownDimWidth / 2, 0, ownDimDepth / 2));
                 });
@@ -59,7 +70,7 @@ implements ChildMesh
     }
 
     private updateChild(child: ChildMesh, centerPosition: Vector3){
-        child.position.set(centerPosition.x, centerPosition.y, centerPosition.z);
+        child.position.set(centerPosition.x, centerPosition.y + child.dimensions.y / 2, centerPosition.z);
     }
 }
 

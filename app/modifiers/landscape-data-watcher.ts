@@ -237,8 +237,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const app = await this.applicationRenderer.addApplicationTask.perform(
         applicationData
       );
-
-      // this.sceneRepo.getScene().add(app);
       return app;
     });
 
