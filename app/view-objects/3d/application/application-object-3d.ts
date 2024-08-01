@@ -13,6 +13,8 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
+import { ChildMesh } from './simple-parent-mesh';
+import { Vector3 } from 'three';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -20,7 +22,8 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
  * some functionality to easily remove child meshes and dispose
  * all their THREE.Geometry's and THREE.Material's.
  */
-export default class ApplicationObject3D extends THREE.Object3D {
+export default class ApplicationObject3D extends THREE.Object3D
+implements ChildMesh {
   /**
    * The underlying application data model
    */
@@ -66,6 +69,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
     }
 
     return new BoxLayout();
+  }
+
+  get dimensions() {
+    return new Vector3(this.layout.width, this.layout.height, this.layout.depth);
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */

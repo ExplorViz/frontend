@@ -33,7 +33,7 @@ import { generateUUID } from 'three/src/math/MathUtils';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { NodeObject } from 'three-forcegraph';
+import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -245,12 +245,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const apps = await Promise.all(promises) as ApplicationObject3D[];
 
-    const geometry = new BoxGeometry(1, 1, 1);
-    const material = new MeshBasicMaterial({ color: 0xffff00 });
-    const mesh = new Mesh(geometry, material);
-    apps.forEach((app, i) => {
-      app.position.add(new Vector3(i * 40))
-    });
+    
+    const mesh = new SimpleParentMesh();
     mesh.add(...apps)
     mesh.position.set(0, 0, 0);
 
