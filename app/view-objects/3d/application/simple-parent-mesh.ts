@@ -40,8 +40,6 @@ implements ChildMesh
         this.geometry = new BoxGeometry(ownDimWidth, 1, ownDimDepth);
         this.dimensionsValue = new Vector3(ownDimWidth, 1, ownDimDepth);
 
-        console.log("width", ownDimWidth, "depth", ownDimDepth);
-
         const centerPoints =
             Array.from({ length: count2 }, (_, i) => i)
                 .map(i => {
