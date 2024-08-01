@@ -11,6 +11,11 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   base: Base
 ) {
   return class extends base implements SemanticZoomableObject {
+    getPoI(): Array<THREE.Vector3> {
+      const worldPos = new THREE.Vector3();
+      this.getWorldPosition(worldPos);
+      return [worldPos];
+    }
     // Mixins may not declare private/protected properties
     // however, you can use ES2020 private fields
     // Variables
@@ -153,6 +158,12 @@ export interface SemanticZoomableObject {
   setCallBeforeAppearenceZero(
     fn: (currentMesh: Mesh | undefined) => void
   ): void;
+
+  // Clustering Business
+  // getPoI stands for getPointsOfInterest and represents a list of
+  // interresting points of a 3d Object in the absolute world.
+  //
+  getPoI(): Array<THREE.Vector3>;
 }
 
 export class Appearence {
@@ -574,12 +585,25 @@ export default class SemanticZoomManager {
   NUMBER_OF_CLUSTERS = 6;
   isEnabled: boolean = false;
   zoomableObjects: Array<SemanticZoomableObject> = [];
-  clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
-  clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
+  //clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
+  //clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
 
+  // Cluster Map
+  preClustered: Map<THREE.Vector3, Array<SemanticZoomableObject>> | undefined;
+  clusterManager: ClusteringAlgInterface | undefined;
+
+  // Singleton
   static #instance: SemanticZoomManager;
-
   debug = debugLogger('SemanticZoomManager');
+
+  // Zoom Level Map
+  // - map: start from
+  // -  Appearence 1: 0 - x
+  // -  Appearence 2: x - y
+  // -  Appearence 3: y - z
+
+  zoomLevelMap: Array<number> = [];
+  alreadyCreatedZoomLevelMap: boolean = false;
 
   /**
    *
@@ -598,13 +622,95 @@ export default class SemanticZoomManager {
     this.isEnabled = false;
     this.forceLevel(0);
   }
+
   activate() {
+    this.clusterManager = new KMeansClusteringAlg();
+    this.clusterManager.setNumberOfClusters(
+      Math.round(this.zoomableObjects.length * 0.2)
+    );
+    this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
     this.isEnabled = true;
+  }
+
+  createZoomLevelMap(cam: THREE.Camera) {
+    for (let index = 5; index < 10; index++) {
+      const distances: Array<number> =
+        this.calculateDistancesForCoveragePercentage(
+          this.zoomableObjects,
+          cam,
+          index * 5
+        );
+      if (distances.length == 0) continue;
+      const total = distances.reduce(
+        (accumulator, currentValue) => accumulator + currentValue,
+        0
+      );
+      const average = total / distances.length;
+      // console.log(
+      //   'Avg distance covering %d % fov objects: %f',
+      //   index * 10,
+      //   average
+      // );
+      //console.log(distances);
+      this.zoomLevelMap.push(average);
+    }
+  }
+  private calculateDistancesForCoveragePercentage(
+    objects: Array<SemanticZoomableObject>,
+    camera: THREE.Camera,
+    coveragePercentage: number
+  ) {
+    const distances: Array<number> = [];
+    if (coveragePercentage == 0) return distances;
+    // Helper function to calculate the size of the object in world units
+    function getObjectSize(object: SemanticZoomableObject) {
+      const box = new THREE.Box3().setFromObject(
+        object as unknown as THREE.Object3D
+      );
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      return size;
+    }
+
+    // Function to calculate distance required to cover a specific percentage of the screen
+    function calculateDistanceForCoverage(
+      object: SemanticZoomableObject,
+      camera: THREE.Camera,
+      coveragePercentage: number
+    ) {
+      const objectSize = getObjectSize(object);
+      const objectDiagonal = objectSize.length(); // Approximate size for coverage calculation
+
+      // Get camera parameters
+      const fov = camera.fov * (Math.PI / 180); // Convert FOV to radians
+      const screenCoverageRatio = coveragePercentage / 100; // Convert percentage to a ratio
+
+      // Calculate the necessary distance
+      const halfScreenSize = Math.tan(fov / 2) * 1; // Normalized screen distance at 1 unit away
+      const targetCoverageSize = 2 * halfScreenSize * screenCoverageRatio;
+
+      const distance = objectDiagonal / targetCoverageSize / Math.tan(fov / 2);
+
+      return distance;
+    }
+
+    // Calculate distances for each object
+    objects.forEach((object: SemanticZoomableObject) => {
+      const distance = calculateDistanceForCoverage(
+        object,
+        camera,
+        coveragePercentage
+      );
+      distances.push(distance);
+    });
+
+    return distances;
   }
 
   public add(obj3d: SemanticZoomableObject) {
     obj3d.saveOriginalAppearence();
     this.zoomableObjects.push(obj3d);
+    // Trigger reClustering!
   }
   public logCurrentState() {
     const currentState: Map<number, number> = new Map();
@@ -640,6 +746,14 @@ export default class SemanticZoomManager {
 
   triggerLevelDecision(cam: THREE.Camera): void {
     if (this.isEnabled == false) return;
+    if (this.alreadyCreatedZoomLevelMap == false) {
+      //console.log('Start calculating ZoomLevelMap');
+      //this.createZoomLevelMap(cam);
+      this.zoomLevelMap.push(1.5);
+      this.zoomLevelMap.push(1);
+      this.zoomLevelMap.push(0.6);
+      this.alreadyCreatedZoomLevelMap = true;
+    }
     const distances: Array<number> = [];
     this.zoomableObjects.forEach((element) => {
       //TODO position not in SemanticlyZoomableObject
@@ -648,9 +762,8 @@ export default class SemanticZoomManager {
       //if (element instanceof FoundationMesh) return;
       //if (element instanceof ClazzCommunicationMesh) return;
       if (element.visible == false) return;
-      const worldPos = new THREE.Vector3();
-      element.getWorldPosition(worldPos);
-      const distance = cam.position.distanceTo(worldPos);
+      const worldPos = element.getPoI();
+      const distance = cam.position.distanceTo(worldPos[0]);
       distances.push(distance);
       if (distance < 1) {
         if (element.getCurrentAppearenceLevel() != 2) {
@@ -673,4 +786,341 @@ export default class SemanticZoomManager {
     //console.log(distances);
     this.logCurrentState();
   }
+
+  triggerLevelDecision2(cam: THREE.Camera): void {
+    if (this.isEnabled == false) return;
+    if (this.alreadyCreatedZoomLevelMap == false) {
+      //console.log('Start calculating ZoomLevelMap');
+      this.createZoomLevelMap(cam);
+      //this.zoomLevelMap.push(1.5);
+      //this.zoomLevelMap.push(1);
+      //this.zoomLevelMap.push(0.6);
+      this.alreadyCreatedZoomLevelMap = true;
+    }
+    this.preClustered?.forEach((listOfClusterMemebers, clusterCenter) => {
+      // Check if Cluster Center is still visible for the camera
+      // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
+      const frustum = new THREE.Frustum();
+      const matrix = new THREE.Matrix4().multiplyMatrices(
+        cam.projectionMatrix,
+        cam.matrixWorldInverse
+      );
+      frustum.setFromProjectionMatrix(matrix);
+      if (!frustum.containsPoint(clusterCenter)) {
+        //console.log('Out of view');
+        return;
+      }
+      // Calculate the distance to Camera, only if cluster is in fov of camera
+      const distanceCamToCluster = cam.position.distanceTo(clusterCenter);
+
+      // Decide on Appearence Level
+      const closestToTarget: number = this.zoomLevelMap.reduce(
+        (closestSoFar, currentValue) => {
+          if (
+            closestSoFar > currentValue &&
+            currentValue > distanceCamToCluster
+          ) {
+            return currentValue;
+          } else {
+            return closestSoFar;
+          }
+        },
+        this.zoomLevelMap[0]
+      );
+      const targetLevel = this.zoomLevelMap.findIndex(
+        (v) => v == closestToTarget
+      );
+
+      // Loop over all members of that cluster and trigger the target appearence
+      listOfClusterMemebers.forEach((semanticZoomableObject) => {
+        if (semanticZoomableObject.visible == false) return;
+        if (semanticZoomableObject.getCurrentAppearenceLevel() != targetLevel)
+          semanticZoomableObject.showAppearence(targetLevel, true, true);
+      });
+    });
+    this.logCurrentState();
+  }
+  preProcessDistanceToLevelMap() {
+    // is used to prepcoress a map that converts distance to appearence level
+  }
+}
+
+interface ClusteringAlgInterface {
+  // Any Object can be assigned to multiple clusters
+  clusterMe(
+    datapoints: Array<SemanticZoomableObject>
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>>;
+}
+
+class KMeansClusteringAlg implements ClusteringAlgInterface {
+  // kMeans with auto generated k
+  kSize = 10; // Default k value
+  MAX_ITERATIONS = 50;
+
+  setNumberOfClusters(newK: number) {
+    this.kSize = newK;
+  }
+
+  clusterMe(
+    datapoints: Array<SemanticZoomableObject>
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
+    const allPois: Array<THREE.Vector3> = [];
+    const zoomableObject: Array<SemanticZoomableObject> = [];
+    datapoints.forEach((objectWithSemanticZoom) => {
+      const pois = objectWithSemanticZoom.getPoI();
+      pois.forEach((p) => {
+        if (p.x != undefined && p.y != undefined && p.z != undefined) {
+          allPois.push(p);
+          zoomableObject.push(objectWithSemanticZoom);
+        }
+      });
+    });
+
+    const result = this.kmeans(allPois, zoomableObject, this.kSize);
+    const resultCleaned = new Map<
+      THREE.Vector3,
+      Array<SemanticZoomableObject>
+    >();
+    result['clusters'].forEach((element) => {
+      resultCleaned.set(element['centroid'], element['assignedObjects']);
+    });
+    return resultCleaned;
+  }
+
+  // --------------------------------------
+  // --------------------------------------
+
+  // https://medium.com/geekculture/implementing-k-means-clustering-from-scratch-in-javascript-13d71fbcb31e
+
+  randomBetween(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+
+  calcMeanCentroid(dataSet: Array<THREE.Vector3>, start: number, end: number) {
+    const features = 3;
+    const n = end - start;
+    const mean = [];
+    for (let i = 0; i < features; i++) {
+      mean.push(0);
+    }
+    for (let i = start; i < end; i++) {
+      for (let j = 0; j < mean.length; j++) {
+        // TODO is divided by n wrong here? doesnt look like mean
+        mean[j] = mean[j] + dataSet[i].getComponent(j) / n;
+      }
+    }
+    return new THREE.Vector3().fromArray(mean);
+  }
+
+  getRandomCentroidsNaiveSharding(dataset: Array<THREE.Vector3>, k: number) {
+    // implementation of a variation of naive sharding centroid initialization method
+    // (not using sums or sorting, just dividing into k shards and calc mean)
+    // https://www.kdnuggets.com/2017/03/naive-sharding-centroid-initialization-method.html
+    const numSamples = dataset.length;
+    // Divide dataset into k shards:
+    const step = Math.floor(numSamples / k);
+    const centroids = [];
+    for (let i = 0; i < k; i++) {
+      const start = step * i;
+      let end = step * (i + 1);
+      if (i + 1 === k) {
+        end = numSamples;
+      }
+      centroids.push(this.calcMeanCentroid(dataset, start, end));
+    }
+    return centroids;
+  }
+
+  getRandomCentroids(dataset: Array<THREE.Vector3>, k: number) {
+    // selects k random points as centroids from the dataset
+    const numSamples = dataset.length;
+    const centroidsIndex = [];
+    let index;
+    while (centroidsIndex.length < k) {
+      index = this.randomBetween(0, numSamples);
+      if (centroidsIndex.indexOf(index) === -1) {
+        centroidsIndex.push(index);
+      }
+    }
+    const centroids = [];
+    for (let i = 0; i < centroidsIndex.length; i++) {
+      //const centroid = [...dataset[centroidsIndex[i]]];
+      //centroids.push(centroid);
+      centroids.push(dataset[centroidsIndex[i]]);
+    }
+    return centroids;
+  }
+
+  compareCentroids(a: THREE.Vector3, b: THREE.Vector3) {
+    // for (let i = 0; i < a.length; i++) {
+    //   if (a[i] !== b[i]) {
+    //     return false;
+    //   }
+    // }
+    return a.equals(b);
+  }
+
+  shouldStop(
+    oldCentroids: Array<THREE.Vector3>,
+    centroids: Array<THREE.Vector3>,
+    iterations: number
+  ) {
+    if (iterations > this.MAX_ITERATIONS) {
+      return true;
+    }
+    if (!oldCentroids || !oldCentroids.length) {
+      return false;
+    }
+    let sameCount = true;
+    for (let i = 0; i < centroids.length; i++) {
+      if (!this.compareCentroids(centroids[i], oldCentroids[i])) {
+        sameCount = false;
+      }
+    }
+    return sameCount;
+  }
+
+  // Calculate Squared Euclidean Distance
+  getDistanceSQ(a: THREE.Vector3, b: THREE.Vector3) {
+    const diffs = [];
+    for (let i = 0; i < 3; i++) {
+      diffs.push(a.getComponent(i) - b.getComponent(i));
+    }
+    return diffs.reduce((r, e) => r + e * e, 0);
+    //return a.distanceTo(b)
+  }
+
+  // Returns a label for each piece of data in the dataset.
+  getLabels(
+    dataSet: Array<THREE.Vector3>,
+    assignedToObjects: Array<SemanticZoomableObject>,
+    centroids: Array<THREE.Vector3>
+  ) {
+    // prep data structure:
+    const labels = {};
+    for (let c = 0; c < centroids.length; c++) {
+      labels[c] = {
+        points: [],
+        assignedObjects: [],
+        centroid: centroids[c],
+      };
+    }
+    // For each element in the dataset, choose the closest centroid.
+    // Make that centroid the element's label.
+    for (let i = 0; i < dataSet.length; i++) {
+      const a = dataSet[i];
+      const aassignedToObjects = assignedToObjects[i];
+      let closestCentroid, closestCentroidIndex, prevDistance;
+      for (let j = 0; j < centroids.length; j++) {
+        const centroid = centroids[j];
+        if (j === 0) {
+          closestCentroid = centroid;
+          closestCentroidIndex = j;
+          prevDistance = this.getDistanceSQ(a, closestCentroid);
+        } else {
+          // get distance:
+          const distance = this.getDistanceSQ(a, centroid);
+          if (distance < prevDistance) {
+            prevDistance = distance;
+            closestCentroid = centroid;
+            closestCentroidIndex = j;
+          }
+        }
+      }
+      // add point to centroid labels:
+      labels[closestCentroidIndex].points.push(a);
+      labels[closestCentroidIndex].assignedObjects.push(aassignedToObjects);
+    }
+    return labels;
+  }
+
+  getPointsMean(pointList: Array<THREE.Vector3>) {
+    const totalPoints = pointList.length;
+    const means = [];
+    for (let j = 0; j < 3; j++) {
+      means.push(0);
+    }
+    for (let i = 0; i < pointList.length; i++) {
+      const point = pointList[i];
+      for (let j = 0; j < 3; j++) {
+        const val = point.getComponent(j);
+        means[j] = means[j] + val / totalPoints;
+      }
+    }
+    return new THREE.Vector3().fromArray(means);
+  }
+
+  recalculateCentroids(dataSet: Array<THREE.Vector3>, labels) {
+    // Each centroid is the geometric mean of the points that
+    // have that centroid's label. Important: If a centroid is empty (no points have
+    // that centroid's label) you should randomly re-initialize it.
+    let newCentroid;
+    const newCentroidList = [];
+    for (const k in labels) {
+      const centroidGroup = labels[k];
+      if (centroidGroup.points.length > 0) {
+        // find mean:
+        newCentroid = this.getPointsMean(centroidGroup.points);
+      } else {
+        // get new random centroid
+        newCentroid = this.getRandomCentroids(dataSet, 1)[0];
+      }
+      newCentroidList.push(newCentroid);
+    }
+    return newCentroidList;
+  }
+
+  kmeans(
+    dataset: Array<THREE.Vector3>,
+    assignedTo: Array<SemanticZoomableObject>,
+    k: number,
+    useNaiveSharding = true
+  ) {
+    if (dataset.length > 0 && dataset.length > k) {
+      // Initialize book keeping variables
+      let iterations = 0;
+      let oldCentroids: Array<THREE.Vector3>,
+        labels,
+        centroids: Array<THREE.Vector3>;
+
+      // Initialize centroids randomly
+      if (useNaiveSharding) {
+        centroids = this.getRandomCentroidsNaiveSharding(dataset, k);
+      } else {
+        centroids = this.getRandomCentroids(dataset, k);
+      }
+
+      // Run the main k-means algorithm
+      while (!this.shouldStop(oldCentroids, centroids, iterations)) {
+        // Save old centroids for convergence test.
+        oldCentroids = [...centroids];
+        iterations++;
+
+        // Assign labels to each datapoint based on centroids
+        labels = this.getLabels(dataset, assignedTo, centroids);
+        centroids = this.recalculateCentroids(dataset, labels, k);
+      }
+
+      const clusters = [];
+      for (let i = 0; i < k; i++) {
+        clusters.push(labels[i]);
+      }
+      const results = {
+        clusters: clusters,
+        centroids: centroids,
+        iterations: iterations,
+        converged: iterations <= this.MAX_ITERATIONS,
+      };
+      return results;
+    } else {
+      throw new Error('Invalid dataset');
+    }
+  }
+
+  // --------------------------------------
+  // --------------------------------------
+
+  // fastAddToCluster(newElement:SemanticZoomableObject){
+  //   // Adds
+  // }
 }

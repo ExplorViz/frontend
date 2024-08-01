@@ -136,6 +136,12 @@ export default abstract class BaseMesh<
     return Array.from(this.appearencesMap.keys()).length;
   }
 
+  getPoI(): Array<THREE.Vector3> {
+    const worldPos = new THREE.Vector3();
+    this.getWorldPosition(worldPos);
+    return [worldPos];
+  }
+
   changeTexture(texturePath: string, repeat: number = 5) {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||

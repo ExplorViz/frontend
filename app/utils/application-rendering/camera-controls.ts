@@ -44,7 +44,8 @@ export default class CameraControls {
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
     // Semantic Zoom trigger Level Decision
     this.perspectiveCameraControls.addEventListener('end', () =>
-      SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
+      //SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
+      SemanticZoomManager.instance.triggerLevelDecision2(this.perspectiveCamera)
     );
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
