@@ -435,6 +435,7 @@ export default class AnnotationHandlerService extends Service {
     lastEditor: string | undefined;
   }) {
     let minimized = false;
+    let alreadyExists = false;
 
     if (isEntityMesh(mesh)) {
       const annotation = this.minimizedAnnotations.filter(
@@ -447,9 +448,16 @@ export default class AnnotationHandlerService extends Service {
         // );
         minimized = true;
       }
+
+      const anno = this.annotationData.filter(
+        (an) => an.entity?.id === mesh.dataModel.id
+      );
+      if (anno.length === 1) {
+        alreadyExists = true;
+      }
     }
 
-    if (!minimized) {
+    if (!minimized && !alreadyExists) {
       let annotationPosition = position;
 
       if (!annotationPosition) {

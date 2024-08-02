@@ -110,6 +110,10 @@ export default class AnnotationCoordinatorComponent extends Component<IArgs> {
   elementDrag(event: MouseEvent) {
     this.args.annotationData.wasMoved = true;
 
+    // prevent that annotation gets minimized before user moves curser out of the annotation window
+    // if this doesnt happen, it would end up in making this annotation not accessible
+    this.annotationHandler.removeUnmovedAnnotations();
+
     event.preventDefault();
 
     // Calculate delta of cursor position:
