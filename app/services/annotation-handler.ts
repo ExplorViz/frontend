@@ -628,6 +628,29 @@ export default class AnnotationHandlerService extends Service {
     originalMessage: { menuId },
   }: ForwardedMessage<AnnotationForwardMessage>): void {
     if (menuId) {
+      const allAnnotations = [
+        ...this.annotationData,
+        ...this.minimizedAnnotations,
+      ];
+
+      const anno = allAnnotations.find((an) => an.menuId === menuId);
+
+      if (anno) {
+        if (anno.entity) {
+          const mesh = this.applicationRenderer.getMeshById(anno.entity.id);
+          if (mesh?.isHovered) {
+            mesh.resetHoverEffect();
+          }
+
+          if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+            this.applicationRenderer.updateLabel(anno.entity.id, '');
+          }
+        }
+      }
+
+      this.minimizedAnnotations = this.minimizedAnnotations.filter(
+        (an) => an.menuId !== menuId
+      );
       this.annotationData = this.annotationData.filter(
         (an) => an.menuId !== menuId
       );
