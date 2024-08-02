@@ -6,7 +6,15 @@ import { Mesh } from 'three';
 
 type Constructor = new (...args: any[]) => any;
 
-// This mixin itsself
+/**
+ * This Mixin can extend any kind of THREE Object class and implmenet the basic function of the `SemanticZoomableObject` Interface
+ * Is gets the orignal class as a parameter and returns a new extended class that can be used to instanciate
+ * const extendedClass = SemanticZoomableObjectBaseMixin(orignalClass)
+ * extendedClass(orignal params);
+ * @template Base
+ * @param base
+ * @returns
+ */
 export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   base: Base
 ) {
@@ -123,6 +131,9 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   };
 }
 
+/**
+ * Semantic zoomable object Interface
+ */
 export interface SemanticZoomableObject {
   // Should be the visibility property of the Mesh
   visible: boolean;
@@ -166,6 +177,12 @@ export interface SemanticZoomableObject {
   getPoI(): Array<THREE.Vector3>;
 }
 
+/**
+ * Appearence class stores an recipe of how to change the appearence of any SemanticZoomableObject.
+ * It handles the recipe
+ *
+ */
+// TODO integrate Appearence class in the SemanticZoomableObjectBaseMixin
 export class Appearence {
   // is like a recipe to tell the original/base 3d Object how to change
 
@@ -350,6 +367,9 @@ export class Appearence {
     return true;
   }
 }
+/**
+ * Recipe stores inforatiom of what to change on the 3D OBject itsself and can save the orignal appearence
+ */
 export class Recipe {
   //TODO alter the Recipe such that each value can be absolute or relativ
 
@@ -533,6 +553,9 @@ export class Recipe {
   }
 }
 
+/**
+ * Appearence extension can be used to add further 3D objects to the original object itsself.
+ */
 export class AppearenceExtension extends Appearence {
   // can be used to add further Objects to the appearence level of a `SemanticZoomableObject`
   objects3D: Array<Mesh> = [];
@@ -559,7 +582,9 @@ export class AppearenceExtension extends Appearence {
     mesh: SemanticZoomableObject | Mesh,
     rescale: boolean = false
   ) {
-    this.objects3D.push(mesh);
+    this.objects3D.push(
+      mesh as Mesh<THREE.BufferGeometry<THREE.NormalBufferAttributes>>
+    );
     this.objects3Drescale.push(rescale);
   }
   public addMeshToScene() {}
@@ -577,11 +602,12 @@ export class AppearenceExtension extends Appearence {
   }
 }
 
+/**
+ * SemanticZoomManager is a Singleton and stores all objects that can change there appearence.
+ * It uses a cluster algorithm and a decision algorithm based on the distances to the camera to trigger another appearence for each object.
+ * Has a List of all Objects3D types
+ */
 export default class SemanticZoomManager {
-  /**
-   * Is a Singleton
-   * Has a List of all Objects3D types
-   */
   NUMBER_OF_CLUSTERS = 6;
   isEnabled: boolean = false;
   zoomableObjects: Array<SemanticZoomableObject> = [];
@@ -631,6 +657,12 @@ export default class SemanticZoomManager {
     this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
     this.isEnabled = true;
   }
+  validateZoomLevelMap(zoomlevelarray: Array<number> = this.zoomLevelMap) {
+    if (zoomlevelarray.every((a, i) => zoomlevelarray[i] < a)) {
+      return true;
+    }
+    return false;
+  }
 
   createZoomLevelMap(cam: THREE.Camera) {
     for (let index = 5; index < 10; index++) {
@@ -646,14 +678,10 @@ export default class SemanticZoomManager {
         0
       );
       const average = total / distances.length;
-      // console.log(
-      //   'Avg distance covering %d % fov objects: %f',
-      //   index * 10,
-      //   average
-      // );
-      //console.log(distances);
       this.zoomLevelMap.push(average);
     }
+    if (!this.validateZoomLevelMap())
+      this.debug('Zoom Array is not descending');
   }
   private calculateDistancesForCoveragePercentage(
     objects: Array<SemanticZoomableObject>,
@@ -707,11 +735,19 @@ export default class SemanticZoomManager {
     return distances;
   }
 
+  /**
+   * Adds an object to the semantic zoom manager
+   * @param obj3d SemanticZoomableObject
+   */
   public add(obj3d: SemanticZoomableObject) {
     obj3d.saveOriginalAppearence();
     this.zoomableObjects.push(obj3d);
     // Trigger reClustering!
+    // fastAddToCluster
   }
+  /**
+   * Logs the current state and provides an overview of active appearence levels
+   */
   public logCurrentState() {
     const currentState: Map<number, number> = new Map();
     this.zoomableObjects.forEach((element) => {
@@ -738,7 +774,7 @@ export default class SemanticZoomManager {
      */
     this.zoomableObjects.forEach((element) => {
       //element.
-      element.showAppearence(level);
+      element.showAppearence(level, true, true);
     });
   }
 
@@ -768,17 +804,17 @@ export default class SemanticZoomManager {
       if (distance < 1) {
         if (element.getCurrentAppearenceLevel() != 2) {
           //console.log('Changed to 2');
-          element.showAppearence(2);
+          element.showAppearence(2, true, true);
         }
       } else if (distance < 1.5) {
         if (element.getCurrentAppearenceLevel() != 1) {
           //console.log('Changed to 1');
-          element.showAppearence(1);
+          element.showAppearence(1, true, true);
         }
       } else {
         if (element.getCurrentAppearenceLevel() != 0) {
           //console.log('Changed to 0');
-          element.showAppearence(0);
+          element.showAppearence(0, true, true);
         }
       }
     });
@@ -787,6 +823,11 @@ export default class SemanticZoomManager {
     this.logCurrentState();
   }
 
+  /**
+   * This function gets called by ThreeJS everytime the camera changes.
+   * @param cam THREE.Camera
+   * @returns void
+   */
   triggerLevelDecision2(cam: THREE.Camera): void {
     if (this.isEnabled == false) return;
     if (this.alreadyCreatedZoomLevelMap == false) {
@@ -845,22 +886,41 @@ export default class SemanticZoomManager {
   }
 }
 
+/**
+ * Clustering interface that needs to be implemented to exchange the clustering algorithm
+ */
 interface ClusteringAlgInterface {
+  setNumberOfClusters(k: number): void;
   // Any Object can be assigned to multiple clusters
   clusterMe(
     datapoints: Array<SemanticZoomableObject>
   ): Map<THREE.Vector3, Array<SemanticZoomableObject>>;
 }
 
+/**
+ * Implementation of kMeans adapted to the THREE.Vector3 and the Interface `ClusteringAlgInterface`
+ * Inspired by https://medium.com/geekculture/implementing-k-means-clustering-from-scratch-in-javascript-13d71fbcb31e
+ */
 class KMeansClusteringAlg implements ClusteringAlgInterface {
   // kMeans with auto generated k
-  kSize = 10; // Default k value
+  // Default k value
+  kSize = 10;
+  // Max Iterations to find a fixed centroid
   MAX_ITERATIONS = 50;
 
+  /**
+   * Sets number of clusters to detect
+   * @param newK number
+   */
   setNumberOfClusters(newK: number) {
     this.kSize = newK;
   }
 
+  /**
+   * is called by the SemanticZoomManager and returns for each cluster k the centroid and all the member objects
+   * @param datapoints Array<SemanticZoomableObject>
+   * @returns Map<THREE.Vector3, Array<SemanticZoomableObject>>
+   */
   clusterMe(
     datapoints: Array<SemanticZoomableObject>
   ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
@@ -887,15 +947,32 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return resultCleaned;
   }
 
+  // fastAddToCluster(newElement:SemanticZoomableObject){
+  //   // Adds a new element to the existing clusters
+  // }
+
   // --------------------------------------
   // --------------------------------------
 
   // https://medium.com/geekculture/implementing-k-means-clustering-from-scratch-in-javascript-13d71fbcb31e
 
+  /**
+   *  Create random integers between min and max
+   * @param min
+   * @param max
+   * @returns  random number
+   */
   randomBetween(min: number, max: number) {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  /**
+   * Calcs mean centroid
+   * @param dataSet
+   * @param start
+   * @param end
+   * @returns
+   */
   calcMeanCentroid(dataSet: Array<THREE.Vector3>, start: number, end: number) {
     const features = 3;
     const n = end - start;
@@ -931,6 +1008,12 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return centroids;
   }
 
+  /**
+   * Gets random centroids used for the init kMeans
+   * @param dataset
+   * @param k
+   * @returns
+   */
   getRandomCentroids(dataset: Array<THREE.Vector3>, k: number) {
     // selects k random points as centroids from the dataset
     const numSamples = dataset.length;
@@ -951,6 +1034,12 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return centroids;
   }
 
+  /**
+   * Compares centroids as a type of THREE.Vector3 where each component is compared
+   * @param a
+   * @param b
+   * @returns
+   */
   compareCentroids(a: THREE.Vector3, b: THREE.Vector3) {
     // for (let i = 0; i < a.length; i++) {
     //   if (a[i] !== b[i]) {
@@ -980,7 +1069,12 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return sameCount;
   }
 
-  // Calculate Squared Euclidean Distance
+  /**
+   * Calculate Squared Euclidean Distance
+   * @param a Vector
+   * @param b Vecot
+   * @returns  the distance as a scalar
+   */
   getDistanceSQ(a: THREE.Vector3, b: THREE.Vector3) {
     const diffs = [];
     for (let i = 0; i < 3; i++) {
@@ -990,27 +1084,42 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     //return a.distanceTo(b)
   }
 
-  // Returns a label for each piece of data in the dataset.
+  //
+  /**
+   * Returns a label for each piece of data in the dataset and combines it with it correspond object
+   * @param dataSet
+   * @param assignedToObjects
+   * @param centroids
+   * @returns
+   */
   getLabels(
     dataSet: Array<THREE.Vector3>,
     assignedToObjects: Array<SemanticZoomableObject>,
     centroids: Array<THREE.Vector3>
   ) {
     // prep data structure:
-    const labels = {};
+    // const labels = {};
+    const labels: Map<number, any> = new Map();
     for (let c = 0; c < centroids.length; c++) {
-      labels[c] = {
+      // labels[c] = {
+      //   points: [],
+      //   assignedObjects: [],
+      //   centroid: centroids[c],
+      // };
+      labels.set(c, {
         points: [],
         assignedObjects: [],
         centroid: centroids[c],
-      };
+      });
     }
     // For each element in the dataset, choose the closest centroid.
     // Make that centroid the element's label.
     for (let i = 0; i < dataSet.length; i++) {
       const a = dataSet[i];
       const aassignedToObjects = assignedToObjects[i];
-      let closestCentroid, closestCentroidIndex, prevDistance;
+      let closestCentroid: THREE.Vector3 = new THREE.Vector3();
+      let closestCentroidIndex: number = -1;
+      let prevDistance: number = -1;
       for (let j = 0; j < centroids.length; j++) {
         const centroid = centroids[j];
         if (j === 0) {
@@ -1028,12 +1137,19 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
         }
       }
       // add point to centroid labels:
-      labels[closestCentroidIndex].points.push(a);
-      labels[closestCentroidIndex].assignedObjects.push(aassignedToObjects);
+      labels.get(closestCentroidIndex)['points'].push(a);
+      labels
+        .get(closestCentroidIndex)
+        ['assignedObjects'].push(aassignedToObjects);
     }
     return labels;
   }
 
+  /**
+   * Calculates the mean for a list of THREE.Vector3 Objects
+   * @param pointList
+   * @returns
+   */
   getPointsMean(pointList: Array<THREE.Vector3>) {
     const totalPoints = pointList.length;
     const means = [];
@@ -1050,14 +1166,17 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return new THREE.Vector3().fromArray(means);
   }
 
-  recalculateCentroids(dataSet: Array<THREE.Vector3>, labels) {
+  recalculateCentroids(
+    dataSet: Array<THREE.Vector3>,
+    labels: Map<number, any>
+  ) {
     // Each centroid is the geometric mean of the points that
     // have that centroid's label. Important: If a centroid is empty (no points have
     // that centroid's label) you should randomly re-initialize it.
     let newCentroid;
     const newCentroidList = [];
-    for (const k in labels) {
-      const centroidGroup = labels[k];
+    for (const k in labels.entries()) {
+      const centroidGroup = k[0];
       if (centroidGroup.points.length > 0) {
         // find mean:
         newCentroid = this.getPointsMean(centroidGroup.points);
@@ -1070,6 +1189,15 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return newCentroidList;
   }
 
+  /**
+   * Triggers the kMeans clustering with a provided dataset of vectors and its corresponding objects.
+   * k is used as the number of clusters wanted
+   * @param dataset
+   * @param assignedTo
+   * @param k
+   * @param [useNaiveSharding]
+   * @returns
+   */
   kmeans(
     dataset: Array<THREE.Vector3>,
     assignedTo: Array<SemanticZoomableObject>,
@@ -1079,7 +1207,7 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     if (dataset.length > 0 && dataset.length > k) {
       // Initialize book keeping variables
       let iterations = 0;
-      let oldCentroids: Array<THREE.Vector3>,
+      let oldCentroids: Array<THREE.Vector3> = [],
         labels,
         centroids: Array<THREE.Vector3>;
 
@@ -1098,12 +1226,12 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
 
         // Assign labels to each datapoint based on centroids
         labels = this.getLabels(dataset, assignedTo, centroids);
-        centroids = this.recalculateCentroids(dataset, labels, k);
+        centroids = this.recalculateCentroids(dataset, labels);
       }
 
       const clusters = [];
       for (let i = 0; i < k; i++) {
-        clusters.push(labels[i]);
+        clusters.push(labels?.get(i));
       }
       const results = {
         clusters: clusters,
@@ -1119,8 +1247,4 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
 
   // --------------------------------------
   // --------------------------------------
-
-  // fastAddToCluster(newElement:SemanticZoomableObject){
-  //   // Adds
-  // }
 }
