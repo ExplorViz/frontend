@@ -71,6 +71,7 @@ export default class Settings extends Component<Args> {
       Popups: [],
       'Virtual Reality': [],
       Debugging: [],
+      'Semantic Zoom': [],
     };
 
     let settingId: keyof ApplicationSettings;
@@ -124,6 +125,13 @@ export default class Settings extends Component<Args> {
         this.localUser.defaultCamera.fov =
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'distanceLevel1':
+      case 'distanceLevel2':
+      case 'distanceLevel3':
+      case 'distanceLevel4':
+      case 'distanceLevel5':
+        //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
         break;
       default:
         break;

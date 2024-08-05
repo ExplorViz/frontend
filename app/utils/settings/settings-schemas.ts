@@ -7,6 +7,7 @@ export type SettingGroup =
   | 'Effects'
   | 'Popups'
   | 'Virtual Reality'
+  | 'Semantic Zoom'
   | 'Debugging';
 
 export type ApplicationColorSettingId =
@@ -43,6 +44,13 @@ export type ApplicationCommunicationSettingId =
 
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
+export type ApplicationSemanticZoomSettingId =
+  | 'distanceLevel1'
+  | 'distanceLevel2'
+  | 'distanceLevel3'
+  | 'distanceLevel4'
+  | 'distanceLevel5';
+
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type ApplicationDebugSettingId =
@@ -63,6 +71,7 @@ export type ApplicationSettingId =
   | ApplicationCommunicationSettingId
   | ApplicationDebugSettingId
   | ApplicationCameraSettingId
+  | ApplicationSemanticZoomSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId;
 
@@ -113,6 +122,14 @@ export type ApplicationCameraSettings = {
   cameraFov: RangeSetting;
 };
 
+export type ApplicationSemanticZoomSettings = {
+  distanceLevel1: RangeSetting;
+  distanceLevel2: RangeSetting;
+  distanceLevel3: RangeSetting;
+  distanceLevel4: RangeSetting;
+  distanceLevel5: RangeSetting;
+};
+
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
@@ -123,6 +140,7 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationPopupSettings &
   ApplicationCameraSettings &
   ApplicationXRSettings &
+  ApplicationSemanticZoomSettings &
   ApplicationCommunicationSettings;
 
 export interface Setting<T> {

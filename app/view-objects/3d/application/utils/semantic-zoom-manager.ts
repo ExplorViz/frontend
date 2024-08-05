@@ -1,4 +1,6 @@
 import debugLogger from 'ember-debug-logger';
+import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { Mesh } from 'three';
 
@@ -665,12 +667,19 @@ export default class SemanticZoomManager {
   }
 
   createZoomLevelMap(cam: THREE.Camera) {
-    for (let index = 5; index < 10; index++) {
+    const appSettings: ApplicationSettings = getStoredSettings();
+    const d1: number = appSettings.distanceLevel1.value;
+    const d2: number = appSettings.distanceLevel2.value;
+    const d3: number = appSettings.distanceLevel3.value;
+    const d4: number = appSettings.distanceLevel4.value;
+    const d5: number = appSettings.distanceLevel5.value;
+    const userSettingLevels = [d1, d2, d3, d4, d5].reverse();
+    for (let index = 0; index < userSettingLevels.length; index++) {
       const distances: Array<number> =
         this.calculateDistancesForCoveragePercentage(
           this.zoomableObjects,
           cam,
-          index * 5
+          userSettingLevels[index]
         );
       if (distances.length == 0) continue;
       const total = distances.reduce(
@@ -989,6 +998,12 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     return new THREE.Vector3().fromArray(mean);
   }
 
+  /**
+   * Gets random centroids base on the mean of Samples / k Datapoints
+   * @param dataset
+   * @param k
+   * @returns
+   */
   getRandomCentroidsNaiveSharding(dataset: Array<THREE.Vector3>, k: number) {
     // implementation of a variation of naive sharding centroid initialization method
     // (not using sums or sorting, just dividing into k shards and calc mean)

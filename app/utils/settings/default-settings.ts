@@ -252,6 +252,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
   },
+
   // Debug Settings
   showFpsCounter: {
     value: false,
@@ -307,5 +308,76 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Reset all settings to default values',
     buttonText: 'Reset',
     isButtonSetting: true,
+  },
+  // Semantic Zoom Settings
+  distanceLevel1: {
+    value: 90,
+    range: {
+      min: 0.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Level 1 (Closest View)',
+    description:
+      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+    isRangeSetting: true,
+  },
+  distanceLevel2: {
+    value: 80,
+    range: {
+      min: 0.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Level 2',
+    description:
+      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+    isRangeSetting: true,
+  },
+  distanceLevel3: {
+    value: 70,
+    range: {
+      min: 0.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Level 3',
+    description:
+      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+    isRangeSetting: true,
+  },
+  distanceLevel4: {
+    value: 65,
+    range: {
+      min: 0.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Level 4',
+    description:
+      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+    isRangeSetting: true,
+  },
+  distanceLevel5: {
+    value: 60,
+    range: {
+      min: 0.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Level 5',
+    description:
+      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+    isRangeSetting: true,
   },
 };
