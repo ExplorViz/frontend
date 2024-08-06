@@ -659,11 +659,24 @@ export default class SemanticZoomManager {
     this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
     this.isEnabled = true;
   }
+  /**
+   * Validates zoom level map such that the array is in descending order.
+   * @param [zoomlevelarray]
+   * @returns
+   */
   validateZoomLevelMap(zoomlevelarray: Array<number> = this.zoomLevelMap) {
-    if (zoomlevelarray.every((a, i) => zoomlevelarray[i] < a)) {
-      return true;
-    }
-    return false;
+    const result = zoomlevelarray.reduce(
+      (prev, now) => {
+        if (prev[0] >= now && prev[1] == true) return [now, true];
+        return [now, false];
+      },
+      [zoomlevelarray[0], true]
+    );
+    return result[1];
+    // if (zoomlevelarray.every((a, i) => zoomlevelarray[i] < a)) {
+    //   return true;
+    // }
+    // return false;
   }
 
   createZoomLevelMap(cam: THREE.Camera) {
@@ -690,7 +703,9 @@ export default class SemanticZoomManager {
       this.zoomLevelMap.push(average);
     }
     if (!this.validateZoomLevelMap())
-      this.debug('Zoom Array is not descending');
+      this.debug(
+        'Warning: Zoom Array is not descending. It may not work as expected'
+      );
   }
   private calculateDistancesForCoveragePercentage(
     objects: Array<SemanticZoomableObject>,
