@@ -15,6 +15,7 @@ import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 interface Args {
   enterFullscreen?(): void;
@@ -131,7 +132,18 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel3':
       case 'distanceLevel4':
       case 'distanceLevel5':
+        SemanticZoomManager.instance.createZoomLevelMap(
+          this.localUser.defaultCamera
+        );
         //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
+        break;
+      case 'clusterBasedOnMembers':
+        SemanticZoomManager.instance.cluster(
+          this.userSettings.applicationSettings.clusterBasedOnMembers.value
+        );
+        // SemanticZoomManager.instance.clusterManager?.setNumberOfClusters(
+        //   this.userSettings.applicationSettings.clusterBasedOnMembers.value
+        // );
         break;
       default:
         break;

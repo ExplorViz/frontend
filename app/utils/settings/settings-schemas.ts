@@ -49,7 +49,8 @@ export type ApplicationSemanticZoomSettingId =
   | 'distanceLevel2'
   | 'distanceLevel3'
   | 'distanceLevel4'
-  | 'distanceLevel5';
+  | 'distanceLevel5'
+  | 'clusterBasedOnMembers';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
@@ -128,6 +129,7 @@ export type ApplicationSemanticZoomSettings = {
   distanceLevel3: RangeSetting;
   distanceLevel4: RangeSetting;
   distanceLevel5: RangeSetting;
+  clusterBasedOnMembers: RangeSetting;
 };
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;

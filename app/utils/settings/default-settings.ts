@@ -310,6 +310,20 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isButtonSetting: true,
   },
   // Semantic Zoom Settings
+  clusterBasedOnMembers: {
+    value: 20.0,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 1.0,
+    },
+    orderNumber: 3,
+    group: 'Semantic Zoom',
+    displayName: 'Relative # of clusters',
+    description:
+      'It takes a percentage of the number of 3D Objects in the scene',
+    isRangeSetting: true,
+  },
   distanceLevel1: {
     value: 90,
     range: {

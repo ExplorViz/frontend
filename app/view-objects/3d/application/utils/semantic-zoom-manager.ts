@@ -652,12 +652,16 @@ export default class SemanticZoomManager {
   }
 
   activate() {
+    this.cluster(getStoredSettings().clusterBasedOnMembers.value);
+    this.isEnabled = true;
+  }
+
+  cluster(k: number) {
     this.clusterManager = new KMeansClusteringAlg();
     this.clusterManager.setNumberOfClusters(
-      Math.round(this.zoomableObjects.length * 0.2)
+      Math.round((this.zoomableObjects.length * k) / 100)
     );
     this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
-    this.isEnabled = true;
   }
   /**
    * Validates zoom level map such that the array is in descending order.
@@ -667,7 +671,8 @@ export default class SemanticZoomManager {
   validateZoomLevelMap(zoomlevelarray: Array<number> = this.zoomLevelMap) {
     const result = zoomlevelarray.reduce(
       (prev, now) => {
-        if (prev[0] >= now && prev[1] == true) return [now, true];
+        if ((prev[0] as number) >= now && (prev[1] as boolean) == true)
+          return [now, true];
         return [now, false];
       },
       [zoomlevelarray[0], true]
@@ -687,6 +692,7 @@ export default class SemanticZoomManager {
     const d4: number = appSettings.distanceLevel4.value;
     const d5: number = appSettings.distanceLevel5.value;
     const userSettingLevels = [d1, d2, d3, d4, d5].reverse();
+    this.zoomLevelMap = [];
     for (let index = 0; index < userSettingLevels.length; index++) {
       const distances: Array<number> =
         this.calculateDistancesForCoveragePercentage(
@@ -706,6 +712,7 @@ export default class SemanticZoomManager {
       this.debug(
         'Warning: Zoom Array is not descending. It may not work as expected'
       );
+    this.debug(this.zoomLevelMap);
   }
   private calculateDistancesForCoveragePercentage(
     objects: Array<SemanticZoomableObject>,
