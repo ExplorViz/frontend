@@ -12,6 +12,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
+import * as THREE from 'three';
 
 export interface GraphNode {
   // data: ApplicationData,
@@ -54,6 +55,8 @@ export default class ForceGraph {
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
+
+  boundingBox: THREE.Box3 = new THREE.Box3();
 
   constructor(owner: any, scale: number = 1) {
     this.scale = scale;
@@ -103,5 +106,17 @@ export default class ForceGraph {
 
   tick() {
     this.graph.tickFrame();
+    this.calculateBoundingBox();
+  }
+
+  calculateBoundingBox() {
+    const box = new THREE.Box3();
+    const vector = new THREE.Vector3();
+    this.graph.graphData().nodes.forEach((node) => {
+      vector.set(node.x!, node.y!, node.z!);
+      box.expandByPoint(vector);
+    });
+
+    this.boundingBox = box;
   }
 }

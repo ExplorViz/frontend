@@ -1,4 +1,7 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
+import { INITIAL_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/landscape';
+import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
+import * as THREE from 'three';
 
 import {
   EventDispatcher,
@@ -28,12 +31,20 @@ const _plane = new Plane();
 const TILT_LIMIT = Math.cos(70 * MathUtils.DEG2RAD);
 
 class OrbitControls extends EventDispatcher {
+  minPan;
+
+  maxPan;
+
   constructor(object, domElement) {
     super();
 
     this.object = object;
     this.domElement = domElement;
     this.domElement.style.touchAction = 'none'; // disable touch scroll
+
+    // Set minPan and maxPan to infinity
+    this.minPan = new THREE.Vector3(Infinity, Infinity, Infinity);
+    this.maxPan = new THREE.Vector3(Infinity, Infinity, Infinity);
 
     // Set to false to disable this control
     this.enabled = true;
@@ -46,11 +57,11 @@ class OrbitControls extends EventDispatcher {
 
     // How far you can dolly in and out ( PerspectiveCamera only )
     this.minDistance = 0;
-    this.maxDistance = Infinity;
+    this.maxDistance = 1;
 
     // How far you can zoom in and out ( OrthographicCamera only )
     this.minZoom = 0;
-    this.maxZoom = Infinity;
+    this.maxZoom = 10;
 
     // Limit camera target within a spherical area around the cursor
     this.minTargetRadius = 0;
@@ -234,12 +245,13 @@ class OrbitControls extends EventDispatcher {
         spherical.makeSafe();
 
         // move target to panned location
-
         if (scope.enableDamping === true) {
           scope.target.addScaledVector(panOffset, scope.dampingFactor);
         } else {
           scope.target.add(panOffset);
         }
+        console.log(this.minPan, this.maxPan);
+        scope.target.clamp(this.minPan, this.maxPan);
 
         // Limit the target distance from the cursor to create a sphere around the center of interest
         scope.target.sub(scope.cursor);
@@ -746,7 +758,7 @@ class OrbitControls extends EventDispatcher {
           needsUpdate = true;
           break;
       }
-
+      debugger;
       if (needsUpdate) {
         // prevent the browser from scrolling on cursor keys
         event.preventDefault();
@@ -1031,6 +1043,7 @@ class OrbitControls extends EventDispatcher {
           if (scope.enableRotate === false) return;
 
           handleMouseMoveRotate(event);
+          minimapRaycasting.changeValue(false);
 
           break;
 
@@ -1045,6 +1058,7 @@ class OrbitControls extends EventDispatcher {
           if (scope.enablePan === false) return;
 
           handleMouseMovePan(event);
+          minimapRaycasting.changeValue(true);
 
           break;
       }
@@ -1315,6 +1329,10 @@ class OrbitControls extends EventDispatcher {
     };
     this.zoomIn = (delta) => dollyIn(getZoomScale(delta));
     this.zoomOut = (delta) => dollyOut(getZoomScale(delta));
+  }
+
+  getTarget() {
+    return scope.target;
   }
 }
 

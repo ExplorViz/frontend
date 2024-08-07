@@ -51,7 +51,6 @@ module.exports = {
     'no-param-reassign': ['error', { props: false }],
     'no-plusplus': 'off',
     'prefer-rest-params': 'off',
-    'prettier/prettier': 'error',
     'require-yield': 'off',
   },
   overrides: [

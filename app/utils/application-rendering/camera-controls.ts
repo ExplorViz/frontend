@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import {
+import THREE, {
   Box3,
   Object3D,
   OrthographicCamera,
@@ -10,6 +10,7 @@ import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import { MapControls } from '../controls/MapControls';
+import { clamp } from './communication-layouter';
 
 export default class CameraControls {
   @service('user-settings')
@@ -29,7 +30,8 @@ export default class CameraControls {
     perspectiveCamera: PerspectiveCamera,
     orthographicCamera: OrthographicCamera | undefined,
     minimapCamera: OrthographicCamera,
-    canvas: HTMLCanvasElement
+    canvas: HTMLCanvasElement,
+    boundingBox: THREE.Box3
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
@@ -45,6 +47,8 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
+    this.perspectiveCameraControls.minPan = boundingBox.min;
+    this.perspectiveCameraControls.maxPan = boundingBox.max;
 
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
@@ -83,8 +87,6 @@ export default class CameraControls {
     box.getCenter(center);
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
-    console.log(size);
-    console.log(center);
 
     // fit perspective camera
 
@@ -212,9 +214,28 @@ export default class CameraControls {
     });
   }
 
+  // private checkBoundingBox() {
+  //   let margin = 0.7;
+  //   if (this.perspectiveCameraControls.minPan.x < Infinity) {
+  //     this.perspectiveCameraControls.target.clamp(
+  //       new THREE.Vector3(
+  //         this.perspectiveCameraControls.minPan.x / 100 - margin,
+  //         this.perspectiveCameraControls.minPan.y,
+  //         this.perspectiveCameraControls.minPan.z / 100 - margin
+  //       ),
+  //       new THREE.Vector3(
+  //         this.perspectiveCameraControls.maxPan.x / 100 + margin,
+  //         this.perspectiveCameraControls.maxPan.y,
+  //         this.perspectiveCameraControls.maxPan.z / 100 + margin
+  //       )
+  //     );
+  //   }
+  // }
+
   tick() {
     if (this.enabled) {
       this.perspectiveCameraControls.update();
+      // this.checkBoundingBox;
       // this.minimapCameraControls.update();
       if (this.orthographicCameraControls) {
         this.orthographicCameraControls.update();

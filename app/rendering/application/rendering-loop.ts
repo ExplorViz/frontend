@@ -8,6 +8,9 @@ import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
 import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
 import LocalUser from 'collaboration/services/local-user';
+import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
+import ThreeForceGraph from 'three-forcegraph';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 
 const clock = new Clock();
 
@@ -19,6 +22,9 @@ interface Args {
   renderer: THREE.WebGLRenderer;
   updatables: any[];
   zoomHandler?: ArZoomHandler;
+  graphBounds?: THREE.Box3;
+  graph: ForceGraph;
+  controls: CameraControls;
 }
 
 export default class RenderingLoop {
@@ -50,6 +56,12 @@ export default class RenderingLoop {
 
   zoomHandler?: ArZoomHandler;
 
+  graph: ForceGraph;
+
+  controls: CameraControls;
+
+  intersection!: THREE.Vector3;
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
@@ -59,6 +71,8 @@ export default class RenderingLoop {
     this.renderer = args.renderer;
     this.updatables = args.updatables;
     this.zoomHandler = args.zoomHandler;
+    this.graph = args.graph;
+    this.controls = args.controls;
   }
 
   start() {
@@ -83,6 +97,12 @@ export default class RenderingLoop {
 
       // tell every animated object to tick forward one frame
       this.tick(frame);
+
+      this.intersection = this.getCurrentFocus();
+      this.controls.perspectiveCameraControls.minPan =
+        this.graph.boundingBox.min;
+      this.controls.perspectiveCameraControls.maxPan =
+        this.graph.boundingBox.max;
 
       // render a frame
       if (
@@ -157,6 +177,18 @@ export default class RenderingLoop {
     }
   }
 
+  private getCurrentFocus(): THREE.Vector3 {
+    let newPos = new THREE.Vector3();
+
+    newPos = minimapRaycasting.raycastToGround(
+      this.camera,
+      this.graph.boundingBox,
+      this.minimapCamera.position
+    );
+
+    return newPos;
+  }
+
   renderMinimap() {
     // Set the size and newPos for the minimap
     const minimapSize = 7.5;
@@ -170,15 +202,11 @@ export default class RenderingLoop {
       window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
     const minimapY = window.innerHeight - minimapHeight - margin;
 
-    let newPos = new THREE.Vector3();
-
-    this.localUser.
-    // Visualiziation of Minimapraycast
-    let sphere = new THREE.Mesh();
-    [newPos,sphere] = minimapRaycasting.raycastToGround(this.camera, this.renderer.domElement);
-    this.scene.add(sphere);
-
-    this.localUser.minimapCamera.position.set(newPos.x, 1, newPos.z);
+    this.localUser.minimapCamera.position.set(
+      this.intersection.x,
+      1,
+      this.intersection.z
+    );
 
     const currentViewport = this.renderer
       .getContext()

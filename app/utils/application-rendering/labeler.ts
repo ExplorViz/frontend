@@ -8,11 +8,8 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-<<<<<<< HEAD
 import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
-=======
 import { getStoredSettings } from '../settings/local-storage-settings';
->>>>>>> main
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part

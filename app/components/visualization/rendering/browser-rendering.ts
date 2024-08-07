@@ -98,7 +98,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   @tracked
   readonly scene: THREE.Scene;
@@ -161,7 +161,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
@@ -170,7 +170,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.forceGraph = this.graph.graph;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -358,7 +358,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.minimapCamera.layers.enable(1); //foundation layer
     this.localUser.minimapCamera.layers.enable(2); //component layer
     // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
-    this.localUser.minimapCamera.layers.enable(4);  //communication layer
+    this.localUser.minimapCamera.layers.enable(4); //communication layer
     this.localUser.minimapCamera.layers.enable(5); //ping layer
     this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
 
@@ -368,7 +368,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.camera,
       this.localUser.ortographicCamera,
       this.localUser.minimapCamera,
-      this.canvas
+      this.canvas,
+      this.graph.boundingBox
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
@@ -393,7 +394,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
-
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
       orthographicCamera: this.localUser.ortographicCamera,
@@ -401,11 +401,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
+      graph: this.graph,
+      controls: this.cameraControls,
     });
     this.renderingLoop.start();
 
-    this.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+    this.graph.graph.onFinishUpdate(() => {
+      if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
           this.cameraControls.resetCameraFocusOn(
