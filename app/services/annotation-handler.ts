@@ -677,6 +677,7 @@ export default class AnnotationHandlerService extends Service {
 
   willDestroy() {
     this.annotationData = [];
+    this.minimizedAnnotations = [];
     this.webSocket.off(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
     this.webSocket.off(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
     this.webSocket.off(
