@@ -18,7 +18,9 @@ export default class SimpleParentMesh extends Mesh
         this.params = params;
         this.geometry = new BoxGeometry(1, 1, 1);
         // random color
-        const color = Math.floor(Math.random() * 16777215);
+        let color = Math.random() * 16777215;
+        color *= 0.6;
+        color = Math.floor(color);
         this.material = new MeshLambertMaterial({ color });
         this.dimensionsValue = new Vector3(1, 1, 1);
         if (params.childeren)
