@@ -1,13 +1,17 @@
-import { BoxGeometry, Color, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, Object3DEventMap, Vector3 } from "three";
+import { BoxGeometry, Color, Material, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, Object3DEventMap, Vector3 } from "three";
 import { Font } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+import BaseMesh from "../base-mesh";
 
 const ExtraSpace = 2;
 
-export default class SimpleParentMesh extends Mesh
+export default class SimpleParentMesh extends BaseMesh
     implements ChildMesh {
     params: SimpleParentMeshParams
     private label?: Mesh;
+    dataModel: any
+    defaultMaterial: Material
+    hoverMaterial: Material
 
     constructor(params: SimpleParentMeshParams) {
         super();
@@ -15,9 +19,12 @@ export default class SimpleParentMesh extends Mesh
         this.geometry = new BoxGeometry(1, 1, 1);
         // random color
         let color = Math.random() * 16777215;
-        color *= 0.6;
         color = Math.floor(color);
         this.material = new MeshLambertMaterial({ color });
+        this.defaultMaterial = this.material;
+        // make color lighter
+        let color2 = new Color(color).offsetHSL(0.2, 0, 0.2).getHex();
+        this.hoverMaterial = new MeshLambertMaterial({ color: color2  });
         this.dimensionsValue = new Vector3(1, 1, 1);
         if (params.childeren)
             this.add(...params.childeren);
@@ -26,6 +33,19 @@ export default class SimpleParentMesh extends Mesh
     private dimensionsValue: Vector3;
     get dimensions(): Vector3 {
         return this.dimensionsValue;
+    }
+
+    override applyHoverEffect(colorShift?: number): void {
+        this.material = this.hoverMaterial;
+    }
+
+    override resetHoverEffect(): void {
+        this.material = this.defaultMaterial;
+    }
+
+
+    getModelId(): string {
+        return ""
     }
 
     override add(...object: Object3D<Object3DEventMap>[]): this {
