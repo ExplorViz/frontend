@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -41,7 +41,7 @@ interface Args {
 }
 
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
-  debug = debugLogger('ApplicationRendererModifier');
+  debug = debugLogger('LandscapeDataWatcherModifier');
 
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
@@ -107,6 +107,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return;
     }
 
+    this.debug('Update Visualization');
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -132,7 +134,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      return nodes.some((n) => n.applications[0].id === node.id);
+      const appears = nodes.some((n) => {
+        return n.applications.some((app) => app.id === node.id);
+      });
+
+      if (!appears) {
+        // also delete from application renderer so it can be rerendered if it existent again
+        this.applicationRenderer.removeApplicationLocallyById(node.id);
+      }
+      return appears;
     });
 
     const nodeLinks: any[] = [];
@@ -153,7 +163,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.find(
-          (node) => node.id == applicationData.application.id
+          (node) => node.id === applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
@@ -309,6 +319,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);
+
       return applicationData;
     }
   );

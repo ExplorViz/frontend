@@ -15,17 +15,17 @@
           title='Join Room'
           class='room-entry'
         >
-          <th scope='row'>{{room.roomName}}</th>
-          <th scope='row'>{{room.size}}</th>
-          <th scope='row'>
+          <td>{{room.roomName}}</td>
+          <td>{{room.size}}</td>
+          <td>
             {{if room.alias room.alias room.landscapeToken}}
-          </th>
-          <th scope='row' class='room-token'>
+          </td>
+          <td class='room-token'>
             {{room.landscapeToken}}
             <BsTooltip @placement='bottom' @triggerEvents='hover'>
               {{room.landscapeToken}}
             </BsTooltip>
-          </th>
+          </td>
         </tr>
       {{else}}
         There are no open rooms at the moment.
