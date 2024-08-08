@@ -34,6 +34,7 @@ import SceneRepository from 'explorviz-frontend/services/repos/scene-repository'
 import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
+import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -84,6 +85,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+
+  @service('repos/font-repository')
+  fontRepo!: FontRepository;
 
   @service
   private worker!: any;
@@ -242,17 +247,34 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const apps = await Promise.all(promises) as ApplicationObject3D[];
 
+    const baseParams = {
+      font: this.fontRepo.font,
+    }
     const rootParents = this.landscapeData.structureLandscapeData
-    .k8sNodes.map(n => new SimpleParentMesh(
-      n.k8sNamespaces.map(ns => new SimpleParentMesh(
-        ns.k8sDeployments.map(d => new SimpleParentMesh(
-          d.k8sPods.map(p => new SimpleParentMesh(
-            p.applications.map(app => apps.find(a => a.data.application.id === app.id)!)
-          )
-        )
-        )
-      )
-    ))));
+      .k8sNodes.map(n => new SimpleParentMesh({
+        ...baseParams,
+        label: n.name,
+        childeren:
+          n.k8sNamespaces.map(ns => new SimpleParentMesh({
+            ...baseParams,
+            label: ns.name,
+            childeren:
+              ns.k8sDeployments.map(d => new SimpleParentMesh({
+                ...baseParams,
+                label: d.name,
+                childeren:
+                  d.k8sPods.map(p => new SimpleParentMesh({
+                    ...baseParams,
+                    label: p.name,
+                    childeren: p.applications.map(app => apps.find(a => a.data.application.id === app.id)!)
+                  }
+                  )
+                  )
+              }
+              )
+              )
+          }))
+      }));
 
 
     // Apply restructure textures in restructure mode
@@ -278,7 +300,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const gData = {
       nodes: [...rootParents.map(p => {
         return {
-          threeObj: p        }
+          threeObj: p
+        }
       }), ...graphNodes],
       links: [...communicationLinks, ...nodeLinks],
     };
