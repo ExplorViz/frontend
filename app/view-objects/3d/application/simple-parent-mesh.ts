@@ -1,10 +1,6 @@
 import { BoxGeometry, Color, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, Object3DEventMap, Vector3 } from "three";
-import LabelMesh from "../label-mesh";
 import { Font } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
-import { FontLibrary } from "three-mesh-ui";
-import FontRepository from "explorviz-frontend/services/repos/font-repository";
-import Service, { inject as service } from '@ember/service';
 
 const ExtraSpace = 2;
 
