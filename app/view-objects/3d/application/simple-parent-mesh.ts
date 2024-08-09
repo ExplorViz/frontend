@@ -15,15 +15,7 @@ export default class SimpleParentMesh extends BaseMesh
     dataModel: any;
     defaultMaterial: Material
     hoverMaterial: Material
-
-    popupData: GenericPopupData = {
-        title: "Simple Parent Mesh",
-        entries: [{
-            key: "a",
-            value: "b"
-        }],
-        tabs : []
-    };
+    popupData: GenericPopupData
 
     constructor(params: SimpleParentMeshParams) {
         super();
@@ -41,6 +33,11 @@ export default class SimpleParentMesh extends BaseMesh
         let color2 = new Color(color).offsetHSL(0.2, 0, 0.2).getHex();
         this.hoverMaterial = new MeshLambertMaterial({ color: color2 });
         this.dimensionsValue = new Vector3(1, 1, 1);
+        this.popupData = params.popupData || {
+            title: params.label || "Component",
+            entries: [],
+            tabs: []
+        };
         if (params.childeren)
             this.add(...params.childeren);
     }
@@ -164,5 +161,6 @@ export interface ChildMesh {
 export interface SimpleParentMeshParams {
     childeren?: Object3D<Object3DEventMap>[],
     label?: string,
-    font?: Font
+    font?: Font,
+    popupData?: GenericPopupData
 }
