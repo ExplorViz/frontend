@@ -6,12 +6,10 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import ApplicationRenderer, {
-  AddApplicationArgs,
-} from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
@@ -22,7 +20,6 @@ import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
@@ -96,19 +93,11 @@ import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sen
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
-export interface MessageArgs {
-  title: string;
-  text: string;
-  color: string;
-  time: number;
-}
-
 interface Args {
-  debugMode: boolean;
   readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly font: Font;
-  applicationArgs: Map<string, AddApplicationArgs>;
+  readonly switchToOnScreenMode: () => void;
+  debugMode: boolean;
 }
 
 const THUMBPAD_THRESHOLD = 0.5;

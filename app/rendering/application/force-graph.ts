@@ -8,7 +8,6 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import { Object3D } from 'three';
@@ -62,7 +61,7 @@ export default class ForceGraph {
     setOwner(this, owner);
     this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
-      .nodeThreeObject(obj => {
+      .nodeThreeObject((obj) => {
         return obj.threeObj;
       })
       .warmupTicks(100)

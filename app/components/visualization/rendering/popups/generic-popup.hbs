@@ -1,45 +1,60 @@
 <h3 class='popover-header'>
-    <div class='text-center text-break font-weight-bold pl-1'>
-        {{@data.title}}
-    </div>
+  <div class='text-center text-break font-weight-bold pl-1'>
+    {{@data.title}}
+  </div>
 </h3>
 
-{{#if @data.entries }}
-<table class='w-100'>
-    <tr style="border-bottom: 1px solid black;">
+{{#if @data.entries}}
+  <table class='w-100'>
+    <thead>
+      <tr style='border-bottom: 1px solid black;'>
         <td class='font-weight-bold text-primary'>Key</td>
         <td class='text-center font-weight-bold text-primary'>Value</td>
-    </tr>
+      </tr>
+    </thead>
 
-    {{#each @data.entries as |e| }}
-    <tr>
-        <td class='font-weight-bold text-primary'>{{e.key}}</td>
-        <td class='text-center font-weight-bold text-primary'>{{e.value}}</td>
-    </tr>
-    {{/each}}
-</table>
+    <tbody>
+      {{#each @data.entries as |e|}}
+        <tr>
+          <td class='font-weight-bold text-primary'>{{e.key}}</td>
+          <td class='text-center font-weight-bold text-primary'>{{e.value}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
 {{/if}}
 
 {{#if @data.tabs}}
-{{#each @data.tabs as |tab|}}
-<div class='tab-pane fade show active' id='{{tab.id}}' role='tabpanel' aria-labelledby='{{tab.id}}-tab'>
-    Work in progress
-</div>
+  {{#each @data.tabs as |tab|}}
+    <div
+      class='tab-pane fade show active'
+      id='{{tab.id}}'
+      role='tabpanel'
+      aria-labelledby='{{tab.id}}-tab'
+    >
+      Work in progress
+    </div>
 
-{{#if @tab.entries }}
-<table class='w-100'>
-    <tr style="border-bottom: 1px solid black;">
-        <td class='font-weight-bold text-primary'>Key</td>
-        <td class='text-center font-weight-bold text-primary'>Value</td>
-    </tr>
+    {{#if @tab.entries}}
+      <table class='w-100'>
+        <thead>
+          <tr style='border-bottom: 1px solid black;'>
+            <td class='font-weight-bold text-primary'>Key</td>
+            <td class='text-center font-weight-bold text-primary'>Value</td>
+          </tr>
+        </thead>
 
-    {{#each @tab.entries as |e| }}
-    <tr>
-        <td class='font-weight-bold text-primary'>{{e.key}}</td>
-        <td class='text-center font-weight-bold text-primary'>{{e.value}}</td>
-    </tr>
-    {{/each}}
-</table>
-{{/if}}
-{{/each}}
+        <tbody>
+          {{#each @tab.entries as |e|}}
+            <tr>
+              <td class='font-weight-bold text-primary'>{{e.key}}</td>
+              <td
+                class='text-center font-weight-bold text-primary'
+              >{{e.value}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+  {{/each}}
 {{/if}}

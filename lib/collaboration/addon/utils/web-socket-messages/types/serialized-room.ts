@@ -19,16 +19,17 @@ export type SerializedLandscape = {
 export type SerializedK8sNode = {
   name: string;
   namespaces: SerializedK8sNamespace[];
-}
+};
+
 export type SerializedK8sNamespace = {
   name: string;
   pods: SerializedK8sPod[];
-}
+};
 
 export type SerializedK8sPod = {
   name: string;
   applicationIds: string[];
-}
+};
 
 export type SerializedApp = {
   id: string;

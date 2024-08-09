@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import { task, all } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -11,7 +11,9 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ApplicationData, { K8sData } from 'explorviz-frontend/utils/application-data';
+import ApplicationData, {
+  K8sData,
+} from 'explorviz-frontend/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
@@ -31,7 +33,6 @@ import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { generateUUID } from 'three/src/math/MathUtils';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
@@ -47,7 +48,7 @@ interface Args {
 }
 
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
-  debug = debugLogger('ApplicationRendererModifier');
+  debug = debugLogger('LandscapeDataWatcherModifier');
 
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
@@ -82,10 +83,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('user-settings')
   userSettings!: UserSettings;
 
-
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
-
 
   @service('repos/font-repository')
   fontRepo!: FontRepository;
@@ -121,6 +120,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return;
     }
 
+    this.debug('Update Visualization');
+
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
       this.dynamicLandscapeData
@@ -146,7 +147,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      return nodes.some((n) => n.applications[0].id === node.id);
+      const appears = nodes.some((n) => {
+        return n.applications.some((app) => app.id === node.id);
+      });
+
+      if (!appears) {
+        // also delete from application renderer so it can be rerendered if it existent again
+        this.applicationRenderer.removeApplicationLocallyById(node.id);
+      }
+      return appears;
     });
 
     const nodeLinks: any[] = [];
@@ -168,7 +177,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
         // fix previously existing nodes to position (if present) and calculate collision size
         const graphNode = graphNodes.find(
-          (node) => node.id == applicationData.application.id
+          (node) => node.id === applicationData.application.id
         ) as GraphNode;
 
         if (!app.foundationMesh) {
@@ -187,7 +196,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             id: applicationData.application.id,
             fy: 0,
             collisionRadius,
-            threeObj: app
+            threeObj: app,
           } as GraphNode);
         }
 
@@ -204,30 +213,27 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
-
-
-    var k8sApps = this.landscapeData.structureLandscapeData.k8sNodes
-      .flatMap(n =>
-        n.k8sNamespaces.flatMap(ns =>
-          ns.k8sDeployments.flatMap(d =>
-            d.k8sPods.flatMap(p =>
-              p.applications.map(app => {
+    const k8sApps = this.landscapeData.structureLandscapeData.k8sNodes.flatMap(
+      (n) =>
+        n.k8sNamespaces.flatMap((ns) =>
+          ns.k8sDeployments.flatMap((d) =>
+            d.k8sPods.flatMap((p) =>
+              p.applications.map((app) => {
                 return {
                   k8sNode: n,
                   k8sNamespace: ns,
                   k8sDeployment: d,
                   k8sPod: p,
-                  app: app
-                }
-              }
-              )
+                  app: app,
+                };
+              })
             )
           )
         )
-      )
+    );
 
     // add k8sApps
-    var promises = k8sApps.map(async k8sApp => {
+    const promises = k8sApps.map(async (k8sApp) => {
       k8sApp.app.id = generateUUID();
       const applicationData = await this.updateApplicationData.perform(
         k8sApp.app,
@@ -235,50 +241,60 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           k8sNode: k8sApp.k8sNode.name,
           k8sNamespace: k8sApp.k8sNamespace.name,
           k8sDeployment: k8sApp.k8sDeployment.name,
-          k8sPod: k8sApp.k8sPod.name
+          k8sPod: k8sApp.k8sPod.name,
         },
-        classCommunications);
-
-      const app = await this.applicationRenderer.addApplicationTask.perform(
-        applicationData
+        classCommunications
       );
+
+      const app =
+        await this.applicationRenderer.addApplicationTask.perform(
+          applicationData
+        );
       return app;
     });
 
-    const apps = await Promise.all(promises) as ApplicationObject3D[];
+    const apps = (await Promise.all(promises)) as ApplicationObject3D[];
 
     const baseParams = {
       font: this.fontRepo.font,
-    }
-    const rootParents = this.landscapeData.structureLandscapeData
-      .k8sNodes.map(n => new SimpleParentMesh({
-        ...baseParams,
-        label: n.name,
-        childeren:
-          n.k8sNamespaces.map(ns => new SimpleParentMesh({
-            ...baseParams,
-            group: `ns:${ns.name}`,
-            label: ns.name,
-            childeren:
-              ns.k8sDeployments.map(d => new SimpleParentMesh({
+    };
+    const rootParents = this.landscapeData.structureLandscapeData.k8sNodes.map(
+      (n) =>
+        new SimpleParentMesh({
+          ...baseParams,
+          label: n.name,
+          childeren: n.k8sNamespaces.map(
+            (ns) =>
+              new SimpleParentMesh({
                 ...baseParams,
-                group: `ns:${ns.name};dp:${d.name}`,
-                label: d.name,
-                childeren:
-                  d.k8sPods.map(p => new SimpleParentMesh({
-                    ...baseParams,
-                    group: `ns:${ns.name};dp:${d.name};p`, // pod id is ommited on purpouse
-                    label: p.name,
-                    childeren: p.applications.map(app => apps.find(a => a.data.application.id === app.id)!)
-                  }
-                  )
-                  )
-              }
-              )
-              )
-          }))
-      }));
-
+                group: `ns:${ns.name}`,
+                label: ns.name,
+                childeren: ns.k8sDeployments.map(
+                  (d) =>
+                    new SimpleParentMesh({
+                      ...baseParams,
+                      group: `ns:${ns.name};dp:${d.name}`,
+                      label: d.name,
+                      childeren: d.k8sPods.map(
+                        (p) =>
+                          new SimpleParentMesh({
+                            ...baseParams,
+                            group: `ns:${ns.name};dp:${d.name};p`, // pod id is ommited on purpouse
+                            label: p.name,
+                            childeren: p.applications.map(
+                              (app) =>
+                                apps.find(
+                                  (a) => a.dataModel.application.id === app.id
+                                )!
+                            ),
+                          })
+                      ),
+                    })
+                ),
+              })
+          ),
+        })
+    );
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
@@ -301,11 +317,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }));
 
     const gData = {
-      nodes: [...rootParents.map(p => {
-        return {
-          threeObj: p
-        }
-      }), ...graphNodes],
+      nodes: [
+        ...rootParents.map((p) => {
+          return {
+            threeObj: p,
+          };
+        }),
+        ...graphNodes,
+      ],
       links: [...communicationLinks, ...nodeLinks],
     };
 
@@ -360,7 +379,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     async (
       application: Application,
       k8sData: K8sData | null,
-      classCommunication: ClassCommunication[],
+      classCommunication: ClassCommunication[]
     ) => {
       const workerPayload = {
         structure: application,
@@ -407,6 +426,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
       calculateHeatmap(applicationData.heatmapData, results[1]);
       this.applicationRepo.add(applicationData);
+
       return applicationData;
     }
   );

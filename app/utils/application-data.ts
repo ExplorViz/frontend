@@ -57,10 +57,14 @@ export default class ApplicationData {
     this.layoutData = layoutData;
     this.flatData = flatData;
   }
+
+  getId() {
+    return this.application.id;
+  }
 }
 export interface K8sData {
-  k8sNode: string
-  k8sNamespace: string
-  k8sDeployment: string
-  k8sPod: string
+  k8sNode: string;
+  k8sNamespace: string;
+  k8sDeployment: string;
+  k8sPod: string;
 }

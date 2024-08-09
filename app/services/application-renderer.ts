@@ -14,12 +14,9 @@ import {
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
-  Application,
   Class,
   Package,
-  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -87,7 +84,6 @@ export default class ApplicationRenderer extends Service.extend({
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
@@ -112,7 +108,6 @@ export default class ApplicationRenderer extends Service.extend({
     // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     // const cube = new THREE.Mesh(geometry, material);
     // this.sceneRepo.getScene().add(cube);
-
   }
 
   // #region getters
@@ -229,8 +224,8 @@ export default class ApplicationRenderer extends Service.extend({
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
           ? this.roomSerializer.serializeToAddApplicationArgs(
-            applicationObject3D
-          )
+              applicationObject3D
+            )
           : addApplicationArgs;
 
       if (layoutChanged) {

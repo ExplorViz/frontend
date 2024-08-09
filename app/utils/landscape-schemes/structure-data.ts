@@ -113,7 +113,7 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   function createApplicationId(app: Application, parent: Node | K8sPod) {
-    app.id = `${parent.id}#${app.instanceId}`;
+    app.id = `${parent.id}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
 
@@ -165,16 +165,16 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure)
-  );
+  const enhancedlandscapeStructure: StructureLandscapeData =
+    structuredClone(landscapeStructure);
 
   const pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
     k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
-      k8sNamespace.k8sDeployments.flatMap((k8sDeployment) => k8sDeployment.k8sPods)
+      k8sNamespace.k8sDeployments.flatMap(
+        (k8sDeployment) => k8sDeployment.k8sPods
+      )
     )
   );
-
 
   [...enhancedlandscapeStructure.nodes, ...pods].forEach((node) => {
     createNodeId(node);

@@ -3,6 +3,7 @@ import isObject from '../../object-helpers';
 export interface Trace {
   landscapeToken: string;
   traceId: string;
+  gitCommitChecksum: string;
   startTime: number;
   endTime: number;
   duration: number;
@@ -12,10 +13,8 @@ export interface Trace {
 }
 
 export interface Span {
-  landscapeToken: string;
   spanId: string;
   parentSpanId: string;
-  traceId: string;
   startTime: number;
   endTime: number;
   methodHash: string;
