@@ -38,6 +38,8 @@ export default class SimpleParentMesh extends BaseMesh
             entries: [],
             tabs: []
         };
+        if(params.group)
+            this.registerEventListeners(params.group)
         if (params.childeren)
             this.add(...params.childeren);
     }
@@ -51,12 +53,23 @@ export default class SimpleParentMesh extends BaseMesh
         return null! as DetailedInfo;
     }
 
-    override applyHoverEffect(colorShift?: number): void {
+    override applyHoverEffect(colorShift?: number, isSource: boolean = true): void {
         this.material = this.hoverMaterial;
+        if(isSource)
+            this.triggerEvent("hover-start");
     }
 
-    override resetHoverEffect(): void {
+    override resetHoverEffect(isSource: boolean = true): void {
         this.material = this.defaultMaterial;
+        if(isSource)
+            this.triggerEvent("hover-end");
+    }
+
+    private triggerEvent(type: "hover-start" | "hover-end"){
+        if(!this.params.group)
+            return;
+        const e = new Event(type + "-" + this.params.group)
+        window.dispatchEvent(e);
     }
 
 
@@ -151,6 +164,16 @@ export default class SimpleParentMesh extends BaseMesh
         super.add(l);
         return l;
     }
+
+
+    private registerEventListeners(group: string){
+        window.addEventListener(`hover-start-${group}`, () => {
+            this.applyHoverEffect(null!, false)
+        });
+        window.addEventListener(`hover-end-${group}`, () => {
+            this.resetHoverEffect(false)
+        });
+    }
 }
 
 export interface ChildMesh {
@@ -163,4 +186,5 @@ export interface SimpleParentMeshParams {
     label?: string,
     font?: Font,
     popupData?: GenericPopupData
+    group?: string
 }

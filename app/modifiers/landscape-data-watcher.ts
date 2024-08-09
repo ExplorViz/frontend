@@ -257,14 +257,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         childeren:
           n.k8sNamespaces.map(ns => new SimpleParentMesh({
             ...baseParams,
+            group: `ns:${ns.name}`,
             label: ns.name,
             childeren:
               ns.k8sDeployments.map(d => new SimpleParentMesh({
                 ...baseParams,
+                group: `ns:${ns.name};dp:${d.name}`,
                 label: d.name,
                 childeren:
                   d.k8sPods.map(p => new SimpleParentMesh({
                     ...baseParams,
+                    group: `ns:${ns.name};dp:${d.name};p`, // pod id is ommited on purpouse
                     label: p.name,
                     childeren: p.applications.map(app => apps.find(a => a.data.application.id === app.id)!)
                   }
