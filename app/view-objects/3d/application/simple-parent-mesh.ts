@@ -9,7 +9,6 @@ const ExtraSpace = 2;
 
 export default class SimpleParentMesh extends BaseMesh
     implements ChildMesh {
-    isSimpleParentMesh: boolean = true
     params: SimpleParentMeshParams
     private label?: Mesh;
     dataModel: any;
