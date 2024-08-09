@@ -2,19 +2,34 @@ import { BoxGeometry, Color, Material, Mesh, MeshBasicMaterial, MeshLambertMater
 import { Font } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 import BaseMesh from "../base-mesh";
+import { DetailedInfo } from "extended-reality/utils/vr-helpers/detail-info-composer";
+import { GenericPopupData } from "explorviz-frontend/components/visualization/rendering/popups/generic-popup";
 
 const ExtraSpace = 2;
 
 export default class SimpleParentMesh extends BaseMesh
     implements ChildMesh {
+    isSimpleParentMesh: boolean = true
     params: SimpleParentMeshParams
     private label?: Mesh;
-    dataModel: any
+    dataModel: any;
     defaultMaterial: Material
     hoverMaterial: Material
 
+    popupData: GenericPopupData = {
+        title: "Simple Parent Mesh",
+        entries: [{
+            key: "a",
+            value: "b"
+        }],
+        tabs : []
+    };
+
     constructor(params: SimpleParentMeshParams) {
         super();
+        this.dataModel = {
+            id: this.uuid
+        };
         this.params = params;
         this.geometry = new BoxGeometry(1, 1, 1);
         // random color
@@ -24,7 +39,7 @@ export default class SimpleParentMesh extends BaseMesh
         this.defaultMaterial = this.material;
         // make color lighter
         let color2 = new Color(color).offsetHSL(0.2, 0, 0.2).getHex();
-        this.hoverMaterial = new MeshLambertMaterial({ color: color2  });
+        this.hoverMaterial = new MeshLambertMaterial({ color: color2 });
         this.dimensionsValue = new Vector3(1, 1, 1);
         if (params.childeren)
             this.add(...params.childeren);
@@ -33,6 +48,10 @@ export default class SimpleParentMesh extends BaseMesh
     private dimensionsValue: Vector3;
     get dimensions(): Vector3 {
         return this.dimensionsValue;
+    }
+
+    get detailInfo() {
+        return null! as DetailedInfo;
     }
 
     override applyHoverEffect(colorShift?: number): void {
@@ -45,7 +64,7 @@ export default class SimpleParentMesh extends BaseMesh
 
 
     getModelId(): string {
-        return ""
+        return this.dataModel.id;
     }
 
     override add(...object: Object3D<Object3DEventMap>[]): this {
