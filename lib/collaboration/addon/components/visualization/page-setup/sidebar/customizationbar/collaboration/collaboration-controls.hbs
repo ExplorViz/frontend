@@ -22,7 +22,7 @@
   </div>
 
   {{! Indicator that device should be in control of spectating configurations }}
-  {{#if (eq this.deviceId 'main')}}
+  {{#if this.deviceId}}
     <div>
       <label class='bold'>Spectate Configuration: </label>
       <select
@@ -34,6 +34,14 @@
         <option value='arena-2'>ARENA2</option>
         <option value='fhd-monitors'>Full HD monitors</option>
       </select>
+      <BsButton
+      title='New Configuration'
+      {{on 'click' this.openSpectateConfigModal}}
+      @type='secondary'
+      @outline={{true}}
+    >
+      {{svg-jar 'diff-added-16' class='octicon'}}
+    </BsButton>
     </div>
   {{/if}}
 
@@ -129,3 +137,218 @@
     Disconnect
   </BsButton>
 {{/if}}
+<div>
+  <BsModal
+    @open={{this.spectateConfigModal}}
+    @onHidden={{this.closeSpectateConfigModal}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Create Spectate Configuration</h4>
+    </modal.header>
+    <modal.body>
+      <label for='name'>Spectate Configuration Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.spectateConfigName}}
+        />
+      </div>
+
+      <label class='mt-2'>Devices</label>
+      {{#each this.spectateConfigDevices as |device index|}}
+        <div class='ml-3'>
+          <hr>
+          <label for='deviceId'>Device ID</label>
+          <div class='d-flex justify-content-between'>
+            <input
+              id='deviceId'
+              class='form-control mr-2'
+              type='text'
+              placeholder='DeviceId'
+              value={{device.deviceId}}
+              {{on 'input' (fn this.updateDeviceId index)}}
+            />
+            <button
+              type='button'
+              class='btn btn-sm'
+              title='Delete Device'
+              onclick={{fn this.deleteDevice index}}
+            >{{svg-jar 'x-16' class='octicon align-right'}}</button>
+          </div>
+          <ul></ul>
+          <div class='d-flex flex-column justify-content-between'>
+            <label for='projectionMatrix'>Projection Matrix</label>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn11'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 0)}}
+              />
+              <Input
+                id='mn12'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 1)}}
+              />
+              <Input
+                id='mn13'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 2)}}
+              />
+              <Input
+                id='mn14'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 3)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn21'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 4)}}
+              />
+              <Input
+                id='mn22'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 5)}}
+              />
+              <Input
+                id='mn23'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 6)}}
+              />
+              <Input
+                id='mn24'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 7)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn31'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 8)}}
+              />
+              <Input
+                id='mn32'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 9)}}
+              />
+              <Input
+                id='mn33'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 10)}}
+              />
+              <Input
+                id='mn34'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 11)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn41'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 12)}}
+              />
+              <Input
+                id='mn42'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 13)}}
+              />
+              <Input
+                id='mn43'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 14)}}
+              />
+              <Input
+                id='mn44'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 15)}}
+              />
+            </div>
+          </div>
+          <ul></ul>
+        </div>
+      {{/each}}
+
+      <div class='ml-3'>
+        <div class='d-flex justify-content-between'>
+          <BsButton
+            title='Create Device'
+            {{on 'click' this.createDevice}}
+            @type='secondary'
+            @outline={{true}}
+          >Create Device</BsButton>
+        </div>
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeSpectateConfigModal}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Create'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.createSpectateConfig}}
+        disabled={{this.createSpectateConfigBtnDisabled}}
+      >Create</BsButton>
+    </modal.footer>
+  </BsModal>
+</div>

@@ -71,6 +71,19 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @tracked
   landscapeTokens: LandscapeToken[] = [];
 
+  @tracked
+  spectateConfigModal: boolean = false;
+
+  @tracked
+  createSpectateConfigBtnDisabled: boolean = true;
+
+  @tracked
+  spectateConfigName: string | null = null;
+
+  @tracked
+  spectateConfigDevices: { deviceId: string; projectionMatrix: number[] }[] =
+    [];
+
   @computed(
     'collaborationSession.idToRemoteUser',
     'spectateUserService.spectatedUser'
@@ -192,5 +205,87 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @action
   close() {
     this.args.removeComponent('collaboration-controls');
+  }
+
+  @action
+  openSpectateConfigModal() {
+    this.spectateConfigModal = true;
+  }
+
+  @action
+  closeSpectateConfigModal() {
+    this.spectateConfigModal = false;
+    this.spectateConfigDevices = [];
+    this.createSpectateConfigBtnDisabled = true;
+    this.spectateConfigName = null;
+  }
+
+  @action
+  updateName(event: InputEvent) {
+    const target: HTMLInputElement = event.target as HTMLInputElement;
+    this.spectateConfigName = target.value;
+    this.canCreateSpectateConfig();
+  }
+
+  @action
+  createDevice() {
+    this.spectateConfigDevices = [
+      ...this.spectateConfigDevices,
+      {
+        deviceId: '',
+        projectionMatrix: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+    ];
+  }
+
+  @action
+  updateDeviceId(index: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.spectateConfigDevices[index].deviceId = target.value;
+    this.canCreateSpectateConfig();
+  }
+
+  @action
+  updateMatrix(index: number, matrixIndex: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.spectateConfigDevices[index].projectionMatrix[matrixIndex] = Number(
+      target.value
+    );
+    this.canCreateSpectateConfig();
+  }
+
+  @action
+  deleteDevice(index: number) {
+    this.spectateConfigDevices.removeAt(index);
+  }
+
+  @action
+  canCreateSpectateConfig() {
+    if (this.spectateConfigName !== '') {
+      let allSet = true;
+      this.spectateConfigDevices.forEach((dv) => {
+        if (dv.deviceId === '') {
+          allSet = false;
+        }
+      });
+
+      if (allSet) {
+        this.createSpectateConfigBtnDisabled = false;
+      }
+    } else {
+      this.createSpectateConfigBtnDisabled = false;
+    }
+  }
+
+  @action
+  createSpectateConfig() {
+    // const spectateConfig = {
+    //   id: this.spectateConfigName,
+    //   devices: this.spectateConfigDevices,
+    // };
+
+    // Hier dann das Senden an das Backend
+
+    this.closeSpectateConfigModal();
   }
 }
