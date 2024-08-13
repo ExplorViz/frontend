@@ -10,6 +10,7 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import {
   EntityMesh,
   isEntityMesh,
@@ -31,6 +32,9 @@ export default class LocalUser extends Service.extend({
 
   @service
   applicationRenderer!: ApplicationRenderer;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
 
   userId!: string;
 
@@ -224,7 +228,8 @@ export default class LocalUser extends Service.extend({
   ping(
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
-    durationInMs: number = 5000
+    durationInMs: number = 5000,
+    replay: boolean = false,
   ) {
     const app3D = obj.parent;
     if (!app3D || !(app3D instanceof ApplicationObject3D)) {
@@ -243,7 +248,10 @@ export default class LocalUser extends Service.extend({
       durationInMs,
     });
 
-    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+    if(!replay) {
+      this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+      this.sender.sendChatMessage(this.userId, `${this.userName}(${this.userId}) pinged Object ${obj.id}`, this.userName, '', true, 'ping', [obj, pingPosition, durationInMs]);
+    }
   }
 
   /*

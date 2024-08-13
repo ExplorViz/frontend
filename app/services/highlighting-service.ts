@@ -276,6 +276,9 @@ export default class HighlightingService extends Service.extend({
         mesh.highlighted,
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
+      if(highlighted) {
+        this.sender.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted link`, this.localUser.userName, '', true, 'highlight', [])
+      }
     }
   }
 
@@ -325,6 +328,9 @@ export default class HighlightingService extends Service.extend({
         object.highlighted,
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
+      if(highlighted) {
+        this.sender.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted component`, this.localUser.userName, '', true, 'highlight', [])
+      }
     }
   }
 

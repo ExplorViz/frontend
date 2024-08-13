@@ -187,6 +187,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       },
     });
     this.sender.sendChangeLandscape(event.target.value);
+    this.sender.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) changed the landscape`, this.localUser.userName, '', true, 'landscape_change', [])
   }
 
   @action
