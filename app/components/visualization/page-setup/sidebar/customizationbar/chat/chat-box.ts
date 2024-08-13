@@ -7,6 +7,7 @@ import collaborationSession from 'explorviz-frontend/services/collaboration-sess
 import ChatService from 'explorviz-frontend/services/chat';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
+import * as THREE from 'three';
 
 interface chatUser {
   id: string;
@@ -30,7 +31,7 @@ export default class ChatBox extends Component {
   toastHandler!: ToastHandlerService;
 
   @tracked
-  isFiltering = false;
+  openFilterOptions = false;
 
   @tracked
   isFilterEnabled = false;
@@ -46,7 +47,7 @@ export default class ChatBox extends Component {
 
   @action
   toggleFilter() {
-    this.isFiltering = !this.isFiltering;
+    this.openFilterOptions = !this.openFilterOptions;
   }
 
   @action
@@ -54,10 +55,6 @@ export default class ChatBox extends Component {
     const target = event.target as HTMLInputElement;
     this.isFilterEnabled = target.checked;
     if (!this.isFilterEnabled) {
-      const mode = this.filterMode;
-      const value = this.filterValue;
-      this.filterMode = mode;
-      this.filterValue = value;
       this.chatService.clearFilter();
     } else {
       this.applyFilter();
@@ -66,30 +63,33 @@ export default class ChatBox extends Component {
 
   @action
   setFilterMode(mode: string) {
+    this.chatService.clearFilter();
+    if(this.isFilterEnabled) {
+      this.clearChat('.chat-thread.filtered');
+    } else {
+      this.clearChat('.chat-thread.normal');
+    }
     this.filterMode = mode;
     this.applyFilter();
   }
 
   @action
-  updateFilterMode(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    this.filterMode = target.value;
-    this.applyFilter();
-  }
-
-  @action
   updateFilterValue(event: Event) {
-    const target = event.target as HTMLInputElement;
-    this.filterValue = target.value;
-    this.applyFilter();
+    if(this.isFilterEnabled) {
+      const target = event.target as HTMLInputElement;
+      this.filterValue = target.value;
+      this.applyFilter();
+    }
   }
 
   @action
   applyFilter() {
-    if (this.isFilterEnabled) {
+    if(this.isFilterEnabled) {
       this.clearChat('.chat-thread.filtered');
-      this.chatService.filterChat(this.filterMode, this.filterValue);
+    } else {
+      this.clearChat('.chat-thread.normal');
     }
+    this.chatService.filterChat(this.filterMode, this.filterValue);
   }
 
   get filteredMessages() {
@@ -102,9 +102,10 @@ export default class ChatBox extends Component {
       this.toastHandler.showErrorToastMessage("Can't synchronize with server");
       return;
     }
+    this.chatService.clearFilter();
     this.clearChat('.chat-thread.normal');
     this.clearChat('.chat-thread.filtered');
-    this.sender.sendChatSynchronize();
+    this.chatService.synchronizeWithServer();
   }
 
   @action
@@ -131,7 +132,7 @@ export default class ChatBox extends Component {
     const inputElement = document.querySelector(
       '.message-input'
     ) as HTMLInputElement;
-    const userId = this.localUser.userId; // Put into chatService?
+    const userId = this.localUser.userId;
 
     const msg = inputElement.value.trim();
     if (msg.trim() === '') {
@@ -151,20 +152,36 @@ export default class ChatBox extends Component {
     timestamp: string;
     message: string;
     isEvent: boolean;
+    eventType: string;
+    eventData: any[];
   }) {
-    const chatThreadClass =
-      this.isFilterEnabled &&
-      chatMessage.userName + '(' + chatMessage.userId + ')' ===
-        this.filterValue &&
-      this.filterMode !== 'Events'
-        ? '.chat-thread.filtered'
-        : '.chat-thread.normal';
+    // Check filter selection
+    const activeUserFilter = this.filterValue ===
+      chatMessage.userName + '(' + chatMessage.userId + ')' &&
+      this.filterMode === 'UserId';
+
+    const activeEventFilter = this.filterMode === 'Events' &&
+      chatMessage.isEvent;
+
+    const shouldDisplayMessage = this.isFilterEnabled
+      ? activeUserFilter || activeEventFilter
+      : true;
+
+    if (!shouldDisplayMessage) {
+      return;
+    }
+
+    // Post message into normal chat or filtered chat depending on filter
+    const chatThreadClass = this.isFilterEnabled ? '.chat-thread.filtered' : '.chat-thread.normal';
     const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
     if (chatThread) {
+
+      // Create container div for the message 
       const messageContainer = document.createElement('div');
       messageContainer.classList.add('message-container');
       chatThread.appendChild(messageContainer);
 
+      // Create and add the User on top of the message container
       const userDiv = document.createElement('div');
       userDiv.textContent =
         chatMessage.userId !== 'unknown'
@@ -174,6 +191,7 @@ export default class ChatBox extends Component {
       userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
       messageContainer.appendChild(userDiv);
 
+      // Add the message with a unique id attribute to the container
       const messageLi = document.createElement('li');
       messageLi.textContent = chatMessage.message;
       messageLi.classList.add('Message');
@@ -183,16 +201,17 @@ export default class ChatBox extends Component {
       );
       messageContainer.appendChild(messageLi);
 
-      if (chatMessage.isEvent) {
-      // Erstelle einen Button für Ereignisnachrichten
-      const eventButton = document.createElement('button');
-      eventButton.textContent = 'Event';
-      eventButton.classList.add('event-button');
-      eventButton.onclick = () => this.handleEventClick(chatMessage);
+      // Add a button for replayability for certain events
+      if (chatMessage.isEvent && chatMessage.eventType !== 'connection_event' && chatMessage.eventType !== 'disconnection_event' && chatMessage.eventType !== 'landscape_change') {
+        const eventButton = document.createElement('button');
+        eventButton.textContent = 'Replay';
+        eventButton.classList.add('event-button');
+        eventButton.onclick = () => this.handleEventClick(chatMessage);
 
-      // Füge den Button zur Nachricht hinzu
-      messageLi.appendChild(eventButton);
+        messageLi.appendChild(eventButton);
       }
+
+      // Add the timestamp at the end of the message
       const timestampDiv = document.createElement('div');
       timestampDiv.textContent = chatMessage.timestamp;
       timestampDiv.classList.add('chat-timestamp');
@@ -203,13 +222,26 @@ export default class ChatBox extends Component {
     }
   }
 
-  handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; }): any {
-    this.toastHandler.showErrorToastMessage("Not implemented yet");
+  handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; eventType: string; eventData: any[]}): any {
+    if(chatMessage.eventData.length == 0) {
+      this.toastHandler.showErrorToastMessage("No event data" + chatMessage.eventType);
+      return;
+    }
+    switch(chatMessage.eventType) {
+      case 'ping':
+        const obj = chatMessage.eventData.objectAt(0);
+        const pingPos = chatMessage.eventData.objectAt(1);
+        const pingDurationInMs = chatMessage.eventData.objectAt(2);
+        this.localUser.ping(obj, pingPos, pingDurationInMs, true);
+      case 'highlight':
+        break;
+      default:
+        this.toastHandler.showErrorToastMessage("Unknown event");
+    }
   }
 
   private addUserToChat(id: string, userName: string) {
     const userExists = this.usersInChat.some((user) => user.id === id);
-    //TODO: find solution for local chat messages (->merge?..)
     if (!userExists) {
       const name = userName + '(' + id + ')';
       this.usersInChat.push({ id, name });
@@ -235,7 +267,6 @@ export default class ChatBox extends Component {
         if (messageToRemove) {
           messageToRemove.remove();
           this.chatService.removeChatMessage(messageId);
-          //this.toastHandler.showInfoToastMessage('Removed message');
         }
       }
     }
@@ -244,7 +275,7 @@ export default class ChatBox extends Component {
   private clearChat(thread: string) {
     const chatThread = document.querySelector(thread) as HTMLElement;
     if (chatThread) {
-      this.chatService.filteredChatMessages.forEach((chatMessage) => {
+      this.filteredMessages.forEach((chatMessage) => {
         const messageToRemove = chatThread.querySelector(
           `.message-container[data-message-id="${chatMessage.msgId}"]`
         );
