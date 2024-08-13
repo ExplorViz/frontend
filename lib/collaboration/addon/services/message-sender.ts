@@ -588,7 +588,7 @@ export default class MessageSender extends Service {
     });
   }
 
-  sendChatMessage(userId: string, msg: string, userName: string, timestamp: string, isEvent: boolean) {
+  sendChatMessage(userId: string, msg: string, userName: string, timestamp: string, isEvent: boolean, eventType: string, eventData: any[]) {
     this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
       event: 'chat_message',
       userId,
@@ -596,6 +596,8 @@ export default class MessageSender extends Service {
       userName,
       timestamp,
       isEvent,
+      eventType,
+      eventData,
     });
   }
 

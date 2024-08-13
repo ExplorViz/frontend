@@ -219,7 +219,7 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
-    this.chatService.sendChatMessage(self.id, `${self.name}(${self.id}) connected to room ${this.currentRoomId}`, true);
+    this.chatService.sendChatMessage(self.id, `${self.name}(${self.id}) connected to room ${this.currentRoomId}`, true, 'connection_event');
     this.toastHandlerService.showSuccessToastMessage(
       'Joined room successfully'
     );
@@ -260,6 +260,11 @@ export default class CollaborationSession extends Service.extend({
       this.toastHandlerService.showInfoToastMessage(
         `User disconnected: ${removedUser.userName}`
       );
+      // If user did not disconnect properly (e.g. browser closed, lost connection ...)
+      if(!this.chatService.findEventByUserId(removedUser.userId, 'disconnection_event')) {
+        this.chatService.sendChatMessage(removedUser.userId, `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`, true, 'disconnection_event'); // TODO: With several users come several equal messages. FIX??
+        //this.chatService.addChatMessage
+      }
     }
 
     // walk trough all highlighted entities and unhighlight them
@@ -424,7 +429,7 @@ export default class CollaborationSession extends Service.extend({
     if(this.connectionStatus != 'offline') {
       this.previousRoomId = this.currentRoomId;
     }
-    this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`, true);
+    this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`, true, 'disconnection_event');
 
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
@@ -458,12 +463,12 @@ export default class CollaborationSession extends Service.extend({
    */
   onChatMessageEvent({
     userId,
-    originalMessage: { msg, userName, timestamp, isEvent },
+    originalMessage: { msg, userName, timestamp, isEvent, eventType, eventData },
   }: ForwardedMessage<ChatMessage>) {
     if (this.localUser.userId != userId) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
-    this.chatService.addChatMessage(userId, msg, userName, timestamp, isEvent);
+    this.chatService.addChatMessage(userId, msg, userName, timestamp, isEvent, eventType, eventData);
   }
 
     /**
