@@ -9,11 +9,15 @@ import RoomService from 'collaboration/services/room-service';
 import SpectateUser from 'collaboration/services/spectate-user';
 import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Auth from 'explorviz-frontend/services/auth';
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import SpectateConfigurationService, {
+  SpectateConfig,
+} from 'explorviz-frontend/services/spectate-configuration';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 
@@ -22,6 +26,9 @@ interface CollaborationArgs {
 }
 
 export default class CollaborationControls extends Component<CollaborationArgs> {
+  @service('auth')
+  private auth!: Auth;
+
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -62,6 +69,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('user-settings')
   userSettings!: UserSettings;
 
+  @service('spectate-configuration')
+  spectateConfigurationService!: SpectateConfigurationService;
+
   @tracked
   rooms: RoomListRecord[] = [];
 
@@ -72,7 +82,22 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   landscapeTokens: LandscapeToken[] = [];
 
   @tracked
+  spectateConfigs: SpectateConfig[] = [];
+
+  @tracked
+  configDevices: string[] = [];
+
+  @tracked
+  selectedConfig: SpectateConfig | null = null;
+
+  @tracked
+  selectedDevice: string | null = null;
+
+  @tracked
   spectateConfigModal: boolean = false;
+
+  @tracked
+  editSpectateConfigModal: boolean = false;
 
   @tracked
   createSpectateConfigBtnDisabled: boolean = true;
@@ -144,6 +169,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
     this.landscapeTokens = await this.tokenService.retrieveTokens();
+
+    this.spectateConfigs =
+      await this.spectateConfigurationService.retrieveConfigs();
   }
 
   @action
@@ -172,13 +200,63 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  configurationSelected(event: any) {
-    if (!event.target.value) return;
+  configurationSelected(selectedConfig: string) {
+    if (!selectedConfig) return;
 
     const remoteUserIds = Array.from(
       this.collaborationSession.getAllRemoteUsers()
     ).map((user) => user.userId);
-    this.spectateUserService.activateConfig(event?.target.value, remoteUserIds);
+    this.spectateUserService.activateConfig(selectedConfig, remoteUserIds);
+  }
+
+  @action
+  sendSelectedConfiguration() {
+    if (this.selectedDevice !== 'main') {
+      this.toastHandlerService.showErrorToastMessage(
+        'Applying spectate configurations only possible as device `main`.'
+      );
+    } else {
+      this.configurationSelected(this.selectedConfig!.id);
+    }
+  }
+
+  @action
+  updateSelectedConfig(config: SpectateConfig) {
+    this.configDevices = [];
+    this.selectedDevice = null;
+
+    const selectedToken = new URLSearchParams(window.location.search).get(
+      'landscapeToken'
+    );
+
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: selectedToken,
+        deviceId: 'default',
+      },
+    });
+
+    this.selectedConfig = config;
+
+    this.selectedConfig.devices.forEach((device) => {
+      this.configDevices = [...this.configDevices, device.deviceId];
+    });
+  }
+
+  @action
+  updateSelectedDevice(device: string) {
+    this.selectedDevice = device;
+
+    const selectedToken = new URLSearchParams(window.location.search).get(
+      'landscapeToken'
+    );
+
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: selectedToken,
+        deviceId: this.selectedDevice,
+      },
+    });
   }
 
   @action
@@ -229,13 +307,23 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
   @action
   createDevice() {
-    this.spectateConfigDevices = [
-      ...this.spectateConfigDevices,
-      {
-        deviceId: '',
-        projectionMatrix: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      },
-    ];
+    if (this.spectateConfigDevices.length === 0) {
+      this.spectateConfigDevices = [
+        ...this.spectateConfigDevices,
+        {
+          deviceId: 'main',
+          projectionMatrix: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      ];
+    } else {
+      this.spectateConfigDevices = [
+        ...this.spectateConfigDevices,
+        {
+          deviceId: '',
+          projectionMatrix: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      ];
+    }
   }
 
   @action
@@ -255,8 +343,14 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
+  getMatrixEntry(index: number, matrixIndex: number) {
+    return this.spectateConfigDevices[index].projectionMatrix[matrixIndex];
+  }
+
+  @action
   deleteDevice(index: number) {
     this.spectateConfigDevices.removeAt(index);
+    this.canCreateSpectateConfig();
   }
 
   @action
@@ -278,14 +372,127 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  createSpectateConfig() {
-    // const spectateConfig = {
-    //   id: this.spectateConfigName,
-    //   devices: this.spectateConfigDevices,
-    // };
+  async createSpectateConfig() {
+    const spectateConfig = {
+      id: this.spectateConfigName!,
+      user: this.auth.user!.sub,
+      devices: this.spectateConfigDevices,
+    };
 
-    // Hier dann das Senden an das Backend
+    await this.spectateConfigurationService.saveSpectateConfig(spectateConfig);
+
+    this.spectateConfigs =
+      await this.spectateConfigurationService.retrieveConfigs();
 
     this.closeSpectateConfigModal();
+  }
+
+  @action
+  openEditSpectateConfigModal() {
+    if (this.selectedConfig === null) {
+      this.toastHandlerService.showErrorToastMessage(
+        'Select a configuration to edit.'
+      );
+      return;
+    }
+
+    if (this.selectedConfig.user !== this.auth.user?.sub) {
+      this.toastHandlerService.showErrorToastMessage(
+        'You are not the creator of the configuration.'
+      );
+      return;
+    }
+
+    this.editSpectateConfigModal = true;
+
+    this.spectateConfigName = this.selectedConfig!.id;
+    this.spectateConfigDevices = this.selectedConfig!.devices;
+  }
+
+  @action
+  closeEditSpectateConfigModal() {
+    this.editSpectateConfigModal = false;
+    this.spectateConfigDevices = [];
+    this.createSpectateConfigBtnDisabled = true;
+    this.spectateConfigName = null;
+  }
+
+  @action
+  async updateSpectateConfig() {
+    const spectateConfig = {
+      id: this.spectateConfigName!,
+      user: this.auth.user!.sub,
+      devices: this.spectateConfigDevices,
+    };
+
+    await this.spectateConfigurationService.updateSpectateConfig(
+      spectateConfig
+    );
+
+    this.spectateConfigs =
+      await this.spectateConfigurationService.retrieveConfigs();
+
+    this.reassignSelectedItems();
+
+    this.closeEditSpectateConfigModal();
+  }
+
+  @action
+  async deleteSpectateConfig() {
+    const spectateConfig = {
+      id: this.spectateConfigName!,
+      user: this.auth.user!.sub,
+      devices: this.spectateConfigDevices,
+    };
+
+    await this.spectateConfigurationService.deleteSpectateConfig(
+      spectateConfig
+    );
+
+    this.spectateConfigs =
+      await this.spectateConfigurationService.retrieveConfigs();
+
+    this.reassignSelectedItems();
+
+    this.closeEditSpectateConfigModal();
+  }
+
+  // To update the selected item in PowerSelect
+  @action
+  reassignSelectedItems() {
+    const oldConfig = this.selectedConfig;
+
+    this.selectedConfig = null;
+    this.selectedDevice = null;
+    this.configDevices = [];
+
+    let configStillExists = false;
+    let newConfig = null;
+
+    this.spectateConfigs.forEach((sc) => {
+      if (sc.id === oldConfig!.id) {
+        configStillExists = true;
+        newConfig = sc;
+      }
+    });
+
+    if (configStillExists) {
+      this.selectedConfig = newConfig;
+
+      this.selectedConfig!.devices.forEach((device) => {
+        this.configDevices = [...this.configDevices, device.deviceId];
+      });
+    }
+
+    const selectedToken = new URLSearchParams(window.location.search).get(
+      'landscapeToken'
+    );
+
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: selectedToken,
+        deviceId: 'default',
+      },
+    });
   }
 }
