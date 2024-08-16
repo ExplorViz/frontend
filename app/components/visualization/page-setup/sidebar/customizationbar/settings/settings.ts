@@ -17,6 +17,7 @@ import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 
 interface Args {
   enterFullscreen?(): void;
@@ -97,30 +98,41 @@ export default class Settings extends Component<Args> {
     return settingGroupToSettingIds;
   }
 
-  cleanArray(targets: Array<RangeSetting>, inverse: boolean = false) {
-    //if (inverse == false)
-    targets.reduce((prev, now, idx) => {
-      if (prev.value > now.value) {
-        targets[idx - 1].value = now.value - 1;
-        this.cleanArray(targets, inverse);
-      }
-      //  else if (targets[idx + 1].value < now.value) {
-      //   targets[idx + 1].value = now.value + 1;
-      //   //this.cleanArray(targets, inverse);
-      // }
-      return now;
-    }, targets[0]);
-    // else
-    //   targets.reverse().reduce((prev, now, idx) => {
-    //     if (prev.value < now.value) {
-    //       targets[idx - 1].value = now.value + 1;
-    //       this.cleanArray(targets, inverse);
-    //     } else if (targets[idx + 1].value > now.value) {
-    //       targets[idx + 1].value = now.value - 1;
-    //       //this.cleanArray(targets, inverse);
-    //     }
-    //     return now;
-    //   }, targets[0]);
+  cleanArray(
+    targets: Array<RangeSetting>,
+    inverse: boolean = false,
+    alreadyreversed: boolean = false
+  ) {
+    if (inverse == false) {
+      targets.reduce((prev, now, idx) => {
+        if (prev.value > now.value) {
+          targets[idx - 1].value = now.value - 1;
+          this.cleanArray(targets, inverse, false);
+        }
+        //  else if (targets[idx + 1].value < now.value) {
+        //   targets[idx + 1].value = now.value + 1;
+        //   //this.cleanArray(targets, inverse);
+        // }
+        return now;
+      }, targets[0]);
+    } else {
+      if (alreadyreversed == false) targets.reverse();
+      targets.reduce((prev, now, idx) => {
+        if (prev.value < now.value) {
+          targets[idx - 1].value = now.value + 1;
+          this.cleanArray(targets, inverse, true);
+        }
+        //     //else if (targets[idx + 1].value > now.value) {
+        //     //   targets[idx + 1].value = now.value - 1;
+        //     //   //this.cleanArray(targets, inverse);
+        //     // }
+        return now;
+      }, targets[0]);
+      // targets[0] can still be used, since the inplace reverse happens before!
+
+      // Reverse order back to normal
+      if (alreadyreversed == false) targets.reverse();
+    }
 
     // targets.reverse().reduce((prev, now, idx) => {
     //   if (prev.value < now.value) {
@@ -134,6 +146,17 @@ export default class Settings extends Component<Args> {
   @action
   updateRangeSetting(name: ApplicationSettingId, event?: Event) {
     //debugger;
+    const input = event?.target
+      ? (event.target as HTMLInputElement).valueAsNumber
+      : undefined;
+    const pre_input: string | number | boolean =
+      defaultApplicationSettings[name].value;
+    const settingId = name as ApplicationSettingId;
+    try {
+      this.userSettings.updateApplicationSetting(settingId, input);
+    } catch (e) {
+      this.toastHandlerService.showErrorToastMessage(e.message);
+    }
     const valueArray = [
       this.userSettings.applicationSettings.distanceLevel1,
       this.userSettings.applicationSettings.distanceLevel2,
@@ -141,17 +164,6 @@ export default class Settings extends Component<Args> {
       this.userSettings.applicationSettings.distanceLevel4,
       this.userSettings.applicationSettings.distanceLevel5,
     ];
-    const input = event?.target
-      ? (event.target as HTMLInputElement).valueAsNumber
-      : undefined;
-    // let pre_input: string | number | boolean =
-    //   defaultApplicationSettings[name].value;
-    const settingId = name as ApplicationSettingId;
-    try {
-      this.userSettings.updateApplicationSetting(settingId, input);
-    } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
-    }
     switch (settingId) {
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
@@ -176,11 +188,11 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel3':
       case 'distanceLevel4':
       case 'distanceLevel5':
-        // if (pre_input != undefined && input != undefined) {
-        //   //this.cleanArray(valueArray, (pre_input as number) > input);
-        // }
+        if (pre_input != undefined && input != undefined) {
+          this.cleanArray(valueArray, (pre_input as number) < input, false);
+        }
         // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
-        this.cleanArray(valueArray, false);
+        //this.cleanArray(valueArray, false);
         SemanticZoomManager.instance.createZoomLevelMap(
           this.localUser.defaultCamera
         );
