@@ -325,7 +325,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   distanceLevel1: {
-    value: 90,
+    value: 60,
     range: {
       min: 0.0,
       max: 100.0,
@@ -333,13 +333,13 @@ export const defaultApplicationSettings: ApplicationSettings = {
     },
     orderNumber: 2,
     group: 'Semantic Zoom',
-    displayName: 'Level 1 (Closest View)',
+    displayName: 'Level 1',
     description:
-      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel2: {
-    value: 80,
+    value: 65,
     range: {
       min: 0.0,
       max: 100.0,
@@ -349,7 +349,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
-      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel3: {
@@ -363,11 +363,11 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
-      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel4: {
-    value: 65,
+    value: 80,
     range: {
       min: 0.0,
       max: 100.0,
@@ -377,11 +377,11 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
-      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel5: {
-    value: 60,
+    value: 90,
     range: {
       min: 0.0,
       max: 100.0,
@@ -391,7 +391,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:
-      'Used to trigger different Zoom Levels. Should be close to 100 and reduce with every level towards 0',
+      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
 };

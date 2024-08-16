@@ -691,7 +691,7 @@ export default class SemanticZoomManager {
     const d3: number = appSettings.distanceLevel3.value;
     const d4: number = appSettings.distanceLevel4.value;
     const d5: number = appSettings.distanceLevel5.value;
-    const userSettingLevels = [d1, d2, d3, d4, d5].reverse();
+    const userSettingLevels = [d1, d2, d3, d4, d5];
     this.zoomLevelMap = [];
     for (let index = 0; index < userSettingLevels.length; index++) {
       const distances: Array<number> =

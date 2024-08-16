@@ -7,6 +7,7 @@ import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
   ApplicationSettingId,
   ApplicationSettings,
+  RangeSetting,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -96,18 +97,61 @@ export default class Settings extends Component<Args> {
     return settingGroupToSettingIds;
   }
 
+  cleanArray(targets: Array<RangeSetting>, inverse: boolean = false) {
+    //if (inverse == false)
+    targets.reduce((prev, now, idx) => {
+      if (prev.value > now.value) {
+        targets[idx - 1].value = now.value - 1;
+        this.cleanArray(targets, inverse);
+      }
+      //  else if (targets[idx + 1].value < now.value) {
+      //   targets[idx + 1].value = now.value + 1;
+      //   //this.cleanArray(targets, inverse);
+      // }
+      return now;
+    }, targets[0]);
+    // else
+    //   targets.reverse().reduce((prev, now, idx) => {
+    //     if (prev.value < now.value) {
+    //       targets[idx - 1].value = now.value + 1;
+    //       this.cleanArray(targets, inverse);
+    //     } else if (targets[idx + 1].value > now.value) {
+    //       targets[idx + 1].value = now.value - 1;
+    //       //this.cleanArray(targets, inverse);
+    //     }
+    //     return now;
+    //   }, targets[0]);
+
+    // targets.reverse().reduce((prev, now, idx) => {
+    //   if (prev.value < now.value) {
+    //     targets[idx + 1].value = now.value + 1;
+    //     this.cleanArray(targets);
+    //   }
+    //   return now;
+    // }, targets[0]);
+  }
+
   @action
   updateRangeSetting(name: ApplicationSettingId, event?: Event) {
+    //debugger;
+    const valueArray = [
+      this.userSettings.applicationSettings.distanceLevel1,
+      this.userSettings.applicationSettings.distanceLevel2,
+      this.userSettings.applicationSettings.distanceLevel3,
+      this.userSettings.applicationSettings.distanceLevel4,
+      this.userSettings.applicationSettings.distanceLevel5,
+    ];
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
+    // let pre_input: string | number | boolean =
+    //   defaultApplicationSettings[name].value;
     const settingId = name as ApplicationSettingId;
     try {
       this.userSettings.updateApplicationSetting(settingId, input);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
-
     switch (settingId) {
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
@@ -132,6 +176,11 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel3':
       case 'distanceLevel4':
       case 'distanceLevel5':
+        // if (pre_input != undefined && input != undefined) {
+        //   //this.cleanArray(valueArray, (pre_input as number) > input);
+        // }
+        // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
+        this.cleanArray(valueArray, false);
         SemanticZoomManager.instance.createZoomLevelMap(
           this.localUser.defaultCamera
         );
