@@ -47,7 +47,9 @@ export default class RemoteUser extends THREE.Object3D {
 
   nameTag: NameTagSprite | null;
 
-  private localUser: LocalUser;
+  localUser: LocalUser;
+
+  minimapMarker: THREE.Mesh | null; // Minimap marker
 
   constructor({
     userName,
@@ -76,12 +78,32 @@ export default class RemoteUser extends THREE.Object3D {
     this.nameTag = null;
 
     this.localUser = localUser;
+    this.minimapMarker = this.initMinimapMarker(); // Initialize minimap marker
+  }
+
+  /**
+   * Initialize the Minimap marker for this user.
+   */
+  private initMinimapMarker(): THREE.Mesh {
+    const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
+    const userMarkerMaterial = new THREE.MeshBasicMaterial({
+      color: this.color,
+    });
+    const userMarkerMesh = new THREE.Mesh(
+      userMarkerGeometry,
+      userMarkerMaterial
+    );
+    // Add marker to the minimap scene
+    userMarkerMesh.position.set(2, 0.5, this.localUser.camera.position.z);
+    userMarkerMesh.layers.enable(7);
+    userMarkerMesh.layers.disable(0);
+    return userMarkerMesh;
   }
 
   /**
    * Updates the camera model's position and rotation.
    *
-   * @param Object containing the new camera position and quaterion.
+   * @param Object containing the new camera position and quaternion.
    */
   updateCamera(pose: Pose) {
     if (this.camera) {
@@ -89,6 +111,20 @@ export default class RemoteUser extends THREE.Object3D {
 
       this.camera.model.position.fromArray(pose.position);
       this.camera.model.quaternion.fromArray(pose.quaternion);
+    }
+  }
+
+  /**
+   * Update the minimap marker's position based on the camera's position.
+   */
+  private updateMinimapMarkerPosition() {
+    if (this.minimapMarker && this.camera) {
+      // Assuming the minimap is a top-down view with Y as up-axis
+      this.minimapMarker.position.set(
+        this.camera.model.position.x,
+        this.minimapMarker.position.y, // Assuming Z is up in the minimap
+        this.camera.model.position.z
+      );
     }
   }
 
@@ -170,6 +206,17 @@ export default class RemoteUser extends THREE.Object3D {
     this.removeController(CONTROLLER_2_ID);
     this.removeCamera();
     this.removeNameTag();
+    this.removeMinimapMarker(); // Remove minimap marker
+  }
+
+  /**
+   * Remove the minimap marker from the scene.
+   */
+  removeMinimapMarker() {
+    if (this.minimapMarker) {
+      this.minimapMarker.parent?.remove(this.minimapMarker);
+      this.minimapMarker = null;
+    }
   }
 
   togglePing(controllerId: ControllerId, isPinging: boolean) {
@@ -184,12 +231,11 @@ export default class RemoteUser extends THREE.Object3D {
   }
 
   getVisualizationMode(): string {
-    // TODO: refactoring! this method won't return the remote user's localUser instance! It is always our own
     return this.localUser.visualizationMode;
   }
 
   /**
-   * Updates the the remote user once per frame.
+   * Updates the remote user once per frame.
    *
    * @param delta The time since the last update.
    */
@@ -208,13 +254,10 @@ export default class RemoteUser extends THREE.Object3D {
         controller.ray.scale.z = distance;
       }
     });
+
+    // this.updateMinimapMarkerPosition(); // Update minimap marker position each frame
   }
 
-  /**
-   * Updates the controller1 model's position and rotation.
-   *
-   * @param Object containing the new controller1 position and quaterion.
-   */
   updateController(
     controllerId: ControllerId,
     { position, quaternion, intersection }: ControllerPose
@@ -232,12 +275,6 @@ export default class RemoteUser extends THREE.Object3D {
     }
   }
 
-  /**
-   * Hides user or unhides them.
-   *
-   * @param {boolean} visible - If false, hides user's controllers, camera and name tag.
-   *                         Shows them if true.
-   */
   setVisible(visible: boolean) {
     this.controllers.forEach((controller) => {
       if (controller) controller.model.visible = visible;
@@ -245,11 +282,6 @@ export default class RemoteUser extends THREE.Object3D {
     this.setHmdVisible(visible);
   }
 
-  /**
-   * Hide or display user's HMD and name tag
-   *
-   * @param visible Determines visibility of HMD and name tag
-   */
   setHmdVisible(visible: boolean) {
     if (this.camera) {
       this.camera.model.visible = visible;

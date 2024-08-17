@@ -5,6 +5,8 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { inject as service } from '@ember/service';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
@@ -36,6 +38,20 @@ export default class Raycaster extends THREE.Raycaster {
    * @param camera Camera - contains view information
    * @param possibleObjects Objects to check for raycasting
    */
+
+  @service('user-setting')
+  userSetting!: UserSettings;
+
+  groundPlane = new THREE.Plane(new THREE.Vector3(0, -0.54, 0), 0); // Virtual ground Plane used to intersect raycast
+
+  cam: THREE.Camera | null = null;
+
+  updateMinimap: boolean | null = null;
+
+  lastPoint = new THREE.Vector3(0, 0, 0);
+
+  boundingBox: THREE.Box3 | null = null;
+
   raycasting(
     coords: { x: number; y: number },
     camera: THREE.Camera,
@@ -73,5 +89,47 @@ export default class Raycaster extends THREE.Raycaster {
 
     // Return null to indicate that no object was found
     return null;
+  }
+  raycastToGround(camera: THREE.Camera, box: THREE.Box3) {
+    this.cam = camera;
+    this.boundingBox = box;
+
+    // Set up the raycaster with the camera's position and the calculated direction
+    this.setFromCamera(new THREE.Vector2(0, 0), this.cam);
+
+    // Calculate the intersection point with the ground plane
+    const intersectionPoint = new THREE.Vector3();
+    this.ray.intersectPlane(this.groundPlane, intersectionPoint);
+
+    // Calculate the difference between the last point and the intersection point
+    const difference = new THREE.Vector3().subVectors(
+      intersectionPoint,
+      this.lastPoint
+    );
+
+    // Calculate the adjusted intersection point
+    // Instead of subtracting the full difference, subtract only a fraction of it
+    const adjustmentFactor = 0.4; // Adjust this value to control the smoothness
+    const adjustedDifference = difference.multiplyScalar(adjustmentFactor);
+    const adjustedIntersectionPoint = new THREE.Vector3().addVectors(
+      this.lastPoint,
+      adjustedDifference
+    );
+
+    return this.checkBoundingBox(adjustedIntersectionPoint);
+  }
+
+  changeValue(value: boolean) {
+    this.updateMinimap = value;
+  }
+
+  checkBoundingBox(intersectionPoint: THREE.Vector3) {
+    // Check if the point is inside the bounding box
+    if (!this.boundingBox!.containsPoint(intersectionPoint)) {
+      // Clamp the intersectionPoint to the bounding box boundaries
+      intersectionPoint.clamp(this.boundingBox!.min, this.boundingBox!.max);
+    }
+
+    return intersectionPoint;
   }
 }

@@ -63,6 +63,7 @@ export default class Settings extends Component<Args> {
       ApplicationSettingId[]
     > = {
       Camera: [],
+      Minimap: [],
       Colors: [],
       Controls: [],
       Communication: [],

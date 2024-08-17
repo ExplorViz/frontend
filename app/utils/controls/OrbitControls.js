@@ -1,6 +1,5 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
-import { INITIAL_LANDSCAPE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/landscape';
-import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
+import * as minimapRaycasting from 'explorviz-frontend/utils/raycaster';
 import * as THREE from 'three';
 
 import {
@@ -31,9 +30,9 @@ const _plane = new Plane();
 const TILT_LIMIT = Math.cos(70 * MathUtils.DEG2RAD);
 
 class OrbitControls extends EventDispatcher {
-  minPan;
+  // minPan;
 
-  maxPan;
+  // maxPan;
 
   constructor(object, domElement) {
     super();
@@ -250,8 +249,7 @@ class OrbitControls extends EventDispatcher {
         } else {
           scope.target.add(panOffset);
         }
-        console.log(this.minPan, this.maxPan);
-        scope.target.clamp(this.minPan, this.maxPan);
+        // scope.target.clamp(this.minPan, this.maxPan);
 
         // Limit the target distance from the cursor to create a sphere around the center of interest
         scope.target.sub(scope.cursor);
@@ -758,7 +756,6 @@ class OrbitControls extends EventDispatcher {
           needsUpdate = true;
           break;
       }
-      debugger;
       if (needsUpdate) {
         // prevent the browser from scrolling on cursor keys
         event.preventDefault();
@@ -1332,7 +1329,7 @@ class OrbitControls extends EventDispatcher {
   }
 
   getTarget() {
-    return scope.target;
+    return this.scope.target;
   }
 }
 

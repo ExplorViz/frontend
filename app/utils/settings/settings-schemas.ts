@@ -1,5 +1,6 @@
 export type SettingGroup =
   | 'Camera'
+  | 'Minimap'
   | 'Colors'
   | 'Controls'
   | 'Communication'
@@ -41,6 +42,8 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
+export type ApplicationMinimapSettingId = 'distance';
+
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
@@ -64,7 +67,8 @@ export type ApplicationSettingId =
   | ApplicationDebugSettingId
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
-  | ApplicationPopupSettingId;
+  | ApplicationPopupSettingId
+  | ApplicationMinimapSettingId;
 
 export type ApplicationControlSettings = {
   enableGamepadControls: FlagSetting;
@@ -113,6 +117,8 @@ export type ApplicationCameraSettings = {
   cameraFov: RangeSetting;
 };
 
+export type ApplicationMinimapSettings = { distance: RangeSetting };
+
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
@@ -123,7 +129,8 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationPopupSettings &
   ApplicationCameraSettings &
   ApplicationXRSettings &
-  ApplicationCommunicationSettings;
+  ApplicationCommunicationSettings &
+  ApplicationMinimapSettings;
 
 export interface Setting<T> {
   value: T;

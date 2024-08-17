@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import THREE, {
+import {
   Box3,
   Object3D,
   OrthographicCamera,
@@ -10,7 +10,6 @@ import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import { MapControls } from '../controls/MapControls';
-import { clamp } from './communication-layouter';
 
 export default class CameraControls {
   @service('user-settings')

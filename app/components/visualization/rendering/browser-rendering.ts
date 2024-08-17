@@ -33,7 +33,6 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
@@ -45,6 +44,7 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import remoteUser from 'explorviz-frontend/utils/remote-user';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -105,6 +105,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @tracked
   canvas!: HTMLCanvasElement;
+
+  minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
+
+  remoteUserSize: number = 0;
 
   popupHandler: PopupHandler;
 
@@ -345,14 +349,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // minimap camera
     //ToDo: Minimap helper initialisieren
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
-      (-aspectRatio * this.frustumSize) / 8,
-      (aspectRatio * this.frustumSize) / 8,
-      this.frustumSize / 4,
-      -this.frustumSize / 4,
+      -1,
+      1,
+      1,
+      -1,
       0.1,
       100
     );
-    this.localUser.minimapCamera.position.set(0, 1, 0);
+    this.localUser.minimapCamera.position.set(0, 10, 0);
     this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
     this.localUser.minimapCamera.layers.disable(0); //default layer
     this.localUser.minimapCamera.layers.enable(1); //foundation layer
@@ -361,6 +365,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.localUser.minimapCamera.layers.enable(4); //communication layer
     this.localUser.minimapCamera.layers.enable(5); //ping layer
     this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
+    this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
+
+    this.pollRemoteUsers();
+    // this.initlizeMinimapLocalUserArrow();
 
     // controls
     this.cameraControls = new CameraControls(
@@ -419,6 +427,101 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       }
     });
   }
+
+  pollRemoteUsers() {
+    setInterval(() => {
+      const users = Array.from(
+        this.collaborationSession.idToRemoteUser.values()
+      );
+
+      users.forEach((user: remoteUser) => {
+        this.initializeMinimapUserMarkers(user);
+      });
+    }, 1000); // Intervall auf 1 Sekunde setzen
+  }
+
+  // @computed('collaborationSession.idToRemoteUser')
+  // get remoteUsers() {
+  //   const users = Array.from(this.collaborationSession.idToRemoteUser.values());
+  //   console.log(users);
+  //   // Trigger your function here
+  //   users.forEach((user) => {
+  //     this.initializeMinimapUserMarkers(user);
+  //   });
+  //   return users;
+  // }
+
+  // Initialze local useres minimap arrow
+  // initlizeMinimapLocalUserArrow() {
+  //   const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
+  //   const userMarkerMaterial = new THREE.MeshBasicMaterial({
+  //     color: this.localUser.color,
+  //   });
+  //   const userMarkerMesh = new THREE.Mesh(
+  //     userMarkerGeometry,
+  //     userMarkerMaterial
+  //   );
+  //   // Add marker to the minimap scene
+  //   userMarkerMesh.position.set(
+  //     this.localUser.camera.position.x,
+  //     0.5,
+  //     this.localUser.camera.position.z
+  //   );
+  //   userMarkerMesh.layers.enable(7);
+  //   this.scene.add(userMarkerMesh);
+  // }
+  // updateLocalMinimapUser(){
+
+  // }
+
+  // Initialize minimap markers for remote users
+  initializeMinimapUserMarkers(remoteUser: remoteUser) {
+    // if (!this.minimapUserMarkers.has(remoteUser.userId)) {
+    //   const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
+    //   const userMarkerMaterial = new THREE.MeshBasicMaterial({
+    //     color: remoteUser.color,
+    //   });
+    //   const userMarkerMesh = new THREE.Mesh(
+    //     userMarkerGeometry,
+    //     userMarkerMaterial
+    //   );
+    //   // Add marker to the minimap scene
+    //   userMarkerMesh.position.set(0, 0.5, 0);
+    //   userMarkerMesh.layers.enable(7);
+    //   this.scene.add(userMarkerMesh);
+    //   this.minimapUserMarkers.set(remoteUser.userId, userMarkerMesh);
+    // } else {
+    //   this.updateMinimapUserMarkers;
+    // }
+    this.scene.add(remoteUser.minimapMarker!);
+  }
+
+  // Update minimap markers each tick
+  // updateMinimapUserMarkers() {
+  //   if (this.collaborationSession.idToRemoteUser.size == 0) {
+  //     return;
+  //   }
+  //   this.collaborationSession.idToRemoteUser.forEach((user) => {
+  //     const userMarker = user.minimapMarker;
+  //     if (userMarker && user.camera) {
+  //       const position = new THREE.Vector3();
+  //       position.copy(user.camera.model.position);
+  //       // if ()
+  //       userMarker.position.set(position.x, userMarker.position.y, position.z);
+  //     } else {
+  //       this.initializeMinimapUserMarkers(user);
+  //     }
+  //   });
+  // }
+
+  // Handle user disconnection (to remove marker)
+  // handleUserDisconnection(userId: string) {
+  //   const userMarker = this.minimapUserMarkers.get(userId);
+  //   if (userMarker) {
+  //     this.scene.remove(userMarker);
+  //     this.minimapUserMarkers.delete(userId);
+  //   }
+  // }
 
   @action
   handleSingleClick(intersection: THREE.Intersection) {

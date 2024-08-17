@@ -308,4 +308,18 @@ export const defaultApplicationSettings: ApplicationSettings = {
     buttonText: 'Reset',
     isButtonSetting: true,
   },
+  // Minimap Settings
+  distance: {
+    value: 5,
+    range: {
+      min: 1.0,
+      max: 10.0,
+      step: 0.1,
+    },
+    orderNumber: 1,
+    group: 'Minimap',
+    displayName: 'Distance of Minimap',
+    description: 'Set Distance of the Minimap',
+    isRangeSetting: true,
+  },
 };

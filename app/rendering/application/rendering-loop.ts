@@ -6,11 +6,10 @@ import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
-import * as minimapRaycasting from 'explorviz-frontend/utils/application-rendering/minimap-raycasting';
 import LocalUser from 'collaboration/services/local-user';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import ThreeForceGraph from 'three-forcegraph';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
 
 const clock = new Clock();
 
@@ -62,6 +61,8 @@ export default class RenderingLoop {
 
   intersection!: THREE.Vector3;
 
+  raycaster: Raycaster = new Raycaster();
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
@@ -99,10 +100,10 @@ export default class RenderingLoop {
       this.tick(frame);
 
       this.intersection = this.getCurrentFocus();
-      this.controls.perspectiveCameraControls.minPan =
-        this.graph.boundingBox.min;
-      this.controls.perspectiveCameraControls.maxPan =
-        this.graph.boundingBox.max;
+      // this.controls.perspectiveCameraControls.minPan =
+      //   this.graph.boundingBox.min;
+      // this.controls.perspectiveCameraControls.maxPan =
+      //   this.graph.boundingBox.max;
 
       // render a frame
       if (
@@ -114,8 +115,6 @@ export default class RenderingLoop {
         this.renderer.render(this.scene, this.camera);
       }
 
-      this.renderMinimap();
-
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render
         this.zoomHandler.renderZoomCamera(this.renderer, this.scene);
@@ -123,6 +122,8 @@ export default class RenderingLoop {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
+      this.renderMinimap();
+      this.updateMinimapCamera();
     });
   }
 
@@ -180,13 +181,36 @@ export default class RenderingLoop {
   private getCurrentFocus(): THREE.Vector3 {
     let newPos = new THREE.Vector3();
 
-    newPos = minimapRaycasting.raycastToGround(
+    newPos = this.raycaster.raycastToGround(
       this.camera,
-      this.graph.boundingBox,
-      this.minimapCamera.position
+      this.graph.boundingBox
     );
 
     return newPos;
+  }
+
+  updateMinimapCamera() {
+    // Get the bounding box from the graph
+    const boundingBox = this.graph.boundingBox;
+
+    // Calculate the size of the bounding box
+    const size = boundingBox.getSize(new THREE.Vector3());
+
+    // Retrieve the user-defined distance factor
+    const distanceFactor = this.userSettings.applicationSettings.distance.value;
+
+    // Scale the frustum based on the distance factor
+    const halfWidth = (size.x / 110) * distanceFactor;
+    const halfHeight = (size.z / 110) * distanceFactor;
+
+    // Adjust the orthographic camera's frustum
+    this.localUser.minimapCamera.left = -halfWidth;
+    this.localUser.minimapCamera.right = halfWidth;
+    this.localUser.minimapCamera.top = halfHeight;
+    this.localUser.minimapCamera.bottom = -halfHeight;
+
+    // Update the projection matrix to apply the changes
+    this.localUser.minimapCamera.updateProjectionMatrix();
   }
 
   renderMinimap() {
@@ -208,9 +232,15 @@ export default class RenderingLoop {
       this.intersection.z
     );
 
-    const currentViewport = this.renderer
-      .getContext()
-      .getParameter(this.renderer.getContext().VIEWPORT);
+    const currentViewport = new THREE.Vector4(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight
+    );
+    // this.localUser.minimapCamera.zoom =
+    //   this.userSettings.applicationSettings.distance.value;
+    // this.localUser.minimapCamera.updateProjectionMatrix();
     // Enable scissor test and set the scissor area
     this.renderer.setScissorTest(true);
     this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
@@ -218,7 +248,7 @@ export default class RenderingLoop {
     // Render the minimap scene
     this.renderer.render(this.scene, this.minimapCamera);
     // Disable scissor test
-    this.renderer.setScissorTest(false);
     this.renderer.setViewport(...currentViewport);
+    this.renderer.setScissorTest(false);
   }
 }
