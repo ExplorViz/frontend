@@ -11,10 +11,13 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import ChatService from 'explorviz-frontend/services/chat';
+import collaborationSession from 'explorviz-frontend/services/collaboration-session';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import RemoteUser from 'collaboration/utils/remote-user';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -35,6 +38,12 @@ export default class LocalUser extends Service.extend({
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
+
+  @service('chat')
+  chatService!: ChatService;
+
+  @service('collaboration-session')
+  collaborationSession!: collaborationSession;
 
   userId!: string;
 
@@ -69,11 +78,14 @@ export default class LocalUser extends Service.extend({
 
   xr?: WebXRManager;
 
+  @tracked
+  isHost!: boolean;
+
   init() {
     super.init();
 
     this.userId = 'unknown';
-
+    this.host = false;
     this.userGroup = new THREE.Group();
 
     // Initialize camera. The default aspect ratio is not known at this point
@@ -229,7 +241,6 @@ export default class LocalUser extends Service.extend({
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
     durationInMs: number = 5000,
-    replay: boolean = false,
   ) {
     const app3D = obj.parent;
     if (!app3D || !(app3D instanceof ApplicationObject3D)) {
@@ -248,9 +259,35 @@ export default class LocalUser extends Service.extend({
       durationInMs,
     });
 
-    if(!replay) {
-      this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
-      this.sender.sendChatMessage(this.userId, `${this.userName}(${this.userId}) pinged Object ${obj.id}`, this.userName, '', true, 'ping', [obj, pingPosition, durationInMs]);
+    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+    this.chatService.sendChatMessage(this.userId, `${this.userName}(${this.userId}) pinged Object ${obj.id}`, true, 'ping', [app3D.getModelId(), pingPosition.toArray(), durationInMs])
+  }
+
+  pingReplay(
+    userId: string,
+    modelId: string,
+    position: number[],
+    durationInMs: number,
+  ) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+
+    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
+
+    const point = new THREE.Vector3().fromArray(position);
+    if (applicationObj) {
+      if(remoteUser) {
+        remoteUser.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+        });
+      } else {
+        this.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+        })
+      }
     }
   }
 

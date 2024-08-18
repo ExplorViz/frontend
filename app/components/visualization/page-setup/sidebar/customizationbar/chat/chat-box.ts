@@ -2,10 +2,10 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import LocalUser from 'collaboration/services/local-user';
-import MessageSender from 'collaboration/services/message-sender';
 import collaborationSession from 'explorviz-frontend/services/collaboration-session';
 import ChatService from 'explorviz-frontend/services/chat';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { tracked } from '@glimmer/tracking';
 import * as THREE from 'three';
 
@@ -18,9 +18,6 @@ export default class ChatBox extends Component {
   @service('local-user')
   private localUser!: LocalUser;
 
-  @service('message-sender')
-  private sender!: MessageSender;
-
   @service('collaboration-session')
   collaborationSession!: collaborationSession;
 
@@ -29,6 +26,9 @@ export default class ChatBox extends Component {
 
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
+
+  @service('highlighting-service')
+  private highlightingService!: HighlightingService;
 
   @tracked
   openFilterOptions = false;
@@ -97,14 +97,25 @@ export default class ChatBox extends Component {
   }
 
   @action
+  muteUser(userId: string) {
+    this.chatService.muteUser(userId);
+  }
+
+  @action
+  unmuteUser(userId: string) {
+    this.chatService.unmuteUser(userId);
+  }
+
+  @action
   synchronize() {
     if (this.collaborationSession.connectionStatus == 'offline') {
       this.toastHandler.showErrorToastMessage("Can't synchronize with server");
       return;
     }
+    //this.usersInChat = [];
     this.chatService.clearFilter();
-    this.clearChat('.chat-thread.normal');
-    this.clearChat('.chat-thread.filtered');
+    this.clearChat('.chat-thread');
+    //this.clearChat('.chat-thread');
     this.chatService.synchronizeWithServer();
   }
 
@@ -182,19 +193,22 @@ export default class ChatBox extends Component {
       chatThread.appendChild(messageContainer);
 
       // Create and add the User on top of the message container
-      const userDiv = document.createElement('div');
-      userDiv.textContent =
-        chatMessage.userId !== 'unknown'
-          ? `${chatMessage.userName}(${chatMessage.userId})`
-          : `${chatMessage.userName}`;
-      userDiv.classList.add('User');
-      userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
-      messageContainer.appendChild(userDiv);
+      if(!chatMessage.isEvent) {
+        const userDiv = document.createElement('div');
+        userDiv.textContent =
+          chatMessage.userId !== 'unknown'
+            ? `${chatMessage.userName}(${chatMessage.userId})`
+            : `${chatMessage.userName}`;
+        userDiv.classList.add('User');
+        userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
+        messageContainer.appendChild(userDiv);
+      }
 
       // Add the message with a unique id attribute to the container
       const messageLi = document.createElement('li');
       messageLi.textContent = chatMessage.message;
-      messageLi.classList.add('Message');
+      const messageClass = chatMessage.isEvent ? 'event-message' : 'Message';
+      messageLi.classList.add(messageClass);
       messageContainer.setAttribute(
         'data-message-id',
         chatMessage.msgId.toString()
@@ -202,8 +216,8 @@ export default class ChatBox extends Component {
       messageContainer.appendChild(messageLi);
 
       // Add a button for replayability for certain events
-      if (chatMessage.isEvent && chatMessage.eventType !== 'connection_event' && chatMessage.eventType !== 'disconnection_event' && chatMessage.eventType !== 'landscape_change') {
-        const eventButton = document.createElement('button');
+      if (chatMessage.isEvent && chatMessage.eventType == 'ping' || chatMessage.eventType === 'highlight') {
+        const eventButton = document.createElement('Button');
         eventButton.textContent = 'Replay';
         eventButton.classList.add('event-button');
         eventButton.onclick = () => this.handleEventClick(chatMessage);
@@ -222,18 +236,24 @@ export default class ChatBox extends Component {
     }
   }
 
-  handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; eventType: string; eventData: any[]}): any {
+  private handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; eventType: string; eventData: any[]}): any {
     if(chatMessage.eventData.length == 0) {
-      this.toastHandler.showErrorToastMessage("No event data" + chatMessage.eventType);
+      this.toastHandler.showErrorToastMessage("No event data");
       return;
     }
+    
+    const userId = chatMessage.userId;
     switch(chatMessage.eventType) {
       case 'ping':
-        const obj = chatMessage.eventData.objectAt(0);
+        const objId = chatMessage.eventData.objectAt(0);
         const pingPos = chatMessage.eventData.objectAt(1);
         const pingDurationInMs = chatMessage.eventData.objectAt(2);
-        this.localUser.ping(obj, pingPos, pingDurationInMs, true);
+        this.localUser.pingReplay(userId, objId, pingPos, pingDurationInMs);
+        break;
       case 'highlight':
+        const appId = chatMessage.eventData.objectAt(0);
+        const entityId = chatMessage.eventData.objectAt(1);
+        this.highlightingService.highlightReplay(userId, appId, entityId);
         break;
       default:
         this.toastHandler.showErrorToastMessage("Unknown event");

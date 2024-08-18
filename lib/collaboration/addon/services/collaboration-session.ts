@@ -219,6 +219,10 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
+    if(this.userCount === 1) {
+      this.localUser.isHost = true;
+    }
+
     this.chatService.sendChatMessage(self.id, `${self.name}(${self.id}) connected to room ${this.currentRoomId}`, true, 'connection_event');
     this.toastHandlerService.showSuccessToastMessage(
       'Joined room successfully'
@@ -465,7 +469,7 @@ export default class CollaborationSession extends Service.extend({
     userId,
     originalMessage: { msg, userName, timestamp, isEvent, eventType, eventData },
   }: ForwardedMessage<ChatMessage>) {
-    if (this.localUser.userId != userId) {
+    if (this.localUser.userId != userId && !isEvent) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
     this.chatService.addChatMessage(userId, msg, userName, timestamp, isEvent, eventType, eventData);

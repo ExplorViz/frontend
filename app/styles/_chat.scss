@@ -30,11 +30,40 @@ $chat-thread-offset:           #{$chat-thread-avatar-size + 30px};
     overflow-x: hidden;
 }
 
+.chat-thread .event-message {
+  background-color: #ffecb3;
+  color: #5d4037;
+  border-left: 5px solid #ffc107;
+  border-right: 5px solid #ffc107;
+  font-weight: bold;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.chat-thread .event-message .event-button {
+  margin-top: 5px;
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #f57c00;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
 .chat-timestamp {
     font-size: 0.75em;
     color: #888;
     align-self: flex-end;
     margin-left: 10px;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
 }
 
 .chat-button-area {

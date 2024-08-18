@@ -14,6 +14,8 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ToastHandlerService from './toast-handler';
+import ChatService from './chat';
 import {
   EntityMesh,
   isEntityMesh,
@@ -46,6 +48,12 @@ export default class HighlightingService extends Service.extend({
 
   @service('user-settings')
   private userSettings!: UserSettings;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
+
+  @service('chat')
+  chatService!: ChatService;
 
   debug = debugLogger('HighlightingService');
 
@@ -149,6 +157,31 @@ export default class HighlightingService extends Service.extend({
       this.handleHighlightForLink(mesh, true, options);
     }
     this.updateHighlighting();
+  }
+
+  highlightReplay(userId: string, appId: string, entityId: string){
+    const user = this.collaborationSession.lookupRemoteUserById(userId);
+    let userColor = user ? user.color : this.localUser.color
+
+    const application = this.applicationRenderer.getApplicationById(appId);
+    if (!application) {
+      // extern communication link
+      const mesh = this.applicationRenderer.getMeshById(entityId);
+      if (mesh instanceof ClazzCommunicationMesh) {
+        // multi selected extern links?
+        this.toggleHighlight(mesh, {
+          sendMessage: false,
+          remoteColor: userColor,
+        });
+      }
+      return;
+    }
+
+    const mesh: any = application.getMeshById(entityId);
+    this.toggleHighlight(mesh, {
+      sendMessage: false,
+      remoteColor: userColor,
+    });
   }
 
   unhighlight(mesh: EntityMesh, options?: HighlightOptions) {
@@ -277,7 +310,7 @@ export default class HighlightingService extends Service.extend({
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
       if(highlighted) {
-        this.sender.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted link`, this.localUser.userName, '', true, 'highlight', [])
+        this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted a link`, true, 'highlight', ['', mesh.getModelId()]);
       }
     }
   }
@@ -329,7 +362,7 @@ export default class HighlightingService extends Service.extend({
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
       if(highlighted) {
-        this.sender.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted component`, this.localUser.userName, '', true, 'highlight', [])
+        this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted a component`, true, 'highlight', [appId, entityId]);
       }
     }
   }

@@ -46,7 +46,7 @@ export default class ChatService extends Service {
 
   sendChatMessage(userId: string, msg: string, isEvent: boolean, eventType: string = '', eventData: any[] = []) {
     if (this.collaborationSession.connectionStatus == 'offline') {
-      this.addChatMessage(userId, msg);
+      this.addChatMessage(userId, msg, '', '', isEvent, eventType, eventData);
     } else {
       const timestamp = this.getTime();
       const userName = this.localUser.userName;
@@ -60,7 +60,7 @@ export default class ChatService extends Service {
     let timestamp = time;
 
     if(userId != this.localUser.userId) {
-      const user = this.collaborationSession.lookupRemoteUserById(userId);
+      const user = this.collaborationSession.lookupRemoteUserById(userId); //refactor if(user)..
       userName = user?.userName || username;
       userColor = user?.color || new THREE.Color(0,0,0);
       timestamp = time;
@@ -100,9 +100,13 @@ export default class ChatService extends Service {
     return (messages.length > 0);
   }
 
-  muteUserById() {}
+  muteUser(userId: string) {
 
-  unmuteUserById() {}
+  }
+
+  unmuteUser(userId: string) {
+    
+  }
 
   filterChat(filterMode: string, filterValue: string) {
     this.applyCurrentFilter(filterMode, filterValue);
