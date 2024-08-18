@@ -159,9 +159,9 @@ export default class HighlightingService extends Service.extend({
     this.updateHighlighting();
   }
 
-  highlightReplay(userId: string, appId: string, entityId: string){
+  highlightReplay(userId: string, appId: string, entityId: string) {
     const user = this.collaborationSession.lookupRemoteUserById(userId);
-    let userColor = user ? user.color : this.localUser.color
+    const userColor = user ? user.color : this.localUser.color;
 
     const application = this.applicationRenderer.getApplicationById(appId);
     if (!application) {
@@ -309,8 +309,14 @@ export default class HighlightingService extends Service.extend({
         mesh.highlighted,
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
-      if(highlighted) {
-        this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted a link`, true, 'highlight', ['', mesh.getModelId()]);
+      if (highlighted) {
+        this.chatService.sendChatMessage(
+          this.localUser.userId,
+          `${this.localUser.userName}(${this.localUser.userId}) highlighted a link`,
+          true,
+          'highlight',
+          ['', mesh.getModelId()]
+        );
       }
     }
   }
@@ -361,8 +367,14 @@ export default class HighlightingService extends Service.extend({
         object.highlighted,
         this.userSettings.applicationSettings.enableMultipleHighlighting.value
       );
-      if(highlighted) {
-        this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) highlighted a component`, true, 'highlight', [appId, entityId]);
+      if (highlighted) {
+        this.chatService.sendChatMessage(
+          this.localUser.userId,
+          `${this.localUser.userName}(${this.localUser.userId}) highlighted a component`,
+          true,
+          'highlight',
+          [appId, entityId]
+        );
       }
     }
   }

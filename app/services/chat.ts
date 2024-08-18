@@ -44,25 +44,47 @@ export default class ChatService extends Service {
   @tracked
   msgId: number = 1;
 
-  sendChatMessage(userId: string, msg: string, isEvent: boolean, eventType: string = '', eventData: any[] = []) {
+  sendChatMessage(
+    userId: string,
+    msg: string,
+    isEvent: boolean,
+    eventType: string = '',
+    eventData: any[] = []
+  ) {
     if (this.collaborationSession.connectionStatus == 'offline') {
       this.addChatMessage(userId, msg, '', '', isEvent, eventType, eventData);
     } else {
       const timestamp = this.getTime();
       const userName = this.localUser.userName;
-      this.sender.sendChatMessage(userId, msg, userName, timestamp, isEvent, eventType, eventData);
+      this.sender.sendChatMessage(
+        userId,
+        msg,
+        userName,
+        timestamp,
+        isEvent,
+        eventType,
+        eventData
+      );
     }
   }
 
-  addChatMessage(userId: string, msg: string, username: string = '', time: string = '', isEvent: boolean = false, eventType: string = '', eventData: any[] = []) {
+  addChatMessage(
+    userId: string,
+    msg: string,
+    username: string = '',
+    time: string = '',
+    isEvent: boolean = false,
+    eventType: string = '',
+    eventData: any[] = []
+  ) {
     let userName = username;
-    let userColor = new THREE.Color(0,0,0);
+    let userColor = new THREE.Color(0, 0, 0);
     let timestamp = time;
 
-    if(userId != this.localUser.userId) {
+    if (userId != this.localUser.userId) {
       const user = this.collaborationSession.lookupRemoteUserById(userId); //refactor if(user)..
       userName = user?.userName || username;
-      userColor = user?.color || new THREE.Color(0,0,0);
+      userColor = user?.color || new THREE.Color(0, 0, 0);
       timestamp = time;
     } else {
       userName = this.localUser.userName;
@@ -83,7 +105,7 @@ export default class ChatService extends Service {
     };
 
     /* Put chat service into collaboration lib? */
-    
+
     this.chatMessages = [...this.chatMessages, chatMessage];
     this.applyCurrentFilter();
   }
@@ -96,17 +118,15 @@ export default class ChatService extends Service {
   }
 
   findEventByUserId(userId: string, eventType: string) {
-    const messages = this.chatMessages.filter((msg) => msg.userId === userId && msg.eventType === eventType);
-    return (messages.length > 0);
+    const messages = this.chatMessages.filter(
+      (msg) => msg.userId === userId && msg.eventType === eventType
+    );
+    return messages.length > 0;
   }
 
-  muteUser(userId: string) {
+  muteUser() {}
 
-  }
-
-  unmuteUser(userId: string) {
-    
-  }
+  unmuteUser() {}
 
   filterChat(filterMode: string, filterValue: string) {
     this.applyCurrentFilter(filterMode, filterValue);
@@ -146,16 +166,24 @@ export default class ChatService extends Service {
     return `${h}:${m < 10 ? '0' + m : m}`;
   }
 
-  synchronizeWithServer(){
+  synchronizeWithServer() {
     this.sender.sendChatSynchronize();
   }
 
   syncChatMessages(messages: ChatSynchronizeMessage[]) {
     this.chatMessages = [];
     messages.forEach((msg) =>
-      this.addChatMessage(msg.userId, msg.msg, msg.userName, msg.timestamp, msg.isEvent, msg.eventType, msg.eventData)
+      this.addChatMessage(
+        msg.userId,
+        msg.msg,
+        msg.userName,
+        msg.timestamp,
+        msg.isEvent,
+        msg.eventType,
+        msg.eventData
+      )
     );
-    this.toastHandler.showInfoToastMessage("Synchronized")
+    this.toastHandler.showInfoToastMessage('Synchronized');
   }
 }
 

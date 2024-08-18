@@ -17,7 +17,6 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import RemoteUser from 'collaboration/utils/remote-user';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -240,7 +239,7 @@ export default class LocalUser extends Service.extend({
   ping(
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
-    durationInMs: number = 5000,
+    durationInMs: number = 5000
   ) {
     const app3D = obj.parent;
     if (!app3D || !(app3D instanceof ApplicationObject3D)) {
@@ -260,14 +259,20 @@ export default class LocalUser extends Service.extend({
     });
 
     this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
-    this.chatService.sendChatMessage(this.userId, `${this.userName}(${this.userId}) pinged Object ${obj.id}`, true, 'ping', [app3D.getModelId(), pingPosition.toArray(), durationInMs])
+    this.chatService.sendChatMessage(
+      this.userId,
+      `${this.userName}(${this.userId}) pinged Object ${obj.id}`,
+      true,
+      'ping',
+      [app3D.getModelId(), pingPosition.toArray(), durationInMs]
+    );
   }
 
   pingReplay(
     userId: string,
     modelId: string,
     position: number[],
-    durationInMs: number,
+    durationInMs: number
   ) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
 
@@ -275,7 +280,7 @@ export default class LocalUser extends Service.extend({
 
     const point = new THREE.Vector3().fromArray(position);
     if (applicationObj) {
-      if(remoteUser) {
+      if (remoteUser) {
         remoteUser.mousePing.ping.perform({
           parentObj: applicationObj,
           position: point,
@@ -286,7 +291,7 @@ export default class LocalUser extends Service.extend({
           parentObj: applicationObj,
           position: point,
           durationInMs,
-        })
+        });
       }
     }
   }

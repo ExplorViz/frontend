@@ -219,11 +219,16 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
-    if(this.userCount === 1) {
+    if (this.userCount === 1) {
       this.localUser.isHost = true;
     }
 
-    this.chatService.sendChatMessage(self.id, `${self.name}(${self.id}) connected to room ${this.currentRoomId}`, true, 'connection_event');
+    this.chatService.sendChatMessage(
+      self.id,
+      `${self.name}(${self.id}) connected to room ${this.currentRoomId}`,
+      true,
+      'connection_event'
+    );
     this.toastHandlerService.showSuccessToastMessage(
       'Joined room successfully'
     );
@@ -265,8 +270,18 @@ export default class CollaborationSession extends Service.extend({
         `User disconnected: ${removedUser.userName}`
       );
       // If user did not disconnect properly (e.g. browser closed, lost connection ...)
-      if(!this.chatService.findEventByUserId(removedUser.userId, 'disconnection_event')) {
-        this.chatService.sendChatMessage(removedUser.userId, `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`, true, 'disconnection_event'); // TODO: With several users come several equal messages. FIX??
+      if (
+        !this.chatService.findEventByUserId(
+          removedUser.userId,
+          'disconnection_event'
+        )
+      ) {
+        this.chatService.sendChatMessage(
+          removedUser.userId,
+          `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`,
+          true,
+          'disconnection_event'
+        ); // TODO: With several users come several equal messages. FIX??
         //this.chatService.addChatMessage
       }
     }
@@ -430,10 +445,15 @@ export default class CollaborationSession extends Service.extend({
   disconnect() {
     this.debug('Disconnect Collab Session');
 
-    if(this.connectionStatus != 'offline') {
+    if (this.connectionStatus != 'offline') {
       this.previousRoomId = this.currentRoomId;
     }
-    this.chatService.sendChatMessage(this.localUser.userId, `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`, true, 'disconnection_event');
+    this.chatService.sendChatMessage(
+      this.localUser.userId,
+      `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`,
+      true,
+      'disconnection_event'
+    );
 
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
@@ -467,15 +487,30 @@ export default class CollaborationSession extends Service.extend({
    */
   onChatMessageEvent({
     userId,
-    originalMessage: { msg, userName, timestamp, isEvent, eventType, eventData },
+    originalMessage: {
+      msg,
+      userName,
+      timestamp,
+      isEvent,
+      eventType,
+      eventData,
+    },
   }: ForwardedMessage<ChatMessage>) {
     if (this.localUser.userId != userId && !isEvent) {
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
-    this.chatService.addChatMessage(userId, msg, userName, timestamp, isEvent, eventType, eventData);
+    this.chatService.addChatMessage(
+      userId,
+      msg,
+      userName,
+      timestamp,
+      isEvent,
+      eventType,
+      eventData
+    );
   }
 
-    /**
+  /**
    * Chat synchronization event received from backend, synchronizing with chatService
    */
   onChatSyncEvent({

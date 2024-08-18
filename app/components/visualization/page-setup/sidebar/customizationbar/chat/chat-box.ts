@@ -64,7 +64,7 @@ export default class ChatBox extends Component {
   @action
   setFilterMode(mode: string) {
     this.chatService.clearFilter();
-    if(this.isFilterEnabled) {
+    if (this.isFilterEnabled) {
       this.clearChat('.chat-thread.filtered');
     } else {
       this.clearChat('.chat-thread.normal');
@@ -75,7 +75,7 @@ export default class ChatBox extends Component {
 
   @action
   updateFilterValue(event: Event) {
-    if(this.isFilterEnabled) {
+    if (this.isFilterEnabled) {
       const target = event.target as HTMLInputElement;
       this.filterValue = target.value;
       this.applyFilter();
@@ -84,7 +84,7 @@ export default class ChatBox extends Component {
 
   @action
   applyFilter() {
-    if(this.isFilterEnabled) {
+    if (this.isFilterEnabled) {
       this.clearChat('.chat-thread.filtered');
     } else {
       this.clearChat('.chat-thread.normal');
@@ -97,13 +97,13 @@ export default class ChatBox extends Component {
   }
 
   @action
-  muteUser(userId: string) {
-    this.chatService.muteUser(userId);
+  muteUser() {
+    this.chatService.muteUser();
   }
 
   @action
-  unmuteUser(userId: string) {
-    this.chatService.unmuteUser(userId);
+  unmuteUser() {
+    this.chatService.unmuteUser();
   }
 
   @action
@@ -112,10 +112,8 @@ export default class ChatBox extends Component {
       this.toastHandler.showErrorToastMessage("Can't synchronize with server");
       return;
     }
-    //this.usersInChat = [];
     this.chatService.clearFilter();
     this.clearChat('.chat-thread');
-    //this.clearChat('.chat-thread');
     this.chatService.synchronizeWithServer();
   }
 
@@ -123,7 +121,10 @@ export default class ChatBox extends Component {
   downloadChat() {
     const chatMessages = this.chatService.chatMessages;
     const chatContent = chatMessages
-      .map((msg) => `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`)
+      .map(
+        (msg) =>
+          `${msg.timestamp} ${msg.userName}(${msg.userId}): ${msg.message}`
+      )
       .join('\n');
 
     const blob = new Blob([chatContent], { type: 'text/plain' });
@@ -167,12 +168,13 @@ export default class ChatBox extends Component {
     eventData: any[];
   }) {
     // Check filter selection
-    const activeUserFilter = this.filterValue ===
-      chatMessage.userName + '(' + chatMessage.userId + ')' &&
+    const activeUserFilter =
+      this.filterValue ===
+        chatMessage.userName + '(' + chatMessage.userId + ')' &&
       this.filterMode === 'UserId';
 
-    const activeEventFilter = this.filterMode === 'Events' &&
-      chatMessage.isEvent;
+    const activeEventFilter =
+      this.filterMode === 'Events' && chatMessage.isEvent;
 
     const shouldDisplayMessage = this.isFilterEnabled
       ? activeUserFilter || activeEventFilter
@@ -183,17 +185,18 @@ export default class ChatBox extends Component {
     }
 
     // Post message into normal chat or filtered chat depending on filter
-    const chatThreadClass = this.isFilterEnabled ? '.chat-thread.filtered' : '.chat-thread.normal';
+    const chatThreadClass = this.isFilterEnabled
+      ? '.chat-thread.filtered'
+      : '.chat-thread.normal';
     const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
     if (chatThread) {
-
-      // Create container div for the message 
+      // Create container div for the message
       const messageContainer = document.createElement('div');
       messageContainer.classList.add('message-container');
       chatThread.appendChild(messageContainer);
 
       // Create and add the User on top of the message container
-      if(!chatMessage.isEvent) {
+      if (!chatMessage.isEvent) {
         const userDiv = document.createElement('div');
         userDiv.textContent =
           chatMessage.userId !== 'unknown'
@@ -216,7 +219,10 @@ export default class ChatBox extends Component {
       messageContainer.appendChild(messageLi);
 
       // Add a button for replayability for certain events
-      if (chatMessage.isEvent && chatMessage.eventType == 'ping' || chatMessage.eventType === 'highlight') {
+      if (
+        (chatMessage.isEvent && chatMessage.eventType == 'ping') ||
+        chatMessage.eventType === 'highlight'
+      ) {
         const eventButton = document.createElement('Button');
         eventButton.textContent = 'Replay';
         eventButton.classList.add('event-button');
@@ -236,27 +242,41 @@ export default class ChatBox extends Component {
     }
   }
 
-  private handleEventClick(chatMessage: { msgId: number; userId: string; userName: string; userColor: THREE.Color; timestamp: string; message: string; isEvent: boolean; eventType: string; eventData: any[]}): any {
-    if(chatMessage.eventData.length == 0) {
-      this.toastHandler.showErrorToastMessage("No event data");
+  private handleEventClick(chatMessage: {
+    msgId: number;
+    userId: string;
+    userName: string;
+    userColor: THREE.Color;
+    timestamp: string;
+    message: string;
+    isEvent: boolean;
+    eventType: string;
+    eventData: any[];
+  }): any {
+    if (chatMessage.eventData.length == 0) {
+      this.toastHandler.showErrorToastMessage('No event data');
       return;
     }
-    
+
     const userId = chatMessage.userId;
-    switch(chatMessage.eventType) {
+    switch (chatMessage.eventType) {
       case 'ping':
-        const objId = chatMessage.eventData.objectAt(0);
-        const pingPos = chatMessage.eventData.objectAt(1);
-        const pingDurationInMs = chatMessage.eventData.objectAt(2);
-        this.localUser.pingReplay(userId, objId, pingPos, pingDurationInMs);
+        {
+          const objId = chatMessage.eventData.objectAt(0);
+          const pingPos = chatMessage.eventData.objectAt(1);
+          const pingDurationInMs = chatMessage.eventData.objectAt(2);
+          this.localUser.pingReplay(userId, objId, pingPos, pingDurationInMs);
+        }
         break;
       case 'highlight':
-        const appId = chatMessage.eventData.objectAt(0);
-        const entityId = chatMessage.eventData.objectAt(1);
-        this.highlightingService.highlightReplay(userId, appId, entityId);
+        {
+          const appId = chatMessage.eventData.objectAt(0);
+          const entityId = chatMessage.eventData.objectAt(1);
+          this.highlightingService.highlightReplay(userId, appId, entityId);
+        }
         break;
       default:
-        this.toastHandler.showErrorToastMessage("Unknown event");
+        this.toastHandler.showErrorToastMessage('Unknown event');
     }
   }
 

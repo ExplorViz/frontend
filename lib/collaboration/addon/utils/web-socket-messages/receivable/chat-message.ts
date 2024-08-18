@@ -4,7 +4,7 @@ export type ChatMessage = {
   event: typeof CHAT_MESSAGE_EVENT;
   userid: string;
   msg: string;
-  userName: string,
+  userName: string;
   timestamp: string;
   isEvent: boolean;
   eventType: string;
