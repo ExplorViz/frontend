@@ -310,7 +310,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // Minimap Settings
   distance: {
-    value: 5,
+    value: 1,
     range: {
       min: 1.0,
       max: 10.0,
@@ -321,5 +321,46 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Distance of Minimap',
     description: 'Set Distance of the Minimap',
     isRangeSetting: true,
+  },
+  layer1: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Enable foundation visibility',
+    description: 'Toggle foundation visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer2: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Enable component visibility',
+    description: 'Toggle component visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer4: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Enable communication visibility',
+    description: 'Toggle communication visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer6: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Enable labels visibility',
+    description: 'Toggle labels visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer7: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Enable visibility of different user-markers',
+    description:
+      'Toggle the different users position markers visibility for the Minimap',
+    isFlagSetting: true,
   },
 };

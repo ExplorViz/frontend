@@ -63,6 +63,15 @@ export default class RenderingLoop {
 
   raycaster: Raycaster = new Raycaster();
 
+  distance!: number;
+
+  currentViewport = new THREE.Vector4(
+    0,
+    0,
+    window.innerWidth,
+    window.innerHeight
+  );
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
@@ -189,6 +198,25 @@ export default class RenderingLoop {
     return newPos;
   }
 
+  updateLocalMinimapMarker() {
+    this.localUser.minimapMarker.position.set(
+      this.intersection.x,
+      this.localUser.minimapMarker.position.y,
+      this.intersection.z
+    );
+    const localForward = new THREE.Vector3(0, 0, -1);
+
+    // Apply the camera's rotation to the local forward vector
+    const cameraDirection = localForward.applyQuaternion(
+      this.camera.quaternion
+    );
+    this.localUser.minimapMarker.lookAt(
+      cameraDirection.x,
+      -(Math.PI / 4),
+      cameraDirection.z
+    );
+  }
+
   updateMinimapCamera() {
     // Get the bounding box from the graph
     const boundingBox = this.graph.boundingBox;
@@ -196,12 +224,11 @@ export default class RenderingLoop {
     // Calculate the size of the bounding box
     const size = boundingBox.getSize(new THREE.Vector3());
 
-    // Retrieve the user-defined distance factor
-    const distanceFactor = this.userSettings.applicationSettings.distance.value;
+    this.distance = this.userSettings.applicationSettings.distance.value;
 
     // Scale the frustum based on the distance factor
-    const halfWidth = (size.x / 110) * distanceFactor;
-    const halfHeight = (size.z / 110) * distanceFactor;
+    const halfWidth = (size.x / 110) * this.distance;
+    const halfHeight = (size.z / 110) * this.distance;
 
     // Adjust the orthographic camera's frustum
     this.localUser.minimapCamera.left = -halfWidth;
@@ -209,46 +236,50 @@ export default class RenderingLoop {
     this.localUser.minimapCamera.top = halfHeight;
     this.localUser.minimapCamera.bottom = -halfHeight;
 
-    // Update the projection matrix to apply the changes
-    this.localUser.minimapCamera.updateProjectionMatrix();
-  }
-
-  renderMinimap() {
-    // Set the size and newPos for the minimap
-    const minimapSize = 7.5;
-    const minimapHeight =
-      Math.max(window.innerHeight, window.innerWidth) / minimapSize;
-    const minimapWidth = minimapHeight;
-
-    const marginSettingsSymbol = 55;
-    const margin = 10;
-    const minimapX =
-      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
-    const minimapY = window.innerHeight - minimapHeight - margin;
-
     this.localUser.minimapCamera.position.set(
       this.intersection.x,
       1,
       this.intersection.z
     );
 
-    const currentViewport = new THREE.Vector4(
-      0,
-      0,
-      window.innerWidth,
-      window.innerHeight
-    );
-    // this.localUser.minimapCamera.zoom =
-    //   this.userSettings.applicationSettings.distance.value;
-    // this.localUser.minimapCamera.updateProjectionMatrix();
+    this.updateLocalMinimapMarker();
+
+    // Update the projection matrix to apply the changes
+    this.localUser.minimapCamera.updateProjectionMatrix();
+  }
+
+  renderMinimap() {
+    // Set the size and newPos for the minimap
+    const minimapNums = this.localUser.minimap();
+    const minimapHeight = minimapNums[0];
+    const minimapWidth = minimapNums[1];
+    const minimapX = minimapNums[2];
+    const minimapY = minimapNums[3];
+    const borderWidth = 4;
+
     // Enable scissor test and set the scissor area
     this.renderer.setScissorTest(true);
-    this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
-    this.renderer.setViewport(minimapX, minimapY, minimapWidth, minimapHeight);
+    this.renderer.setScissor(
+      minimapX - borderWidth,
+      minimapY - borderWidth,
+      minimapWidth + 2 * borderWidth,
+      minimapHeight + 2 * borderWidth
+    );
+    this.renderer.setViewport(
+      minimapX - borderWidth,
+      minimapY - borderWidth,
+      minimapWidth + 2 * borderWidth,
+      minimapHeight + 2 * borderWidth
+    );
+
+    // Background color for the border
+    this.renderer.setClearColor(0x000000); // Schwarz
+    this.renderer.clear();
+
     // Render the minimap scene
     this.renderer.render(this.scene, this.minimapCamera);
     // Disable scissor test
-    this.renderer.setViewport(...currentViewport);
+    this.renderer.setViewport(...this.currentViewport);
     this.renderer.setScissorTest(false);
   }
 }

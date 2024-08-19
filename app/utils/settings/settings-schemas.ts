@@ -42,7 +42,13 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationMinimapSettingId = 'distance';
+export type ApplicationMinimapSettingId =
+  | 'distance'
+  | 'layer1'
+  | 'layer2'
+  | 'layer4'
+  | 'layer6'
+  | 'layer7';
 
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
@@ -117,7 +123,14 @@ export type ApplicationCameraSettings = {
   cameraFov: RangeSetting;
 };
 
-export type ApplicationMinimapSettings = { distance: RangeSetting };
+export type ApplicationMinimapSettings = {
+  distance: RangeSetting;
+  layer1: FlagSetting;
+  layer2: FlagSetting;
+  layer4: FlagSetting;
+  layer6: FlagSetting;
+  layer7: FlagSetting;
+};
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 

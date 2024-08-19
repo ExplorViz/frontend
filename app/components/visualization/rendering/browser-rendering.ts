@@ -346,30 +346,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.localUser.ortographicCamera.lookAt(this.scene.position);
 
-    // minimap camera
-    //ToDo: Minimap helper initialisieren
-    this.localUser.minimapCamera = new THREE.OrthographicCamera(
-      -1,
-      1,
-      1,
-      -1,
-      0.1,
-      100
-    );
-    this.localUser.minimapCamera.position.set(0, 10, 0);
-    this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
-    this.localUser.minimapCamera.layers.disable(0); //default layer
-    this.localUser.minimapCamera.layers.enable(1); //foundation layer
-    this.localUser.minimapCamera.layers.enable(2); //component layer
-    // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
-    this.localUser.minimapCamera.layers.enable(4); //communication layer
-    this.localUser.minimapCamera.layers.enable(5); //ping layer
-    this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
-    this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
-
-    this.pollRemoteUsers();
-    // this.initlizeMinimapLocalUserArrow();
-
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
@@ -381,6 +357,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
+
+    this.initMinimap();
 
     this.updatables.push(this.localUser);
     this.updatables.push(this.cameraControls);
@@ -426,6 +404,34 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.initDone = true;
       }
     });
+  }
+
+  private initMinimap() {
+    // minimap camera
+    //ToDo: Minimap helper initialisieren
+    this.localUser.minimapCamera = new THREE.OrthographicCamera(
+      -2,
+      2,
+      2,
+      -2,
+      0.1,
+      100
+    );
+    this.localUser.minimapCamera.position.set(0, 10, 0);
+    this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
+    this.localUser.minimapCamera.layers.disable(0); //default layer
+    this.localUser.minimapCamera.layers.enable(1); //foundation layer
+    this.localUser.minimapCamera.layers.enable(2); //component layer
+    // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
+    this.localUser.minimapCamera.layers.enable(4); //communication layer
+    this.localUser.minimapCamera.layers.enable(5); //ping layer
+    this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
+    this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
+
+    this.pollRemoteUsers();
+    this.scene.add(this.localUser.minimapMarker);
+
+    // initalize invinsible square for raycasting the minimap
   }
 
   pollRemoteUsers() {

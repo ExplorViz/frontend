@@ -76,6 +76,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   // Used to determine if and which object was hit
   raycaster: Raycaster;
 
+  minimapRaycaster: Raycaster;
+
   debug = debugLogger('InteractionModifier');
 
   @service('collaboration-session')
@@ -163,6 +165,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
     super(owner, args);
     this.raycaster = new Raycaster();
+    this.minimapRaycaster = new Raycaster();
   }
 
   @action
@@ -232,7 +235,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handleMouseMovePan(event);
     } else {
       const intersectedViewObj = this.raycast(event);
-
+      // const intersectedViewObjMinimap = this.minimapRaycast(event);
       this.namedArgs.mouseMove?.(intersectedViewObj, event);
     }
   }
@@ -301,6 +304,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    if (this.localUser.makeFullsizeMinimap) {
+      this.localUser.makeFullsizeMinimap = false;
+      return;
+    }
     // Treat shift + single click as double click
     if (event.shiftKey) {
       this.onDoubleClick(event);
@@ -338,6 +345,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     if (intersectedViewObj) {
       this.namedArgs.doubleClick?.(intersectedViewObj);
     }
+    if (this.isClickInsideMinimap(event)) {
+      //   this.localUser.makeFullsizeMinimap
+      //     ? (this.localUser.makeFullsizeMinimap = false)
+      //     : (this.localUser.makeFullsizeMinimap = true);
+      this.localUser.makeFullsizeMinimap = true;
+    }
   }
 
   raycast(event: MouseEvent) {
@@ -355,6 +368,58 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         : this.raycastObjects;
 
     return this.raycaster.raycasting(origin, this.camera, possibleObjects);
+  }
+
+  minimapRaycast(event: MouseEvent) {
+    const minimapSize = 7.5;
+    const minimapHeight = window.innerWidth / minimapSize;
+    const minimapWidth = window.innerWidth / minimapSize;
+
+    const marginSettingsSymbol = 55;
+    const margin = 10;
+    const minimapX =
+      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapY = window.innerHeight - minimapHeight - margin;
+
+    // Calculate normalized device coordinates (NDC) from the event coordinates
+    const x = ((event.clientX - minimapX) / minimapWidth) * 2 - 1;
+    const y = -((event.clientY - minimapY) / minimapHeight) * 2 + 1;
+
+    // Create a vector2 with normalized coordinates
+    const origin = new THREE.Vector2(x, y);
+
+    // Get the possible objects for raycasting
+    const possibleObjects =
+      this.raycastObjects instanceof THREE.Object3D
+        ? [this.raycastObjects]
+        : this.raycastObjects;
+
+    // Perform raycasting with the minimap camera
+    return this.raycaster.raycasting(
+      origin,
+      this.localUser.minimapCamera,
+      possibleObjects
+    );
+  }
+
+  isClickInsideMinimap(event: MouseEvent) {
+    // Minimap dimensions and position (replace these with your actual values)
+    const minimapSize = 7.5;
+    const minimapHeight = window.innerWidth / minimapSize;
+    const minimapWidth = window.innerWidth / minimapSize;
+    const marginSettingsSymbol = 55;
+    const margin = 10;
+    const minimapX =
+      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapY = margin;
+
+    // Check if the click is within the minimap's bounds
+    const xInBounds =
+      event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
+    const yInBounds =
+      event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
+
+    return xInBounds && yInBounds;
   }
 
   createPointerStopEvent() {

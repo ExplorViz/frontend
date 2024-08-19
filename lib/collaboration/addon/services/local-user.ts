@@ -14,6 +14,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -49,6 +50,14 @@ export default class LocalUser extends Service.extend({
   @tracked
   minimapCamera!: THREE.OrthographicCamera;
 
+  minimapDistance!: number;
+
+  @tracked
+  minimapMarker!: THREE.Mesh;
+
+  @tracked
+  makeFullsizeMinimap!: boolean;
+
   @tracked
   visualizationMode: VisualizationMode = 'browser';
 
@@ -80,6 +89,8 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera();
     this.orthographicCamera = new THREE.OrthographicCamera();
     this.minimapCamera = new THREE.OrthographicCamera();
+    this.minimapDistance = defaultApplicationSettings.distance.value;
+    this.initializeUserMinimapMarker();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
@@ -88,6 +99,7 @@ export default class LocalUser extends Service.extend({
     }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
+    this.fullsizeMinimap = false;
 
     return undefined;
   }
@@ -357,8 +369,60 @@ export default class LocalUser extends Service.extend({
     });
     controller.removeTeleportArea();
   }
-}
 
+  initializeUserMinimapMarker() {
+    // const arrowShape = this.createArrowShape();
+    const geometry = new THREE.ConeGeometry(0.15, 0.7, 32, 1, false);
+    const material = new THREE.MeshBasicMaterial({
+      color: '#a0a0a0',
+      side: THREE.DoubleSide,
+    });
+    this.minimapMarker = new THREE.Mesh(geometry, material);
+    this.minimapMarker.rotation.z = Math.PI / 2;
+
+    const northWestAngle = Math.PI / 4;
+    this.minimapMarker.rotation.y = -northWestAngle;
+    this.minimapMarker.position.set(0, 1, 0);
+    this.minimapMarker.layers.enable(7);
+    this.minimapMarker.layers.disable(0);
+  }
+  createArrowShape() {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(1, 3); // Rechte Ecke
+    shape.lineTo(0.5, 2.5); // Mitte
+    shape.lineTo(0, 3); // Linke Ecke
+    shape.closePath();
+    return shape;
+  }
+
+  minimap() {
+    if (this.makeFullsizeMinimap) {
+      const minimapSize = 0.85;
+
+      const minimapHeight =
+        Math.min(window.innerHeight, window.innerWidth) * minimapSize;
+      const minimapWidth = minimapHeight;
+
+      const minimapX = window.innerWidth / 4;
+      const minimapY = (window.innerHeight * minimapSize) / 10;
+
+      return [minimapHeight, minimapWidth, minimapX, minimapY];
+    }
+    const minimapSize = 7.5;
+    const minimapHeight =
+      Math.min(window.innerHeight, window.innerWidth) / minimapSize;
+    const minimapWidth = minimapHeight;
+
+    const marginSettingsSymbol = 55;
+    const margin = 10;
+    const minimapX =
+      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
+    const minimapY = window.innerHeight - minimapHeight - margin;
+
+    return [minimapHeight, minimapWidth, minimapX, minimapY];
+  }
+}
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {

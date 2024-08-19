@@ -8,6 +8,8 @@ import ThreeMeshUI from 'three-mesh-ui';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 
+export let updateMinimap: boolean;
+
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
 ): boolean {
@@ -46,9 +48,7 @@ export default class Raycaster extends THREE.Raycaster {
 
   cam: THREE.Camera | null = null;
 
-  updateMinimap: boolean | null = null;
-
-  lastPoint = new THREE.Vector3(0, 0, 0);
+  lastPoint: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   boundingBox: THREE.Box3 | null = null;
 
@@ -59,7 +59,6 @@ export default class Raycaster extends THREE.Raycaster {
     raycastFilter?: (object: THREE.Intersection) => boolean
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
-
     // Calculate objects intersecting the picking ray
     const intersections = this.intersectObjects(possibleObjects, true);
 
@@ -109,7 +108,7 @@ export default class Raycaster extends THREE.Raycaster {
 
     // Calculate the adjusted intersection point
     // Instead of subtracting the full difference, subtract only a fraction of it
-    const adjustmentFactor = 0.4; // Adjust this value to control the smoothness
+    const adjustmentFactor = 1; // Adjust this value to control the smoothness
     const adjustedDifference = difference.multiplyScalar(adjustmentFactor);
     const adjustedIntersectionPoint = new THREE.Vector3().addVectors(
       this.lastPoint,
@@ -117,10 +116,6 @@ export default class Raycaster extends THREE.Raycaster {
     );
 
     return this.checkBoundingBox(adjustedIntersectionPoint);
-  }
-
-  changeValue(value: boolean) {
-    this.updateMinimap = value;
   }
 
   checkBoundingBox(intersectionPoint: THREE.Vector3) {
@@ -132,4 +127,8 @@ export default class Raycaster extends THREE.Raycaster {
 
     return intersectionPoint;
   }
+}
+
+export function changeValue(value: boolean) {
+  updateMinimap = value;
 }

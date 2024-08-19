@@ -126,6 +126,10 @@ export default class Settings extends Component<Args> {
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
+      case 'distance':
+        this.localUser.minimapDistance =
+          this.userSettings.applicationSettings.distance.value;
+        break;
       default:
         break;
     }
@@ -161,23 +165,36 @@ export default class Settings extends Component<Args> {
 
   @action
   updateFlagSetting(name: ApplicationSettingId, value: boolean) {
-    const settingId = name as ApplicationSettingId;
+    const settingId = name;
+    const settingString = settingId as string;
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
-
-    switch (settingId) {
-      case 'applyHighlightingOnHover':
-        if (this.args.updateHighlighting) {
-          this.args.updateHighlighting();
+    if (settingString.startsWith('layer')) {
+      const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
+      if (!isNaN(layerNumber)) {
+        // Ensure it's a valid number
+        if (value) {
+          this.localUser.minimapCamera.layers.enable(layerNumber);
+        } else {
+          this.localUser.minimapCamera.layers.disable(layerNumber);
         }
-        break;
-      case 'enableGamepadControls':
-        this.args.setGamepadSupport(value);
-        break;
-      default:
+      }
+    } else {
+      switch (settingId) {
+        case 'applyHighlightingOnHover':
+          if (this.args.updateHighlighting) {
+            this.args.updateHighlighting();
+          }
+          break;
+        case 'enableGamepadControls':
+          this.args.setGamepadSupport(value);
+          break;
+        default:
+          break;
+      }
     }
   }
 
