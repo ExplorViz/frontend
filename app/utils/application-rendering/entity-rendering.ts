@@ -6,10 +6,22 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import UserSettings, {
+  ApplicationColors,
+} from 'explorviz-frontend/services/user-settings';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 //import { createClazzTextLabelForZoomLevel as createClazzTextLabelForZoomLevel } from './labeler';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import {
+  closeComponentMesh,
+  closeComponentsRecursively,
+  openComponentMesh,
+  openComponentsRecursively,
+} from './entity-manipulation';
+
+import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import { ApplicationSettings } from '../settings/settings-schemas';
+import CommunicationRendering from './communication-rendering';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -99,6 +111,37 @@ export function addComponentAndChildrenToScene(
     color,
     highlightedEntityColor
   );
+
+  // automatically open packages when zooming in.
+  // mesh.callBeforeAppearenceZero = () => {
+  //   console.log('Return home Component!!!');
+  // };
+  mesh.setAppearence(1, () => {
+    openComponentMesh(mesh, applicationObject3D);
+    openComponentsRecursively(component, applicationObject3D, undefined);
+    // Rewritten update method
+    //updateApplicationObject3DAfterUpdate(applicationObject3D);
+    updateApplicationObject3DAfterUpdate(
+      applicationObject3D,
+      SemanticZoomManager.instance.appCommRendering,
+      true,
+      SemanticZoomManager.instance.userSettings?.applicationSettings,
+      SemanticZoomManager.instance.userSettings,
+      SemanticZoomManager.instance.font
+    );
+  });
+  mesh.setCallBeforeAppearenceZero(() => {
+    closeComponentsRecursively(component, applicationObject3D, undefined);
+    closeComponentMesh(mesh, applicationObject3D, false);
+    updateApplicationObject3DAfterUpdate(
+      applicationObject3D,
+      SemanticZoomManager.instance.appCommRendering,
+      true,
+      SemanticZoomManager.instance.userSettings?.applicationSettings,
+      SemanticZoomManager.instance.userSettings,
+      SemanticZoomManager.instance.font
+    );
+  });
   // const recipe = new Recipe();
   // //recipe.setColor(new THREE.Color(255, 0, 0));
   // //recipe.setPositionY(2);
@@ -306,4 +349,37 @@ export function repositionGlobeToApplication(
   centerPoint.sub(applicationCenter);
 
   globe.position.copy(centerPoint);
+}
+
+export function updateApplicationObject3DAfterUpdate(
+  applicationObject3D: ApplicationObject3D,
+  appCommRendering: CommunicationRendering,
+  renderComm: boolean,
+  applicationSettings: ApplicationSettings,
+  userSettings: UserSettings,
+  font: Font
+) {
+  // Render communication
+  // if (
+  //   this.localUser.visualizationMode !== 'ar' ||
+  //   this.arSettings.renderCommunication
+  // )
+  if (renderComm == true) {
+    appCommRendering.addCommunication(
+      applicationObject3D,
+      applicationSettings //this.userSettings.applicationSettings
+    );
+  }
+
+  // Update labels
+  Labeler.addApplicationLabels(
+    applicationObject3D,
+    font,
+    userSettings.applicationColors //this.userSettings.applicationColors
+  );
+  // Update links
+  //this.updateLinks?.();
+  // Update highlighting
+  // TODO reactivate !
+  //this.highlightingService.updateHighlighting(); // needs to be after update links
 }

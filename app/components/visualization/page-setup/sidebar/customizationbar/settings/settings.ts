@@ -145,7 +145,6 @@ export default class Settings extends Component<Args> {
 
   @action
   updateRangeSetting(name: ApplicationSettingId, event?: Event) {
-    //debugger;
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;

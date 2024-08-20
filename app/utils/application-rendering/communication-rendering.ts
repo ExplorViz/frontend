@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from '../settings/settings-schemas';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -180,6 +181,7 @@ export default class CommunicationRendering {
             clazzCommuMeshData = mesh.dataModel;
             mesh.geometry.dispose();
             applicationObject3D.remove(mesh);
+            SemanticZoomManager.instance.remove(mesh);
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,

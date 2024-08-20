@@ -16,6 +16,9 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
+import SemanticZoomManager, {
+  SemanticZoomableObject,
+} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -119,6 +122,9 @@ export default class LinkRenderer extends Service.extend({}) {
     // to move particles and arrow
     const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
     link.__curve = curve;
+    line.children.forEach((child) =>
+      SemanticZoomManager.instance.remove(child as SemanticZoomableObject)
+    );
     line.children.clear();
     this.addArrows(line, curveHeight, new THREE.Vector3());
     // SemanticZoomManager: save the original appearence

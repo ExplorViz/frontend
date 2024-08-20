@@ -3,6 +3,11 @@ import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-stora
 import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { Mesh } from 'three';
+import Configuration from 'explorviz-frontend/services/configuration';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import LocalUser from 'collaboration/services/local-user';
+import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 // Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
 
@@ -21,6 +26,10 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   base: Base
 ) {
   return class extends base implements SemanticZoomableObject {
+    canUseOrignal: boolean = true;
+    useOrignalAppearence(yesno: boolean): void {
+      this.canUseOrignal = yesno;
+    }
     getPoI(): Array<THREE.Vector3> {
       const worldPos = new THREE.Vector3();
       this.getWorldPosition(worldPos);
@@ -139,6 +148,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
 export interface SemanticZoomableObject {
   // Should be the visibility property of the Mesh
   visible: boolean;
+  canUseOrignal: boolean;
   // appearenceLevel number i is == 0 default appearence
   //              > 0 if appearence selected
   //              < 0 hide all and itsself
@@ -171,7 +181,9 @@ export interface SemanticZoomableObject {
   setCallBeforeAppearenceZero(
     fn: (currentMesh: Mesh | undefined) => void
   ): void;
-
+  // true (default) allows to trigger the orignal appearence save/restore,
+  // with false it does not trigger the orignal, therefor not usefull in combination with any Recipe
+  useOrignalAppearence(yesno: boolean): void;
   // Clustering Business
   // getPoI stands for getPointsOfInterest and represents a list of
   // interresting points of a 3d Object in the absolute world.
@@ -633,6 +645,13 @@ export default class SemanticZoomManager {
   zoomLevelMap: Array<number> = [];
   alreadyCreatedZoomLevelMap: boolean = false;
 
+  // Settings from Service
+  configuration: Configuration | undefined;
+  userSettings: UserSettings | undefined;
+  localUser: LocalUser | undefined;
+  appCommRendering: CommunicationRendering | undefined;
+  font: Font | undefined;
+
   /**
    *
    */
@@ -777,6 +796,15 @@ export default class SemanticZoomManager {
     // fastAddToCluster
   }
   /**
+   * Removes an object from the semantic zoom manager
+   * @param obj3d SemanticZoomableObject
+   */
+  remove(obj3d: SemanticZoomableObject) {
+    const index: number = this.zoomableObjects.indexOf(obj3d);
+    this.zoomableObjects.splice(index, 1);
+    this.debug('Removed index: ' + index);
+  }
+  /**
    * Logs the current state and provides an overview of active appearence levels
    */
   public logCurrentState() {
@@ -788,9 +816,14 @@ export default class SemanticZoomManager {
       else currentState.set(currentView, 1);
     });
     let currentStatesAsString = '';
-    currentState.forEach((v, key) => {
+    for (const key in Array.from(currentState.keys()).sort()) {
+      if (key == '_super') continue;
+
+      const v = currentState.get(Number(key));
+      //currentState.forEach((v, key) => {
       currentStatesAsString = currentStatesAsString + key + ': ' + v + '\n';
-    });
+      //});
+    }
     this.debug(
       `Current State:\nNumber of Elements in Store: ${this.zoomableObjects.length}\n Mappings:\n${currentStatesAsString}`
     );

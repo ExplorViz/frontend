@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import calculateColorBrightness from 'explorviz-frontend/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { tracked } from '@glimmer/tracking';
-import {
+import SemanticZoomManager, {
   SemanticZoomableObject,
   Appearence,
   Recipe,
@@ -32,6 +32,8 @@ export default abstract class BaseMesh<
 
   originalAppearence: Recipe | undefined = undefined;
 
+  canUseOrignal: boolean = true;
+
   callBeforeAppearenceAboveZero: (currentMesh: THREE.Mesh | undefined) => void =
     () => {};
   callBeforeAppearenceZero: (currentMesh: THREE.Mesh | undefined) => void =
@@ -46,6 +48,9 @@ export default abstract class BaseMesh<
     this.defaultColor = defaultColor;
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
+  }
+  useOrignalAppearence(yesno: boolean): void {
+    this.canUseOrignal = yesno;
   }
   setCallBeforeAppearenceAboveZero(
     fn: (currentMesh: THREE.Mesh | undefined) => void
@@ -80,7 +85,9 @@ export default abstract class BaseMesh<
     if (i == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.callBeforeAppearenceZero(this);
-      this.restoreOriginalAppearence();
+      if (this.canUseOrignal == true) {
+        this.restoreOriginalAppearence();
+      }
       this.appearencesMap.forEach((v, k) => {
         if (k != 0 && v instanceof Appearence) v.deactivate();
       });
@@ -88,7 +95,9 @@ export default abstract class BaseMesh<
       return true;
     } else if (i == 0 && this.originalAppearence == undefined) {
       // Save Orignal
-      this.saveOriginalAppearence();
+      if (this.canUseOrignal == true) {
+        this.saveOriginalAppearence();
+      }
       this.appearenceLevel = i;
       return true;
     }
@@ -100,7 +109,8 @@ export default abstract class BaseMesh<
     this.callBeforeAppearenceAboveZero(this);
 
     // Start with Original Appearence
-    if (includeOrignal == true) this.restoreOriginalAppearence();
+    if (includeOrignal == true && this.canUseOrignal == true)
+      this.restoreOriginalAppearence();
 
     // Make sure to return to default Appearence first
     //this.restoreOriginalAppearence();
@@ -292,6 +302,7 @@ export default abstract class BaseMesh<
       if (child instanceof BaseMesh) {
         if (child.geometry) {
           child.geometry.dispose();
+          SemanticZoomManager.instance.remove(child);
         }
         if (child.material instanceof THREE.Material) {
           child.material.dispose();

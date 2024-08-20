@@ -14,6 +14,7 @@ import { getAllClassesInApplication } from 'explorviz-frontend/utils/application
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -451,6 +452,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });
@@ -462,6 +464,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   removeAllEntities() {
     this.getAllMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
 import { VisualizationMode } from 'collaboration/services/local-user';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 
 export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -11,7 +12,18 @@ export default class ClazzMesh extends BoxMesh {
   material: THREE.MeshLambertMaterial | THREE.Material;
 
   // Set by labeler
-  labelMesh: ClazzLabelMesh | null = null;
+  private _labelMesh: ClazzLabelMesh | null = null;
+  public get labelMesh(): ClazzLabelMesh | null {
+    return this._labelMesh;
+  }
+  public set labelMesh(value: ClazzLabelMesh | null) {
+    if (this._labelMesh != null) {
+      SemanticZoomManager.instance.remove(this._labelMesh);
+      this._labelMesh.disposeRecursively();
+      this._labelMesh.deleteFromParent();
+    }
+    this._labelMesh = value;
+  }
 
   dataModel: Class;
 
@@ -40,8 +52,8 @@ export default class ClazzMesh extends BoxMesh {
     // Semantic Zoom preparations
     this.saveOriginalAppearence();
     // Register multiple levels
-    this.setAppearence(1, this.setHeightAccordingToClassSize);
-    this.setAppearence(2, this.showMethodMesh);
+    this.setAppearence(2, this.setHeightAccordingToClassSize);
+    this.setAppearence(3, this.showMethodMesh);
   }
 
   getModelId() {
