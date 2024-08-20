@@ -82,6 +82,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   landscapeTokens: LandscapeToken[] = [];
 
   @tracked
+  spectateConfigEnabled: boolean = false;
+
+  @tracked
   spectateConfigs: SpectateConfig[] = [];
 
   @tracked

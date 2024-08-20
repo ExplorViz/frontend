@@ -21,10 +21,22 @@
     </select>
   </div>
 
-  <label class='bold'>Spectating:</label>
+  <h6 class='mb-3 mt-3'><strong>Spectate Configuration</strong></h6>
+  <div class='ml-3'>
+    <div class='d-flex justify-content-between'>
+      <label>Enable Spectate Configuration Settings: </label>
+      {{!-- template-lint-disable require-input-label --}}
+      <Input
+        @type='checkbox'
+        style='margin-bottom: 5px;'
+        @checked={{this.spectateConfigEnabled}}
+        name='spectateConfigEnabled'
+      />
+    </div>
+  </div>
   <div>
     {{! Indicator that device should be in control of spectating configurations }}
-    {{#if this.deviceId}}
+    {{#if (and this.deviceId this.spectateConfigEnabled)}}
       <div class="d-flex">
         <label class='bold mr-2' style='padding-top: 3px;'>Spectate Configuration: </label>
         <PowerSelect
