@@ -196,6 +196,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       remoteUser.update(delta);
     });
 
+    this.updateMinimapUserMarkers();
+
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
@@ -482,52 +484,26 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   // Initialize minimap markers for remote users
   initializeMinimapUserMarkers(remoteUser: remoteUser) {
-    // if (!this.minimapUserMarkers.has(remoteUser.userId)) {
-    //   const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
-    //   const userMarkerMaterial = new THREE.MeshBasicMaterial({
-    //     color: remoteUser.color,
-    //   });
-    //   const userMarkerMesh = new THREE.Mesh(
-    //     userMarkerGeometry,
-    //     userMarkerMaterial
-    //   );
-    //   // Add marker to the minimap scene
-    //   userMarkerMesh.position.set(0, 0.5, 0);
-    //   userMarkerMesh.layers.enable(7);
-    //   this.scene.add(userMarkerMesh);
-    //   this.minimapUserMarkers.set(remoteUser.userId, userMarkerMesh);
-    // } else {
-    //   this.updateMinimapUserMarkers;
-    // }
     this.scene.add(remoteUser.minimapMarker!);
   }
 
   // Update minimap markers each tick
-  // updateMinimapUserMarkers() {
-  //   if (this.collaborationSession.idToRemoteUser.size == 0) {
-  //     return;
-  //   }
-  //   this.collaborationSession.idToRemoteUser.forEach((user) => {
-  //     const userMarker = user.minimapMarker;
-  //     if (userMarker && user.camera) {
-  //       const position = new THREE.Vector3();
-  //       position.copy(user.camera.model.position);
-  //       // if ()
-  //       userMarker.position.set(position.x, userMarker.position.y, position.z);
-  //     } else {
-  //       this.initializeMinimapUserMarkers(user);
-  //     }
-  //   });
-  // }
-
-  // Handle user disconnection (to remove marker)
-  // handleUserDisconnection(userId: string) {
-  //   const userMarker = this.minimapUserMarkers.get(userId);
-  //   if (userMarker) {
-  //     this.scene.remove(userMarker);
-  //     this.minimapUserMarkers.delete(userId);
-  //   }
-  // }
+  updateMinimapUserMarkers() {
+    if (this.collaborationSession.idToRemoteUser.size == 0) {
+      return;
+    }
+    this.collaborationSession.idToRemoteUser.forEach((user) => {
+      const userMarker = user.minimapMarker;
+      if (userMarker && user.camera) {
+        const position = new THREE.Vector3();
+        position.copy(user.camera.model.position);
+        // if ()
+        userMarker.position.set(position.x, userMarker.position.y, position.z);
+      } else {
+        this.initializeMinimapUserMarkers(user);
+      }
+    });
+  }
 
   @action
   handleSingleClick(intersection: THREE.Intersection) {

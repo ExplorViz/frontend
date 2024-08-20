@@ -50,7 +50,7 @@ export default class Raycaster extends THREE.Raycaster {
 
   lastPoint: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
-  boundingBox: THREE.Box3 | null = null;
+  boundingBox!: THREE.Box3;
 
   raycasting(
     coords: { x: number; y: number },
@@ -119,12 +119,17 @@ export default class Raycaster extends THREE.Raycaster {
   }
 
   checkBoundingBox(intersectionPoint: THREE.Vector3) {
-    // Check if the point is inside the bounding box
-    if (!this.boundingBox!.containsPoint(intersectionPoint)) {
-      // Clamp the intersectionPoint to the bounding box boundaries
-      intersectionPoint.clamp(this.boundingBox!.min, this.boundingBox!.max);
+    const margin = 0.7;
+    if (intersectionPoint.x > this.boundingBox.max.x / 100 + margin) {
+      intersectionPoint.x = this.boundingBox.max.x / 100 + margin;
+    } else if (intersectionPoint.x < this.boundingBox.min.x / 100 - margin) {
+      intersectionPoint.x = this.boundingBox.min.x / 100 - margin;
     }
-
+    if (intersectionPoint.z > this.boundingBox.max.z / 100 + margin) {
+      intersectionPoint.z = this.boundingBox.max.z / 100 + margin;
+    } else if (intersectionPoint.z < this.boundingBox.min.z / 100 - margin) {
+      intersectionPoint.z = this.boundingBox.min.z / 100 - margin;
+    }
     return intersectionPoint;
   }
 }

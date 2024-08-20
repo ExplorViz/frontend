@@ -107,10 +107,9 @@ export default class RemoteUser extends THREE.Object3D {
    */
   updateCamera(pose: Pose) {
     if (this.camera) {
-      pose.position[1] -= 0.01;
-
       this.camera.model.position.fromArray(pose.position);
       this.camera.model.quaternion.fromArray(pose.quaternion);
+      this.updateMinimapMarkerPosition();
     }
   }
 

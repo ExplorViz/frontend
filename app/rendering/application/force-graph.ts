@@ -110,13 +110,30 @@ export default class ForceGraph {
   }
 
   calculateBoundingBox() {
-    const box = new THREE.Box3();
-    const vector = new THREE.Vector3();
+    let minX = Infinity,
+      minY = Infinity,
+      minZ = Infinity;
+    let maxX = -Infinity,
+      maxY = -Infinity,
+      maxZ = -Infinity;
     this.graph.graphData().nodes.forEach((node) => {
-      vector.set(node.x!, node.y!, node.z!);
-      box.expandByPoint(vector);
+      if (
+        node.x !== undefined &&
+        node.y !== undefined &&
+        node.z !== undefined
+      ) {
+        if (node.x < minX) minX = node.x;
+        if (node.y < minY) minY = node.y;
+        if (node.z < minZ) minZ = node.z;
+        if (node.x > maxX) maxX = node.x;
+        if (node.y > maxY) maxY = node.y;
+        if (node.z > maxZ) maxZ = node.z;
+      }
     });
 
-    this.boundingBox = box;
+    this.boundingBox = new THREE.Box3(
+      new THREE.Vector3(minX, minY, minZ),
+      new THREE.Vector3(maxX, maxY, maxZ)
+    );
   }
 }
