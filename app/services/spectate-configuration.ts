@@ -49,8 +49,8 @@ export default class SpectateConfigurationService extends Service {
         })
         .catch(async () => {
           resolve([]);
+          this.toastHandler.showErrorToastMessage('Server not available.');
         });
-      this.toastHandler.showErrorToastMessage('Server not available');
     });
   }
 
@@ -92,7 +92,7 @@ export default class SpectateConfigurationService extends Service {
 
           if (Number(res) === -1) {
             this.toastHandler.showErrorToastMessage(
-              'The configuration to be updated doesn`t exists.'
+              'The configuration to be updated does not exist.'
             );
           } else if (Number(res) === -2) {
             this.toastHandler.showErrorToastMessage(
