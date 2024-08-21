@@ -174,7 +174,7 @@ export function addMinimapTextLabel(
   foundationMesh: FoundationMesh,
   font: Font,
   color: THREE.Color,
-  size = 0.15,
+  size = 0.1,
   heigth = 10
 ) {
   const text = foundationMesh.dataModel.name;

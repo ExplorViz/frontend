@@ -17,9 +17,20 @@ export default class MinimapLabelMesh extends LabelMesh {
     // Text should look like it is written on the parent's box (no height required)
     const TEXT_HEIGHT = 0.0;
 
-    let displayedLabel = labelText;
+    let displayedLabel = '';
+    let changeLabel = true;
+
+    for (let i = 0; i < labelText.length; i++) {
+      const char = labelText[i];
+      if (char == '-') {
+        displayedLabel += char + '\n';
+        changeLabel = false;
+      } else {
+        displayedLabel += char;
+      }
+    }
     // Prevent overlapping clazz labels by truncating
-    if (labelText.length > 13) {
+    if (labelText.length > 13 && changeLabel) {
       displayedLabel = `${labelText.substring(0, 11)}...`;
     }
 

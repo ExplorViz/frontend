@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
+import remoteUser from 'collaboration/utils/remote-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 
 export let updateMinimap: boolean;
 
@@ -48,9 +50,16 @@ export default class Raycaster extends THREE.Raycaster {
 
   cam: THREE.Camera | null = null;
 
+  minimapCam: THREE.OrthographicCamera | undefined;
+
   lastPoint: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   boundingBox!: THREE.Box3;
+
+  constructor(minimap?: THREE.OrthographicCamera) {
+    super();
+    this.minimapCam = minimap;
+  }
 
   raycasting(
     coords: { x: number; y: number },
@@ -89,6 +98,29 @@ export default class Raycaster extends THREE.Raycaster {
     // Return null to indicate that no object was found
     return null;
   }
+
+  raycastMinimap(
+    camera: THREE.OrthographicCamera,
+    coords: { x: number; y: number },
+    userList: RemoteUser[]
+  ) {
+    this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
+    const users = userList;
+    const markers: THREE.Object3D[] = [];
+    users.forEach((user: remoteUser) => {
+      markers.push(user.minimapMarker!);
+      user.minimapMarker?.layers.enable(0);
+    });
+    const intersections = this.intersectObjects(markers, false);
+    markers.forEach((marker: THREE.Object3D) => {
+      marker.layers.disable(0);
+    });
+    if (intersections.length > 0) {
+      return intersections[0];
+    }
+    return null;
+  }
+
   raycastToGround(camera: THREE.Camera, box: THREE.Box3) {
     this.cam = camera;
     this.boundingBox = box;
@@ -105,30 +137,26 @@ export default class Raycaster extends THREE.Raycaster {
       intersectionPoint,
       this.lastPoint
     );
-
-    // Calculate the adjusted intersection point
-    // Instead of subtracting the full difference, subtract only a fraction of it
-    const adjustmentFactor = 1; // Adjust this value to control the smoothness
-    const adjustedDifference = difference.multiplyScalar(adjustmentFactor);
     const adjustedIntersectionPoint = new THREE.Vector3().addVectors(
       this.lastPoint,
-      adjustedDifference
+      difference
     );
 
     return this.checkBoundingBox(adjustedIntersectionPoint);
   }
 
   checkBoundingBox(intersectionPoint: THREE.Vector3) {
-    const margin = 0.7;
-    if (intersectionPoint.x > this.boundingBox.max.x / 100 + margin) {
-      intersectionPoint.x = this.boundingBox.max.x / 100 + margin;
-    } else if (intersectionPoint.x < this.boundingBox.min.x / 100 - margin) {
-      intersectionPoint.x = this.boundingBox.min.x / 100 - margin;
-    }
-    if (intersectionPoint.z > this.boundingBox.max.z / 100 + margin) {
-      intersectionPoint.z = this.boundingBox.max.z / 100 + margin;
-    } else if (intersectionPoint.z < this.boundingBox.min.z / 100 - margin) {
-      intersectionPoint.z = this.boundingBox.min.z / 100 - margin;
+    if (this.boundingBox) {
+      if (intersectionPoint.x > this.boundingBox.max.x) {
+        intersectionPoint.x = this.boundingBox.max.x;
+      } else if (intersectionPoint.x < this.boundingBox.min.x) {
+        intersectionPoint.x = this.boundingBox.min.x;
+      }
+      if (intersectionPoint.z > this.boundingBox.max.z) {
+        intersectionPoint.z = this.boundingBox.max.z;
+      } else if (intersectionPoint.z < this.boundingBox.min.z) {
+        intersectionPoint.z = this.boundingBox.min.z;
+      }
     }
     return intersectionPoint;
   }

@@ -309,7 +309,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isButtonSetting: true,
   },
   // Minimap Settings
-  distance: {
+  zoom: {
     value: 1,
     range: {
       min: 1.0,
@@ -318,13 +318,22 @@ export const defaultApplicationSettings: ApplicationSettings = {
     },
     orderNumber: 1,
     group: 'Minimap',
-    displayName: 'Distance of Minimap',
-    description: 'Set Distance of the Minimap',
+    displayName: 'Zoom of Minimap',
+    description: 'Set Zoom of the Minimap',
     isRangeSetting: true,
+  },
+  version2: {
+    value: true,
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Change Minimap version',
+    description:
+      'Calculate minimap-position via intersection of camera with ground plane',
+    isFlagSetting: true,
   },
   layer1: {
     value: true,
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Minimap',
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
@@ -332,7 +341,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer2: {
     value: true,
-    orderNumber: 2,
+    orderNumber: 4,
     group: 'Minimap',
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
@@ -340,7 +349,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer4: {
     value: true,
-    orderNumber: 2,
+    orderNumber: 5,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
@@ -348,7 +357,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer6: {
     value: true,
-    orderNumber: 2,
+    orderNumber: 6,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
@@ -356,7 +365,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer7: {
     value: true,
-    orderNumber: 2,
+    orderNumber: 7,
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
     description:

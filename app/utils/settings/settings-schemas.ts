@@ -43,7 +43,8 @@ export type ApplicationCommunicationSettingId =
   | 'curvyCommHeight';
 
 export type ApplicationMinimapSettingId =
-  | 'distance'
+  | 'zoom'
+  | 'version2'
   | 'layer1'
   | 'layer2'
   | 'layer4'
@@ -124,7 +125,8 @@ export type ApplicationCameraSettings = {
 };
 
 export type ApplicationMinimapSettings = {
-  distance: RangeSetting;
+  zoom: RangeSetting;
+  version2: FlagSetting;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer4: FlagSetting;

@@ -45,6 +45,10 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import remoteUser from 'explorviz-frontend/utils/remote-user';
+import WebSocketService from 'collaboration/services/web-socket';
+// import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-connected';
+// import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
+// import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -134,6 +138,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   selectedApplicationId: string = '';
 
+  @service('web-socket')
+  private webSocket!: WebSocketService;
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -189,13 +196,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh
     );
+
+    // this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
+    // this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
+    // this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
   }
+  // onUserPositions() {}
+  // onUserDisconnect() {}
+  // onUserConnected() {}
 
   async tick(delta: number) {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
-
     this.updateMinimapUserMarkers();
 
     if (this.initDone && this.linkRenderer.flag) {
@@ -412,10 +425,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // minimap camera
     //ToDo: Minimap helper initialisieren
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
-      -2,
-      2,
-      2,
-      -2,
+      -1,
+      1,
+      1,
+      -1,
       0.1,
       100
     );
@@ -447,40 +460,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       });
     }, 1000); // Intervall auf 1 Sekunde setzen
   }
-
-  // @computed('collaborationSession.idToRemoteUser')
-  // get remoteUsers() {
-  //   const users = Array.from(this.collaborationSession.idToRemoteUser.values());
-  //   console.log(users);
-  //   // Trigger your function here
-  //   users.forEach((user) => {
-  //     this.initializeMinimapUserMarkers(user);
-  //   });
-  //   return users;
-  // }
-
-  // Initialze local useres minimap arrow
-  // initlizeMinimapLocalUserArrow() {
-  //   const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
-  //   const userMarkerMaterial = new THREE.MeshBasicMaterial({
-  //     color: this.localUser.color,
-  //   });
-  //   const userMarkerMesh = new THREE.Mesh(
-  //     userMarkerGeometry,
-  //     userMarkerMaterial
-  //   );
-  //   // Add marker to the minimap scene
-  //   userMarkerMesh.position.set(
-  //     this.localUser.camera.position.x,
-  //     0.5,
-  //     this.localUser.camera.position.z
-  //   );
-  //   userMarkerMesh.layers.enable(7);
-  //   this.scene.add(userMarkerMesh);
-  // }
-  // updateLocalMinimapUser(){
-
-  // }
 
   // Initialize minimap markers for remote users
   initializeMinimapUserMarkers(remoteUser: remoteUser) {

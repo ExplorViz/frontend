@@ -85,7 +85,7 @@ export default class RemoteUser extends THREE.Object3D {
    * Initialize the Minimap marker for this user.
    */
   private initMinimapMarker(): THREE.Mesh {
-    const userMarkerGeometry = new THREE.SphereGeometry(0.1, 32);
+    const userMarkerGeometry = new THREE.SphereGeometry(0.3, 32);
     const userMarkerMaterial = new THREE.MeshBasicMaterial({
       color: this.color,
     });
@@ -97,6 +97,7 @@ export default class RemoteUser extends THREE.Object3D {
     userMarkerMesh.position.set(2, 0.5, this.localUser.camera.position.z);
     userMarkerMesh.layers.enable(7);
     userMarkerMesh.layers.disable(0);
+    userMarkerMesh.name = this.userId;
     return userMarkerMesh;
   }
 

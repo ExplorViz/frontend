@@ -165,7 +165,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
     super(owner, args);
     this.raycaster = new Raycaster();
-    this.minimapRaycaster = new Raycaster();
+    this.minimapRaycaster = new Raycaster(this.localUser.minimapCamera);
   }
 
   @action
@@ -346,10 +346,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.namedArgs.doubleClick?.(intersectedViewObj);
     }
     if (this.isClickInsideMinimap(event)) {
-      //   this.localUser.makeFullsizeMinimap
-      //     ? (this.localUser.makeFullsizeMinimap = false)
-      //     : (this.localUser.makeFullsizeMinimap = true);
-      this.localUser.makeFullsizeMinimap = true;
+      const ray = this.raycastOnMinimap(event);
+      if (ray) {
+        this.handleHit(ray);
+      } else {
+        this.localUser.makeFullsizeMinimap = true;
+      }
     }
   }
 
@@ -370,41 +372,31 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     return this.raycaster.raycasting(origin, this.camera, possibleObjects);
   }
 
-  minimapRaycast(event: MouseEvent) {
-    const minimapSize = 7.5;
-    const minimapHeight = window.innerWidth / minimapSize;
-    const minimapWidth = window.innerWidth / minimapSize;
+  raycastOnMinimap(event: MouseEvent) {
+    // Get the bounding rectangle of the minimap
+    const minimap = this.localUser.minimap();
+    const width = minimap[1];
+    const height = minimap[0];
+    const left = minimap[2];
+    const top = window.innerHeight - minimap[3] - height;
 
-    const marginSettingsSymbol = 55;
-    const margin = 10;
-    const minimapX =
-      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
-    const minimapY = window.innerHeight - minimapHeight - margin;
+    // Calculate normalized device coordinates (NDC) based on the minimap
+    const x = ((event.clientX - left) / width) * 2 - 1;
+    const y = -((event.clientY - top) / height) * 2 + 1;
 
-    // Calculate normalized device coordinates (NDC) from the event coordinates
-    const x = ((event.clientX - minimapX) / minimapWidth) * 2 - 1;
-    const y = -((event.clientY - minimapY) / minimapHeight) * 2 + 1;
-
-    // Create a vector2 with normalized coordinates
+    // Create a Vector2 for the raycasting origin
     const origin = new THREE.Vector2(x, y);
-
-    // Get the possible objects for raycasting
-    const possibleObjects =
-      this.raycastObjects instanceof THREE.Object3D
-        ? [this.raycastObjects]
-        : this.raycastObjects;
-
-    // Perform raycasting with the minimap camera
-    return this.raycaster.raycasting(
-      origin,
+    // Perform the raycast using the minimap's camera
+    return this.minimapRaycaster.raycastMinimap(
       this.localUser.minimapCamera,
-      possibleObjects
+      origin,
+      Array.from(this.collaborativeSession.idToRemoteUser.values())
     );
   }
 
   isClickInsideMinimap(event: MouseEvent) {
     // Minimap dimensions and position (replace these with your actual values)
-    const minimapSize = 7.5;
+    const minimapSize = this.localUser.minimapSize;
     const minimapHeight = window.innerWidth / minimapSize;
     const minimapWidth = window.innerWidth / minimapSize;
     const marginSettingsSymbol = 55;
@@ -420,6 +412,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
 
     return xInBounds && yInBounds;
+  }
+
+  handleHit(object: THREE.Intersection | null) {
+    const userHit = this.collaborativeSession.getUserById(object!.object.name);
+    this.localUser.alignCameraToRemote(userHit.camera);
   }
 
   createPointerStopEvent() {
