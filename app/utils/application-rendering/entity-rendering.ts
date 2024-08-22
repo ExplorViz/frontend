@@ -117,6 +117,7 @@ export function addComponentAndChildrenToScene(
   //   console.log('Return home Component!!!');
   // };
   mesh.setAppearence(1, () => {
+    if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
     openComponentMesh(mesh, applicationObject3D);
     openComponentsRecursively(component, applicationObject3D, undefined);
     // Rewritten update method
@@ -131,6 +132,7 @@ export function addComponentAndChildrenToScene(
     );
   });
   mesh.setCallBeforeAppearenceZero(() => {
+    if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
     closeComponentsRecursively(component, applicationObject3D, undefined);
     closeComponentMesh(mesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(

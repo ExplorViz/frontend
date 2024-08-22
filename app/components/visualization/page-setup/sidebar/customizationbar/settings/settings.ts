@@ -256,6 +256,9 @@ export default class Settings extends Component<Args> {
       case 'enableGamepadControls':
         this.args.setGamepadSupport(value);
         break;
+      case 'autoOpenCloseFeature':
+        SemanticZoomManager.instance.toggleAutoOpenClose(value);
+        break;
       default:
     }
   }

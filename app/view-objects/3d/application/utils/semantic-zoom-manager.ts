@@ -8,6 +8,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LocalUser from 'collaboration/services/local-user';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import ComponentMesh from '../component-mesh';
 
 // Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
 
@@ -651,6 +652,24 @@ export default class SemanticZoomManager {
   localUser: LocalUser | undefined;
   appCommRendering: CommunicationRendering | undefined;
   font: Font | undefined;
+
+  // Enable auto open/close of component Meshes
+  autoOpenCloseFeature: boolean = true;
+
+  toggleAutoOpenClose(yesno: boolean) {
+    // this.zoomableObjects.forEach((element) => {
+    //   if (element instanceof ComponentMesh) {
+    //     if (yesno) {
+    //     } else {
+    //       element.setAppearence(1, () => {});
+    //       element.setCallBeforeAppearenceZero(() => {});
+    //     }
+    //   }
+    // });
+    console.log('Auto Open Close Feature:');
+    console.log(yesno);
+    this.autoOpenCloseFeature = yesno;
+  }
 
   /**
    *

@@ -209,21 +209,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const heatmapButtonTitle = this.heatmapConf.heatmapActive
       ? 'Disable Heatmap'
       : 'Enable Heatmap';
-    const pauseItemtitle = this.args.visualizationPaused
+    const pauseItemTitle = this.args.visualizationPaused
       ? 'Resume Visualization'
       : 'Pause Visualization';
-    const semanticZoomButtonTitle = this.semanticZoomToggle
+    const semanticZoomButtonTitle = SemanticZoomManager.instance.isEnabled
       ? 'Semantic Zoom disable (Beta)'
       : 'Semantic Zoom enable (Beta)';
-
-    const toggleSemanticZoom = () => {
-      if (this.semanticZoomToggle == false) {
-        SemanticZoomManager.instance.activate();
-      } else {
-        SemanticZoomManager.instance.deactivate();
-      }
-      this.semanticZoomToggle = !this.semanticZoomToggle;
-    };
 
     return [
       { title: 'Reset View', action: this.resetView },
@@ -236,11 +227,22 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
       { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
+      { title: pauseItemTitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      { title: semanticZoomButtonTitle, action: toggleSemanticZoom },
+      { title: semanticZoomButtonTitle, action: this.toggleSemanticZoom },
+      { title: semanticZoomButtonTitle, action: () => {} },
     ];
+  }
+
+  @action
+  toggleSemanticZoom() {
+    if (SemanticZoomManager.instance.isEnabled == false) {
+      SemanticZoomManager.instance.activate();
+    } else {
+      SemanticZoomManager.instance.deactivate();
+    }
+    //this.semanticZoomToggle = !this.semanticZoomToggle;
   }
 
   /**
