@@ -601,7 +601,7 @@ export class AppearenceExtension extends Appearence {
     );
     this.objects3Drescale.push(rescale);
   }
-  public addMeshToScene() {}
+  //public addMeshToScene() {}
 
   private counterParentScaling(child: Mesh) {
     const originScale = this.originObject3D?.scale;
