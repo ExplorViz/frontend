@@ -85,7 +85,7 @@ export default class RemoteUser extends THREE.Object3D {
    * Initialize the Minimap marker for this user.
    */
   private initMinimapMarker(): THREE.Mesh {
-    const userMarkerGeometry = new THREE.SphereGeometry(0.3, 32);
+    const userMarkerGeometry = new THREE.SphereGeometry(0.15, 32);
     const userMarkerMaterial = new THREE.MeshBasicMaterial({
       color: this.color,
     });
@@ -118,6 +118,36 @@ export default class RemoteUser extends THREE.Object3D {
    * Update the minimap marker's position based on the camera's position.
    */
   private updateMinimapMarkerPosition() {
+    // const markerPosition = this.camera!.model.position;
+    // const cameraLeft =
+    //   this.localUser.minimapCamera.left +
+    //   this.localUser.minimapCamera.position.x;
+    // const cameraRight =
+    //   this.localUser.minimapCamera.right +
+    //   this.localUser.minimapCamera.position.x;
+    // const cameraTop =
+    //   this.localUser.minimapCamera.top +
+    //   this.localUser.minimapCamera.position.z;
+    // const cameraBottom =
+    //   this.localUser.minimapCamera.bottom +
+    //   this.localUser.minimapCamera.position.z;
+
+    // const intersection = new THREE.Vector3();
+    // intersection.copy(this.localUser.intersection!);
+    // if (markerPosition.x < cameraLeft) {
+    //   intersection!.x = cameraLeft;
+    // }
+    // if (markerPosition.x > cameraRight) {
+    //   intersection!.x = cameraRight;
+    // }
+    // if (markerPosition.z < cameraBottom) {
+    //   intersection!.z = cameraBottom;
+    // }
+    // if (markerPosition.z > cameraTop) {
+    //   intersection!.z = cameraTop;
+    // }
+    // console.log(cameraBottom, cameraLeft, cameraRight, cameraRight);
+    // console.log(markerPosition);
     if (this.minimapMarker && this.camera) {
       // Assuming the minimap is a top-down view with Y as up-axis
       this.minimapMarker.position.set(

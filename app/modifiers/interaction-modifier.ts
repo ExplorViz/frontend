@@ -328,6 +328,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
+    if (this.isClickInsideMinimap(event)) {
+      const ray = this.raycastOnMinimap(event);
+      if (ray) {
+        this.handleHit(ray);
+      } else {
+        this.localUser.makeFullsizeMinimap = true;
+      }
+    }
   }
 
   @action
@@ -344,14 +352,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     const intersectedViewObj = this.raycast(event);
     if (intersectedViewObj) {
       this.namedArgs.doubleClick?.(intersectedViewObj);
-    }
-    if (this.isClickInsideMinimap(event)) {
-      const ray = this.raycastOnMinimap(event);
-      if (ray) {
-        this.handleHit(ray);
-      } else {
-        this.localUser.makeFullsizeMinimap = true;
-      }
     }
   }
 

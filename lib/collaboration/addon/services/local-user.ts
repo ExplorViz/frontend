@@ -126,7 +126,6 @@ export default class LocalUser extends Service.extend({
 
   tick(delta: number) {
     this.animationMixer.update(delta);
-    this.updateUserMinimapMarker();
     this.sendPositions();
   }
 
@@ -379,85 +378,27 @@ export default class LocalUser extends Service.extend({
   }
 
   initializeUserMinimapMarker() {
-    const arrowShape = this.createArrowShape();
-    // const geometry = new THREE.ConeGeometry(0.15, 0.7, 32, 1, false);
-    const geometry = new THREE.ShapeGeometry(arrowShape);
+    const geometry = new THREE.SphereGeometry(0.15, 32);
     const material = new THREE.MeshBasicMaterial({
-      color: '#a0a0a0',
-      side: THREE.DoubleSide,
+      color: '#808080',
     });
     this.minimapMarker = new THREE.Mesh(geometry, material);
-    this.minimapMarker.scale.set(0.4, 0.2, 0);
     this.minimapMarker.rotation.z = Math.PI / 2;
 
     const northWestAngle = Math.PI / 4;
     this.minimapMarker.rotation.y = northWestAngle;
-    this.minimapMarker.position.set(0, 1, 0);
+    this.minimapMarker.position.set(0, 0.5, 0);
     this.minimapMarker.lookAt(0, 0, 0);
 
     this.minimapMarker.layers.enable(7);
     this.minimapMarker.layers.disable(0);
   }
 
-  updateUserMinimapMarker() {
-    if (!this.intersection) {
+  updateUserMinimapMarker(intersection: THREE.Vector3) {
+    if (!intersection) {
       return;
     }
-
-    // Get the frustum dimensions from the minimap camera
-    const frustumSize = new THREE.Vector3();
-    this.camera.getWorldDirection(frustumSize);
-
-    const cameraPosition = this.minimapCamera.position;
-    const cameraFrustum = this.minimapCamera.projectionMatrix.clone();
-    const invProjMatrix = cameraFrustum.invert();
-    this.minimapMarker.lookAt(frustumSize.x, frustumSize.y, frustumSize.z);
-
-    // Transform the frustum coordinates into world coordinates
-    const frustumVertices = [
-      new THREE.Vector3(-1, 0, -1),
-      new THREE.Vector3(1, 0, -1),
-      new THREE.Vector3(-1, 0, 1),
-      new THREE.Vector3(1, 0, 1),
-    ];
-
-    frustumVertices.forEach((v) =>
-      v.applyMatrix4(invProjMatrix).add(cameraPosition)
-    );
-
-    const minX = Math.min(...frustumVertices.map((v) => v.x));
-    const maxX = Math.max(...frustumVertices.map((v) => v.x));
-    const minZ = Math.min(...frustumVertices.map((v) => v.z));
-    const maxZ = Math.max(...frustumVertices.map((v) => v.z));
-
-    // Calculate the new x and z positions
-    let newX = this.intersection.x;
-    let newZ = this.intersection.z;
-
-    // Clamp the x position to the frustum boundaries
-    if (newX < minX) newX = minX;
-    if (newX > maxX) newX = maxX;
-
-    // Clamp the z position to the frustum boundaries
-    if (newZ < minZ) newZ = minZ;
-    if (newZ > maxZ) newZ = maxZ;
-
-    // Update the minimap marker position
-    this.minimapMarker.position.set(
-      newX,
-      this.minimapMarker.position.y, // y stays the same
-      newZ
-    );
-  }
-
-  createArrowShape() {
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(1, 3); // Rechte Ecke
-    shape.lineTo(0.5, 2.5); // Mitte
-    shape.lineTo(0, 3); // Linke Ecke
-    shape.closePath();
-    return shape;
+    this.minimapMarker.position.set(intersection.x, 0.5, intersection.z);
   }
 
   alignCameraToRemote(remoteCamera: Camera) {

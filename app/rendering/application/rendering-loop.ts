@@ -193,7 +193,8 @@ export default class RenderingLoop {
 
     newPos = this.raycaster.raycastToGround(
       this.camera,
-      this.graph.boundingBox
+      this.graph.boundingBox,
+      this.userSettings.applicationSettings.version2.value
     );
     this.localUser.intersection = newPos;
 
@@ -226,7 +227,39 @@ export default class RenderingLoop {
     } else {
       this.localUser.minimapCamera.position.set(0, 1, 0);
     }
+    // Update the minimap camera's projection matrix
     this.localUser.minimapCamera.updateProjectionMatrix();
+
+    // Check if the minimapMarker is outside the minimapCamera's view
+    const markerPosition = this.localUser.minimapMarker.position;
+    const cameraLeft =
+      this.localUser.minimapCamera.left +
+      this.localUser.minimapCamera.position.x;
+    const cameraRight =
+      this.localUser.minimapCamera.right +
+      this.localUser.minimapCamera.position.x;
+    const cameraTop =
+      this.localUser.minimapCamera.top +
+      this.localUser.minimapCamera.position.z;
+    const cameraBottom =
+      this.localUser.minimapCamera.bottom +
+      this.localUser.minimapCamera.position.z;
+
+    const intersection = new THREE.Vector3();
+    intersection.copy(this.localUser.intersection!);
+    if (markerPosition.x < cameraLeft) {
+      intersection!.x = cameraLeft;
+    }
+    if (markerPosition.x > cameraRight) {
+      intersection!.x = cameraRight;
+    }
+    if (markerPosition.z < cameraBottom) {
+      intersection!.z = cameraBottom;
+    }
+    if (markerPosition.z > cameraTop) {
+      intersection!.z = cameraTop;
+    }
+    this.localUser.updateUserMinimapMarker(intersection);
   }
 
   renderMinimap() {
