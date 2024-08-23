@@ -323,7 +323,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   version2: {
-    value: true,
+    value: false,
     orderNumber: 2,
     group: 'Minimap',
     displayName: 'Change Minimap version',

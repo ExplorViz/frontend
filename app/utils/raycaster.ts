@@ -122,7 +122,7 @@ export default class Raycaster extends THREE.Raycaster {
   }
 
   raycastToGround(camera: THREE.Camera, box: THREE.Box3, version2: boolean) {
-    if (!version2) {
+    if (version2) {
       return this.checkBoundingBox(new THREE.Vector3().copy(camera.position));
     }
     this.cam = camera;
