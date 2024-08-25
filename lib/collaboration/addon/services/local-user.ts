@@ -239,7 +239,7 @@ export default class LocalUser extends Service.extend({
   ping(
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
-    durationInMs: number = 5000
+    durationInMs: number = 5000,
   ) {
     const app3D = obj.parent;
     if (!app3D || !(app3D instanceof ApplicationObject3D)) {
@@ -251,17 +251,20 @@ export default class LocalUser extends Service.extend({
     if (isEntityMesh(obj)) {
       this.applicationRenderer.openParents(obj, app3D.getModelId());
     }
+    
+    const replay = false;
 
     this.mousePing.ping.perform({
       parentObj: app3D,
       position: pingPosition,
       durationInMs,
+      replay,
     });
 
     this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
     this.chatService.sendChatMessage(
       this.userId,
-      `${this.userName}(${this.userId}) pinged Object ${obj.id}`,
+      `${this.userName}(${this.userId}) pinged ${obj.dataModel.name}`,
       true,
       'ping',
       [app3D.getModelId(), pingPosition.toArray(), durationInMs]
@@ -272,7 +275,8 @@ export default class LocalUser extends Service.extend({
     userId: string,
     modelId: string,
     position: number[],
-    durationInMs: number
+    durationInMs: number,
+    replay: boolean = true,
   ) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
 
@@ -285,12 +289,14 @@ export default class LocalUser extends Service.extend({
           parentObj: applicationObj,
           position: point,
           durationInMs,
+          replay,
         });
       } else {
         this.mousePing.ping.perform({
           parentObj: applicationObj,
           position: point,
           durationInMs,
+          replay,
         });
       }
     }

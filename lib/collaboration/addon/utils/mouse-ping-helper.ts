@@ -24,10 +24,12 @@ export default class MousePing {
       parentObj,
       position,
       durationInMs,
+      replay,
     }: {
       parentObj: THREE.Object3D;
       position: THREE.Vector3;
       durationInMs: number;
+      replay: boolean,
     }) => {
       if (this.mesh) {
         this.mesh.parent?.remove(this.mesh);
@@ -42,7 +44,7 @@ export default class MousePing {
 
       this.mesh.position.copy(position);
       parentObj.add(this.mesh);
-      this.mesh.startPinging();
+      this.mesh.startPinging(replay);
       await timeout(durationInMs);
       this.mesh.stopPinging();
 
