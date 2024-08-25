@@ -21,7 +21,7 @@ export interface ChatMessageInterface {
 
 export default class ChatService extends Service {
   @tracked
-  userIdMuteList?: string[];
+  userIdMuteList?: string[] = [];
 
   @tracked
   chatMessages: ChatMessageInterface[] = [];
@@ -124,9 +124,19 @@ export default class ChatService extends Service {
     return messages.length > 0;
   }
 
-  muteUser() {}
+  muteUser(userId: string) {
+    this.userIdMuteList?.push(userId);
+    this.sender.sendUserMuteUpdate(userId);
+  }
 
-  unmuteUser() {}
+  unmuteUser(userId: string) {
+    this.userIdMuteList = this.userIdMuteList?.filter((id) => userId !== id) || [];
+    this.sender.sendUserMuteUpdate(userId);
+  }
+
+  isUserMuted(userId: string) {
+    return this.userIdMuteList?.includes(userId);
+  }
 
   filterChat(filterMode: string, filterValue: string) {
     this.applyCurrentFilter(filterMode, filterValue);

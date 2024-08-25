@@ -43,6 +43,7 @@ import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
+import { USER_KICK_EVENT, UserKickEvent } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
@@ -116,6 +117,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
     this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
     this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
+    this.webSocket.on(USER_KICK_EVENT, this, this.onUserKickEvent);
   }
 
   willDestroy() {
@@ -126,6 +128,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
     this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
     this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
+    this.webSocket.off(USER_KICK_EVENT, this, this.onUserKickEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -257,6 +260,16 @@ export default class CollaborationSession extends Service.extend({
     );
   }
 
+  onUserKickEvent({
+    userId,
+    originalMessage,
+  }: ForwardedMessage<UserKickEvent>): void {
+    if (this.localUser.userId == originalMessage.userId) {
+      this.toastHandlerService.showErrorToastMessage("You were kicked");
+      this.onSelfDisconnected();
+    }
+  }
+
   /**
    * Removes the user that disconnected and informs our user about it.
    *
@@ -281,8 +294,7 @@ export default class CollaborationSession extends Service.extend({
           `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`,
           true,
           'disconnection_event'
-        ); // TODO: With several users come several equal messages. FIX??
-        //this.chatService.addChatMessage
+        ); // TODO: With several users come several disconnect messages. Maybe add random delay?
       }
     }
 
@@ -314,6 +326,7 @@ export default class CollaborationSession extends Service.extend({
 
   onSelfDisconnected(event?: any) {
     this.disconnect();
+    this.localUser.isHost = false;
 
     if (this.isConnecting) {
       this.toastHandlerService.showInfoToastMessage(

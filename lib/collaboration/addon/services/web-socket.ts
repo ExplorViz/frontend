@@ -35,6 +35,7 @@ import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messa
 import { CHAT_MESSAGE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/chat-message';
 import { CHAT_SYNC_EVENT } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import { io, Socket } from 'socket.io-client';
+import { USER_KICK_EVENT } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -71,6 +72,7 @@ const RECEIVABLE_EVENTS = [
   USER_POSITIONS_EVENT,
   CHAT_MESSAGE_EVENT,
   CHAT_SYNC_EVENT,
+  USER_KICK_EVENT,
 ];
 
 const RESPONSE_EVENTS = [
