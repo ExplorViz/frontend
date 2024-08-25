@@ -178,10 +178,7 @@ export default class HighlightingService extends Service.extend({
     }
 
     const mesh: any = application.getMeshById(entityId);
-    this.toggleHighlight(mesh, {
-      sendMessage: false,
-      remoteColor: userColor,
-    });
+    mesh.replayBlinkEffect();
   }
 
   unhighlight(mesh: EntityMesh, options?: HighlightOptions) {
@@ -370,7 +367,7 @@ export default class HighlightingService extends Service.extend({
       if (highlighted) {
         this.chatService.sendChatMessage(
           this.localUser.userId,
-          `${this.localUser.userName}(${this.localUser.userId}) highlighted a component`,
+          `${this.localUser.userName}(${this.localUser.userId}) highlighted ${object.dataModel.name}`,
           true,
           'highlight',
           [appId, entityId]
