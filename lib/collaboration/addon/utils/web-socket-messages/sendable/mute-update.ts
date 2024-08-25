@@ -7,6 +7,9 @@ export type UserMuteUpdate = {
 
 export function isUserMuteEvent(msg: any): msg is UserMuteUpdate {
   return (
-    msg !== null && typeof msg === 'object' && msg.event === USER_MUTE_EVENT && typeof msg.userId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_MUTE_EVENT &&
+    typeof msg.userId === 'string'
   );
 }

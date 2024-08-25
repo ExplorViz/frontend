@@ -7,6 +7,9 @@ export type UserKickEvent = {
 
 export function isUserKickEvent(msg: any): msg is UserKickEvent {
   return (
-    msg !== null && typeof msg === 'object' && msg.event === USER_KICK_EVENT && typeof msg.userId === 'string'
+    msg !== null &&
+    typeof msg === 'object' &&
+    msg.event === USER_KICK_EVENT &&
+    typeof msg.userId === 'string'
   );
 }

@@ -43,7 +43,10 @@ import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
 } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
-import { USER_KICK_EVENT, UserKickEvent } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import {
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
@@ -260,12 +263,9 @@ export default class CollaborationSession extends Service.extend({
     );
   }
 
-  onUserKickEvent({
-    userId,
-    originalMessage,
-  }: ForwardedMessage<UserKickEvent>): void {
+  onUserKickEvent({ originalMessage }: ForwardedMessage<UserKickEvent>): void {
     if (this.localUser.userId == originalMessage.userId) {
-      this.toastHandlerService.showErrorToastMessage("You were kicked");
+      this.toastHandlerService.showErrorToastMessage('You were kicked');
       this.onSelfDisconnected();
     }
   }

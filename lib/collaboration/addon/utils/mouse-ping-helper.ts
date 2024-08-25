@@ -29,7 +29,7 @@ export default class MousePing {
       parentObj: THREE.Object3D;
       position: THREE.Vector3;
       durationInMs: number;
-      replay: boolean,
+      replay: boolean;
     }) => {
       if (this.mesh) {
         this.mesh.parent?.remove(this.mesh);

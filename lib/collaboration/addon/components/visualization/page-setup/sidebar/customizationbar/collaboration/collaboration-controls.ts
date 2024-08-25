@@ -75,7 +75,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @tracked
   landscapeTokens: LandscapeToken[] = [];
 
-  @tracked mutedUsers: String[] = [];
+  @tracked mutedUsers: string[] = [];
 
   @computed(
     'collaborationSession.idToRemoteUser',
@@ -172,11 +172,11 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  toggleMuteStatus(user: {remoteUserId: string}) {
-    if(user) {
+  toggleMuteStatus(user: { remoteUserId: string }) {
+    if (user) {
       const userId = user.remoteUserId;
 
-      if(this.chatService.isUserMuted(userId)) {
+      if (this.chatService.isUserMuted(userId)) {
         this.mutedUsers = this.mutedUsers.filter((id) => id !== userId);
         this.chatService.unmuteUser(userId);
       } else {
@@ -187,7 +187,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  isUserMuted(user: {remoteUserId: string}) {
+  isUserMuted(user: { remoteUserId: string }) {
     if (!user) {
       return;
     }
@@ -195,7 +195,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   }
 
   @action
-  kickUser(user: {remoteUserId: string}) {
+  kickUser(user: { remoteUserId: string }) {
     if (!user) {
       return;
     }

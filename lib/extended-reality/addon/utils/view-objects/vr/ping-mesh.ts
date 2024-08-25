@@ -46,7 +46,7 @@ export default class PingMesh extends THREE.Mesh {
   startPinging(replay?: boolean) {
     this.isPinging = true;
     this.startAnimation();
-    if(replay) {
+    if (replay) {
       this.material.transparent = true;
       this.material.opacity = 0.5;
     } else {

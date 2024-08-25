@@ -239,7 +239,7 @@ export default class LocalUser extends Service.extend({
   ping(
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
-    durationInMs: number = 5000,
+    durationInMs: number = 5000
   ) {
     const app3D = obj.parent;
     if (!app3D || !(app3D instanceof ApplicationObject3D)) {
@@ -251,7 +251,7 @@ export default class LocalUser extends Service.extend({
     if (isEntityMesh(obj)) {
       this.applicationRenderer.openParents(obj, app3D.getModelId());
     }
-    
+
     const replay = false;
 
     this.mousePing.ping.perform({
@@ -276,7 +276,7 @@ export default class LocalUser extends Service.extend({
     modelId: string,
     position: number[],
     durationInMs: number,
-    replay: boolean = true,
+    replay: boolean = true
   ) {
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
 

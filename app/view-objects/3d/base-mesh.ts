@@ -98,7 +98,7 @@ export default abstract class BaseMesh<
     }
 
     setTimeout(() => {
-      if(this.highlighted) {
+      if (this.highlighted) {
         this.material.color = this.highlightingColor;
       } else {
         this.material.color = this.defaultColor;

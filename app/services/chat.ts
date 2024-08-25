@@ -130,7 +130,8 @@ export default class ChatService extends Service {
   }
 
   unmuteUser(userId: string) {
-    this.userIdMuteList = this.userIdMuteList?.filter((id) => userId !== id) || [];
+    this.userIdMuteList =
+      this.userIdMuteList?.filter((id) => userId !== id) || [];
     this.sender.sendUserMuteUpdate(userId);
   }
 

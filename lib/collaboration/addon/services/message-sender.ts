@@ -22,7 +22,10 @@ import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/chat-syncronization';
-import { USER_MUTE_EVENT, UserMuteUpdate } from 'collaboration/utils/web-socket-messages/sendable/mute-update';
+import {
+  USER_MUTE_EVENT,
+  UserMuteUpdate,
+} from 'collaboration/utils/web-socket-messages/sendable/mute-update';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
@@ -119,7 +122,10 @@ import {
 } from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import { USER_KICK_EVENT, UserKickEvent } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import {
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 
 export default class MessageSender extends Service {
   @service('web-socket')
