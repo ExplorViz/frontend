@@ -16,6 +16,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import ChatService from 'explorviz-frontend/services/chat';
 
 interface CollaborationArgs {
   removeComponent(componentPath: string): void;
@@ -49,6 +50,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @service('router')
   router!: any;
 
+  @service('chat')
+  chatService!: ChatService;
+
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
 
@@ -71,6 +75,8 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @tracked
   landscapeTokens: LandscapeToken[] = [];
 
+  @tracked mutedUsers: String[] = [];
+
   @computed(
     'collaborationSession.idToRemoteUser',
     'spectateUserService.spectatedUser'
@@ -84,6 +90,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
         isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
+        isMuteable: false,
+        isMuted: false,
+        isKickable: false,
       });
     }
     const remoteUsers = Array.from(
@@ -99,6 +108,9 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
         isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,
+        isMuteable: this.localUser.isHost,
+        isMuted: false,
+        isKickable: this.localUser.isHost,
       };
     });
 
@@ -108,6 +120,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   constructor(owner: any, args: CollaborationArgs) {
     super(owner, args);
 
+    this.mutedUsers = this.chatService.userIdMuteList || [];
     this.loadRooms(false);
   }
 
@@ -156,6 +169,37 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
   @action
   shareSettings() {
     this.userSettings.shareApplicationSettings();
+  }
+
+  @action
+  toggleMuteStatus(user: {remoteUserId: string}) {
+    if(user) {
+      const userId = user.remoteUserId;
+
+      if(this.chatService.isUserMuted(userId)) {
+        this.mutedUsers = this.mutedUsers.filter((id) => id !== userId);
+        this.chatService.unmuteUser(userId);
+      } else {
+        this.mutedUsers = [...this.mutedUsers, userId];
+        this.chatService.muteUser(userId);
+      }
+    }
+  }
+
+  @action
+  isUserMuted(user: {remoteUserId: string}) {
+    if (!user) {
+      return;
+    }
+    return this.mutedUsers.includes(user.remoteUserId);
+  }
+
+  @action
+  kickUser(user: {remoteUserId: string}) {
+    if (!user) {
+      return;
+    }
+    this.sender.sendKickUser(user.remoteUserId);
   }
 
   @action

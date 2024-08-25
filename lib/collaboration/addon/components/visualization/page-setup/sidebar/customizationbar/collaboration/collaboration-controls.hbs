@@ -57,6 +57,26 @@
             Share Settings
           </BsButton>
         {{/if}}
+        {{#if user.isMuteable}}
+          <BsButton
+            title={{if (this.isUserMuted user) 'Unmute User' 'Mute User'}}
+            {{on 'click' (fn this.toggleMuteStatus user)}}
+            @type='primary'
+            @outline={{true}}
+          >
+            {{svg-jar (if (this.isUserMuted user) 'mute-16' 'unmute-16') class='octicon align-middle'}}
+          </BsButton>
+        {{/if}}
+        {{#if user.isKickable}}
+          <BsButton
+            title='Kick User'
+            {{on 'click' (fn this.kickUser user)}}
+            @type='danger'
+            @outline={{true}}
+          >
+            {{svg-jar "person-fill-16" class='octicon align-middle'}}
+          </BsButton>
+        {{/if}}
         {{#if user.isSpectatable}}
           <BsButton
             title={{if user.isSpectatedByUs 'End Spectating' 'Spectate'}}
