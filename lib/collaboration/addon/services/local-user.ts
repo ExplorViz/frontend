@@ -378,7 +378,8 @@ export default class LocalUser extends Service.extend({
   }
 
   initializeUserMinimapMarker() {
-    const geometry = new THREE.SphereGeometry(0.15, 32);
+    const initialRadius = this.calculateDistanceFactor();
+    const geometry = new THREE.SphereGeometry(initialRadius, 32);
     const material = new THREE.MeshBasicMaterial({
       color: '#808080',
     });
@@ -399,6 +400,16 @@ export default class LocalUser extends Service.extend({
       return;
     }
     this.minimapMarker.position.set(intersection.x, 0.5, intersection.z);
+  }
+
+  calculateDistanceFactor(): number {
+    return 0.2 / this.settings.applicationSettings.zoom.value;
+  }
+
+  updateSphereRadius() {
+    const geometry = new THREE.SphereGeometry(this.calculateDistanceFactor());
+    this.minimapMarker.geometry.dispose(); // Dispose of the old geometry
+    this.minimapMarker.geometry = geometry; // Assign the new geometry
   }
 
   alignCameraToRemote(remoteCamera: Camera) {

@@ -142,6 +142,12 @@ export default class SpectateUser extends Service {
     }
   }
 
+  activateForMinimap(remoteUser: RemoteUser, localUser: string) {
+    this.spectatedUser = remoteUser;
+    this.spectatedUser.setHmdVisible(false);
+    this.addSpectatingUser(localUser);
+  }
+
   activateConfig(configId: string, remoteUsersIds: string[]) {
     this.sender.sendSpectatingUpdate(
       configId !== 'default',
@@ -280,7 +286,6 @@ export default class SpectateUser extends Service {
     if (!configuration || !configuration.devices) {
       return;
     }
-
     // Adapt projection matrix according to spectate update
     const deviceId = new URLSearchParams(window.location.search).get(
       'deviceId'

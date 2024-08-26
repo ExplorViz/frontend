@@ -126,9 +126,10 @@ export default class Settings extends Component<Args> {
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
-      case 'distance':
+      case 'zoom':
         this.localUser.minimapDistance =
-          this.userSettings.applicationSettings.distance.value;
+          this.userSettings.applicationSettings.zoom.value;
+        this.localUser.updateSphereRadius();
         break;
       default:
         break;
@@ -176,7 +177,7 @@ export default class Settings extends Component<Args> {
       const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
       if (!isNaN(layerNumber)) {
         // Ensure it's a valid number
-        if (value) {
+        if (value || value === undefined) {
           this.localUser.minimapCamera.layers.enable(layerNumber);
         } else {
           this.localUser.minimapCamera.layers.disable(layerNumber);

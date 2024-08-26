@@ -45,10 +45,6 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import remoteUser from 'explorviz-frontend/utils/remote-user';
-import WebSocketService from 'collaboration/services/web-socket';
-// import { USER_CONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-connected';
-// import { USER_DISCONNECTED_EVENT } from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
-// import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -138,9 +134,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   selectedApplicationId: string = '';
 
-  @service('web-socket')
-  private webSocket!: WebSocketService;
-
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -196,14 +189,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.handleDoubleClickOnMeshIDEAPI,
       this.lookAtMesh
     );
-
-    // this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
-    // this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    // this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
   }
-  // onUserPositions() {}
-  // onUserDisconnect() {}
-  // onUserConnected() {}
 
   async tick(delta: number) {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
@@ -366,12 +352,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       getOwner(this),
       this.camera,
       this.localUser.ortographicCamera,
-      this.localUser.minimapCamera,
-      this.canvas,
-      this.graph.boundingBox
+      this.canvas
     );
 
     this.spectateUserService.cameraControls = this.cameraControls;
+    this.localUser.cameraControls = this.cameraControls;
 
     this.initMinimap();
 
@@ -476,7 +461,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (userMarker && user.camera) {
         const position = new THREE.Vector3();
         position.copy(user.camera.model.position);
-        // if ()
         userMarker.position.set(position.x, userMarker.position.y, position.z);
       } else {
         this.initializeMinimapUserMarkers(user);

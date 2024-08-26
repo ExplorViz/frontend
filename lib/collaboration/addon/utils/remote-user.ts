@@ -49,7 +49,7 @@ export default class RemoteUser extends THREE.Object3D {
 
   localUser: LocalUser;
 
-  minimapMarker: THREE.Mesh | null; // Minimap marker
+  minimapMarker!: THREE.Mesh | null;
 
   constructor({
     userName,
@@ -78,14 +78,17 @@ export default class RemoteUser extends THREE.Object3D {
     this.nameTag = null;
 
     this.localUser = localUser;
-    this.minimapMarker = this.initMinimapMarker(); // Initialize minimap marker
+    this.initMinimapMarker();
   }
 
   /**
    * Initialize the Minimap marker for this user.
    */
-  private initMinimapMarker(): THREE.Mesh {
-    const userMarkerGeometry = new THREE.SphereGeometry(0.15, 32);
+  private initMinimapMarker() {
+    const userMarkerGeometry = new THREE.SphereGeometry(
+      this.calculateDistanceFactor(),
+      32
+    );
     const userMarkerMaterial = new THREE.MeshBasicMaterial({
       color: this.color,
     });
@@ -98,7 +101,7 @@ export default class RemoteUser extends THREE.Object3D {
     userMarkerMesh.layers.enable(7);
     userMarkerMesh.layers.disable(0);
     userMarkerMesh.name = this.userId;
-    return userMarkerMesh;
+    this.minimapMarker = userMarkerMesh;
   }
 
   /**
@@ -117,45 +120,28 @@ export default class RemoteUser extends THREE.Object3D {
   /**
    * Update the minimap marker's position based on the camera's position.
    */
-  private updateMinimapMarkerPosition() {
-    // const markerPosition = this.camera!.model.position;
-    // const cameraLeft =
-    //   this.localUser.minimapCamera.left +
-    //   this.localUser.minimapCamera.position.x;
-    // const cameraRight =
-    //   this.localUser.minimapCamera.right +
-    //   this.localUser.minimapCamera.position.x;
-    // const cameraTop =
-    //   this.localUser.minimapCamera.top +
-    //   this.localUser.minimapCamera.position.z;
-    // const cameraBottom =
-    //   this.localUser.minimapCamera.bottom +
-    //   this.localUser.minimapCamera.position.z;
-
-    // const intersection = new THREE.Vector3();
-    // intersection.copy(this.localUser.intersection!);
-    // if (markerPosition.x < cameraLeft) {
-    //   intersection!.x = cameraLeft;
-    // }
-    // if (markerPosition.x > cameraRight) {
-    //   intersection!.x = cameraRight;
-    // }
-    // if (markerPosition.z < cameraBottom) {
-    //   intersection!.z = cameraBottom;
-    // }
-    // if (markerPosition.z > cameraTop) {
-    //   intersection!.z = cameraTop;
-    // }
-    // console.log(cameraBottom, cameraLeft, cameraRight, cameraRight);
-    // console.log(markerPosition);
+  updateMinimapMarkerPosition() {
+    const distanceFactor = this.calculateDistanceFactor();
     if (this.minimapMarker && this.camera) {
-      // Assuming the minimap is a top-down view with Y as up-axis
-      this.minimapMarker.position.set(
-        this.camera.model.position.x,
-        this.minimapMarker.position.y, // Assuming Z is up in the minimap
-        this.camera.model.position.z
-      );
+      if (distanceFactor < 0.2) {
+        this.minimapMarker.geometry.dispose();
+        this.minimapMarker.geometry = new THREE.SphereGeometry(
+          distanceFactor,
+          32
+        );
+        this.minimapMarker.position.set(
+          this.camera.model.position.x,
+          this.minimapMarker.position.y,
+          this.camera.model.position.z
+        );
+      }
+    } else if (!this.minimapMarker) {
+      this.initMinimapMarker();
     }
+  }
+
+  private calculateDistanceFactor(): number {
+    return 0.2 / this.localUser.settings.applicationSettings.zoom.value;
   }
 
   protected removeCamera() {
@@ -284,8 +270,6 @@ export default class RemoteUser extends THREE.Object3D {
         controller.ray.scale.z = distance;
       }
     });
-
-    // this.updateMinimapMarkerPosition(); // Update minimap marker position each frame
   }
 
   updateController(

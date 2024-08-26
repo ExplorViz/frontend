@@ -17,7 +17,6 @@ export default class CameraControls {
 
   private perspectiveCamera: PerspectiveCamera;
   private orthographicCamera: OrthographicCamera | undefined;
-  private minimapCamera: OrthographicCamera;
 
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
@@ -28,14 +27,11 @@ export default class CameraControls {
     owner: any,
     perspectiveCamera: PerspectiveCamera,
     orthographicCamera: OrthographicCamera | undefined,
-    minimapCamera: OrthographicCamera,
-    canvas: HTMLCanvasElement,
-    boundingBox: THREE.Box3
+    canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
     this.orthographicCamera = orthographicCamera;
-    this.minimapCamera = minimapCamera;
 
     this.perspectiveCameraControls = new MapControls(
       this.perspectiveCamera,
@@ -46,8 +42,6 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-    this.perspectiveCameraControls.minPan = boundingBox.min;
-    this.perspectiveCameraControls.maxPan = boundingBox.max;
 
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
@@ -61,18 +55,6 @@ export default class CameraControls {
       this.orthographicCameraControls.maxDistance = 1000;
       this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
     }
-
-    // this.minimapCameraControls = new MapControls(
-    //   this.orthographicCamera,
-    //   canvas
-    // );
-
-    // this.minimapCameraControls.enableDamping = true;
-    // this.minimapCameraControls.dampingFactor = 0.3;
-    // this.minimapCameraControls.minDistance = 0.1;
-    // this.minimapCameraControls.maxDistance = 1000;
-    // this.minimapCameraControls.maxPolarAngle = Math.PI / 2;
-    // this.minimapCameraControls.mouseButtons.MIDDLE = undefined;
   }
 
   private fitCamerasToBox(
@@ -159,8 +141,6 @@ export default class CameraControls {
         this.orthographicCamera.position.copy(position);
         this.orthographicCameraControls.target.copy(center);
       }
-
-      this.minimapCamera.scale;
     }
   }
 
@@ -213,29 +193,9 @@ export default class CameraControls {
     });
   }
 
-  // private checkBoundingBox() {
-  //   let margin = 0.7;
-  //   if (this.perspectiveCameraControls.minPan.x < Infinity) {
-  //     this.perspectiveCameraControls.target.clamp(
-  //       new THREE.Vector3(
-  //         this.perspectiveCameraControls.minPan.x / 100 - margin,
-  //         this.perspectiveCameraControls.minPan.y,
-  //         this.perspectiveCameraControls.minPan.z / 100 - margin
-  //       ),
-  //       new THREE.Vector3(
-  //         this.perspectiveCameraControls.maxPan.x / 100 + margin,
-  //         this.perspectiveCameraControls.maxPan.y,
-  //         this.perspectiveCameraControls.maxPan.z / 100 + margin
-  //       )
-  //     );
-  //   }
-  // }
-
   tick() {
     if (this.enabled) {
       this.perspectiveCameraControls.update();
-      // this.checkBoundingBox;
-      // this.minimapCameraControls.update();
       if (this.orthographicCameraControls) {
         this.orthographicCameraControls.update();
       }

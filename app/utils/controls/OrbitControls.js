@@ -1,7 +1,5 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
 import * as minimapRaycasting from 'explorviz-frontend/utils/raycaster';
-import * as THREE from 'three';
-
 import {
   EventDispatcher,
   MOUSE,
@@ -30,20 +28,12 @@ const _plane = new Plane();
 const TILT_LIMIT = Math.cos(70 * MathUtils.DEG2RAD);
 
 class OrbitControls extends EventDispatcher {
-  // minPan;
-
-  // maxPan;
-
   constructor(object, domElement) {
     super();
 
     this.object = object;
     this.domElement = domElement;
     this.domElement.style.touchAction = 'none'; // disable touch scroll
-
-    // Set minPan and maxPan to infinity
-    this.minPan = new THREE.Vector3(Infinity, Infinity, Infinity);
-    this.maxPan = new THREE.Vector3(Infinity, Infinity, Infinity);
 
     // Set to false to disable this control
     this.enabled = true;
@@ -249,7 +239,6 @@ class OrbitControls extends EventDispatcher {
         } else {
           scope.target.add(panOffset);
         }
-        // scope.target.clamp(this.minPan, this.maxPan);
 
         // Limit the target distance from the cursor to create a sphere around the center of interest
         scope.target.sub(scope.cursor);

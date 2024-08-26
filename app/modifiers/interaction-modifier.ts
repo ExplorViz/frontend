@@ -4,6 +4,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
+import SpectateUser from 'collaboration/services/spectate-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -88,6 +90,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('spectate-user')
+  private spectateUserService!: SpectateUser;
 
   isMouseOnCanvas = false;
 
@@ -304,10 +309,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
-    if (this.localUser.makeFullsizeMinimap) {
-      this.localUser.makeFullsizeMinimap = false;
-      return;
-    }
     // Treat shift + single click as double click
     if (event.shiftKey) {
       this.onDoubleClick(event);
@@ -328,12 +329,22 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
-    if (this.isClickInsideMinimap(event)) {
+    const isOnMinimap = this.isClickInsideMinimap(event);
+    if (this.localUser.makeFullsizeMinimap && !isOnMinimap) {
+      this.localUser.makeFullsizeMinimap = false;
+      this.localUser.cameraControls!.enabled = true;
+    } else if (isOnMinimap) {
       const ray = this.raycastOnMinimap(event);
       if (ray) {
         this.handleHit(ray);
       } else {
-        this.localUser.makeFullsizeMinimap = true;
+        if (this.localUser.makeFullsizeMinimap) {
+          this.localUser.makeFullsizeMinimap = false;
+          this.localUser.cameraControls!.enabled = true;
+        } else {
+          this.localUser.makeFullsizeMinimap = true;
+          this.localUser.cameraControls!.enabled = false;
+        }
       }
     }
   }
@@ -395,17 +406,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   isClickInsideMinimap(event: MouseEvent) {
-    // Minimap dimensions and position (replace these with your actual values)
-    const minimapSize = this.localUser.minimapSize;
-    const minimapHeight = window.innerWidth / minimapSize;
-    const minimapWidth = window.innerWidth / minimapSize;
-    const marginSettingsSymbol = 55;
-    const margin = 10;
-    const minimapX =
-      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
-    const minimapY = margin;
+    const minimap = this.localUser.minimap();
+    const minimapHeight = minimap[0];
+    const minimapWidth = minimap[1];
+    const minimapX = minimap[2];
+    const minimapY = window.innerHeight - minimap[3] - minimapHeight;
 
-    // Check if the click is within the minimap's bounds
     const xInBounds =
       event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
     const yInBounds =
@@ -415,8 +421,17 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   handleHit(object: THREE.Intersection | null) {
-    const userHit = this.collaborativeSession.getUserById(object!.object.name);
-    this.localUser.alignCameraToRemote(userHit.camera);
+    const userHit = this.collaborativeSession.getUserById(
+      object!.object.name
+    ) as RemoteUser;
+    this.spectateUserService.activateForMinimap(
+      userHit!,
+      this.localUser.userId
+    );
+
+    setTimeout(() => {
+      this.spectateUserService.deactivate(false);
+    }, 10);
   }
 
   createPointerStopEvent() {

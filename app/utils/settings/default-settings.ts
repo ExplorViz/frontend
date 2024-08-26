@@ -313,22 +313,22 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 1,
     range: {
       min: 1.0,
-      max: 10.0,
+      max: 3.0,
       step: 0.1,
     },
     orderNumber: 1,
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
-    description: 'Set Zoom of the Minimap',
+    description: 'Set zoom of the minimap',
     isRangeSetting: true,
   },
   version2: {
     value: false,
     orderNumber: 2,
     group: 'Minimap',
-    displayName: 'Change Minimap version',
+    displayName: 'Change minimap marker calculation',
     description:
-      'Calculate minimap-position via intersection of camera with ground plane',
+      'If off, calculate minimap-position via intersection of camera with ground plane. Else, use camera position',
     isFlagSetting: true,
   },
   layer1: {
@@ -369,7 +369,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
     description:
-      'Toggle the different users position markers visibility for the Minimap',
+      'Toggle the different users position markers visibility for the minimap',
     isFlagSetting: true,
   },
 };
