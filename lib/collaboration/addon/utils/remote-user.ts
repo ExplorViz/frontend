@@ -51,6 +51,8 @@ export default class RemoteUser extends THREE.Object3D {
 
   minimapMarker!: THREE.Mesh | null;
 
+  lastDistanceFactor!: number;
+
   constructor({
     userName,
     userId,
@@ -76,6 +78,7 @@ export default class RemoteUser extends THREE.Object3D {
     this.mousePing = new MousePing(color, this.animationMixer);
     this.controllers = [null, null];
     this.nameTag = null;
+    this.lastDistanceFactor = 0.2;
 
     this.localUser = localUser;
     this.initMinimapMarker();
@@ -97,7 +100,11 @@ export default class RemoteUser extends THREE.Object3D {
       userMarkerMaterial
     );
     // Add marker to the minimap scene
-    userMarkerMesh.position.set(2, 0.5, this.localUser.camera.position.z);
+    userMarkerMesh.position.set(
+      this.localUser.camera.position.x,
+      0.5,
+      this.localUser.camera.position.z
+    );
     userMarkerMesh.layers.enable(7);
     userMarkerMesh.layers.disable(0);
     userMarkerMesh.name = this.userId;
@@ -123,7 +130,7 @@ export default class RemoteUser extends THREE.Object3D {
   updateMinimapMarkerPosition() {
     const distanceFactor = this.calculateDistanceFactor();
     if (this.minimapMarker && this.camera) {
-      if (distanceFactor < 0.2) {
+      if (this.lastDistanceFactor !== distanceFactor) {
         this.minimapMarker.geometry.dispose();
         this.minimapMarker.geometry = new THREE.SphereGeometry(
           distanceFactor,
@@ -134,6 +141,7 @@ export default class RemoteUser extends THREE.Object3D {
           this.minimapMarker.position.y,
           this.camera.model.position.z
         );
+        this.lastDistanceFactor = distanceFactor;
       }
     } else if (!this.minimapMarker) {
       this.initMinimapMarker();

@@ -270,6 +270,8 @@ export default class RenderingLoop {
     const minimapY = minimapNums[3];
     const borderWidth = 1;
 
+    this.currentViewport = this.renderer.getViewport(new THREE.Vector4());
+
     // Enable scissor test and set the scissor area for the border
     this.renderer.setScissorTest(true);
     this.renderer.setScissor(
