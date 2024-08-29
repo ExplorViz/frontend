@@ -24,7 +24,7 @@ export interface GraphNode {
   fx: number;
   fy: number;
   fz: number;
-  threeObj: Object3D;
+  __threeObj: Object3D;
 }
 
 export interface GraphLink {
@@ -62,7 +62,7 @@ export default class ForceGraph {
     this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
       .nodeThreeObject((obj) => {
-        return obj.threeObj;
+        return obj.__threeObj;
       })
       .warmupTicks(100)
       .linkColor(

@@ -58,8 +58,8 @@ export default class LinkRenderer extends Service.extend({}) {
     _coords: any,
     link: GraphLink
   ) {
-    const sourceApp = link.source.threeObj;
-    const targetApp = link.target.threeObj;
+    const sourceApp = link.source.__threeObj;
+    const targetApp = link.target.__threeObj;
 
     if (
       !(sourceApp instanceof ApplicationObject3D) ||
@@ -74,7 +74,10 @@ export default class LinkRenderer extends Service.extend({}) {
 
     line.visible = this.isLinkVisible(link);
 
-    const forceGraph = sourceApp.parent!;
+    let rootElement = link.source.__threeObj;
+    while (rootElement.parent?.type !== 'Scene') {
+      rootElement = rootElement?.parent || rootElement;
+    }
     const sourceClass = findFirstOpen(
       sourceApp,
       classCommunication.sourceClass
@@ -83,7 +86,7 @@ export default class LinkRenderer extends Service.extend({}) {
     let start = new Vector3();
     if (sourceMesh) {
       start = sourceMesh.getWorldPosition(new Vector3());
-      forceGraph.worldToLocal(start);
+      rootElement.worldToLocal(start);
     } else {
       this.debug('Source mesh not found');
     }
@@ -97,7 +100,7 @@ export default class LinkRenderer extends Service.extend({}) {
     let end = new Vector3();
     if (targetMesh) {
       end = targetMesh.getWorldPosition(new Vector3());
-      forceGraph.worldToLocal(end);
+      rootElement.worldToLocal(end);
     } else {
       this.debug('Target mesh not found');
     }
@@ -128,7 +131,7 @@ export default class LinkRenderer extends Service.extend({}) {
   @action
   createMeshFromLink(link: GraphLink): ClazzCommunicationMesh {
     const classCommunication = link.communicationData;
-    const applicationObject3D = link.source.threeObj as ApplicationObject3D;
+    const applicationObject3D = link.source.__threeObj as ApplicationObject3D;
     const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(

@@ -31,11 +31,11 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { generateUUID } from 'three/src/math/MathUtils';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+import { Object3D } from 'three';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -143,13 +143,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // This is done for all applications to have accurate heatmap data.
 
     let { nodes: graphNodes } = this.graph.graphData();
-    const { nodes } = this.structureLandscapeData;
+    const { nodes, k8sNodes } = this.structureLandscapeData;
+
+    const allAppsInNodes = [
+      ...nodes.flatMap((n) => n.applications),
+      ...k8sNodes
+        .flatMap((n) => n.k8sNamespaces)
+        .flatMap((ns) => ns.k8sDeployments)
+        .flatMap((d) => d.k8sPods)
+        .flatMap((p) => p.applications),
+    ];
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      const appears = nodes.some((n) => {
-        return n.applications.some((app) => app.id === node.id);
-      });
+      const appears = allAppsInNodes.some((n) => n.id === node.id);
 
       if (!appears) {
         // also delete from application renderer so it can be rerendered if it existent again
@@ -196,7 +203,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             id: applicationData.application.id,
             fy: 0,
             collisionRadius,
-            threeObj: app,
+            __threeObj: app as Object3D,
           } as GraphNode);
         }
 
@@ -234,7 +241,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // add k8sApps
     const promises = k8sApps.map(async (k8sApp) => {
-      k8sApp.app.id = generateUUID();
       const applicationData = await this.updateApplicationData.perform(
         k8sApp.app,
         {
@@ -250,6 +256,32 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
+
+      // fix previously existing nodes to position (if present) and calculate collision size
+      const graphNode = graphNodes.find(
+        (node) => node.id === applicationData.application.id
+      ) as GraphNode;
+
+      if (!app.foundationMesh) {
+        console.error('No foundation mesh, this should not happen');
+        return;
+      }
+
+      const { x, z } = app.foundationMesh.scale;
+      const collisionRadius = Math.hypot(x, z) / 2 + 3;
+      if (graphNode) {
+        graphNode.collisionRadius = collisionRadius;
+        // graphNode.fx = graphNode.x;
+        // graphNode.fz = graphNode.z;
+      } else {
+        graphNodes.push({
+          id: applicationData.application.id,
+          x: 0, // without this property, the arrows will not be displayed
+          collisionRadius,
+          __threeObj: app as Object3D,
+        } as GraphNode);
+      }
+
       return app;
     });
 
@@ -315,15 +347,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       ),
       communicationData: communication,
     }));
-
     const gData = {
       nodes: [
         ...rootParents.map((p) => {
+          const d = p.dimensions;
+          const collisionRadius = Math.hypot(d.x, d.z) / 2 + 3;
           return {
-            threeObj: p,
+            __threeObj: p,
+            fy: 0, // positions all nodes on the same height
+            collisionRadius,
           };
         }),
-        ...graphNodes,
+        ...graphNodes.filter(
+          (n) => !((n as any).__threeObj instanceof ApplicationObject3D)
+        ),
       ],
       links: [...communicationLinks, ...nodeLinks],
     };
