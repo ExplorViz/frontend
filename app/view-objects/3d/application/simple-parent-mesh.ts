@@ -175,6 +175,12 @@ export default class SimpleParentMesh extends BaseMesh implements ChildMesh {
     const l = this.createLabelIfNotExists();
     const d = this.dimensions;
     l.position.set(0, d.y / 2 + 0.001, d.z / 2 - ExtraSpace);
+    l.geometry.computeBoundingBox();
+    const dim = new Vector3();
+    l.geometry.boundingBox!.getSize(dim);
+    let scale = Math.min((d.x - ExtraSpace) / dim.x, 1);
+    scale = Math.max(scale, 0.1);
+    l.scale.set(scale, scale, scale);
   }
 
   private createLabelIfNotExists() {
