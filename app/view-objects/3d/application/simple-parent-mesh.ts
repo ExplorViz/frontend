@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   Color,
+  ColorRepresentation,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -33,8 +34,7 @@ export default class SimpleParentMesh extends BaseMesh implements ChildMesh {
     this.params = params;
     this.geometry = new BoxGeometry(1, 1, 1);
     // random color
-    let color = Math.random() * 16777215;
-    color = Math.floor(color);
+    const color = params.color || this.randomColor();
     this.material = new MeshLambertMaterial({ color });
     this.defaultMaterial = this.material;
     // make color lighter
@@ -47,7 +47,12 @@ export default class SimpleParentMesh extends BaseMesh implements ChildMesh {
       tabs: [],
     };
     if (params.group) this.registerEventListeners(params.group);
-    if (params.childeren) this.add(...params.childeren);
+    if (params.children) this.add(...params.children);
+  }
+
+  private randomColor() {
+    const color = Math.random() * 16777215;
+    return Math.floor(color);
   }
 
   private dimensionsValue: Vector3;
@@ -60,7 +65,7 @@ export default class SimpleParentMesh extends BaseMesh implements ChildMesh {
   }
 
   override applyHoverEffect(
-    colorShift?: number,
+    _colorShift?: number,
     isSource: boolean = true
   ): void {
     this.material = this.hoverMaterial;
@@ -209,9 +214,10 @@ export interface ChildMesh {
 }
 
 export interface SimpleParentMeshParams {
-  childeren?: Object3D<Object3DEventMap>[];
+  children?: Object3D<Object3DEventMap>[];
   label?: string;
   font?: Font;
   popupData?: GenericPopupData;
   group?: string;
+  color?: ColorRepresentation;
 }

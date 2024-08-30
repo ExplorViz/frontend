@@ -36,6 +36,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { Object3D } from 'three';
+import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -290,42 +291,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const baseParams = {
       font: this.fontRepo.font,
     };
-    const rootParents = this.landscapeData.structureLandscapeData.k8sNodes.map(
-      (n) =>
-        new SimpleParentMesh({
-          ...baseParams,
-          label: n.name,
-          childeren: n.k8sNamespaces.map(
-            (ns) =>
-              new SimpleParentMesh({
-                ...baseParams,
-                group: `ns:${ns.name}`,
-                label: ns.name,
-                childeren: ns.k8sDeployments.map(
-                  (d) =>
-                    new SimpleParentMesh({
-                      ...baseParams,
-                      group: `ns:${ns.name};dp:${d.name}`,
-                      label: d.name,
-                      childeren: d.k8sPods.map(
-                        (p) =>
-                          new SimpleParentMesh({
-                            ...baseParams,
-                            group: `ns:${ns.name};dp:${d.name};p`, // pod id is ommited on purpouse
-                            label: p.name,
-                            childeren: p.applications.map(
-                              (app) =>
-                                apps.find(
-                                  (a) => a.dataModel.application.id === app.id
-                                )!
-                            ),
-                          })
-                      ),
-                    })
-                ),
-              })
-          ),
-        })
+    const rootParents = visualizeK8sLandscape(
+      this.landscapeData.structureLandscapeData.k8sNodes,
+      baseParams,
+      (app) => {
+        return apps.find(
+          (a) => a.dataModel.application.id === app.id
+        ) as ApplicationObject3D;
+      }
     );
 
     // Apply restructure textures in restructure mode
