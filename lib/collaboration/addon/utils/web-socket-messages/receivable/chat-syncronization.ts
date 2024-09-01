@@ -2,6 +2,7 @@ export const CHAT_SYNC_EVENT = 'chat_synchronization';
 
 export type ChatSynchronizeMessage = {
   event: typeof CHAT_SYNC_EVENT;
+  msgId: number;
   userId: string;
   msg: string;
   userName: string;
@@ -16,6 +17,7 @@ export function isChatSyncMessage(msg: any): msg is ChatSynchronizeMessage {
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === CHAT_SYNC_EVENT &&
+    typeof msg.msgId === 'number' &&
     typeof msg.userid === 'string' &&
     typeof msg.msg === 'string' &&
     typeof msg.userName === 'string' &&

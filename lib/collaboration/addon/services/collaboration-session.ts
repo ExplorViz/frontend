@@ -48,6 +48,10 @@ import {
   UserKickEvent,
 } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
+import {
+  MESSAGE_DELETE_EVENT,
+  MessageDeleteEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -121,6 +125,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
     this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
     this.webSocket.on(USER_KICK_EVENT, this, this.onUserKickEvent);
+    this.webSocket.on(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
   }
 
   willDestroy() {
@@ -132,6 +137,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
     this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
     this.webSocket.off(USER_KICK_EVENT, this, this.onUserKickEvent);
+    this.webSocket.off(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -266,8 +272,19 @@ export default class CollaborationSession extends Service.extend({
   onUserKickEvent({ originalMessage }: ForwardedMessage<UserKickEvent>): void {
     if (this.localUser.userId == originalMessage.userId) {
       this.toastHandlerService.showErrorToastMessage('You were kicked');
-      this.onSelfDisconnected();
+      this.onSelfDisconnected('kick_event');
     }
+  }
+
+  onMessageDeleteEvent({
+    userId,
+    originalMessage,
+  }: ForwardedMessage<MessageDeleteEvent>): void {
+    if (userId == this.localUser.userId) {
+      return;
+    }
+    this.chatService.removeChatMessage(originalMessage.msgId, true);
+    this.toastHandlerService.showErrorToastMessage('Message deleted');
   }
 
   /**
@@ -294,7 +311,7 @@ export default class CollaborationSession extends Service.extend({
           `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`,
           true,
           'disconnection_event'
-        ); // TODO: With several users come several disconnect messages. Maybe add random delay?
+        ); // TODO: With several users, several disconnect messages are sent. Maybe add random delay?
       }
     }
 
@@ -501,6 +518,7 @@ export default class CollaborationSession extends Service.extend({
   onChatMessageEvent({
     userId,
     originalMessage: {
+      msgId,
       msg,
       userName,
       timestamp,
@@ -513,6 +531,7 @@ export default class CollaborationSession extends Service.extend({
       this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
     }
     this.chatService.addChatMessage(
+      msgId,
       userId,
       msg,
       userName,

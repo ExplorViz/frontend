@@ -126,6 +126,10 @@ import {
   USER_KICK_EVENT,
   UserKickEvent,
 } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import {
+  MESSAGE_DELETE_EVENT,
+  MessageDeleteEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 export default class MessageSender extends Service {
   @service('web-socket')
@@ -634,6 +638,13 @@ export default class MessageSender extends Service {
     this.webSocket.send<UserKickEvent>(USER_KICK_EVENT, {
       event: 'user_kick_event',
       userId,
+    });
+  }
+
+  sendMessageDelete(msgId: number) {
+    this.webSocket.send<MessageDeleteEvent>(MESSAGE_DELETE_EVENT, {
+      event: 'message_delete_event',
+      msgId,
     });
   }
 }

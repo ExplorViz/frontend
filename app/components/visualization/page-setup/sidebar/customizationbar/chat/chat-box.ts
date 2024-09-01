@@ -8,6 +8,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { tracked } from '@glimmer/tracking';
 import * as THREE from 'three';
+import { next } from '@ember/runloop';
 
 interface chatUser {
   id: string;
@@ -34,6 +35,9 @@ export default class ChatBox extends Component {
   openFilterOptions = false;
 
   @tracked
+  openDeleteActions = false;
+
+  @tracked
   isFilterEnabled = false;
 
   @tracked
@@ -45,9 +49,39 @@ export default class ChatBox extends Component {
   @tracked
   usersInChat: chatUser[] = [];
 
+  @tracked selectedMessages: Set<number> = new Set();
+
   @action
   toggleFilter() {
     this.openFilterOptions = !this.openFilterOptions;
+  }
+
+  @action
+  toggleDeleteAction() {
+    this.openDeleteActions = !this.openDeleteActions;
+    if (!this.openDeleteActions) {
+      this.selectedMessages.clear();
+    }
+  }
+
+  @action
+  selectMessage(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const messageId = parseInt(target.dataset.messageId!, 10);
+    if (target.checked) {
+      this.selectedMessages.add(messageId);
+    } else {
+      this.selectedMessages.delete(messageId);
+    }
+  }
+
+  @action
+  deleteSelectedMessages() {
+    this.selectedMessages.forEach((messageId) => {
+      this.removeUserMessage(messageId);
+    });
+    this.selectedMessages.clear();
+    this.toggleDeleteAction();
   }
 
   @action
@@ -92,18 +126,20 @@ export default class ChatBox extends Component {
     this.chatService.filterChat(this.filterMode, this.filterValue);
   }
 
+  get userIsHost() {
+    return this.localUser.isHost;
+  }
+
   get filteredMessages() {
     return this.chatService.filteredChatMessages;
   }
 
-  @action
-  muteUser() {
-    this.chatService.muteUser();
-  }
-
-  @action
-  unmuteUser() {
-    this.chatService.unmuteUser();
+  get deletedMessage() {
+    const value = this.chatService.deletedMessage;
+    next(this, function resetDeletedMessage() {
+      this.chatService.deletedMessage = false;
+    });
+    return value;
   }
 
   @action
@@ -190,6 +226,14 @@ export default class ChatBox extends Component {
       : '.chat-thread.normal';
     const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
     if (chatThread) {
+      // If message already exists, don't post it again
+      const existingMessage = chatThread.querySelector(
+        `.message-container[data-message-id="${chatMessage.msgId}"]`
+      );
+      if (existingMessage) {
+        return;
+      }
+
       // Create container div for the message
       const messageContainer = document.createElement('div');
       messageContainer.classList.add('message-container');
@@ -229,6 +273,13 @@ export default class ChatBox extends Component {
         eventButton.onclick = () => this.handleEventClick(chatMessage);
 
         messageLi.appendChild(eventButton);
+      }
+
+      const checkbox = messageContainer.querySelector('.delete-checkbox');
+      if (checkbox) {
+        checkbox.addEventListener('change', (event) =>
+          this.selectMessage(event)
+        );
       }
 
       // Add the timestamp at the end of the message
@@ -288,7 +339,6 @@ export default class ChatBox extends Component {
     }
   }
 
-  @action
   removeUserMessage(messageId: number) {
     this.chatService.removeChatMessage(messageId);
     this.removeMessage(messageId);
@@ -306,7 +356,6 @@ export default class ChatBox extends Component {
         );
         if (messageToRemove) {
           messageToRemove.remove();
-          this.chatService.removeChatMessage(messageId);
         }
       }
     }
@@ -315,6 +364,8 @@ export default class ChatBox extends Component {
   private clearChat(thread: string) {
     const chatThread = document.querySelector(thread) as HTMLElement;
     if (chatThread) {
+      const messages = document.querySelectorAll('.message-container');
+      messages.forEach((msg) => msg.remove());
       this.filteredMessages.forEach((chatMessage) => {
         const messageToRemove = chatThread.querySelector(
           `.message-container[data-message-id="${chatMessage.msgId}"]`
@@ -323,6 +374,8 @@ export default class ChatBox extends Component {
           messageToRemove.remove();
         }
       });
+      const messageItems = document.querySelectorAll('.message-item');
+      messageItems.forEach((msgItem) => msgItem.remove());
     }
   }
 

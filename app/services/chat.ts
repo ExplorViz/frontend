@@ -44,6 +44,9 @@ export default class ChatService extends Service {
   @tracked
   msgId: number = 1;
 
+  @tracked
+  deletedMessage: boolean = false; // Can be adjusted to needSynchronization, so chat be synchronized whenever necessary..
+
   sendChatMessage(
     userId: string,
     msg: string,
@@ -52,7 +55,16 @@ export default class ChatService extends Service {
     eventData: any[] = []
   ) {
     if (this.collaborationSession.connectionStatus == 'offline') {
-      this.addChatMessage(userId, msg, '', '', isEvent, eventType, eventData);
+      this.addChatMessage(
+        this.msgId++,
+        userId,
+        msg,
+        '',
+        '',
+        isEvent,
+        eventType,
+        eventData
+      );
     } else {
       const timestamp = this.getTime();
       const userName = this.localUser.userName;
@@ -69,6 +81,7 @@ export default class ChatService extends Service {
   }
 
   addChatMessage(
+    msgId: number,
     userId: string,
     msg: string,
     username: string = '',
@@ -93,7 +106,7 @@ export default class ChatService extends Service {
     }
 
     const chatMessage: ChatMessageInterface = {
-      msgId: this.msgId++,
+      msgId,
       userId,
       userName,
       userColor,
@@ -110,11 +123,16 @@ export default class ChatService extends Service {
     this.applyCurrentFilter();
   }
 
-  removeChatMessage(messageId: number) {
+  removeChatMessage(messageId: number, received?: boolean) {
     this.chatMessages = this.chatMessages.filter(
       (msg) => msg.msgId !== messageId
     );
-    //this.removeChatMessageFromServer(messageId);
+
+    if (!received) {
+      this.sender.sendMessageDelete(messageId);
+    } else {
+      this.deletedMessage = true;
+    }
   }
 
   findEventByUserId(userId: string, eventType: string) {
@@ -124,14 +142,30 @@ export default class ChatService extends Service {
     return messages.length > 0;
   }
 
-  muteUser(userId: string) {
-    this.userIdMuteList?.push(userId);
-    this.sender.sendUserMuteUpdate(userId);
-  }
+  toggleMuteStatus(userId: string) {
+    const remoteUser = this.collaborationSession.getUserById(userId);
+    if (!remoteUser) {
+      return;
+    }
 
-  unmuteUser(userId: string) {
-    this.userIdMuteList =
-      this.userIdMuteList?.filter((id) => userId !== id) || [];
+    if (this.isUserMuted(userId)) {
+      this.userIdMuteList =
+        this.userIdMuteList?.filter((id) => userId !== id) || [];
+      this.sendChatMessage(
+        this.localUser.userId,
+        `${remoteUser.userName}(${remoteUser.userId})` + ' was unmuted',
+        true,
+        'mute_event'
+      );
+    } else {
+      this.userIdMuteList?.push(userId);
+      this.sendChatMessage(
+        this.localUser.userId,
+        `${remoteUser.userName}(${remoteUser.userId})` + ' was muted',
+        true,
+        'mute_event'
+      );
+    }
     this.sender.sendUserMuteUpdate(userId);
   }
 
@@ -185,6 +219,7 @@ export default class ChatService extends Service {
     this.chatMessages = [];
     messages.forEach((msg) =>
       this.addChatMessage(
+        msg.msgId,
         msg.userId,
         msg.msg,
         msg.userName,

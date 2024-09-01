@@ -36,6 +36,7 @@ import { CHAT_MESSAGE_EVENT } from 'collaboration/utils/web-socket-messages/rece
 import { CHAT_SYNC_EVENT } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import { io, Socket } from 'socket.io-client';
 import { USER_KICK_EVENT } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import { MESSAGE_DELETE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -73,6 +74,7 @@ const RECEIVABLE_EVENTS = [
   CHAT_MESSAGE_EVENT,
   CHAT_SYNC_EVENT,
   USER_KICK_EVENT,
+  MESSAGE_DELETE_EVENT,
 ];
 
 const RESPONSE_EVENTS = [

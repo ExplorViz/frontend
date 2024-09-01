@@ -29,6 +29,18 @@
             {{/if}}
         </div>
         <div class="chat-right-buttons">
+            {{#if this.userIsHost}}
+            <div class="host-actions">
+                <BsButton {{on "click" this.toggleDeleteAction}} title="Host action">
+                    {{svg-jar "trash-16" class='octicon align-middle'}}
+                </BsButton>
+                {{#if this.openDeleteActions}}
+                <BsButton {{on "click" this.deleteSelectedMessages}} title="Delete Selected Messages" @type="danger">
+                    Delete
+                </BsButton>
+                {{/if}}
+            </div>
+            {{/if}}
             <div class="synchronize">
                 <BsButton {{on "click" this.synchronize}} title="Synchronize">
                     {{svg-jar "sync-16" class='octicon align-middle'}}
@@ -42,16 +54,33 @@
         </div>
     </div>
 
+    {{#if this.deletedMessage}}
+    {{this.synchronize}}
+    {{/if}}
     {{#if this.isFilterEnabled}}
     <ul class="chat-thread filtered">
         {{#each this.filteredMessages as |message|}}
-        {{this.postMessage message}}
+        <div class="message-item">
+            {{#if this.openDeleteActions}}
+            <label>
+                <input type="checkbox" name="delete-checkbox" class="delete-checkbox" data-message-id={{message.msgId}} {{on "change" this.selectMessage}}>
+            </label>
+            {{/if}}
+            {{this.postMessage message}}
+        </div>
         {{/each}}
     </ul>
     {{else}}
     <ul class="chat-thread normal">
         {{#each this.chatService.chatMessages as |message|}}
-        {{this.postMessage message}}
+        <div class="message-item">
+            {{#if this.openDeleteActions}}
+            <label>
+                <input type="checkbox" name="delete-checkbox" class="delete-checkbox" data-message-id={{message.msgId}} {{on "change" this.selectMessage}}>
+            </label>
+            {{/if}}
+            {{this.postMessage message}}
+        </div>
         {{/each}}
     </ul>
     {{/if}}

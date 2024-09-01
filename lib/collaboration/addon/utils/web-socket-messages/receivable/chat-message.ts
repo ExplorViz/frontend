@@ -2,6 +2,7 @@ export const CHAT_MESSAGE_EVENT = 'chat_message';
 
 export type ChatMessage = {
   event: typeof CHAT_MESSAGE_EVENT;
+  msgId: number;
   userid: string;
   msg: string;
   userName: string;
@@ -16,6 +17,7 @@ export function isChatMessageReceived(msg: any): msg is ChatMessage {
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === CHAT_MESSAGE_EVENT &&
+    typeof msg.msgId === 'number' &&
     typeof msg.userid === 'string' &&
     typeof msg.msg === 'string' &&
     typeof msg.userName === 'string' &&

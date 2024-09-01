@@ -178,11 +178,10 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
 
       if (this.chatService.isUserMuted(userId)) {
         this.mutedUsers = this.mutedUsers.filter((id) => id !== userId);
-        this.chatService.unmuteUser(userId);
       } else {
         this.mutedUsers = [...this.mutedUsers, userId];
-        this.chatService.muteUser(userId);
       }
+      this.chatService.toggleMuteStatus(userId);
     }
   }
 
