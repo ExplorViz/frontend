@@ -46,7 +46,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
-
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
@@ -231,7 +231,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
       { title: semanticZoomButtonTitle, action: this.toggleSemanticZoom },
-      { title: semanticZoomButtonTitle, action: () => {} },
     ];
   }
 
@@ -344,6 +343,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
 
+    // Add Camera to ImmersiveView manager
+    ImmersiveView.instance.registerCamera(this.camera);
+    ImmersiveView.instance.registerScene(this.scene);
+
     this.localUser.ortographicCamera = new THREE.OrthographicCamera(
       -aspectRatio * this.frustumSize,
       aspectRatio * this.frustumSize,
@@ -399,6 +402,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       renderer: this.renderer,
       updatables: this.updatables,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
     this.graph.onFinishUpdate(() => {
@@ -541,12 +545,16 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     if (intersection) {
+      //debugger;
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
+      ImmersiveView.instance.takeHistory(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
+      ImmersiveView.instance.takeHistory(0);
     }
+
     this.popupHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey)

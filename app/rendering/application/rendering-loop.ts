@@ -52,6 +52,14 @@ export default class RenderingLoop {
     this.zoomHandler = args.zoomHandler;
   }
 
+  changeScene(scene: THREE.Scene) {
+    this.scene = scene;
+  }
+
+  changeCamera(cam: THREE.Camera) {
+    this.camera = cam;
+  }
+
   start() {
     this.renderer.setAnimationLoop((_timestamp, frame) => {
       const { value: showFpsCounter } =

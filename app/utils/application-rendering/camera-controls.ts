@@ -11,6 +11,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import { MapControls } from '../controls/MapControls';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
 export default class CameraControls {
   @service('user-settings')
@@ -22,6 +23,11 @@ export default class CameraControls {
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
   enabled: boolean = true;
+
+  lastTargetPosition: THREE.Vector3;
+  lastCameraPosition: THREE.Vector3;
+  lastQuaternion: THREE.Quaternion;
+  lastDistance: number;
 
   constructor(
     owner: any,
@@ -47,6 +53,55 @@ export default class CameraControls {
       //SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
       SemanticZoomManager.instance.triggerLevelDecision2(this.perspectiveCamera)
     );
+    //
+    // ImmersiveView Tracker
+    this.lastDistance = perspectiveCamera.position.distanceTo(
+      this.perspectiveCameraControls.target
+    );
+    this.lastTargetPosition = this.perspectiveCameraControls.target.clone();
+    this.lastCameraPosition = this.perspectiveCamera.position.clone();
+    this.lastQuaternion = this.perspectiveCamera.quaternion.clone();
+
+    this.perspectiveCameraControls.addEventListener('end', () => {
+      const currentDistance = this.perspectiveCamera.position.distanceTo(
+        this.perspectiveCameraControls.target
+      );
+      const currentTargetPosition = this.perspectiveCameraControls.target;
+      const currentQuaternion = this.perspectiveCamera.quaternion;
+
+      // Detect Zoom In or Out
+      if (Math.abs(currentDistance - this.lastDistance) > 0.001) {
+        if (currentDistance < this.lastDistance) {
+          //console.log('Zooming in');
+          ImmersiveView.instance.actionHistory.push('zoomin');
+        } else {
+          //console.log('Zooming out');
+          ImmersiveView.instance.actionHistory.push('zoomout');
+        }
+      }
+
+      // Detect Pan
+      else if (
+        currentTargetPosition.distanceTo(this.lastTargetPosition) > 0.001 &&
+        currentDistance === this.lastDistance
+      ) {
+        //console.log('Pan occurred');
+        ImmersiveView.instance.actionHistory.push('move');
+      }
+
+      // Detect Rotation (Tilt)
+      else if (!currentQuaternion.equals(this.lastQuaternion)) {
+        //console.log('Rotation occurred');
+        ImmersiveView.instance.actionHistory.push('rotate');
+      }
+
+      // Update previous values for the next change event
+      this.lastDistance = currentDistance;
+      this.lastTargetPosition.copy(currentTargetPosition);
+      this.lastQuaternion.copy(currentQuaternion);
+      this.lastCameraPosition.copy(this.perspectiveCamera.position);
+    });
+
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
         this.orthographicCamera!,
@@ -58,6 +113,14 @@ export default class CameraControls {
       this.orthographicCameraControls.minDistance = 0.1;
       this.orthographicCameraControls.maxDistance = 1000;
       this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
+      //
+      // Semantic Zoom trigger Level Decision
+      this.orthographicCameraControls.addEventListener('end', () =>
+        //SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
+        SemanticZoomManager.instance.triggerLevelDecision2(
+          this.orthographicCamera
+        )
+      );
     }
   }
 
