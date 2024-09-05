@@ -69,7 +69,7 @@ export function isLandscape(x: any): x is StructureLandscapeData {
 }
 
 export function isNode(x: any): x is Node {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'applications');
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'hostName');
 }
 
 export function isApplication(x: any): x is Application {
@@ -113,6 +113,7 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   function createApplicationId(app: Application, parent: Node | K8sPod) {
+    debugger;
     app.id = `${parent.id}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
