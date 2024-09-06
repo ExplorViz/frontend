@@ -98,8 +98,9 @@ export function getNodeById(
 export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData
 ) {
-  const entitiesForIdHashing: Set<Class | Package | Application | Node> =
-    new Set();
+  const entitiesForIdHashing: Set<
+    Class | Package | Application | Node | K8sPod
+  > = new Set();
 
   function createNodeId(node: Node | K8sPod) {
     if (isNode(node)) {
@@ -110,10 +111,10 @@ export function preProcessAndEnhanceStructureLandscape(
     }
     const { name } = node;
     node.id = name;
+    entitiesForIdHashing.add(node);
   }
 
   function createApplicationId(app: Application, parent: Node | K8sPod) {
-    debugger;
     app.id = `${parent.id}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
