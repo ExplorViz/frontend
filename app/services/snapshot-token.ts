@@ -22,7 +22,7 @@ export type SnapshotToken = {
   };
   serializedRoom: SerializedRoom;
   timestamps: { timestamps: Timestamp[] };
-  camera: any;
+  camera: { x: number; y: number; z: number };
   isShared: boolean;
   subscribedUsers: { subscriberList: string[] };
   deleteAt: number;
