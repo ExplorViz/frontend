@@ -5,7 +5,10 @@ import BoxMesh from './box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
 import { VisualizationMode } from 'collaboration/services/local-user';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
-import { ImmersiveViewMixin } from 'explorviz-frontend/rendering/application/immersive-view';
+import {
+  ImmersiveView,
+  ImmersiveViewMixin,
+} from 'explorviz-frontend/rendering/application/immersive-view';
 import { light, skylight } from 'explorviz-frontend/utils/scene';
 
 export class _ClazzMesh extends BoxMesh {
@@ -159,6 +162,13 @@ export class _ClazzMesh extends BoxMesh {
    */
   enterImmersiveView = (camera: THREE.Camera, scene: THREE.Scene) => {
     // Register Exit command
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        ImmersiveView.instance.exitObject(this);
+        // TODO fix Remove of the Listener
+        document.removeEventListener('keydown', this);
+      }
+    });
     //ImmersiveView.instance.exitObject(this);
 
     //(camera as OrbitControls).enablePan = false;

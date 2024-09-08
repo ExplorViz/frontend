@@ -79,14 +79,25 @@ export class ImmersiveView {
   }
 
   decide() {
+    const lastMouseOver =
+      this.mouseOverHistory[this.mouseOverHistory.length - 1];
+    // if (this.insideImmersiveViewActive == true) {
+    //   debugger;
+    //   if (this.actionHistory.length < 10) return;
+    //   // we are inside an active immersive view. Check if the view shell be ended.
+    //   const lastTenActions = this.actionHistory.slice(-10);
+    //   const allZoomOut = lastTenActions.every((action) => action === 'zoomout');
+    //   if (allZoomOut) {
+    //     this.exitObject(lastMouseOver);
+    //   }
+    //   return;
+    // }
     // Check if the last three user actions are "zoom"
     const lastThreeActions = this.actionHistory.slice(-3);
     const allZoom = lastThreeActions.every((action) => action === 'zoomin');
     if (lastThreeActions.length == 0) return;
     if (allZoom) {
       // Check if the last element in mouseOverHistory is an instance of ImmersiveViewCapable
-      const lastMouseOver =
-        this.mouseOverHistory[this.mouseOverHistory.length - 1];
       if (this.isImmersiveViewCapable(lastMouseOver)) {
         this.triggerObject(lastMouseOver);
       }
@@ -143,6 +154,7 @@ export class ImmersiveView {
     );
     this.renderingLoop?.changeScene(this.originalScene);
     //this.renderingLoop?.changeCamera(this.originalCamera);
+    this.insideImmersiveViewActive = false;
   }
 }
 
@@ -207,6 +219,7 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
     ): Array<THREE.Camera | THREE.Scene> {
       const ret = new Array<THREE.Camera | THREE.Scene>();
       void originalScene; // TODO delete
+      originalScene.remove(orignalCam);
       ret.push(orignalCam);
       ret.push(createScene('browser'));
       return ret;
@@ -229,12 +242,13 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
       throw new Error('This function must be implemented in the child class.');
     }
     _exitImmersiveView(
-      _orignalCam: THREE.Camera,
-      _originalScene: THREE.Scene,
+      orignalCam: THREE.Camera,
+      originalScene: THREE.Scene,
       camera: THREE.Camera,
       scene: THREE.Scene
     ): void {
       this.exitImmersiveView(camera, scene);
+      originalScene.add(orignalCam);
     }
     exitImmersiveView(camera: THREE.Camera, scene: THREE.Scene): void {
       void camera; // TODO Delete
