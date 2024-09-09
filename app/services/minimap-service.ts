@@ -68,6 +68,7 @@ export default class MinimapService extends Service {
     this.localUser.minimapCamera.layers.enable(5); //ping layer
     this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
     this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
+    this.localUser.minimapCamera.layers.enable(8); //localminimapmarker layer
 
     //Todo: Diese Kommentare als Konstante
 
@@ -84,6 +85,9 @@ export default class MinimapService extends Service {
       this.intersection,
       'localUser'
     );
+
+    this.minimapUserMarkers.get('localUser')!.layers.enable(8);
+    this.minimapUserMarkers.get('localUser')!.layers.disable(7);
 
     this.scene.add(this.minimapUserMarkers.get('localUser')!);
   }
