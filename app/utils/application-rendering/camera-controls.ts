@@ -102,6 +102,7 @@ export default class CameraControls {
       this.lastCameraPosition.copy(this.perspectiveCamera.position);
     });
 
+    ImmersiveView.instance.registerMapControl(this.perspectiveCameraControls);
     if (orthographicCamera) {
       this.orthographicCameraControls = new MapControls(
         this.orthographicCamera!,
@@ -121,6 +122,10 @@ export default class CameraControls {
           this.orthographicCamera
         )
       );
+      // TODO find a way toi determine the current active camera and only register it.
+      // ImmersiveView.instance.registerMapControl(
+      //   this.orthographicCameraControls
+      // );
     }
   }
 

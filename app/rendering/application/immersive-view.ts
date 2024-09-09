@@ -3,6 +3,8 @@ import { createScene } from 'explorviz-frontend/utils/scene';
 // import THREE from 'three';
 import * as THREE from 'three';
 import RenderingLoop from './rendering-loop';
+import { MapControls } from 'explorviz-frontend/utils/controls/MapControls';
+import { OrbitControls } from 'explorviz-frontend/utils/controls/OrbitControls';
 
 type UserAction = 'zoomin' | 'zoomout' | 'rotate' | 'move';
 
@@ -23,9 +25,12 @@ export class ImmersiveView {
   // Scenes and Views
   originalScene: THREE.Scene | undefined;
   originalCamera: THREE.Camera | undefined;
+  originalCanvas: HTMLCanvasElement | undefined;
+  originalMapControl: MapControls | undefined;
 
   currentScene: THREE.Scene | undefined;
   currentCamera: THREE.Camera | undefined;
+  currentCameraControl: MapControls | OrbitControls | undefined;
 
   renderingLoop: RenderingLoop | undefined;
 
@@ -52,6 +57,12 @@ export class ImmersiveView {
   }
   registerScene(scene: THREE.Scene) {
     this.originalScene = scene;
+  }
+  registerCanvas(canvas: HTMLCanvasElement) {
+    this.originalCanvas = canvas;
+  }
+  registerMapControl(cameraControls: MapControls) {
+    this.originalMapControl = cameraControls;
   }
 
   registerRenderingLoop(renderingLoop: RenderingLoop) {
@@ -137,7 +148,10 @@ export class ImmersiveView {
     viewObject._enterImmersiveView(immersiveCam, immersiveScene);
     // Attach to render loop
     this.renderingLoop?.changeScene(immersiveScene);
-    //this.renderingLoop?.changeCamera(immersiveCam);
+    this.renderingLoop?.changeCamera(immersiveCam);
+    // Deactivate current Map Control
+    if (this.originalMapControl != undefined)
+      this.originalMapControl.enabled = false;
   }
   exitObject(viewObject: ImmersiveViewCapable) {
     if (this.originalCamera == undefined || this.originalScene == undefined) {
@@ -153,8 +167,11 @@ export class ImmersiveView {
       this.currentScene
     );
     this.renderingLoop?.changeScene(this.originalScene);
-    //this.renderingLoop?.changeCamera(this.originalCamera);
+    this.renderingLoop?.changeCamera(this.originalCamera);
     this.insideImmersiveViewActive = false;
+    // enable Map Controls again
+    if (this.originalMapControl != undefined)
+      this.originalMapControl.enabled = true;
   }
 }
 
@@ -214,13 +231,37 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
       return target;
     }
     buildSceneandCamera(
-      orignalCam: THREE.Camera,
+      originalCam: THREE.Camera,
       originalScene: THREE.Scene
     ): Array<THREE.Camera | THREE.Scene> {
       const ret = new Array<THREE.Camera | THREE.Scene>();
-      void originalScene; // TODO delete
-      originalScene.remove(orignalCam);
-      ret.push(orignalCam);
+      //void originalScene; // TODO delete
+      originalScene.remove(originalCam);
+      //const iCamera = new THREE.PerspectiveCamera(45, 1920 / 1080, 1, 1000);
+      const iCamera = originalCam.clone();
+      const camcontrol = new MapControls(
+        iCamera,
+        ImmersiveView.instance.originalCanvas
+      );
+      // const camcontrol = new PointerLockControls(
+      //   iCamera,
+      //   ImmersiveView.instance.originalCanvas
+      // );
+      camcontrol.enableDamping = true;
+      camcontrol.dampingFactor = 0.3;
+      camcontrol.minDistance = 0.1;
+      camcontrol.maxDistance = 1;
+      camcontrol.maxPolarAngle = Math.PI / 2;
+      camcontrol.enablePan = false;
+      camcontrol.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        // MIDDLE: MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.ROTATE,
+      };
+      camcontrol.update();
+      ImmersiveView.instance.currentCameraControl = camcontrol;
+      //ret.push(orignalCam);
+      ret.push(iCamera);
       ret.push(createScene('browser'));
       return ret;
       // throw new Error(

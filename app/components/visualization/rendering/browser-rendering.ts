@@ -346,6 +346,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // Add Camera to ImmersiveView manager
     ImmersiveView.instance.registerCamera(this.camera);
     ImmersiveView.instance.registerScene(this.scene);
+    ImmersiveView.instance.registerCanvas(this.canvas);
 
     this.localUser.ortographicCamera = new THREE.OrthographicCamera(
       -aspectRatio * this.frustumSize,
@@ -539,6 +540,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       if (applicationObject3D instanceof ApplicationObject3D) {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
       }
+    }
+    if (ImmersiveView.instance.isImmersiveViewCapable(mesh)) {
+      ImmersiveView.instance.triggerObject(mesh);
     }
   }
 
