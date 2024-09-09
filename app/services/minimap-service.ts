@@ -6,6 +6,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import RemoteUser from 'collaboration/utils/remote-user';
+import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 
 export default class MinimapService extends Service {
   @service('user-settings')
@@ -25,6 +26,8 @@ export default class MinimapService extends Service {
   @tracked
   minimapSize!: number;
 
+  cameraControls!: CameraControls;
+
   graph!: ForceGraph;
 
   minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
@@ -37,7 +40,12 @@ export default class MinimapService extends Service {
 
   scene!: THREE.Scene;
 
-  initMinimap(scene: THREE.Scene, graph: ForceGraph) {
+  initMinimap(
+    scene: THREE.Scene,
+    graph: ForceGraph,
+    cameraControls: CameraControls
+  ) {
+    this.cameraControls = cameraControls;
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
       -1,
       1,
@@ -46,7 +54,7 @@ export default class MinimapService extends Service {
       0.1,
       100
     );
-    this.localUser.minimapCamera.position.set(0, 10, 0);
+    this.localUser.minimapCamera.position.set(0, 1, 0);
     this.localUser.minimapCamera.lookAt(new THREE.Vector3(0, -1, 0));
     this.localUser.minimapCamera.layers.disable(0); //default layer
     this.localUser.minimapCamera.layers.enable(1); //foundation layer
@@ -56,6 +64,8 @@ export default class MinimapService extends Service {
     this.localUser.minimapCamera.layers.enable(5); //ping layer
     this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
     this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
+
+    //Todo: Diese Kommentare als Konstante
 
     this.intersection = new THREE.Vector3(0, 0, 0);
 
@@ -81,14 +91,29 @@ export default class MinimapService extends Service {
   }
 
   private getCurrentFocus() {
-    let newPos = new THREE.Vector3();
+    const intersection = new THREE.Vector3();
+    if (!this.settings.applicationSettings.version2.value) {
+      intersection.copy(this.cameraControls.perspectiveCameraControls.target);
+    } else {
+      intersection.copy(this.localUser.camera.position);
+    }
+    this.intersection = this.checkBoundingBox(intersection);
+  }
 
-    newPos = this.raycaster.raycastToGround(
-      this.localUser.camera,
-      this.graph.boundingBox,
-      this.userSettings.applicationSettings.version2.value
-    );
-    this.intersection = newPos;
+  private checkBoundingBox(intersection: THREE.Vector3): THREE.Vector3 {
+    if (this.graph.boundingBox) {
+      if (intersection.x > this.graph.boundingBox.max.x) {
+        intersection.x = this.graph.boundingBox.max.x;
+      } else if (intersection.x < this.graph.boundingBox.min.x) {
+        intersection.x = this.graph.boundingBox.min.x;
+      }
+      if (intersection.z > this.graph.boundingBox.max.z) {
+        intersection.z = this.graph.boundingBox.max.z;
+      } else if (intersection.z < this.graph.boundingBox.min.z) {
+        intersection.z = this.graph.boundingBox.min.z;
+      }
+    }
+    return intersection;
   }
 
   initializeUserMinimapMarker(
@@ -128,15 +153,45 @@ export default class MinimapService extends Service {
       );
       return;
     }
+    const position = this.checkBoundingBox(intersection);
     const minimapMarker = this.minimapUserMarkers.get(name)!;
-    minimapMarker.position.set(intersection.x, 0.5, intersection.z);
+    minimapMarker.position.set(position.x, 0.5, position.z);
   }
 
   deleteUserMinimapMarker(name: string) {
     const minimapMarker = this.minimapUserMarkers.get(name);
     if (minimapMarker) {
+      this.scene.remove(minimapMarker);
       this.minimapUserMarkers.delete(name);
     }
+  }
+
+  isClickInsideMinimap(event: MouseEvent) {
+    const minimap = this.minimap();
+    const minimapHeight = minimap[0];
+    const minimapWidth = minimap[1];
+    const minimapX = minimap[2];
+    const minimapY = window.innerHeight - minimap[3] - minimapHeight;
+
+    const xInBounds =
+      event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
+    const yInBounds =
+      event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
+
+    return xInBounds && yInBounds;
+  }
+
+  handleHit(userHit: RemoteUser) {
+    if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
+      return;
+    this.localUser.camera.position.copy(userHit.camera!.model.position);
+    this.localUser.camera.quaternion.copy(userHit.camera!.model.quaternion);
+    this.cameraControls.perspectiveCameraControls.target.copy(
+      this.raycaster.raycastToCameraTarget(
+        this.localUser.minimapCamera,
+        this.graph.boundingBox
+      )
+    );
   }
 
   updateMinimapCamera() {
@@ -163,7 +218,9 @@ export default class MinimapService extends Service {
         this.intersection.z
       );
     } else {
-      this.localUser.minimapCamera.position.set(0, 1, 0);
+      const center = new THREE.Vector3();
+      boundingBox.getCenter(center);
+      this.localUser.minimapCamera.position.set(center.x, 1, center.z);
     }
     // Update the minimap camera's projection matrix
     this.localUser.minimapCamera.updateProjectionMatrix();

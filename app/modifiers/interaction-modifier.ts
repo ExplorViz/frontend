@@ -333,14 +333,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
-    const isOnMinimap = this.isClickInsideMinimap(event);
+    const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
     if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
       this.minimapService.makeFullsizeMinimap = false;
       this.localUser.cameraControls!.enabled = true;
     } else if (isOnMinimap) {
       const ray = this.raycastOnMinimap(event);
       if (ray) {
-        this.handleHit(ray);
+        this.minimapService.handleHit(
+          this.collaborativeSession.getUserById(ray.object.name) as RemoteUser
+        );
       } else {
         if (this.minimapService.makeFullsizeMinimap) {
           this.minimapService.makeFullsizeMinimap = false;
@@ -407,35 +409,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       origin,
       Array.from(this.minimapService.minimapUserMarkers.values()!)
     );
-  }
-
-  isClickInsideMinimap(event: MouseEvent) {
-    const minimap = this.minimapService.minimap();
-    const minimapHeight = minimap[0];
-    const minimapWidth = minimap[1];
-    const minimapX = minimap[2];
-    const minimapY = window.innerHeight - minimap[3] - minimapHeight;
-
-    const xInBounds =
-      event.clientX >= minimapX && event.clientX <= minimapX + minimapWidth;
-    const yInBounds =
-      event.clientY >= minimapY && event.clientY <= minimapY + minimapHeight;
-
-    return xInBounds && yInBounds;
-  }
-
-  handleHit(object: THREE.Intersection | null) {
-    const userHit = this.collaborativeSession.getUserById(
-      object!.object.name
-    ) as RemoteUser;
-    this.spectateUserService.activateForMinimap(
-      userHit!,
-      this.localUser.userId
-    );
-
-    setTimeout(() => {
-      this.spectateUserService.deactivate(false);
-    }, 10);
   }
 
   createPointerStopEvent() {

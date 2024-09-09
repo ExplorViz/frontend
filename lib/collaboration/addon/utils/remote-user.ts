@@ -230,19 +230,7 @@ export default class RemoteUser extends THREE.Object3D {
         controller.ray.scale.z = distance;
       }
     });
-    // this.updateMinimapMarker();
   }
-
-  // updateMinimapMarker() {
-  //   const minimapMarker = this.minimapService.minimapUserMarkers.get(
-  //     this.userId
-  //   )!;
-  //   minimapMarker.position.set(
-  //     this.camera!.model.position.x,
-  //     minimapMarker.position.y,
-  //     this.camera!.model.position.z
-  //   );
-  // }
 
   updateController(
     controllerId: ControllerId,

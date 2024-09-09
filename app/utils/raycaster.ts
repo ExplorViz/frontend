@@ -42,7 +42,7 @@ export default class Raycaster extends THREE.Raycaster {
 
   minimapService?: MinimapService;
 
-  groundPlane = new THREE.Plane(new THREE.Vector3(0, -0.54, 0), 0); // Virtual ground Plane used to intersect raycast
+  groundPlane = new THREE.Plane();
 
   cam: THREE.Camera | null = null;
 
@@ -59,6 +59,7 @@ export default class Raycaster extends THREE.Raycaster {
     super();
     this.minimapCam = minimap;
     this.minimapService = minimapService;
+    this.groundPlane.set(new THREE.Vector3(0, 0.165, 0), 0);
   }
 
   raycasting(
@@ -118,10 +119,7 @@ export default class Raycaster extends THREE.Raycaster {
     return null;
   }
 
-  raycastToGround(camera: THREE.Camera, box: THREE.Box3, version2: boolean) {
-    if (version2) {
-      return this.checkBoundingBox(new THREE.Vector3().copy(camera.position));
-    }
+  raycastToCameraTarget(camera: THREE.Camera, box: THREE.Box3) {
     this.cam = camera;
     this.boundingBox = box;
 
@@ -132,32 +130,6 @@ export default class Raycaster extends THREE.Raycaster {
     const intersectionPoint = new THREE.Vector3();
     this.ray.intersectPlane(this.groundPlane, intersectionPoint);
 
-    // Calculate the difference between the last point and the intersection point
-    const difference = new THREE.Vector3().subVectors(
-      intersectionPoint,
-      this.lastPoint
-    );
-    const adjustedIntersectionPoint = new THREE.Vector3().addVectors(
-      this.lastPoint,
-      difference
-    );
-
-    return this.checkBoundingBox(adjustedIntersectionPoint);
-  }
-
-  checkBoundingBox(intersectionPoint: THREE.Vector3) {
-    if (this.boundingBox) {
-      if (intersectionPoint.x > this.boundingBox.max.x) {
-        intersectionPoint.x = this.boundingBox.max.x;
-      } else if (intersectionPoint.x < this.boundingBox.min.x) {
-        intersectionPoint.x = this.boundingBox.min.x;
-      }
-      if (intersectionPoint.z > this.boundingBox.max.z) {
-        intersectionPoint.z = this.boundingBox.max.z;
-      } else if (intersectionPoint.z < this.boundingBox.min.z) {
-        intersectionPoint.z = this.boundingBox.min.z;
-      }
-    }
     return intersectionPoint;
   }
 }
