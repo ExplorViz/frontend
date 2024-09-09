@@ -4,10 +4,10 @@ import debugLogger from 'ember-debug-logger';
 
 export default class SidebarHandler {
   @tracked
-  components: string[] = [];
+  openedSettingComponent: string | null = null;
 
   @tracked
-  componentsToolsSidebar: string[] = [];
+  openedToolComponent: string | null = null;
 
   @tracked
   showSettingsSidebar = false;
@@ -20,23 +20,16 @@ export default class SidebarHandler {
   // #region Sidebars
 
   @action
-  closeDataSelection() {
-    this.debug('closeDataSelection');
-    this.showSettingsSidebar = false;
-    this.components = [];
-  }
-
-  @action
-  closeToolsSidebar() {
-    this.debug('closeToolsSidebar');
-    this.showToolsSidebar = false;
-    this.componentsToolsSidebar = [];
-  }
-
-  @action
   openSettingsSidebar() {
     this.debug('openSettingsSidebar');
     this.showSettingsSidebar = true;
+  }
+
+  @action
+  closeSettingsSidebar() {
+    this.debug('closeSettingsSidebar');
+    this.showSettingsSidebar = false;
+    this.openedSettingComponent = null;
   }
 
   @action
@@ -46,22 +39,29 @@ export default class SidebarHandler {
   }
 
   @action
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.openedToolComponent = null;
+  }
+
+  @action
   toggleToolsSidebarComponent(component: string): boolean {
-    if (this.componentsToolsSidebar.includes(component)) {
-      this.componentsToolsSidebar = [];
+    if (this.openedToolComponent === component) {
+      this.openedToolComponent = null;
     } else {
-      this.componentsToolsSidebar = [component];
+      this.openedToolComponent = component;
     }
-    return this.componentsToolsSidebar.includes(component);
+    return this.openedToolComponent === component;
   }
 
   @action
   toggleSettingsSidebarComponent(component: string): boolean {
-    if (this.components.includes(component)) {
-      this.components = [];
+    if (this.openedSettingComponent === component) {
+      this.openedSettingComponent = null;
     } else {
-      this.components = [component];
+      this.openedSettingComponent = component;
     }
-    return this.components.includes(component);
+    return this.openedSettingComponent === component;
   }
 }

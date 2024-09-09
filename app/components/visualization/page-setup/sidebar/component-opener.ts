@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 
 interface Args {
-  components: string[];
+  openedComponent: string | null;
   componentTitle: string;
   componentId: string;
   toggleComponent(componentPath: string): boolean;
@@ -10,7 +10,7 @@ interface Args {
 
 export default class ComponentOpener extends Component<Args> {
   get isOpen() {
-    return this.args.components?.includes(this.args.componentId);
+    return this.args.openedComponent === this.args.componentId;
   }
 
   @action

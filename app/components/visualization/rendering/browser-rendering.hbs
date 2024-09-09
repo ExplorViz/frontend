@@ -99,23 +99,23 @@
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFilteringOpener
-                @components={{@componentsToolsSidebar}}
+                @openedComponent={{@openedToolComponent}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearchOpener
-                @components={{@componentsToolsSidebar}}
+                @openedComponent={{@openedToolComponent}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerOpener
-                @components={{@componentsToolsSidebar}}
+                @openedComponent={{@openedToolComponent}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
             </ul>
           </div>
-          {{#each @componentsToolsSidebar as |componentId|}}
+          {{#if @openedToolComponent}}
             <div class='card sidebar-card mt-3'>
               <div class='card-body d-flex flex-column'>
-                {{#if (eq componentId 'entity-filtering')}}
+                {{#if (eq @openedToolComponent 'entity-filtering')}}
                   <h5 class='text-center'>Entity Filtering</h5>
                   <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFiltering
                     @landscapeData={{@landscapeData}}
@@ -123,12 +123,12 @@
                     @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
                   />
                 {{/if}}
-                {{#if (eq componentId 'application-search')}}
+                {{#if (eq @openedToolComponent 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
                   <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch
                   />
                 {{/if}}
-                {{#if (eq componentId 'Trace-Replayer')}}
+                {{#if (eq @openedToolComponent 'Trace-Replayer')}}
                   {{#if this.selectedApplicationObject3D}}
                     <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelectionAndReplayer
                       @highlightTrace={{this.highlightTrace}}
@@ -144,7 +144,7 @@
                 {{/if}}
               </div>
             </div>
-          {{/each}}
+          {{/if}}
         </Visualization::PageSetup::Sidebar::Toolbar::ToolSelection>
       </div>
     </div>
@@ -153,45 +153,45 @@
     <div class='sidebar right col-4' id='dataselection'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
         <Visualization::PageSetup::Sidebar::Customizationbar::DataSelection
-          @closeDataSelection={{@closeDataSelection}}
+          @closeSettingsSidebar={{@closeSettingsSidebar}}
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
-                @components={{@components}}
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
-                @components={{@components}}
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::RestructureOpener
-                @components={{@components}}
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsOpener
-                @components={{@components}}
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
-                @components={{@components}}
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>
           </div>
-          {{#each @components as |componentId|}}
+          {{#if @openedSettingComponent}}
             <Visualization::PageSetup::Sidebar::SidebarComponent
-              @componentId={{componentId}}
+              @componentId={{@openedSettingComponent}}
             >
-              {{#if (eq componentId 'Collaboration')}}
+              {{#if (eq @openedSettingComponent 'Collaboration')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
                 />
               {{/if}}
-              {{#if (eq componentId 'VSCode-Extension-Settings')}}
+              {{#if (eq @openedSettingComponent 'VSCode-Extension-Settings')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
                 />
               {{/if}}
-              {{#if (eq componentId 'Restructure-Landscape')}}
+              {{#if (eq @openedSettingComponent 'Restructure-Landscape')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::Restructure
                   @landscapeData={{@landscapeData}}
                   @restructureLandscape={{@restructureLandscape}}
@@ -200,11 +200,11 @@
                   @removeTimestampListener={{@removeTimestampListener}}
                 />
               {{/if}}
-              {{#if (eq componentId 'Metrics')}}
+              {{#if (eq @openedSettingComponent 'Metrics')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsViewer
                 />
               {{/if}}
-              {{#if (eq componentId 'trace-selection')}}
+              {{#if (eq @openedSettingComponent 'trace-selection')}}
                 {{#if this.selectedApplicationObject3D}}
                   <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                     @highlightTrace={{this.highlightTrace}}
@@ -218,7 +218,7 @@
                   Please select an application to use the trace overview.
                 {{/if}}
               {{/if}}
-              {{#if (eq componentId 'Settings')}}
+              {{#if (eq @openedSettingComponent 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
                   @enterFullscreen={{this.enterFullscreen}}
                   @popups={{this.popupHandler.popupData}}
@@ -230,7 +230,7 @@
                 />
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>
-          {{/each}}
+          {{/if}}
         </Visualization::PageSetup::Sidebar::Customizationbar::DataSelection>
       </div>
     </div>
