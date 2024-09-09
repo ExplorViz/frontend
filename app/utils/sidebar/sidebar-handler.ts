@@ -48,9 +48,9 @@ export default class SidebarHandler {
   @action
   toggleToolsSidebarComponent(component: string): boolean {
     if (this.componentsToolsSidebar.includes(component)) {
-      this.removeToolsSidebarComponent(component);
+      this.componentsToolsSidebar = [];
     } else {
-      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+      this.componentsToolsSidebar = [component];
     }
     return this.componentsToolsSidebar.includes(component);
   }
@@ -58,39 +58,10 @@ export default class SidebarHandler {
   @action
   toggleSettingsSidebarComponent(component: string): boolean {
     if (this.components.includes(component)) {
-      this.removeComponent(component);
+      this.components = [];
     } else {
-      this.components = [component, ...this.components];
+      this.components = [component];
     }
     return this.components.includes(component);
-  }
-
-  @action
-  removeToolsSidebarComponent(path: string) {
-    if (this.componentsToolsSidebar.length === 0) {
-      return;
-    }
-
-    const index = this.componentsToolsSidebar.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const componentsToolsSidebar = [...this.componentsToolsSidebar];
-      componentsToolsSidebar.splice(index, 1);
-      this.componentsToolsSidebar = componentsToolsSidebar;
-    }
-  }
-
-  removeComponent(path: string) {
-    if (this.components.length === 0) {
-      return;
-    }
-
-    const index = this.components.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const components = [...this.components];
-      components.splice(index, 1);
-      this.components = components;
-    }
   }
 }

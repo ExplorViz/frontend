@@ -99,12 +99,15 @@
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFilteringOpener
+                @components={{@componentsToolsSidebar}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearchOpener
+                @components={{@componentsToolsSidebar}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerOpener
+                @components={{@componentsToolsSidebar}}
                 @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
               />
             </ul>
@@ -115,7 +118,6 @@
                 {{#if (eq componentId 'entity-filtering')}}
                   <h5 class='text-center'>Entity Filtering</h5>
                   <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFiltering
-                    @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
                     @landscapeData={{@landscapeData}}
                     @triggerRenderingForGivenLandscapeData={{@triggerRenderingForGivenLandscapeData}}
                     @pauseVisualizationUpdating={{@pauseVisualizationUpdating}}
@@ -124,7 +126,6 @@
                 {{#if (eq componentId 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
                   <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch
-                    @removeToolsSidebarComponent={{@removeToolsSidebarComponent}}
                   />
                 {{/if}}
                 {{#if (eq componentId 'Trace-Replayer')}}
@@ -157,18 +158,23 @@
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
               <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
+                @components={{@components}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
+                @components={{@components}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::RestructureOpener
+                @components={{@components}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsOpener
+                @components={{@components}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
               <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
+                @components={{@components}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>

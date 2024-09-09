@@ -6,13 +6,9 @@ import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import debugLogger from 'ember-debug-logger';
 
-interface VscodeExtensionSettingsArgs {
-  removeComponent(componentPath: string): void;
-}
-
 //const { vsCodeService } = ENV.backendAddresses;
 
-export default class VscodeExtensionSettings extends Component<VscodeExtensionSettingsArgs> {
+export default class VscodeExtensionSettings extends Component {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
@@ -21,13 +17,8 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   debug = debugLogger('VscodeExtensionSettings');
 
-  constructor(owner: any, args: VscodeExtensionSettingsArgs) {
+  constructor(owner: unknown, args: any) {
     super(owner, args);
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('vscode-extension-settings');
   }
 
   @action
