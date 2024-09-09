@@ -45,7 +45,6 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
-import remoteUser from 'collaboration/utils/remote-user';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 
 interface BrowserRenderingArgs {

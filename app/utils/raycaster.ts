@@ -5,8 +5,6 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import remoteUser from 'collaboration/utils/remote-user';
-import RemoteUser from 'collaboration/utils/remote-user';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 export let updateMinimap: boolean;
