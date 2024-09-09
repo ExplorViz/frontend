@@ -10,7 +10,6 @@ import {
   ImmersiveViewMixin,
 } from 'explorviz-frontend/rendering/application/immersive-view';
 import { light, skylight } from 'explorviz-frontend/utils/scene';
-import { OrbitControls } from 'explorviz-frontend/utils/controls/OrbitControls';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
