@@ -10,6 +10,7 @@ import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from '../settings/local-storage-settings';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -75,16 +76,10 @@ export function addApplicationLabels(
    */
   const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
 
-  //let maxHeight = 0;
-
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
-      // get highest value for the minimap-label, which is usually the clazz but only if it´s visible
-      // if (mesh.geometry.parameters.height >= maxHeight){
-      //   maxHeight = mesh.geometry.parameters.height + 0.01;
-      // }
       if (mesh instanceof ClazzMesh) {
         addClazzTextLabel(mesh, font, clazzTextColor);
       } else if (mesh instanceof ComponentMesh) {
@@ -127,9 +122,6 @@ export function addBoxTextLabel(
   );
   labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
 
-  // if (boxMesh instanceof FoundationMesh) {
-  //   labelMesh.layers.enable(5);
-  // }
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);
 
@@ -175,7 +167,7 @@ export function addMinimapTextLabel(
   font: Font,
   color: THREE.Color,
   size = 0.1,
-  heigth = 10
+  heigth = 100
 ) {
   const text = foundationMesh.dataModel.name;
 
@@ -190,7 +182,7 @@ export function addMinimapTextLabel(
   minimapLabelMesh.rotation.x = -(Math.PI / 2);
   minimapLabelMesh.rotation.z = -(Math.PI / 2);
 
-  minimapLabelMesh.layers.set(6);
+  minimapLabelMesh.layers.set(SceneLayers.MinimapLabel);
 
   foundationMesh.add(minimapLabelMesh);
 }

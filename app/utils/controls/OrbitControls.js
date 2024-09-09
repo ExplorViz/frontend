@@ -12,6 +12,7 @@ import {
   Ray,
   MathUtils,
 } from 'three';
+import { inflate } from 'zlib';
 
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -46,11 +47,11 @@ class OrbitControls extends EventDispatcher {
 
     // How far you can dolly in and out ( PerspectiveCamera only )
     this.minDistance = 0;
-    this.maxDistance = 1;
+    this.maxDistance = Infinity;
 
     // How far you can zoom in and out ( OrthographicCamera only )
     this.minZoom = 0;
-    this.maxZoom = 10;
+    this.maxZoom = Infinity;
 
     // Limit camera target within a spherical area around the cursor
     this.minTargetRadius = 0;
@@ -1029,7 +1030,6 @@ class OrbitControls extends EventDispatcher {
           if (scope.enableRotate === false) return;
 
           handleMouseMoveRotate(event);
-          minimapRaycasting.changeValue(false);
 
           break;
 
@@ -1044,7 +1044,6 @@ class OrbitControls extends EventDispatcher {
           if (scope.enablePan === false) return;
 
           handleMouseMovePan(event);
-          minimapRaycasting.changeValue(true);
 
           break;
       }
@@ -1315,10 +1314,6 @@ class OrbitControls extends EventDispatcher {
     };
     this.zoomIn = (delta) => dollyIn(getZoomScale(delta));
     this.zoomOut = (delta) => dollyOut(getZoomScale(delta));
-  }
-
-  getTarget() {
-    return this.scope.target;
   }
 }
 

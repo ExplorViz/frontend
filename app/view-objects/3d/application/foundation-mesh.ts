@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
 import MinimapLabelMesh from './minimap-label-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -32,7 +33,7 @@ export default class FoundationMesh<
     this.setDefaultMaterial();
     this.dataModel = foundation;
 
-    this.layers.enable(1);
+    this.layers.enable(SceneLayers.Foundation);
   }
 
   setDefaultMaterial() {

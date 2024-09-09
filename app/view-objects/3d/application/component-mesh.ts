@@ -3,6 +3,7 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -33,7 +34,7 @@ export default class ComponentMesh extends BoxMesh {
     this.geometry = geometry;
     this.dataModel = component;
 
-    this.layers.enable(2);
+    this.layers.enable(SceneLayers.Component);
   }
 
   getModelId() {

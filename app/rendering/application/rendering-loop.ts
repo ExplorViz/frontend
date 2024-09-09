@@ -7,8 +7,6 @@ import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
 import LocalUser from 'collaboration/services/local-user';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 const clock = new Clock();
@@ -20,9 +18,6 @@ interface Args {
   renderer: THREE.WebGLRenderer;
   updatables: any[];
   zoomHandler?: ArZoomHandler;
-  graphBounds?: THREE.Box3;
-  graph: ForceGraph;
-  controls: CameraControls;
 }
 
 export default class RenderingLoop {
@@ -57,8 +52,6 @@ export default class RenderingLoop {
 
   zoomHandler?: ArZoomHandler;
 
-  controls: CameraControls;
-
   currentViewport = new THREE.Vector4(
     0,
     0,
@@ -74,7 +67,6 @@ export default class RenderingLoop {
     this.renderer = args.renderer;
     this.updatables = args.updatables;
     this.zoomHandler = args.zoomHandler;
-    this.minimapService.graph = args.graph;
     this.controls = args.controls;
     this.minimapCamera = this.localUser.minimapCamera;
   }

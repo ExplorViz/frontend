@@ -20,7 +20,6 @@ export default class CameraControls {
 
   perspectiveCameraControls: MapControls;
   orthographicCameraControls: MapControls | undefined;
-  // minimapCameraControls: MapControls;
   enabled: boolean = true;
 
   constructor(

@@ -5,9 +5,9 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import MinimapService from 'explorviz-frontend/services/minimap-service';
-
-export let updateMinimap: boolean;
+import MinimapService, {
+  SceneLayers,
+} from 'explorviz-frontend/services/minimap-service';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
@@ -31,6 +31,8 @@ function isChildOfText(intersection: THREE.Intersection) {
   return isChild;
 }
 
+const TARGET_Y_VALUE = 0.165;
+
 export default class Raycaster extends THREE.Raycaster {
   /**
    * Calculate objects which intersect the ray - given by coordinates and camera
@@ -48,8 +50,6 @@ export default class Raycaster extends THREE.Raycaster {
 
   minimapCam: THREE.OrthographicCamera | undefined;
 
-  lastPoint: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-
   boundingBox!: THREE.Box3;
 
   constructor(
@@ -59,7 +59,7 @@ export default class Raycaster extends THREE.Raycaster {
     super();
     this.minimapCam = minimap;
     this.minimapService = minimapService;
-    this.groundPlane.set(new THREE.Vector3(0, 0.165, 0), 0);
+    this.groundPlane.set(new THREE.Vector3(0, TARGET_Y_VALUE, 0), 0);
   }
 
   raycasting(
@@ -107,11 +107,11 @@ export default class Raycaster extends THREE.Raycaster {
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
     userList.forEach((mesh: THREE.Object3D) => {
-      mesh.layers.enable(0);
+      mesh.layers.enable(SceneLayers.Default);
     });
     const intersections = this.intersectObjects(userList, false);
     userList.forEach((mesh: THREE.Object3D) => {
-      mesh.layers.disable(0);
+      mesh.layers.disable(SceneLayers.Default);
     });
     if (intersections.length > 0) {
       return intersections[0];
@@ -132,8 +132,4 @@ export default class Raycaster extends THREE.Raycaster {
 
     return intersectionPoint;
   }
-}
-
-export function changeValue(value: boolean) {
-  updateMinimap = value;
 }

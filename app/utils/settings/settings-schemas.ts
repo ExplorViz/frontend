@@ -48,6 +48,7 @@ export type ApplicationMinimapSettingId =
   | 'version2'
   | 'layer1'
   | 'layer2'
+  | 'layer3'
   | 'layer4'
   | 'layer6'
   | 'layer7';
@@ -131,6 +132,7 @@ export type ApplicationMinimapSettings = {
   version2: FlagSetting;
   layer1: FlagSetting;
   layer2: FlagSetting;
+  layer3: FlagSetting;
   layer4: FlagSetting;
   layer6: FlagSetting;
   layer7: FlagSetting;

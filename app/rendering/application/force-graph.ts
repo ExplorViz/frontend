@@ -59,12 +59,11 @@ export default class ForceGraph {
 
   boundingBox: THREE.Box3 = new THREE.Box3();
 
-  @tracked
-  factor!: number;
+  scaleFactor!: number;
 
   constructor(owner: any, scale: number = 1) {
     this.scale = scale;
-    this.factor = 30;
+    this.scaleFactor = 30;
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
     this.graph = new GrabbableForceGraph()
@@ -148,14 +147,14 @@ export default class ForceGraph {
 
     this.boundingBox = new THREE.Box3(
       new THREE.Vector3(
-        minX / this.factor,
-        minY / this.factor,
-        minZ / this.factor
+        minX / this.scaleFactor,
+        minY / this.scaleFactor,
+        minZ / this.scaleFactor
       ),
       new THREE.Vector3(
-        maxX / this.factor,
-        maxY / this.factor,
-        maxZ / this.factor
+        maxX / this.scaleFactor,
+        maxY / this.scaleFactor,
+        maxZ / this.scaleFactor
       )
     );
   }

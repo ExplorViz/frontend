@@ -51,7 +51,7 @@ export function defaultScene() {
   defLight.layers.enableAll();
   //scene.add(spotlight());
   const directLight = directionalLight();
-  directLight.layers.enable(1);
+  directLight.layers.enableAll();
   scene.add(directLight);
   return scene;
 }

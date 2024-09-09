@@ -4,7 +4,6 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
-import SpectateUser from 'collaboration/services/spectate-user';
 import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
@@ -79,8 +78,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   // Used to determine if and which object was hit
   raycaster: Raycaster;
 
-  minimapRaycaster: Raycaster;
-
   debug = debugLogger('InteractionModifier');
 
   @service('collaboration-session')
@@ -91,9 +88,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('user-settings')
   userSettings!: UserSettings;
-
-  @service('spectate-user')
-  private spectateUserService!: SpectateUser;
 
   @service('minimap-service')
   minimapService!: MinimapService;
@@ -173,8 +167,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
     super(owner, args);
-    this.raycaster = new Raycaster();
-    this.minimapRaycaster = new Raycaster(this.localUser.minimapCamera);
+    this.raycaster = new Raycaster(this.localUser.minimapCamera);
   }
 
   @action
@@ -244,7 +237,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.handleMouseMovePan(event);
     } else {
       const intersectedViewObj = this.raycast(event);
-      // const intersectedViewObjMinimap = this.minimapRaycast(event);
       this.namedArgs.mouseMove?.(intersectedViewObj, event);
     }
   }
@@ -333,12 +325,16 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
+    this.handleMinimapOnLeftClick(event);
+  }
+
+  private handleMinimapOnLeftClick(event: MouseEvent) {
     const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
     if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
       this.minimapService.makeFullsizeMinimap = false;
       this.localUser.cameraControls!.enabled = true;
     } else if (isOnMinimap) {
-      const ray = this.raycastOnMinimap(event);
+      const ray = this.minimapService.raycastOnMinimap(event);
       if (ray) {
         this.minimapService.handleHit(
           this.collaborativeSession.getUserById(ray.object.name) as RemoteUser
@@ -387,28 +383,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         : this.raycastObjects;
 
     return this.raycaster.raycasting(origin, this.camera, possibleObjects);
-  }
-
-  raycastOnMinimap(event: MouseEvent) {
-    // Get the bounding rectangle of the minimap
-    const minimap = this.minimapService.minimap();
-    const width = minimap[1];
-    const height = minimap[0];
-    const left = minimap[2];
-    const top = window.innerHeight - minimap[3] - height;
-
-    // Calculate normalized device coordinates (NDC) based on the minimap
-    const x = ((event.clientX - left) / width) * 2 - 1;
-    const y = -((event.clientY - top) / height) * 2 + 1;
-
-    // Create a Vector2 for the raycasting origin
-    const origin = new THREE.Vector2(x, y);
-    // Perform the raycast using the minimap's camera
-    return this.minimapRaycaster.raycastMinimap(
-      this.localUser.minimapCamera,
-      origin,
-      Array.from(this.minimapService.minimapUserMarkers.values()!)
-    );
   }
 
   createPointerStopEvent() {

@@ -142,17 +142,6 @@ export default class SpectateUser extends Service {
     }
   }
 
-  activateForMinimap(remoteUser: RemoteUser, localUser: string) {
-    this.spectatedUser = remoteUser;
-
-    if (this.cameraControls) {
-      this.cameraControls.enabled = false;
-    }
-
-    this.spectatedUser.setHmdVisible(false);
-    this.addSpectatingUser(localUser);
-  }
-
   activateConfig(configId: string, remoteUsersIds: string[]) {
     this.sender.sendSpectatingUpdate(
       configId !== 'default',

@@ -96,6 +96,8 @@ export default class RemoteUser extends THREE.Object3D {
    */
   updateCamera(pose: Pose) {
     if (this.camera) {
+      pose.position[1] -= 0.01;
+
       this.camera.model.position.fromArray(pose.position);
       this.camera.model.quaternion.fromArray(pose.quaternion);
     }
@@ -232,6 +234,11 @@ export default class RemoteUser extends THREE.Object3D {
     });
   }
 
+  /**
+   * Updates the controller1 model's position and rotation.
+   *
+   * @param Object containing the new controller1 position and quaterion.
+   */
   updateController(
     controllerId: ControllerId,
     { position, quaternion, intersection }: ControllerPose
@@ -249,6 +256,12 @@ export default class RemoteUser extends THREE.Object3D {
     }
   }
 
+  /**
+   * Hides user or unhides them.
+   *
+   * @param {boolean} visible - If false, hides user's controllers, camera and name tag.
+   *                         Shows them if true.
+   */
   setVisible(visible: boolean) {
     this.controllers.forEach((controller) => {
       if (controller) controller.model.visible = visible;
@@ -256,6 +269,11 @@ export default class RemoteUser extends THREE.Object3D {
     this.setHmdVisible(visible);
   }
 
+  /**
+   * Hide or display user's HMD and name tag
+   *
+   * @param visible Determines visibility of HMD and name tag
+   */
   setHmdVisible(visible: boolean) {
     if (this.camera) {
       this.camera.model.visible = visible;

@@ -110,8 +110,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   canvas!: HTMLCanvasElement;
 
-  remoteUserSize: number = 0;
-
   popupHandler: PopupHandler;
 
   renderer!: THREE.WebGLRenderer;
@@ -360,20 +358,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.spectateUserService.cameraControls = this.cameraControls;
     this.localUser.cameraControls = this.cameraControls;
+    this.updatables.push(this.localUser);
+    this.updatables.push(this.cameraControls);
 
-    // add minimap to scene
-    this.minimapService.raycaster = new Raycaster(
-      this.localUser.minimapCamera,
-      this.minimapService
-    );
+    // minimap
     this.minimapService.initMinimap(
       this.scene,
       this.graph,
       this.cameraControls
     );
 
-    this.updatables.push(this.localUser);
-    this.updatables.push(this.cameraControls);
+    this.minimapService.raycaster = new Raycaster(
+      this.localUser.minimapCamera,
+      this.minimapService
+    );
   }
 
   /**
@@ -398,7 +396,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
-      graph: this.graph,
       controls: this.cameraControls,
     });
     this.renderingLoop.start();
@@ -654,10 +651,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   enterFullscreen() {
     this.canvas.requestFullscreen();
   }
-
-  // initLayers(){
-  //   // Second Layer for only specific objects to be rendered (layer 0 is default)
-  // }
 
   /**
    * This overridden Ember Component lifecycle hook enables calling

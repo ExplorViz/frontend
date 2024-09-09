@@ -355,9 +355,17 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Toggle component visibility for the minimap',
     isFlagSetting: true,
   },
-  layer4: {
+  layer3: {
     value: true,
     orderNumber: 6,
+    group: 'Minimap',
+    displayName: 'Enable clazz visibility',
+    description: 'Toggle clazz visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer4: {
+    value: true,
+    orderNumber: 7,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
@@ -365,7 +373,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer6: {
     value: true,
-    orderNumber: 7,
+    orderNumber: 8,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
@@ -373,7 +381,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer7: {
     value: true,
-    orderNumber: 8,
+    orderNumber: 9,
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
     description:

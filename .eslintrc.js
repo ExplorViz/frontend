@@ -24,7 +24,6 @@ module.exports = {
     auth0: false,
   },
   rules: {
-    'prettier/prettier': ['error', { endOfLine: 'auto' }],
     '@typescript-eslint/ban-ts-comment': [
       'error',
       { 'ts-ignore': 'allow-with-description' },
@@ -51,6 +50,7 @@ module.exports = {
     'no-param-reassign': ['error', { props: false }],
     'no-plusplus': 'off',
     'prefer-rest-params': 'off',
+    'prettier/prettier': 'error',
     'require-yield': 'off',
   },
   overrides: [
