@@ -150,9 +150,9 @@
     </div>
   {{/if}}
   {{#if @showSettingsSidebar}}
-    <div class='sidebar right col-4' id='dataselection'>
+    <div class='sidebar right col-4' id='settingsSidebar'>
       <div class='mt-6 d-flex flex-row w-100' style='z-index: 90'>
-        <Visualization::PageSetup::Sidebar::Customizationbar::DataSelection
+        <Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar
           @closeSettingsSidebar={{@closeSettingsSidebar}}
         >
           <div class='explorviz-visualization-navbar'>
@@ -231,7 +231,7 @@
               {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>
           {{/if}}
-        </Visualization::PageSetup::Sidebar::Customizationbar::DataSelection>
+        </Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar>
       </div>
     </div>
   {{/if}}
