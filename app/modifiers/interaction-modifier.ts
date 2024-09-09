@@ -8,6 +8,7 @@ import SpectateUser from 'collaboration/services/spectate-user';
 import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import { Object3D, Vector2 } from 'three';
@@ -93,6 +94,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
 
   isMouseOnCanvas = false;
 
@@ -330,19 +334,19 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.onDoubleClick(event);
     }
     const isOnMinimap = this.isClickInsideMinimap(event);
-    if (this.localUser.makeFullsizeMinimap && !isOnMinimap) {
-      this.localUser.makeFullsizeMinimap = false;
+    if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
+      this.minimapService.makeFullsizeMinimap = false;
       this.localUser.cameraControls!.enabled = true;
     } else if (isOnMinimap) {
       const ray = this.raycastOnMinimap(event);
       if (ray) {
         this.handleHit(ray);
       } else {
-        if (this.localUser.makeFullsizeMinimap) {
-          this.localUser.makeFullsizeMinimap = false;
+        if (this.minimapService.makeFullsizeMinimap) {
+          this.minimapService.makeFullsizeMinimap = false;
           this.localUser.cameraControls!.enabled = true;
         } else {
-          this.localUser.makeFullsizeMinimap = true;
+          this.minimapService.makeFullsizeMinimap = true;
           this.localUser.cameraControls!.enabled = false;
         }
       }
@@ -385,7 +389,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   raycastOnMinimap(event: MouseEvent) {
     // Get the bounding rectangle of the minimap
-    const minimap = this.localUser.minimap();
+    const minimap = this.minimapService.minimap();
     const width = minimap[1];
     const height = minimap[0];
     const left = minimap[2];
@@ -401,12 +405,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     return this.minimapRaycaster.raycastMinimap(
       this.localUser.minimapCamera,
       origin,
-      Array.from(this.collaborativeSession.idToRemoteUser.values())
+      Array.from(this.minimapService.minimapUserMarkers.values()!)
     );
   }
 
   isClickInsideMinimap(event: MouseEvent) {
-    const minimap = this.localUser.minimap();
+    const minimap = this.minimapService.minimap();
     const minimapHeight = minimap[0];
     const minimapWidth = minimap[1];
     const minimapX = minimap[2];

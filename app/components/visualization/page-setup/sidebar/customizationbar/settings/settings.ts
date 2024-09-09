@@ -15,6 +15,7 @@ import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 interface Args {
   enterFullscreen?(): void;
@@ -47,6 +48,9 @@ export default class Settings extends Component<Args> {
 
   @service('user-settings')
   private userSettings!: UserSettings;
+
+  @service('minimap-service')
+  private minimapService!: MinimapService;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
@@ -129,7 +133,7 @@ export default class Settings extends Component<Args> {
       case 'zoom':
         this.localUser.minimapDistance =
           this.userSettings.applicationSettings.zoom.value;
-        this.localUser.updateSphereRadius();
+        this.minimapService.updateSphereRadius();
         break;
       default:
         break;

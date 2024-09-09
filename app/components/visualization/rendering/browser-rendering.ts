@@ -44,7 +44,9 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
-import remoteUser from 'explorviz-frontend/utils/remote-user';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
+import remoteUser from 'collaboration/utils/remote-user';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -93,6 +95,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
+  @service('minimap-service')
+  minimapService!: MinimapService;
+
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
@@ -105,8 +110,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @tracked
   canvas!: HTMLCanvasElement;
-
-  minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
 
   remoteUserSize: number = 0;
 
@@ -173,6 +176,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // Spectate
     this.updatables.push(this.spectateUserService);
 
+    // Minimap
+    this.updatables.push(this.minimapService);
+
     this.popupHandler = new PopupHandler(getOwner(this));
     this.applicationRenderer.forceGraph = this.graph.graph;
 
@@ -195,8 +201,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
-    this.updateMinimapUserMarkers();
-
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
@@ -358,7 +362,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.spectateUserService.cameraControls = this.cameraControls;
     this.localUser.cameraControls = this.cameraControls;
 
-    this.initMinimap();
+    // add minimap to scene
+    this.minimapService.raycaster = new Raycaster(
+      this.localUser.minimapCamera,
+      this.minimapService
+    );
+    this.minimapService.initMinimap(this.scene, this.graph);
 
     this.updatables.push(this.localUser);
     this.updatables.push(this.cameraControls);
@@ -383,7 +392,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
       orthographicCamera: this.localUser.ortographicCamera,
-      minimapCamera: this.localUser.minimapCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -402,68 +410,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
           );
         }, 200);
         this.initDone = true;
-      }
-    });
-  }
-
-  private initMinimap() {
-    // minimap camera
-    //ToDo: Minimap helper initialisieren
-    this.localUser.minimapCamera = new THREE.OrthographicCamera(
-      -1,
-      1,
-      1,
-      -1,
-      0.1,
-      100
-    );
-    this.localUser.minimapCamera.position.set(0, 10, 0);
-    this.localUser.minimapCamera.lookAt(new Vector3(0, -1, 0));
-    this.localUser.minimapCamera.layers.disable(0); //default layer
-    this.localUser.minimapCamera.layers.enable(1); //foundation layer
-    this.localUser.minimapCamera.layers.enable(2); //component layer
-    // this.localUser.minimapCamera.layers.enable(3);  //clazz layer
-    this.localUser.minimapCamera.layers.enable(4); //communication layer
-    this.localUser.minimapCamera.layers.enable(5); //ping layer
-    this.localUser.minimapCamera.layers.enable(6); //minimapLabel layer
-    this.localUser.minimapCamera.layers.enable(7); //minimapMarkerslayer
-
-    this.pollRemoteUsers();
-    this.scene.add(this.localUser.minimapMarker);
-
-    // initalize invinsible square for raycasting the minimap
-  }
-
-  pollRemoteUsers() {
-    setInterval(() => {
-      const users = Array.from(
-        this.collaborationSession.idToRemoteUser.values()
-      );
-
-      users.forEach((user: remoteUser) => {
-        this.initializeMinimapUserMarkers(user);
-      });
-    }, 1000); // Intervall auf 1 Sekunde setzen
-  }
-
-  // Initialize minimap markers for remote users
-  initializeMinimapUserMarkers(remoteUser: remoteUser) {
-    this.scene.add(remoteUser.minimapMarker!);
-  }
-
-  // Update minimap markers each tick
-  updateMinimapUserMarkers() {
-    if (this.collaborationSession.idToRemoteUser.size == 0) {
-      return;
-    }
-    this.collaborationSession.idToRemoteUser.forEach((user) => {
-      const userMarker = user.minimapMarker;
-      if (userMarker && user.camera) {
-        const position = new THREE.Vector3();
-        position.copy(user.camera.model.position);
-        userMarker.position.set(position.x, userMarker.position.y, position.z);
-      } else {
-        this.initializeMinimapUserMarkers(user);
       }
     });
   }

@@ -18,10 +18,6 @@ import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/de
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
-type Camera = {
-  model: THREE.Object3D;
-};
-
 export default class LocalUser extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
@@ -54,17 +50,6 @@ export default class LocalUser extends Service.extend({
   @tracked
   minimapCamera!: THREE.OrthographicCamera;
 
-  minimapDistance!: number;
-
-  @tracked
-  minimapMarker!: THREE.Mesh;
-
-  @tracked
-  makeFullsizeMinimap!: boolean;
-
-  @tracked
-  minimapSize!: number;
-
   @tracked
   visualizationMode: VisualizationMode = 'browser';
 
@@ -84,8 +69,6 @@ export default class LocalUser extends Service.extend({
 
   xr?: WebXRManager;
 
-  intersection?: THREE.Vector3;
-
   init() {
     super.init();
 
@@ -99,7 +82,6 @@ export default class LocalUser extends Service.extend({
     this.orthographicCamera = new THREE.OrthographicCamera();
     this.minimapCamera = new THREE.OrthographicCamera();
     this.minimapDistance = defaultApplicationSettings.zoom.value;
-    this.initializeUserMinimapMarker();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
@@ -108,8 +90,6 @@ export default class LocalUser extends Service.extend({
     }
     this.animationMixer = new THREE.AnimationMixer(this.userGroup);
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
-    this.fullsizeMinimap = false;
-    this.minimapSize = 4;
 
     return undefined;
   }
@@ -375,75 +355,6 @@ export default class LocalUser extends Service.extend({
       controller.gripSpace?.remove(child);
     });
     controller.removeTeleportArea();
-  }
-
-  initializeUserMinimapMarker() {
-    const initialRadius = this.calculateDistanceFactor();
-    const geometry = new THREE.SphereGeometry(initialRadius, 32);
-    const material = new THREE.MeshBasicMaterial({
-      color: '#808080',
-    });
-    this.minimapMarker = new THREE.Mesh(geometry, material);
-    this.minimapMarker.rotation.z = Math.PI / 2;
-
-    const northWestAngle = Math.PI / 4;
-    this.minimapMarker.rotation.y = northWestAngle;
-    this.minimapMarker.position.set(0, 0.5, 0);
-    this.minimapMarker.lookAt(0, 0, 0);
-
-    this.minimapMarker.layers.enable(7);
-    this.minimapMarker.layers.disable(0);
-  }
-
-  updateUserMinimapMarker(intersection: THREE.Vector3) {
-    if (!intersection) {
-      return;
-    }
-    this.minimapMarker.position.set(intersection.x, 0.5, intersection.z);
-  }
-
-  calculateDistanceFactor(): number {
-    return 0.2 / this.settings.applicationSettings.zoom.value;
-  }
-
-  updateSphereRadius() {
-    const geometry = new THREE.SphereGeometry(this.calculateDistanceFactor());
-    this.minimapMarker.geometry.dispose(); // Dispose of the old geometry
-    this.minimapMarker.geometry = geometry; // Assign the new geometry
-  }
-
-  alignCameraToRemote(remoteCamera: Camera) {
-    this.camera.position.copy(remoteCamera.model.position);
-    this.camera.rotation.copy(remoteCamera.model.rotation);
-    this.camera.up.copy(remoteCamera.model.up);
-    this.camera.updateProjectionMatrix();
-  }
-
-  minimap() {
-    const borderWidth = 2;
-    if (this.makeFullsizeMinimap) {
-      const minimapSize = 0.9;
-
-      const minimapHeight =
-        Math.min(window.innerHeight, window.innerWidth) * minimapSize;
-      const minimapWidth = minimapHeight;
-
-      const minimapX = window.innerWidth / 2 - minimapWidth / 2;
-      const minimapY = window.innerHeight / 2 - minimapHeight / 2 - 20;
-
-      return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
-    }
-    const minimapHeight =
-      Math.min(window.innerHeight, window.innerWidth) / this.minimapSize;
-    const minimapWidth = minimapHeight;
-
-    const marginSettingsSymbol = 55;
-    const margin = 10;
-    const minimapX =
-      window.innerWidth - minimapWidth - margin - marginSettingsSymbol;
-    const minimapY = window.innerHeight - minimapHeight - margin;
-
-    return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
   }
 }
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.

@@ -5,10 +5,9 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import UserSettings from 'explorviz-frontend/services/user-settings';
-import { inject as service } from '@ember/service';
 import remoteUser from 'collaboration/utils/remote-user';
 import RemoteUser from 'collaboration/utils/remote-user';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 export let updateMinimap: boolean;
 
@@ -43,8 +42,7 @@ export default class Raycaster extends THREE.Raycaster {
    * @param possibleObjects Objects to check for raycasting
    */
 
-  @service('user-setting')
-  userSetting!: UserSettings;
+  minimapService?: MinimapService;
 
   groundPlane = new THREE.Plane(new THREE.Vector3(0, -0.54, 0), 0); // Virtual ground Plane used to intersect raycast
 
@@ -56,9 +54,13 @@ export default class Raycaster extends THREE.Raycaster {
 
   boundingBox!: THREE.Box3;
 
-  constructor(minimap?: THREE.OrthographicCamera) {
+  constructor(
+    minimap?: THREE.OrthographicCamera,
+    minimapService?: MinimapService
+  ) {
     super();
     this.minimapCam = minimap;
+    this.minimapService = minimapService;
   }
 
   raycasting(
@@ -102,18 +104,15 @@ export default class Raycaster extends THREE.Raycaster {
   raycastMinimap(
     camera: THREE.OrthographicCamera,
     coords: { x: number; y: number },
-    userList: RemoteUser[]
+    userList: THREE.Mesh[]
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
-    const users = userList;
-    const markers: THREE.Object3D[] = [];
-    users.forEach((user: remoteUser) => {
-      markers.push(user.minimapMarker!);
-      user.minimapMarker?.layers.enable(0);
+    userList.forEach((mesh: THREE.Object3D) => {
+      mesh.layers.enable(0);
     });
-    const intersections = this.intersectObjects(markers, false);
-    markers.forEach((marker: THREE.Object3D) => {
-      marker.layers.disable(0);
+    const intersections = this.intersectObjects(userList, false);
+    userList.forEach((mesh: THREE.Object3D) => {
+      mesh.layers.disable(0);
     });
     if (intersections.length > 0) {
       return intersections[0];

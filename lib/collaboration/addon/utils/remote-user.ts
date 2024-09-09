@@ -15,6 +15,7 @@ import {
   CONTROLLER_2_ID,
   ControllerId,
 } from './web-socket-messages/types/controller-id';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 type Camera = {
   model: THREE.Object3D;
@@ -29,6 +30,8 @@ type Controller = {
 };
 
 export default class RemoteUser extends THREE.Object3D {
+  minimapService: MinimapService;
+
   userName: string;
 
   userId: string;
@@ -49,22 +52,20 @@ export default class RemoteUser extends THREE.Object3D {
 
   localUser: LocalUser;
 
-  minimapMarker!: THREE.Mesh | null;
-
-  lastDistanceFactor!: number;
-
   constructor({
     userName,
     userId,
     color,
     state,
     localUser,
+    minimapService,
   }: {
     userName: string;
     userId: string;
     color: THREE.Color;
     state: string;
     localUser: LocalUser;
+    minimapService: MinimapService;
   }) {
     super();
     this.userName = userName;
@@ -78,37 +79,14 @@ export default class RemoteUser extends THREE.Object3D {
     this.mousePing = new MousePing(color, this.animationMixer);
     this.controllers = [null, null];
     this.nameTag = null;
-    this.lastDistanceFactor = 0.2;
 
     this.localUser = localUser;
-    this.initMinimapMarker();
-  }
-
-  /**
-   * Initialize the Minimap marker for this user.
-   */
-  private initMinimapMarker() {
-    const userMarkerGeometry = new THREE.SphereGeometry(
-      this.calculateDistanceFactor(),
-      32
+    this.minimapService = minimapService;
+    this.minimapService.initializeUserMinimapMarker(
+      this.color,
+      new THREE.Vector3(0, 0, 0),
+      this.userId
     );
-    const userMarkerMaterial = new THREE.MeshBasicMaterial({
-      color: this.color,
-    });
-    const userMarkerMesh = new THREE.Mesh(
-      userMarkerGeometry,
-      userMarkerMaterial
-    );
-    // Add marker to the minimap scene
-    userMarkerMesh.position.set(
-      this.localUser.camera.position.x,
-      0.5,
-      this.localUser.camera.position.z
-    );
-    userMarkerMesh.layers.enable(7);
-    userMarkerMesh.layers.disable(0);
-    userMarkerMesh.name = this.userId;
-    this.minimapMarker = userMarkerMesh;
   }
 
   /**
@@ -120,36 +98,7 @@ export default class RemoteUser extends THREE.Object3D {
     if (this.camera) {
       this.camera.model.position.fromArray(pose.position);
       this.camera.model.quaternion.fromArray(pose.quaternion);
-      this.updateMinimapMarkerPosition();
     }
-  }
-
-  /**
-   * Update the minimap marker's position based on the camera's position.
-   */
-  updateMinimapMarkerPosition() {
-    const distanceFactor = this.calculateDistanceFactor();
-    if (this.minimapMarker && this.camera) {
-      if (this.lastDistanceFactor !== distanceFactor) {
-        this.minimapMarker.geometry.dispose();
-        this.minimapMarker.geometry = new THREE.SphereGeometry(
-          distanceFactor,
-          32
-        );
-        this.minimapMarker.position.set(
-          this.camera.model.position.x,
-          this.minimapMarker.position.y,
-          this.camera.model.position.z
-        );
-        this.lastDistanceFactor = distanceFactor;
-      }
-    } else if (!this.minimapMarker) {
-      this.initMinimapMarker();
-    }
-  }
-
-  private calculateDistanceFactor(): number {
-    return 0.2 / this.localUser.settings.applicationSettings.zoom.value;
   }
 
   protected removeCamera() {
@@ -237,9 +186,12 @@ export default class RemoteUser extends THREE.Object3D {
    * Remove the minimap marker from the scene.
    */
   removeMinimapMarker() {
-    if (this.minimapMarker) {
-      this.minimapMarker.parent?.remove(this.minimapMarker);
-      this.minimapMarker = null;
+    const minimapMarker = this.minimapService.minimapUserMarkers.get(
+      this.userId
+    );
+    if (minimapMarker) {
+      minimapMarker.parent?.remove(minimapMarker);
+      this.minimapService.deleteUserMinimapMarker(this.userId);
     }
   }
 
@@ -278,7 +230,19 @@ export default class RemoteUser extends THREE.Object3D {
         controller.ray.scale.z = distance;
       }
     });
+    // this.updateMinimapMarker();
   }
+
+  // updateMinimapMarker() {
+  //   const minimapMarker = this.minimapService.minimapUserMarkers.get(
+  //     this.userId
+  //   )!;
+  //   minimapMarker.position.set(
+  //     this.camera!.model.position.x,
+  //     minimapMarker.position.y,
+  //     this.camera!.model.position.z
+  //   );
+  // }
 
   updateController(
     controllerId: ControllerId,

@@ -9,14 +9,13 @@ import * as THREE from 'three';
 import LocalUser from 'collaboration/services/local-user';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
   orthographicCamera: THREE.OrthographicCamera | undefined;
-  minimapCamera: THREE.OrthographicCamera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -41,6 +40,9 @@ export default class RenderingLoop {
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('minimap-service')
+  minimapService!: MinimapService;
+
   camera: THREE.Camera;
 
   orthographicCamera: THREE.OrthographicCamera | undefined;
@@ -55,15 +57,7 @@ export default class RenderingLoop {
 
   zoomHandler?: ArZoomHandler;
 
-  graph: ForceGraph;
-
   controls: CameraControls;
-
-  intersection!: THREE.Vector3;
-
-  raycaster!: Raycaster;
-
-  distance!: number;
 
   currentViewport = new THREE.Vector4(
     0,
@@ -76,14 +70,13 @@ export default class RenderingLoop {
     setOwner(this, owner);
     this.camera = args.camera;
     this.orthographicCamera = args.orthographicCamera;
-    this.minimapCamera = args.minimapCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
     this.zoomHandler = args.zoomHandler;
-    this.graph = args.graph;
+    this.minimapService.graph = args.graph;
     this.controls = args.controls;
-    this.raycaster = new Raycaster();
+    this.minimapCamera = this.localUser.minimapCamera;
   }
 
   start() {
@@ -109,7 +102,6 @@ export default class RenderingLoop {
       // tell every animated object to tick forward one frame
       this.tick(frame);
 
-      this.intersection = this.getCurrentFocus();
       // this.controls.perspectiveCameraControls.minPan =
       //   this.graph.boundingBox.min;
       // this.controls.perspectiveCameraControls.maxPan =
@@ -133,7 +125,6 @@ export default class RenderingLoop {
         this.threePerformance.stats.end();
       }
       this.renderMinimap();
-      this.updateMinimapCamera();
     });
   }
 
@@ -188,82 +179,8 @@ export default class RenderingLoop {
     }
   }
 
-  private getCurrentFocus(): THREE.Vector3 {
-    let newPos = new THREE.Vector3();
-
-    newPos = this.raycaster.raycastToGround(
-      this.camera,
-      this.graph.boundingBox,
-      this.userSettings.applicationSettings.version2.value
-    );
-    this.localUser.intersection = newPos;
-
-    return newPos;
-  }
-
-  updateMinimapCamera() {
-    // Call the new function to check and adjust minimap size
-    const boundingBox = this.graph.boundingBox;
-
-    // Calculate the size of the bounding box
-    const size = boundingBox.getSize(new THREE.Vector3());
-    const boundingBoxWidth = size.x;
-    const boundingBoxHeight = size.z;
-
-    this.distance = this.userSettings.applicationSettings.zoom.value;
-
-    this.localUser.minimapCamera.left = -boundingBoxWidth / 2 / this.distance;
-    this.localUser.minimapCamera.right = boundingBoxWidth / 2 / this.distance;
-    this.localUser.minimapCamera.top = boundingBoxHeight / 2 / this.distance;
-    this.localUser.minimapCamera.bottom =
-      -boundingBoxHeight / 2 / this.distance;
-
-    if (this.userSettings.applicationSettings.zoom.value != 1) {
-      this.localUser.minimapCamera.position.set(
-        this.intersection.x,
-        1,
-        this.intersection.z
-      );
-    } else {
-      this.localUser.minimapCamera.position.set(0, 1, 0);
-    }
-    // Update the minimap camera's projection matrix
-    this.localUser.minimapCamera.updateProjectionMatrix();
-
-    // Check if the minimapMarker is outside the minimapCamera's view
-    const markerPosition = this.localUser.minimapMarker.position;
-    const cameraLeft =
-      this.localUser.minimapCamera.left +
-      this.localUser.minimapCamera.position.x;
-    const cameraRight =
-      this.localUser.minimapCamera.right +
-      this.localUser.minimapCamera.position.x;
-    const cameraTop =
-      this.localUser.minimapCamera.top +
-      this.localUser.minimapCamera.position.z;
-    const cameraBottom =
-      this.localUser.minimapCamera.bottom +
-      this.localUser.minimapCamera.position.z;
-
-    const intersection = new THREE.Vector3();
-    intersection.copy(this.localUser.intersection!);
-    if (markerPosition.x < cameraLeft) {
-      intersection!.x = cameraLeft;
-    }
-    if (markerPosition.x > cameraRight) {
-      intersection!.x = cameraRight;
-    }
-    if (markerPosition.z < cameraBottom) {
-      intersection!.z = cameraBottom;
-    }
-    if (markerPosition.z > cameraTop) {
-      intersection!.z = cameraTop;
-    }
-    this.localUser.updateUserMinimapMarker(intersection);
-  }
-
   renderMinimap() {
-    const minimapNums = this.localUser.minimap();
+    const minimapNums = this.minimapService.minimap();
     const minimapHeight = minimapNums[0];
     const minimapWidth = minimapNums[1];
     const minimapX = minimapNums[2];

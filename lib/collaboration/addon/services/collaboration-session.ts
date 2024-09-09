@@ -35,6 +35,7 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -75,6 +76,9 @@ export default class CollaborationSession extends Service.extend({
 
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
 
   @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
@@ -421,10 +425,16 @@ export default class CollaborationSession extends Service.extend({
   }: ForwardedMessage<UserPositionsMessage>): void {
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) return;
-
     if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
-    if (camera) remoteUser.updateCamera(camera);
+    if (camera) {
+      remoteUser.updateCamera(camera);
+      this.minimapService.updateUserMinimapMarker(
+        remoteUser.camera!.model.position,
+        userId,
+        remoteUser
+      );
+    }
   }
 }
 
