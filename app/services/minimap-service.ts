@@ -26,6 +26,9 @@ export default class MinimapService extends Service {
   @tracked
   minimapSize!: number;
 
+  @tracked
+  minimapEnabled!: boolean;
+
   cameraControls!: CameraControls;
 
   graph!: ForceGraph;
@@ -46,6 +49,7 @@ export default class MinimapService extends Service {
     cameraControls: CameraControls
   ) {
     this.cameraControls = cameraControls;
+    this.minimapEnabled = this.settings.applicationSettings.minimap.value;
     this.localUser.minimapCamera = new THREE.OrthographicCamera(
       -1,
       1,

@@ -197,6 +197,9 @@ export default class Settings extends Component<Args> {
         case 'enableGamepadControls':
           this.args.setGamepadSupport(value);
           break;
+        case 'minimap':
+          this.minimapService.minimapEnabled = value;
+          break;
         default:
           break;
       }

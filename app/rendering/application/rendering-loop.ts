@@ -102,11 +102,6 @@ export default class RenderingLoop {
       // tell every animated object to tick forward one frame
       this.tick(frame);
 
-      // this.controls.perspectiveCameraControls.minPan =
-      //   this.graph.boundingBox.min;
-      // this.controls.perspectiveCameraControls.maxPan =
-      //   this.graph.boundingBox.max;
-
       // render a frame
       if (
         this.orthographicCamera &&
@@ -180,6 +175,9 @@ export default class RenderingLoop {
   }
 
   renderMinimap() {
+    if (!this.minimapService.minimapEnabled) {
+      return;
+    }
     const minimapNums = this.minimapService.minimap();
     const minimapHeight = minimapNums[0];
     const minimapWidth = minimapNums[1];

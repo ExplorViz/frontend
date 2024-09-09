@@ -309,6 +309,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isButtonSetting: true,
   },
   // Minimap Settings
+  minimap: {
+    value: true,
+    orderNumber: 1,
+    group: 'Minimap',
+    displayName: 'Enable Minimap',
+    description: 'Toggle visibility of the minimap',
+    isFlagSetting: true,
+  },
   zoom: {
     value: 1,
     range: {
@@ -316,7 +324,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 3.0,
       step: 0.1,
     },
-    orderNumber: 1,
+    orderNumber: 2,
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
@@ -324,7 +332,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   version2: {
     value: false,
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Minimap',
     displayName: 'Change minimap marker calculation',
     description:
@@ -333,7 +341,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer1: {
     value: true,
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Minimap',
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
@@ -341,7 +349,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer2: {
     value: true,
-    orderNumber: 4,
+    orderNumber: 5,
     group: 'Minimap',
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
@@ -349,7 +357,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer4: {
     value: true,
-    orderNumber: 5,
+    orderNumber: 6,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
@@ -357,7 +365,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer6: {
     value: true,
-    orderNumber: 6,
+    orderNumber: 7,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
@@ -365,7 +373,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   layer7: {
     value: true,
-    orderNumber: 7,
+    orderNumber: 8,
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
     description:
