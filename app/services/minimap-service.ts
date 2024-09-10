@@ -20,7 +20,7 @@ export enum SceneLayers {
   LocalMinimapMarker = 8,
 }
 
-const MARKER_HEIGHT = 101;
+const MARKER_HEIGHT = 300;
 
 const MINIMAP_HEIGHT = 999;
 
@@ -33,8 +33,6 @@ export default class MinimapService extends Service {
 
   @service('user-settings')
   settings!: UserSettings;
-
-  minimapDistance!: number;
 
   @tracked
   makeFullsizeMinimap!: boolean;
@@ -216,6 +214,15 @@ export default class MinimapService extends Service {
     );
   }
 
+  toggleFullsizeMinimap(value: boolean) {
+    this.makeFullsizeMinimap = value;
+    this.cameraControls.enabled = !value;
+    this.cameraControls.perspectiveCameraControls.enabled = !value;
+    if (this.cameraControls.orthographicCameraControls) {
+      this.cameraControls.orthographicCameraControls.enabled = !value;
+    }
+  }
+
   raycastOnMinimap(event: MouseEvent) {
     // Get the bounding rectangle of the minimap
     const minimap = this.minimap();
@@ -247,7 +254,11 @@ export default class MinimapService extends Service {
     const boundingBoxWidth = size.x;
     const boundingBoxHeight = size.z;
 
-    this.distance = this.userSettings.applicationSettings.zoom.value;
+    if (this.makeFullsizeMinimap) {
+      this.distance = 1;
+    } else {
+      this.distance = this.userSettings.applicationSettings.zoom.value;
+    }
 
     this.localUser.minimapCamera.left = -boundingBoxWidth / 2 / this.distance;
     this.localUser.minimapCamera.right = boundingBoxWidth / 2 / this.distance;
@@ -255,10 +266,13 @@ export default class MinimapService extends Service {
     this.localUser.minimapCamera.bottom =
       -boundingBoxHeight / 2 / this.distance;
 
-    if (this.userSettings.applicationSettings.zoom.value != 1) {
+    if (
+      this.userSettings.applicationSettings.zoom.value != 1 &&
+      !this.makeFullsizeMinimap
+    ) {
       this.localUser.minimapCamera.position.set(
         this.intersection.x,
-        1,
+        MINIMAP_HEIGHT,
         this.intersection.z
       );
     } else {
@@ -266,7 +280,7 @@ export default class MinimapService extends Service {
       boundingBox.getCenter(center);
       this.localUser.minimapCamera.position.set(
         center.x,
-        this.localUser.minimapCamera.position.y,
+        MINIMAP_HEIGHT,
         center.z
       );
     }
@@ -283,7 +297,7 @@ export default class MinimapService extends Service {
       this.localUser.minimapCamera.top +
       this.localUser.minimapCamera.position.z;
     const cameraBottom =
-      this.localUser.minimapCamera.bottom -
+      this.localUser.minimapCamera.bottom +
       this.localUser.minimapCamera.position.z;
 
     const intersection = new THREE.Vector3();

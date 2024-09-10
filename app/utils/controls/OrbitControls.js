@@ -1,5 +1,4 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
-import * as minimapRaycasting from 'explorviz-frontend/utils/raycaster';
 import {
   EventDispatcher,
   MOUSE,
@@ -12,7 +11,6 @@ import {
   Ray,
   MathUtils,
 } from 'three';
-import { inflate } from 'zlib';
 
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).

@@ -331,8 +331,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   private handleMinimapOnLeftClick(event: MouseEvent) {
     const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
     if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
-      this.minimapService.makeFullsizeMinimap = false;
-      this.localUser.cameraControls!.enabled = true;
+      this.minimapService.toggleFullsizeMinimap(false);
     } else if (isOnMinimap) {
       const ray = this.minimapService.raycastOnMinimap(event);
       if (ray) {
@@ -341,11 +340,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         );
       } else {
         if (this.minimapService.makeFullsizeMinimap) {
-          this.minimapService.makeFullsizeMinimap = false;
-          this.localUser.cameraControls!.enabled = true;
+          this.minimapService.toggleFullsizeMinimap(false);
         } else {
-          this.minimapService.makeFullsizeMinimap = true;
-          this.localUser.cameraControls!.enabled = false;
+          this.minimapService.toggleFullsizeMinimap(true);
         }
       }
     }

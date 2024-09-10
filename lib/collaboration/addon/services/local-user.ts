@@ -81,7 +81,6 @@ export default class LocalUser extends Service.extend({
     this.defaultCamera = new THREE.PerspectiveCamera();
     this.orthographicCamera = new THREE.OrthographicCamera();
     this.minimapCamera = new THREE.OrthographicCamera();
-    this.minimapDistance = defaultApplicationSettings.zoom.value;
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
