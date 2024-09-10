@@ -20,9 +20,9 @@ export enum SceneLayers {
   LocalMinimapMarker = 8,
 }
 
-const MARKER_HEIGHT = 300;
+const MARKER_HEIGHT = 101;
 
-const MINIMAP_HEIGHT = 999;
+const MINIMAP_HEIGHT = 102;
 
 export default class MinimapService extends Service {
   @service('user-settings')
@@ -223,7 +223,29 @@ export default class MinimapService extends Service {
     }
   }
 
-  raycastOnMinimap(event: MouseEvent) {
+  raycastForObjects(
+    event: MouseEvent,
+    camera: THREE.Camera,
+    raycastObjects: THREE.Object3D | THREE.Object3D[]
+  ) {
+    const minimap = this.minimap();
+    const width = minimap[1];
+    const height = minimap[0];
+    const left = minimap[2];
+    const top = window.innerHeight - minimap[3] - height;
+
+    const x = ((event.x - left) / width) * 2 - 1;
+    const y = -((event.y - top) / height) * 2 + 1;
+
+    const origin = new THREE.Vector2(x, y);
+    const possibleObjects =
+      raycastObjects instanceof THREE.Object3D
+        ? [raycastObjects]
+        : raycastObjects;
+    return this.raycaster.raycasting(origin, camera, possibleObjects);
+  }
+
+  raycastForMarkers(event: MouseEvent, possibleObjects?: THREE.Object3D[]) {
     // Get the bounding rectangle of the minimap
     const minimap = this.minimap();
     const width = minimap[1];
@@ -238,7 +260,14 @@ export default class MinimapService extends Service {
     // Create a Vector2 for the raycasting origin
     const origin = new THREE.Vector2(x, y);
     // Perform the raycast using the minimap's camera
-    return this.raycaster.raycastMinimap(
+    if (possibleObjects) {
+      this.raycaster.raycasting(
+        origin,
+        this.localUser.minimapCamera,
+        possibleObjects
+      );
+    }
+    return this.raycaster.raycastMinimapMarkers(
       this.localUser.minimapCamera,
       origin,
       Array.from(this.minimapUserMarkers.values()!)

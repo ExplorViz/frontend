@@ -14,7 +14,6 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -105,6 +104,7 @@ export default class LocalUser extends Service.extend({
 
   tick(delta: number) {
     this.animationMixer.update(delta);
+    this.sendPositions();
   }
 
   sendPositions() {

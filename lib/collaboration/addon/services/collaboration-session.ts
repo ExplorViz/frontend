@@ -429,7 +429,6 @@ export default class CollaborationSession extends Service.extend({
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) {
       remoteUser.updateCamera(camera);
-      if (remoteUser.camera?.model instanceof THREE.OrthographicCamera) return;
       this.minimapService.updateUserMinimapMarker(
         remoteUser.camera!.model.position,
         userId,

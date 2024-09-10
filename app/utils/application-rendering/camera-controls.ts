@@ -65,6 +65,9 @@ export default class CameraControls {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
+    const labelerHeightAdjustment = 1.3;
+    center.y -= labelerHeightAdjustment;
+
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
 

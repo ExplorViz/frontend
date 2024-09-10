@@ -235,6 +235,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.onTouchMove(event);
     } else if (this.pointers.length === 1) {
       this.handleMouseMovePan(event);
+    } else if (this.minimapService.makeFullsizeMinimap) {
+      const intersectedViewObj = this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+      this.namedArgs.mouseMove?.(intersectedViewObj, event);
     } else {
       const intersectedViewObj = this.raycast(event);
       this.namedArgs.mouseMove?.(intersectedViewObj, event);
@@ -305,6 +312,27 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    let intersectedViewObjectCopy = intersectedViewObj;
+    const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
+    const rayMarkers = this.minimapService.raycastForMarkers(event);
+    if (rayMarkers) {
+      this.handleMinimapOnLeftClick(isOnMinimap, rayMarkers);
+      return;
+    } else if (this.minimapService.makeFullsizeMinimap && isOnMinimap) {
+      const rayObjects = this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+
+      intersectedViewObjectCopy = rayObjects;
+    } else if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
+      this.minimapService.toggleFullsizeMinimap(false);
+      return;
+    } else if (isOnMinimap) {
+      this.handleMinimapOnLeftClick(isOnMinimap, rayMarkers);
+      return;
+    }
     // Treat shift + single click as double click
     if (event.shiftKey) {
       this.onDoubleClick(event);
@@ -317,7 +345,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.latestSingleClickTimestamp = event.timeStamp;
       this.timer = setTimeout(() => {
         this.mouseClickCounter = 0;
-        this.namedArgs.singleClick?.(intersectedViewObj);
+        this.namedArgs.singleClick?.(intersectedViewObjectCopy);
       }, this.DOUBLE_CLICK_TIME_MS);
     }
 
@@ -325,27 +353,34 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
-    this.handleMinimapOnLeftClick(event);
   }
 
-  private handleMinimapOnLeftClick(event: MouseEvent) {
-    const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
+  private handleMinimapOnLeftClick(
+    isOnMinimap: boolean,
+    ray: THREE.Intersection | null
+  ) {
     if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
       this.minimapService.toggleFullsizeMinimap(false);
     } else if (isOnMinimap) {
-      const ray = this.minimapService.raycastOnMinimap(event);
       if (ray) {
         this.minimapService.handleHit(
           this.collaborativeSession.getUserById(ray.object.name) as RemoteUser
         );
       } else {
-        if (this.minimapService.makeFullsizeMinimap) {
-          this.minimapService.toggleFullsizeMinimap(false);
-        } else {
-          this.minimapService.toggleFullsizeMinimap(true);
-        }
+        this.minimapService.toggleFullsizeMinimap(true);
       }
     }
+  }
+
+  private handleMinimapDoubleClick(event: MouseEvent) {
+    if (this.minimapService.isClickInsideMinimap(event)) {
+      return this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+    }
+    return null;
   }
 
   @action
@@ -359,9 +394,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onDoubleClick(event: MouseEvent) {
     clearTimeout(this.timer);
 
-    const intersectedViewObj = this.raycast(event);
-    if (intersectedViewObj) {
-      this.namedArgs.doubleClick?.(intersectedViewObj);
+    const minimapViewObj = this.handleMinimapDoubleClick(event);
+    if (minimapViewObj) {
+      this.namedArgs.doubleClick?.(minimapViewObj);
+    } else {
+      const intersectedViewObj = this.raycast(event);
+      if (intersectedViewObj) {
+        this.namedArgs.doubleClick?.(intersectedViewObj);
+      }
     }
   }
 
@@ -378,7 +418,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.raycastObjects instanceof Object3D
         ? [this.raycastObjects]
         : this.raycastObjects;
-
     return this.raycaster.raycasting(origin, this.camera, possibleObjects);
   }
 

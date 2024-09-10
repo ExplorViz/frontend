@@ -100,17 +100,17 @@ export default class Raycaster extends THREE.Raycaster {
     return null;
   }
 
-  raycastMinimap(
+  raycastMinimapMarkers(
     camera: THREE.OrthographicCamera,
     coords: { x: number; y: number },
     userList: THREE.Mesh[]
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
-    userList.forEach((mesh: THREE.Object3D) => {
+    userList.forEach((mesh: THREE.Mesh) => {
       mesh.layers.enable(SceneLayers.Default);
     });
     const intersections = this.intersectObjects(userList, false);
-    userList.forEach((mesh: THREE.Object3D) => {
+    userList.forEach((mesh: THREE.Mesh) => {
       mesh.layers.disable(SceneLayers.Default);
     });
     if (intersections.length > 0) {
