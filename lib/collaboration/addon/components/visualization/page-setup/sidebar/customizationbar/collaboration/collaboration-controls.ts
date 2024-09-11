@@ -21,11 +21,7 @@ import SpectateConfigurationService, {
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 
-interface CollaborationArgs {
-  removeComponent(componentPath: string): void;
-}
-
-export default class CollaborationControls extends Component<CollaborationArgs> {
+export default class CollaborationControls extends Component {
   @service('auth')
   private auth!: Auth;
 
@@ -146,7 +142,7 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
     return users.concat(remoteUsers);
   }
 
-  constructor(owner: any, args: CollaborationArgs) {
+  constructor(owner: any, args: any) {
     super(owner, args);
 
     this.loadRooms(false);
@@ -281,11 +277,6 @@ export default class CollaborationControls extends Component<CollaborationArgs> 
       },
     });
     this.sender.sendChangeLandscape(event.target.value);
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('collaboration-controls');
   }
 
   @action

@@ -1,19 +1,20 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
-import { tracked } from '@glimmer/tracking';
 
 interface Args {
+  openedComponent: string | null;
   componentTitle: string;
   componentId: string;
   toggleComponent(componentPath: string): boolean;
 }
 
 export default class ComponentOpener extends Component<Args> {
-  @tracked
-  isOpen = false;
+  get isOpen() {
+    return this.args.openedComponent === this.args.componentId;
+  }
 
   @action
   toggleComponent() {
-    this.isOpen = this.args.toggleComponent(this.args.componentId);
+    this.args.toggleComponent(this.args.componentId);
   }
 }

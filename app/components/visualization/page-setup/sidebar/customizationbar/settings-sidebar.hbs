@@ -4,14 +4,14 @@
     class='btn btn-light btn-outline-dark sidebar-button'
     title='Close Sidebar'
     aria-label='Close'
-    {{on 'click' @closeDataSelection}}
+    {{on 'click' @closeSettingsSidebar}}
   >
     {{svg-jar 'x-16' class='octicon align-middle'}}
   </button>
   <Visualization::PageSetup::Sidebar::SidebarResizer
     @buttonName='sidebarDragButton'
     @containerName='sidebarButtonContainer'
-    @sidebarName='dataselection'
+    @sidebarName='settingsSidebar'
   />
   <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::UndoRestructure
   />
