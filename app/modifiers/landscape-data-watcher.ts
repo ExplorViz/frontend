@@ -330,9 +330,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             collisionRadius,
           };
         }),
-        ...graphNodes.filter(
-          (n) => (n as any).__threeObj instanceof ApplicationObject3D
-        ),
+        ...graphNodes.filter((n) => !apps.includes((n as any).__threeObj)),
       ],
       links: [...communicationLinks, ...nodeLinks],
     };
