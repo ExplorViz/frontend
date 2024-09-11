@@ -331,7 +331,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           };
         }),
         ...graphNodes.filter(
-          (n) => !((n as any).__threeObj instanceof ApplicationObject3D)
+          (n) => (n as any).__threeObj instanceof ApplicationObject3D
         ),
       ],
       links: [...communicationLinks, ...nodeLinks],
