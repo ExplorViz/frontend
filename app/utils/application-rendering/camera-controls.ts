@@ -73,10 +73,10 @@ export default class CameraControls {
       if (Math.abs(currentDistance - this.lastDistance) > 0.001) {
         if (currentDistance < this.lastDistance) {
           //console.log('Zooming in');
-          ImmersiveView.instance.actionHistory.push('zoomin');
+          ImmersiveView.instance.takeAction('zoomin');
         } else {
           //console.log('Zooming out');
-          ImmersiveView.instance.actionHistory.push('zoomout');
+          ImmersiveView.instance.takeAction('zoomout');
         }
       }
 
@@ -86,13 +86,13 @@ export default class CameraControls {
         currentDistance === this.lastDistance
       ) {
         //console.log('Pan occurred');
-        ImmersiveView.instance.actionHistory.push('move');
+        ImmersiveView.instance.takeAction('move');
       }
 
       // Detect Rotation (Tilt)
       else if (!currentQuaternion.equals(this.lastQuaternion)) {
         //console.log('Rotation occurred');
-        ImmersiveView.instance.actionHistory.push('rotate');
+        ImmersiveView.instance.takeAction('rotate');
       }
 
       // Update previous values for the next change event

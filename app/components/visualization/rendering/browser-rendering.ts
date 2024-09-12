@@ -556,7 +556,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
-      ImmersiveView.instance.takeHistory(0);
+      ImmersiveView.instance.takeHistory(null);
     }
 
     this.popupHandler.handleHoverOnMesh(intersection?.object);

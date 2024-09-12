@@ -311,7 +311,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // Semantic Zoom Settings
   autoOpenCloseFeature: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Semantic Zoom',
     displayName: 'Auto Open/Close of Components',

@@ -10,7 +10,7 @@ import {
   ImmersiveViewMixin,
 } from 'explorviz-frontend/rendering/application/immersive-view';
 import { light, skylight } from 'explorviz-frontend/utils/scene';
-
+import gsap from 'gsap';
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
 
@@ -216,6 +216,21 @@ export class _ClazzMesh extends BoxMesh {
     scene.add(gridHelper);
   };
 
+  immersiveViewHighlight = () => {
+    this.pulseAnimation();
+  };
+  pulseAnimation() {
+    const targetColor = new THREE.Color(0xff0000); // Green
+    gsap.to(this.material.color, {
+      r: targetColor.r,
+      g: targetColor.g,
+      b: targetColor.b,
+      duration: 1,
+      yoyo: true, // Reverse the animation back to the original
+      repeat: 5, // Number of times the animation repeats
+      ease: 'power1.inOut',
+    });
+  }
   positionInSphereRadius(
     centerOfShpere: THREE.Vector3,
     radiusOfSphere: number,
