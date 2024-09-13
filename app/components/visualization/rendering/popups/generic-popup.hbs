@@ -9,7 +9,7 @@
     <thead>
       <tr style='border-bottom: 1px solid black;'>
         <td class='font-weight-bold text-primary'>Key</td>
-        <td class='text-center font-weight-bold text-primary'>Value</td>
+        <td class='text-right font-weight-bold text-primary' style="padding-left: 1rem;">Value</td>
       </tr>
     </thead>
 
@@ -17,7 +17,7 @@
       {{#each @data.entries as |e|}}
         <tr>
           <td class='font-weight-bold text-primary'>{{e.key}}</td>
-          <td class='text-center font-weight-bold text-primary'>{{e.value}}</td>
+          <td class='text-right font-weight-bold text-primary' style="padding-left: 1rem;">{{e.value}}</td>
         </tr>
       {{/each}}
     </tbody>

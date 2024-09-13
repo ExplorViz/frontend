@@ -22,3 +22,15 @@ interface Args {
 }
 
 export default class GenericPopup extends Component<Args> {}
+
+export function GenericPopupEntiresFromObject(
+  object: any
+): GenericPopupDataEntry[] {
+  const entries = Object.entries(object);
+  return entries.map((e) => {
+    return {
+      key: e[0],
+      value: e[1],
+    } as GenericPopupDataEntry;
+  });
+}
