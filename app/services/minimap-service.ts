@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import RemoteUser from 'collaboration/utils/remote-user';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import { create } from 'domain';
 
 export enum SceneLayers {
   Default = 0,
