@@ -9,8 +9,9 @@ import {
   ImmersiveView,
   ImmersiveViewMixin,
 } from 'explorviz-frontend/rendering/application/immersive-view';
-import { light, skylight } from 'explorviz-frontend/utils/scene';
 import gsap from 'gsap';
+import ImmsersiveClassScene from 'explorviz-frontend/utils/class-immersive-scene';
+
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
 
@@ -161,7 +162,7 @@ export class _ClazzMesh extends BoxMesh {
    * @param scene THREE.Scene -> can be altered
    */
   enterImmersiveView = (camera: THREE.Camera, scene: THREE.Scene) => {
-    // Register Exit command
+    // Register Exit command via escape key
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         ImmersiveView.instance.exitObject(this);
@@ -169,51 +170,34 @@ export class _ClazzMesh extends BoxMesh {
         document.removeEventListener('keydown', this);
       }
     });
-    //ImmersiveView.instance.exitObject(this);
 
-    //(camera as OrbitControls).enablePan = false;
+    // Register exit when zooming out
+    this.addEventListenerToExitWhenScrollingOut();
 
-    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(skylight());
-    scene.add(light());
-    // White Background!
-    scene.background = new THREE.Color(1, 1, 1);
-    scene.add(cube);
+    // Apply Data to new Scene
+    const classimmersive = new ImmsersiveClassScene(this.dataModel, scene);
 
-    //https://dustinpfister.github.io/2021/05/14/threejs-examples-position-things-to-sphere-surface/
-    // Use of Euler to position/rotate objects around a sphere.
-
-    // Create invisible "sphere".
-    this.positionInSphereRadius(
-      camera.position,
-      1,
-      0,
-      0,
-      cube.scale.x / 2,
-      cube
+    classimmersive.fillScene(camera);
+    // Add grid for development purposes
+    // const gridHelper = new THREE.GridHelper(100, 10);
+    // scene.add(gridHelper);
+    const axisHelper = new THREE.AxesHelper();
+    scene.add(axisHelper);
+  };
+  addEventListenerToExitWhenScrollingOut = () => {
+    ImmersiveView.instance.currentCameraControl?.domElement.addEventListener(
+      'wheel',
+      (event) => {
+        // break when zooming in
+        if (event.deltaY < 0) return;
+        // continue when zooming out
+        ImmersiveView.instance.currentCameraControl?.domElement.removeEventListener(
+          'wheel',
+          this
+        );
+        ImmersiveView.instance.exitObject(this);
+      }
     );
-    const sphere1 = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 15, 15),
-      new THREE.MeshNormalMaterial({ wireframe: true })
-    );
-    // camera.updateMatrixWorld();
-    // const vector = camera.position.clone();
-    // console.log('Lokal Camera: ');
-    // console.log(vector);
-    // //vector.applyMatrix4(camera.matrixWorld);
-    // camera.localToWorld(vector);
-    // console.log('World Camera: ');
-    // console.log(vector);
-    sphere1.position.copy(camera.position);
-    //sphere1.rotation.copy(camera.rotation);
-    //sphere1.position.add(vector);
-    //console.log('Local Sphere: ');
-    //console.log(sphere1.position);
-    scene.add(sphere1);
-    const gridHelper = new THREE.GridHelper(100, 10);
-    scene.add(gridHelper);
   };
 
   immersiveViewHighlight = () => {
@@ -225,54 +209,11 @@ export class _ClazzMesh extends BoxMesh {
       r: targetColor.r,
       g: targetColor.g,
       b: targetColor.b,
-      duration: 1,
+      duration: 0.1,
       yoyo: true, // Reverse the animation back to the original
-      repeat: 5, // Number of times the animation repeats
+      repeat: 10, // Number of times the animation repeats
       ease: 'power1.inOut',
     });
-  }
-  positionInSphereRadius(
-    centerOfShpere: THREE.Vector3,
-    radiusOfSphere: number,
-    lat: number,
-    long: number,
-    alt: number,
-    mesh: THREE.Mesh
-  ) {
-    // const v1 = new THREE.Vector3(0, radiusOfSphere + alt, 0);
-    // const x = Math.PI * lat;
-    // const z = Math.PI * 2 * long;
-    // const e1 = new THREE.Euler(x, 0, z);
-    // mesh.position.copy(centerOfShpere).add(v1).applyEuler(e1);
-
-    // const radian = Math.PI * -0.5 + Math.PI * lat;
-    // const x = Math.cos(radian) * radiusOfSphere;
-    // const y = Math.sin(radian) * radiusOfSphere;
-    // mesh.position.set(x, y, 0);
-    // // set long
-    // mesh.rotation.y = Math.PI * 2 * long;
-
-    // https://discourse.threejs.org/t/orientation-of-objects-on-a-sphere-surface/28220/3
-    //set on sphere
-    const randPhi = Math.random() * Math.PI * 1 - Math.PI / 2; //horiz, subtract Math.PI/2 so only in top half of sphere
-    const randTheta = Math.random() * Math.PI * 1 - Math.PI / 2; //vert, subtract Math.PI/2 so only in top half of sphere
-    mesh.position.setFromSphericalCoords(radiusOfSphere, randPhi, randTheta);
-    mesh.position.add(centerOfShpere);
-    mesh.position.y += alt; //move down to align with sphere offset
-
-    //align on sphere
-    const vectorToPointOnSphere = new THREE.Vector3();
-    const sphericalCoord = new THREE.Spherical(
-      radiusOfSphere,
-      randPhi,
-      randTheta
-    );
-    vectorToPointOnSphere.setFromSpherical(sphericalCoord);
-    const originalOrientation = new THREE.Vector3(0, 1, 0);
-    mesh.quaternion.setFromUnitVectors(
-      originalOrientation,
-      vectorToPointOnSphere.normalize()
-    );
   }
 }
 

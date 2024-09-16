@@ -6,6 +6,7 @@ import RenderingLoop from './rendering-loop';
 import { MapControls } from 'explorviz-frontend/utils/controls/MapControls';
 import { OrbitControls } from 'explorviz-frontend/utils/controls/OrbitControls';
 import { PointerLockControls } from 'explorviz-frontend/utils/controls/PointerLockControls';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 type UserActionType = 'zoomin' | 'zoomout' | 'rotate' | 'move';
 
@@ -136,6 +137,7 @@ export class ImmersiveView {
     | undefined;
 
   renderingLoop: RenderingLoop | undefined;
+  font: Font | undefined;
 
   // Singleton
   static #instance: ImmersiveView;
@@ -219,12 +221,21 @@ export class ImmersiveView {
     // Check if the last element in mouseOverHistory is an instance of ImmersiveViewCapable
     if (
       filterNumbersGreaterThan(indexesOfLastZoomIn, indexOfLastObjectCrossing)
-        .length >= 3
+        .length >= 1
     ) {
       if (
-        this.isImmersiveViewCapable(
+        indexOfLastObjectCrossing == -1 ||
+        !this.isImmersiveViewCapable(
           sortedEvents[indexOfLastObjectCrossing].immersiveView
         )
+      )
+        return;
+      sortedEvents[
+        indexOfLastObjectCrossing
+      ].immersiveView.immersiveViewHighlight();
+      if (
+        filterNumbersGreaterThan(indexesOfLastZoomIn, indexOfLastObjectCrossing)
+          .length >= 3
       ) {
         this.triggerObject(
           sortedEvents[indexOfLastObjectCrossing].immersiveView
@@ -376,6 +387,8 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
       originalScene.remove(originalCam);
       //const iCamera = new THREE.PerspectiveCamera(45, 1920 / 1080, 1, 1000);
       const iCamera = originalCam.clone();
+      // Rotate Camera to neutral position
+      iCamera.rotation.set(0, 0, 0);
       // const camcontrol = new MapControls(
       //   iCamera,
       //   ImmersiveView.instance.originalCanvas
@@ -390,6 +403,12 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
       camcontrol.addEventListener('unlock', () => {
         toExitTheView();
       });
+      ImmersiveView.instance.originalCanvas?.addEventListener(
+        'mousedown',
+        () => {
+          camcontrol.moveForward(2);
+        }
+      );
       // camcontrol.enableDamping = true;
       // camcontrol.dampingFactor = 0.3;
       // camcontrol.minDistance = 0.1;
@@ -441,7 +460,7 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
     exitImmersiveView(camera: THREE.Camera, scene: THREE.Scene): void {
       void camera; // TODO Delete
       void scene; // TODO Delete
-      this.pulseAnimation(true);
+      //this.pulseAnimation(true);
       // throw new Error(
       //   'Method not implemented. You can clean up something here'
       // );

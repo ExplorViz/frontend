@@ -45,6 +45,7 @@ import {
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend({
@@ -111,6 +112,7 @@ export default class ApplicationRenderer extends Service.extend({
       SemanticZoomManager.instance.localUser = this.localUser;
       SemanticZoomManager.instance.appCommRendering = this.appCommRendering;
       SemanticZoomManager.instance.font = this.font;
+      ImmersiveView.instance.font = this.font;
     } catch (error) {
       this.debug(
         'Semantic Zoom Manger did not get any Settings by the Service Renderer. Zoom features are limited: {$error}'
