@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import RemoteUser from 'collaboration/utils/remote-user';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import { create } from 'domain';
 
 export enum SceneLayers {
   Default = 0,
@@ -49,7 +50,7 @@ export default class MinimapService extends Service {
 
   minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
 
-  intersection!: THREE.Vector3;
+  userPosition!: THREE.Vector3;
 
   distance!: number;
 
@@ -57,13 +58,24 @@ export default class MinimapService extends Service {
 
   scene!: THREE.Scene;
 
-  initMinimap(
+  initializeMinimap(
     scene: THREE.Scene,
     graph: ForceGraph,
     cameraControls: CameraControls
   ) {
-    this.cameraControls = cameraControls;
     this.minimapEnabled = this.settings.applicationSettings.minimap.value;
+    this.userPosition = new THREE.Vector3(0, 0, 0);
+    this.makeFullsizeMinimap = false;
+    this.minimapSize = 4;
+    this.graph = graph;
+    this.scene = scene;
+
+    this.setupCamera(cameraControls);
+    this.setupLocalUserMarker();
+  }
+
+  setupCamera(cameraControls: CameraControls) {
+    this.cameraControls = cameraControls;
     this.localUser.minimapCamera = new THREE.OrthographicCamera();
     this.localUser.minimapCamera.position.set(0, MINIMAP_HEIGHT, 0);
     this.localUser.minimapCamera.lookAt(new THREE.Vector3(0, -1, 0));
@@ -77,20 +89,12 @@ export default class MinimapService extends Service {
     this.localUser.minimapCamera.layers.enable(SceneLayers.MinimapLabel);
     this.localUser.minimapCamera.layers.enable(SceneLayers.MinimapMarkers);
     this.localUser.minimapCamera.layers.enable(SceneLayers.LocalMinimapMarker);
+  }
 
-    //Todo: Diese Kommentare als Konstante
-
-    this.intersection = new THREE.Vector3(0, 0, 0);
-
-    this.makeFullsizeMinimap = false;
-    this.minimapSize = 4;
-
-    this.graph = graph;
-    this.scene = scene;
-
+  setupLocalUserMarker() {
     this.initializeUserMinimapMarker(
       new THREE.Color(0x808080),
-      this.intersection,
+      this.userPosition,
       'localUser'
     );
 
@@ -105,19 +109,19 @@ export default class MinimapService extends Service {
   }
 
   tick() {
-    this.getCurrentFocus();
+    this.getCurrentPosition();
     this.updateMinimapCamera();
-    this.updateUserMinimapMarker(this.intersection, 'localUser');
+    this.updateUserMinimapMarker(this.userPosition, 'localUser');
   }
 
-  private getCurrentFocus() {
-    const intersection = new THREE.Vector3();
+  private getCurrentPosition() {
+    const userPosition = new THREE.Vector3();
     if (!this.settings.applicationSettings.version2.value) {
-      intersection.copy(this.cameraControls.perspectiveCameraControls.target);
+      userPosition.copy(this.cameraControls.perspectiveCameraControls.target);
     } else {
-      intersection.copy(this.localUser.camera.position);
+      userPosition.copy(this.localUser.camera.position);
     }
-    this.intersection = this.checkBoundingBox(intersection);
+    this.userPosition = this.checkBoundingBox(userPosition);
   }
 
   private checkBoundingBox(intersection: THREE.Vector3): THREE.Vector3 {
@@ -245,7 +249,7 @@ export default class MinimapService extends Service {
     return this.raycaster.raycasting(origin, camera, possibleObjects);
   }
 
-  raycastForMarkers(event: MouseEvent, possibleObjects?: THREE.Object3D[]) {
+  raycastForMarkers(event: MouseEvent) {
     // Get the bounding rectangle of the minimap
     const minimap = this.minimap();
     const width = minimap[1];
@@ -259,14 +263,7 @@ export default class MinimapService extends Service {
 
     // Create a Vector2 for the raycasting origin
     const origin = new THREE.Vector2(x, y);
-    // Perform the raycast using the minimap's camera
-    if (possibleObjects) {
-      this.raycaster.raycasting(
-        origin,
-        this.localUser.minimapCamera,
-        possibleObjects
-      );
-    }
+
     return this.raycaster.raycastMinimapMarkers(
       this.localUser.minimapCamera,
       origin,
@@ -300,9 +297,9 @@ export default class MinimapService extends Service {
       !this.makeFullsizeMinimap
     ) {
       this.localUser.minimapCamera.position.set(
-        this.intersection.x,
+        this.userPosition.x,
         MINIMAP_HEIGHT,
-        this.intersection.z
+        this.userPosition.z
       );
     } else {
       const center = new THREE.Vector3();
@@ -314,35 +311,6 @@ export default class MinimapService extends Service {
       );
     }
     this.localUser.minimapCamera.updateProjectionMatrix();
-
-    const markerPosition = this.minimapUserMarkers.get('localUser')!.position;
-    const cameraLeft =
-      this.localUser.minimapCamera.left +
-      this.localUser.minimapCamera.position.x;
-    const cameraRight =
-      this.localUser.minimapCamera.right +
-      this.localUser.minimapCamera.position.x;
-    const cameraTop =
-      this.localUser.minimapCamera.top +
-      this.localUser.minimapCamera.position.z;
-    const cameraBottom =
-      this.localUser.minimapCamera.bottom +
-      this.localUser.minimapCamera.position.z;
-
-    const intersection = new THREE.Vector3();
-    intersection.copy(this.intersection);
-    if (markerPosition.x < cameraLeft) {
-      intersection!.x = cameraLeft;
-    }
-    if (markerPosition.x > cameraRight) {
-      intersection!.x = cameraRight;
-    }
-    if (markerPosition.z < cameraBottom) {
-      intersection!.z = cameraBottom;
-    }
-    if (markerPosition.z > cameraTop) {
-      intersection!.z = cameraTop;
-    }
   }
 
   calculateDistanceFactor(): number {

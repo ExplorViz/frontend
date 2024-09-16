@@ -22,7 +22,7 @@ export default class MinimapLabelMesh extends LabelMesh {
 
     for (let i = 0; i < labelText.length; i++) {
       const char = labelText[i];
-      if (char == '-') {
+      if (char == '-' || char == ' ') {
         displayedLabel += char + '\n';
         changeLabel = false;
       } else {

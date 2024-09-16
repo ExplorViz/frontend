@@ -13,7 +13,6 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 import * as THREE from 'three';
-
 export interface GraphNode {
   // data: ApplicationData,
   id: string;

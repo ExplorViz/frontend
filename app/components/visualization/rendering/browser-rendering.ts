@@ -362,7 +362,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.cameraControls);
 
     // minimap
-    this.minimapService.initMinimap(
+    this.minimapService.initializeMinimap(
       this.scene,
       this.graph,
       this.cameraControls
