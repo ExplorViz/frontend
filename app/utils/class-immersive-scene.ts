@@ -69,7 +69,22 @@ export default class ImmsersiveClassScene {
     });
     //debugger;
     const textMesh1 = new THREE.Mesh(geometry, material);
-    this.positionInSphereRadius2(textMesh1, 70, 90, sphere, 5);
+
+    textMesh1.geometry.computeBoundingBox();
+
+    const angleDegrees = this.calculateAngleOfObject(
+      textMesh1.geometry.boundingBox.min,
+      textMesh1.geometry.boundingBox?.max,
+      sphere.position
+    );
+
+    this.positionInSphereRadius2(
+      textMesh1,
+      70,
+      180 + angleDegrees / 2, // Move the Text to the Center of the Camera View
+      sphere,
+      3
+    );
     //textMesh1.rotateY(-Math.PI);
     this.scene.add(textMesh1);
 
@@ -102,21 +117,66 @@ export default class ImmsersiveClassScene {
     // //textMesh1.rotation.y = Math.PI / 2;
   }
 
+  private calculateAngleOfObject(
+    min: THREE.Vector3,
+    max: THREE.Vector3,
+    startpoint: THREE.Vector3
+  ) {
+    const minPoint = min;
+    const maxPoint = max;
+
+    // Calculate the vectors from the Sphere to these points
+    const leftVector = new THREE.Vector3()
+      .subVectors(minPoint, startpoint)
+      .normalize();
+    const rightVector = new THREE.Vector3()
+      .subVectors(maxPoint, startpoint)
+      .normalize();
+
+    // Compute the angle between the two vectors
+    const dotProduct = leftVector.dot(rightVector);
+    const angle = Math.acos(dotProduct); // Angle in radians
+
+    // Optionally convert to degrees
+    const angleDegrees = THREE.MathUtils.radToDeg(angle);
+    return angleDegrees;
+  }
+
   private displayMethods(methods: Method[], sphere: THREE.Mesh) {
     methods.forEach((method, idx) => {
       const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
       const material = new THREE.MeshBasicMaterial({ color: 0x00a0ff });
       const cube = new THREE.Mesh(geometry, material);
-      // this.positionInSphereRadius(
-      //   camera.position,
-      //   1,
-      //   0,
-      //   0,
-      //   cube.scale.x / 2,
-      //   cube
-      // );
-      this.positionInSphereRadius2(cube, 90, 90 + 25 * idx, sphere, 0.1);
+      const geometryText = new TextGeometry(method.name, {
+        font: ImmersiveView.instance.font,
+        size: 0.02,
+        height: 0.01,
+        //depth: 0.1,
+        curveSegments: 5,
+      });
+      const materialText = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: false,
+      });
+      //debugger;
+      const textMesh1 = new THREE.Mesh(geometryText, materialText);
+      textMesh1.geometry.computeBoundingBox();
+
+      const angleDegrees = this.calculateAngleOfObject(
+        textMesh1.geometry.boundingBox.min,
+        textMesh1.geometry.boundingBox?.max,
+        sphere.position
+      );
+      this.positionInSphereRadius2(cube, 90, 180 + 25 * idx, sphere, 1.5);
+      this.positionInSphereRadius2(
+        textMesh1,
+        90,
+        180 + 25 * idx + angleDegrees,
+        sphere,
+        0
+      );
       this.scene.add(cube);
+      this.scene.add(textMesh1);
     });
   }
 

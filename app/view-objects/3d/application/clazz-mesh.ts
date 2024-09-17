@@ -163,13 +163,7 @@ export class _ClazzMesh extends BoxMesh {
    */
   enterImmersiveView = (camera: THREE.Camera, scene: THREE.Scene) => {
     // Register Exit command via escape key
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        ImmersiveView.instance.exitObject(this);
-        // TODO fix Remove of the Listener
-        document.removeEventListener('keydown', this);
-      }
-    });
+    this.addEventListenerToExitOnEscapeKey();
 
     // Register exit when zooming out
     this.addEventListenerToExitWhenScrollingOut();
@@ -184,6 +178,16 @@ export class _ClazzMesh extends BoxMesh {
     const axisHelper = new THREE.AxesHelper();
     scene.add(axisHelper);
   };
+  addEventListenerToExitOnEscapeKey = () => {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        ImmersiveView.instance.exitObject(this);
+        // TODO fix Remove of the Listener
+        document.removeEventListener('keydown', this);
+      }
+    });
+  };
+
   addEventListenerToExitWhenScrollingOut = () => {
     ImmersiveView.instance.currentCameraControl?.domElement.addEventListener(
       'wheel',
