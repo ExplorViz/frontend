@@ -1,19 +1,21 @@
-<div class='container overflow-hidden mt-5 mb-5 d-flex flex-column flex-1'>
-  <h4 id='landscape-selection-header' class='text-center mt-4 mb-3'>
-    Software Landscape Selection
-  </h4>
-  <div class='d-flex flex-row justify-content-center overflow-auto'>
-    <TokenSelection
-      @openTokenCreationModal={{this.openTokenCreationModal}}
-      @selectToken={{this.selectToken}}
-      @tokens={{@model}}
-      @latestToken={{this.tokenService.latestToken}}
-      @deleteToken={{this.deleteToken}}
-      @reload={{this.reload}}
-    />
-  </div>
-  <h4 id='session-header' class='text-center mt-2 mb-3'>Room Selection</h4>
-  <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+<div id='landscape-container'>
+  <BsTab id='tabnav' @type='pills' as |tab|>
+    <tab.pane @id='landscape-tab' @title='Landscapes'>
+      <div class='d-flex flex-row justify-content-center overflow-auto'>
+        <TokenSelection
+          @openTokenCreationModal={{this.openTokenCreationModal}}
+          @selectToken={{this.selectToken}}
+          @tokens={{@model}}
+          @latestToken={{this.tokenService.latestToken}}
+          @deleteToken={{this.deleteToken}}
+          @reload={{this.reload}}
+        />
+      </div>
+    </tab.pane>
+    <tab.pane @id='room-tab' @title='Rooms'>
+      <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+    </tab.pane>
+  </BsTab>
 </div>
 
 <BsModalSimple
