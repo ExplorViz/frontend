@@ -1,6 +1,6 @@
-<div class='container overflow-hidden mt-5 mb-5 d-flex flex-column flex-1'>
-  <BsTab id="tabnav" as |tab|>
-    <tab.pane @id="landscape-tab" @title="Landscape Selection">
+<div id='landscape-container'>
+  <BsTab id='tabnav' @type='pills' as |tab|>
+    <tab.pane @id='landscape-tab' @title='Landscapes'>
       <div class='d-flex flex-row justify-content-center overflow-auto'>
         <TokenSelection
           @openTokenCreationModal={{this.openTokenCreationModal}}
@@ -12,7 +12,7 @@
         />
       </div>
     </tab.pane>
-    <tab.pane @id="room-tab" @title="Room Selection">
+    <tab.pane @id='room-tab' @title='Rooms'>
       <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
     </tab.pane>
   </BsTab>
