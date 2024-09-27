@@ -1,5 +1,10 @@
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { Class, Method } from './landscape-schemes/structure-data';
+import {
+  Class,
+  Interface,
+  Method,
+  Variable,
+} from './landscape-schemes/structure-data';
 import { skylight } from './scene';
 import * as THREE from 'three';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
@@ -11,6 +16,30 @@ export default class ImmsersiveClassScene {
   constructor(dataModel: Class, scene: THREE.Scene) {
     this.classModel = dataModel;
     this.scene = scene;
+
+    // Inject Test Data
+    const newInterface: Partial<Interface> = {
+      name: 'Mega_Interface',
+      methods: [],
+    };
+    this.classModel.implements = [newInterface as Interface];
+    const newExtended: Partial<Class> = {
+      name: 'ParentClass',
+      methods: [],
+    };
+    this.classModel.extends = [newExtended as Class];
+    const newVar: Partial<Variable> = {
+      name: 'myVar1',
+      private: false,
+      type: 'int',
+    };
+    const newVarP: Partial<Variable> = {
+      name: 'myPrivateVar',
+      private: false,
+      type: 'str',
+    };
+    this.classModel.variables = [newVar as Variable, newVarP as Variable];
+    // END of Inject Test Data
   }
 
   fillScene(camera: THREE.Camera) {
@@ -43,51 +72,256 @@ export default class ImmsersiveClassScene {
     //sphere1.position.add(vector);
     //console.log('Local Sphere: ');
     //console.log(sphere1.position);
-    this.scene.add(sphere1);
 
-    this.displayClassName(this.classModel.name, sphere1);
+    // For debug reasons
+    //this.scene.add(sphere1);
+
+    this.displayClassHeaderInformation(this.classModel, sphere1);
     this.displayMethods(this.classModel.methods, sphere1);
+    if (this.classModel.variables)
+      this.displayVariables(this.classModel.variables, sphere1);
+  }
+  private displayVariables(
+    vars: Variable[],
+    sphere: THREE.Mesh<
+      THREE.SphereGeometry,
+      THREE.MeshNormalMaterial,
+      THREE.Object3DEventMap
+    >
+  ) {
+    vars.forEach((variable, idx) => {
+      const group = new THREE.Group();
+      // Material for the boxes
+      // const boxMaterial = new THREE.MeshBasicMaterial({
+      //   color: 0x000005,
+      //   wireframe: false,
+      // });
+      const boxMaterial = new THREE.LineDashedMaterial({
+        color: 0xffaa00,
+        dashSize: 3,
+        gapSize: 1,
+      });
+
+      // Create the box for the class variable name
+      //const nameBoxGeometry = new THREE.BoxGeometry(2, 1, 0.5);
+      const geometryBox = this.box(2, 1, 0.5);
+      const nameBox = new THREE.LineSegments(geometryBox, boxMaterial);
+      group.add(nameBox);
+
+      // Store the TextLabel on the surface of the previously created box mesh
+      const nameTextGeometry = new TextGeometry(variable.name, {
+        font: ImmersiveView.instance.font,
+        size: 0.2,
+        height: 0.1,
+        depth: 0.01,
+        curveSegments: 12,
+      });
+      const nameTextMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: false,
+      });
+      const nameText = new THREE.Mesh(nameTextGeometry, nameTextMaterial);
+      nameText.geometry.computeBoundingBox();
+      // Alling Text in Center
+      nameText.position.set(
+        -(
+          nameText.geometry.boundingBox?.max.x -
+          nameText.geometry.boundingBox?.min.x
+        ) / 2,
+        0.2,
+        0.3
+      ); // Position the text within the box
+      nameBox.add(nameText);
+
+      // Create the box for the return type
+      const returnTypeBoxGeometry = new THREE.BoxGeometry(1, 0.5, 0.2);
+      const returnTypeBox = new THREE.Mesh(returnTypeBoxGeometry, boxMaterial);
+      //returnTypeBox.geometry.computeBoundingBox();
+      returnTypeBox.position.set(returnTypeBox.position.x, -0.1, 0); // Position below the named box
+      group.add(returnTypeBox);
+
+      // Write return Type Label on the Box
+      const returnTypeTextGeometry = new TextGeometry(variable.type, {
+        font: ImmersiveView.instance.font,
+        size: 0.15,
+        height: 0.1,
+        depth: 0.01,
+        curveSegments: 12,
+      });
+      const returnTypeTextMaterial = new THREE.MeshBasicMaterial({
+        color: 0x0000ff,
+        wireframe: false,
+      });
+      const returnTypeText = new THREE.Mesh(
+        returnTypeTextGeometry,
+        returnTypeTextMaterial
+      );
+      returnTypeText.geometry.computeBoundingBox();
+      returnTypeText.position.set(
+        -(
+          returnTypeText.geometry.boundingBox?.max.x -
+          returnTypeText.geometry.boundingBox?.min.x
+        ) / 2,
+        0,
+        0.15
+      );
+      returnTypeBox.add(returnTypeText);
+
+      this.scene.add(group);
+      this.positionInSphereRadius2(group, 90, 180 + 30 * idx, sphere, 3.5);
+    });
   }
 
-  private displayClassName(name: string, sphere: THREE.Mesh) {
+  private displayClassHeaderInformation(theClass: Class, sphere: THREE.Mesh) {
     // const loader = new FontLoader();
     // loader.load(
     //   'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
     //   (font) => {
     //   }
     // );
-    const geometry = new TextGeometry(name, {
+
+    // Classenname
+    //
+    //
+    const classNameGeometry = new TextGeometry(theClass.name, {
       font: ImmersiveView.instance.font,
       size: 0.5,
       height: 0.2,
       depth: 0.1,
       curveSegments: 12,
     });
-    const material = new THREE.MeshBasicMaterial({
+    const classNameMaterial = new THREE.MeshBasicMaterial({
       color: 0x00ff00,
       wireframe: false,
     });
-    //debugger;
-    const textMesh1 = new THREE.Mesh(geometry, material);
+    const classNameMesh = new THREE.Mesh(classNameGeometry, classNameMaterial);
 
-    textMesh1.geometry.computeBoundingBox();
-
-    const angleDegrees = this.calculateAngleOfObject(
-      textMesh1.geometry.boundingBox.min,
-      textMesh1.geometry.boundingBox?.max,
-      sphere.position
-    );
-
+    classNameMesh.geometry.center();
+    classNameMesh.geometry.computeBoundingBox();
     this.positionInSphereRadius2(
-      textMesh1,
+      classNameMesh,
       70,
-      180 + angleDegrees / 2, // Move the Text to the Center of the Camera View
+      180, // Move the Text to the Center of the Camera View
+      sphere,
+      3
+    );
+    // const angleDegrees = this.calculateAngleOfObject(
+    //   classNameMesh.geometry.boundingBox.min,
+    //   classNameMesh.geometry.boundingBox?.max,
+    //   sphere.position
+    // );
+    this.positionInSphereRadius2(
+      classNameMesh,
+      70,
+      180, // Move the Text to the Center of the Camera View
       sphere,
       3
     );
     //textMesh1.rotateY(-Math.PI);
-    this.scene.add(textMesh1);
+    this.scene.add(classNameMesh);
 
+    // Implements
+    //
+    //
+    const implementsGeometry = new TextGeometry('Implements', {
+      font: ImmersiveView.instance.font,
+      size: 0.2,
+      height: 0.1,
+      depth: 0.01,
+      curveSegments: 12,
+    });
+    const implementsMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: false,
+    });
+    const implementsMesh = new THREE.Mesh(
+      implementsGeometry,
+      implementsMaterial
+    );
+    implementsMesh.geometry.center();
+    this.positionInSphereRadius2(
+      implementsMesh,
+      65,
+      180 + 60, // Move the Text to the Center of the Camera View
+      sphere,
+      3
+    );
+    this.scene.add(implementsMesh);
+    // Bulletpoint List
+    this.classModel.implements?.forEach((element, idx) => {
+      const implementsGeometry = new TextGeometry('•' + element.name, {
+        font: ImmersiveView.instance.font,
+        size: 0.2,
+        height: 0.1,
+        depth: 0.01,
+        curveSegments: 12,
+      });
+      const implementsMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: false,
+      });
+      const implementsMesh = new THREE.Mesh(
+        implementsGeometry,
+        implementsMaterial
+      );
+      implementsMesh.geometry.center();
+      this.positionInSphereRadius2(
+        implementsMesh,
+        70 + idx * 5,
+        180 + 60, // Move the Text to the Center of the Camera View
+        sphere,
+        3
+      );
+      this.scene.add(implementsMesh);
+    });
+    // Extends
+    //
+    //
+    const extendsGeometry = new TextGeometry('Extends', {
+      font: ImmersiveView.instance.font,
+      size: 0.2,
+      height: 0.1,
+      depth: 0.01,
+      curveSegments: 12,
+    });
+    const extendsMaterial = new THREE.MeshBasicMaterial({
+      color: 0x0000ff,
+      wireframe: false,
+    });
+    const extendsMesh = new THREE.Mesh(extendsGeometry, extendsMaterial);
+    this.positionInSphereRadius2(
+      extendsMesh,
+      65,
+      180 - 60, // Move the Text to the Center of the Camera View
+      sphere,
+      3
+    );
+    extendsMesh.geometry.center();
+    this.scene.add(extendsMesh);
+    // Bulletpoint List
+    this.classModel.extends?.forEach((element, idx) => {
+      const extendsGeometry = new TextGeometry('•' + element.name, {
+        font: ImmersiveView.instance.font,
+        size: 0.2,
+        height: 0.1,
+        depth: 0.01,
+        curveSegments: 12,
+      });
+      const extendsMaterial = new THREE.MeshBasicMaterial({
+        color: 0x0000ff,
+        wireframe: false,
+      });
+      const extendsMesh = new THREE.Mesh(extendsGeometry, extendsMaterial);
+      extendsMesh.geometry.center();
+      this.positionInSphereRadius2(
+        extendsMesh,
+        70 + idx * 5,
+        180 - 60, // Move the Text to the Center of the Camera View
+        sphere,
+        3
+      );
+      this.scene.add(extendsMesh);
+    });
     // Veraltet
 
     // const geometry = new TextGeometry(name, {
@@ -116,6 +350,94 @@ export default class ImmsersiveClassScene {
     // //textMesh1.position.z = camera.position.z + 2;
     // //textMesh1.rotation.y = Math.PI / 2;
   }
+  private displayMethods(methods: Method[], sphere: THREE.Mesh) {
+    methods.forEach((method, idx) => {
+      const ourGroup = new THREE.Group();
+      const geometry = new THREE.BoxGeometry(1, 0.5, 0.2);
+      const material = new THREE.MeshBasicMaterial({ color: 0x00a0ff });
+      const material2 = new THREE.MeshBasicMaterial({ color: 0xa000ff });
+      const cube = new THREE.Mesh(geometry, material);
+      const geometryText = new TextGeometry(method.name, {
+        font: ImmersiveView.instance.font,
+        size: 0.1,
+        height: 0.07,
+        depth: 0.01,
+        curveSegments: 5,
+      });
+      const materialText = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: false,
+      });
+      //debugger;
+      const textMesh1 = new THREE.Mesh(geometryText, materialText);
+      textMesh1.geometry.computeBoundingBox();
+
+      // const angleDegrees = this.calculateAngleOfObject(
+      //   textMesh1.geometry.boundingBox.min,
+      //   textMesh1.geometry.boundingBox?.max,
+      //   sphere.position
+      // );
+      // this.positionInSphereRadius2(
+      //   textMesh1,
+      //   115,
+      //   180 + 25 * idx + angleDegrees,
+      //   sphere,
+      //   0
+      // );
+      ourGroup.add(cube);
+      ourGroup.add(textMesh1);
+      textMesh1.geometry.center();
+      textMesh1.position.setZ(0.5);
+      textMesh1.position.setY(0.1);
+
+      //
+      //  Return Type
+      //
+      const returnTypeBoxGeometry = new THREE.BoxGeometry(0.5, 0.3, 0.2);
+      const returnTypeBox = new THREE.Mesh(returnTypeBoxGeometry, material2);
+      //returnTypeBox.geometry.computeBoundingBox();
+      returnTypeBox.position.set(returnTypeBox.position.x, -0.1, 0); // Position below the named box
+      ourGroup.add(returnTypeBox);
+
+      // Write return Type Label on the Box
+      const returnTypeTextGeometry = new TextGeometry(
+        method.type != undefined ? method.type : 'any',
+        {
+          font: ImmersiveView.instance.font,
+          size: 0.07,
+          height: 0.04,
+          depth: 0.01,
+          curveSegments: 12,
+        }
+      );
+      const returnTypeTextMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf00f0f,
+        wireframe: false,
+      });
+      const returnTypeText = new THREE.Mesh(
+        returnTypeTextGeometry,
+        returnTypeTextMaterial
+      );
+      returnTypeText.geometry.center();
+      returnTypeBox.geometry.center();
+      // returnTypeText.geometry.computeBoundingBox();
+      // returnTypeText.position.set(
+      //   -(
+      //     returnTypeText.geometry.boundingBox?.max.x -
+      //     returnTypeText.geometry.boundingBox?.min.x
+      //   ) / 2,
+      //   0,
+      //   0.15
+      // );
+      returnTypeBox.add(returnTypeText);
+      returnTypeBox.position.setY(-0.2);
+      returnTypeBox.position.setZ(0.5);
+      returnTypeText.position.setZ(0.3);
+
+      this.positionInSphereRadius2(ourGroup, 115, 180 + 25 * idx, sphere, 1.5);
+      this.scene.add(ourGroup);
+    });
+  }
 
   private calculateAngleOfObject(
     min: THREE.Vector3,
@@ -142,44 +464,7 @@ export default class ImmsersiveClassScene {
     return angleDegrees;
   }
 
-  private displayMethods(methods: Method[], sphere: THREE.Mesh) {
-    methods.forEach((method, idx) => {
-      const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00a0ff });
-      const cube = new THREE.Mesh(geometry, material);
-      const geometryText = new TextGeometry(method.name, {
-        font: ImmersiveView.instance.font,
-        size: 0.02,
-        height: 0.01,
-        //depth: 0.1,
-        curveSegments: 5,
-      });
-      const materialText = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: false,
-      });
-      //debugger;
-      const textMesh1 = new THREE.Mesh(geometryText, materialText);
-      textMesh1.geometry.computeBoundingBox();
-
-      const angleDegrees = this.calculateAngleOfObject(
-        textMesh1.geometry.boundingBox.min,
-        textMesh1.geometry.boundingBox?.max,
-        sphere.position
-      );
-      this.positionInSphereRadius2(cube, 90, 180 + 25 * idx, sphere, 1.5);
-      this.positionInSphereRadius2(
-        textMesh1,
-        90,
-        180 + 25 * idx + angleDegrees,
-        sphere,
-        0
-      );
-      this.scene.add(cube);
-      this.scene.add(textMesh1);
-    });
-  }
-
+  // Deprecated use positionInSphereRadius2
   private positionInSphereRadius(
     centerOfShpere: THREE.Vector3,
     radiusOfSphere: number,
@@ -246,5 +531,109 @@ export default class ImmsersiveClassScene {
       .setFromSphericalCoords(radius, phi, theta)
       .add(sphere.position);
     mesh.lookAt(sphere.position);
+  }
+
+  box(widthOrignal: number, heightOriginal: number, depthOriginal: number) {
+    // Src: https://github.com/mrdoob/three.js/blob/master/examples/webgl_lines_dashed.html
+
+    const width: number = widthOrignal * 0.5,
+      height: number = heightOriginal * 0.5,
+      depth: number = depthOriginal * 0.5;
+
+    const geometry = new THREE.BufferGeometry();
+    const position = [];
+
+    position.push(
+      -width,
+      -height,
+      -depth,
+      -width,
+      height,
+      -depth,
+
+      -width,
+      height,
+      -depth,
+      width,
+      height,
+      -depth,
+
+      width,
+      height,
+      -depth,
+      width,
+      -height,
+      -depth,
+
+      width,
+      -height,
+      -depth,
+      -width,
+      -height,
+      -depth,
+
+      -width,
+      -height,
+      depth,
+      -width,
+      height,
+      depth,
+
+      -width,
+      height,
+      depth,
+      width,
+      height,
+      depth,
+
+      width,
+      height,
+      depth,
+      width,
+      -height,
+      depth,
+
+      width,
+      -height,
+      depth,
+      -width,
+      -height,
+      depth,
+
+      -width,
+      -height,
+      -depth,
+      -width,
+      -height,
+      depth,
+
+      -width,
+      height,
+      -depth,
+      -width,
+      height,
+      depth,
+
+      width,
+      height,
+      -depth,
+      width,
+      height,
+      depth,
+
+      width,
+      -height,
+      -depth,
+      width,
+      -height,
+      depth
+    );
+
+    geometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(position, 3)
+    );
+
+    return geometry;
   }
 }

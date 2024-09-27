@@ -35,6 +35,10 @@ export class _ClazzMesh extends BoxMesh {
 
   _original_layout: BoxLayout;
 
+  // Immersive View
+  private zoomOutCounter: number = 0;
+  private lastExecution: number = 0;
+
   constructor(
     layout: BoxLayout,
     clazz: Class,
@@ -60,6 +64,8 @@ export class _ClazzMesh extends BoxMesh {
     // Register multiple levels
     this.setAppearence(2, this.setHeightAccordingToClassSize);
     this.setAppearence(3, this.showMethodMesh);
+
+    // Immersive View
   }
 
   getModelId() {
@@ -166,7 +172,10 @@ export class _ClazzMesh extends BoxMesh {
     this.addEventListenerToExitOnEscapeKey();
 
     // Register exit when zooming out
-    this.addEventListenerToExitWhenScrollingOut();
+    //this.addEventListenerToExitWhenScrollingOut();
+
+    // Register Exit when camera is at minimum zoom level
+    this.addEventListenerToExitWhenMinZoomLevelReached();
 
     // Apply Data to new Scene
     const classimmersive = new ImmsersiveClassScene(this.dataModel, scene);
@@ -175,8 +184,9 @@ export class _ClazzMesh extends BoxMesh {
     // Add grid for development purposes
     // const gridHelper = new THREE.GridHelper(100, 10);
     // scene.add(gridHelper);
-    const axisHelper = new THREE.AxesHelper();
-    scene.add(axisHelper);
+    // Add Axis for development purposes
+    //const axisHelper = new THREE.AxesHelper();
+    //scene.add(axisHelper);
   };
   addEventListenerToExitOnEscapeKey = () => {
     document.addEventListener('keydown', (event) => {
@@ -200,6 +210,44 @@ export class _ClazzMesh extends BoxMesh {
           this
         );
         ImmersiveView.instance.exitObject(this);
+      }
+    );
+  };
+  addEventListenerToExitWhenMinZoomLevelReached = () => {
+    ImmersiveView.instance.currentCameraControl?.addEventListener(
+      'minzoomreached',
+      () => {
+        // // break when zooming in
+        // if (event.deltaY < 0) return;
+        // // continue when zooming out
+        // ImmersiveView.instance.currentCameraControl?.domElement.removeEventListener(
+        //   'wheel',
+        //   this
+        // );
+
+        const currentTime = Date.now(); // Get the current timestamp in milliseconds
+        //console.log('minzoomreached');
+        if (currentTime - this.lastExecution > 700) {
+          // Check if more than 1.5 second has passed
+          //console.log('minzoomreached - less than a second ago');
+          this.zoomOutCounter += 1;
+          if (this.zoomOutCounter > 1) {
+            this.zoomOutCounter = 0;
+            ImmersiveView.instance.exitObject(this);
+          }
+          this.lastExecution = currentTime; // Update the last execution time
+        }
+        // else {
+        //   console.log(
+        //     'Command not executed: Less than 1 second since last call.'
+        //   );
+        // }
+      }
+    );
+    ImmersiveView.instance.currentCameraControl?.addEventListener(
+      'maxzoom',
+      () => {
+        this.zoomOutCounter = 0;
       }
     );
   };

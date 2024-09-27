@@ -13,12 +13,22 @@
 //   MathUtils,
 // } from 'three';
 
-import { EventDispatcher, Euler, Vector3 } from 'three';
+import {
+  EventDispatcher,
+  Euler,
+  Vector3,
+  MOUSE,
+  // Spherical,
+  // Quaternion,
+} from 'three';
 
 const _euler = new Euler(0, 0, 0, 'YXZ');
 const _vector = new Vector3();
 
-const _changeEvent = { type: 'change' };
+const _minimalZoomLimitReached = { type: 'minzoomreached' };
+const _maximalZoomLimitReached = { type: 'maxzoomreached' };
+const _minimalZoom = { type: 'minzoom' };
+const _maximalZoom = { type: 'maxzoom' };
 const _lockEvent = { type: 'lock' };
 const _unlockEvent = { type: 'unlock' };
 
@@ -37,7 +47,7 @@ class PointerLockControls extends EventDispatcher {
     this.state = -1;
 
     this.keys = {};
-    this.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: null };
+    this.mouseButtons = { LEFT: null, MIDDLE: MOUSE.DOLLY, RIGHT: null };
     this.touches = { ONE: null, TWO: null };
     // End of EventDispatcher Structure
 
@@ -48,18 +58,175 @@ class PointerLockControls extends EventDispatcher {
     this.minPolarAngle = 0; // radians
     this.maxPolarAngle = Math.PI; // radians
 
+    // Zooming
+    //
+    //
+    // How far you can dolly in and out ( PerspectiveCamera only )
+    this.minDistance = 0;
+    this.maxDistance = Infinity;
+
+    // "target" sets the location of focus, where the object orbits around
+    this.target = new Vector3();
+
+    // const spherical = new Spherical();
+    // const dollyDirection = new Vector3();
+    // const offset = new Vector3();
+    // // so camera.up is the orbit axis
+    // const quat = new Quaternion().setFromUnitVectors(
+    //   this.object.up,
+    //   new Vector3(0, 1, 0)
+    // );
+    // const quatInverse = quat.clone().invert();
+
     this.pointerSpeed = 1.0;
 
-    // event listeners
+    this.enableZoom = true;
 
+    this.zoomSpeed = 1.8;
+    this.zoomToCursor = true;
+    this.minDistance = 0;
+    this.maxDistance = Infinity;
+    this.scale = 1;
+
+    // eslint-disable-next-line
+    //const scope = this;
+
+    const onMouseWheel = (event) => {
+      if (this.enabled === false || this.enableZoom === false) return;
+
+      event.preventDefault();
+
+      //this.dispatchEvent(_startEvent);
+
+      handleMouseWheel(event);
+
+      //scope.dispatchEvent(_endEvent);
+    };
+    // Helper function to clamp FOV value
+    const clampFov = (fov) => {
+      const minFov = 20; // Minimum FOV value, for zooming in
+      const maxFov = 100; // Maximum FOV value, for zooming out
+      const target = Math.max(minFov, Math.min(maxFov, fov));
+      //console.log("Target", target);
+      if (target == maxFov) {
+        this.dispatchEvent(_minimalZoomLimitReached);
+      } else if (target == minFov) {
+        this.dispatchEvent(_maximalZoomLimitReached);
+      }
+
+      return target;
+    };
+
+    const handleMouseWheel = (event) => {
+      const zoomScale = getZoomScale(event.deltaY);
+
+      // if (event.deltaY < 0) {
+      //   // Zoom in
+      //   dollyIn(zoomScale);
+      // } else if (event.deltaY > 0) {
+      //   // Zoom out
+      //   dollyOut(zoomScale);
+      // }
+
+      // //orthographic camera
+      // const newZoom = clampDistance(this.object.zoom * this.scale);
+
+      // // Apply the new zoom to the camera
+      // this.object.zoom = newZoom;
+      if (event.deltaY > 0) {
+        // Zoom out
+        this.dispatchEvent(_minimalZoom);
+      } else if (event.deltaY < 0) {
+        // Zoom in
+        this.dispatchEvent(_maximalZoom);
+      }
+
+      // Adjust the FOV for the perspective camera
+      const newFov = clampFov(this.object.fov + zoomScale);
+
+      // Apply the new FOV to the perspective camera
+      this.object.fov = newFov;
+
+      this.object.updateProjectionMatrix();
+
+      return;
+
+      //updateZoomParameters(event.clientX, event.clientY);
+      // if (event.deltaY < 0) {
+      //   dollyIn(getZoomScale(event.deltaY));
+      // } else if (event.deltaY > 0) {
+      //   dollyOut(getZoomScale(event.deltaY));
+      // }
+
+      // //let zoomChanged = false;
+      // //const prevRadius = spherical.radius;
+      // spherical.radius = clampDistance(spherical.radius * this.scale);
+      // //zoomChanged = prevRadius != spherical.radius;
+
+      // offset.setFromSpherical(spherical);
+
+      // // rotate offset back to "camera-up-vector-is-up" space
+      // offset.applyQuaternion(quatInverse);
+
+      // this.object.position.copy(this.target).add(offset);
+
+      // this.object.lookAt(this.target);
+
+      // const prevRadius = offset.length();
+      // const newRadius = clampDistance(prevRadius * this.scale);
+      // // move the camera down the pointer ray
+      // // this method avoids floating point error
+      // const radiusDelta = prevRadius - newRadius;
+      // this.object.position.addScaledVector(dollyDirection, radiusDelta);
+      // this.object.updateMatrixWorld();
+    };
+    const getZoomScale = (delta) => {
+      const normalizedDelta = delta * 0.01;
+      return this.zoomSpeed * normalizedDelta;
+    };
+    // const dollyOut = (dollyScale) => {
+    //   this.scale /= dollyScale;
+    // };
+
+    // const dollyIn = (dollyScale) => {
+    //   this.scale *= dollyScale;
+    // };
+    // const clampDistance = (dist) => {
+    //   return Math.max(this.minDistance, Math.min(this.maxDistance, dist));
+    // };
+    // event listeners
     this._onMouseMove = onMouseMove.bind(this);
+    this._onMouseWheel = onMouseWheel.bind(this);
     this._onPointerlockChange = onPointerlockChange.bind(this);
     this._onPointerlockError = onPointerlockError.bind(this);
+    // function updateZoomParameters(x, y) {
+    //   if (!this.zoomToCursor) {
+    //     return;
+    //   }
+
+    //   //let performCursorZoom:Boolean = true;
+
+    //   const rect = this.domElement.getBoundingClientRect();
+    //   const dx = x - rect.left;
+    //   const dy = y - rect.top;
+    //   const w = rect.width;
+    //   const h = rect.height;
+
+    //   mouse.x = (dx / w) * 2 - 1;
+    //   mouse.y = -(dy / h) * 2 + 1;
+
+    //   dollyDirection
+    //     .set(mouse.x, mouse.y, 1)
+    //     .unproject(scope.object)
+    //     .sub(this.object.position)
+    //     .normalize();
+    // }
 
     if (this.domElement !== null) {
       this.connect();
     }
   }
+
   connect() {
     this.domElement.ownerDocument.addEventListener(
       'mousemove',
@@ -73,6 +240,9 @@ class PointerLockControls extends EventDispatcher {
       'pointerlockerror',
       this._onPointerlockError
     );
+    this.domElement.addEventListener('wheel', this._onMouseWheel, {
+      passive: false,
+    });
   }
 
   disconnect() {
@@ -87,6 +257,10 @@ class PointerLockControls extends EventDispatcher {
     this.domElement.ownerDocument.removeEventListener(
       'pointerlockerror',
       this._onPointerlockError
+    );
+    this.domElement.ownerDocument.removeEventListener(
+      'wheel',
+      this._onMouseWheel
     );
   }
 
@@ -164,7 +338,7 @@ function onMouseMove(event) {
 
   camera.quaternion.setFromEuler(_euler);
 
-  this.dispatchEvent(_changeEvent);
+  //this.dispatchEvent(_changeEvent);
 }
 
 function onPointerlockChange() {

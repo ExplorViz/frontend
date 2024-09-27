@@ -1,9 +1,26 @@
 import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
+export interface Variable {
+  private: boolean;
+  name: string;
+  type: string;
+}
+export interface Parameters {
+  name: string;
+  type: string;
+}
 export interface Method {
   name: string;
+  type: string;
+  private: boolean;
   methodHash: string;
+  parameters: Parameters[];
+}
+export interface Interface {
+  name: string;
+  methods: Method[];
+  variables: Variable[];
 }
 
 export interface Class {
@@ -11,6 +28,9 @@ export interface Class {
   name: string;
   methods: Method[];
   parent: Package;
+  variables?: Variable[];
+  extends?: Class[];
+  implements?: Interface[];
 }
 
 export interface Package {
