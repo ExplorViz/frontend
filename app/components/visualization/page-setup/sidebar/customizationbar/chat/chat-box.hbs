@@ -55,32 +55,18 @@
     </div>
 
     {{#if this.deletedMessage}}
-    {{this.synchronize}}
+        {{this.deleteMessageOnEvent}}
     {{/if}}
     {{#if this.isFilterEnabled}}
     <ul class="chat-thread filtered">
         {{#each this.filteredMessages as |message|}}
-        <div class="message-item">
-            {{#if this.openDeleteActions}}
-            <label>
-                <input type="checkbox" name="delete-checkbox" class="delete-checkbox" data-message-id={{message.msgId}} {{on "change" this.selectMessage}}>
-            </label>
-            {{/if}}
             {{this.postMessage message}}
-        </div>
         {{/each}}
     </ul>
     {{else}}
     <ul class="chat-thread normal">
         {{#each this.chatService.chatMessages as |message|}}
-        <div class="message-item">
-            {{#if this.openDeleteActions}}
-            <label>
-                <input type="checkbox" name="delete-checkbox" class="delete-checkbox" data-message-id={{message.msgId}} {{on "change" this.selectMessage}}>
-            </label>
-            {{/if}}
             {{this.postMessage message}}
-        </div>
         {{/each}}
     </ul>
     {{/if}}

@@ -51,6 +51,33 @@ export default class ChatBox extends Component {
 
   @tracked selectedMessages: Set<number> = new Set();
 
+  get userIsHost() {
+    return this.localUser.isHost;
+  }
+
+  get filteredMessages() {
+    return this.chatService.filteredChatMessages;
+  }
+
+  get deletedMessage() {
+    const value = this.chatService.deletedMessage;
+    next(this, function resetDeletedMessage() {
+      this.chatService.deletedMessage = false;
+    });
+    return value;
+  }
+
+  @action
+  deleteMessageOnEvent() {
+    const messageIds = this.chatService.deletedMessageIds;
+
+    messageIds.forEach((msg) => {
+      this.removeMessage(msg);
+    });
+
+    this.chatService.deletedMessageIds.clear();
+  }
+
   @action
   toggleFilter() {
     this.openFilterOptions = !this.openFilterOptions;
@@ -59,27 +86,26 @@ export default class ChatBox extends Component {
   @action
   toggleDeleteAction() {
     this.openDeleteActions = !this.openDeleteActions;
-    if (!this.openDeleteActions) {
-      this.selectedMessages.clear();
-    }
   }
 
   @action
-  selectMessage(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const messageId = parseInt(target.dataset.messageId!, 10);
-    if (target.checked) {
-      this.selectedMessages.add(messageId);
+  selectMessage(event: any, chatMessage: any) {
+    const checkbox = event.target as HTMLInputElement;
+
+    if (checkbox.checked) {
+      this.selectedMessages.add(chatMessage.msgId);
     } else {
-      this.selectedMessages.delete(messageId);
+      this.selectedMessages.delete(chatMessage.msgId);
     }
   }
 
   @action
   deleteSelectedMessages() {
+    const messageIds: number[] = [];
     this.selectedMessages.forEach((messageId) => {
-      this.removeUserMessage(messageId);
+      messageIds.push(messageId);
     });
+    this.removeUserMessage(messageIds);
     this.selectedMessages.clear();
     this.toggleDeleteAction();
   }
@@ -126,22 +152,6 @@ export default class ChatBox extends Component {
     this.chatService.filterChat(this.filterMode, this.filterValue);
   }
 
-  get userIsHost() {
-    return this.localUser.isHost;
-  }
-
-  get filteredMessages() {
-    return this.chatService.filteredChatMessages;
-  }
-
-  get deletedMessage() {
-    const value = this.chatService.deletedMessage;
-    next(this, function resetDeletedMessage() {
-      this.chatService.deletedMessage = false;
-    });
-    return value;
-  }
-
   @action
   synchronize() {
     if (this.collaborationSession.connectionStatus == 'offline') {
@@ -168,7 +178,7 @@ export default class ChatBox extends Component {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'chat.txt'; //TODO: Change filename to landscape token + id and date?
+    a.download = 'chat.txt'; //TODO: Change filename to landscape token + room id and date?
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -262,7 +272,7 @@ export default class ChatBox extends Component {
       );
       messageContainer.appendChild(messageLi);
 
-      // Add a button for replayability for certain events
+      // Add the button for replayability of certain events
       if (
         (chatMessage.isEvent && chatMessage.eventType == 'ping') ||
         chatMessage.eventType === 'highlight'
@@ -275,11 +285,14 @@ export default class ChatBox extends Component {
         messageLi.appendChild(eventButton);
       }
 
-      const checkbox = messageContainer.querySelector('.delete-checkbox');
-      if (checkbox) {
-        checkbox.addEventListener('change', (event) =>
-          this.selectMessage(event)
-        );
+      // Add the checkbox for message deletion
+      if (this.localUser.isHost) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = chatMessage.msgId.toString();
+        checkbox.classList.add('delete-checkbox');
+        checkbox.onchange = (event) => this.selectMessage(event, chatMessage);
+        messageLi.appendChild(checkbox);
       }
 
       // Add the timestamp at the end of the message
@@ -331,17 +344,18 @@ export default class ChatBox extends Component {
     }
   }
 
+  removeUserMessage(messageId: number[]) {
+    this.chatService.removeChatMessage(messageId);
+    messageId.forEach((msg) => this.removeMessage(msg));
+    //this.removeMessage(messageId);
+  }
+
   private addUserToChat(id: string, userName: string) {
     const userExists = this.usersInChat.some((user) => user.id === id);
     if (!userExists) {
       const name = userName + '(' + id + ')';
       this.usersInChat.push({ id, name });
     }
-  }
-
-  removeUserMessage(messageId: number) {
-    this.chatService.removeChatMessage(messageId);
-    this.removeMessage(messageId);
   }
 
   @action

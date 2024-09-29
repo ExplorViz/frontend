@@ -1,11 +1,25 @@
 import Service, { inject as service } from '@ember/service';
+import { registerDestructor } from '@ember/destroyable';
 import { tracked } from '@glimmer/tracking';
 import ToastHandlerService from './toast-handler';
 import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import WebSocketService from 'collaboration/services/web-socket';
 import MessageSender from 'collaboration/services/message-sender';
-import { ChatSynchronizeMessage } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import * as THREE from 'three';
 import LocalUser from 'collaboration/services/local-user';
+import {
+  CHAT_MESSAGE_EVENT,
+  ChatMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+import {
+  CHAT_SYNC_EVENT,
+  ChatSynchronizeMessage,
+} from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
+import {
+  MESSAGE_DELETE_EVENT,
+  MessageDeleteEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -41,11 +55,92 @@ export default class ChatService extends Service {
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('web-socket')
+  private webSocket!: WebSocketService;
+
   @tracked
   msgId: number = 1;
 
   @tracked
-  deletedMessage: boolean = false; // Can be adjusted to needSynchronization, so chat be synchronized whenever necessary..
+  deletedMessage: boolean = false; // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
+
+  deletedMessageIds: number[] = [];
+
+  constructor() {
+    super(...arguments);
+
+    this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
+    this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
+    this.webSocket.on(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
+
+    registerDestructor(this, this.cleanup);
+  }
+
+  cleanup = () => {
+    this.removeEventListener();
+  };
+
+  removeEventListener() {
+    this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
+    this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
+    this.webSocket.off(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
+  }
+
+  /**
+   * Chat message received from backend
+   */
+  onChatMessageEvent({
+    userId,
+    originalMessage: {
+      msgId,
+      msg,
+      userName,
+      timestamp,
+      isEvent,
+      eventType,
+      eventData,
+    },
+  }: ForwardedMessage<ChatMessage>) {
+    if (this.localUser.userId != userId && !isEvent) {
+      this.toastHandler.showInfoToastMessage(`Message received: ` + msg);
+    }
+    this.addChatMessage(
+      msgId,
+      userId,
+      msg,
+      userName,
+      timestamp,
+      isEvent,
+      eventType,
+      eventData
+    );
+  }
+
+  /**
+   * Chat synchronization event received from backend
+   */
+  onChatSyncEvent({
+    userId,
+    originalMessage,
+  }: ForwardedMessage<ChatSynchronizeMessage[]>): void {
+    if (this.localUser.userId == userId) {
+      this.syncChatMessages(originalMessage);
+    }
+  }
+
+  /**
+   * Chat message delete event received from backend
+   */
+  onMessageDeleteEvent({
+    userId,
+    originalMessage,
+  }: ForwardedMessage<MessageDeleteEvent>): void {
+    if (userId == this.localUser.userId) {
+      return;
+    }
+    this.removeChatMessage(originalMessage.msgId, true);
+    this.toastHandler.showErrorToastMessage('Message(s) deleted');
+  }
 
   sendChatMessage(
     userId: string,
@@ -66,13 +161,12 @@ export default class ChatService extends Service {
         eventData
       );
     } else {
-      const timestamp = this.getTime();
       const userName = this.localUser.userName;
       this.sender.sendChatMessage(
         userId,
         msg,
         userName,
-        timestamp,
+        '',
         isEvent,
         eventType,
         eventData
@@ -94,12 +188,12 @@ export default class ChatService extends Service {
     let userColor = new THREE.Color(0, 0, 0);
     let timestamp = time;
 
-    if (userId != this.localUser.userId) {
-      const user = this.collaborationSession.lookupRemoteUserById(userId); //refactor if(user)..
-      userName = user?.userName || username;
-      userColor = user?.color || new THREE.Color(0, 0, 0);
+    const user = this.collaborationSession.lookupRemoteUserById(userId);
+    if (user) {
+      userName = user.userName;
+      userColor = user.color;
       timestamp = time;
-    } else {
+    } else if (userId === this.localUser.userId) {
       userName = this.localUser.userName;
       userColor = this.localUser.color;
       timestamp = time === '' ? this.getTime() : time;
@@ -117,21 +211,22 @@ export default class ChatService extends Service {
       eventData,
     };
 
-    /* Put chat service into collaboration lib? */
-
     this.chatMessages = [...this.chatMessages, chatMessage];
     this.applyCurrentFilter();
   }
 
-  removeChatMessage(messageId: number, received?: boolean) {
-    this.chatMessages = this.chatMessages.filter(
-      (msg) => msg.msgId !== messageId
-    );
+  removeChatMessage(messageId: number[], received?: boolean) {
+    messageId.forEach((msgId) => {
+      this.chatMessages = this.chatMessages.filter(
+        (msg) => msg.msgId !== msgId
+      );
+    });
 
     if (!received) {
       this.sender.sendMessageDelete(messageId);
     } else {
       this.deletedMessage = true;
+      messageId.forEach((msgId) => this.deletedMessageIds.push(msgId));
     }
   }
 

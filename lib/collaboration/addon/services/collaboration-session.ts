@@ -36,22 +36,10 @@ import {
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import {
-  CHAT_MESSAGE_EVENT,
-  ChatMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-message';
-import {
-  CHAT_SYNC_EVENT,
-  ChatSynchronizeMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
-import {
   USER_KICK_EVENT,
   UserKickEvent,
 } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
-import {
-  MESSAGE_DELETE_EVENT,
-  MessageDeleteEvent,
-} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -122,10 +110,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
-    this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
-    this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
     this.webSocket.on(USER_KICK_EVENT, this, this.onUserKickEvent);
-    this.webSocket.on(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
   }
 
   willDestroy() {
@@ -134,10 +119,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
-    this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
-    this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
     this.webSocket.off(USER_KICK_EVENT, this, this.onUserKickEvent);
-    this.webSocket.off(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -276,17 +258,6 @@ export default class CollaborationSession extends Service.extend({
     }
   }
 
-  onMessageDeleteEvent({
-    userId,
-    originalMessage,
-  }: ForwardedMessage<MessageDeleteEvent>): void {
-    if (userId == this.localUser.userId) {
-      return;
-    }
-    this.chatService.removeChatMessage(originalMessage.msgId, true);
-    this.toastHandlerService.showErrorToastMessage('Message deleted');
-  }
-
   /**
    * Removes the user that disconnected and informs our user about it.
    *
@@ -299,20 +270,6 @@ export default class CollaborationSession extends Service.extend({
       this.toastHandlerService.showInfoToastMessage(
         `User disconnected: ${removedUser.userName}`
       );
-      // If user did not disconnect properly (e.g. browser closed, lost connection ...)
-      if (
-        !this.chatService.findEventByUserId(
-          removedUser.userId,
-          'disconnection_event'
-        )
-      ) {
-        this.chatService.sendChatMessage(
-          removedUser.userId,
-          `${removedUser.userName}(${removedUser.userId}) disconnected from room ${this.currentRoomId}`,
-          true,
-          'disconnection_event'
-        ); // TODO: With several users, several disconnect messages are sent. Maybe add random delay?
-      }
     }
 
     // walk trough all highlighted entities and unhighlight them
@@ -372,6 +329,12 @@ export default class CollaborationSession extends Service.extend({
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
 
+    this.chatService.sendChatMessage(
+      this.localUser.userId,
+      `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`,
+      true,
+      'disconnection_event'
+    );
     //this.disconnect();
   }
 
@@ -478,12 +441,6 @@ export default class CollaborationSession extends Service.extend({
     if (this.connectionStatus != 'offline') {
       this.previousRoomId = this.currentRoomId;
     }
-    this.chatService.sendChatMessage(
-      this.localUser.userId,
-      `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`,
-      true,
-      'disconnection_event'
-    );
 
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
@@ -510,48 +467,6 @@ export default class CollaborationSession extends Service.extend({
     if (controller1) remoteUser.updateController(CONTROLLER_1_ID, controller1);
     if (controller2) remoteUser.updateController(CONTROLLER_2_ID, controller2);
     if (camera) remoteUser.updateCamera(camera);
-  }
-
-  /**
-   * Chat message received from backend, adding message in chatService
-   */
-  onChatMessageEvent({
-    userId,
-    originalMessage: {
-      msgId,
-      msg,
-      userName,
-      timestamp,
-      isEvent,
-      eventType,
-      eventData,
-    },
-  }: ForwardedMessage<ChatMessage>) {
-    if (this.localUser.userId != userId && !isEvent) {
-      this.toastHandlerService.showInfoToastMessage(`Message received: ` + msg);
-    }
-    this.chatService.addChatMessage(
-      msgId,
-      userId,
-      msg,
-      userName,
-      timestamp,
-      isEvent,
-      eventType,
-      eventData
-    );
-  }
-
-  /**
-   * Chat synchronization event received from backend, synchronizing with chatService
-   */
-  onChatSyncEvent({
-    userId,
-    originalMessage,
-  }: ForwardedMessage<ChatSynchronizeMessage[]>): void {
-    if (this.localUser.userId == userId) {
-      this.chatService.syncChatMessages(originalMessage);
-    }
   }
 }
 
