@@ -61,9 +61,9 @@ class PointerLockControls extends EventDispatcher {
     // Zooming
     //
     //
-    // How far you can dolly in and out ( PerspectiveCamera only )
-    this.minDistance = 0;
-    this.maxDistance = Infinity;
+    // // How far you can dolly in and out ( PerspectiveCamera only )
+    // this.minDistance = 0;
+    // this.maxDistance = Infinity;
 
     // "target" sets the location of focus, where the object orbits around
     this.target = new Vector3();
@@ -84,8 +84,11 @@ class PointerLockControls extends EventDispatcher {
 
     this.zoomSpeed = 1.8;
     this.zoomToCursor = true;
-    this.minDistance = 0;
-    this.maxDistance = Infinity;
+    // Reduziert den aktuellen FOV um 20%
+    // Copies the max FOV from the camera and sets the min to 100
+    camera.fov = camera.fov + (camera.fov / 100) * 20;
+    this.minFOV = 10;
+    this.maxFOV = camera.fov;
     this.scale = 1;
 
     // eslint-disable-next-line
@@ -104,8 +107,8 @@ class PointerLockControls extends EventDispatcher {
     };
     // Helper function to clamp FOV value
     const clampFov = (fov) => {
-      const minFov = 20; // Minimum FOV value, for zooming in
-      const maxFov = 100; // Maximum FOV value, for zooming out
+      const minFov = this.minFOV; // Minimum FOV value, for zooming in
+      const maxFov = this.maxFOV; // Maximum FOV value, for zooming out
       const target = Math.max(minFov, Math.min(maxFov, fov));
       //console.log("Target", target);
       if (target == maxFov) {
