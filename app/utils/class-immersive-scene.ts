@@ -3,11 +3,21 @@ import {
   Class,
   Interface,
   Method,
+  Parameters,
   Variable,
 } from './landscape-schemes/structure-data';
 import { skylight } from './scene';
 import * as THREE from 'three';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+
+class ObjectSizeList {
+  object3d: THREE.Object3D;
+  angleSize: number;
+  constructor(object3d: THREE.Object3D, anglesize: number) {
+    this.object3d = object3d;
+    this.angleSize = anglesize;
+  }
+}
 
 export default class ImmsersiveClassScene {
   classModel: Class;
@@ -39,6 +49,13 @@ export default class ImmsersiveClassScene {
       type: 'str',
     };
     this.classModel.variables = [newVar as Variable, newVarP as Variable];
+    const newMParam: Partial<Parameters> = {
+      name: 'para1',
+      type: 'str',
+    };
+    this.classModel.methods.forEach((m) => {
+      m.parameters = [newMParam as Parameters, newMParam as Parameters];
+    });
     // END of Inject Test Data
   }
 
@@ -74,13 +91,21 @@ export default class ImmsersiveClassScene {
     //console.log(sphere1.position);
 
     // For debug reasons
-    //this.scene.add(sphere1);
+    this.scene.add(sphere1);
 
     this.displayClassHeaderInformation(this.classModel, sphere1);
+    this.displaySeperator(55, 0.01, sphere1);
     this.displayMethods(this.classModel.methods, sphere1);
+    this.displaySeperator(125, 0.01, sphere1);
     if (this.classModel.variables)
       this.displayVariables(this.classModel.variables, sphere1);
   }
+
+  /**
+   * Displays variables around the sphere
+   * @param vars List of all Variables
+   * @param sphere The Sphere provides the radius and the position
+   */
   private displayVariables(
     vars: Variable[],
     sphere: THREE.Mesh<
@@ -89,7 +114,8 @@ export default class ImmsersiveClassScene {
       THREE.Object3DEventMap
     >
   ) {
-    vars.forEach((variable, idx) => {
+    const variableMeshList = new Array<ObjectSizeList>();
+    vars.forEach((variable) => {
       const group = new THREE.Group();
       // Material for the boxes
       // const boxMaterial = new THREE.MeshBasicMaterial({
@@ -101,12 +127,6 @@ export default class ImmsersiveClassScene {
         dashSize: 3,
         gapSize: 1,
       });
-
-      // Create the box for the class variable name
-      //const nameBoxGeometry = new THREE.BoxGeometry(2, 1, 0.5);
-      const geometryBox = this.box(2, 1, 0.5);
-      const nameBox = new THREE.LineSegments(geometryBox, boxMaterial);
-      group.add(nameBox);
 
       // Store the TextLabel on the surface of the previously created box mesh
       const nameTextGeometry = new TextGeometry(variable.name, {
@@ -131,6 +151,14 @@ export default class ImmsersiveClassScene {
         0.2,
         0.3
       ); // Position the text within the box
+
+      // Create the box for the class variable name
+      //const nameBoxGeometry = new THREE.BoxGeometry(2, 1, 0.5);
+      const whd = new THREE.Vector3();
+      nameText.geometry.boundingBox?.getSize(whd);
+      const geometryBox = this.box(whd.x, 1, 0.5);
+      const nameBox = new THREE.LineSegments(geometryBox, boxMaterial);
+      group.add(nameBox);
       nameBox.add(nameText);
 
       // Create the box for the return type
@@ -167,9 +195,105 @@ export default class ImmsersiveClassScene {
       );
       returnTypeBox.add(returnTypeText);
 
-      this.scene.add(group);
-      this.positionInSphereRadius2(group, 90, 180 + 30 * idx, sphere, 3.5);
+      //this.scene.add(group);
+      this.positionInSphereRadius2(group, 90, 180, sphere, 3.5);
+      // Calculate Box Size
+      const aabb = new THREE.Box3();
+      aabb.setFromObject(group);
+      const requiredSpace = this.calculateAngleOfObject(
+        aabb.min,
+        aabb.max,
+        sphere.position,
+        10 //provides an offset such that the object are not touching each other
+      );
+      variableMeshList.push(new ObjectSizeList(group, requiredSpace));
     });
+
+    let looper: number = 0;
+    let currentAngleLevel = 361;
+
+    do {
+      currentAngleLevel = variableMeshList.reduce((pre, cur) => {
+        return pre + cur.angleSize;
+      }, 0);
+      if (currentAngleLevel > 360) {
+        variableMeshList.forEach((ele) => {
+          this.positionInSphereRadius2(
+            ele.object3d,
+            90,
+            180,
+            sphere,
+            3.5 + looper
+          );
+          // Calculate Box Size
+          const aabb = new THREE.Box3();
+          aabb.setFromObject(ele.object3d);
+          const requiredSpace = this.calculateAngleOfObject(
+            aabb.min,
+            aabb.max,
+            sphere.position,
+            10 //provides an offset such that the object are not touching each other
+          );
+          ele.angleSize = requiredSpace;
+        });
+      } else {
+        variableMeshList.reduce((prev, ele) => {
+          this.positionInSphereRadius2(
+            ele.object3d,
+            90,
+            180 + prev + ele.angleSize / 2,
+            sphere,
+            3.5 + looper
+          );
+          this.scene.add(ele.object3d);
+          return ele.angleSize + prev;
+        }, 0);
+      }
+      looper++;
+    } while (currentAngleLevel > 360 && looper < 5);
+  }
+
+  /**
+   * Displays seperator ring
+   * @param angle The height at witch a seperator line is added in the horizontal
+   * @param size Thickness of the line
+   * @param sphere The Sphere that provides position and radius
+   */
+  private displaySeperator(angle: number, size: number, sphere: THREE.Mesh) {
+    sphere.geometry.computeBoundingSphere();
+    const posOnSphere = new THREE.Vector3();
+    posOnSphere.setFromSphericalCoords(
+      sphere.geometry.boundingSphere.radius,
+      THREE.MathUtils.degToRad(angle),
+      0
+    );
+    // Calculate the radius of the circle at distance y from the centerpoint
+    const sliceRadius = Math.sqrt(
+      sphere.geometry.boundingSphere.radius *
+        sphere.geometry.boundingSphere.radius -
+        posOnSphere.y * posOnSphere.y
+    );
+    // const rad = angle,
+    //   delta = 0.05,
+    //   segs = 64;
+
+    const geometry = new THREE.TorusGeometry(sliceRadius, size, 64, 48);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    const torus = new THREE.Mesh(geometry, material);
+    torus.rotation.x = Math.PI / 2;
+    torus.geometry.center();
+    torus.position
+      .copy(sphere.position)
+      .add(
+        new THREE.Vector3(
+          0,
+          angle <= 90
+            ? sphere.geometry.boundingSphere.radius - sliceRadius
+            : -sphere.geometry.boundingSphere.radius + sliceRadius,
+          0
+        )
+      );
+    this.scene.add(torus);
   }
 
   private displayClassHeaderInformation(theClass: Class, sphere: THREE.Mesh) {
@@ -179,7 +303,6 @@ export default class ImmsersiveClassScene {
     //   (font) => {
     //   }
     // );
-
     // Classenname
     //
     //
@@ -350,13 +473,13 @@ export default class ImmsersiveClassScene {
     // //textMesh1.position.z = camera.position.z + 2;
     // //textMesh1.rotation.y = Math.PI / 2;
   }
+
   private displayMethods(methods: Method[], sphere: THREE.Mesh) {
-    methods.forEach((method, idx) => {
+    const methodenMeshList = new Array<ObjectSizeList>();
+    methods.forEach((method) => {
       const ourGroup = new THREE.Group();
-      const geometry = new THREE.BoxGeometry(1, 0.5, 0.2);
       const material = new THREE.MeshBasicMaterial({ color: 0x00a0ff });
       const material2 = new THREE.MeshBasicMaterial({ color: 0xa000ff });
-      const cube = new THREE.Mesh(geometry, material);
       const geometryText = new TextGeometry(method.name, {
         font: ImmersiveView.instance.font,
         size: 0.1,
@@ -371,7 +494,10 @@ export default class ImmsersiveClassScene {
       //debugger;
       const textMesh1 = new THREE.Mesh(geometryText, materialText);
       textMesh1.geometry.computeBoundingBox();
-
+      const whd = new THREE.Vector3();
+      textMesh1.geometry.boundingBox?.getSize(whd);
+      const geometry = new THREE.BoxGeometry(whd.x, 0.5, 0.2);
+      const cube = new THREE.Mesh(geometry, material);
       // const angleDegrees = this.calculateAngleOfObject(
       //   textMesh1.geometry.boundingBox.min,
       //   textMesh1.geometry.boundingBox?.max,
@@ -387,7 +513,7 @@ export default class ImmsersiveClassScene {
       ourGroup.add(cube);
       ourGroup.add(textMesh1);
       textMesh1.geometry.center();
-      textMesh1.position.setZ(0.5);
+      textMesh1.position.setZ(0.1);
       textMesh1.position.setY(0.1);
 
       //
@@ -431,22 +557,111 @@ export default class ImmsersiveClassScene {
       // );
       returnTypeBox.add(returnTypeText);
       returnTypeBox.position.setY(-0.2);
-      returnTypeBox.position.setZ(0.5);
-      returnTypeText.position.setZ(0.3);
+      returnTypeBox.position.setZ(0.1);
+      returnTypeText.position.setZ(0.1);
 
-      this.positionInSphereRadius2(ourGroup, 115, 180 + 25 * idx, sphere, 1.5);
-      this.scene.add(ourGroup);
+      // Parameter List
+      method.parameters.forEach((parameterOfMethod, idx) => {
+        const parameterTextGeometry = new TextGeometry(
+          '•' + parameterOfMethod.name + ' : ' + parameterOfMethod.type,
+          {
+            font: ImmersiveView.instance.font,
+            size: 0.07,
+            height: 0.04,
+            depth: 0.01,
+            curveSegments: 12,
+          }
+        );
+        const parameterMaterial = new THREE.MeshBasicMaterial({
+          color: 0xf00f0f,
+          wireframe: false,
+        });
+        const parameterText = new THREE.Mesh(
+          parameterTextGeometry,
+          parameterMaterial
+        );
+        parameterText.geometry.center();
+        parameterText.geometry.computeBoundingBox();
+        const whd = new THREE.Vector3();
+        parameterText.geometry.boundingBox?.getSize(whd);
+        parameterText.position.setY(-0.5 + whd.y * idx);
+        ourGroup.add(parameterText);
+      });
+
+      this.positionInSphereRadius2(ourGroup, 115, 180, sphere, 1.5); // + 25 * idx
+      // Calculate Box Size
+      const aabb = new THREE.Box3();
+      aabb.setFromObject(ourGroup);
+      const requiredSpace = this.calculateAngleOfObject(
+        aabb.min,
+        aabb.max,
+        sphere.position,
+        10 //provides an offset such that the object are not touching each other
+      );
+      methodenMeshList.push(new ObjectSizeList(ourGroup, requiredSpace));
     });
-  }
+    let looper: number = 0;
+    let currentAngleLevel = 361;
 
+    do {
+      currentAngleLevel = methodenMeshList.reduce((pre, cur) => {
+        return pre + cur.angleSize;
+      }, 0);
+      if (currentAngleLevel > 360) {
+        methodenMeshList.forEach((ele) => {
+          this.positionInSphereRadius2(
+            ele.object3d,
+            115,
+            180,
+            sphere,
+            1.5 + looper
+          );
+          // Calculate Box Size
+          const aabb = new THREE.Box3();
+          aabb.setFromObject(ele.object3d);
+          const requiredSpace = this.calculateAngleOfObject(
+            aabb.min,
+            aabb.max,
+            sphere.position,
+            10 //provides an offset such that the object are not touching each other
+          );
+          ele.angleSize = requiredSpace;
+        });
+      } else {
+        methodenMeshList.reduce((prev, ele) => {
+          this.positionInSphereRadius2(
+            ele.object3d,
+            115,
+            180 + prev + ele.angleSize / 2,
+            sphere,
+            1.5 + looper
+          );
+          this.scene.add(ele.object3d);
+          return ele.angleSize + prev;
+        }, 0);
+      }
+      looper++;
+    } while (currentAngleLevel > 360 && looper < 5);
+  }
   private calculateAngleOfObject(
     min: THREE.Vector3,
     max: THREE.Vector3,
     startpoint: THREE.Vector3
-  ) {
+  ): number;
+  private calculateAngleOfObject(
+    min: THREE.Vector3,
+    max: THREE.Vector3,
+    startpoint: THREE.Vector3,
+    marginInPercent: number
+  ): number;
+  private calculateAngleOfObject(
+    min: THREE.Vector3,
+    max: THREE.Vector3,
+    startpoint: THREE.Vector3,
+    marginInPercent?: number
+  ): number {
     const minPoint = min;
     const maxPoint = max;
-
     // Calculate the vectors from the Sphere to these points
     const leftVector = new THREE.Vector3()
       .subVectors(minPoint, startpoint)
@@ -461,6 +676,8 @@ export default class ImmsersiveClassScene {
 
     // Optionally convert to degrees
     const angleDegrees = THREE.MathUtils.radToDeg(angle);
+    if (marginInPercent != undefined)
+      return angleDegrees * (1 + marginInPercent / 100);
     return angleDegrees;
   }
 
