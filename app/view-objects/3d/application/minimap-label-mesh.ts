@@ -13,6 +13,12 @@ export default class MinimapLabelMesh extends LabelMesh {
     super(font, labelText, textColor);
     this.computeLabel(labelText, size);
   }
+
+  /**
+   * Computes the label geometry
+   * @param labelText The text to display
+   * @param size The size of the text
+   */
   computeLabel(labelText: string, size: number) {
     // Text should look like it is written on the parent's box (no height required)
     const TEXT_HEIGHT = 0.0;

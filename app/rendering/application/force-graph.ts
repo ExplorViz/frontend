@@ -110,7 +110,9 @@ export default class ForceGraph {
     this.graph.tickFrame();
     this.calculateBoundingBox();
   }
-
+  /**
+   * Calculates the bounding box of the graph using the position and collision radius of the nodes
+   */
   calculateBoundingBox() {
     let minX = Infinity,
       minY = Infinity,

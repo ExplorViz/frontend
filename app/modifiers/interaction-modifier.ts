@@ -312,9 +312,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    // check for click on Minimap
     let intersectedViewObjectCopy = intersectedViewObj;
     const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
     const rayMarkers = this.minimapService.raycastForMarkers(event);
+    // if rayMarkers are present, it means that the click was on a marker
     if (rayMarkers) {
       this.handleMinimapOnLeftClick(isOnMinimap, rayMarkers);
       return;
@@ -354,7 +356,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.onDoubleClick(event);
     }
   }
-
+  /**
+   * Handler Function if the click was on the minimap
+   * @param isOnMinimap indicates if the click was on the minimap
+   * @param ray indicates the object that was hit by the ray
+   */
   private handleMinimapOnLeftClick(
     isOnMinimap: boolean,
     ray: THREE.Intersection | null
@@ -371,7 +377,11 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       }
     }
   }
-
+  /**
+   * Handler Function for double click on minimap
+   * @param event Mouse event of the click
+   * @returns The object that was hit by the ray
+   */
   private handleMinimapDoubleClick(event: MouseEvent) {
     if (this.minimapService.isClickInsideMinimap(event)) {
       return this.minimapService.raycastForObjects(

@@ -162,6 +162,14 @@ export function addClazzTextLabel(
   clazzMesh.add(labelMesh);
 }
 
+/**
+ * Adds a label to a foundation mesh for the minimap
+ * @param foundationMesh The mesh which shall be labeled
+ * @param font The font of the text
+ * @param color The color of the text
+ * @param size The size of the text
+ * @param heigth The height of the text
+ */
 export function addMinimapTextLabel(
   foundationMesh: FoundationMesh,
   font: Font,

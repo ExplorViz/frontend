@@ -131,8 +131,6 @@ export default class Settings extends Component<Args> {
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'zoom':
-        this.localUser.minimapDistance =
-          this.userSettings.applicationSettings.zoom.value;
         this.minimapService.updateSphereRadius();
         break;
       default:

@@ -57,6 +57,12 @@ export default class MinimapService extends Service {
 
   scene!: THREE.Scene;
 
+  /**
+   * Initializes the minimap Service class
+   * @param scene Scene containing all elements
+   * @param graph Graph including the boundingbox used by the minimap
+   * @param cameraControls CameraControls of the main camera
+   */
   initializeMinimap(
     scene: THREE.Scene,
     graph: ForceGraph,
@@ -72,7 +78,10 @@ export default class MinimapService extends Service {
     this.setupCamera(cameraControls);
     this.setupLocalUserMarker();
   }
-
+  /**
+   * Sets up the camera for the minimap
+   * @param cameraControls CameraControls of the main camera
+   */
   setupCamera(cameraControls: CameraControls) {
     this.cameraControls = cameraControls;
     this.localUser.minimapCamera = new THREE.OrthographicCamera();
@@ -90,6 +99,9 @@ export default class MinimapService extends Service {
     this.localUser.minimapCamera.layers.enable(SceneLayers.LocalMinimapMarker);
   }
 
+  /**
+   * Sets up the local user marker for the minimap
+   */
   setupLocalUserMarker() {
     this.initializeUserMinimapMarker(
       new THREE.Color(0x808080),
@@ -113,6 +125,9 @@ export default class MinimapService extends Service {
     this.updateUserMinimapMarker(this.userPosition, 'localUser');
   }
 
+  /**
+   * Gets the current position of the user, either by camera position or camera target
+   */
   private getCurrentPosition() {
     const userPosition = new THREE.Vector3();
     if (!this.settings.applicationSettings.version2.value) {
@@ -123,6 +138,10 @@ export default class MinimapService extends Service {
     this.userPosition = this.checkBoundingBox(userPosition);
   }
 
+  /**
+   * Checks if the user is inside the bounding box
+   * @param intersection Intersection of the user
+   */
   private checkBoundingBox(intersection: THREE.Vector3): THREE.Vector3 {
     if (this.graph.boundingBox) {
       if (intersection.x > this.graph.boundingBox.max.x) {
@@ -139,6 +158,12 @@ export default class MinimapService extends Service {
     return intersection;
   }
 
+  /**
+   * Function used for initializing a minimap marker for a user
+   * @param userColor The color of the user
+   * @param position The position of the user
+   * @param name The name of the user
+   */
   initializeUserMinimapMarker(
     userColor: THREE.Color,
     position: THREE.Vector3,
@@ -160,6 +185,12 @@ export default class MinimapService extends Service {
     this.scene.add(minimapMarker);
   }
 
+  /**
+   * Function used for updating the minimap marker of a user
+   * @param intersection The intersection of the user
+   * @param name The name of the user
+   * @param remoteUser The remote user object
+   */
   updateUserMinimapMarker(
     intersection: THREE.Vector3,
     name: string,
@@ -181,6 +212,10 @@ export default class MinimapService extends Service {
     minimapMarker.position.set(position.x, MARKER_HEIGHT, position.z);
   }
 
+  /**
+   * Function used for deleting the minimap marker of a user
+   * @param name The name of the user
+   */
   deleteUserMinimapMarker(name: string) {
     const minimapMarker = this.minimapUserMarkers.get(name);
     if (minimapMarker) {
@@ -189,6 +224,11 @@ export default class MinimapService extends Service {
     }
   }
 
+  /**
+   * Checks wether the click event is inside the minimap
+   * @param event MouseEvent of the click
+   * @returns true if the click is inside the minimap
+   */
   isClickInsideMinimap(event: MouseEvent) {
     const minimap = this.minimap();
     const minimapHeight = minimap[0];
@@ -204,6 +244,11 @@ export default class MinimapService extends Service {
     return xInBounds && yInBounds;
   }
 
+  /**
+   * Function used for handling a hit on the minimap
+   * @param userHit The user that was hit
+   * @returns true if the user was hit
+   */
   handleHit(userHit: RemoteUser) {
     if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
       return;
@@ -217,6 +262,10 @@ export default class MinimapService extends Service {
     );
   }
 
+  /**
+   * Function used to toggle the fullsize minimap
+   * @param value true if the minimap should be fullsize
+   */
   toggleFullsizeMinimap(value: boolean) {
     this.makeFullsizeMinimap = value;
     this.cameraControls.enabled = !value;
@@ -226,6 +275,13 @@ export default class MinimapService extends Service {
     }
   }
 
+  /**
+   * Function used for raycasting on the minimap
+   * @param event MouseEvent of the click
+   * @param camera The camera used for the raycasting
+   * @param raycastObjects The objects to raycast
+   * @returns The objects that were hit
+   */
   raycastForObjects(
     event: MouseEvent,
     camera: THREE.Camera,
@@ -248,6 +304,11 @@ export default class MinimapService extends Service {
     return this.raycaster.raycasting(origin, camera, possibleObjects);
   }
 
+  /**
+   * Function used for raycasting on the minimap markers
+   * @param event MouseEvent of the click
+   * @returns The objects that were hit
+   */
   raycastForMarkers(event: MouseEvent) {
     // Get the bounding rectangle of the minimap
     const minimap = this.minimap();
@@ -270,6 +331,10 @@ export default class MinimapService extends Service {
     );
   }
 
+  /**
+   * Function used for updating the minimap size
+   * @param value The new minimap size
+   */
   updateMinimapCamera() {
     // Call the new function to check and adjust minimap size
     const boundingBox = this.graph.boundingBox;
@@ -324,6 +389,10 @@ export default class MinimapService extends Service {
     });
   }
 
+  /**
+   * Function used for getting the minimap size and position
+   * @returns The minimap size, position and border width
+   */
   minimap() {
     const borderWidth = 2;
     if (this.makeFullsizeMinimap) {

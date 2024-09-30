@@ -67,7 +67,6 @@ export default class RenderingLoop {
     this.renderer = args.renderer;
     this.updatables = args.updatables;
     this.zoomHandler = args.zoomHandler;
-    this.controls = args.controls;
     this.minimapCamera = this.localUser.minimapCamera;
   }
 
@@ -111,7 +110,10 @@ export default class RenderingLoop {
       if (this.threePerformance) {
         this.threePerformance.stats.end();
       }
-      this.renderMinimap();
+
+      if (this.minimapService.minimapEnabled) {
+        this.renderMinimap();
+      }
     });
   }
 
@@ -165,11 +167,10 @@ export default class RenderingLoop {
       this.axesHelper = undefined;
     }
   }
-
+  /**
+   * Renders the minimap every tick, either on top right corner or as the minimap overlay.
+   */
   renderMinimap() {
-    if (!this.minimapService.minimapEnabled) {
-      return;
-    }
     const minimapNums = this.minimapService.minimap();
     const minimapHeight = minimapNums[0];
     const minimapWidth = minimapNums[1];
