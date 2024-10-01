@@ -839,6 +839,10 @@ export default class SemanticZoomManager {
       `Current State:\nNumber of Elements in Store: ${this.zoomableObjects.length}\n Mappings:\n${currentStatesAsString}`
     );
   }
+  public getClusterCentroids(): THREE.Vector3[] {
+    if (this.preClustered == undefined) return new Array<THREE.Vector3>();
+    return Array.from(this.preClustered.keys());
+  }
 
   public forceLevel(level: number) {
     /**

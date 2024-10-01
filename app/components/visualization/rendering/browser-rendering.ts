@@ -231,6 +231,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
       { title: semanticZoomButtonTitle, action: this.toggleSemanticZoom },
+      {
+        title: 'Show SemanticZoom Center Points',
+        action: this.showSemanticZoomClusterCenters,
+      },
     ];
   }
 
@@ -240,6 +244,38 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       SemanticZoomManager.instance.activate();
     } else {
       SemanticZoomManager.instance.deactivate();
+    }
+    //this.semanticZoomToggle = !this.semanticZoomToggle;
+  }
+
+  @action
+  showSemanticZoomClusterCenters() {
+    if (SemanticZoomManager.instance.isEnabled == true) {
+      // Poll Center Vectors
+      SemanticZoomManager.instance
+        .getClusterCentroids()
+        .forEach((centerPoint) => {
+          // Create red material
+          const xGroup = new THREE.Group();
+          const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+          // Create the first part of the "X" (a thin rectangle)
+          const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
+          const part1 = new THREE.Mesh(geometry, redMaterial);
+          part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
+
+          // Create the second part of the "X"
+          const part2 = new THREE.Mesh(geometry, redMaterial);
+          part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
+
+          // Add both parts to the scene
+          xGroup.add(part1);
+          xGroup.add(part2);
+
+          // Set Position of X Group
+          xGroup.position.copy(centerPoint);
+          this.scene.add(xGroup);
+        });
     }
     //this.semanticZoomToggle = !this.semanticZoomToggle;
   }
