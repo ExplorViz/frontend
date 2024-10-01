@@ -11,6 +11,9 @@ import * as THREE from 'three';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
 class ObjectSizeList {
+  /**
+   * Stores an 3D object and its angle (from left corner to right corner) based on a center point
+   */
   object3d: THREE.Object3D;
   angleSize: number;
   constructor(object3d: THREE.Object3D, anglesize: number) {
@@ -91,7 +94,7 @@ export default class ImmsersiveClassScene {
     //console.log(sphere1.position);
 
     // For debug reasons
-    this.scene.add(sphere1);
+    //this.scene.add(sphere1);
 
     this.displayClassHeaderInformation(this.classModel, sphere1);
     this.displaySeperator(55, 0.01, sphere1);
@@ -320,6 +323,7 @@ export default class ImmsersiveClassScene {
     const classNameMesh = new THREE.Mesh(classNameGeometry, classNameMaterial);
 
     classNameMesh.geometry.center();
+    benderhelper(classNameGeometry, 'y', 0.15);
     classNameMesh.geometry.computeBoundingBox();
     this.positionInSphereRadius2(
       classNameMesh,
@@ -852,5 +856,55 @@ export default class ImmsersiveClassScene {
     );
 
     return geometry;
+  }
+}
+
+function benderhelper(
+  geometry: THREE.BufferGeometry,
+  axis: string,
+  angle: number
+) {
+  // Inspired by https://github.com/Sean-Bradley/Bender/blob/main/src/client/bender.ts
+  let theta = 0;
+  if (angle == 0) return;
+  //Load all Positions
+  const pos = geometry.attributes.position.array;
+
+  for (let i = 0; i < pos.length; i += 3) {
+    const x = pos[i];
+    const y = pos[i + 1];
+    const z = pos[i + 2];
+
+    switch (axis) {
+      case 'x':
+        theta = z * angle;
+        break;
+      case 'y':
+        theta = x * angle;
+        break;
+      default: //z
+        theta = x * angle;
+        break;
+    }
+    const sinTheta = Math.sin(theta);
+    const cosTheta = Math.cos(theta);
+
+    switch (axis) {
+      case 'x':
+        pos[i] = x;
+        pos[i + 1] = (y - 1.0 / angle) * cosTheta + 1.0 / angle;
+        pos[i + 2] = -(y - 1.0 / angle) * sinTheta;
+        break;
+      case 'y':
+        pos[i] = -(z - 1.0 / angle) * sinTheta;
+        pos[i + 1] = y;
+        pos[i + 2] = (z - 1.0 / angle) * cosTheta + 1.0 / angle;
+        break;
+      default: //z
+        pos[i] = -(y - 1.0 / angle) * sinTheta;
+        pos[i + 1] = (y - 1.0 / angle) * cosTheta + 1.0 / angle;
+        pos[i + 2] = z;
+        break;
+    }
   }
 }
