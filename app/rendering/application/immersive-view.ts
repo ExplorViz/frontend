@@ -274,7 +274,6 @@ export class ImmersiveView {
 
     // Alternative:
     // Get Orignals
-    //debugger;
     if (this.originalCamera == undefined || this.originalScene == undefined) {
       return;
     }

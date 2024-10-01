@@ -549,7 +549,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     if (intersection) {
-      //debugger;
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
       ImmersiveView.instance.takeHistory(intersection.object);

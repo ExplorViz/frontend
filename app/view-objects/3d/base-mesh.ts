@@ -17,7 +17,6 @@ export default abstract class BaseMesh<
 {
   @tracked
   highlighted: boolean = false;
-
   defaultColor: THREE.Color;
 
   defaultOpacity: number;
@@ -33,6 +32,7 @@ export default abstract class BaseMesh<
   originalAppearence: Recipe | undefined = undefined;
 
   canUseOrignal: boolean = true;
+  overrideVisibility: boolean = false;
 
   callBeforeAppearenceAboveZero: (currentMesh: THREE.Mesh | undefined) => void =
     () => {};

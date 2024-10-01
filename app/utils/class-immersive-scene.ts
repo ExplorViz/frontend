@@ -495,7 +495,6 @@ export default class ImmsersiveClassScene {
         color: 0x00ff00,
         wireframe: false,
       });
-      //debugger;
       const textMesh1 = new THREE.Mesh(geometryText, materialText);
       textMesh1.geometry.computeBoundingBox();
       const whd = new THREE.Vector3();

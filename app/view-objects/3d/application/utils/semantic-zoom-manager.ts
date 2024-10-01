@@ -26,6 +26,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   base: Base
 ) {
   return class extends base implements SemanticZoomableObject {
+    overrideVisibility: boolean = false;
     canUseOrignal: boolean = true;
     useOrignalAppearence(yesno: boolean): void {
       this.canUseOrignal = yesno;
@@ -148,6 +149,9 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
 export interface SemanticZoomableObject {
   // Should be the visibility property of the Mesh
   visible: boolean;
+  // Overrides the default behaviour such that if it is not visibile, it does not get triggered
+  // Now gets triggered even if not visible (maybe makes it visible).
+  overrideVisibility: boolean;
   canUseOrignal: boolean;
   // appearenceLevel number i is == 0 default appearence
   //              > 0 if appearence selected
@@ -945,7 +949,11 @@ export default class SemanticZoomManager {
 
       // Loop over all members of that cluster and trigger the target appearence
       listOfClusterMemebers.forEach((semanticZoomableObject) => {
-        if (semanticZoomableObject.visible == false) return;
+        if (
+          semanticZoomableObject.visible == false &&
+          semanticZoomableObject.overrideVisibility == false
+        )
+          return;
         if (semanticZoomableObject.getCurrentAppearenceLevel() != targetLevel)
           semanticZoomableObject.showAppearence(targetLevel, true, true);
       });
@@ -1013,6 +1021,26 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
       Array<SemanticZoomableObject>
     >();
     result['clusters'].forEach((element) => {
+      // Sort by the y-axis, such that objects closer to the ground get triggered first (Pyramid climing style)
+      //getPoI();
+      element['assignedObjects'].sort(
+        (szo1: SemanticZoomableObject, szo2: SemanticZoomableObject) => {
+          const poiszo1 = szo1
+            .getPoI()
+            .sort((a: THREE.Vector3, b: THREE.Vector3) => {
+              if (a.y < b.y) return 1;
+              else return -1;
+            });
+          const poiszo2 = szo2
+            .getPoI()
+            .sort((a: THREE.Vector3, b: THREE.Vector3) => {
+              if (a.y < b.y) return 1;
+              else return -1;
+            });
+          if (poiszo1[0].y > poiszo2[0].y) return 1;
+          else return -1;
+        }
+      );
       resultCleaned.set(element['centroid'], element['assignedObjects']);
     });
     return resultCleaned;

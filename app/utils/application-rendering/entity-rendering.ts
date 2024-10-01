@@ -116,6 +116,7 @@ export function addComponentAndChildrenToScene(
   // mesh.callBeforeAppearenceZero = () => {
   //   console.log('Return home Component!!!');
   // };
+  //mesh.overrideVisibility = true;
   mesh.setAppearence(1, () => {
     if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
     openComponentMesh(mesh, applicationObject3D);
