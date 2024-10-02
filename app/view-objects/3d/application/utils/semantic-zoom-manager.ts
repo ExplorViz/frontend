@@ -657,7 +657,7 @@ export default class SemanticZoomManager {
   font: Font | undefined;
 
   // Enable auto open/close of component Meshes
-  autoOpenCloseFeature: boolean = true;
+  autoOpenCloseFeature: boolean = false;
 
   toggleAutoOpenClose(yesno: boolean) {
     this.autoOpenCloseFeature = yesno;
