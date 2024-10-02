@@ -907,7 +907,8 @@ export default class SemanticZoomManager {
    * @param cam THREE.Camera
    * @returns void
    */
-  triggerLevelDecision2(cam: THREE.Camera): void {
+  triggerLevelDecision2(cam: THREE.Camera | undefined): void {
+    if (cam == undefined) return;
     if (this.isEnabled == false) return;
     if (this.alreadyCreatedZoomLevelMap == false) {
       //console.log('Start calculating ZoomLevelMap');

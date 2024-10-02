@@ -259,6 +259,8 @@ export default class Settings extends Component<Args> {
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
         break;
+      // case 'useOrthographicCamera':
+      //   break;
       default:
     }
   }

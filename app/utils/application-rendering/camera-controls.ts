@@ -49,10 +49,16 @@ export default class CameraControls {
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
     // Semantic Zoom trigger Level Decision
-    this.perspectiveCameraControls.addEventListener('end', () =>
-      //SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
-      SemanticZoomManager.instance.triggerLevelDecision2(this.perspectiveCamera)
-    );
+    this.perspectiveCameraControls.addEventListener('end', () => {
+      if (
+        this.userSettings.applicationSettings.useOrthographicCamera.value ==
+        false
+      ) {
+        SemanticZoomManager.instance.triggerLevelDecision2(
+          this.perspectiveCamera
+        );
+      }
+    });
     //
     // ImmersiveView Tracker
     this.lastDistance = perspectiveCamera.position.distanceTo(
@@ -109,6 +115,7 @@ export default class CameraControls {
         canvas
       );
 
+      //this.orthographicCameraControls.enabled = false;
       this.orthographicCameraControls.enableDamping = true;
       this.orthographicCameraControls.dampingFactor = 0.3;
       this.orthographicCameraControls.minDistance = 0.1;
@@ -116,12 +123,16 @@ export default class CameraControls {
       this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
       //
       // Semantic Zoom trigger Level Decision
-      this.orthographicCameraControls.addEventListener('end', () =>
-        //SemanticZoomManager.instance.triggerLevelDecision(this.perspectiveCamera)
-        SemanticZoomManager.instance.triggerLevelDecision2(
-          this.orthographicCamera
-        )
-      );
+      this.orthographicCameraControls.addEventListener('end', () => {
+        if (
+          this.userSettings.applicationSettings.useOrthographicCamera.value ==
+          true
+        ) {
+          SemanticZoomManager.instance.triggerLevelDecision2(
+            this.orthographicCamera
+          );
+        }
+      });
       // TODO find a way toi determine the current active camera and only register it.
       // ImmersiveView.instance.registerMapControl(
       //   this.orthographicCameraControls
@@ -267,9 +278,14 @@ export default class CameraControls {
 
   tick() {
     if (this.enabled) {
-      this.perspectiveCameraControls.update();
-      if (this.orthographicCameraControls) {
+      if (
+        this.orthographicCameraControls?.enabled &&
+        this.userSettings.applicationSettings.useOrthographicCamera.value ==
+          true
+      ) {
         this.orthographicCameraControls.update();
+      } else {
+        this.perspectiveCameraControls.update();
       }
     }
   }
