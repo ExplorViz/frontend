@@ -676,6 +676,21 @@ export default class SemanticZoomManager {
     return SemanticZoomManager.#instance;
   }
 
+  /**
+   * Resets semantic zoom manager
+   */
+  public reset() {
+    if (this.preClustered != undefined) {
+      this.preClustered.clear();
+    }
+    this.zoomableObjects.clear();
+    this.zoomLevelMap.clear();
+    this.alreadyCreatedZoomLevelMap = false;
+    // if (this.isEnabled == true) {
+    //   this.activate();
+    // }
+  }
+
   deactivate() {
     this.isEnabled = false;
     this.forceLevel(0);
@@ -687,10 +702,18 @@ export default class SemanticZoomManager {
   }
 
   cluster(k: number) {
+    // k-Means Clustering
     this.clusterManager = new KMeansClusteringAlg();
-    this.clusterManager.setNumberOfClusters(
-      Math.round((this.zoomableObjects.length * k) / 100)
-    );
+    // this.clusterManager.setNumberOfClusters(
+    //   Math.round((this.zoomableObjects.length * k) / 100)
+    // );
+
+    // Mean Clustering
+    void k;
+    this.clusterManager = new MeanShiftClusteringAlg();
+    (this.clusterManager as MeanShiftClusteringAlg).setBandwidth(0.2);
+
+    // Final Clustering gets triggered
     this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
   }
   /**
@@ -992,6 +1015,8 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
   // Max Iterations to find a fixed centroid
   MAX_ITERATIONS = 50;
 
+  debug = debugLogger('K-MeansCluster');
+
   /**
    * Sets number of clusters to detect
    * @param newK number
@@ -1008,6 +1033,7 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
   clusterMe(
     datapoints: Array<SemanticZoomableObject>
   ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
+    const startTime = performance.now();
     const allPois: Array<THREE.Vector3> = [];
     const zoomableObject: Array<SemanticZoomableObject> = [];
     datapoints.forEach((objectWithSemanticZoom) => {
@@ -1046,8 +1072,16 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
           else return -1;
         }
       );
+      // Console Log to check if sorting by Y Axis works
+      // element['assignedObjects'].forEach((ele: SemanticZoomableObject) => {
+      //   console.log(ele.getPoI()[0].y);
+      // });
+      // console.log('End of Batch');
       resultCleaned.set(element['centroid'], element['assignedObjects']);
     });
+    const endTime = performance.now();
+
+    this.debug(`k-means Clustering took ${endTime - startTime} milliseconds`);
     return resultCleaned;
   }
 
@@ -1357,4 +1391,118 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
 
   // --------------------------------------
   // --------------------------------------
+}
+
+class MeanShiftClusteringAlg implements ClusteringAlgInterface {
+  debug = debugLogger('MeanShiftCluster');
+  bandwidth: number = 1;
+  setBandwidth(b: number) {
+    this.bandwidth = b;
+  }
+  setNumberOfClusters(k: number): void {
+    void k;
+    throw new Error('Method not implemented.');
+  }
+  clusterMe(
+    datapoints: Array<SemanticZoomableObject>
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
+    const startTime = performance.now();
+
+    const allPois: Array<THREE.Vector3> = [];
+    const zoomableObject: Array<SemanticZoomableObject> = [];
+    datapoints.forEach((objectWithSemanticZoom) => {
+      const pois = objectWithSemanticZoom.getPoI();
+      pois.forEach((p) => {
+        if (p.x != undefined && p.y != undefined && p.z != undefined) {
+          allPois.push(p);
+          zoomableObject.push(objectWithSemanticZoom);
+        }
+      });
+    });
+    const result = this.meanShift(allPois, this.bandwidth);
+    const resultCleaned = new Map<
+      THREE.Vector3,
+      Array<SemanticZoomableObject>
+    >();
+    result.forEach((finalPos, idx) => {
+      // Search for Vector in Centroid Database
+      const members = Array.from(resultCleaned.keys());
+      let isAlreadyaMember: boolean = false;
+      members.forEach((element: THREE.Vector3) => {
+        if (element == finalPos) isAlreadyaMember = true;
+      });
+      // Assign Object to Centroids
+      if (isAlreadyaMember) {
+        // Is a Key in the Map
+        const currentArray = resultCleaned.get(finalPos);
+        currentArray?.push(zoomableObject[idx]);
+      } else {
+        // New Centroid found
+        resultCleaned.set(
+          finalPos,
+          new Array<SemanticZoomableObject>(zoomableObject[idx])
+        );
+      }
+    });
+
+    const endTime = performance.now();
+
+    this.debug(
+      `Mean Shift Clustering took ${endTime - startTime} milliseconds`
+    );
+    return resultCleaned;
+  }
+
+  euclideanDistance(point1: THREE.Vector3, point2: THREE.Vector3): number {
+    return point1.distanceTo(point2); // THREE.Vector3 has a built-in distanceTo method
+  }
+
+  calculateMean(points: THREE.Vector3[]): THREE.Vector3 {
+    const mean = new THREE.Vector3(0, 0, 0); // Initialize mean vector to zero
+
+    // Sum each coordinate
+    points.forEach((point) => {
+      mean.add(point);
+    });
+
+    // Divide by number of points to get the mean
+    mean.divideScalar(points.length);
+    return mean;
+  }
+
+  meanShift(
+    data: THREE.Vector3[],
+    bandwidth: number,
+    maxIterations = 100,
+    threshold = 1e-3
+  ): THREE.Vector3[] {
+    // Clone the input array so the original points are not modified
+    const shiftedPoints = data.map((point) => point.clone());
+
+    let hasConverged = false;
+    let iterations = 0;
+
+    while (!hasConverged && iterations < maxIterations) {
+      hasConverged = true;
+
+      // Iterate over each point and shift it towards the mean of nearby points
+      shiftedPoints.forEach((point, index) => {
+        // Find neighbors within the bandwidth
+        const neighbors = shiftedPoints.filter(
+          (neighbor) => this.euclideanDistance(point, neighbor) < bandwidth
+        );
+
+        // Calculate the mean of the neighbors
+        const mean = this.calculateMean(neighbors);
+
+        // Check if the point has shifted significantly
+        if (this.euclideanDistance(point, mean) > threshold) {
+          shiftedPoints[index] = mean; // Update the point's position
+          hasConverged = false; // Continue until all points have converged
+        }
+      });
+      iterations++;
+    }
+    return shiftedPoints;
+  }
 }
