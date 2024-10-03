@@ -56,6 +56,7 @@ import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
 import CommitTreeHandler from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -227,6 +228,9 @@ export default class VisualizationController extends Controller {
 
     // start main loop
     this.timestampRepo.restartTimestampPollingAndVizUpdate();
+
+    // Delete all Semantic Zoom Objects and its tables
+    SemanticZoomManager.instance.reset();
 
     // fetch applications for evolution mode
     this.evolutionDataRepository.fetchAllApplications();
