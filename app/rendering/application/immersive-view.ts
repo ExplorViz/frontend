@@ -139,6 +139,9 @@ export class ImmersiveView {
   renderingLoop: RenderingLoop | undefined;
   font: Font | undefined;
 
+  // Callbacks
+  callbackOnEntering: (() => void) | undefined;
+
   // Singleton
   static #instance: ImmersiveView;
   debug = debugLogger('ImmersiveViewManager');
@@ -271,6 +274,9 @@ export class ImmersiveView {
     //const immersiveScene = new THREE.Scene();
     // TODO fix browser
     //const sc: THREE.Scene = createScene('browser');
+
+    // Callback
+    if (this.callbackOnEntering != undefined) this.callbackOnEntering();
 
     // Alternative:
     // Get Orignals

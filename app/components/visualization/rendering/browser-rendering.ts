@@ -175,6 +175,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.spectateUserService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
+    ImmersiveView.instance.callbackOnEntering = () => {
+      this.popupHandler.removeUnmovedPopups();
+    };
     this.applicationRenderer.forceGraph = this.graph;
 
     // IDE Websocket
