@@ -836,7 +836,7 @@ export default class SemanticZoomManager {
       } else {
         // Recluster
         this.debug('Need to recluster');
-        //this.cluster(10);
+        this.cluster(getStoredSettings().clusterBasedOnMembers.value);
       }
     }
   }
