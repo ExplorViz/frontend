@@ -334,7 +334,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   distanceLevel1: {
-    value: 60,
+    value: 20,
     range: {
       min: 0.0,
       max: 100.0,

@@ -408,12 +408,13 @@ export function ImmersiveViewMixin<Base extends Constructor>(base: Base) {
       camcontrol.addEventListener('unlock', () => {
         toExitTheView();
       });
-      ImmersiveView.instance.originalCanvas?.addEventListener(
-        'mousedown',
-        () => {
-          camcontrol.moveForward(2);
-        }
-      );
+      // ImmersiveView.instance.originalCanvas?.addEventListener(
+      //   'mousedown',
+      //   () => {
+      //     camcontrol.moveForward(2);
+      //   }
+      // );
+
       // camcontrol.enableDamping = true;
       // camcontrol.dampingFactor = 0.3;
       // camcontrol.minDistance = 0.1;
