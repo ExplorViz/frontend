@@ -21,21 +21,78 @@
     </select>
   </div>
 
-  {{! Indicator that device should be in control of spectating configurations }}
-  {{#if (eq this.deviceId 'main')}}
-    <div>
-      <label class='bold'>Spectate Configuration: </label>
-      <select
-        class='form-select'
-        aria-label='Default select example'
-        {{on 'change' this.configurationSelected}}
-      >
-        <option value='default'>Default</option>
-        <option value='arena-2'>ARENA2</option>
-        <option value='fhd-monitors'>Full HD monitors</option>
-      </select>
+  <h6 class='mb-3 mt-3'><strong>Spectate Configuration</strong></h6>
+  <div class='ml-3'>
+    <div class='d-flex justify-content-between'>
+      <label>Enable Spectate Configuration Settings: </label>
+      {{!-- template-lint-disable require-input-label --}}
+      <Input
+        @type='checkbox'
+        style='margin-bottom: 5px;'
+        @checked={{this.spectateConfigEnabled}}
+        name='spectateConfigEnabled'
+      />
     </div>
-  {{/if}}
+  </div>
+  <div>
+    {{! Indicator that device should be in control of spectating configurations }}
+    {{#if (and this.deviceId this.spectateConfigEnabled)}}
+      <div class="d-flex">
+        <label class='bold mr-2' style='padding-top: 3px;'>Spectate Configuration: </label>
+        <PowerSelect
+          class='form-select mr-2'
+          style='min-width: 314px; height: 20px;'
+          @placeholder='Please select a configuration'
+          @options={{this.spectateConfigs}}
+          @onChange={{this.updateSelectedConfig}}
+          @selected={{this.selectedConfig}}
+          as |config|
+        >
+          {{config.id}}
+        </PowerSelect>
+        <BsButton
+        title='New Configuration'
+        class='mr-2'
+        {{on 'click' this.openSpectateConfigModal}}
+        @type='secondary'
+        @outline={{true}}
+      >
+        {{svg-jar 'diff-added-16' class='octicon'}}
+      </BsButton>
+      <BsButton
+        title='Edit Configuration'
+        {{on 'click' this.openEditSpectateConfigModal}}
+        @type='secondary'
+        @outline={{true}}
+      >
+        {{svg-jar 'pencil-16' class='octicon'}}
+      </BsButton>
+      </div>
+      <ul></ul>
+      <div class="d-flex">
+        <label class='bold mr-2' style='padding-top: 3px;'>Select Spectate Device: </label>
+        <PowerSelect
+          class='form-select mr-2'
+          style='min-width: 314px; height: 20px;'
+          @placeholder='Please select a device'
+          @options={{this.configDevices}}
+          @onChange={{this.updateSelectedDevice}}
+          @selected={{this.selectedDevice}}
+          as |device|
+        >
+          {{device}}
+        </PowerSelect>
+        <BsButton
+        title='New Configuration'
+        {{on 'click' this.sendSelectedConfiguration}}
+        @type='secondary'
+        @outline={{true}}
+        >
+          Apply
+        </BsButton>
+      </div>
+    {{/if}}
+  </div>
 
   <label class='bold'>Users:</label>
 
@@ -129,3 +186,483 @@
     Disconnect
   </BsButton>
 {{/if}}
+<div>
+  <BsModal
+    @open={{this.spectateConfigModal}}
+    @onHidden={{this.closeSpectateConfigModal}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Create Spectate Configuration</h4>
+    </modal.header>
+    <modal.body>
+      <label for='name'>Spectate Configuration Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.spectateConfigName}}
+        />
+      </div>
+
+      <label class='mt-2'>Devices:</label>
+      {{#each this.spectateConfigDevices as |device index|}}
+        <div class='ml-3'>
+          <hr>
+          <label for='deviceId'>Device ID:</label>
+          {{#if (eq index 0)}}
+            <div class='d-flex justify-content-between'>
+              <input
+                id='main-deviceId'
+                class='form-control mr-2'
+                type='text'
+                placeholder='DeviceId'
+                value={{device.deviceId}}
+                readonly
+              />
+            </div>
+          {{else}}
+            <div class='d-flex justify-content-between'>
+              <input
+                id='deviceId'
+                class='form-control mr-2'
+                type='text'
+                placeholder='DeviceId'
+                value={{device.deviceId}}
+                {{on 'input' (fn this.updateDeviceId index)}}
+              />
+              <button
+                type='button'
+                class='btn btn-sm'
+                title='Delete Device'
+                onclick={{fn this.deleteDevice index}}
+              >{{svg-jar 'x-16' class='octicon align-right'}}</button>
+            </div>
+          {{/if}}
+          <ul></ul>
+          <div class='d-flex flex-column justify-content-between'>
+            <label for='projectionMatrix'>Projection Matrix:</label>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn11'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 0)}}
+              />
+              <Input
+                id='mn12'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 1)}}
+              />
+              <Input
+                id='mn13'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 2)}}
+              />
+              <Input
+                id='mn14'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 3)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn21'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 4)}}
+              />
+              <Input
+                id='mn22'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 5)}}
+              />
+              <Input
+                id='mn23'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 6)}}
+              />
+              <Input
+                id='mn24'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 7)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn31'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 8)}}
+              />
+              <Input
+                id='mn32'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 9)}}
+              />
+              <Input
+                id='mn33'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 10)}}
+              />
+              <Input
+                id='mn34'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 11)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='mn41'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 12)}}
+              />
+              <Input
+                id='mn42'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 13)}}
+              />
+              <Input
+                id='mn43'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 14)}}
+              />
+              <Input
+                id='mn44'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                {{on 'input' (fn this.updateMatrix index 15)}}
+              />
+            </div>
+          </div>
+          <ul></ul>
+        </div>
+      {{/each}}
+
+      <div class='ml-3'>
+        <div class='d-flex justify-content-between'>
+          <BsButton
+            title='Create Device'
+            {{on 'click' this.createDevice}}
+            @type='secondary'
+            @outline={{true}}
+          >Add Device</BsButton>
+        </div>
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeSpectateConfigModal}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Create'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.createSpectateConfig}}
+        disabled={{this.createSpectateConfigBtnDisabled}}
+      >Create</BsButton>
+    </modal.footer>
+  </BsModal>
+</div>
+
+<div>
+  <BsModal
+    @open={{this.editSpectateConfigModal}}
+    @onHidden={{this.closeEditSpectateConfigModal}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title mr-4'>Edit Spectate Configuration</h4>
+    </modal.header>
+    <modal.body>
+      <label for='name'>Spectate Configuration Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='configname'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.spectateConfigName}}
+        />
+      </div>
+
+      <label class='mt-2'>Devices:</label>
+      {{#each this.spectateConfigDevices as |device index|}}
+        <div class='ml-3'>
+          <hr>
+          <label for='deviceId'>Device ID:</label>
+          {{#if (eq index 0)}}
+            <div class='d-flex justify-content-between'>
+              <input
+                id='edit-main-deviceId'
+                class='form-control mr-2'
+                type='text'
+                placeholder='DeviceId'
+                value={{device.deviceId}}
+                readonly
+              />
+            </div>
+          {{else}}
+            <div class='d-flex justify-content-between'>
+              <input
+                id='edit-deviceId'
+                class='form-control mr-2'
+                type='text'
+                placeholder='DeviceId'
+                value={{device.deviceId}}
+                {{on 'input' (fn this.updateDeviceId index)}}
+              />
+              <button
+                type='button'
+                class='btn btn-sm'
+                title='Delete Device'
+                onclick={{fn this.deleteDevice index}}
+              >{{svg-jar 'x-16' class='octicon align-right'}}</button>
+            </div>
+          {{/if}}
+          <ul></ul>
+          <div class='d-flex flex-column justify-content-between'>
+            <label for='projectionMatrix'>Projection Matrix:</label>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='edit-mn11'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 0}}
+                {{on 'input' (fn this.updateMatrix index 0)}}
+              />
+              <Input
+                id='edit-mn12'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 1}}
+                {{on 'input' (fn this.updateMatrix index 1)}}
+              />
+              <Input
+                id='edit-mn13'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 2}}
+                {{on 'input' (fn this.updateMatrix index 2)}}
+              />
+              <Input
+                id='edit-mn14'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 3}}
+                {{on 'input' (fn this.updateMatrix index 3)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='edit-mn21'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 4}}
+                {{on 'input' (fn this.updateMatrix index 4)}}
+              />
+              <Input
+                id='edit-mn22'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 5}}
+                {{on 'input' (fn this.updateMatrix index 5)}}
+              />
+              <Input
+                id='edit-mn23'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 6}}
+                {{on 'input' (fn this.updateMatrix index 6)}}
+              />
+              <Input
+                id='edit-mn24'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 7}}
+                {{on 'input' (fn this.updateMatrix index 7)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='edit-mn31'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 8}}
+                {{on 'input' (fn this.updateMatrix index 8)}}
+              />
+              <Input
+                id='edit-mn32'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 9}}
+                {{on 'input' (fn this.updateMatrix index 9)}}
+              />
+              <Input
+                id='edit-mn33'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 10}}
+                {{on 'input' (fn this.updateMatrix index 10)}}
+              />
+              <Input
+                id='edit-mn34'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 11}}
+                {{on 'input' (fn this.updateMatrix index 11)}}
+              />
+            </div>
+            <ul></ul>
+            <div class='d-flex justify-content-between'>
+              <Input
+                id='edit-mn41'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 12}}
+                {{on 'input' (fn this.updateMatrix index 12)}}
+              />
+              <Input
+                id='edit-mn42'
+                class="matrixNumber matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 13}}
+                {{on 'input' (fn this.updateMatrix index 13)}}
+              />
+              <Input
+                id='edit-mn43'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 14}}
+                {{on 'input' (fn this.updateMatrix index 14)}}
+              />
+              <Input
+                id='edit-mn44'
+                class="matrixNumber form-control mr-2"
+                @type='number'
+                inputmode='numeric'
+                required
+                @value={{this.getMatrixEntry index 15}}
+                {{on 'input' (fn this.updateMatrix index 15)}}
+              />
+            </div>
+          </div>
+          <ul></ul>
+        </div>
+      {{/each}}
+
+      <div class='ml-3'>
+        <div class='d-flex justify-content-between'>
+          <BsButton
+            title='Create Device'
+            {{on 'click' this.createDevice}}
+            @type='secondary'
+            @outline={{true}}
+          >Add Device</BsButton>
+        </div>
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        title='Delete'
+        style='margin-right: 228px;'
+        @type='danger'
+        @outline={{true}}
+        @onClick={{this.deleteSpectateConfig}}
+      >Delete</BsButton>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeEditSpectateConfigModal}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Update'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.updateSpectateConfig}}
+        disabled={{this.createSpectateConfigBtnDisabled}}
+      >Update</BsButton>
+    </modal.footer>
+  </BsModal>
+</div>
