@@ -828,6 +828,17 @@ export default class SemanticZoomManager {
     this.zoomableObjects.push(obj3d);
     // Trigger reClustering!
     // fastAddToCluster
+    if (this.isEnabled == true && this.preClustered != undefined) {
+      if (this.clusterManager?.counterSinceLastReclusteringOccured < 50) {
+        // Add to exisiting Cluster
+        this.clusterManager?.addMe(this.preClustered, [obj3d]);
+        this.debug('New Element added to Cluster!');
+      } else {
+        // Recluster
+        this.debug('Need to recluster');
+        //this.cluster(10);
+      }
+    }
   }
   /**
    * Removes an object from the semantic zoom manager
@@ -997,10 +1008,15 @@ export default class SemanticZoomManager {
  * Clustering interface that needs to be implemented to exchange the clustering algorithm
  */
 interface ClusteringAlgInterface {
+  counterSinceLastReclusteringOccured: number;
   setNumberOfClusters(k: number): void;
   // Any Object can be assigned to multiple clusters
   clusterMe(
     datapoints: Array<SemanticZoomableObject>
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>>;
+  addMe(
+    previousCluster: Map<THREE.Vector3, Array<SemanticZoomableObject>>,
+    newDataPoints: SemanticZoomableObject[]
   ): Map<THREE.Vector3, Array<SemanticZoomableObject>>;
 }
 
@@ -1009,6 +1025,41 @@ interface ClusteringAlgInterface {
  * Inspired by https://medium.com/geekculture/implementing-k-means-clustering-from-scratch-in-javascript-13d71fbcb31e
  */
 class KMeansClusteringAlg implements ClusteringAlgInterface {
+  counterSinceLastReclusteringOccured: number = 0;
+  /**
+   * Adds a new 3D Object to the Cluster by simply looking for the closest centroid of the previously clustered data.
+   * This is only allowed for a couple of object. At a certain point, a reclustering is nesecarry.
+   * @param previousCluster Map containing centroids and there Objects
+   * @param newDataPoints The 3D Object that needs to be added
+   * @returns The updateded Cluster Map
+   */
+  addMe(
+    previousCluster: Map<THREE.Vector3, Array<SemanticZoomableObject>>,
+    newDataPoints: SemanticZoomableObject[]
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
+    // Runtime: m*n*k
+    const listOfAllCenterPoints: THREE.Vector3[] = Array.from(
+      previousCluster.keys()
+    );
+    newDataPoints.forEach((newObject) => {
+      newObject.getPoI().forEach((vector) => {
+        let nearestObject: THREE.Vector3 = listOfAllCenterPoints[0];
+        let minDistance: number = vector.distanceTo(nearestObject);
+        listOfAllCenterPoints.forEach((centroidVector: THREE.Vector3) => {
+          const currentDistance = vector.distanceTo(centroidVector);
+          if (currentDistance < minDistance) {
+            nearestObject = centroidVector;
+            minDistance = currentDistance;
+          }
+        });
+        previousCluster.get(nearestObject)?.push(newObject);
+      });
+    });
+
+    this.counterSinceLastReclusteringOccured += newDataPoints.length;
+    return previousCluster;
+  }
+
   // kMeans with auto generated k
   // Default k value
   kSize = 10;
@@ -1394,8 +1445,46 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
 }
 
 class MeanShiftClusteringAlg implements ClusteringAlgInterface {
+  /**
+   * Adds a new 3D Object to the Cluster by simply looking for the closest centroid of the previously clustered data.
+   * This is only allowed for a couple of object. At a certain point, a reclustering is nesecarry.
+   * @param previousCluster Map containing centroids and there Objects
+   * @param newDataPoints The 3D Object that needs to be added
+   * @returns The updateded Cluster Map
+   */
+  addMe(
+    previousCluster: Map<THREE.Vector3, Array<SemanticZoomableObject>>,
+    newDataPoints: SemanticZoomableObject[]
+  ): Map<THREE.Vector3, Array<SemanticZoomableObject>> {
+    // Runtime: m*n*k
+    const listOfAllCenterPoints: THREE.Vector3[] = Array.from(
+      previousCluster.keys()
+    );
+    newDataPoints.forEach((newObject) => {
+      newObject.getPoI().forEach((vector) => {
+        let nearestObject: THREE.Vector3 = listOfAllCenterPoints[0];
+        let minDistance: number = this.euclideanDistance(vector, nearestObject);
+        listOfAllCenterPoints.forEach((centroidVector: THREE.Vector3) => {
+          const currentDistance = this.euclideanDistance(
+            vector,
+            centroidVector
+          );
+          if (currentDistance < minDistance) {
+            nearestObject = centroidVector;
+            minDistance = currentDistance;
+          }
+        });
+        previousCluster.get(nearestObject)?.push(newObject);
+      });
+    });
+
+    this.counterSinceLastReclusteringOccured += newDataPoints.length;
+    return previousCluster;
+  }
+
   debug = debugLogger('MeanShiftCluster');
-  bandwidth: number = 1;
+  bandwidth: number = 0.2;
+  counterSinceLastReclusteringOccured: number = 0;
   setBandwidth(b: number) {
     this.bandwidth = b;
   }
