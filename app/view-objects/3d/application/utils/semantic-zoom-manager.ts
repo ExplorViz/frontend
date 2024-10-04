@@ -635,6 +635,8 @@ export default class SemanticZoomManager {
   // Cluster Map
   preClustered: Map<THREE.Vector3, Array<SemanticZoomableObject>> | undefined;
   clusterManager: ClusteringAlgInterface | undefined;
+  lastReclustering!: Date;
+  lastAddToCluster!: Date;
 
   // Singleton
   static #instance: SemanticZoomManager;
@@ -702,6 +704,8 @@ export default class SemanticZoomManager {
   }
 
   cluster(k: number) {
+    this.lastReclustering = new Date();
+    this.lastAddToCluster = new Date();
     // k-Means Clustering
     this.clusterManager = new KMeansClusteringAlg();
     // this.clusterManager.setNumberOfClusters(
@@ -829,10 +833,14 @@ export default class SemanticZoomManager {
     // Trigger reClustering!
     // fastAddToCluster
     if (this.isEnabled == true && this.preClustered != undefined) {
-      if (this.clusterManager?.counterSinceLastReclusteringOccured < 50) {
+      if (
+        this.clusterManager?.counterSinceLastReclusteringOccured < 50 ||
+        new Date().getTime() - this.lastAddToCluster.getTime() < 5000
+      ) {
         // Add to exisiting Cluster
         this.clusterManager?.addMe(this.preClustered, [obj3d]);
         this.debug('New Element added to Cluster!');
+        this.lastAddToCluster = new Date();
       } else {
         // Recluster
         this.debug('Need to recluster');
