@@ -628,6 +628,7 @@ export class AppearenceExtension extends Appearence {
 export default class SemanticZoomManager {
   NUMBER_OF_CLUSTERS = 6;
   isEnabled: boolean = false;
+  callbackOnActivation: Array<(onOff: boolean) => void> = [];
   zoomableObjects: Array<SemanticZoomableObject> = [];
   //clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   //clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
@@ -695,12 +696,17 @@ export default class SemanticZoomManager {
 
   deactivate() {
     this.isEnabled = false;
+    this.callbackOnActivation.forEach((fn) => fn(false));
     this.forceLevel(0);
   }
 
   activate() {
     this.cluster(getStoredSettings().clusterBasedOnMembers.value);
+    this.callbackOnActivation.forEach((fn) => fn(true));
     this.isEnabled = true;
+  }
+  registerActivationCallback(fn: (onOff: boolean) => void) {
+    this.callbackOnActivation.push(fn);
   }
 
   cluster(k: number) {

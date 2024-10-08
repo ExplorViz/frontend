@@ -288,6 +288,15 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         headWidth
       );
       this.add(arrow);
+      // debugger;
+      // arrow.saveTheParent();
+      if (SemanticZoomManager.instance.isEnabled == true) {
+        arrow.line.layers.disableAll();
+        arrow.cone.layers.disableAll();
+        //this.remove(arrow);
+        // arrow.layers.disableAll();
+        // arrow.layers.set(2);
+      }
       SemanticZoomManager.instance.add(arrow);
     }
   }

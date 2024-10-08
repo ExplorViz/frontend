@@ -134,7 +134,9 @@ export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMi
     headWidth: number
   ) {
     super(dataModel, dir, origin, length, color, headLength, headWidth);
-
+    // this.saveTheParent = () => {
+    //   this.savedParent = this.parent;
+    // };
     // this.originalLength = length;
     // this.originalHeadLength = headLength;
     // this.originalHeadWidth = headWidth;
@@ -143,11 +145,18 @@ export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMi
       // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
       // .setLength (length : Number, headLength : Number, headWidth : Number)
       this.setLength(length, headLength, headWidth);
+      //this.parent?.remove(this);
+      this.line.layers.disableAll();
+      this.cone.layers.disableAll();
+      //this.hideme();
     });
-    this.setAppearence(1, () => {
+    this.setAppearence(2, () => {
       // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
       // .setLength (length : Number, headLength : Number, headWidth : Number)
       this.setLength(length / 2, headLength / 2, headWidth / 2);
+      //if (this.savedParent != undefined) this.savedParent.add(this);
+      this.line.layers.enable(0);
+      this.cone.layers.enable(0);
     });
   }
 }
