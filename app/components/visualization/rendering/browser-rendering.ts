@@ -47,6 +47,7 @@ import SceneRepository from 'explorviz-frontend/services/repos/scene-repository'
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
@@ -179,6 +180,39 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.popupHandler.removeUnmovedPopups();
     };
     this.applicationRenderer.forceGraph = this.graph;
+    // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
+    // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
+    // the manager decides on which level to show.
+    // If it gets disabled, alle previous arrows get restored.
+    // All this is done by shifting layers.
+    SemanticZoomManager.instance.registerActivationCallback((onOff) => {
+      this.linkRenderer
+        .getAllLinks()
+        .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      this.applicationRenderer.getOpenApplications().forEach((ap) => {
+        ap.getCommMeshes().forEach((currentCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      });
+    });
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
