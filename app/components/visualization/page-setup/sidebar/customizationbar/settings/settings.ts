@@ -192,7 +192,7 @@ export default class Settings extends Component<Args> {
         }
         // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
         //this.cleanArray(valueArray, false);
-        SemanticZoomManager.instance.createZoomLevelMap(
+        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );
         //console.log(this.userSettings.applicationSettings.distanceLevel1.value);

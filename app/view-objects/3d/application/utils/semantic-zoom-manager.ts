@@ -777,6 +777,71 @@ export default class SemanticZoomManager {
       );
     this.debug(this.zoomLevelMap);
   }
+
+  createZoomLevelMapDependingOnMeshTypes(cam: THREE.Camera) {
+    const appSettings: ApplicationSettings = getStoredSettings();
+    const d1: number = appSettings.distanceLevel1.value;
+    const d2: number = appSettings.distanceLevel2.value;
+    const d3: number = appSettings.distanceLevel3.value;
+    const d4: number = appSettings.distanceLevel4.value;
+    const d5: number = appSettings.distanceLevel5.value;
+    const userSettingLevels = [d1, d2, d3, d4, d5];
+    this.zoomLevelMap = [];
+    // Extract All Mesh Class Names and store the biggest and smallest one per Class
+    const distinctMeshClassNames = new Set<string>();
+    const smallestMap = new Map<string, number>();
+    const biggestMap = new Map<string, number>();
+    this.zoomableObjects.forEach((zobject) => {
+      // Add the new found class name
+      distinctMeshClassNames.add(zobject.constructor.name);
+      // Get the current size as a vector
+      const currentSizeV = this.getObjectSize(zobject);
+      const currentSize = currentSizeV.length();
+      // Save an initial value if never encountered before
+      if (smallestMap.get(zobject.constructor.name) == undefined) {
+        smallestMap.set(zobject.constructor.name, currentSize);
+      }
+      if (biggestMap.get(zobject.constructor.name) == undefined) {
+        biggestMap.set(zobject.constructor.name, currentSize);
+      }
+      // Check if current is larger as the largest or smaller than the smallest and update accordingly
+      if (smallestMap.get(zobject.constructor.name) > currentSize) {
+        smallestMap.set(zobject.constructor.name, currentSize);
+      } else if (biggestMap.get(zobject.constructor.name) < currentSize) {
+        biggestMap.set(zobject.constructor.name, currentSize);
+      }
+    });
+    // Iterat over all the distinct names
+    // Store avg distance for each distinct object
+    for (let index = 0; index < userSettingLevels.length; index++) {
+      const avgDistance = new Array<number>();
+      distinctMeshClassNames.forEach((meshClassName) => {
+        const dists = this.calculateDistanceForCoverage(
+          smallestMap.get(meshClassName),
+          cam,
+          userSettingLevels[index]
+        );
+        const distl = this.calculateDistanceForCoverage(
+          biggestMap.get(meshClassName),
+          cam,
+          userSettingLevels[index]
+        );
+        avgDistance.push((dists + distl) / 2);
+      });
+      const total = avgDistance.reduce(
+        (accumulator, currentValue) => accumulator + currentValue,
+        0
+      );
+      const average = total / avgDistance.length;
+      this.zoomLevelMap.push(average);
+    }
+
+    if (!this.validateZoomLevelMap())
+      this.debug(
+        'Warning: Zoom Array is not descending. It may not work as expected'
+      );
+    this.debug(this.zoomLevelMap);
+  }
   private calculateDistancesForCoveragePercentage(
     objects: Array<SemanticZoomableObject>,
     camera: THREE.Camera,
@@ -784,41 +849,10 @@ export default class SemanticZoomManager {
   ) {
     const distances: Array<number> = [];
     if (coveragePercentage == 0) return distances;
-    // Helper function to calculate the size of the object in world units
-    function getObjectSize(object: SemanticZoomableObject) {
-      const box = new THREE.Box3().setFromObject(
-        object as unknown as THREE.Object3D
-      );
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      return size;
-    }
-
-    // Function to calculate distance required to cover a specific percentage of the screen
-    function calculateDistanceForCoverage(
-      object: SemanticZoomableObject,
-      camera: THREE.Camera,
-      coveragePercentage: number
-    ) {
-      const objectSize = getObjectSize(object);
-      const objectDiagonal = objectSize.length(); // Approximate size for coverage calculation
-
-      // Get camera parameters
-      const fov = camera.fov * (Math.PI / 180); // Convert FOV to radians
-      const screenCoverageRatio = coveragePercentage / 100; // Convert percentage to a ratio
-
-      // Calculate the necessary distance
-      const halfScreenSize = Math.tan(fov / 2) * 1; // Normalized screen distance at 1 unit away
-      const targetCoverageSize = 2 * halfScreenSize * screenCoverageRatio;
-
-      const distance = objectDiagonal / targetCoverageSize / Math.tan(fov / 2);
-
-      return distance;
-    }
 
     // Calculate distances for each object
     objects.forEach((object: SemanticZoomableObject) => {
-      const distance = calculateDistanceForCoverage(
+      const distance = this.calculateDistanceForCoverage(
         object,
         camera,
         coveragePercentage
@@ -827,6 +861,42 @@ export default class SemanticZoomManager {
     });
 
     return distances;
+  }
+  // Helper function to calculate the size of the object in world units
+  private getObjectSize(object: SemanticZoomableObject) {
+    const box = new THREE.Box3().setFromObject(
+      object as unknown as THREE.Object3D
+    );
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    return size;
+  }
+
+  // Function to calculate distance required to cover a specific percentage of the screen
+  private calculateDistanceForCoverage(
+    object: SemanticZoomableObject | number,
+    camera: THREE.Camera,
+    coveragePercentage: number
+  ) {
+    let objectDiagonal = 0;
+    if (typeof object === 'number') {
+      objectDiagonal = object;
+    } else {
+      const objectSize = this.getObjectSize(object);
+      objectDiagonal = objectSize.length();
+    }
+
+    // Get camera parameters
+    const fov = camera.fov * (Math.PI / 180);
+    const screenCoverageRatio = coveragePercentage / 100;
+
+    // Calculate the necessary distance
+    const halfScreenSize = Math.tan(fov / 2) * 1;
+    const targetCoverageSize = 2 * halfScreenSize * screenCoverageRatio;
+
+    const distance = objectDiagonal / targetCoverageSize / Math.tan(fov / 2);
+
+    return distance;
   }
 
   /**
@@ -907,6 +977,11 @@ export default class SemanticZoomManager {
 
   reClusterAllMembers(): void {}
 
+  /**
+   * DEPRECATED and replaced by triggerLevelDecision2 Triggers different level of details based on camera position
+   * @param cam
+   * @returns level decision
+   */
   triggerLevelDecision(cam: THREE.Camera): void {
     if (this.isEnabled == false) return;
     if (this.alreadyCreatedZoomLevelMap == false) {
@@ -960,7 +1035,7 @@ export default class SemanticZoomManager {
     if (this.isEnabled == false) return;
     if (this.alreadyCreatedZoomLevelMap == false) {
       //console.log('Start calculating ZoomLevelMap');
-      this.createZoomLevelMap(cam);
+      this.createZoomLevelMapDependingOnMeshTypes(cam);
       //this.zoomLevelMap.push(1.5);
       //this.zoomLevelMap.push(1);
       //this.zoomLevelMap.push(0.6);
