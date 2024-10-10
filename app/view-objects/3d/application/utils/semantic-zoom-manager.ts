@@ -697,7 +697,7 @@ export default class SemanticZoomManager {
   deactivate() {
     this.isEnabled = false;
     this.callbackOnActivation.forEach((fn) => fn(false));
-    this.forceLevel(0);
+    this.forceLevel(0, true);
   }
 
   activate() {
@@ -962,7 +962,7 @@ export default class SemanticZoomManager {
     return Array.from(this.preClustered.keys());
   }
 
-  public forceLevel(level: number) {
+  public forceLevel(level: number, onlyIfVisible: boolean) {
     /**
      * Forces the `level` of appearence on all registered object
      *
@@ -971,6 +971,9 @@ export default class SemanticZoomManager {
      */
     this.zoomableObjects.forEach((element) => {
       //element.
+      if (onlyIfVisible) {
+        if (element.visible == false) return;
+      }
       element.showAppearence(level, true, true);
     });
   }
