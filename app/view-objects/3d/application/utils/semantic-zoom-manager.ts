@@ -1029,7 +1029,8 @@ export default class SemanticZoomManager {
   }
 
   /**
-   * This function gets called by ThreeJS everytime the camera changes.
+   * This function gets called by ThreeJS everytime the camera changes. It uses the cameras frustum to determine the
+   * cluster centroids in the cameras view.
    * @param cam THREE.Camera
    * @returns void
    */
