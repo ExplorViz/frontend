@@ -53,6 +53,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
     });
+    this.setAppearence(4, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 4;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
   }
   saveCurrentlyActiveLayout() {
     this._layout_original = this.layout.copy();
