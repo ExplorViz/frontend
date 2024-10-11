@@ -319,6 +319,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
       "Enable or disable the feature to open/close components automatically. Only applies if 'Semantic Zoom' feature is enabled via context menu.",
     isFlagSetting: true,
   },
+  useKmeansInsteadOfMeanShift: {
+    value: false,
+    orderNumber: 1,
+    group: 'Semantic Zoom',
+    displayName: 'Use k-Means instead of Shift-Mean',
+    description:
+      'If on, it uses k-Means clustering with the provided k value below.',
+    isFlagSetting: true,
+  },
   clusterBasedOnMembers: {
     value: 20.0,
     range: {
@@ -326,11 +335,25 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 1.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Relative # of clusters',
     description:
-      'It takes a percentage of the number of 3D Objects in the scene',
+      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If Clustering mode is not k-means, this value is irgnored.',
+    isRangeSetting: true,
+  },
+  distancePreSet: {
+    value: 0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 1.0,
+    },
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Predefined Zoom Sets',
+    description:
+      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early, 2: Intermediate, 3: Late',
     isRangeSetting: true,
   },
   distanceLevel1: {
@@ -340,7 +363,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Level 1',
     description:
@@ -354,7 +377,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
@@ -368,7 +391,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
@@ -382,7 +405,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
@@ -396,7 +419,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:

@@ -45,12 +45,14 @@ export type ApplicationCommunicationSettingId =
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
 export type ApplicationSemanticZoomSettingId =
+  | 'distancePreSet'
   | 'distanceLevel1'
   | 'distanceLevel2'
   | 'distanceLevel3'
   | 'distanceLevel4'
   | 'distanceLevel5'
   | 'autoOpenCloseFeature'
+  | 'useKmeansInsteadOfMeanShift'
   | 'clusterBasedOnMembers';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
@@ -125,6 +127,7 @@ export type ApplicationCameraSettings = {
 };
 
 export type ApplicationSemanticZoomSettings = {
+  distancePreSet: RangeSetting;
   distanceLevel1: RangeSetting;
   distanceLevel2: RangeSetting;
   distanceLevel3: RangeSetting;
@@ -132,6 +135,7 @@ export type ApplicationSemanticZoomSettings = {
   distanceLevel5: RangeSetting;
   clusterBasedOnMembers: RangeSetting;
   autoOpenCloseFeature: FlagSetting;
+  useKmeansInsteadOfMeanShift: FlagSetting;
 };
 
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;

@@ -712,17 +712,19 @@ export default class SemanticZoomManager {
   cluster(k: number) {
     this.lastReclustering = new Date();
     this.lastAddToCluster = new Date();
+    const appSettings: ApplicationSettings = getStoredSettings();
+    const useKmeans: boolean = appSettings.useKmeansInsteadOfMeanShift.value;
     // k-Means Clustering
-    this.clusterManager = new KMeansClusteringAlg();
-    // this.clusterManager.setNumberOfClusters(
-    //   Math.round((this.zoomableObjects.length * k) / 100)
-    // );
-
-    // Mean Clustering
-    void k;
-    this.clusterManager = new MeanShiftClusteringAlg();
-    (this.clusterManager as MeanShiftClusteringAlg).setBandwidth(0.2);
-
+    if (useKmeans == true) {
+      this.clusterManager = new KMeansClusteringAlg();
+      this.clusterManager.setNumberOfClusters(
+        Math.round((this.zoomableObjects.length * k) / 100)
+      );
+    } else {
+      // Mean Clustering
+      this.clusterManager = new MeanShiftClusteringAlg();
+      (this.clusterManager as MeanShiftClusteringAlg).setBandwidth(0.2);
+    }
     // Final Clustering gets triggered
     this.preClustered = this.clusterManager?.clusterMe(this.zoomableObjects);
   }

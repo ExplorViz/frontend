@@ -182,6 +182,27 @@ export default class Settings extends Component<Args> {
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
+      case 'distancePreSet':
+        if (input == 1) {
+          valueArray[0].value = 20;
+          valueArray[1].value = 50;
+          valueArray[2].value = 60;
+          valueArray[3].value = 70;
+          valueArray[4].value = 80;
+        } else if (input == 2) {
+          valueArray[0].value = 40;
+          valueArray[1].value = 60;
+          valueArray[2].value = 70;
+          valueArray[3].value = 80;
+          valueArray[4].value = 90;
+        } else if (input == 3) {
+          valueArray[0].value = 65;
+          valueArray[1].value = 80;
+          valueArray[2].value = 85;
+          valueArray[3].value = 90;
+          valueArray[4].value = 95;
+        }
+        break;
       case 'distanceLevel1':
       case 'distanceLevel2':
       case 'distanceLevel3':
@@ -189,6 +210,11 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel5':
         if (pre_input != undefined && input != undefined) {
           this.cleanArray(valueArray, (pre_input as number) < input, false);
+          // Set `distancePreSet` to Custom Settings
+          this.userSettings.updateApplicationSetting(
+            'distancePreSet' as ApplicationSettingId,
+            0
+          );
         }
         // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
         //this.cleanArray(valueArray, false);
@@ -246,7 +272,6 @@ export default class Settings extends Component<Args> {
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
-
     switch (settingId) {
       case 'applyHighlightingOnHover':
         if (this.args.updateHighlighting) {
@@ -258,6 +283,11 @@ export default class Settings extends Component<Args> {
         break;
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
+        break;
+      case 'useKmeansInsteadOfMeanShift':
+        SemanticZoomManager.instance.cluster(
+          this.userSettings.applicationSettings.clusterBasedOnMembers.value
+        );
         break;
       // case 'useOrthographicCamera':
       //   break;
