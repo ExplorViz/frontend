@@ -99,7 +99,9 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
             }
           });
         } else if (this.appearenceLevel < i) {
-          for (let index = 0; index < i - this.appearenceLevel; index++) {
+          for (let index = 1; index < i - this.appearenceLevel - 1; index++) {
+            // if (index + this.appearenceLevel < this.appearencesMap.size - 1)
+            //   break;
             if (
               this.appearencesMap.get(index + this.appearenceLevel) instanceof
               Appearence
@@ -1107,15 +1109,16 @@ export default class SemanticZoomManager {
           semanticZoomableObject.overrideVisibility == false
         )
           return;
-        // If the target value is larger than the current, it automatically triggers it.
+        // If the target value is larger than the current, it automatically triggers it and only updates the delta steps between the two values.
         // If it is below, it checks whether it was accessed in this iteration before and does not reduce its value therefor.
-        if (semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel)
-          semanticZoomableObject.showAppearence(targetLevel, true, true);
-        else if (
+        if (semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel) {
+          semanticZoomableObject.showAppearence(targetLevel, false, false);
+        } else if (
           semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel &&
           alreadyAccessed.indexOf(semanticZoomableObject) == -1
-        )
+        ) {
           semanticZoomableObject.showAppearence(targetLevel, true, true);
+        }
         alreadyAccessed.push(semanticZoomableObject);
       });
     });
