@@ -32,7 +32,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       color: defaultColor,
     });
     this.material.transparent = true;
-
     this.castShadow = true;
     SemanticZoomManager.instance.add(this);
     this.saveCurrentlyActiveLayout();
@@ -59,6 +58,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.render(this.applicationCenter, this.curveHeight);
     });
   }
+
+  /**
+   * Override PoI in order to get start, center and end point
+   * @returns Array of PoI
+   */
+  getPoI(): Array<THREE.Vector3> {
+    const worldPosCenter = new THREE.Vector3();
+    this.getWorldPosition(worldPosCenter);
+    const worldPosStart = this.layout.startPoint;
+    const worldPosEnd = this.layout.endPoint;
+    return [worldPosStart, worldPosCenter, worldPosEnd];
+  }
+
   saveCurrentlyActiveLayout() {
     this._layout_original = this.layout.copy();
   }

@@ -91,13 +91,31 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
         });
       } else {
         //console.log(`Calling Function with Level: ${i}`);
-        if (fromBeginning == true) {
+        if (fromBeginning == true || this.appearenceLevel > i) {
           this.appearencesMap.forEach((v, idx) => {
             if (idx < i) {
               if (v instanceof Appearence) v.activate();
               else v();
             }
           });
+        } else if (this.appearenceLevel < i) {
+          for (let index = 0; index < i - this.appearenceLevel; index++) {
+            if (
+              this.appearencesMap.get(index + this.appearenceLevel) instanceof
+              Appearence
+            )
+              (
+                this.appearencesMap.get(
+                  index + this.appearenceLevel
+                ) as Appearence
+              ).activate();
+            else
+              (
+                this.appearencesMap.get(
+                  index + this.appearenceLevel
+                ) as () => void
+              )();
+          }
         }
         targetAppearence();
       }
@@ -1047,15 +1065,16 @@ export default class SemanticZoomManager {
       //this.zoomLevelMap.push(0.6);
       this.alreadyCreatedZoomLevelMap = true;
     }
+    // Check if Cluster Center is still visible for the camera, therefore a frustum is used.
+    // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
+    const frustum = new THREE.Frustum();
+    const matrix = new THREE.Matrix4().multiplyMatrices(
+      cam.projectionMatrix,
+      cam.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(matrix);
+    const alreadyAccessed = new Array<SemanticZoomableObject>();
     this.preClustered?.forEach((listOfClusterMemebers, clusterCenter) => {
-      // Check if Cluster Center is still visible for the camera
-      // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
-      const frustum = new THREE.Frustum();
-      const matrix = new THREE.Matrix4().multiplyMatrices(
-        cam.projectionMatrix,
-        cam.matrixWorldInverse
-      );
-      frustum.setFromProjectionMatrix(matrix);
       if (!frustum.containsPoint(clusterCenter)) {
         //console.log('Out of view');
         return;
@@ -1088,8 +1107,16 @@ export default class SemanticZoomManager {
           semanticZoomableObject.overrideVisibility == false
         )
           return;
-        if (semanticZoomableObject.getCurrentAppearenceLevel() != targetLevel)
+        // If the target value is larger than the current, it automatically triggers it.
+        // If it is below, it checks whether it was accessed in this iteration before and does not reduce its value therefor.
+        if (semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel)
           semanticZoomableObject.showAppearence(targetLevel, true, true);
+        else if (
+          semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel &&
+          alreadyAccessed.indexOf(semanticZoomableObject) == -1
+        )
+          semanticZoomableObject.showAppearence(targetLevel, true, true);
+        alreadyAccessed.push(semanticZoomableObject);
       });
     });
     this.logCurrentState();
