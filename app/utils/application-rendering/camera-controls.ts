@@ -54,7 +54,7 @@ export default class CameraControls {
         this.userSettings.applicationSettings.useOrthographicCamera.value ==
         false
       ) {
-        SemanticZoomManager.instance.triggerLevelDecision2(
+        SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
           this.perspectiveCamera
         );
       }
@@ -128,7 +128,7 @@ export default class CameraControls {
           this.userSettings.applicationSettings.useOrthographicCamera.value ==
           true
         ) {
-          SemanticZoomManager.instance.triggerLevelDecision2(
+          SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
             this.orthographicCamera
           );
         }

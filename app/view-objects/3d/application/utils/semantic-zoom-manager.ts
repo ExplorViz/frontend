@@ -652,6 +652,7 @@ export default class SemanticZoomManager {
   zoomableObjects: Array<SemanticZoomableObject> = [];
   //clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   //clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
+  timeoutId: NodeJS.Timeout | undefined;
 
   // Cluster Map
   preClustered: Map<THREE.Vector3, Array<SemanticZoomableObject>> | undefined;
@@ -1050,6 +1051,16 @@ export default class SemanticZoomManager {
     this.logCurrentState();
   }
 
+  triggerLevelDecision2WithDebounce(cam: THREE.Camera | undefined) {
+    // Cancel the previously set timeout if it exists
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    // Set a new timeout to trigger the expensive function
+    this.timeoutId = setTimeout(() => {
+      this.triggerLevelDecision2(cam);
+    }, 400); // Adjust the delay (300ms here) based on your needs
+  }
   /**
    * This function gets called by ThreeJS everytime the camera changes. It uses the cameras frustum to determine the
    * cluster centroids in the cameras view.
