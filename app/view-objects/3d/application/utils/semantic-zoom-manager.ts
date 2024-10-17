@@ -1051,15 +1051,19 @@ export default class SemanticZoomManager {
     this.logCurrentState();
   }
 
+  /**
+   * Triggers level decision2 with debounce
+   * It is used to provide a smoother experience when interacting with the 3d world.
+   * can cancel an unnecesarry "render" call
+   * @param cam
+   */
   triggerLevelDecision2WithDebounce(cam: THREE.Camera | undefined) {
-    // Cancel the previously set timeout if it exists
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }
-    // Set a new timeout to trigger the expensive function
     this.timeoutId = setTimeout(() => {
       this.triggerLevelDecision2(cam);
-    }, 400); // Adjust the delay (300ms here) based on your needs
+    }, 400);
   }
   /**
    * This function gets called by ThreeJS everytime the camera changes. It uses the cameras frustum to determine the
@@ -1080,13 +1084,15 @@ export default class SemanticZoomManager {
     }
     // Check if Cluster Center is still visible for the camera, therefore a frustum is used.
     // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
+    cam.updateMatrix();
+    cam.updateMatrixWorld();
     const frustum = new THREE.Frustum();
     const matrix = new THREE.Matrix4().multiplyMatrices(
       cam.projectionMatrix,
       cam.matrixWorldInverse
     );
     frustum.setFromProjectionMatrix(matrix);
-    const alreadyAccessed = new Array<SemanticZoomableObject>();
+    //const alreadyAccessed = new Array<SemanticZoomableObject>();
     this.preClustered?.forEach((listOfClusterMemebers, clusterCenter) => {
       if (!frustum.containsPoint(clusterCenter)) {
         //console.log('Out of view');
@@ -1114,7 +1120,7 @@ export default class SemanticZoomManager {
       );
 
       // Loop over all members of that cluster and trigger the target appearence
-      listOfClusterMemebers.forEach((semanticZoomableObject) => {
+      listOfClusterMemebers.forEach((semanticZoomableObject, idx) => {
         if (
           semanticZoomableObject.visible == false &&
           semanticZoomableObject.overrideVisibility == false
@@ -1122,15 +1128,23 @@ export default class SemanticZoomManager {
           return;
         // If the target value is larger than the current, it automatically triggers it and only updates the delta steps between the two values.
         // If it is below, it checks whether it was accessed in this iteration before and does not reduce its value therefor.
-        if (semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel) {
-          semanticZoomableObject.showAppearence(targetLevel, false, false);
-        } else if (
-          semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel &&
-          alreadyAccessed.indexOf(semanticZoomableObject) == -1
-        ) {
-          semanticZoomableObject.showAppearence(targetLevel, true, true);
-        }
-        alreadyAccessed.push(semanticZoomableObject);
+        setTimeout(
+          () => {
+            // Delay the appearence change after 100 elements by 80ms to maintain steady rendering time
+            if (
+              semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel
+            ) {
+              semanticZoomableObject.showAppearence(targetLevel, false, false);
+            } else if (
+              semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel
+            ) {
+              // && alreadyAccessed.indexOf(semanticZoomableObject) == -1
+              semanticZoomableObject.showAppearence(targetLevel, true, true);
+            }
+          },
+          Math.floor(idx / 100) * 80
+        );
+        //alreadyAccessed.push(semanticZoomableObject);
       });
     });
     this.logCurrentState();

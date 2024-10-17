@@ -202,6 +202,9 @@ export default class Settings extends Component<Args> {
           valueArray[3].value = 90;
           valueArray[4].value = 95;
         }
+        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
+          this.localUser.defaultCamera
+        );
         break;
       case 'distanceLevel1':
       case 'distanceLevel2':
