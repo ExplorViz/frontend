@@ -418,13 +418,14 @@ export default class VisualizationController extends Controller {
       this.sidebarHandler.closeToolsSidebar();
     }
 
-    // always show runtime first
+    // Always show runtime first
     this.isRuntimeTimelineSelected = true;
     this.isCommitTreeSelected = false;
 
     this.evolutionDataRepository.resetAllEvolutionData();
 
     this.roomId = null;
+    this.localUser.visualizationMode = 'browser';
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
