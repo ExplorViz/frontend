@@ -1143,7 +1143,7 @@ export default class SemanticZoomManager {
       this.preClustered?.keys()
     );
     preClusterSortedVectors.sort((a: THREE.Vector3, b: THREE.Vector3) => {
-      cam.position.distanceTo(b) - cam.position.distanceTo(a);
+      return cam.position.distanceTo(a) - cam.position.distanceTo(b);
     });
     preClusterSortedVectors.forEach((clusterCenter: THREE.Vector3) => {
       // if (!frustum.containsPoint(clusterCenter)) {
@@ -1192,7 +1192,19 @@ export default class SemanticZoomManager {
 
         if (alreadyAccessed.indexOf(semanticZoomableObject) != -1) {
           // Object is in list!
-          if (semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel)
+          // this.debug(
+          //   'We already processed ',
+          //   semanticZoomableObject,
+          //   ' on level ',
+          //   semanticZoomableObject.getCurrentAppearenceLevel(),
+          //   ' but know we want ',
+          //   targetLevel
+          // );
+          // Object was already accessed and the new requested target is below
+          // the current value.
+          // Here we want to maintain the more detailed view. So we cancel the change backwards.
+          // The check is a >= because of the 0 value.
+          if (semanticZoomableObject.getCurrentAppearenceLevel() >= targetLevel)
             return;
         }
 
