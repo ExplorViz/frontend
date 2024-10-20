@@ -55,10 +55,26 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
     // Functions
     showAppearence(
       i: number,
-      fromBeginning: boolean = true,
-      includeOrignal: boolean = true
+      fromBeginningOrig: boolean = true,
+      includeOrignalOrig: boolean = true
     ): boolean {
-      let targetApNumber = i;
+      let targetApNumber: number = i;
+      let fromBeginning: boolean = fromBeginningOrig;
+      let includeOrignal: boolean = includeOrignalOrig;
+
+      if (this.visible == false && this.overrideVisibility == false) {
+        return true;
+      }
+
+      if (this.getCurrentAppearenceLevel() == targetApNumber) {
+        return false;
+      } else if (this.getCurrentAppearenceLevel() < targetApNumber) {
+        fromBeginning = false;
+        includeOrignal = false;
+      } else if (this.getCurrentAppearenceLevel() > targetApNumber) {
+        fromBeginning = true;
+        includeOrignal = true;
+      }
       if (targetApNumber == 0 && this.originalAppearence != undefined) {
         // return to default look
         this.callBeforeAppearenceZero(this);
@@ -74,12 +90,25 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
         this.appearenceLevel = targetApNumber;
         return true;
       }
-      const highestAvailableTargetAppearence = this.appearencesMap.length - 1;
-      if (highestAvailableTargetAppearence > targetApNumber)
+      const highestAvailableTargetAppearence = Math.max(
+        this.getNumberOfLevels() - 1,
+        0
+      );
+      if (highestAvailableTargetAppearence < targetApNumber)
         targetApNumber = highestAvailableTargetAppearence;
       // Check if the required level is registered, else abort
+      if (targetApNumber == 0) {
+        //Already handeled 0, since it is the original appearence
+        return true;
+      }
       const targetAppearence = this.appearencesMap[targetApNumber];
-      if (targetAppearence == undefined) return false;
+      if (targetAppearence == undefined)
+        throw new Error(
+          'Requestet Detail Level is not found: ' +
+            targetApNumber +
+            ' of ' +
+            Math.max(this.getNumberOfLevels() - 1, 0)
+        );
 
       // Possible manipulation before any changes
       this.callBeforeAppearenceAboveZero(this);
@@ -1092,32 +1121,39 @@ export default class SemanticZoomManager {
     if (cam == undefined) return;
     if (this.isEnabled == false) return;
     this.stillBusy = true;
+    const alreadyAccessed: Array<SemanticZoomableObject> = new Array();
     if (this.alreadyCreatedZoomLevelMap == false) {
       //console.log('Start calculating ZoomLevelMap');
       this.createZoomLevelMapDependingOnMeshTypes(cam);
-      //this.zoomLevelMap.push(1.5);
-      //this.zoomLevelMap.push(1);
-      //this.zoomLevelMap.push(0.6);
       this.alreadyCreatedZoomLevelMap = true;
     }
-    // Check if Cluster Center is still visible for the camera, therefore a frustum is used.
-    // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
-    cam.updateMatrix();
-    cam.updateMatrixWorld();
-    const frustum = new THREE.Frustum();
-    const matrix = new THREE.Matrix4().multiplyMatrices(
-      cam.projectionMatrix,
-      cam.matrixWorldInverse
+    // // Check if Cluster Center is still visible for the camera, therefore a frustum is used.
+    // // Source: https://stackoverflow.com/questions/29758233/three-js-check-if-object-is-still-in-view-of-the-camera
+    // cam.updateMatrix();
+    // cam.updateMatrixWorld();
+    // const frustum = new THREE.Frustum();
+    // const matrix = new THREE.Matrix4().multiplyMatrices(
+    //   cam.projectionMatrix,
+    //   cam.matrixWorldInverse
+    // );
+    // frustum.setFromProjectionMatrix(matrix);
+
+    //Sort Cluster by Camera distance to Cluster Center
+    const preClusterSortedVectors: Array<THREE.Vector3> = Array.from(
+      this.preClustered?.keys()
     );
-    frustum.setFromProjectionMatrix(matrix);
-    //const alreadyAccessed = new Array<SemanticZoomableObject>();
-    this.preClustered?.forEach((listOfClusterMemebers, clusterCenter) => {
-      if (!frustum.containsPoint(clusterCenter)) {
-        //console.log('Out of view');
-        return;
-      }
+    preClusterSortedVectors.sort((a: THREE.Vector3, b: THREE.Vector3) => {
+      cam.position.distanceTo(b) - cam.position.distanceTo(a);
+    });
+    preClusterSortedVectors.forEach((clusterCenter: THREE.Vector3) => {
+      // if (!frustum.containsPoint(clusterCenter)) {
+      //   //console.log('Out of view');
+      //   return;
+      // }
       // Calculate the distance to Camera, only if cluster is in fov of camera
       const distanceCamToCluster = cam.position.distanceTo(clusterCenter);
+      const listOfClusterMemebers: Array<SemanticZoomableObject> =
+        this.preClustered?.get(clusterCenter) as Array<SemanticZoomableObject>;
 
       // Decide on Appearence Level
       const closestToTarget: number = this.zoomLevelMap.reduce(
@@ -1148,32 +1184,30 @@ export default class SemanticZoomManager {
       });
       // Loop over unpriviledged members of that cluster and trigger the target appearence
       unpriviledegedClusterMembers.forEach((semanticZoomableObject, idx) => {
-        if (
-          semanticZoomableObject.visible == false &&
-          semanticZoomableObject.overrideVisibility == false
-        )
-          return;
+        // if (
+        //   semanticZoomableObject.visible == false &&
+        //   semanticZoomableObject.overrideVisibility == false
+        // )
+        //   return;
+
+        if (alreadyAccessed.indexOf(semanticZoomableObject) != -1) {
+          // Object is in list!
+          if (semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel)
+            return;
+        }
+
         // If the target value is larger than the current, it automatically triggers it and only updates the delta steps between the two values.
         // If it is below, it checks whether it was accessed in this iteration before and does not reduce its value therefor.
         setTimeout(
           () => {
             // Delay the appearence change after 100 elements by 80ms to maintain steady rendering time
-            if (
-              semanticZoomableObject.getCurrentAppearenceLevel() < targetLevel
-            ) {
-              semanticZoomableObject.showAppearence(targetLevel, false, false);
-            } else if (
-              semanticZoomableObject.getCurrentAppearenceLevel() > targetLevel
-            ) {
-              // && alreadyAccessed.indexOf(semanticZoomableObject) == -1
-              semanticZoomableObject.showAppearence(targetLevel, true, true);
-            }
+            semanticZoomableObject.showAppearence(targetLevel, false, false);
             if (idx == unpriviledegedClusterMembers.length - 1)
               this.stillBusy = false;
           },
           Math.floor(idx / 100) * 80
         );
-        //alreadyAccessed.push(semanticZoomableObject);
+        alreadyAccessed.push(semanticZoomableObject);
       });
       this.busyTill =
         this.busyTill +

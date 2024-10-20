@@ -64,11 +64,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @returns Array of PoI
    */
   getPoI(): Array<THREE.Vector3> {
-    const worldPosCenter = new THREE.Vector3();
-    this.getWorldPosition(worldPosCenter);
-    const worldPosStart = this.layout.startPoint;
-    const worldPosEnd = this.layout.endPoint;
-    return [worldPosStart, worldPosCenter, worldPosEnd];
+    let worldPosStart = new THREE.Vector3();
+    let worldPosEnd = new THREE.Vector3();
+    const orignalWorldPos: Array<THREE.Vector3> = super.getPoI();
+    const start = new THREE.Vector3();
+    start.subVectors(this.layout.startPoint, this.applicationCenter);
+
+    const end = new THREE.Vector3();
+    end.subVectors(this.layout.endPoint, this.applicationCenter);
+    worldPosStart = this.localToWorld(start);
+    worldPosEnd = this.localToWorld(end);
+    // this.getWorldPosition(this.layout.startPoint);
+    // this.getWorldPosition(this.layout.endPoint);
+    // const worldPosStart = this.layout.startPoint;
+    // const worldPosEnd = this.layout.endPoint;
+    return [...orignalWorldPos, worldPosStart, worldPosEnd];
   }
 
   saveCurrentlyActiveLayout() {

@@ -80,10 +80,27 @@ export default abstract class BaseMesh<
   }
   showAppearence(
     i: number,
-    fromBeginning: boolean = true,
-    includeOrignal: boolean = true
+    fromBeginningOrig: boolean = true,
+    includeOrignalOrig: boolean = true
   ): boolean {
     let targetApNumber: number = i;
+    let fromBeginning: boolean = fromBeginningOrig;
+    let includeOrignal: boolean = includeOrignalOrig;
+
+    if (this.visible == false && this.overrideVisibility == false) {
+      return true;
+    }
+
+    if (this.getCurrentAppearenceLevel() == targetApNumber) {
+      return false;
+    } else if (this.getCurrentAppearenceLevel() < targetApNumber) {
+      fromBeginning = false;
+      includeOrignal = false;
+    } else if (this.getCurrentAppearenceLevel() > targetApNumber) {
+      fromBeginning = true;
+      includeOrignal = true;
+    }
+
     if (targetApNumber == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.callBeforeAppearenceZero(this);
@@ -104,12 +121,26 @@ export default abstract class BaseMesh<
       return true;
     }
     // Find the highest available Zoom Level
-    const highestAvailableTargetAppearence = this.appearencesMap.length - 1;
-    if (highestAvailableTargetAppearence > targetApNumber)
+    const highestAvailableTargetAppearence = Math.max(
+      this.getNumberOfLevels() - 1,
+      0
+    );
+    if (highestAvailableTargetAppearence < targetApNumber) {
       targetApNumber = highestAvailableTargetAppearence;
+    }
     // Check if the required level is registered, else abort
+    if (targetApNumber == 0) {
+      //Already handeled 0, since it is the original appearence
+      return true;
+    }
     const targetAppearence = this.appearencesMap[targetApNumber];
-    if (targetAppearence == undefined) return false;
+    if (targetAppearence == undefined)
+      throw new Error(
+        'Requestet Detail Level is not found: ' +
+          targetApNumber +
+          ' of ' +
+          Math.max(this.getNumberOfLevels() - 1, 0)
+      );
 
     // Possible manipulation before any changes
     this.callBeforeAppearenceAboveZero(this);
