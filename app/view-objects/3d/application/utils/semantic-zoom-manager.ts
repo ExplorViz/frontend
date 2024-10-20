@@ -26,6 +26,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
   base: Base
 ) {
   return class extends base implements SemanticZoomableObject {
+    prio: number = 0;
     overrideVisibility: boolean = false;
     canUseOrignal: boolean = true;
     useOrignalAppearence(yesno: boolean): void {
@@ -43,7 +44,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
 
     appearenceLevel: number = 0;
 
-    appearencesMap: Map<number, Appearence | (() => void)> = new Map();
+    appearencesMap: Array<Appearence | (() => void)> = [];
 
     originalAppearence: Recipe | undefined = undefined;
     callBeforeAppearenceAboveZero: (currentMesh: Mesh | undefined) => void =
@@ -57,23 +58,27 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
       fromBeginning: boolean = true,
       includeOrignal: boolean = true
     ): boolean {
-      if (i == 0 && this.originalAppearence != undefined) {
+      let targetApNumber = i;
+      if (targetApNumber == 0 && this.originalAppearence != undefined) {
         // return to default look
         this.callBeforeAppearenceZero(this);
         this.restoreOriginalAppearence();
         this.appearencesMap.forEach((v, k) => {
           if (k != 0 && v instanceof Appearence) v.deactivate();
         });
-        this.appearenceLevel = i;
+        this.appearenceLevel = targetApNumber;
         return true;
-      } else if (i == 0 && this.originalAppearence == undefined) {
+      } else if (targetApNumber == 0 && this.originalAppearence == undefined) {
         // Save Orignal
         this.saveOriginalAppearence();
-        this.appearenceLevel = i;
+        this.appearenceLevel = targetApNumber;
         return true;
       }
+      const highestAvailableTargetAppearence = this.appearencesMap.length - 1;
+      if (highestAvailableTargetAppearence > targetApNumber)
+        targetApNumber = highestAvailableTargetAppearence;
       // Check if the required level is registered, else abort
-      const targetAppearence = this.appearencesMap.get(i);
+      const targetAppearence = this.appearencesMap[targetApNumber];
       if (targetAppearence == undefined) return false;
 
       // Possible manipulation before any changes
@@ -91,38 +96,40 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
         });
       } else {
         //console.log(`Calling Function with Level: ${i}`);
-        if (fromBeginning == true || this.appearenceLevel > i) {
+        if (fromBeginning == true || this.appearenceLevel > targetApNumber) {
           this.appearencesMap.forEach((v, idx) => {
-            if (idx < i) {
+            if (idx < targetApNumber) {
               if (v instanceof Appearence) v.activate();
               else v();
             }
           });
-        } else if (this.appearenceLevel < i) {
-          for (let index = 1; index < i - this.appearenceLevel - 1; index++) {
+        } else if (this.appearenceLevel < targetApNumber) {
+          for (
+            let index = 1;
+            index < targetApNumber - this.appearenceLevel;
+            index++
+          ) {
+            if (this.appearencesMap[index + this.appearenceLevel] == undefined)
+              continue;
             // if (index + this.appearenceLevel < this.appearencesMap.size - 1)
             //   break;
             if (
-              this.appearencesMap.get(index + this.appearenceLevel) instanceof
+              this.appearencesMap[index + this.appearenceLevel] instanceof
               Appearence
             )
               (
-                this.appearencesMap.get(
-                  index + this.appearenceLevel
-                ) as Appearence
+                this.appearencesMap[index + this.appearenceLevel] as Appearence
               ).activate();
             else
               (
-                this.appearencesMap.get(
-                  index + this.appearenceLevel
-                ) as () => void
+                this.appearencesMap[index + this.appearenceLevel] as () => void
               )();
           }
         }
         targetAppearence();
       }
 
-      this.appearenceLevel = i;
+      this.appearenceLevel = targetApNumber;
       return true;
     }
 
@@ -131,10 +138,10 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
     }
     setAppearence(i: number, ap: Appearence | (() => void)): void {
       if (ap instanceof Appearence) ap.setObject3D(this);
-      this.appearencesMap.set(i, ap);
+      this.appearencesMap[i] = ap;
     }
     getNumberOfLevels(): number {
-      return Array.from(this.appearencesMap.keys()).length;
+      return this.appearencesMap.length;
     }
     saveOriginalAppearence(): void {
       this.originalAppearence = Recipe.generateFromMesh(this);
@@ -169,6 +176,8 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
 export interface SemanticZoomableObject {
   // Should be the visibility property of the Mesh
   visible: boolean;
+  //Prio higher is more urgent. Lower is less urgent. Defaults to 0
+  prio: number;
   // Overrides the default behaviour such that if it is not visibile, it does not get triggered
   // Now gets triggered even if not visible (maybe makes it visible).
   overrideVisibility: boolean;
@@ -650,6 +659,8 @@ export default class SemanticZoomManager {
   isEnabled: boolean = false;
   callbackOnActivation: Array<(onOff: boolean) => void> = [];
   zoomableObjects: Array<SemanticZoomableObject> = [];
+  busyTill: number = Date.now();
+  stillBusy: boolean = false;
   //clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   //clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
   timeoutId: NodeJS.Timeout | undefined;
@@ -961,19 +972,23 @@ export default class SemanticZoomManager {
    */
   public logCurrentState() {
     const currentState: Map<number, number> = new Map();
-    this.zoomableObjects.forEach((element) => {
+    for (let index = 0; index < this.zoomableObjects.length; index++) {
+      const element = this.zoomableObjects[index];
+
       const currentView = element.getCurrentAppearenceLevel();
       if (currentState.has(currentView))
         currentState.set(currentView, currentState.get(currentView) + 1);
       else currentState.set(currentView, 1);
-    });
-    let currentStatesAsString = '';
-    for (const key in Array.from(currentState.keys()).sort()) {
-      if (key == '_super') continue;
+    }
 
-      const v = currentState.get(Number(key));
+    let currentStatesAsString = '';
+    const members = Array.from(currentState.keys()).sort();
+    for (const key in members) {
+      if (key == '_super') continue;
+      const v = currentState.get(Number(members[key]));
       //currentState.forEach((v, key) => {
-      currentStatesAsString = currentStatesAsString + key + ': ' + v + '\n';
+      currentStatesAsString =
+        currentStatesAsString + members[key] + ': ' + v + '\n';
       //});
     }
     this.debug(
@@ -1058,6 +1073,8 @@ export default class SemanticZoomManager {
    * @param cam
    */
   triggerLevelDecision2WithDebounce(cam: THREE.Camera | undefined) {
+    //if (this.busyTill > Date.now()) return;
+    if (this.stillBusy == true) return;
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }
@@ -1074,6 +1091,7 @@ export default class SemanticZoomManager {
   triggerLevelDecision2(cam: THREE.Camera | undefined): void {
     if (cam == undefined) return;
     if (this.isEnabled == false) return;
+    this.stillBusy = true;
     if (this.alreadyCreatedZoomLevelMap == false) {
       //console.log('Start calculating ZoomLevelMap');
       this.createZoomLevelMapDependingOnMeshTypes(cam);
@@ -1118,9 +1136,18 @@ export default class SemanticZoomManager {
       const targetLevel = this.zoomLevelMap.findIndex(
         (v) => v == closestToTarget
       );
-
-      // Loop over all members of that cluster and trigger the target appearence
-      listOfClusterMemebers.forEach((semanticZoomableObject, idx) => {
+      const prioitisedClusterMembers = listOfClusterMemebers.filter(
+        (e) => e.prio > 0
+      );
+      const unpriviledegedClusterMembers = listOfClusterMemebers.filter(
+        (e) => e.prio == 0
+      );
+      // Loop over prio members of that cluster and trigger the target appearence
+      prioitisedClusterMembers.forEach((semanticZoomableObjectVIP) => {
+        semanticZoomableObjectVIP.showAppearence(targetLevel, true, true);
+      });
+      // Loop over unpriviledged members of that cluster and trigger the target appearence
+      unpriviledegedClusterMembers.forEach((semanticZoomableObject, idx) => {
         if (
           semanticZoomableObject.visible == false &&
           semanticZoomableObject.overrideVisibility == false
@@ -1141,11 +1168,16 @@ export default class SemanticZoomManager {
               // && alreadyAccessed.indexOf(semanticZoomableObject) == -1
               semanticZoomableObject.showAppearence(targetLevel, true, true);
             }
+            if (idx == unpriviledegedClusterMembers.length - 1)
+              this.stillBusy = false;
           },
           Math.floor(idx / 100) * 80
         );
         //alreadyAccessed.push(semanticZoomableObject);
       });
+      this.busyTill =
+        this.busyTill +
+        Math.floor(unpriviledegedClusterMembers.length / 100) * 50;
     });
     this.logCurrentState();
   }

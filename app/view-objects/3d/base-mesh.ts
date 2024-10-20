@@ -27,7 +27,7 @@ export default abstract class BaseMesh<
 
   appearenceLevel: number = 0;
 
-  appearencesMap: Map<number, Appearence | (() => void)> = new Map();
+  appearencesMap: Array<Appearence | (() => void)> = [];
 
   originalAppearence: Recipe | undefined = undefined;
 
@@ -49,6 +49,7 @@ export default abstract class BaseMesh<
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
   }
+  prio: number = 0;
   useOrignalAppearence(yesno: boolean): void {
     this.canUseOrignal = yesno;
   }
@@ -82,7 +83,8 @@ export default abstract class BaseMesh<
     fromBeginning: boolean = true,
     includeOrignal: boolean = true
   ): boolean {
-    if (i == 0 && this.originalAppearence != undefined) {
+    let targetApNumber: number = i;
+    if (targetApNumber == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.callBeforeAppearenceZero(this);
       if (this.canUseOrignal == true) {
@@ -91,18 +93,22 @@ export default abstract class BaseMesh<
       this.appearencesMap.forEach((v, k) => {
         if (k != 0 && v instanceof Appearence) v.deactivate();
       });
-      this.appearenceLevel = i;
+      this.appearenceLevel = targetApNumber;
       return true;
-    } else if (i == 0 && this.originalAppearence == undefined) {
+    } else if (targetApNumber == 0 && this.originalAppearence == undefined) {
       // Save Orignal
       if (this.canUseOrignal == true) {
         this.saveOriginalAppearence();
       }
-      this.appearenceLevel = i;
+      this.appearenceLevel = targetApNumber;
       return true;
     }
+    // Find the highest available Zoom Level
+    const highestAvailableTargetAppearence = this.appearencesMap.length - 1;
+    if (highestAvailableTargetAppearence > targetApNumber)
+      targetApNumber = highestAvailableTargetAppearence;
     // Check if the required level is registered, else abort
-    const targetAppearence = this.appearencesMap.get(i);
+    const targetAppearence = this.appearencesMap[targetApNumber];
     if (targetAppearence == undefined) return false;
 
     // Possible manipulation before any changes
@@ -121,18 +127,39 @@ export default abstract class BaseMesh<
       });
     } else {
       //console.log(`Calling Function with Level: ${i}`);
-      if (fromBeginning == true) {
+      if (fromBeginning == true || this.appearenceLevel > targetApNumber) {
         this.appearencesMap.forEach((v, idx) => {
-          if (idx < i) {
+          if (idx < targetApNumber) {
             if (v instanceof Appearence) v.activate();
             else v();
           }
         });
+      } else if (this.appearenceLevel < targetApNumber) {
+        for (
+          let index = 1;
+          index < targetApNumber - this.appearenceLevel;
+          index++
+        ) {
+          // if (index + this.appearenceLevel < this.appearencesMap.size - 1)
+          //   break;
+          if (this.appearencesMap[index + this.appearenceLevel] == undefined)
+            continue;
+          if (
+            this.appearencesMap[index + this.appearenceLevel] instanceof
+            Appearence
+          )
+            (
+              this.appearencesMap[index + this.appearenceLevel] as Appearence
+            ).activate();
+          else {
+            (this.appearencesMap[index + this.appearenceLevel] as () => void)();
+          }
+        }
       }
       targetAppearence();
     }
 
-    this.appearenceLevel = i;
+    this.appearenceLevel = targetApNumber;
     return true;
   }
   getCurrentAppearenceLevel(): number {
@@ -140,10 +167,10 @@ export default abstract class BaseMesh<
   }
   setAppearence(i: number, ap: Appearence | (() => void)): void {
     if (ap instanceof Appearence) ap.setObject3D(this);
-    this.appearencesMap.set(i, ap);
+    this.appearencesMap[i] = ap;
   }
   getNumberOfLevels(): number {
-    return Array.from(this.appearencesMap.keys()).length;
+    return this.appearencesMap.length;
   }
 
   getPoI(): Array<THREE.Vector3> {

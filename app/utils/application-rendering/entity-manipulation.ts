@@ -54,6 +54,24 @@ export function openComponentsByList(
 }
 
 /**
+ * Opens the component and its ancestors
+ *
+ * @param components List of components which shall be opened
+ * @param application Parent application object of the components
+ */
+export function openComponentAndAncestor(
+  component: Package | Class,
+  application: ApplicationObject3D
+) {
+  const ancestors = getAllAncestorComponents(component);
+  ancestors.forEach((ancestorComponent) => {
+    const ancestorMesh = application.getBoxMeshbyModelId(ancestorComponent.id);
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
+      openComponentMesh(ancestorMesh, application);
+  });
+}
+
+/**
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened

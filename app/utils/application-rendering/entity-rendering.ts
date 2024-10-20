@@ -15,6 +15,7 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import {
   closeComponentMesh,
   closeComponentsRecursively,
+  openComponentAndAncestor,
   openComponentMesh,
   openComponentsRecursively,
 } from './entity-manipulation';
@@ -117,10 +118,19 @@ export function addComponentAndChildrenToScene(
   //   console.log('Return home Component!!!');
   // };
   //mesh.overrideVisibility = true;
-  mesh.setAppearence(1, () => {
+  // Alter the prio to VIP, such that it gets triggered first and without a delay.
+  mesh.prio = 1;
+  // Define function
+  const triggerOpen = () => {
     if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
+    //Open parents first
+    if (mesh.opened == true) return;
+    openComponentAndAncestor(component, applicationObject3D);
+    //Open itsself
     openComponentMesh(mesh, applicationObject3D);
+    //Open its childs
     openComponentsRecursively(component, applicationObject3D, undefined);
+
     // Rewritten update method
     //updateApplicationObject3DAfterUpdate(applicationObject3D);
     updateApplicationObject3DAfterUpdate(
@@ -131,9 +141,15 @@ export function addComponentAndChildrenToScene(
       SemanticZoomManager.instance.userSettings,
       SemanticZoomManager.instance.font
     );
-  });
+  };
+  mesh.setAppearence(1, triggerOpen);
+  mesh.setAppearence(2, triggerOpen);
+  mesh.setAppearence(3, triggerOpen);
+  mesh.setAppearence(4, triggerOpen);
+
   mesh.setCallBeforeAppearenceZero(() => {
     if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
+    if (mesh.opened == false) return;
     closeComponentsRecursively(component, applicationObject3D, undefined);
     closeComponentMesh(mesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(
