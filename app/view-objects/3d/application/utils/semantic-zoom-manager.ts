@@ -1121,7 +1121,7 @@ export default class SemanticZoomManager {
     if (cam == undefined) return;
     if (this.isEnabled == false) return;
     this.stillBusy = true;
-    const alreadyAccessed: Array<SemanticZoomableObject> = new Array();
+    const alreadyAccessed: Array<SemanticZoomableObject> = [];
     if (this.alreadyCreatedZoomLevelMap == false) {
       //console.log('Start calculating ZoomLevelMap');
       this.createZoomLevelMapDependingOnMeshTypes(cam);
