@@ -30,10 +30,9 @@ export default class Navbar extends Component {
 
   @action
   goToVisualization() {
-    this.tokenService.setToken(this.tokenService.latestToken!);
     this.router.transitionTo('visualization', {
       queryParams: {
-        landscapeToken: this.tokenService.latestToken!.value,
+        landscapeToken: this.tokenService.token!.value,
       },
     });
   }
