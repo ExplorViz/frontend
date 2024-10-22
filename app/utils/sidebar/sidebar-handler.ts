@@ -4,10 +4,10 @@ import debugLogger from 'ember-debug-logger';
 
 export default class SidebarHandler {
   @tracked
-  components: string[] = [];
+  openedSettingComponent: string | null = null;
 
   @tracked
-  componentsToolsSidebar: string[] = [];
+  openedToolComponent: string | null = null;
 
   @tracked
   showSettingsSidebar = false;
@@ -20,23 +20,16 @@ export default class SidebarHandler {
   // #region Sidebars
 
   @action
-  closeDataSelection() {
-    this.debug('closeDataSelection');
-    this.showSettingsSidebar = false;
-    this.components = [];
-  }
-
-  @action
-  closeToolsSidebar() {
-    this.debug('closeToolsSidebar');
-    this.showToolsSidebar = false;
-    this.componentsToolsSidebar = [];
-  }
-
-  @action
   openSettingsSidebar() {
     this.debug('openSettingsSidebar');
     this.showSettingsSidebar = true;
+  }
+
+  @action
+  closeSettingsSidebar() {
+    this.debug('closeSettingsSidebar');
+    this.showSettingsSidebar = false;
+    this.openedSettingComponent = null;
   }
 
   @action
@@ -46,51 +39,29 @@ export default class SidebarHandler {
   }
 
   @action
+  closeToolsSidebar() {
+    this.debug('closeToolsSidebar');
+    this.showToolsSidebar = false;
+    this.openedToolComponent = null;
+  }
+
+  @action
   toggleToolsSidebarComponent(component: string): boolean {
-    if (this.componentsToolsSidebar.includes(component)) {
-      this.removeToolsSidebarComponent(component);
+    if (this.openedToolComponent === component) {
+      this.openedToolComponent = null;
     } else {
-      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
+      this.openedToolComponent = component;
     }
-    return this.componentsToolsSidebar.includes(component);
+    return this.openedToolComponent === component;
   }
 
   @action
   toggleSettingsSidebarComponent(component: string): boolean {
-    if (this.components.includes(component)) {
-      this.removeComponent(component);
+    if (this.openedSettingComponent === component) {
+      this.openedSettingComponent = null;
     } else {
-      this.components = [component, ...this.components];
+      this.openedSettingComponent = component;
     }
-    return this.components.includes(component);
-  }
-
-  @action
-  removeToolsSidebarComponent(path: string) {
-    if (this.componentsToolsSidebar.length === 0) {
-      return;
-    }
-
-    const index = this.componentsToolsSidebar.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const componentsToolsSidebar = [...this.componentsToolsSidebar];
-      componentsToolsSidebar.splice(index, 1);
-      this.componentsToolsSidebar = componentsToolsSidebar;
-    }
-  }
-
-  removeComponent(path: string) {
-    if (this.components.length === 0) {
-      return;
-    }
-
-    const index = this.components.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const components = [...this.components];
-      components.splice(index, 1);
-      this.components = components;
-    }
+    return this.openedSettingComponent === component;
   }
 }

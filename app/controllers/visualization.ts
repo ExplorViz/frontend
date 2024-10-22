@@ -384,7 +384,7 @@ export default class VisualizationController extends Controller {
 
   private switchToMode(mode: VisualizationMode) {
     this.roomSerializer.serializeRoom();
-    this.sidebarHandler.closeDataSelection();
+    this.sidebarHandler.closeSettingsSidebar();
     this.localUser.visualizationMode = mode;
     this.webSocket.send<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -449,7 +449,7 @@ export default class VisualizationController extends Controller {
     this.timestampRepo.commitToTimestampMap = new Map();
 
     if (this.sidebarHandler) {
-      this.sidebarHandler.closeDataSelection();
+      this.sidebarHandler.closeSettingsSidebar();
       this.sidebarHandler.closeToolsSidebar();
     }
 

@@ -43,4 +43,8 @@ export default class ApplicationData {
     this.layoutData = layoutData;
     this.flatData = flatData;
   }
+
+  getId() {
+    return this.application.id;
+  }
 }

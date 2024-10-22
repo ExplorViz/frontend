@@ -46,13 +46,13 @@
       @id='ar-rendering'
       @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
-      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
       @visualizationPaused={{this.renderingService.visualizationPaused}}
-      @components={{this.sidebarHandler.components}}
-      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
-      @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+      @openedSettingComponent={{this.sidebarHandler.openedSettingComponent}}
+      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
+      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+      @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
     />
 
   {{else}}
@@ -70,25 +70,23 @@
         @id='browser-rendering'
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
         @landscapeData={{this.renderingService.landscapeData}}
-        @components={{this.sidebarHandler.components}}
-        @addComponent={{this.sidebarHandler.addComponent}}
-        @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
-        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
-        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+        @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
         @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @openedSettingComponent={{this.sidebarHandler.openedSettingComponent}}
+        @openedToolComponent={{this.sidebarHandler.openedToolComponent}}
         @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
         @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
+        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
+        @removeTimestampListener={{this.removeTimestampListener}}
+        @restructureLandscape={{this.restructureLandscape}}
         @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+        @switchToAR={{this.switchToAR}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
         @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
-        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
-        @visualizationPaused={{this.renderingService.visualizationPaused}}
-        @removeTimestampListener={{this.removeTimestampListener}}
-        @restructureLandscape={{this.restructureLandscape}}
-        @switchToAR={{this.switchToAR}}
         @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
+        @visualizationPaused={{this.renderingService.visualizationPaused}}
       />
     {{/if}}
 

@@ -38,13 +38,13 @@ import {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  readonly components: string[];
+  readonly openedSettingComponent: string | null;
   readonly showSettingsSidebar: boolean;
   readonly visualizationPaused: boolean;
   switchToOnScreenMode(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   openSettingsSidebar(): void;
-  closeDataSelection(): void;
+  closeSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
 }
 

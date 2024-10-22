@@ -27,21 +27,6 @@
           {{this.renderingMode}}
         </div>
       </div>
-    {{else if this.tokenService.latestToken}}
-      <div
-        class='navbar-middle-row navbar-token-link pointer-events-all d-none d-md-block'
-      >
-        <span
-          class='d-flex-center'
-          type='button'
-          {{on 'click' this.goToVisualization}}
-        >
-          {{svg-jar
-            'iterations-16'
-            class='octicon'
-          }}&nbsp;{{this.tokenService.latestToken.alias}}
-        </span>
-      </div>
     {{/if}}
   {{/unless}}
   <div id='navbar-user-options' class='btn-group pointer-events-all'>
