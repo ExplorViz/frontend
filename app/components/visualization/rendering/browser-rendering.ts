@@ -218,7 +218,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         });
       });
     });
-
+    // Loads the AutoOpenClose activation state from the settings.
+    SemanticZoomManager.instance.toggleAutoOpenClose(
+      this.userSettings.applicationSettings.autoOpenCloseFeature.value
+    );
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
       getOwner(this),

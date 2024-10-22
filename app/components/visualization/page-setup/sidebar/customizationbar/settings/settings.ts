@@ -202,6 +202,14 @@ export default class Settings extends Component<Args> {
           valueArray[3].value = 90;
           valueArray[4].value = 95;
         }
+        // Update all the values and save them to the storage
+        for (let index = 0; index < valueArray.length; index++) {
+          const targetValue = valueArray[index].value;
+          this.userSettings.updateApplicationSetting(
+            ('distanceLevel' + (index + 1).toString()) as ApplicationSettingId,
+            targetValue
+          );
+        }
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );

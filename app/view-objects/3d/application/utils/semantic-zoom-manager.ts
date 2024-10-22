@@ -102,13 +102,13 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
         return true;
       }
       const targetAppearence = this.appearencesMap[targetApNumber];
-      if (targetAppearence == undefined)
-        throw new Error(
-          'Requestet Detail Level is not found: ' +
-            targetApNumber +
-            ' of ' +
-            Math.max(this.getNumberOfLevels() - 1, 0)
-        );
+      if (targetAppearence == undefined) return false;
+      // throw new Error(
+      //   'Requestet Detail Level is not found: ' +
+      //     targetApNumber +
+      //     ' of ' +
+      //     Math.max(this.getNumberOfLevels() - 1, 0)
+      // );
 
       // Possible manipulation before any changes
       this.callBeforeAppearenceAboveZero(this);

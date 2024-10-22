@@ -367,7 +367,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 1',
     description:
-      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel2: {
@@ -381,7 +381,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
-      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel3: {
@@ -395,7 +395,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
-      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel4: {
@@ -409,7 +409,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
-      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
   distanceLevel5: {
@@ -423,7 +423,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:
-      'Used to trigger different Zoom Levels. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
 };
