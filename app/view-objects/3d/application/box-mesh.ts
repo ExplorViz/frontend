@@ -23,6 +23,44 @@ export default abstract class BoxMesh<
     this.depth = layout.depth;
   }
 
+  // Override
+  changeTexture(texture: THREE.Texture) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial
+    ) {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+
+      this.material.map = texture;
+      //this.material.blending = THREE.NormalBlending;
+
+      this.material.needsUpdate = true;
+
+      // https://codepen.io/boytchev/pen/wvYeMrG
+
+      const pos = this.geometry.getAttribute('position');
+      const uv = this.geometry.getAttribute('uv');
+
+      const width = this.geometry.parameters.width * this.scale.x;
+
+      const height = this.geometry.parameters.height * this.scale.y;
+
+      const depth = this.geometry.parameters.depth * this.scale.z;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = width * (pos.getX(i) + 0.5);
+        const y = height * (pos.getY(i) + 0.5);
+        const z = depth * (pos.getZ(i) + 0.5);
+
+        if (i < 8) uv.setXY(i, z, y);
+        else if (i < 16) uv.setXY(i, x, z);
+        else uv.setXY(i, y, x);
+      }
+      uv.needsUpdate = true;
+    }
+  }
+
   get width() {
     return this.scale.x;
   }

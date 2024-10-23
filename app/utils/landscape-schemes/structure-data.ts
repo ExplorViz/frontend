@@ -1,46 +1,60 @@
 import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
-export interface Method {
+export enum TypeOfAnalysis {
+  Dynamic = 'dynamic',
+  Static = 'static',
+  StaticAndDynamic = 'static+dynamic',
+}
+
+export type BaseModel = {
+  id: string;
+};
+
+type OriginOfData = {
+  originOfData: TypeOfAnalysis;
+};
+
+export type Method = {
   name: string;
   methodHash: string;
-}
+};
 
-export interface Class {
-  id: string;
-  name: string;
-  methods: Method[];
-  parent: Package;
-}
+export type Class = BaseModel &
+  OriginOfData & {
+    name: string;
+    methods: Method[];
+    parent: Package;
+  };
 
-export interface Package {
-  id: string;
-  name: string;
-  subPackages: Package[];
-  classes: Class[];
-  parent?: Package;
-}
+export type Package = BaseModel &
+  OriginOfData & {
+    name: string;
+    subPackages: Package[];
+    classes: Class[];
+    parent?: Package;
+  };
 
-export interface Application {
-  id: string;
-  name: string;
-  language: string;
-  instanceId: string;
-  parentId: string;
-  packages: Package[];
-}
+export type Application = BaseModel &
+  OriginOfData & {
+    name: string;
+    language: string;
+    instanceId: string;
+    parentId: string;
+    packages: Package[];
+  };
 
-export interface Node {
-  id: string;
-  ipAddress: string;
-  hostName: string;
-  applications: Application[];
-}
+export type Node = BaseModel &
+  OriginOfData & {
+    ipAddress: string;
+    hostName: string;
+    applications: Application[];
+  };
 
-export interface StructureLandscapeData {
+export type StructureLandscapeData = {
   landscapeToken: string;
   nodes: Node[];
-}
+};
 
 export function isLandscape(x: any): x is StructureLandscapeData {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'nodes');
@@ -74,7 +88,8 @@ export function getNodeById(
 }
 
 export function preProcessAndEnhanceStructureLandscape(
-  landscapeStructure: StructureLandscapeData
+  landscapeStructure: StructureLandscapeData,
+  typeOfAnalysis: TypeOfAnalysis
 ) {
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
@@ -139,6 +154,12 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
+  function setOriginStatus(typeOfAnalysis: TypeOfAnalysis) {
+    entitiesForIdHashing.forEach((entity) => {
+      entity.originOfData = typeOfAnalysis;
+    });
+  }
+
   /* const a = performance.now(); */
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
@@ -162,6 +183,7 @@ export function preProcessAndEnhanceStructureLandscape(
   });
 
   hashEntityIds();
+  setOriginStatus(typeOfAnalysis);
 
   return enhancedlandscapeStructure;
 }
