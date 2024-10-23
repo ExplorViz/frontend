@@ -49,6 +49,7 @@ export default class CameraControls {
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
     // Semantic Zoom trigger Level Decision
+    SemanticZoomManager.instance.registerCam(this.perspectiveCamera);
     this.perspectiveCameraControls.addEventListener('end', () => {
       if (
         this.userSettings.applicationSettings.useOrthographicCamera.value ==

@@ -329,7 +329,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   clusterBasedOnMembers: {
-    value: 20.0,
+    value: 40.0,
     range: {
       min: 1.0,
       max: 100.0,
@@ -346,14 +346,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 0,
     range: {
       min: 0.0,
-      max: 3.0,
+      max: 5.0,
       step: 1.0,
     },
     orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Predefined Zoom Sets',
     description:
-      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early, 2: Intermediate, 3: Late',
+      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early/Far, 5: Late/Close',
     isRangeSetting: true,
   },
   distanceLevel1: {

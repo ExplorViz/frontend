@@ -297,12 +297,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   showSemanticZoomClusterCenters() {
     if (SemanticZoomManager.instance.isEnabled == true) {
+      // remove previouse center Points from scene
+      const prevCenterPointList = this.scene.children.filter(
+        (preCenterPoint) => preCenterPoint.name == 'centerPoints'
+      );
+      prevCenterPointList.forEach((preCenterPoint) => {
+        this.scene.remove(preCenterPoint);
+      });
       // Poll Center Vectors
       SemanticZoomManager.instance
         .getClusterCentroids()
         .forEach((centerPoint) => {
           // Create red material
           const xGroup = new THREE.Group();
+          xGroup.name = 'centerPoints';
           const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
           // Create the first part of the "X" (a thin rectangle)

@@ -184,19 +184,31 @@ export default class Settings extends Component<Args> {
         break;
       case 'distancePreSet':
         if (input == 1) {
+          valueArray[0].value = 10;
+          valueArray[1].value = 40;
+          valueArray[2].value = 50;
+          valueArray[3].value = 60;
+          valueArray[4].value = 70;
+        } else if (input == 2) {
           valueArray[0].value = 20;
           valueArray[1].value = 50;
           valueArray[2].value = 60;
           valueArray[3].value = 70;
           valueArray[4].value = 80;
-        } else if (input == 2) {
+        } else if (input == 3) {
           valueArray[0].value = 40;
           valueArray[1].value = 60;
           valueArray[2].value = 70;
           valueArray[3].value = 80;
           valueArray[4].value = 90;
-        } else if (input == 3) {
+        } else if (input == 4) {
           valueArray[0].value = 65;
+          valueArray[1].value = 80;
+          valueArray[2].value = 85;
+          valueArray[3].value = 90;
+          valueArray[4].value = 95;
+        } else if (input == 5) {
+          valueArray[0].value = 75;
           valueArray[1].value = 80;
           valueArray[2].value = 85;
           valueArray[3].value = 90;
@@ -213,6 +225,7 @@ export default class Settings extends Component<Args> {
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'distanceLevel1':
       case 'distanceLevel2':
@@ -233,6 +246,7 @@ export default class Settings extends Component<Args> {
           this.localUser.defaultCamera
         );
         //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'clusterBasedOnMembers':
         SemanticZoomManager.instance.cluster(
@@ -241,6 +255,7 @@ export default class Settings extends Component<Args> {
         // SemanticZoomManager.instance.clusterManager?.setNumberOfClusters(
         //   this.userSettings.applicationSettings.clusterBasedOnMembers.value
         // );
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       default:
         break;
@@ -294,11 +309,13 @@ export default class Settings extends Component<Args> {
         break;
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'useKmeansInsteadOfMeanShift':
         SemanticZoomManager.instance.cluster(
           this.userSettings.applicationSettings.clusterBasedOnMembers.value
         );
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       // case 'useOrthographicCamera':
       //   break;

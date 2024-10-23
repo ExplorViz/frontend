@@ -689,6 +689,7 @@ export default class SemanticZoomManager {
   callbackOnActivation: Array<(onOff: boolean) => void> = [];
   zoomableObjects: Array<SemanticZoomableObject> = [];
   busyTill: number = Date.now();
+  currentCam: THREE.Camera | undefined;
   stillBusy: boolean = false;
   //clusterMembershipByCluster: Map<number, SemanticZoomableObject> = new Map();
   //clusterMembershipByObject: Map<SemanticZoomableObject, number> = new Map();
@@ -769,7 +770,9 @@ export default class SemanticZoomManager {
   registerActivationCallback(fn: (onOff: boolean) => void) {
     this.callbackOnActivation.push(fn);
   }
-
+  registerCam(perspectiveCamera: THREE.PerspectiveCamera) {
+    this.currentCam = perspectiveCamera;
+  }
   cluster(k: number) {
     this.lastReclustering = new Date();
     this.lastAddToCluster = new Date();
@@ -1109,7 +1112,7 @@ export default class SemanticZoomManager {
     }
     this.timeoutId = setTimeout(() => {
       this.triggerLevelDecision2(cam);
-    }, 400);
+    }, 250);
   }
   /**
    * This function gets called by ThreeJS everytime the camera changes. It uses the cameras frustum to determine the
@@ -1117,7 +1120,9 @@ export default class SemanticZoomManager {
    * @param cam THREE.Camera
    * @returns void
    */
-  triggerLevelDecision2(cam: THREE.Camera | undefined): void {
+  triggerLevelDecision2(camO: THREE.Camera | undefined): void {
+    let cam: THREE.Camera | undefined = camO;
+    if (cam == undefined) cam = this.currentCam;
     if (cam == undefined) return;
     if (this.isEnabled == false) return;
     this.stillBusy = true;
