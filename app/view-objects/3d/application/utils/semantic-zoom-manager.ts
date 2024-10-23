@@ -1172,6 +1172,8 @@ export default class SemanticZoomManager {
       const targetLevel = this.zoomLevelMap.findIndex(
         (v) => v == closestToTarget
       );
+      if (listOfClusterMemebers == undefined) return;
+      if (listOfClusterMemebers.length == 0) return;
       const prioitisedClusterMembers = listOfClusterMemebers.filter(
         (e) => e.prio > 0
       );
@@ -1269,6 +1271,7 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
     const listOfAllCenterPoints: THREE.Vector3[] = Array.from(
       previousCluster.keys()
     );
+    if (listOfAllCenterPoints.length == 0) return previousCluster;
     newDataPoints.forEach((newObject) => {
       newObject.getPoI().forEach((vector) => {
         let nearestObject: THREE.Vector3 = listOfAllCenterPoints[0];
@@ -1688,6 +1691,7 @@ class MeanShiftClusteringAlg implements ClusteringAlgInterface {
     const listOfAllCenterPoints: THREE.Vector3[] = Array.from(
       previousCluster.keys()
     );
+    if (listOfAllCenterPoints.length == 0) return previousCluster;
     newDataPoints.forEach((newObject) => {
       newObject.getPoI().forEach((vector) => {
         let nearestObject: THREE.Vector3 = listOfAllCenterPoints[0];

@@ -359,7 +359,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   distanceLevel1: {
     value: 20,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 100.0,
       step: 2.0,
     },
@@ -373,7 +373,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   distanceLevel2: {
     value: 65,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 100.0,
       step: 2.0,
     },
@@ -387,7 +387,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   distanceLevel3: {
     value: 70,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 100.0,
       step: 2.0,
     },
@@ -401,7 +401,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   distanceLevel4: {
     value: 80,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 100.0,
       step: 2.0,
     },
@@ -415,7 +415,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   distanceLevel5: {
     value: 90,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 100.0,
       step: 2.0,
     },
