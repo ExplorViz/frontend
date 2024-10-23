@@ -981,7 +981,7 @@ export default class SemanticZoomManager {
       ) {
         // Add to exisiting Cluster
         this.clusterManager?.addMe(this.preClustered, [obj3d]);
-        this.debug('New Element added to Cluster!');
+        //this.debug('New Element added to Cluster!');
         this.lastAddToCluster = new Date();
       } else {
         // Recluster
@@ -997,7 +997,7 @@ export default class SemanticZoomManager {
   remove(obj3d: SemanticZoomableObject) {
     const index: number = this.zoomableObjects.indexOf(obj3d);
     this.zoomableObjects.splice(index, 1);
-    this.debug('Removed index: ' + index);
+    //this.debug('Removed index: ' + index);
   }
   /**
    * Logs the current state and provides an overview of active appearence levels
@@ -1106,8 +1106,14 @@ export default class SemanticZoomManager {
    */
   triggerLevelDecision2WithDebounce(cam: THREE.Camera | undefined) {
     //if (this.busyTill > Date.now()) return;
-    if (this.stillBusy == true) return;
+    if (this.stillBusy == true) {
+      this.debug('# Semantic Zoom update still running!!!');
+      return;
+    }
     if (this.timeoutId) {
+      this.debug(
+        '# Semantic Zoom update still queued - to fast interaction!!!'
+      );
       clearTimeout(this.timeoutId);
     }
     this.timeoutId = setTimeout(() => {
@@ -1121,10 +1127,12 @@ export default class SemanticZoomManager {
    * @returns void
    */
   triggerLevelDecision2(camO: THREE.Camera | undefined): void {
+    this.debug('# Semantic Zoom update requested');
     let cam: THREE.Camera | undefined = camO;
     if (cam == undefined) cam = this.currentCam;
     if (cam == undefined) return;
     if (this.isEnabled == false) return;
+    this.debug('## Semantic Zoom update started...');
     this.stillBusy = true;
     const alreadyAccessed: Array<SemanticZoomableObject> = [];
     if (this.alreadyCreatedZoomLevelMap == false) {
@@ -1232,6 +1240,7 @@ export default class SemanticZoomManager {
         this.busyTill +
         Math.floor(unpriviledegedClusterMembers.length / 100) * 50;
     });
+    this.debug('### Semantic Zoom update finished');
     this.logCurrentState();
   }
   preProcessDistanceToLevelMap() {

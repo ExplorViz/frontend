@@ -12,6 +12,9 @@ export default class Configuration extends Service {
   @tracked
   isCommRendered = true;
 
+  @tracked
+  semanticZoomManagerState: boolean = false;
+
   commCurveHeightDependsOnDistance = true;
 
   // Determines height of class communication curves, 0 results in straight lines

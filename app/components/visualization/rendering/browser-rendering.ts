@@ -108,9 +108,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   canvas!: HTMLCanvasElement;
 
-  @tracked
-  semanticZoomManagerState: boolean;
-
   popupHandler: PopupHandler;
 
   renderer!: THREE.WebGLRenderer;
@@ -168,7 +165,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    this.semanticZoomManagerState = SemanticZoomManager.instance.isEnabled;
+    this.configuration.semanticZoomManagerState =
+      SemanticZoomManager.instance.isEnabled;
 
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
@@ -257,7 +255,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const pauseItemTitle = this.args.visualizationPaused
       ? 'Resume Visualization'
       : 'Pause Visualization';
-    const semanticZoomButtonTitle = this.semanticZoomManagerState
+    const semanticZoomButtonTitle = this.configuration.semanticZoomManagerState
       ? 'Semantic Zoom disable (Beta)'
       : 'Semantic Zoom enable (Beta)';
 
@@ -290,7 +288,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     } else {
       SemanticZoomManager.instance.deactivate();
     }
-    this.semanticZoomManagerState = SemanticZoomManager.instance.isEnabled;
+    this.configuration.semanticZoomManagerState =
+      SemanticZoomManager.instance.isEnabled;
     //this.semanticZoomToggle = !this.semanticZoomToggle;
   }
 

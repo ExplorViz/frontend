@@ -184,30 +184,36 @@ export default class Settings extends Component<Args> {
         break;
       case 'distancePreSet':
         if (input == 1) {
+          valueArray[0].value = 5;
+          valueArray[1].value = 30;
+          valueArray[2].value = 40;
+          valueArray[3].value = 50;
+          valueArray[4].value = 60;
+        } else if (input == 2) {
           valueArray[0].value = 10;
           valueArray[1].value = 40;
           valueArray[2].value = 50;
           valueArray[3].value = 60;
           valueArray[4].value = 70;
-        } else if (input == 2) {
+        } else if (input == 3) {
           valueArray[0].value = 20;
           valueArray[1].value = 50;
           valueArray[2].value = 60;
           valueArray[3].value = 70;
           valueArray[4].value = 80;
-        } else if (input == 3) {
+        } else if (input == 4) {
           valueArray[0].value = 40;
           valueArray[1].value = 60;
           valueArray[2].value = 70;
           valueArray[3].value = 80;
           valueArray[4].value = 90;
-        } else if (input == 4) {
+        } else if (input == 5) {
           valueArray[0].value = 65;
           valueArray[1].value = 80;
           valueArray[2].value = 85;
           valueArray[3].value = 90;
           valueArray[4].value = 95;
-        } else if (input == 5) {
+        } else if (input == 6) {
           valueArray[0].value = 75;
           valueArray[1].value = 80;
           valueArray[2].value = 85;

@@ -346,7 +346,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: 0,
     range: {
       min: 0.0,
-      max: 5.0,
+      max: 6.0,
       step: 1.0,
     },
     orderNumber: 2,

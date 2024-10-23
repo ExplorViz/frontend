@@ -8,6 +8,15 @@
     </div>
   {{/if}}
 
+  {{#if this.isSemanticZoomEnabled}}
+    <div class='navbar-success-icon'>
+      {{svg-jar 'search-24' class='octicon'}}
+      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+        Semantic Zoom enabled
+      </BsTooltip>
+    </div>
+  {{/if}}
+
   {{#if this.isOnline}}
     <div class='navbar-success-icon'>
       {{svg-jar 'globe-16' class='octicon'}}&nbsp;({{this.users}})
