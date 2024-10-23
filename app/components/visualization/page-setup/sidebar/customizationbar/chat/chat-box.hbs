@@ -70,8 +70,11 @@
         </div>
       {{/if}}
       <div class='synchronize'>
-        <BsButton {{on 'click' this.synchronize}} title='Synchronize'>
-          {{svg-jar 'sync-16' class='octicon align-middle'}}
+        <BsButton
+          {{on 'click' this.synchronize}}
+          title='Get Chat Log From Room'
+        >
+          {{svg-jar 'log-16' class='octicon align-middle'}}
         </BsButton>
       </div>
       <div class='download'>
