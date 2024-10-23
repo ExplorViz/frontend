@@ -84,7 +84,7 @@ export default class LocalUser extends Service.extend({
     super.init();
 
     this.userId = 'unknown';
-    this.host = false;
+    this.isHost = false;
     this.userGroup = new THREE.Group();
 
     // Initialize camera. The default aspect ratio is not known at this point
