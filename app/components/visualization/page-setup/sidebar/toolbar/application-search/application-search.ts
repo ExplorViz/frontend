@@ -10,11 +10,8 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 import LocalUser from 'collaboration/services/local-user';
 
-interface Args {
-  removeToolsSidebarComponent(nameOfComponent: string): void;
-}
 /* eslint-disable require-yield */
-export default class ApplicationSearch extends GlimmerComponent<Args> {
+export default class ApplicationSearch extends GlimmerComponent {
   @service('local-user')
   localUser!: LocalUser;
 
@@ -29,7 +26,7 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
 
   searchLogic!: ApplicationSearchLogic;
 
-  constructor(owner: any, args: Args) {
+  constructor(owner: any, args: any) {
     super(owner, args);
 
     this.searchLogic = new ApplicationSearchLogic(getOwner(this));
@@ -135,11 +132,6 @@ export default class ApplicationSearch extends GlimmerComponent<Args> {
       this.highlightingService.unhighlightById(removedEntries[0].modelId);
     }*/
     this.selected = [...newSelection];
-  }
-
-  @action
-  close() {
-    this.args.removeToolsSidebarComponent('application-search');
   }
 
   @action

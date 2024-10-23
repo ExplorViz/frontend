@@ -369,7 +369,7 @@ export default class CollaborationSession extends Service.extend({
     }
   }
 
-  async joinRoom(roomId: string) {
+  async joinRoom(roomId: string, spectateDevice: string = 'default') {
     if (this.isConnecting) {
       this.toastHandlerService.showErrorToastMessage(
         'Tried to join room while already connecting to a room.'
@@ -392,7 +392,11 @@ export default class CollaborationSession extends Service.extend({
     if (token) {
       this.tokenService.setToken(token);
       this.router.transitionTo('visualization', {
-        queryParams: { landscapeToken: token.value, roomId: roomId },
+        queryParams: {
+          landscapeToken: token.value,
+          roomId: roomId,
+          deviceId: spectateDevice !== undefined ? spectateDevice : 'default',
+        },
       });
     } else {
       this.toastHandlerService.showErrorToastMessage(

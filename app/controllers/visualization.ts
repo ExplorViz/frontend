@@ -352,7 +352,7 @@ export default class VisualizationController extends Controller {
 
   private switchToMode(mode: VisualizationMode) {
     this.roomSerializer.serializeRoom();
-    this.sidebarHandler.closeDataSelection();
+    this.sidebarHandler.closeSettingsSidebar();
     this.localUser.visualizationMode = mode;
     this.webSocket.send<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -414,17 +414,18 @@ export default class VisualizationController extends Controller {
     this.timestampRepo.timestamps = new Map();
 
     if (this.sidebarHandler) {
-      this.sidebarHandler.closeDataSelection();
+      this.sidebarHandler.closeSettingsSidebar();
       this.sidebarHandler.closeToolsSidebar();
     }
 
-    // always show runtime first
+    // Always show runtime first
     this.isRuntimeTimelineSelected = true;
     this.isCommitTreeSelected = false;
 
     this.evolutionDataRepository.resetAllEvolutionData();
 
     this.roomId = null;
+    this.localUser.visualizationMode = 'browser';
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(
