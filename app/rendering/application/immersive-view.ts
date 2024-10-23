@@ -141,6 +141,7 @@ export class ImmersiveView {
 
   // Callbacks
   callbackOnEntering: (() => void) | undefined;
+  callbackOnExit: (() => void) | undefined;
 
   // Singleton
   static #instance: ImmersiveView;
@@ -321,6 +322,8 @@ export class ImmersiveView {
     );
     this.renderingLoop?.changeScene(this.originalScene);
     this.renderingLoop?.changeCamera(this.originalCamera);
+    // Callback
+    if (this.callbackOnExit != undefined) this.callbackOnExit();
     this.insideImmersiveViewActive = false;
     // enable Map Controls again
     if (this.originalMapControl != undefined)

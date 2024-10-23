@@ -180,7 +180,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.popupHandler = new PopupHandler(getOwner(this));
     ImmersiveView.instance.callbackOnEntering = () => {
-      this.popupHandler.removeUnmovedPopups();
+      this.popupHandler.deactivated = true;
+      this.popupHandler.clearPopups();
+    };
+    ImmersiveView.instance.callbackOnExit = () => {
+      this.popupHandler.deactivated = false;
     };
     this.applicationRenderer.forceGraph = this.graph;
     // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.

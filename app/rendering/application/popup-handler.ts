@@ -55,6 +55,8 @@ export default class PopupHandler {
   @tracked
   popupData: PopupData[] = [];
 
+  deactivated: boolean = false;
+
   constructor(owner: any) {
     setOwner(this, owner);
     this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
@@ -200,6 +202,8 @@ export default class PopupHandler {
     if (!isEntityMesh(mesh)) {
       return;
     }
+    if (this.deactivated == true) return;
+
     let popupPosition = position;
 
     // Popups shared by other users have no position information
@@ -261,6 +265,7 @@ export default class PopupHandler {
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
+    if (this.deactivated == true) return;
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
     popup.isPinned = popup.isPinned || newPopup.isPinned;
     popup.sharedBy = newPopup.sharedBy;
@@ -276,6 +281,7 @@ export default class PopupHandler {
     if (!mesh) {
       return;
     }
+    if (this.deactivated == true) return;
 
     this.addPopup({
       mesh,
@@ -287,6 +293,7 @@ export default class PopupHandler {
   }
 
   onRestorePopups(popups: SerializedPopup[]) {
+    if (this.deactivated == true) return;
     this.popupData = [];
 
     for (const popup of popups) {
