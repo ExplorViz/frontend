@@ -32,7 +32,7 @@ export default class ImmsersiveClassScene {
 
     // Inject Test Data
     const newInterface: Partial<Interface> = {
-      name: 'Mega_Interface',
+      name: 'MyInterface',
       methods: [],
     };
     this.classModel.implements = [newInterface as Interface];
@@ -97,9 +97,9 @@ export default class ImmsersiveClassScene {
     //this.scene.add(sphere1);
 
     this.displayClassHeaderInformation(this.classModel, sphere1);
-    this.displaySeperator(55, 0.01, sphere1);
+    this.displaySeperator(55, 0.005, sphere1);
     this.displayMethods(this.classModel.methods, sphere1);
-    this.displaySeperator(125, 0.01, sphere1);
+    this.displaySeperator(125, 0.005, sphere1);
     if (this.classModel.variables)
       this.displayVariables(this.classModel.variables, sphere1);
   }
@@ -281,7 +281,7 @@ export default class ImmsersiveClassScene {
     //   segs = 64;
 
     const geometry = new THREE.TorusGeometry(sliceRadius, size, 64, 48);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    const material = new THREE.MeshBasicMaterial({ color: 0x000 });
     const torus = new THREE.Mesh(geometry, material);
     torus.rotation.x = Math.PI / 2;
     torus.geometry.center();
@@ -317,7 +317,7 @@ export default class ImmsersiveClassScene {
       curveSegments: 12,
     });
     const classNameMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
+      color: 0x000000,
       wireframe: false,
     });
     const classNameMesh = new THREE.Mesh(classNameGeometry, classNameMaterial);

@@ -325,7 +325,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Use k-Means instead of Shift-Mean',
     description:
-      'If on, it uses k-Means clustering with the provided k value below.',
+      "If on, it uses k-Means clustering with the provided k value below. It works better in combination with 'Auto Open/Close of Components' feature enabled.",
     isFlagSetting: true,
   },
   clusterBasedOnMembers: {
@@ -339,7 +339,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     group: 'Semantic Zoom',
     displayName: 'Relative # of clusters',
     description:
-      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If Clustering mode is not k-means, this value is irgnored.',
+      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If the clustering mode is not k-means, this value is ignored.',
     isRangeSetting: true,
   },
   distancePreSet: {
